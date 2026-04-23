@@ -28,7 +28,10 @@ object TapAndPayProxy {
 
       @Suppress("UNCHECKED_CAST")
       listTokensMethod.invoke(client) as Task<List<Any>>
-    } catch (e: Exception) {
+    } catch (e: ClassNotFoundException) {
+      Log.e(TAG, "There was a problem listing tokens with Google TapAndPay: " + e.message)
+      null
+    } catch (e: ReflectiveOperationException) {
       Log.e(TAG, "There was a problem listing tokens with Google TapAndPay: " + e.message)
       null
     }
@@ -44,7 +47,10 @@ object TapAndPayProxy {
           .getMethod("getFpanLastFour")
       val existingFpanLastFour = getFpanLastFourMethod.invoke(token) as String
       existingFpanLastFour == newLastFour
-    } catch (e: Exception) {
+    } catch (e: ClassNotFoundException) {
+      Log.e(TAG, "There was a problem getting the FPAN with Google TapAndPay: " + e.message)
+      false
+    } catch (e: ReflectiveOperationException) {
       Log.e(TAG, "There was a problem getting the FPAN with Google TapAndPay: " + e.message)
       false
     }
@@ -104,7 +110,9 @@ object TapAndPayProxy {
         token.getIntOr("network", 0),
         REQUEST_CODE_TOKENIZE,
       )
-    } catch (e: Exception) {
+    } catch (e: ClassNotFoundException) {
+      Log.e(TAG, "There was a problem tokenizing with Google TapAndPay: " + e.message)
+    } catch (e: ReflectiveOperationException) {
       Log.e(TAG, "There was a problem tokenizing with Google TapAndPay: " + e.message)
     }
   }
@@ -132,7 +140,12 @@ object TapAndPayProxy {
           "serviceProvider",
           tokenInfoClass.getMethod("getTokenServiceProvider").invoke(it) as Int,
         )
-      } catch (e: Exception) {
+      } catch (e: ClassNotFoundException) {
+        Log.e(
+          TAG,
+          "There was a problem mapping the token information with Google TapAndPay: " + e.message,
+        )
+      } catch (e: ReflectiveOperationException) {
         Log.e(
           TAG,
           "There was a problem mapping the token information with Google TapAndPay: " + e.message,
@@ -158,7 +171,10 @@ object TapAndPayProxy {
           "TOKEN_STATE_UNTOKENIZED"
         else -> "UNKNOWN"
       }
-    } catch (e: Exception) {
+    } catch (e: ClassNotFoundException) {
+      Log.e(TAG, "There was a problem mapping the token state with Google TapAndPay: " + e.message)
+      return "UNKNOWN"
+    } catch (e: ReflectiveOperationException) {
       Log.e(TAG, "There was a problem mapping the token state with Google TapAndPay: " + e.message)
       return "UNKNOWN"
     }

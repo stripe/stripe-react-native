@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.reactnativestripesdk.pushprovisioning
 
 import com.facebook.react.bridge.Dynamic
@@ -30,7 +32,8 @@ class AddToWalletButtonManager :
     view.onAfterUpdateTransaction()
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView = AddToWalletButtonView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView =
+    AddToWalletButtonView(reactContext)
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(

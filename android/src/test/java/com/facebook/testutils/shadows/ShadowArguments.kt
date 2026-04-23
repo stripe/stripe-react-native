@@ -16,14 +16,12 @@ import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
 
 @Implements(Arguments::class)
-class ShadowArguments {
-  companion object {
-    @JvmStatic
-    @Implementation
-    fun createArray(): WritableArray = JavaOnlyArray()
+object ShadowArguments {
+  @JvmStatic
+  @Implementation
+  fun createArray(): WritableArray = JavaOnlyArray()
 
-    @JvmStatic
-    @Implementation
-    fun createMap(): WritableMap = JavaOnlyMap()
-  }
+  @JvmStatic
+  @Implementation
+  fun createMap(): WritableMap = JavaOnlyMap()
 }

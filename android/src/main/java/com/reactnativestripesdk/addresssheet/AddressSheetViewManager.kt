@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.reactnativestripesdk.addresssheet
 
 import com.facebook.react.bridge.Dynamic

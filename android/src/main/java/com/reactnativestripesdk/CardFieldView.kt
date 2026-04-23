@@ -37,6 +37,7 @@ import com.stripe.android.view.CardValidCallback
 import com.stripe.android.view.StripeEditText
 
 @SuppressLint("ViewConstructor")
+@Suppress("TooManyFunctions")
 class CardFieldView(
   private val context: ThemedReactContext,
 ) : FrameLayout(context) {
@@ -58,6 +59,11 @@ class CardFieldView(
   private var dangerouslyGetFullCardDetails: Boolean = false
   private var currentFocusedField: String? = null
   private var isCardValid = false
+
+  companion object {
+    private const val HORIZONTAL_PADDING = 20
+    private const val VERTICAL_PADDING = 0
+  }
 
   init {
     cardInputWidgetBinding.container.isFocusable = true
@@ -103,6 +109,7 @@ class CardFieldView(
       ?.dispatchEvent(CardFocusChangeEvent(context.surfaceId, id, currentFocusedField))
   }
 
+  @Suppress("CyclomaticComplexMethod", "LongMethod")
   fun setCardStyle(value: ReadableMap?) {
     val borderWidth = value.getIntOrNull("borderWidth")
     val backgroundColor = getValOr(value, "backgroundColor", null)
@@ -169,7 +176,7 @@ class CardFieldView(
       }
     }
 
-    mCardWidget.setPadding(20, 0, 20, 0)
+    mCardWidget.setPadding(HORIZONTAL_PADDING, VERTICAL_PADDING, HORIZONTAL_PADDING, VERTICAL_PADDING)
     mCardWidget.background =
       MaterialShapeDrawable(
         ShapeAppearanceModel()
@@ -199,7 +206,7 @@ class CardFieldView(
         .let {
           it(cardInputWidgetBinding.cardBrandView, color)
         }
-    } catch (e: Exception) {
+    } catch (e: ReflectiveOperationException) {
       Log.e(
         "StripeReactNative",
         "Unable to set card brand tint color: " + e.message,
@@ -308,6 +315,7 @@ class CardFieldView(
       )
   }
 
+  @Suppress("LongMethod")
   private fun setListeners() {
     cardInputWidgetBinding.cardNumberEditText.setOnFocusChangeListener { _, hasFocus ->
       currentFocusedField = if (hasFocus) CardInputListener.FocusField.CardNumber.name else null
@@ -369,15 +377,20 @@ class CardFieldView(
 
     mCardWidget.setCardInputListener(
       object : CardInputListener {
-        override fun onCardComplete() {}
+        override fun onCardComplete() { // no-op
+        }
 
-        override fun onExpirationComplete() {}
+        override fun onExpirationComplete() { // no-op
+        }
 
-        override fun onCvcComplete() {}
+        override fun onCvcComplete() { // no-op
+        }
 
-        override fun onPostalCodeComplete() {}
+        override fun onPostalCodeComplete() { // no-op
+        }
 
-        override fun onFocusChange(focusField: CardInputListener.FocusField) {}
+        override fun onFocusChange(focusField: CardInputListener.FocusField) { // no-op
+        }
       },
     )
 
@@ -388,10 +401,11 @@ class CardFieldView(
           p1: Int,
           p2: Int,
           p3: Int,
-        ) {
+        ) { // no-op
         }
 
-        override fun afterTextChanged(p0: Editable?) {}
+        override fun afterTextChanged(p0: Editable?) { // no-op
+        }
 
         override fun onTextChanged(
           var1: CharSequence?,
@@ -416,10 +430,11 @@ class CardFieldView(
           p1: Int,
           p2: Int,
           p3: Int,
-        ) {
+        ) { // no-op
         }
 
-        override fun afterTextChanged(p0: Editable?) {}
+        override fun afterTextChanged(p0: Editable?) { // no-op
+        }
 
         override fun onTextChanged(
           var1: CharSequence?,
@@ -439,10 +454,11 @@ class CardFieldView(
           p1: Int,
           p2: Int,
           p3: Int,
-        ) {
+        ) { // no-op
         }
 
-        override fun afterTextChanged(p0: Editable?) {}
+        override fun afterTextChanged(p0: Editable?) { // no-op
+        }
 
         override fun onTextChanged(
           var1: CharSequence?,
@@ -464,10 +480,11 @@ class CardFieldView(
           p1: Int,
           p2: Int,
           p3: Int,
-        ) {
+        ) { // no-op
         }
 
-        override fun afterTextChanged(p0: Editable?) {}
+        override fun afterTextChanged(p0: Editable?) { // no-op
+        }
 
         override fun onTextChanged(
           var1: CharSequence?,

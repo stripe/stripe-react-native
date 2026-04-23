@@ -64,6 +64,7 @@ abstract class StripeAbstractComposeView(
 
     @Composable
     override fun Content() {
+      // no-op
     }
   }
 

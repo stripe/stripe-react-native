@@ -16,6 +16,9 @@ import com.stripe.android.paymentelement.AppearanceAPIAdditionsPreview
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.uicore.StripeThemeDefaults
 
+private const val HEX_COLOR_LENGTH_RGB = 6
+private const val HEX_COLOR_LENGTH_ARGB = 8
+
 @SuppressLint("RestrictedApi")
 fun buildPaymentSheetAppearance(
   userParams: ReadableMap?,
@@ -74,7 +77,7 @@ private fun buildTypography(
 @Throws(PaymentSheetAppearanceException::class)
 private fun colorFromHex(hexString: String?): Int? =
   hexString?.trim()?.replace("#", "")?.let {
-    if (it.length == 6 || it.length == 8) {
+    if (it.length == HEX_COLOR_LENGTH_RGB || it.length == HEX_COLOR_LENGTH_ARGB) {
       "#$it".toColorInt()
     } else {
       throw PaymentSheetAppearanceException(
@@ -207,7 +210,7 @@ private fun buildPrimaryButtonColors(
       PaymentSheet.PrimaryButtonColors.Builder.dark()
     }
 
-  // TODO: Why is background a string but successBackgroundColor a "dynamic" color?
+  // TODO Why is background a string but successBackgroundColor a "dynamic" color?
   // https://stripe.dev/stripe-react-native/api-reference/types/PaymentSheet.PrimaryButtonColorConfig.html
   colorFromHex(colorParams.getString(PaymentSheetAppearanceKeys.BACKGROUND))?.let {
     builder.background(it)
@@ -239,6 +242,7 @@ private fun buildPrimaryButtonColors(
   return builder
 }
 
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @SuppressLint("RestrictedApi")
 @Throws(PaymentSheetAppearanceException::class)
 private fun buildEmbeddedAppearance(
@@ -387,7 +391,7 @@ private fun buildEmbeddedAppearance(
         rowStyleBuilder.additionalVerticalInsetsDp(it)
       }
 
-      // TODO: The theme is so crazy long, why does each Color thing has the same redundant Theme...
+      // TODO The theme is so crazy long, why does each Color thing has the same redundant Theme...
       rowStyleBuilder.colorsLight(flatCheckmarkLightColorsBuilder.build())
       rowStyleBuilder.colorsDark(flatCheckmarkDarkColorsBuilder.build())
       embeddedBuilder.rowStyle(rowStyleBuilder.build())
@@ -474,7 +478,10 @@ private fun buildEmbeddedAppearance(
     }
 
     else -> {
-      System.err.println("WARN: Unsupported embedded payment element row style received: $styleString. Falling back to default.")
+      System.err.println(
+        "WARN: Unsupported embedded payment element row style received: " +
+          "$styleString. Falling back to default.",
+      )
     }
   }
   return embeddedBuilder.build()
@@ -542,33 +549,43 @@ internal fun getFontResId(
   key: String,
   context: Context,
 ): Int? {
-  val fontErrorPrefix = "Encountered an error when setting a custom font:"
   if (map?.hasKey(key) != true) {
     return null
   }
 
-  val fontFileName =
-    map.getString(key)
-      ?: throw PaymentSheetAppearanceException(
-        "$fontErrorPrefix expected String for font.$key, but received null.",
-      )
-  if (Regex("[^a-z0-9]").containsMatchIn(fontFileName)) {
-    throw PaymentSheetAppearanceException(
-      "$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font",
-    )
+  val fontFileName = map.getString(key)
+  val errorMessage = validateFontFileName(fontFileName, key)
+  if (errorMessage != null) {
+    throw PaymentSheetAppearanceException(errorMessage)
   }
 
   @SuppressLint("DiscouragedApi")
   val id = context.resources.getIdentifier(fontFileName, "font", context.packageName)
   if (id == 0) {
-    throw PaymentSheetAppearanceException("$fontErrorPrefix Failed to find font: $fontFileName")
-  } else {
-    return id
+    throw PaymentSheetAppearanceException(
+      "Encountered an error when setting a custom font: Failed to find font: $fontFileName",
+    )
   }
+  return id
 }
 
-private class PaymentSheetAppearanceKeys {
-  companion object {
+private fun validateFontFileName(
+  fontFileName: String?,
+  key: String,
+): String? {
+  val prefix = "Encountered an error when setting a custom font:"
+  if (fontFileName == null) {
+    return "$prefix expected String for font.$key, but received null."
+  }
+  if (Regex("[^a-z0-9]").containsMatchIn(fontFileName)) {
+    return "$prefix appearance.font.$key should only contain lowercase " +
+      "alphanumeric characters on Android, but received '$fontFileName'. " +
+      "This value must match the filename in android/app/src/main/res/font"
+  }
+  return null
+}
+
+private object PaymentSheetAppearanceKeys {
     const val COLORS = "colors"
     const val LIGHT = "light"
     const val DARK = "dark"
@@ -628,5 +645,4 @@ private class PaymentSheetAppearanceKeys {
     const val BOTTOM = "bottom"
 
     const val FORM_INSETS = "formInsetValues"
-  }
 }

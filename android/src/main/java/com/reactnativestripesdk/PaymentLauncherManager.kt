@@ -164,8 +164,9 @@ class PaymentLauncherManager(
     } else if (handleNextActionSetupIntentClientSecret != null) {
       paymentLauncher.handleNextActionForSetupIntent(handleNextActionSetupIntentClientSecret!!)
     } else {
-      throw Exception(
-        "Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client secret and setup params (if necessary).",
+      throw IllegalStateException(
+        "Invalid parameters provided to PaymentLauncher. " +
+          "Ensure that you are providing the correct client secret and setup params (if necessary).",
       )
     }
   }
@@ -183,7 +184,9 @@ class PaymentLauncherManager(
             retrieveSetupIntent(it, stripeAccountId)
           } ?: handleNextActionSetupIntentClientSecret?.let {
             retrieveSetupIntent(it, stripeAccountId)
-          } ?: throw Exception("Failed to create Payment Launcher. No client secret provided.")
+          } ?: throw IllegalStateException(
+            "Failed to create Payment Launcher. No client secret provided.",
+          )
         }
         is PaymentResult.Canceled -> {
           promise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), message = null))

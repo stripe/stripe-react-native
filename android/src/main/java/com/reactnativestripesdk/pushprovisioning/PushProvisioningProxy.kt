@@ -23,7 +23,7 @@ object PushProvisioningProxy {
     try {
       Class.forName("com.stripe.android.pushProvisioning.PushProvisioningActivity")
       PushProvisioningActivity.API_VERSION
-    } catch (e: Exception) {
+    } catch (e: ClassNotFoundException) {
       Log.e(TAG, "PushProvisioning dependency not found")
       ""
     }
@@ -57,7 +57,9 @@ object PushProvisioningProxy {
             createError("Failed", "Activity doesn't exist yet. You can safely retry."),
           )
         }
-    } catch (e: Exception) {
+    } catch (e: ClassNotFoundException) {
+      Log.e(TAG, "There was a problem using Stripe Android PushProvisioning: " + e.message)
+    } catch (e: ReflectiveOperationException) {
       Log.e(TAG, "There was a problem using Stripe Android PushProvisioning: " + e.message)
     }
   }

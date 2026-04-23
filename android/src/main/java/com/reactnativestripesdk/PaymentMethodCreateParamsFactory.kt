@@ -31,39 +31,35 @@ class PaymentMethodCreateParamsFactory(
   private val metadataParams: Map<String, String>? =
     mapToMetadata(paymentMethodData?.getMap("metadata"))
 
+  @Suppress("CyclomaticComplexMethod")
   @Throws(PaymentMethodCreateParamsException::class)
-  fun createPaymentMethodParams(paymentMethodType: PaymentMethod.Type): PaymentMethodCreateParams {
-    try {
-      return when (paymentMethodType) {
-        PaymentMethod.Type.Card -> createCardPaymentMethodParams()
-        PaymentMethod.Type.Ideal -> createIDEALParams()
-        PaymentMethod.Type.Alipay -> createAlipayParams()
-        PaymentMethod.Type.Alma -> createAlmaParams()
-        PaymentMethod.Type.Bancontact -> createBancontactParams()
-        PaymentMethod.Type.Billie -> createBillieParams()
-        PaymentMethod.Type.SepaDebit -> createSepaParams()
-        PaymentMethod.Type.Multibanco -> createMultibancoParams()
-        PaymentMethod.Type.Oxxo -> createOXXOParams()
-        PaymentMethod.Type.Eps -> createEPSParams()
-        PaymentMethod.Type.GrabPay -> createGrabPayParams()
-        PaymentMethod.Type.P24 -> createP24Params()
-        PaymentMethod.Type.Fpx -> createFpxParams()
-        PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayParams()
-        PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitParams()
-        PaymentMethod.Type.Klarna -> createKlarnaParams()
-        PaymentMethod.Type.USBankAccount -> createUSBankAccountParams(paymentMethodData)
-        PaymentMethod.Type.PayPal -> createPayPalParams()
-        PaymentMethod.Type.Affirm -> createAffirmParams()
-        PaymentMethod.Type.CashAppPay -> createCashAppParams()
-        PaymentMethod.Type.RevolutPay -> createRevolutPayParams()
-        else -> {
-          throw Exception("This paymentMethodType is not supported yet")
-        }
+  fun createPaymentMethodParams(paymentMethodType: PaymentMethod.Type): PaymentMethodCreateParams =
+    when (paymentMethodType) {
+      PaymentMethod.Type.Card -> createCardPaymentMethodParams()
+      PaymentMethod.Type.Ideal -> createIDEALParams()
+      PaymentMethod.Type.Alipay -> createAlipayParams()
+      PaymentMethod.Type.Alma -> createAlmaParams()
+      PaymentMethod.Type.Bancontact -> createBancontactParams()
+      PaymentMethod.Type.Billie -> createBillieParams()
+      PaymentMethod.Type.SepaDebit -> createSepaParams()
+      PaymentMethod.Type.Multibanco -> createMultibancoParams()
+      PaymentMethod.Type.Oxxo -> createOXXOParams()
+      PaymentMethod.Type.Eps -> createEPSParams()
+      PaymentMethod.Type.GrabPay -> createGrabPayParams()
+      PaymentMethod.Type.P24 -> createP24Params()
+      PaymentMethod.Type.Fpx -> createFpxParams()
+      PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayParams()
+      PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitParams()
+      PaymentMethod.Type.Klarna -> createKlarnaParams()
+      PaymentMethod.Type.USBankAccount -> createUSBankAccountParams(paymentMethodData)
+      PaymentMethod.Type.PayPal -> createPayPalParams()
+      PaymentMethod.Type.Affirm -> createAffirmParams()
+      PaymentMethod.Type.CashAppPay -> createCashAppParams()
+      PaymentMethod.Type.RevolutPay -> createRevolutPayParams()
+      else -> {
+        throw IllegalArgumentException("This paymentMethodType is not supported yet")
       }
-    } catch (error: PaymentMethodCreateParamsException) {
-      throw error
     }
-  }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createIDEALParams(): PaymentMethodCreateParams {
@@ -234,7 +230,8 @@ class PaymentMethodCreateParamsFactory(
     )
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createPayPalParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
+  private fun createPayPalParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAffirmParams(): PaymentMethodCreateParams =
@@ -262,61 +259,56 @@ class PaymentMethodCreateParamsFactory(
     clientSecret: String,
     paymentMethodType: PaymentMethod.Type?,
     isPaymentIntent: Boolean,
-  ): ConfirmStripeIntentParams {
-    try {
-      return when (paymentMethodType) {
-        PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, isPaymentIntent)
-        PaymentMethod.Type.USBankAccount ->
-          createUSBankAccountStripeIntentParams(clientSecret, isPaymentIntent)
+  ): ConfirmStripeIntentParams =
+    when (paymentMethodType) {
+      PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, isPaymentIntent)
+      PaymentMethod.Type.USBankAccount ->
+        createUSBankAccountStripeIntentParams(clientSecret, isPaymentIntent)
 
-        PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
-        PaymentMethod.Type.Ideal,
-        PaymentMethod.Type.Alipay,
-        PaymentMethod.Type.Alma,
-        PaymentMethod.Type.Bancontact,
-        PaymentMethod.Type.Billie,
-        PaymentMethod.Type.SepaDebit,
-        PaymentMethod.Type.Multibanco,
-        PaymentMethod.Type.Oxxo,
-        PaymentMethod.Type.Eps,
-        PaymentMethod.Type.GrabPay,
-        PaymentMethod.Type.P24,
-        PaymentMethod.Type.Fpx,
-        PaymentMethod.Type.AfterpayClearpay,
-        PaymentMethod.Type.AuBecsDebit,
-        PaymentMethod.Type.Klarna,
-        PaymentMethod.Type.PayPal,
-        PaymentMethod.Type.CashAppPay,
-        PaymentMethod.Type.RevolutPay,
-        -> {
-          val params = createPaymentMethodParams(paymentMethodType)
+      PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
+      PaymentMethod.Type.Ideal,
+      PaymentMethod.Type.Alipay,
+      PaymentMethod.Type.Alma,
+      PaymentMethod.Type.Bancontact,
+      PaymentMethod.Type.Billie,
+      PaymentMethod.Type.SepaDebit,
+      PaymentMethod.Type.Multibanco,
+      PaymentMethod.Type.Oxxo,
+      PaymentMethod.Type.Eps,
+      PaymentMethod.Type.GrabPay,
+      PaymentMethod.Type.P24,
+      PaymentMethod.Type.Fpx,
+      PaymentMethod.Type.AfterpayClearpay,
+      PaymentMethod.Type.AuBecsDebit,
+      PaymentMethod.Type.Klarna,
+      PaymentMethod.Type.PayPal,
+      PaymentMethod.Type.CashAppPay,
+      PaymentMethod.Type.RevolutPay,
+      -> {
+        val params = createPaymentMethodParams(paymentMethodType)
 
-          return if (isPaymentIntent) {
-            ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
-              paymentMethodCreateParams = params,
-              clientSecret = clientSecret,
-              setupFutureUsage =
-                mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
-              mandateData = buildMandateDataParams(),
-            )
-          } else {
-            ConfirmSetupIntentParams.create(
-              paymentMethodCreateParams = params,
-              clientSecret = clientSecret,
-              mandateData = buildMandateDataParams(),
-            )
-          }
-        }
-
-        null -> ConfirmPaymentIntentParams.create(clientSecret)
-        else -> {
-          throw Exception("This paymentMethodType is not supported yet")
+        if (isPaymentIntent) {
+          ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
+            paymentMethodCreateParams = params,
+            clientSecret = clientSecret,
+            setupFutureUsage =
+              mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
+            mandateData = buildMandateDataParams(),
+          )
+        } else {
+          ConfirmSetupIntentParams.create(
+            paymentMethodCreateParams = params,
+            clientSecret = clientSecret,
+            mandateData = buildMandateDataParams(),
+          )
         }
       }
-    } catch (error: PaymentMethodCreateParamsException) {
-      throw error
+
+      null -> ConfirmPaymentIntentParams.create(clientSecret)
+      else -> {
+        throw IllegalArgumentException("This paymentMethodType is not supported yet")
+      }
     }
-  }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentMethodParams(): PaymentMethodCreateParams {

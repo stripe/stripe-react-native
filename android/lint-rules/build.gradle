@@ -9,6 +9,12 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
 dependencies {
     compileOnly "com.android.tools.lint:lint-api:31.7.3"
     compileOnly "com.android.tools.lint:lint-checks:31.7.3"

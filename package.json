@@ -33,6 +33,7 @@
     "format:android:check": "cd android && ./gradlew spotlessCheck",
     "format:android:write": "cd android && ./gradlew spotlessApply",
     "lint:android": "cd android && ./gradlew :lint-rules:jar && cd ../example/android && RN_STRIPE_WARNINGS_AS_ERRORS=true ./gradlew :stripe_stripe-react-native:lint --rerun-tasks",
+    "detekt": "cd example/android && ./gradlew :stripe_stripe-react-native:detektFormat",
     "format:ios:check": "swiftlint ios --config .swiftlint.yml --strict",
     "format:ios:write": "./scripts/format-changed-ios"
   },

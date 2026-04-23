@@ -1,0 +1,180 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <!-- <ID>CyclomaticComplexMethod:CardFieldView.kt:CardFieldView$fun setCardStyle</ID>
+    <ID>CyclomaticComplexMethod:CardFormView.kt:CardFormView$@SuppressLint("RestrictedApi", "VisibleForTests") fun setCardStyle</ID>
+    <ID>CyclomaticComplexMethod:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$@SuppressLint("RestrictedApi") @Composable override fun Content</ID>
+    <ID>CyclomaticComplexMethod:Mappers.kt:@SuppressLint("RestrictedApi") internal fun mapNextAction: WritableMap?</ID>
+    <ID>CyclomaticComplexMethod:Mappers.kt:fun mapToUICustomization: PaymentAuthConfig.Stripe3ds2UiCustomization</ID>
+    <ID>CyclomaticComplexMethod:Mappers.kt:internal fun mapPaymentMethodType: String</ID>
+    <ID>CyclomaticComplexMethod:Mappers.kt:internal fun mapToPaymentMethodType: PaymentMethod.Type?</ID>
+    <ID>CyclomaticComplexMethod:OnrampSdkModule.kt:OnrampSdkModule$@ReactMethod override fun getCryptoTokenDisplayData</ID>
+    <ID>CyclomaticComplexMethod:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$@Throws(PaymentMethodCreateParamsException::class) fun createPaymentMethodParams: PaymentMethodCreateParams</ID>
+    <ID>CyclomaticComplexMethod:PaymentSheetAppearance.kt:@SuppressLint("RestrictedApi") @Throws(PaymentSheetAppearanceException::class) private fun buildEmbeddedAppearance: PaymentSheet.Appearance.Embedded</ID>
+    <ID>EmptyFunctionBlock:CardFieldView.kt:CardFieldView.&lt;no name provided>${ }</ID>
+    <ID>EmptyFunctionBlock:CardFieldView.kt:CardFieldView.&lt;no name provided>${}</ID>
+    <ID>EmptyFunctionBlock:CustomerSheetManager.kt:CustomerSheetManager.&lt;no name provided>${ }</ID>
+    <ID>EmptyFunctionBlock:CustomerSheetManager.kt:CustomerSheetManager.&lt;no name provided>${}</ID>
+    <ID>EmptyFunctionBlock:PaymentSheetManager.kt:&lt;no name provided>${}</ID>
+    <ID>EmptyFunctionBlock:PaymentSheetManager.kt:PaymentSheetManager.&lt;no name provided>${ }</ID>
+    <ID>EmptyFunctionBlock:PaymentSheetManager.kt:PaymentSheetManager.&lt;no name provided>${}</ID>
+    <ID>EmptyFunctionBlock:StripeAbstractComposeView.kt:StripeAbstractComposeView.CompatView${ }</ID>
+    <ID>EmptyFunctionBlock:StripeSdkModule.kt:StripeSdkModule.&lt;no name provided>${}</ID>
+    <ID>ForbiddenComment:Mappers.kt:// TODO: Can't access, private</ID>
+    <ID>ForbiddenComment:PaymentSheetAppearance.kt:// TODO: The theme is so crazy long, why does each Color thing has the same redundant Theme...</ID>
+    <ID>ForbiddenComment:PaymentSheetAppearance.kt:// TODO: Why is background a string but successBackgroundColor a "dynamic" color?</ID>
+    <ID>ForbiddenComment:StripeSdkModule.kt:StripeSdkModule$// TODO:</ID>
+    <ID>ForbiddenComment:StripeSdkModule.kt:StripeSdkModule$// TODO: Uncomment when WeChat is re-enabled in stripe-ios</ID>
+    <ID>ImplicitDefaultLocale:PaymentOptionDisplayDataMapper.kt:String.format("#%06X", 0xFFFFFF and bgColor.toArgb())</ID>
+    <ID>ImplicitDefaultLocale:PaymentOptionDisplayDataMapper.kt:String.format("#%06X", 0xFFFFFF and color.toArgb())</ID>
+    <ID>LargeClass:OnrampSdkModule.kt:OnrampSdkModule : NativeOnrampSdkModuleSpec</ID>
+    <ID>LargeClass:StripeSdkModule.kt:StripeSdkModule : NativeStripeSdkModuleSpec</ID>
+    <ID>LongMethod:CardFieldView.kt:CardFieldView$fun setCardStyle</ID>
+    <ID>LongMethod:CardFieldView.kt:CardFieldView$private fun setListeners</ID>
+    <ID>LongMethod:CardFormView.kt:CardFormView$@SuppressLint("RestrictedApi", "VisibleForTests") fun setCardStyle</ID>
+    <ID>LongMethod:CardFormView.kt:CardFormView$private fun setListeners</ID>
+    <ID>LongMethod:CustomerSheetManager.kt:CustomerSheetManager$override fun onCreate</ID>
+    <ID>LongMethod:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$@SuppressLint("RestrictedApi") @Composable override fun Content</ID>
+    <ID>LongMethod:EmbeddedPaymentElementViewManager.kt:EmbeddedPaymentElementViewManager$@SuppressLint("RestrictedApi") @OptIn( ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, CardFundingFilteringPrivatePreview::class, ) private fun parseElementConfiguration: EmbeddedPaymentElement.Configuration</ID>
+    <ID>LongMethod:Mappers.kt:@SuppressLint("RestrictedApi") internal fun mapNextAction: WritableMap?</ID>
+    <ID>LongMethod:Mappers.kt:fun mapToUICustomization: PaymentAuthConfig.Stripe3ds2UiCustomization</ID>
+    <ID>LongMethod:Mappers.kt:internal fun mapFromPaymentMethod: WritableMap</ID>
+    <ID>LongMethod:OnrampSdkModule.kt:OnrampSdkModule$@ReactMethod override fun getCryptoTokenDisplayData</ID>
+    <ID>LongMethod:PaymentOptionDisplayDataMapper.kt:fun AnnotatedString.toHtmlString: String</ID>
+    <ID>LongMethod:PaymentSheetAppearance.kt:@SuppressLint("RestrictedApi") @Throws(PaymentSheetAppearanceException::class) private fun buildEmbeddedAppearance: PaymentSheet.Appearance.Embedded</ID>
+    <ID>LongMethod:PaymentSheetManager.kt:PaymentSheetManager$fun configure</ID>
+    <ID>LongMethod:StripeSdkModule.kt:StripeSdkModule$@ReactMethod override fun confirmPlatformPay</ID>
+    <ID>MagicNumber:CardFieldView.kt:CardFieldView$20</ID>
+    <ID>MagicNumber:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$100</ID>
+    <ID>MagicNumber:FinancialConnectionsSheetManager.kt:FinancialConnectionsSheetManager.Companion$1000.0</ID>
+    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$1000</ID>
+    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$1001</ID>
+    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$11</ID>
+    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$4</ID>
+    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$5</ID>
+    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$6</ID>
+    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$7</ID>
+    <ID>MagicNumber:Mappers.kt:1000</ID>
+    <ID>MagicNumber:Mappers.kt:3</ID>
+    <ID>MagicNumber:Mappers.kt:4</ID>
+    <ID>MagicNumber:Mappers.kt:5</ID>
+    <ID>MagicNumber:Mappers.kt:6</ID>
+    <ID>MagicNumber:Mappers.kt:7</ID>
+    <ID>MagicNumber:Mappers.kt:8</ID>
+    <ID>MagicNumber:NavigationBarView.kt:NavigationBarView$16</ID>
+    <ID>MagicNumber:NavigationBarView.kt:NavigationBarView$17f</ID>
+    <ID>MagicNumber:NavigationBarView.kt:NavigationBarView$4f</ID>
+    <ID>MagicNumber:NavigationBarView.kt:NavigationBarView$56</ID>
+    <ID>MagicNumber:OnrampSdkModule.kt:OnrampSdkModule$5_000L</ID>
+    <ID>MagicNumber:PaymentMethodMessagingElementConfig.kt:16.0</ID>
+    <ID>MagicNumber:PaymentMethodMessagingElementConfig.kt:6</ID>
+    <ID>MagicNumber:PaymentMethodMessagingElementConfig.kt:8</ID>
+    <ID>MagicNumber:PaymentOptionDisplayDataMapper.kt:0xFFFFFF</ID>
+    <ID>MagicNumber:PaymentOptionDisplayDataMapper.kt:16f</ID>
+    <ID>MagicNumber:PaymentOptionDisplayDataMapper.kt:5_000L</ID>
+    <ID>MagicNumber:PaymentSheetAppearance.kt:6</ID>
+    <ID>MagicNumber:PaymentSheetAppearance.kt:8</ID>
+    <ID>MagicNumber:PaymentSheetManager.kt:100</ID>
+    <ID>MagicNumber:PaymentSheetManager.kt:PaymentSheetManager$100</ID>
+    <ID>MagicNumber:StripeSdkModule.kt:StripeSdkModule$3000</ID>
+    <ID>MaxLineLength:AddToWalletButtonManager.kt:AddToWalletButtonManager$override fun createViewInstance: AddToWalletButtonView</ID>
+    <ID>MaxLineLength:AddressLauncherManager.kt:AddressLauncherManager$"No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method."</ID>
+    <ID>MaxLineLength:AddressSheetView.kt:AddressSheetView.Companion$internal</ID>
+    <ID>MaxLineLength:AuBECSDebitFormView.kt:AuBECSDebitFormView$UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(FormCompleteEvent(context.surfaceId, id, formDetails))</ID>
+    <ID>MaxLineLength:AuBECSDebitFormViewManager.kt:AuBECSDebitFormViewManager$override fun createViewInstance: AuBECSDebitFormView</ID>
+    <ID>MaxLineLength:CustomerSheetManager.kt:CustomerSheetManager.Companion$internal</ID>
+    <ID>MaxLineLength:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$"Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues"</ID>
+    <ID>MaxLineLength:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$"Tried to call confirmationTokenConfirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues"</ID>
+    <ID>MaxLineLength:Errors.kt:"Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method."</ID>
+    <ID>MaxLineLength:Errors.kt:internal fun createCanceledError: WritableMap</ID>
+    <ID>MaxLineLength:Extensions.kt:)</ID>
+    <ID>MaxLineLength:FinancialConnectionsSheetManager.kt:FinancialConnectionsSheetManager.Companion$private</ID>
+    <ID>MaxLineLength:GooglePayButtonManager.kt:GooglePayButtonManager$override fun createViewInstance: GooglePayButtonView</ID>
+    <ID>MaxLineLength:GooglePayLauncherManager.kt:GooglePayLauncherManager$"Google Pay is not available on this device. You can use isPlatformPaySupported to preemptively check for Google Pay support."</ID>
+    <ID>MaxLineLength:Mappers.kt:internal</ID>
+    <ID>MaxLineLength:Mappers.kt:val disableBillingDetailCollection = customPaymentMethodMap.getBooleanOr("disableBillingDetailCollection", false)</ID>
+    <ID>MaxLineLength:NavigationBarView.kt:NavigationBarView$drawable?.setColorFilter(android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN))</ID>
+    <ID>MaxLineLength:OnrampMappers.kt:private</ID>
+    <ID>MaxLineLength:OnrampSdkModule.kt:OnrampSdkModule$reactApplicationContext.currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)</ID>
+    <ID>MaxLineLength:PaymentElementConfig.kt:internal</ID>
+    <ID>MaxLineLength:PaymentLauncherManager.kt:PaymentLauncherManager$"Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client secret and setup params (if necessary)."</ID>
+    <ID>MaxLineLength:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$private</ID>
+    <ID>MaxLineLength:PaymentMethodMessagingElementViewManager.kt:PaymentMethodMessagingElementViewManager$override fun createViewInstance: PaymentMethodMessagingElementView</ID>
+    <ID>MaxLineLength:PaymentSheetAppearance.kt:"$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font"</ID>
+    <ID>MaxLineLength:PaymentSheetAppearance.kt:System.err.println("WARN: Unsupported embedded payment element row style received: $styleString. Falling back to default.")</ID>
+    <ID>MaxLineLength:PaymentSheetManager.kt:internal</ID>
+    <ID>MaxLineLength:PostalCodeUtilities.kt:PostalCodeUtilities.Companion$internal fun isValidGlobalPostalCodeCharacter: Boolean</ID>
+    <ID>MaxLineLength:ReactNativeCustomerAdapter.kt:ReactNativeCustomerAdapter$override suspend</ID>
+    <ID>MaxLineLength:ReactNativeCustomerSessionProvider.kt:ReactNativeCustomerSessionProvider$override suspend fun intentConfiguration: Result&lt;CustomerSheet.IntentConfiguration></ID>
+    <ID>MaxLineLength:StripeSdkModule.kt:StripeSdkModule$composeCompatView</ID>
+    <ID>MaxLineLength:StripeSdkModule.kt:StripeSdkModule$reactApplicationContext.currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)</ID>
+    <ID>RethrowCaughtException:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$throw error</ID>
+    <ID>SpreadOperator:CardFieldView.kt:CardFieldView$( *cardInputWidgetBinding.postalCodeEditText.filters, createPostalCodeInputFilter(countryCode), )</ID>
+    <ID>SpreadOperator:CardFormView.kt:CardFormView$( *cardFormViewBinding.postalCode.filters, createPostalCodeInputFilter(), )</ID>
+    <ID>SwallowedException:StripeSdkModule.kt:StripeSdkModule$e: Exception</ID>
+    <ID>ThrowsCount:PaymentSheetAppearance.kt:@Throws(PaymentSheetAppearanceException::class) internal fun getFontResId: Int?</ID>
+    <ID>TooGenericExceptionCaught:CardFieldView.kt:CardFieldView$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CustomerSheetManager.kt:CustomerSheetManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EmbeddedPaymentElementViewManager.kt:EmbeddedPaymentElementViewManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:OnrampSdkModule.kt:OnrampSdkModule$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PaymentSheetManager.kt:PaymentSheetManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PaymentSheetManager.kt:e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PushProvisioningProxy.kt:PushProvisioningProxy$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:StripeConnectDeepLinkInterceptorActivity.kt:StripeConnectDeepLinkInterceptorActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:StripeSdkModule.kt:StripeSdkModule$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TapAndPayProxy.kt:TapAndPayProxy$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:EmbeddedPaymentElementViewManager.kt:EmbeddedPaymentElementViewManager$throw Error()</ID>
+    <ID>TooGenericExceptionThrown:PaymentLauncherManager.kt:PaymentLauncherManager$throw Exception( "Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client secret and setup params (if necessary).", )</ID>
+    <ID>TooGenericExceptionThrown:PaymentLauncherManager.kt:PaymentLauncherManager$throw Exception("Failed to create Payment Launcher. No client secret provided.")</ID>
+    <ID>TooGenericExceptionThrown:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$throw Exception("This paymentMethodType is not supported yet")</ID>
+    <ID>TooManyFunctions:AddToWalletButtonManager.kt:AddToWalletButtonManager : SimpleViewManagerAddToWalletButtonManagerInterface</ID>
+    <ID>TooManyFunctions:AddressSheetViewManager.kt:AddressSheetViewManager : SimpleViewManagerAddressSheetViewManagerInterface</ID>
+    <ID>TooManyFunctions:CardFieldView.kt:CardFieldView : FrameLayout</ID>
+    <ID>TooManyFunctions:CardFieldViewManager.kt:CardFieldViewManager : SimpleViewManagerCardFieldManagerInterface</ID>
+    <ID>TooManyFunctions:CardFormViewManager.kt:CardFormViewManager : SimpleViewManagerCardFormManagerInterface</ID>
+    <ID>TooManyFunctions:EventEmitterCompat.kt:EventEmitterCompat</ID>
+    <ID>TooManyFunctions:Extensions.kt:com.reactnativestripesdk.utils.Extensions.kt</ID>
+    <ID>TooManyFunctions:Mappers.kt:com.reactnativestripesdk.utils.Mappers.kt</ID>
+    <ID>TooManyFunctions:OnrampSdkModule.kt:OnrampSdkModule : NativeOnrampSdkModuleSpec</ID>
+    <ID>TooManyFunctions:PaymentElementConfig.kt:com.reactnativestripesdk.PaymentElementConfig.kt</ID>
+    <ID>TooManyFunctions:StripeSdkModule.kt:StripeSdkModule : NativeStripeSdkModuleSpec</ID>
+    <ID>UnreachableCode:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$paymentMethodData?.let { if (billingDetailsParams?.name.isNullOrBlank()) { throw PaymentMethodCreateParamsException( "When creating a US bank account payment method, you must provide the following billing details: name", ) } return if (isPaymentIntent) { ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams( paymentMethodCreateParams = createUSBankAccountParams(paymentMethodData), clientSecret, setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")), ) } else { ConfirmSetupIntentParams.create( paymentMethodCreateParams = createUSBankAccountParams(paymentMethodData), clientSecret = clientSecret, ) } } ?: run { // Payment method is assumed to be already attached through via collectBankAccount return if (isPaymentIntent) { ConfirmPaymentIntentParams.create( clientSecret = clientSecret, paymentMethodType = PaymentMethod.Type.USBankAccount, ) } else { ConfirmSetupIntentParams.create( clientSecret = clientSecret, paymentMethodType = PaymentMethod.Type.USBankAccount, ) } }</ID>
+    <ID>UnsafeCallOnNullableType:CustomerSheetManager.kt:CustomerSheetManager$intentConfiguration!!</ID>
+    <ID>UnsafeCallOnNullableType:OnrampSdkModule.kt:OnrampSdkModule$authorizePromise!!</ID>
+    <ID>UnsafeCallOnNullableType:OnrampSdkModule.kt:OnrampSdkModule$checkoutClientSecretDeferred!!</ID>
+    <ID>UnsafeCallOnNullableType:OnrampSdkModule.kt:OnrampSdkModule$checkoutPromise!!</ID>
+    <ID>UnsafeCallOnNullableType:OnrampSdkModule.kt:OnrampSdkModule$collectPaymentPromise!!</ID>
+    <ID>UnsafeCallOnNullableType:OnrampSdkModule.kt:OnrampSdkModule$identityVerificationPromise!!</ID>
+    <ID>UnsafeCallOnNullableType:OnrampSdkModule.kt:OnrampSdkModule$onrampCoordinator!!</ID>
+    <ID>UnsafeCallOnNullableType:OnrampSdkModule.kt:OnrampSdkModule$verifyKycPromise!!</ID>
+    <ID>UnsafeCallOnNullableType:PaymentLauncherManager.kt:PaymentLauncherManager$confirmPaymentParams!!</ID>
+    <ID>UnsafeCallOnNullableType:PaymentLauncherManager.kt:PaymentLauncherManager$confirmSetupParams!!</ID>
+    <ID>UnsafeCallOnNullableType:PaymentLauncherManager.kt:PaymentLauncherManager$handleNextActionPaymentIntentClientSecret!!</ID>
+    <ID>UnsafeCallOnNullableType:PaymentLauncherManager.kt:PaymentLauncherManager$handleNextActionSetupIntentClientSecret!!</ID>
+    <ID>UnsafeCallOnNullableType:PaymentSheetManager.kt:PaymentSheetManager$intentConfiguration!!</ID>
+    <ID>UnsafeCallOnNullableType:PaymentSheetManager.kt:PaymentSheetManager$paymentIntentClientSecret!!</ID>
+    <ID>UnsafeCallOnNullableType:PaymentSheetManager.kt:PaymentSheetManager$setupIntentClientSecret!!</ID>
+    <ID>UnsafeCallOnNullableType:StripeContainerView.kt:StripeContainerView$context.currentActivity!!</ID>
+    <ID>UnsafeCallOnNullableType:StripeContainerView.kt:StripeContainerView$event!!</ID>
+    <ID>UnsafeCallOnNullableType:StripeSdkModule.kt:StripeSdkModule$accountNumber!!</ID>
+    <ID>UnsafeCallOnNullableType:StripeSdkModule.kt:StripeSdkModule$country!!</ID>
+    <ID>UnsafeCallOnNullableType:StripeSdkModule.kt:StripeSdkModule$currency!!</ID>
+    <ID>UnusedPrivateProperty:OnrampSdkModule.kt:OnrampSdkModule$private var authenticateUserPromise: Promise? = null</ID>
+    <ID>UtilityClassWithPublicConstructor:GooglePayRequestHelper.kt:GooglePayRequestHelper</ID>
+    <ID>UtilityClassWithPublicConstructor:PaymentSheetAppearance.kt:PaymentSheetAppearanceKeys</ID>
+    <ID>UtilityClassWithPublicConstructor:PostalCodeUtilities.kt:PostalCodeUtilities</ID>
+    <ID>VarCouldBeVal:AddressLauncherManager.kt:AddressLauncherManager$private var configuration = AddressLauncher.Configuration( appearance = appearance, address = defaultAddress, allowedCountries = allowedCountries, buttonTitle = buttonTitle, additionalFields = additionalFields, title = title, googlePlacesApiKey = googlePlacesApiKey, autocompleteCountries = autocompleteCountries, )</ID>
+    <ID>VarCouldBeVal:CardFieldView.kt:CardFieldView$private var mCardWidget: CardInputWidget = CardInputWidget(context)</ID>
+    <ID>VarCouldBeVal:CardFormView.kt:CardFormView$@SuppressLint("PrivateResource") private var cardForm: CardFormView = CardFormView(context, null, com.stripe.android.R.style.StripeCardFormView_Borderless)</ID>
+    <ID>VarCouldBeVal:FinancialConnectionsSheetManager.kt:FinancialConnectionsSheetManager$private var configuration = FinancialConnectionsSheet.Configuration( financialConnectionsSessionClientSecret = clientSecret, publishableKey = publishableKey, stripeAccountId = stripeAccountId, )</ID>
+    <ID>VarCouldBeVal:GooglePayLauncherManager.kt:GooglePayLauncherManager$private var amount = googlePayParams.getIntOrNull("amount")</ID>
+    <ID>VarCouldBeVal:GooglePayLauncherManager.kt:GooglePayLauncherManager$private var configuration = GooglePayLauncher.Config( environment = if (googlePayParams.getBooleanOr("testEnv", false)) { GooglePayEnvironment.Test } else { GooglePayEnvironment.Production }, merchantCountryCode = googlePayParams.getString("merchantCountryCode").orEmpty(), merchantName = googlePayParams.getString("merchantName").orEmpty(), isEmailRequired = googlePayParams.getBooleanOr("isEmailRequired", false), billingAddressConfig = buildBillingAddressParameters(googlePayParams.getMap("billingAddressConfig")), existingPaymentMethodRequired = googlePayParams.getBooleanOr("existingPaymentMethodRequired", false), allowCreditCards = googlePayParams.getBooleanOr("allowCreditCards", true), )</ID>
+    <ID>VarCouldBeVal:GooglePayLauncherManager.kt:GooglePayLauncherManager$private var currencyCode = googlePayParams.getString("currencyCode") ?: "USD"</ID>
+    <ID>VarCouldBeVal:GooglePayLauncherManager.kt:GooglePayLauncherManager$private var label = googlePayParams.getString("label")</ID>
+    <ID>VarCouldBeVal:OnrampSdkModule.kt:OnrampSdkModule$private var authenticateUserPromise: Promise? = null</ID>
+    <ID>VarCouldBeVal:StripeAbstractComposeView.kt:StripeAbstractComposeView$private var lifecycleRegistry = LifecycleRegistry(lifecycleOwner)</ID>
+    <ID>VarCouldBeVal:TapAndPayProxy.kt:TapAndPayProxy$private var tapAndPayClient: Any? = null</ID> -->
+  </CurrentIssues>
+</SmellBaseline>

@@ -62,7 +62,7 @@ class StripeConnectDeepLinkInterceptorActivity : Activity() {
       } else {
         Log.w(TAG, "Could not get launch intent for package: $packageName")
       }
-    } catch (e: Exception) {
+    } catch (e: android.content.ActivityNotFoundException) {
       Log.e(TAG, "Error bringing app to foreground", e)
     }
 

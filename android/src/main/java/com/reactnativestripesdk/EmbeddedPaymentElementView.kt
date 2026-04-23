@@ -1,6 +1,7 @@
 package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -46,6 +47,10 @@ enum class RowSelectionBehaviorType {
 class EmbeddedPaymentElementView(
   context: Context,
 ) : StripeAbstractComposeView(context) {
+  companion object {
+    private const val ACTIVITY_INIT_DELAY_MS = 100L
+  }
+
   private sealed interface Event {
     data class Configure(
       val configuration: EmbeddedPaymentElement.Configuration,
@@ -74,6 +79,7 @@ class EmbeddedPaymentElementView(
     useConfirmationTokenCallback.value = value
   }
 
+  @Suppress("LongMethod", "CyclomaticComplexMethod")
   @SuppressLint("RestrictedApi")
   @Composable
   override fun Content() {
@@ -94,7 +100,7 @@ class EmbeddedPaymentElementView(
                 addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
               }
             reactContext.startActivity(intent)
-          } catch (e: Exception) {
+          } catch (e: ActivityNotFoundException) {
             Log.e("StripeReactNative", "Failed to start CustomPaymentMethodActivity", e)
           }
 
@@ -115,7 +121,7 @@ class EmbeddedPaymentElementView(
           coroutineScope.launch {
             try {
               // Give the CustomPaymentMethodActivity a moment to fully initialize
-              delay(100)
+              delay(ACTIVITY_INIT_DELAY_MS)
 
               // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
               stripeSdkModule.eventEmitter.emitOnCustomPaymentMethodConfirmHandlerCallback(
@@ -199,7 +205,9 @@ class EmbeddedPaymentElementView(
                     return@Builder CreateIntentResult.Failure(
                       cause =
                         Exception(
-                          "Tried to call confirmationTokenConfirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
+                          "Tried to call confirmationTokenConfirmHandler, " +
+                            "but no callback was found. Please file an issue: " +
+                            "https://github.com/stripe/stripe-react-native/issues",
                         ),
                       displayMessage = "An unexpected error occurred",
                     )
@@ -245,7 +253,9 @@ class EmbeddedPaymentElementView(
                     return@Builder CreateIntentResult.Failure(
                       cause =
                         Exception(
-                          "Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
+                          "Tried to call confirmHandler, " +
+                            "but no callback was found. Please file an issue: " +
+                            "https://github.com/stripe/stripe-react-native/issues",
                         ),
                       displayMessage = "An unexpected error occurred",
                     )

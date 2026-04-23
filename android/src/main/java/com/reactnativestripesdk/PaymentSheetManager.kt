@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -64,6 +65,10 @@ import java.io.ByteArrayOutputStream
 import kotlin.Exception
 import kotlin.coroutines.resume
 
+private const val ACTIVITY_INIT_DELAY_MS = 100L
+private const val COMPRESS_QUALITY = 100
+
+@Suppress("LongMethod")
 @OptIn(
   ReactNativeSdkInternal::class,
   ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
@@ -355,7 +360,7 @@ class PaymentSheetManager(
           val imageString =
             try {
               convertDrawableToBase64(paymentOption.icon())
-            } catch (e: Exception) {
+            } catch (e: IllegalArgumentException) {
               val result =
                 createError(
                   PaymentSheetErrorType.Failed.toString(),
@@ -368,7 +373,8 @@ class PaymentSheetManager(
           val option: WritableMap = Arguments.createMap()
           option.putString("label", paymentOption.label)
           option.putString("image", imageString)
-          val additionalFields: Map<String, Any> = mapOf("didCancel" to paymentOptionResult.didCancel)
+          val additionalFields: Map<String, Any> =
+            mapOf("didCancel" to paymentOptionResult.didCancel)
           val result = createResult("paymentOption", option, additionalFields)
           resolvePresentPromise(result)
         }
@@ -426,18 +432,22 @@ class PaymentSheetManager(
           paymentSheetActivity = activity
         }
 
-        override fun onActivityStarted(activity: Activity) {}
+        override fun onActivityStarted(activity: Activity) { // no-op
+        }
 
-        override fun onActivityResumed(activity: Activity) {}
+        override fun onActivityResumed(activity: Activity) { // no-op
+        }
 
-        override fun onActivityPaused(activity: Activity) {}
+        override fun onActivityPaused(activity: Activity) { // no-op
+        }
 
-        override fun onActivityStopped(activity: Activity) {}
+        override fun onActivityStopped(activity: Activity) { // no-op
+        }
 
         override fun onActivitySaveInstanceState(
           activity: Activity,
           outState: Bundle,
-        ) {
+        ) { // no-op
         }
 
         override fun onActivityDestroyed(activity: Activity) {
@@ -528,7 +538,7 @@ class PaymentSheetManager(
           addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
         }
       context.startActivity(intent)
-    } catch (e: Exception) {
+    } catch (e: ActivityNotFoundException) {
       Log.e("StripeReactNative", "Failed to start CustomPaymentMethodActivity", e)
     }
 
@@ -550,7 +560,7 @@ class PaymentSheetManager(
     CoroutineScope(Dispatchers.Main).launch {
       try {
         // Give the CustomPaymentMethodActivity a moment to fully initialize
-        delay(100)
+        delay(ACTIVITY_INIT_DELAY_MS)
 
         // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
         stripeSdkModule.eventEmitter.emitOnCustomPaymentMethodConfirmHandlerCallback(
@@ -627,12 +637,14 @@ suspend fun waitForDrawableToLoad(
             who: Drawable,
             what: Runnable,
             `when`: Long,
-          ) {}
+          ) { // no-op
+          }
 
           override fun unscheduleDrawable(
             who: Drawable,
             what: Runnable,
-          ) {}
+          ) { // no-op
+          }
         }
 
       drawable.callback = callback
@@ -687,7 +699,7 @@ fun getBase64FromBitmap(bitmap: Bitmap?): String? {
     return null
   }
   val stream = ByteArrayOutputStream()
-  bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+  bitmap.compress(Bitmap.CompressFormat.PNG, COMPRESS_QUALITY, stream)
   val imageBytes: ByteArray = stream.toByteArray()
   return Base64.encodeToString(imageBytes, Base64.DEFAULT)
 }
@@ -716,9 +728,12 @@ internal fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration
   }
 
 @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
-internal fun mapToPaymentMethodOptions(options: ReadableMap?): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
+internal fun mapToPaymentMethodOptions(
+  options: ReadableMap?,
+): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
   val sfuMap = options?.getMap("setupFutureUsageValues")
-  val paymentMethodToSfuMap = mutableMapOf<PaymentMethod.Type, PaymentSheet.IntentConfiguration.SetupFutureUse>()
+  val paymentMethodToSfuMap =
+    mutableMapOf<PaymentMethod.Type, PaymentSheet.IntentConfiguration.SetupFutureUse>()
   sfuMap?.forEachKey { code ->
     val sfuValue = mapToSetupFutureUse(sfuMap.getString(code))
     val paymentMethodType = PaymentMethod.Type.fromCode(code)
@@ -755,7 +770,7 @@ internal fun handleFlowControllerConfigured(
       val imageString =
         try {
           convertDrawableToBase64(paymentOption.icon())
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
           val result =
             createError(
               PaymentSheetErrorType.Failed.toString(),

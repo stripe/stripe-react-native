@@ -27,6 +27,7 @@ import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 @ReactModule(name = EmbeddedPaymentElementViewManager.NAME)
@@ -95,6 +96,7 @@ class EmbeddedPaymentElementViewManager :
     }
   }
 
+  @Suppress("LongMethod")
   @SuppressLint("RestrictedApi")
   @OptIn(
     ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
@@ -111,8 +113,8 @@ class EmbeddedPaymentElementViewManager :
     val customerConfiguration =
       try {
         buildCustomerConfiguration(map)
-      } catch (_: PaymentSheetException) {
-        throw Error() // TODO handle error
+      } catch (e: PaymentSheetException) {
+        throw IllegalStateException("Failed to build customer configuration", e)
       }
 
     val googlePayConfig = buildGooglePayConfig(map.getMap("googlePay"))
@@ -124,8 +126,8 @@ class EmbeddedPaymentElementViewManager :
     val appearance =
       try {
         buildPaymentSheetAppearance(map.getMap("appearance"), context)
-      } catch (_: PaymentSheetAppearanceException) {
-        throw Error() // TODO handle error
+      } catch (e: PaymentSheetAppearanceException) {
+        throw IllegalStateException("Failed to build payment sheet appearance", e)
       }
     val billingDetailsConfig =
       buildBillingDetailsCollectionConfiguration(
@@ -200,7 +202,7 @@ class EmbeddedPaymentElementViewManager :
         if (intentConfig != null) {
           view.update(intentConfig)
         }
-      } catch (e: Exception) {
+      } catch (e: JSONException) {
         android.util.Log.e("EmbeddedPaymentElement", "Failed to parse intent config JSON", e)
       }
     }

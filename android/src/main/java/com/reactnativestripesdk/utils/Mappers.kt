@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.reactnativestripesdk.utils
 
 import android.annotation.SuppressLint
@@ -124,6 +126,7 @@ internal fun mapCardBrand(brand: CardBrand?): String =
     else -> "Unknown"
   }
 
+@Suppress("CyclomaticComplexMethod")
 internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
   when (type) {
     PaymentMethod.Type.AfterpayClearpay -> "AfterpayClearpay"
@@ -156,6 +159,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
     else -> "Unknown"
   }
 
+@Suppress("CyclomaticComplexMethod")
 internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
   when (type) {
     "Card" -> PaymentMethod.Type.Card
@@ -207,7 +211,9 @@ internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?
   return details
 }
 
-internal fun mapFromPaymentSheetBillingDetails(billing: com.stripe.android.paymentsheet.PaymentSheet.BillingDetails?): WritableMap {
+internal fun mapFromPaymentSheetBillingDetails(
+  billing: com.stripe.android.paymentsheet.PaymentSheet.BillingDetails?,
+): WritableMap {
   val details = Arguments.createMap()
   details.putString("name", billing?.name)
   details.putString("email", billing?.email)
@@ -360,6 +366,7 @@ internal fun mapFromToken(token: Token): WritableMap {
   return tokenMap
 }
 
+@Suppress("LongMethod")
 internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   val pm: WritableMap = Arguments.createMap()
 
@@ -519,6 +526,7 @@ internal fun mapFromMicrodepositType(type: MicrodepositType): String =
     else -> "unknown"
   }
 
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @SuppressLint("RestrictedApi")
 internal fun mapNextAction(
   type: NextActionType?,
@@ -554,7 +562,7 @@ internal fun mapNextAction(
         nextActionMap.putString("redirectUrl", it.weChat.qrCodeUrl)
       }
     }
-    NextActionType.AlipayRedirect -> { // TODO: Can't access, private
+    NextActionType.AlipayRedirect -> { // TODO Can't access, private
       return null
     }
     NextActionType.CashAppRedirect,
@@ -716,8 +724,12 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
   )
 }
 
-private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
+private const val MILLIS_PER_SECOND = 1000
 
+private fun convertToUnixTimestamp(timestamp: Long): String =
+  (timestamp * MILLIS_PER_SECOND).toString()
+
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCustomization {
   val labelCustomization = params.getMap("label")
   val navigationBarCustomization = params.getMap("navigationBar")
@@ -961,6 +973,16 @@ internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableM
   return map
 }
 
+private const val PREFERRED_NETWORK_JCB = 0
+private const val PREFERRED_NETWORK_AMEX = 1
+private const val PREFERRED_NETWORK_CARTES_BANCAIRES = 2
+private const val PREFERRED_NETWORK_DINERS_CLUB = 3
+private const val PREFERRED_NETWORK_DISCOVER = 4
+private const val PREFERRED_NETWORK_MASTERCARD = 5
+private const val PREFERRED_NETWORK_UNIONPAY = 6
+private const val PREFERRED_NETWORK_VISA = 7
+private const val PREFERRED_NETWORK_UNKNOWN = 8
+
 internal fun mapToPreferredNetworks(networksAsInts: List<Int>?): List<CardBrand> {
   if (networksAsInts == null) {
     return emptyList()
@@ -968,15 +990,15 @@ internal fun mapToPreferredNetworks(networksAsInts: List<Int>?): List<CardBrand>
 
   val intToCardBrand =
     mapOf(
-      0 to CardBrand.JCB,
-      1 to CardBrand.AmericanExpress,
-      2 to CardBrand.CartesBancaires,
-      3 to CardBrand.DinersClub,
-      4 to CardBrand.Discover,
-      5 to CardBrand.MasterCard,
-      6 to CardBrand.UnionPay,
-      7 to CardBrand.Visa,
-      8 to CardBrand.Unknown,
+      PREFERRED_NETWORK_JCB to CardBrand.JCB,
+      PREFERRED_NETWORK_AMEX to CardBrand.AmericanExpress,
+      PREFERRED_NETWORK_CARTES_BANCAIRES to CardBrand.CartesBancaires,
+      PREFERRED_NETWORK_DINERS_CLUB to CardBrand.DinersClub,
+      PREFERRED_NETWORK_DISCOVER to CardBrand.Discover,
+      PREFERRED_NETWORK_MASTERCARD to CardBrand.MasterCard,
+      PREFERRED_NETWORK_UNIONPAY to CardBrand.UnionPay,
+      PREFERRED_NETWORK_VISA to CardBrand.Visa,
+      PREFERRED_NETWORK_UNKNOWN to CardBrand.Unknown,
     )
 
   return networksAsInts.mapNotNull { intToCardBrand[it] }
@@ -1038,7 +1060,9 @@ private fun Map<String, Any?>.toReadableMap(): ReadableMap {
 }
 
 @SuppressLint("RestrictedApi")
-internal fun parseCustomPaymentMethods(customPaymentMethodConfig: ReadableMap?): List<PaymentSheet.CustomPaymentMethod> {
+internal fun parseCustomPaymentMethods(
+  customPaymentMethodConfig: ReadableMap?,
+): List<PaymentSheet.CustomPaymentMethod> {
   if (customPaymentMethodConfig == null) {
     return emptyList()
   }
@@ -1051,7 +1075,8 @@ internal fun parseCustomPaymentMethods(customPaymentMethodConfig: ReadableMap?):
       val id = customPaymentMethodMap.getString("id")
       if (id != null) {
         val subtitle = customPaymentMethodMap.getString("subtitle")
-        val disableBillingDetailCollection = customPaymentMethodMap.getBooleanOr("disableBillingDetailCollection", false)
+        val disableBillingDetailCollection =
+          customPaymentMethodMap.getBooleanOr("disableBillingDetailCollection", false)
         result.add(
           PaymentSheet.CustomPaymentMethod(
             id = id,

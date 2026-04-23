@@ -21,6 +21,10 @@ import kotlinx.coroutines.withTimeout
  * Serialize Stripe's PaymentOptionDisplayData into a WritableMap
  * that can be sent over the RN bridge.
  */
+private const val IMAGE_LOAD_TIMEOUT_MS = 5_000L
+private const val COLOR_MASK = 0xFFFFFF
+private const val FONT_SIZE_BASE = 16f
+
 suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap =
   Arguments.createMap().apply {
     putString("label", label)
@@ -39,7 +43,7 @@ suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): Wri
       try {
         withContext(Dispatchers.Default) {
           val drawable =
-            withTimeout(5_000L) {
+            withTimeout(IMAGE_LOAD_TIMEOUT_MS) {
               withContext(Dispatchers.IO) {
                 imageLoader()
               }
@@ -55,6 +59,7 @@ suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): Wri
     putString("image", imageBase64)
   }
 
+@Suppress("LongMethod")
 fun AnnotatedString.toHtmlString(): String {
   val htmlBuilder = StringBuilder()
   var currentIndex = 0
@@ -164,12 +169,12 @@ private fun getHtmlTagsForSpanStyle(spanStyle: SpanStyle): List<Pair<String, Str
   }
 
   spanStyle.color.takeIf { it != Color.Unspecified }?.let { color ->
-    val hexColor = String.format("#%06X", 0xFFFFFF and color.toArgb())
+    val hexColor = String.format("#%06X", COLOR_MASK and color.toArgb())
     tags.add("<font color=\"$hexColor\">" to "</font>")
   }
 
   spanStyle.fontSize.takeIf { it != TextUnit.Unspecified }?.let { fontSize ->
-    val emSize = fontSize.value / 16f
+    val emSize = fontSize.value / FONT_SIZE_BASE
     tags.add("<span style=\"font-size: ${emSize}em;\">" to "</span>")
   }
 
@@ -183,7 +188,7 @@ private fun getHtmlTagsForSpanStyle(spanStyle: SpanStyle): List<Pair<String, Str
   }
 
   spanStyle.background.takeIf { it != Color.Unspecified }?.let { bgColor ->
-    val hexBgColor = String.format("#%06X", 0xFFFFFF and bgColor.toArgb())
+    val hexBgColor = String.format("#%06X", COLOR_MASK and bgColor.toArgb())
     tags.add("<span style=\"background-color: $hexBgColor;\">" to "</span>")
   }
 

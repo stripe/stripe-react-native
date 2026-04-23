@@ -25,6 +25,13 @@ class NavigationBarView(
   private val closeButton: ImageButton
   private var titleText: String? = null
 
+  companion object {
+    private const val TOOLBAR_ELEVATION = 4f
+    private const val TITLE_TEXT_SIZE = 17f
+    private const val CLOSE_BUTTON_MARGIN_END = 16
+    private const val NAV_BAR_HEIGHT_DP = 56
+  }
+
   init {
     // Create Toolbar
     toolbar =
@@ -35,13 +42,13 @@ class NavigationBarView(
             LayoutParams.WRAP_CONTENT,
           )
         setBackgroundColor(Color.WHITE)
-        elevation = 4f
+        elevation = TOOLBAR_ELEVATION
       }
 
     // Create title TextView
     titleTextView =
       TextView(context).apply {
-        textSize = 17f
+        textSize = TITLE_TEXT_SIZE
         setTextColor(Color.BLACK)
         gravity = Gravity.CENTER
       }
@@ -67,7 +74,9 @@ class NavigationBarView(
           ),
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          drawable?.setColorFilter(android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN))
+          drawable?.setColorFilter(
+            android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN),
+          )
         } else {
           @Suppress("DEPRECATION")
           drawable?.setColorFilter(PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN))
@@ -86,7 +95,7 @@ class NavigationBarView(
           Toolbar.LayoutParams.WRAP_CONTENT,
         ).apply {
           gravity = Gravity.END or Gravity.CENTER_VERTICAL
-          marginEnd = 16
+          marginEnd = CLOSE_BUTTON_MARGIN_END
         }
     toolbar.addView(closeButton, buttonParams)
 
@@ -115,7 +124,7 @@ class NavigationBarView(
   ) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     // Set a fixed height for the navigation bar
-    val desiredHeight = (56 * resources.displayMetrics.density).toInt()
+    val desiredHeight = (NAV_BAR_HEIGHT_DP * resources.displayMetrics.density).toInt()
     val newHeightMeasureSpec = MeasureSpec.makeMeasureSpec(desiredHeight, MeasureSpec.EXACTLY)
     super.onMeasure(widthMeasureSpec, newHeightMeasureSpec)
   }

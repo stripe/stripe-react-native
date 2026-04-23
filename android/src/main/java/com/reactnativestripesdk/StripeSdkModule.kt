@@ -83,6 +83,7 @@ import org.json.JSONObject
 
 @ReactModule(name = StripeSdkModule.NAME)
 @OptIn(ReactNativeSdkInternal::class)
+@Suppress("LargeClass", "TooManyFunctions")
 class StripeSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeStripeSdkModuleSpec(reactContext) {
@@ -193,7 +194,7 @@ class StripeSdkModule(
           reactApplicationContext.packageName,
           0,
         )
-      } catch (e: Exception) {
+      } catch (ignored: android.content.pm.PackageManager.NameNotFoundException) {
         null
       }
 
@@ -533,7 +534,7 @@ class StripeSdkModule(
             stripeAccountId = stripeAccountId,
           )
         promise.resolve(createResult("token", mapFromToken(token)))
-      } catch (e: Exception) {
+      } catch (e: IllegalArgumentException) {
         promise.resolve(createError(CreateTokenErrorType.Failed.toString(), e.message))
       }
     }
@@ -604,7 +605,7 @@ class StripeSdkModule(
         }
   }
 
-// TODO: Uncomment when WeChat is re-enabled in stripe-ios
+// TODO Uncomment when WeChat is re-enabled in stripe-ios
 //  private fun payWithWeChatPay(paymentIntentClientSecret: String, appId: String) {
 //    val activity = currentActivity as ComponentActivity
 //
@@ -785,6 +786,7 @@ class StripeSdkModule(
       }
   }
 
+  @Suppress("LongMethod")
   @ReactMethod
   override fun confirmPlatformPay(
     clientSecret: String,
@@ -1378,7 +1380,7 @@ class StripeSdkModule(
     configuration: ReadableMap,
     promise: Promise,
   ) {
-    // TODO:
+    // TODO
   }
 
   @ReactMethod
@@ -1394,7 +1396,7 @@ class StripeSdkModule(
     intentConfig: ReadableMap,
     promise: Promise,
   ) {
-    // TODO:
+    // TODO
   }
 
   @ReactMethod
@@ -1453,7 +1455,7 @@ class StripeSdkModule(
         }, AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS)
 
         promise.resolve(null)
-      } catch (e: Exception) {
+      } catch (e: android.content.ActivityNotFoundException) {
         isAuthWebViewActive = false
         promise.resolve(createError("Failed", e))
       }
@@ -1504,7 +1506,7 @@ class StripeSdkModule(
         UiThreadUtil.runOnUiThread {
           shareFile(file, promise)
         }
-      } catch (e: Exception) {
+      } catch (e: java.io.IOException) {
         promise.resolve(
           Arguments.createMap().apply {
             putBoolean("success", false)
@@ -1553,14 +1555,14 @@ class StripeSdkModule(
       // Schedule cleanup
       android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
         file.delete()
-      }, 3000)
+      }, FILE_CLEANUP_DELAY_MS)
 
       promise.resolve(
         Arguments.createMap().apply {
           putBoolean("success", true)
         },
       )
-    } catch (e: Exception) {
+    } catch (e: IllegalArgumentException) {
       promise.resolve(
         Arguments.createMap().apply {
           putBoolean("success", false)
@@ -1632,12 +1634,12 @@ class StripeSdkModule(
             urlsArray.pushString(url)
           }
         }
-      } catch (e: Exception) {
+      } catch (ignored: ReflectiveOperationException) {
         // Expected when not using deprecated pattern - this is fine
       }
 
       promise.resolve(urlsArray)
-    } catch (e: Exception) {
+    } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
       Log.e(TAG, "Error polling URLs", e)
       promise.reject("PollError", "Failed to poll pending Stripe Connect URLs: ${e.message}", e)
     }
@@ -1727,20 +1729,26 @@ class StripeSdkModule(
         }
       }
 
-      override fun onActivityStarted(activity: Activity) {}
+      override fun onActivityStarted(activity: Activity) { // no-op
+      }
 
-      override fun onActivityResumed(activity: Activity) {}
+      override fun onActivityResumed(activity: Activity) { // no-op
+      }
 
-      override fun onActivityPaused(activity: Activity) {}
+      override fun onActivityPaused(activity: Activity) { // no-op
+      }
 
-      override fun onActivityStopped(activity: Activity) {}
+      override fun onActivityStopped(activity: Activity) { // no-op
+      }
 
       override fun onActivitySaveInstanceState(
         activity: Activity,
         bundle: Bundle,
-      ) {}
+      ) { // no-op
+      }
 
-      override fun onActivityDestroyed(activity: Activity) {}
+      override fun onActivityDestroyed(activity: Activity) { // no-op
+      }
     }
 
   /**
@@ -1753,17 +1761,22 @@ class StripeSdkModule(
    */
   private fun preventActivityRecreation() {
     isRecreatingReactActivity = false
-    reactApplicationContext.currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
-    reactApplicationContext.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    reactApplicationContext.currentActivity?.application
+      ?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    reactApplicationContext.currentActivity?.application
+      ?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
-      composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext).also {
-        reactApplicationContext.currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
-          it,
-        )
-      }
+      composeCompatView = composeCompatView
+        ?: StripeAbstractComposeView.CompatView(
+          context = reactApplicationContext,
+        ).also {
+          reactApplicationContext.currentActivity
+            ?.findViewById<ViewGroup>(android.R.id.content)
+            ?.addView(it)
+        }
     }
   }
 
@@ -1776,6 +1789,9 @@ class StripeSdkModule(
 
     // Timeout for auth webview fallback (if JavaScript doesn't call authWebViewDeepLinkHandled)
     private const val AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS = 60_000L
+
+    // Delay before cleaning up shared file
+    private const val FILE_CLEANUP_DELAY_MS = 3000L
 
     // SDK-managed storage for pending stripe-connect:// URLs
     // This is static because deep links can arrive before ReactContext is available

@@ -77,16 +77,16 @@ class GooglePayButtonView(
 
   private fun getButtonType(): Int? =
     when (this.type) {
-      0,
-      1,
+      BUTTON_TYPE_BUY_LEGACY,
+      BUTTON_TYPE_BUY,
       -> ButtonType.BUY
-      6 -> ButtonType.BOOK
-      5 -> ButtonType.CHECKOUT
-      4 -> ButtonType.DONATE
-      11 -> ButtonType.ORDER
-      7 -> ButtonType.SUBSCRIBE
-      1000 -> ButtonType.PAY
-      1001 -> ButtonType.PLAIN
+      BUTTON_TYPE_BOOK -> ButtonType.BOOK
+      BUTTON_TYPE_CHECKOUT -> ButtonType.CHECKOUT
+      BUTTON_TYPE_DONATE -> ButtonType.DONATE
+      BUTTON_TYPE_ORDER -> ButtonType.ORDER
+      BUTTON_TYPE_SUBSCRIBE -> ButtonType.SUBSCRIBE
+      BUTTON_TYPE_PAY -> ButtonType.PAY
+      BUTTON_TYPE_PLAIN -> ButtonType.PLAIN
       else -> null
     }
 
@@ -121,5 +121,17 @@ class GooglePayButtonView(
 
   fun setBorderRadius(borderRadius: Int) {
     this.borderRadius = borderRadius
+  }
+
+  companion object {
+    private const val BUTTON_TYPE_BUY_LEGACY = 0
+    private const val BUTTON_TYPE_BUY = 1
+    private const val BUTTON_TYPE_DONATE = 4
+    private const val BUTTON_TYPE_CHECKOUT = 5
+    private const val BUTTON_TYPE_BOOK = 6
+    private const val BUTTON_TYPE_SUBSCRIBE = 7
+    private const val BUTTON_TYPE_ORDER = 11
+    private const val BUTTON_TYPE_PAY = 1000
+    private const val BUTTON_TYPE_PLAIN = 1001
   }
 }

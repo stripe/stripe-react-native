@@ -12,10 +12,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
+@Suppress("LargeClass")
 @RunWith(RobolectricTestRunner::class)
 class PaymentSheetAppearanceTest {
   private val context = ApplicationProvider.getApplicationContext<Context>()
 
+  @Suppress("LongMethod")
   @Test
   fun testFullAppearanceConfiguration() {
     val json =
@@ -131,6 +133,7 @@ class PaymentSheetAppearanceTest {
     assertEquals(expectedAppearance, appearanceFromJson)
   }
 
+  @Suppress("LongMethod")
   @Test
   fun testPartialAppearanceConfiguration() {
     val json =
@@ -219,6 +222,7 @@ class PaymentSheetAppearanceTest {
     assertEquals(expectedAppearance, appearanceFromJson)
   }
 
+  @Suppress("LongMethod")
   @Test
   fun testFullEmbeddedAppearance_FlatWithRadio() {
     val json =

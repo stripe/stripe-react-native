@@ -1,0 +1,41 @@
+apply plugin: 'dev.detekt'
+
+def isDetektFormat = gradle.startParameter.taskNames.any { it.contains('detektFormat') }
+
+def detektScriptDir = buildscript.sourceFile.parentFile
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(files("$detektScriptDir/config/detekt/detekt.yml"))
+    ignoredBuildTypes = ["debug"]
+    ignoredFlavors = []
+    ignoredVariants = []
+    parallel = true
+    autoCorrect = isDetektFormat
+}
+
+tasks.register('detektFormat') {
+    group = 'formatting'
+    description = 'Run detekt with auto-correction enabled.'
+    dependsOn 'detekt'
+}
+
+def detektIgnoreFile = file('.detektignore')
+if (detektIgnoreFile.exists()) {
+    def detektIgnorePatterns = []
+    detektIgnoreFile.eachLine { line ->
+        line = line.trim()
+        if (!line.isEmpty() && !line.startsWith('#')) {
+            detektIgnorePatterns.add(line)
+        }
+    }
+    afterEvaluate {
+        tasks.matching { it.name.startsWith('detekt') && it instanceof org.gradle.api.tasks.SourceTask }.configureEach {
+            detektIgnorePatterns.each { pattern -> exclude(pattern) }
+        }
+    }
+}
+
+dependencies {
+    detektPlugins "dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.2"
+}

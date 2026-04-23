@@ -133,6 +133,7 @@ class CardFormView(
       ?.dispatchEvent(CardFocusChangeEvent(context.surfaceId, id, currentFocusedField))
   }
 
+  @Suppress("CyclomaticComplexMethod", "LongMethod")
   @SuppressLint("RestrictedApi", "VisibleForTests")
   fun setCardStyle(value: ReadableMap?) {
     val backgroundColor = getValOr(value, "backgroundColor", null)
@@ -236,6 +237,7 @@ class CardFormView(
     dangerouslyGetFullCardDetails = isEnabled
   }
 
+  @Suppress("LongMethod")
   private fun setListeners() {
     cardForm.setCardValidCallback { isValid, _ ->
       if (isValid) {

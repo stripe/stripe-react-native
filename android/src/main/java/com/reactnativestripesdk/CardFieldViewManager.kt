@@ -10,6 +10,7 @@ import com.facebook.react.viewmanagers.CardFieldManagerDelegate
 import com.facebook.react.viewmanagers.CardFieldManagerInterface
 import com.reactnativestripesdk.utils.asMapOrNull
 
+@Suppress("TooManyFunctions")
 @ReactModule(name = CardFieldViewManager.REACT_CLASS)
 class CardFieldViewManager :
   SimpleViewManager<CardFieldView>(),

@@ -56,6 +56,7 @@ class CustomerSheetManager(
   private var presentPromise: Promise? = null
   private var keepJsAwake: KeepJsAwakeTask? = null
 
+  @Suppress("LongMethod")
   override fun onCreate() {
     val headerTextForSelectionScreen = arguments.getString("headerTextForSelectionScreen")
     val merchantDisplayName = arguments.getString("merchantDisplayName")
@@ -176,7 +177,7 @@ class CustomerSheetManager(
           try {
             val promiseResult = createPaymentOptionResult(result.selection)
             resolvePresentPromise(promiseResult)
-          } catch (e: Exception) {
+          } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
             resolvePresentPromise(
               createError(
                 ErrorType.Failed.toString(),
@@ -197,7 +198,7 @@ class CustomerSheetManager(
               Arguments.createMap().also { it.putString("code", ErrorType.Canceled.toString()) },
             )
             resolvePresentPromise(promiseResult)
-          } catch (e: Exception) {
+          } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
             resolvePresentPromise(
               createError(
                 ErrorType.Failed.toString(),
@@ -232,18 +233,22 @@ class CustomerSheetManager(
           activities.add(activity)
         }
 
-        override fun onActivityStarted(activity: Activity) {}
+        override fun onActivityStarted(activity: Activity) { // no-op
+        }
 
-        override fun onActivityResumed(activity: Activity) {}
+        override fun onActivityResumed(activity: Activity) { // no-op
+        }
 
-        override fun onActivityPaused(activity: Activity) {}
+        override fun onActivityPaused(activity: Activity) { // no-op
+        }
 
-        override fun onActivityStopped(activity: Activity) {}
+        override fun onActivityStopped(activity: Activity) { // no-op
+        }
 
         override fun onActivitySaveInstanceState(
           activity: Activity,
           outState: Bundle,
-        ) {
+        ) { // no-op
         }
 
         override fun onActivityDestroyed(activity: Activity) {
@@ -326,7 +331,9 @@ class CustomerSheetManager(
     internal fun createDefaultBillingDetails(map: ReadableMap): PaymentSheet.BillingDetails =
       buildBillingDetails(map) ?: PaymentSheet.BillingDetails()
 
-    internal fun createBillingDetailsCollectionConfiguration(map: ReadableMap): PaymentSheet.BillingDetailsCollectionConfiguration =
+    internal fun createBillingDetailsCollectionConfiguration(
+      map: ReadableMap,
+    ): PaymentSheet.BillingDetailsCollectionConfiguration =
       buildBillingDetailsCollectionConfiguration(map)
 
     internal fun createCustomerAdapter(
@@ -405,7 +412,9 @@ class CustomerSheetManager(
       return paymentOptionResult
     }
 
-    internal fun createIntentConfiguration(intentConfigurationBundle: ReadableMap?): CustomerSheet.IntentConfiguration? =
+    internal fun createIntentConfiguration(
+      intentConfigurationBundle: ReadableMap?,
+    ): CustomerSheet.IntentConfiguration? =
       intentConfigurationBundle?.let { bundle ->
         val onBehalfOf = bundle.getString("onBehalfOf")
         CustomerSheet.IntentConfiguration

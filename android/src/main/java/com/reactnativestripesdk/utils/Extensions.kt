@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.reactnativestripesdk.utils
 
 import android.content.Context
@@ -27,7 +29,12 @@ fun View.hideSoftKeyboard() {
 fun ReadableMap?.getBooleanOr(
   key: String,
   default: Boolean,
-): Boolean = if (this?.hasKey(key) == true && this.getType(key) == ReadableType.Boolean) this.getBoolean(key) else default
+): Boolean =
+  if (this?.hasKey(key) == true && this.getType(key) == ReadableType.Boolean) {
+    this.getBoolean(key)
+  } else {
+    default
+  }
 
 fun ReadableMap?.getIntOrNull(key: String): Int? =
   if (this?.hasKey(key) == true && this.getType(key) == ReadableType.Number) this.getInt(key) else null

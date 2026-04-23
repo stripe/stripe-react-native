@@ -52,7 +52,9 @@ class PaymentOptionDisplayDataMapperTest {
     val result = annotatedString.toHtmlString()
 
     Assert.assertEquals(
-      "By continuing, you agree to our <a href=\"https://stripe.com/privacy\">Privacy Policy</a> and <a href=\"https://stripe.com/terms\">Terms of Service</a>.",
+      "By continuing, you agree to our " +
+        "<a href=\"https://stripe.com/privacy\">Privacy Policy</a>" +
+        " and <a href=\"https://stripe.com/terms\">Terms of Service</a>.",
       result,
     )
   }
@@ -193,7 +195,9 @@ class PaymentOptionDisplayDataMapperTest {
     val result = annotatedString.toHtmlString()
 
     Assert.assertEquals(
-      "Visit our <b><font color=\"#0000FF\"><a href=\"https://stripe.com/privacy\">Privacy Policy</a></font></b> for details",
+      "Visit our <b><font color=\"#0000FF\">" +
+        "<a href=\"https://stripe.com/privacy\">Privacy Policy</a>" +
+        "</font></b> for details",
       result,
     )
   }
@@ -293,7 +297,9 @@ class PaymentOptionDisplayDataMapperTest {
     val result = annotatedString.toHtmlString()
 
     Assert.assertEquals(
-      "Check <b><a href=\"https://stripe.com\">Stripe</a></b> and <i><font color=\"#00FF00\"><a href=\"https://github.com\">GitHub</a></font></i>",
+      "Check <b><a href=\"https://stripe.com\">Stripe</a></b>" +
+        " and <i><font color=\"#00FF00\">" +
+        "<a href=\"https://github.com\">GitHub</a></font></i>",
       result,
     )
   }
@@ -449,7 +455,12 @@ class PaymentOptionDisplayDataMapperTest {
     val result = annotatedString.toHtmlString()
 
     Assert.assertEquals(
-      "By continuing, you agree to <b><font color=\"#0000FF\"><u><a href=\"https://stripe.com/terms\">Terms</a></u></font></b> and <i><font color=\"#FF0000\"><a href=\"https://stripe.com/privacy\">Privacy</a></font></i>. Important details are <span style=\"background-color: #FFFF00;\">highlighted</span>.",
+      "By continuing, you agree to " +
+        "<b><font color=\"#0000FF\"><u><a href=\"https://stripe.com/terms\">Terms</a></u></font></b>" +
+        " and <i><font color=\"#FF0000\">" +
+        "<a href=\"https://stripe.com/privacy\">Privacy</a></font></i>" +
+        ". Important details are " +
+        "<span style=\"background-color: #FFFF00;\">highlighted</span>.",
       result,
     )
   }

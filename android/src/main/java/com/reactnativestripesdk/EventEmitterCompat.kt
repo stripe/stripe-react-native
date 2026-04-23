@@ -1,6 +1,8 @@
 // This is a temporary compat layer for event emitters on new arch.
 // Versions before RN 0.80 crash sometimes when setting the event emitter callback.
 // Remove this layer once we drop support for RN < 0.80.
+@file:Suppress("TooManyFunctions")
+
 package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReactApplicationContext

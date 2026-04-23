@@ -41,9 +41,11 @@ class DrawableLoadingTest {
       canvas.drawColor(Color.RED)
     }
 
-    override fun setAlpha(alpha: Int) {}
+    override fun setAlpha(alpha: Int) { // no-op
+    }
 
-    override fun setColorFilter(colorFilter: ColorFilter?) {}
+    override fun setColorFilter(colorFilter: ColorFilter?) { // no-op
+    }
 
     override fun getOpacity(): Int = PixelFormat.OPAQUE
   }
