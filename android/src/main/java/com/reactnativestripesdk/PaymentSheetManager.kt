@@ -728,9 +728,7 @@ internal fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration
   }
 
 @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
-internal fun mapToPaymentMethodOptions(
-  options: ReadableMap?,
-): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
+internal fun mapToPaymentMethodOptions(options: ReadableMap?): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
   val sfuMap = options?.getMap("setupFutureUsageValues")
   val paymentMethodToSfuMap =
     mutableMapOf<PaymentMethod.Type, PaymentSheet.IntentConfiguration.SetupFutureUse>()

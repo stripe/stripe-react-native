@@ -257,9 +257,7 @@ class FinancialConnectionsSheetManager(
 
     private const val MILLIS_PER_SECOND = 1000
 
-    private fun mapFromSupportedPaymentMethodTypes(
-      type: FinancialConnectionsAccount.SupportedPaymentMethodTypes,
-    ): String =
+    private fun mapFromSupportedPaymentMethodTypes(type: FinancialConnectionsAccount.SupportedPaymentMethodTypes): String =
       when (type) {
         FinancialConnectionsAccount.SupportedPaymentMethodTypes.US_BANK_ACCOUNT -> "usBankAccount"
         FinancialConnectionsAccount.SupportedPaymentMethodTypes.LINK -> "link"

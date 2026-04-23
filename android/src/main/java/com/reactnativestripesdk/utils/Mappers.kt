@@ -211,9 +211,7 @@ internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?
   return details
 }
 
-internal fun mapFromPaymentSheetBillingDetails(
-  billing: com.stripe.android.paymentsheet.PaymentSheet.BillingDetails?,
-): WritableMap {
+internal fun mapFromPaymentSheetBillingDetails(billing: com.stripe.android.paymentsheet.PaymentSheet.BillingDetails?): WritableMap {
   val details = Arguments.createMap()
   details.putString("name", billing?.name)
   details.putString("email", billing?.email)
@@ -726,8 +724,7 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
 
 private const val MILLIS_PER_SECOND = 1000
 
-private fun convertToUnixTimestamp(timestamp: Long): String =
-  (timestamp * MILLIS_PER_SECOND).toString()
+private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * MILLIS_PER_SECOND).toString()
 
 @Suppress("LongMethod", "CyclomaticComplexMethod")
 fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCustomization {
@@ -1060,9 +1057,7 @@ private fun Map<String, Any?>.toReadableMap(): ReadableMap {
 }
 
 @SuppressLint("RestrictedApi")
-internal fun parseCustomPaymentMethods(
-  customPaymentMethodConfig: ReadableMap?,
-): List<PaymentSheet.CustomPaymentMethod> {
+internal fun parseCustomPaymentMethods(customPaymentMethodConfig: ReadableMap?): List<PaymentSheet.CustomPaymentMethod> {
   if (customPaymentMethodConfig == null) {
     return emptyList()
   }

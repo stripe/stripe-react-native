@@ -77,7 +77,7 @@ class GooglePayLauncherManager(
         createError(
           GooglePayErrorType.Failed.toString(),
           "Google Pay is not available on this device. You can use " +
-          "isPlatformPaySupported to preemptively check for Google Pay support.",
+            "isPlatformPaySupported to preemptively check for Google Pay support.",
         ),
       )
     }

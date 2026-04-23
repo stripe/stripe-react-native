@@ -17,8 +17,7 @@ class GooglePayButtonManager :
 
   override fun getDelegate() = delegate
 
-  override fun createViewInstance(reactContext: ThemedReactContext): GooglePayButtonView =
-    GooglePayButtonView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): GooglePayButtonView = GooglePayButtonView(reactContext)
 
   override fun onAfterUpdateTransaction(view: GooglePayButtonView) {
     super.onAfterUpdateTransaction(view)

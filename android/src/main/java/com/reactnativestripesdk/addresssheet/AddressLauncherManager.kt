@@ -56,7 +56,7 @@ class AddressLauncherManager(
           createError(
             ErrorType.Failed.toString(),
             "No publishable key set. Stripe has not been initialized. " +
-            "Initialize Stripe in your app with the StripeProvider component or the initStripe method.",
+              "Initialize Stripe in your app with the StripeProvider component or the initStripe method.",
           ),
           null,
         )

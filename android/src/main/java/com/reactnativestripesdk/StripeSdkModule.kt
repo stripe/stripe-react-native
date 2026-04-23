@@ -1639,7 +1639,9 @@ class StripeSdkModule(
       }
 
       promise.resolve(urlsArray)
-    } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
+    } catch (
+      @Suppress("TooGenericExceptionCaught") e: RuntimeException,
+    ) {
       Log.e(TAG, "Error polling URLs", e)
       promise.reject("PollError", "Failed to poll pending Stripe Connect URLs: ${e.message}", e)
     }
@@ -1761,22 +1763,25 @@ class StripeSdkModule(
    */
   private fun preventActivityRecreation() {
     isRecreatingReactActivity = false
-    reactApplicationContext.currentActivity?.application
+    reactApplicationContext.currentActivity
+      ?.application
       ?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
-    reactApplicationContext.currentActivity?.application
+    reactApplicationContext.currentActivity
+      ?.application
       ?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
       composeCompatView = composeCompatView
-        ?: StripeAbstractComposeView.CompatView(
-          context = reactApplicationContext,
-        ).also {
-          reactApplicationContext.currentActivity
-            ?.findViewById<ViewGroup>(android.R.id.content)
-            ?.addView(it)
-        }
+        ?: StripeAbstractComposeView
+          .CompatView(
+            context = reactApplicationContext,
+          ).also {
+            reactApplicationContext.currentActivity
+              ?.findViewById<ViewGroup>(android.R.id.content)
+              ?.addView(it)
+          }
     }
   }
 

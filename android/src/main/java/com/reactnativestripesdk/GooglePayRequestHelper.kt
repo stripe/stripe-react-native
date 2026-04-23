@@ -70,9 +70,7 @@ object GooglePayRequestHelper {
   }
 
   @Suppress("UNCHECKED_CAST")
-  private fun buildShippingAddressParameters(
-    params: ReadableMap?,
-  ): GooglePayJsonFactory.ShippingAddressParameters {
+  private fun buildShippingAddressParameters(params: ReadableMap?): GooglePayJsonFactory.ShippingAddressParameters {
     val isPhoneNumberRequired = params?.getBooleanOr("isPhoneNumberRequired", false)
     val isRequired = params?.getBooleanOr("isRequired", false)
     val allowedCountryCodes =
@@ -89,9 +87,7 @@ object GooglePayRequestHelper {
     )
   }
 
-  private fun buildBillingAddressParameters(
-    params: ReadableMap?,
-  ): GooglePayJsonFactory.BillingAddressParameters {
+  private fun buildBillingAddressParameters(params: ReadableMap?): GooglePayJsonFactory.BillingAddressParameters {
     val isRequired = params?.getBooleanOr("isRequired", false)
     val isPhoneNumberRequired = params?.getBooleanOr("isPhoneNumberRequired", false)
     val format =

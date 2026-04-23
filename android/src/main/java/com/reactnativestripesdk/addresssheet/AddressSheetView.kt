@@ -162,9 +162,7 @@ class AddressSheetView(
         else -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
       }
 
-    internal fun buildAdditionalFieldsConfiguration(
-      params: ReadableMap,
-    ): AddressLauncher.AdditionalFieldsConfiguration {
+    internal fun buildAdditionalFieldsConfiguration(params: ReadableMap): AddressLauncher.AdditionalFieldsConfiguration {
       val phoneConfiguration = getFieldConfiguration(params.getString("phoneNumber"))
 
       return AddressLauncher.AdditionalFieldsConfiguration(
