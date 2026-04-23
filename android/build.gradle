@@ -26,7 +26,7 @@ buildscript {
 
 if (project == rootProject) {
   apply from: "spotless.gradle"
-  apply from: "detekt.gradle"
+  apply from: "detekt/detekt.gradle"
   return
 }
 
@@ -74,6 +74,10 @@ if (kotlinMajor >= 2) {
 
 if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
+}
+
+if (!project.plugins.hasPlugin('dev.detekt')) {
+  apply from: "detekt/detekt.gradle"
 }
 
 android {
