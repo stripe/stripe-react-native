@@ -1,5 +1,10 @@
 apply plugin: 'dev.detekt'
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 def isDetektFormat = gradle.startParameter.taskNames.any { it.contains('detektFormat') }
 
 detekt {

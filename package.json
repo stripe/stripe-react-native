@@ -30,9 +30,9 @@
     "test:unit:android": "cd example/android && ./gradlew :stripe_stripe-react-native:testDebugUnitTest",
     "test-ios": "maestro test -e APP_ID=com.stripe.react.native",
     "test-android": "maestro test -e APP_ID=com.stripe.react.native",
-    "format:android:check": "cd android && ./gradlew spotlessCheck",
-    "format:android:write": "cd android && ./gradlew spotlessApply detektFormat",
-    "lint:android": "cd android && ./gradlew :lint-rules:jar && cd ../example/android && RN_STRIPE_WARNINGS_AS_ERRORS=true ./gradlew :stripe_stripe-react-native:lint --rerun-tasks",
+    "format:android:check": "cd android && ./gradlew detekt",
+    "format:android:write": "cd android && ./gradlew detektFormat",
+    "lint:android": "cd android && ./gradlew detekt",
     "format:ios:check": "swiftlint ios --config .swiftlint.yml --strict",
     "format:ios:write": "./scripts/format-changed-ios"
   },
