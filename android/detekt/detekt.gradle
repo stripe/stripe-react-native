@@ -5,9 +5,7 @@ def isDetektFormat = gradle.startParameter.taskNames.any { it.contains('detektFo
 detekt {
     buildUponDefaultConfig = true
     config.setFrom(file("detekt/detekt.yml"))
-    if (!isDetektFormat) {
-        baseline = file("detekt/detekt-baseline.xml") // https://detekt.dev/docs/introduction/baseline/
-    }
+    baseline = file("detekt/detekt-baseline.xml") // https://detekt.dev/docs/introduction/baseline/
     ignoredBuildTypes = ["debug"]
     ignoredFlavors = []
     ignoredVariants = []
