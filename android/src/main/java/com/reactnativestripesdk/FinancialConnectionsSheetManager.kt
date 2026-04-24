@@ -252,7 +252,9 @@ class FinancialConnectionsSheetManager(
         FinancialConnectionsAccount.Permissions.UNKNOWN -> "unparsable"
       }
 
-    private fun mapFromSupportedPaymentMethodTypes(type: FinancialConnectionsAccount.SupportedPaymentMethodTypes): String =
+    private fun mapFromSupportedPaymentMethodTypes(
+      type: FinancialConnectionsAccount.SupportedPaymentMethodTypes
+    ): String =
       when (type) {
         FinancialConnectionsAccount.SupportedPaymentMethodTypes.US_BANK_ACCOUNT -> "usBankAccount"
         FinancialConnectionsAccount.SupportedPaymentMethodTypes.LINK -> "link"

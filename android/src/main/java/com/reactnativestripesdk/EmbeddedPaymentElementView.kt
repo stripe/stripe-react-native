@@ -199,7 +199,9 @@ class EmbeddedPaymentElementView(
                     return@Builder CreateIntentResult.Failure(
                       cause =
                         Exception(
-                          "Tried to call confirmationTokenConfirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
+                          "Tried to call confirmationTokenConfirmHandler, but no callback was " +
+                            "found. Please file an issue: " +
+                            "https://github.com/stripe/stripe-react-native/issues",
                         ),
                       displayMessage = "An unexpected error occurred",
                     )
@@ -245,7 +247,8 @@ class EmbeddedPaymentElementView(
                     return@Builder CreateIntentResult.Failure(
                       cause =
                         Exception(
-                          "Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
+                          "Tried to call confirmHandler, but no callback was found. Please " +
+                            "file an issue: https://github.com/stripe/stripe-react-native/issues",
                         ),
                       displayMessage = "An unexpected error occurred",
                     )

@@ -78,39 +78,6 @@
     <ID>MagicNumber:PaymentSheetManager.kt:100</ID>
     <ID>MagicNumber:PaymentSheetManager.kt:PaymentSheetManager$100</ID>
     <ID>MagicNumber:StripeSdkModule.kt:StripeSdkModule$3000</ID>
-    <ID>MaxLineLength:AddToWalletButtonManager.kt:AddToWalletButtonManager$override fun createViewInstance: AddToWalletButtonView</ID>
-    <ID>MaxLineLength:AddressLauncherManager.kt:AddressLauncherManager$"No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method."</ID>
-    <ID>MaxLineLength:AddressSheetView.kt:AddressSheetView.Companion$internal</ID>
-    <ID>MaxLineLength:AuBECSDebitFormView.kt:AuBECSDebitFormView$UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(FormCompleteEvent(context.surfaceId, id, formDetails))</ID>
-    <ID>MaxLineLength:AuBECSDebitFormViewManager.kt:AuBECSDebitFormViewManager$override fun createViewInstance: AuBECSDebitFormView</ID>
-    <ID>MaxLineLength:CustomerSheetManager.kt:CustomerSheetManager.Companion$internal</ID>
-    <ID>MaxLineLength:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$"Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues"</ID>
-    <ID>MaxLineLength:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$"Tried to call confirmationTokenConfirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues"</ID>
-    <ID>MaxLineLength:Errors.kt:"Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method."</ID>
-    <ID>MaxLineLength:Errors.kt:internal fun createCanceledError: WritableMap</ID>
-    <ID>MaxLineLength:Extensions.kt:)</ID>
-    <ID>MaxLineLength:FinancialConnectionsSheetManager.kt:FinancialConnectionsSheetManager.Companion$private</ID>
-    <ID>MaxLineLength:GooglePayButtonManager.kt:GooglePayButtonManager$override fun createViewInstance: GooglePayButtonView</ID>
-    <ID>MaxLineLength:GooglePayLauncherManager.kt:GooglePayLauncherManager$"Google Pay is not available on this device. You can use isPlatformPaySupported to preemptively check for Google Pay support."</ID>
-    <ID>MaxLineLength:Mappers.kt:internal</ID>
-    <ID>MaxLineLength:Mappers.kt:val disableBillingDetailCollection = customPaymentMethodMap.getBooleanOr("disableBillingDetailCollection", false)</ID>
-    <ID>MaxLineLength:NavigationBarView.kt:NavigationBarView$drawable?.setColorFilter(android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN))</ID>
-    <ID>MaxLineLength:PaymentElementConfig.kt:internal</ID>
-    <ID>MaxLineLength:PaymentLauncherManager.kt:PaymentLauncherManager$"Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client secret and setup params (if necessary)."</ID>
-    <ID>MaxLineLength:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$private</ID>
-    <ID>MaxLineLength:PaymentMethodMessagingElementViewManager.kt:PaymentMethodMessagingElementViewManager$override fun createViewInstance: PaymentMethodMessagingElementView</ID>
-    <ID>MaxLineLength:PaymentOptionDisplayDataMapperTest.kt:PaymentOptionDisplayDataMapperTest$"By continuing, you agree to &lt;b>&lt;font color=\"#0000FF\">&lt;u>&lt;a href=\"https://stripe.com/terms\">Terms&lt;/a>&lt;/u>&lt;/font>&lt;/b> and &lt;i>&lt;font color=\"#FF0000\">&lt;a href=\"https://stripe.com/privacy\">Privacy&lt;/a>&lt;/font>&lt;/i>. Important details are &lt;span style=\"background-color: #FFFF00;\">highlighted&lt;/span>."</ID>
-    <ID>MaxLineLength:PaymentOptionDisplayDataMapperTest.kt:PaymentOptionDisplayDataMapperTest$"By continuing, you agree to our &lt;a href=\"https://stripe.com/privacy\">Privacy Policy&lt;/a> and &lt;a href=\"https://stripe.com/terms\">Terms of Service&lt;/a>."</ID>
-    <ID>MaxLineLength:PaymentOptionDisplayDataMapperTest.kt:PaymentOptionDisplayDataMapperTest$"Check &lt;b>&lt;a href=\"https://stripe.com\">Stripe&lt;/a>&lt;/b> and &lt;i>&lt;font color=\"#00FF00\">&lt;a href=\"https://github.com\">GitHub&lt;/a>&lt;/font>&lt;/i>"</ID>
-    <ID>MaxLineLength:PaymentOptionDisplayDataMapperTest.kt:PaymentOptionDisplayDataMapperTest$"Visit our &lt;b>&lt;font color=\"#0000FF\">&lt;a href=\"https://stripe.com/privacy\">Privacy Policy&lt;/a>&lt;/font>&lt;/b> for details"</ID>
-    <ID>MaxLineLength:PaymentSheetAppearance.kt:"$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font"</ID>
-    <ID>MaxLineLength:PaymentSheetAppearance.kt:System.err.println("WARN: Unsupported embedded payment element row style received: $styleString. Falling back to default.")</ID>
-    <ID>MaxLineLength:PaymentSheetManager.kt:internal</ID>
-    <ID>MaxLineLength:PostalCodeUtilities.kt:PostalCodeUtilities.Companion$internal fun isValidGlobalPostalCodeCharacter: Boolean</ID>
-    <ID>MaxLineLength:ReactNativeCustomerAdapter.kt:ReactNativeCustomerAdapter$override suspend</ID>
-    <ID>MaxLineLength:ReactNativeCustomerSessionProvider.kt:ReactNativeCustomerSessionProvider$override suspend fun intentConfiguration: Result&lt;CustomerSheet.IntentConfiguration></ID>
-    <ID>MaxLineLength:StripeSdkModule.kt:StripeSdkModule$composeCompatView</ID>
-    <ID>MaxLineLength:StripeSdkModule.kt:StripeSdkModule$reactApplicationContext.currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)</ID>
     <ID>RethrowCaughtException:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$throw error</ID>
     <ID>SwallowedException:StripeSdkModule.kt:StripeSdkModule$e: Exception</ID>
     <ID>ThrowsCount:PaymentSheetAppearance.kt:@Throws(PaymentSheetAppearanceException::class) internal fun getFontResId: Int?</ID>
@@ -125,7 +92,7 @@
     <ID>TooGenericExceptionCaught:StripeSdkModule.kt:StripeSdkModule$e: Exception</ID>
     <ID>TooGenericExceptionCaught:TapAndPayProxy.kt:TapAndPayProxy$e: Exception</ID>
     <ID>TooGenericExceptionThrown:EmbeddedPaymentElementViewManager.kt:EmbeddedPaymentElementViewManager$throw Error()</ID>
-    <ID>TooGenericExceptionThrown:PaymentLauncherManager.kt:PaymentLauncherManager$throw Exception( "Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client secret and setup params (if necessary).", )</ID>
+    <ID>TooGenericExceptionThrown:PaymentLauncherManager.kt:PaymentLauncherManager$throw Exception( "Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client " + "secret and setup params (if necessary).", )</ID>
     <ID>TooGenericExceptionThrown:PaymentLauncherManager.kt:PaymentLauncherManager$throw Exception("Failed to create Payment Launcher. No client secret provided.")</ID>
     <ID>TooGenericExceptionThrown:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$throw Exception("This paymentMethodType is not supported yet")</ID>
     <ID>TooManyFunctions:AddToWalletButtonManager.kt:AddToWalletButtonManager : SimpleViewManagerAddToWalletButtonManagerInterface</ID>

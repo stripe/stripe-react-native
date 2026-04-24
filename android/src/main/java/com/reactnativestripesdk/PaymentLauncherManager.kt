@@ -165,7 +165,8 @@ class PaymentLauncherManager(
       paymentLauncher.handleNextActionForSetupIntent(handleNextActionSetupIntentClientSecret!!)
     } else {
       throw Exception(
-        "Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client secret and setup params (if necessary).",
+        "Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client " +
+          "secret and setup params (if necessary).",
       )
     }
   }

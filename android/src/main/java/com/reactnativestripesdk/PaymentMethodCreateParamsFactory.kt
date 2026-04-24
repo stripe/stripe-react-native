@@ -234,7 +234,8 @@ class PaymentMethodCreateParamsFactory(
     )
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createPayPalParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
+  private fun createPayPalParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAffirmParams(): PaymentMethodCreateParams =

@@ -207,7 +207,9 @@ internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?
   return details
 }
 
-internal fun mapFromPaymentSheetBillingDetails(billing: com.stripe.android.paymentsheet.PaymentSheet.BillingDetails?): WritableMap {
+internal fun mapFromPaymentSheetBillingDetails(
+  billing: com.stripe.android.paymentsheet.PaymentSheet.BillingDetails?
+): WritableMap {
   val details = Arguments.createMap()
   details.putString("name", billing?.name)
   details.putString("email", billing?.email)
@@ -1038,7 +1040,9 @@ private fun Map<String, Any?>.toReadableMap(): ReadableMap {
 }
 
 @SuppressLint("RestrictedApi")
-internal fun parseCustomPaymentMethods(customPaymentMethodConfig: ReadableMap?): List<PaymentSheet.CustomPaymentMethod> {
+internal fun parseCustomPaymentMethods(
+  customPaymentMethodConfig: ReadableMap?
+): List<PaymentSheet.CustomPaymentMethod> {
   if (customPaymentMethodConfig == null) {
     return emptyList()
   }
@@ -1051,7 +1055,8 @@ internal fun parseCustomPaymentMethods(customPaymentMethodConfig: ReadableMap?):
       val id = customPaymentMethodMap.getString("id")
       if (id != null) {
         val subtitle = customPaymentMethodMap.getString("subtitle")
-        val disableBillingDetailCollection = customPaymentMethodMap.getBooleanOr("disableBillingDetailCollection", false)
+        val disableBillingDetailCollection = customPaymentMethodMap
+          .getBooleanOr("disableBillingDetailCollection", false)
         result.add(
           PaymentSheet.CustomPaymentMethod(
             id = id,
