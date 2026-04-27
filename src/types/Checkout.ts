@@ -37,8 +37,6 @@ export namespace Checkout {
     | { status: 'loading'; session: Session }
     | { status: 'loaded'; session: Session };
 
-  export type Mode = 'unknown' | 'payment' | 'setup' | 'subscription';
-
   export type Status = 'unknown' | 'open' | 'complete' | 'expired';
 
   export type PaymentStatus =
@@ -49,7 +47,6 @@ export namespace Checkout {
 
   export interface Session {
     id: string;
-    mode: Mode;
     status?: Status;
     paymentStatus: PaymentStatus;
     /** Three-letter ISO 4217 currency code in lowercase (e.g. `"usd"`). */
@@ -59,9 +56,7 @@ export namespace Checkout {
     totals?: Totals;
     lineItems: LineItem[];
     shippingOptions: ShippingOption[];
-    selectedShippingOption?: ShippingOption;
     discounts: Discount[];
-    appliedPromotionCode?: string;
     customerId?: string;
     customerEmail?: string;
     billingAddress?: AddressUpdate;
