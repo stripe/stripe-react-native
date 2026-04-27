@@ -2,7 +2,7 @@
 
 ## 0.65.0 - 2022-04-27
 **Features**
-* [Added] Added PaymentMethodMessagingElement support. See [documentation](https://docs.stripe.com/payments/mobile/payment-method-messaging-element) for integration guide. ([#2351](https://github.com/stripe/stripe-react-native/issues/2352))
+* [Added] Added PaymentMethodMessagingElement support in public preview. See [documentation](https://docs.stripe.com/payments/mobile/payment-method-messaging-element) for integration guide. ([#2351](https://github.com/stripe/stripe-react-native/pull/2351))
 
 **Fixes**
 * [Fixed] Fixes a crash when `retrievePaymentIntent` or `retrieveSetupIntent` is called with no network connectivity on Android. ([#2409](https://github.com/stripe/stripe-react-native/pull/2409))
