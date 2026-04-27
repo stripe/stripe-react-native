@@ -236,7 +236,8 @@ export interface Spec extends TurboModule {
 
   checkoutUpdateLineItemQuantity(
     sessionKey: string,
-    params: UnsafeObject<Checkout.LineItemUpdate>
+    lineItemId: string,
+    quantity: number
   ): Promise<UnsafeObject<Checkout.State>>;
 
   checkoutSelectShippingOption(
@@ -246,7 +247,8 @@ export interface Spec extends TurboModule {
 
   checkoutUpdateTaxId(
     sessionKey: string,
-    params: UnsafeObject<Checkout.TaxIdUpdate>
+    type: string,
+    value: string
   ): Promise<UnsafeObject<Checkout.State>>;
 
   checkoutRefresh(sessionKey: string): Promise<UnsafeObject<Checkout.State>>;

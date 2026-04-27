@@ -117,16 +117,6 @@ export namespace Checkout {
     postalCode?: string;
   }
 
-  export interface LineItemUpdate {
-    lineItemId: string;
-    quantity: number;
-  }
-
-  export interface TaxIdUpdate {
-    type: string;
-    value: string;
-  }
-
   export interface Error {
     code: ErrorCode;
     message: string;
@@ -172,13 +162,13 @@ export interface Checkout {
   removePromotionCode(): Promise<void>;
 
   /** Updates the quantity of a line item. */
-  updateLineItemQuantity(params: Checkout.LineItemUpdate): Promise<void>;
+  updateLineItemQuantity(lineItemId: string, quantity: number): Promise<void>;
 
   /** Selects a shipping option for the session. */
   selectShippingOption(id: string): Promise<void>;
 
   /** Sets the customer's tax ID on the session. */
-  updateTaxId(params: Checkout.TaxIdUpdate): Promise<void>;
+  updateTaxId(type: string, value: string): Promise<void>;
 
   /** Refreshes the session from Stripe. */
   refresh(): Promise<void>;

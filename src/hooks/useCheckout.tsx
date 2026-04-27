@@ -124,9 +124,13 @@ export function useCheckout(
       [withLoading]
     ),
     updateLineItemQuantity: useCallback(
-      (params) =>
+      (lineItemId, quantity) =>
         withLoading((key) =>
-          NativeStripeSdk.checkoutUpdateLineItemQuantity(key, params)
+          NativeStripeSdk.checkoutUpdateLineItemQuantity(
+            key,
+            lineItemId,
+            quantity
+          )
         ),
       [withLoading]
     ),
@@ -138,8 +142,10 @@ export function useCheckout(
       [withLoading]
     ),
     updateTaxId: useCallback(
-      (params) =>
-        withLoading((key) => NativeStripeSdk.checkoutUpdateTaxId(key, params)),
+      (type, value) =>
+        withLoading((key) =>
+          NativeStripeSdk.checkoutUpdateTaxId(key, type, value)
+        ),
       [withLoading]
     ),
     refresh: useCallback(

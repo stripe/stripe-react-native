@@ -315,7 +315,7 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void checkoutUpdateLineItemQuantity(String sessionKey, ReadableMap params, Promise promise);
+  public abstract void checkoutUpdateLineItemQuantity(String sessionKey, String lineItemId, double quantity, Promise promise);
 
   @ReactMethod
   @DoNotStrip
@@ -323,7 +323,7 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void checkoutUpdateTaxId(String sessionKey, ReadableMap params, Promise promise);
+  public abstract void checkoutUpdateTaxId(String sessionKey, String type, String value, Promise promise);
 
   @ReactMethod
   @DoNotStrip

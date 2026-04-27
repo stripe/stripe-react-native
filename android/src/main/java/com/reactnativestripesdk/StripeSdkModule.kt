@@ -1717,7 +1717,7 @@ class StripeSdkModule(
     promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
   }
 
-  override fun checkoutUpdateLineItemQuantity(sessionKey: String, params: ReadableMap, promise: Promise) {
+  override fun checkoutUpdateLineItemQuantity(sessionKey: String, lineItemId: String, quantity: Double, promise: Promise) {
     promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
   }
 
@@ -1725,7 +1725,7 @@ class StripeSdkModule(
     promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
   }
 
-  override fun checkoutUpdateTaxId(sessionKey: String, params: ReadableMap, promise: Promise) {
+  override fun checkoutUpdateTaxId(sessionKey: String, type: String, value: String, promise: Promise) {
     promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
   }
 
