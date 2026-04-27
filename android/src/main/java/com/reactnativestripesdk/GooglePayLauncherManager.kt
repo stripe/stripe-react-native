@@ -1,6 +1,7 @@
 package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
+import androidx.lifecycle.Lifecycle
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
@@ -63,6 +64,11 @@ class GooglePayLauncherManager(
 
   private fun onGooglePayReady(isReady: Boolean) {
     if (isReady) {
+      val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+      if (!activity.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+        callback(null, createError(GooglePayErrorType.Canceled.toString(), "Google Pay has been canceled"))
+        return
+      }
       when (mode) {
         Mode.ForSetup -> {
           launcher?.presentForSetupIntent(clientSecret, currencyCode, amount?.toLong(), label)
