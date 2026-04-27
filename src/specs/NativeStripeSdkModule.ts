@@ -217,12 +217,16 @@ export interface Spec extends TurboModule {
 
   checkoutUpdateShippingAddress(
     sessionKey: string,
-    params: UnsafeObject<Checkout.AddressUpdate>
+    address: UnsafeObject<Checkout.Address>,
+    name: string | null,
+    phone: string | null
   ): Promise<UnsafeObject<Checkout.State>>;
 
   checkoutUpdateBillingAddress(
     sessionKey: string,
-    params: UnsafeObject<Checkout.AddressUpdate>
+    address: UnsafeObject<Checkout.Address>,
+    name: string | null,
+    phone: string | null
   ): Promise<UnsafeObject<Checkout.State>>;
 
   checkoutApplyPromotionCode(

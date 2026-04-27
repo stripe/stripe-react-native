@@ -149,13 +149,15 @@ export interface Checkout {
    * address source is "shipping", the address is also sent to the server to
    * compute updated tax amounts.
    *
-   * - Parameter params: The shipping address to set. To reset tax computation
-   *   to a country-only region, pass an `AddressUpdate` with just the country.
-   * - Throws: `CheckoutError` if the session is not open, or if
-   *   the server request fails.
-   * @checkoutSessionsPreview
+   * @param address - The shipping address to set.
+   * @param name - The recipient's name.
+   * @param phone - The recipient's phone number.
    */
-  updateShippingAddress(params: Checkout.AddressUpdate): Promise<void>;
+  updateShippingAddress(
+    address: Checkout.Address,
+    name?: string,
+    phone?: string
+  ): Promise<void>;
 
   /**
    * Sets the billing address for this checkout.
@@ -165,14 +167,15 @@ export interface Checkout {
    * address source is "billing", the address is also sent to the server to
    * compute updated tax amounts.
    *
-   * - Parameter params: The billing address to set. To reset tax computation
-   *   to a country-only region, pass an `AddressUpdate` with just the country.
-   * - Throws: `CheckoutError` if the session is not open, or if
-   *   the server request fails.
-   * @checkoutSessionsPreview
+   * @param address - The billing address to set.
+   * @param name - The customer's name.
+   * @param phone - The customer's phone number.
    */
-
-  updateBillingAddress(params: Checkout.AddressUpdate): Promise<void>;
+  updateBillingAddress(
+    address: Checkout.Address,
+    name?: string,
+    phone?: string
+  ): Promise<void>;
 
   /**
    * Applies a promotion code to the session.

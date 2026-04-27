@@ -98,16 +98,26 @@ export function useCheckout(
       return sessionKeyRef.current;
     },
     updateShippingAddress: useCallback(
-      (params) =>
+      (address, name, phone) =>
         withLoading((key) =>
-          NativeStripeSdk.checkoutUpdateShippingAddress(key, params)
+          NativeStripeSdk.checkoutUpdateShippingAddress(
+            key,
+            address,
+            name ?? null,
+            phone ?? null
+          )
         ),
       [withLoading]
     ),
     updateBillingAddress: useCallback(
-      (params) =>
+      (address, name, phone) =>
         withLoading((key) =>
-          NativeStripeSdk.checkoutUpdateBillingAddress(key, params)
+          NativeStripeSdk.checkoutUpdateBillingAddress(
+            key,
+            address,
+            name ?? null,
+            phone ?? null
+          )
         ),
       [withLoading]
     ),

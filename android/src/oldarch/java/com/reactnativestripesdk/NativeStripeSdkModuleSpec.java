@@ -299,11 +299,11 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void checkoutUpdateShippingAddress(String sessionKey, ReadableMap params, Promise promise);
+  public abstract void checkoutUpdateShippingAddress(String sessionKey, ReadableMap address, @Nullable String name, @Nullable String phone, Promise promise);
 
   @ReactMethod
   @DoNotStrip
-  public abstract void checkoutUpdateBillingAddress(String sessionKey, ReadableMap params, Promise promise);
+  public abstract void checkoutUpdateBillingAddress(String sessionKey, ReadableMap address, @Nullable String name, @Nullable String phone, Promise promise);
 
   @ReactMethod
   @DoNotStrip

@@ -1701,11 +1701,23 @@ class StripeSdkModule(
     promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
   }
 
-  override fun checkoutUpdateShippingAddress(sessionKey: String, params: ReadableMap, promise: Promise) {
+  override fun checkoutUpdateShippingAddress(
+    sessionKey: String,
+    address: ReadableMap,
+    name: String?,
+    phone: String?,
+    promise: Promise,
+  ) {
     promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
   }
 
-  override fun checkoutUpdateBillingAddress(sessionKey: String, params: ReadableMap, promise: Promise) {
+  override fun checkoutUpdateBillingAddress(
+    sessionKey: String,
+    address: ReadableMap,
+    name: String?,
+    phone: String?,
+    promise: Promise,
+  ) {
     promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
   }
 
