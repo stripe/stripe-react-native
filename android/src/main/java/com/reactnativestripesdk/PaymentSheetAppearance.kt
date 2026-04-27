@@ -74,7 +74,7 @@ private fun buildTypography(
 @Throws(PaymentSheetAppearanceException::class)
 private fun colorFromHex(hexString: String?): Int? =
   hexString?.trim()?.replace("#", "")?.let {
-    if (it.length == 6 || it.length == 8) {
+    if (it.length == HEX_COLOR_LENGTH_RGB || it.length == HEX_COLOR_LENGTH_ARGB) {
       "#$it".toColorInt()
     } else {
       throw PaymentSheetAppearanceException(
@@ -566,6 +566,9 @@ internal fun getFontResId(
     return id
   }
 }
+
+private const val HEX_COLOR_LENGTH_RGB = 6
+private const val HEX_COLOR_LENGTH_ARGB = 8
 
 private class PaymentSheetAppearanceKeys {
   companion object {

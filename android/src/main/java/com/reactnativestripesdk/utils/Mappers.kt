@@ -716,7 +716,7 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
   )
 }
 
-private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
+private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * SECONDS_TO_MILLIS).toString()
 
 fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCustomization {
   val labelCustomization = params.getMap("label")
@@ -968,15 +968,15 @@ internal fun mapToPreferredNetworks(networksAsInts: List<Int>?): List<CardBrand>
 
   val intToCardBrand =
     mapOf(
-      0 to CardBrand.JCB,
-      1 to CardBrand.AmericanExpress,
-      2 to CardBrand.CartesBancaires,
-      3 to CardBrand.DinersClub,
-      4 to CardBrand.Discover,
-      5 to CardBrand.MasterCard,
-      6 to CardBrand.UnionPay,
-      7 to CardBrand.Visa,
-      8 to CardBrand.Unknown,
+      CARD_BRAND_JCB to CardBrand.JCB,
+      CARD_BRAND_AMEX to CardBrand.AmericanExpress,
+      CARD_BRAND_CARTES_BANCAIRES to CardBrand.CartesBancaires,
+      CARD_BRAND_DINERS_CLUB to CardBrand.DinersClub,
+      CARD_BRAND_DISCOVER to CardBrand.Discover,
+      CARD_BRAND_MASTERCARD to CardBrand.MasterCard,
+      CARD_BRAND_UNION_PAY to CardBrand.UnionPay,
+      CARD_BRAND_VISA to CardBrand.Visa,
+      CARD_BRAND_UNKNOWN to CardBrand.Unknown,
     )
 
   return networksAsInts.mapNotNull { intToCardBrand[it] }
@@ -1194,3 +1194,14 @@ fun readableArrayOf(vararg elements: Any?): ReadableArray =
       }
     }
   }
+
+private const val SECONDS_TO_MILLIS = 1000
+private const val CARD_BRAND_JCB = 0
+private const val CARD_BRAND_AMEX = 1
+private const val CARD_BRAND_CARTES_BANCAIRES = 2
+private const val CARD_BRAND_DINERS_CLUB = 3
+private const val CARD_BRAND_DISCOVER = 4
+private const val CARD_BRAND_MASTERCARD = 5
+private const val CARD_BRAND_UNION_PAY = 6
+private const val CARD_BRAND_VISA = 7
+private const val CARD_BRAND_UNKNOWN = 8

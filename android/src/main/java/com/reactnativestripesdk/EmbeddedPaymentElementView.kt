@@ -115,7 +115,7 @@ class EmbeddedPaymentElementView(
           coroutineScope.launch {
             try {
               // Give the CustomPaymentMethodActivity a moment to fully initialize
-              delay(100)
+              delay(CUSTOM_PAYMENT_METHOD_INIT_DELAY_MS)
 
               // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
               stripeSdkModule.eventEmitter.emitOnCustomPaymentMethodConfirmHandlerCallback(
@@ -467,4 +467,8 @@ class EmbeddedPaymentElementView(
   }
 
   private fun requireStripeSdkModule() = requireNotNull(reactContext.getNativeModule(StripeSdkModule::class.java))
+
+  private companion object {
+    const val CUSTOM_PAYMENT_METHOD_INIT_DELAY_MS = 100L
+  }
 }
