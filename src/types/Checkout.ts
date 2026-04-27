@@ -143,33 +143,85 @@ export interface Checkout {
 
   /**
    * Sets the shipping address for this checkout.
-   * If automatic tax is enabled with shipping as the tax address source,
-   * also updates the tax region on the server.
+   *
+   * The address is stored locally and merged into PaymentSheet configuration
+   * when presenting payment UI. If automatic tax is enabled and the tax
+   * address source is "shipping", the address is also sent to the server to
+   * compute updated tax amounts.
+   *
+   * - Parameter params: The shipping address to set. To reset tax computation
+   *   to a country-only region, pass an `AddressUpdate` with just the country.
+   * - Throws: `CheckoutError` if the session is not open, or if
+   *   the server request fails.
+   * @checkoutSessionsPreview
    */
   updateShippingAddress(params: Checkout.AddressUpdate): Promise<void>;
 
   /**
    * Sets the billing address for this checkout.
-   * If automatic tax is enabled with billing as the tax address source,
-   * also updates the tax region on the server.
+   *
+   * The address is stored locally and merged into PaymentSheet configuration
+   * when presenting payment UI. If automatic tax is enabled and the tax
+   * address source is "billing", the address is also sent to the server to
+   * compute updated tax amounts.
+   *
+   * - Parameter params: The billing address to set. To reset tax computation
+   *   to a country-only region, pass an `AddressUpdate` with just the country.
+   * - Throws: `CheckoutError` if the session is not open, or if
+   *   the server request fails.
+   * @checkoutSessionsPreview
    */
+
   updateBillingAddress(params: Checkout.AddressUpdate): Promise<void>;
 
-  /** Applies a promotion code to the session. */
+  /**
+   * Applies a promotion code to the session.
+   * - Parameter code: The promotion code to apply (e.g. `"SUMMER2026"`).
+   * - Throws: `CheckoutError` if applying the promotion code fails.
+   * @checkoutSessionsPreview
+   */
   applyPromotionCode(code: string): Promise<void>;
 
-  /** Removes the currently applied promotion code. */
+  /**
+   * Removes the currently applied promotion code.
+   * - Throws: `CheckoutError` if removing the promotion code fails.
+   * @checkoutSessionsPreview
+   */
   removePromotionCode(): Promise<void>;
 
-  /** Updates the quantity of a line item. */
+  /**
+   * Updates the quantity of a line item.
+   * @param lineItemId - The ID of the line item to update.
+   * @param quantity - The new quantity to set.
+   * - Throws: `CheckoutError` if updating the line item quantity fails.
+   * @checkoutSessionsPreview
+   */
   updateLineItemQuantity(lineItemId: string, quantity: number): Promise<void>;
 
-  /** Selects a shipping option for the session. */
+  /**
+   * Selects a shipping option for the session.
+   * @param id - The ID of the shipping rate to select.
+   * - Throws: `CheckoutError` if selecting the shipping option fails.
+   * @checkoutSessionsPreview
+   */
   selectShippingOption(id: string): Promise<void>;
 
-  /** Sets the customer's tax ID on the session. */
+  /**
+   * Sets the customer's tax ID on the session.
+   * @param type - The tax ID type (e.g. `"eu_vat"`).
+   * @param value - The tax ID value (e.g. `"DE123456789"`).
+   * - Throws: `CheckoutError` if updating the tax ID fails.
+   * @checkoutSessionsPreview
+   */
   updateTaxId(type: string, value: string): Promise<void>;
 
-  /** Refreshes the session from Stripe. */
+  /**
+   * Refreshes the session by fetching the latest copy from Stripe.
+   *
+   * Call this after making server-side changes to the Checkout Session
+   * so the local state stays in sync.
+   * - Throws: `CheckoutError` if refreshing the session fails.
+   * @checkoutSessionsPreview
+   */
   refresh(): Promise<void>;
 }
