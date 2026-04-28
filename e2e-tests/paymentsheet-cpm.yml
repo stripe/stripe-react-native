@@ -5,6 +5,9 @@ appId: ${APP_ID}
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (single-step)"
 - tapOn: "Checkout"
+- extendedWaitUntil:
+    visible: "Card"
+    timeout: 30000
 - scrollUntilVisible:
     element:
       text: "BufoPay (test)"
