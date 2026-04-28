@@ -170,7 +170,7 @@ export default function PaymentsUICompleteScreen() {
         allowsDelayedPaymentMethods: true,
         appearance: getAppearanceForSetting(appearanceSettings),
         primaryButtonLabel: 'purchase!',
-        paymentMethodLayout: PaymentMethodLayout.Automatic,
+        paymentMethodLayout: PaymentMethodLayout.Vertical,
         removeSavedPaymentMethodMessage: 'remove this payment method?',
         preferredNetworks: [CardBrand.Amex, CardBrand.Visa],
         opensCardScannerAutomatically,
