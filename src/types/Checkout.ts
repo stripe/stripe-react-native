@@ -1,20 +1,35 @@
 /**
- * @checkoutSessionsPreview
  * All types for the Checkout Session API.
+ * @checkoutSessionsPreview
  */
 export namespace Checkout {
+  /**
+   * Configuration options for a `useCheckout` instance.
+   * @checkoutSessionsPreview
+   */
   export interface Configuration {
     /**
      * Controls whether adaptive pricing is requested for this session.
+     *
+     * When allowed, Stripe may present prices in the customer's local
+     * currency alongside the merchant's settlement currency.
+     *
      * Default: `{ allowed: true }`.
      */
     adaptivePricing?: AdaptivePricing;
   }
 
+  /**
+   * Options for adaptive pricing behavior.
+   * @checkoutSessionsPreview
+   */
   export interface AdaptivePricing {
     /**
-     * Set to `false` to prevent Stripe from activating adaptive pricing
-     * even if the Checkout Session is configured for it on the server.
+     * Whether the integration allows adaptive pricing for this session.
+     *
+     * Set to `false` to prevent Stripe from activating adaptive pricing even
+     * if the Checkout Session is configured for it on the server.
+     *
      * Default: `true`.
      */
     allowed: boolean;
@@ -34,94 +49,226 @@ export namespace Checkout {
    * @checkoutSessionsPreview
    */
   export type State =
-    | { status: 'loading'; session: Session }
-    | { status: 'loaded'; session: Session };
+    | {
+        /**
+         * `loading` while a mutation or refresh is in flight.
+         *
+         * The associated `session` value is the most recently loaded copy and
+         * may be stale.
+         */
+        status: 'loading';
+        /** The most recently loaded session value. */
+        session: Session;
+      }
+    | {
+        /** `loaded` when the session is current and ready to use. */
+        status: 'loaded';
+        /** The latest checkout session value from Stripe. */
+        session: Session;
+      };
 
+  /**
+   * The status of a checkout session.
+   *
+   * - `unknown` - A status not recognized by this version of the SDK.
+   * - `open` - The checkout session is still in progress.
+   * - `complete` - The checkout session is complete.
+   * - `expired` - The checkout session has expired.
+   * @checkoutSessionsPreview
+   */
   export type Status = 'unknown' | 'open' | 'complete' | 'expired';
 
+  /**
+   * The payment status of a checkout session.
+   *
+   * - `unknown` - A payment status not recognized by this version of the SDK.
+   * - `paid` - The payment funds are available in your account.
+   * - `unpaid` - The payment funds are not yet available in your account.
+   * - `noPaymentRequired` - No payment is currently required for the session.
+   * @checkoutSessionsPreview
+   */
   export type PaymentStatus =
     | 'unknown'
     | 'paid'
     | 'unpaid'
     | 'noPaymentRequired';
 
+  /**
+   * A read-only snapshot of a Stripe Checkout Session.
+   * @checkoutSessionsPreview
+   */
   export interface Session {
+    /** Unique identifier for this checkout session. */
     id: string;
+    /** The current session state, if available. */
     status?: Status;
+    /** The payment status for this checkout session. */
     paymentStatus: PaymentStatus;
     /** Three-letter ISO 4217 currency code in lowercase (e.g. `"usd"`). */
     currency?: string;
+    /** Indicates whether this session was created in live mode. */
     livemode: boolean;
-    /** All amounts in smallest currency unit (e.g. cents for USD). */
+    /** A summary of monetary totals for this session, if available. */
     totals?: Totals;
+    /** The line items purchased by the customer. */
     lineItems: LineItem[];
+    /** The shipping rate options available for this session. */
     shippingOptions: ShippingOption[];
+    /** The discounts applied to this session. */
     discounts: Discount[];
+    /** The Stripe customer ID attached to this session, if any. */
     customerId?: string;
+    /** The customer's email address, if available. */
     customerEmail?: string;
+    /** The billing address set via `updateBillingAddress`, if any. */
     billingAddress?: AddressUpdate;
+    /** The shipping address set via `updateShippingAddress`, if any. */
     shippingAddress?: AddressUpdate;
   }
 
-  /** All amounts are in the smallest currency unit (e.g. cents for USD). */
+  /**
+   * Monetary totals for a checkout session.
+   *
+   * All amounts are in the smallest currency unit (e.g. cents for USD).
+   * @checkoutSessionsPreview
+   */
   export interface Totals {
+    /** The subtotal amount before discounts, shipping, and tax. */
     subtotal: number;
+    /** The final total after discounts, shipping, and tax. */
     total: number;
+    /** The amount currently due from the customer. */
     due: number;
+    /** The total discount amount applied to the session. */
     discount: number;
+    /** The total shipping amount. */
     shipping: number;
+    /** The total tax amount applied to the session. */
     tax: number;
   }
 
+  /**
+   * A line item in a checkout session.
+   * @checkoutSessionsPreview
+   */
   export interface LineItem {
+    /** Unique identifier for this line item. */
     id: string;
+    /** The display name shown for this line item. */
     name: string;
+    /** The quantity for this line item. */
     quantity: number;
+    /** The per-unit price in the smallest currency unit. */
     unitAmount: number;
+    /** Three-letter ISO 4217 currency code in lowercase. */
     currency: string;
   }
 
+  /**
+   * A shipping option available in a checkout session.
+   * @checkoutSessionsPreview
+   */
   export interface ShippingOption {
+    /** The shipping rate identifier. */
     id: string;
+    /** The display name shown to the customer. */
     displayName: string;
+    /** The shipping amount in the smallest currency unit. */
     amount: number;
+    /** Three-letter ISO 4217 currency code in lowercase. */
     currency: string;
+    /** The estimated delivery window shown to the customer, if available. */
     deliveryEstimate?: string;
   }
 
+  /**
+   * A discount applied to a checkout session.
+   * @checkoutSessionsPreview
+   */
   export interface Discount {
+    /** The coupon associated with this discount. */
     coupon: Coupon;
+    /** The promotion code used to apply this discount, if any. */
     promotionCode?: string;
+    /** The discount amount in the smallest currency unit. */
     amount: number;
   }
 
+  /**
+   * A coupon associated with a checkout discount.
+   * @checkoutSessionsPreview
+   */
   export interface Coupon {
+    /** The coupon identifier. */
     id: string;
+    /** The display name of the coupon, if one exists. */
     name?: string;
+    /** The percentage off, if this is a percentage-based coupon. */
     percentOff?: number;
+    /** The fixed amount off, in the smallest currency unit, if applicable. */
     amountOff?: number;
   }
 
+  /**
+   * A locally stored address override for checkout.
+   *
+   * Address updates are merged into PaymentSheet configuration and may also be
+   * sent to Stripe when tax calculation depends on the billing or shipping
+   * address.
+   * @checkoutSessionsPreview
+   */
   export interface AddressUpdate {
+    /** The customer's or recipient's name, if provided. */
     name?: string;
+    /** The customer's or recipient's phone number, if provided. */
     phone?: string;
+    /** The postal address to use for the update. */
     address: Address;
   }
 
+  /**
+   * A postal address used for billing, shipping, or tax updates.
+   * @checkoutSessionsPreview
+   */
   export interface Address {
+    /** The country for this address, such as `"US"`. */
     country: string;
+    /** The first address line. */
     line1?: string;
+    /** The second address line. */
     line2?: string;
+    /** The city, district, suburb, town, or village. */
     city?: string;
+    /** The state, county, province, or region. */
     state?: string;
+    /** The postal or ZIP code. */
     postalCode?: string;
   }
 
+  /**
+   * A Checkout-specific error returned from `useCheckout` or a Checkout
+   * mutation method.
+   * @checkoutSessionsPreview
+   */
   export interface Error {
+    /** A machine-readable error code describing the failure. */
     code: ErrorCode;
+    /** A human-readable message describing the failure. */
     message: string;
   }
 
+  /**
+   * The set of Checkout-specific error codes.
+   *
+   * - `Failed` - The operation could not be completed.
+   * - `InvalidClientSecret` - The provided Checkout Session client secret is
+   *   invalid.
+   * - `SessionNotOpen` - The Checkout Session is no longer open for updates.
+   * - `SheetCurrentlyPresented` - The operation is unavailable while
+   *   PaymentSheet is being presented.
+   * - `Canceled` - The operation was canceled before completion.
+   * @checkoutSessionsPreview
+   */
   export type ErrorCode =
     | 'Failed'
     | 'InvalidClientSecret'
