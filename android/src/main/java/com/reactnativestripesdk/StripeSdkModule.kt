@@ -33,6 +33,8 @@ import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.GooglePayErrorType
+import com.reactnativestripesdk.utils.RetrievePaymentIntentErrorType
+import com.reactnativestripesdk.utils.RetrieveSetupIntentErrorType
 import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createCanAddCardResult
 import com.reactnativestripesdk.utils.createError
@@ -696,8 +698,12 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     CoroutineScope(Dispatchers.IO).launch {
-      val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
-      promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent)))
+      try {
+        val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
+        promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent)))
+      } catch (e: Exception) {
+        promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), e))
+      }
     }
   }
 
@@ -707,8 +713,12 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     CoroutineScope(Dispatchers.IO).launch {
-      val setupIntent = stripe.retrieveSetupIntentSynchronous(clientSecret)
-      promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(setupIntent)))
+      try {
+        val setupIntent = stripe.retrieveSetupIntentSynchronous(clientSecret)
+        promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(setupIntent)))
+      } catch (e: Exception) {
+        promise.resolve(createError(RetrieveSetupIntentErrorType.Unknown.toString(), e))
+      }
     }
   }
 
@@ -1683,6 +1693,61 @@ class StripeSdkModule(
     promise: Promise?,
   ) {
     // noop, iOS only.
+  }
+
+  // Checkout Session stubs — real implementations in a future PR.
+
+  override fun initCheckoutSession(clientSecret: String, configuration: ReadableMap, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutUpdateShippingAddress(
+    sessionKey: String,
+    address: ReadableMap,
+    name: String?,
+    phone: String?,
+    promise: Promise,
+  ) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutUpdateBillingAddress(
+    sessionKey: String,
+    address: ReadableMap,
+    name: String?,
+    phone: String?,
+    promise: Promise,
+  ) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutApplyPromotionCode(sessionKey: String, code: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutRemovePromotionCode(sessionKey: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutUpdateLineItemQuantity(
+    sessionKey: String,
+    lineItemId: String,
+    quantity: Double,
+    promise: Promise,
+  ) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutSelectShippingOption(sessionKey: String, id: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutUpdateTaxId(sessionKey: String, type: String, value: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutRefresh(sessionKey: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
   }
 
   /**
