@@ -36,6 +36,7 @@ import type {
   VerifyMicrodepositsParams,
   CreateRadarSessionResult,
 } from '../types';
+import type { Checkout } from '../types/Checkout';
 import type {
   EmbeddedPaymentElementConfiguration,
   EmbeddedPaymentElementResult,
@@ -206,6 +207,55 @@ export interface Spec extends TurboModule {
   ): Promise<void>;
   clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
   createRadarSession(): Promise<CreateRadarSessionResult>;
+
+  // Checkout Session
+
+  initCheckoutSession(
+    clientSecret: string,
+    configuration: UnsafeObject<Checkout.Configuration>
+  ): Promise<UnsafeObject<{ sessionKey: string; state: Checkout.State }>>;
+
+  checkoutUpdateShippingAddress(
+    sessionKey: string,
+    address: UnsafeObject<Checkout.Address>,
+    name: string | null,
+    phone: string | null
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutUpdateBillingAddress(
+    sessionKey: string,
+    address: UnsafeObject<Checkout.Address>,
+    name: string | null,
+    phone: string | null
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutApplyPromotionCode(
+    sessionKey: string,
+    code: string
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutRemovePromotionCode(
+    sessionKey: string
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutUpdateLineItemQuantity(
+    sessionKey: string,
+    lineItemId: string,
+    quantity: number
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutSelectShippingOption(
+    sessionKey: string,
+    id: string
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutUpdateTaxId(
+    sessionKey: string,
+    type: string,
+    value: string
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutRefresh(sessionKey: string): Promise<UnsafeObject<Checkout.State>>;
 
   setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;
 
