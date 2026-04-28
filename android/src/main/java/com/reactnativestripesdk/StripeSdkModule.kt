@@ -1695,6 +1695,61 @@ class StripeSdkModule(
     // noop, iOS only.
   }
 
+  // Checkout Session stubs — real implementations in a future PR.
+
+  override fun initCheckoutSession(clientSecret: String, configuration: ReadableMap, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutUpdateShippingAddress(
+    sessionKey: String,
+    address: ReadableMap,
+    name: String?,
+    phone: String?,
+    promise: Promise,
+  ) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutUpdateBillingAddress(
+    sessionKey: String,
+    address: ReadableMap,
+    name: String?,
+    phone: String?,
+    promise: Promise,
+  ) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutApplyPromotionCode(sessionKey: String, code: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutRemovePromotionCode(sessionKey: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutUpdateLineItemQuantity(
+    sessionKey: String,
+    lineItemId: String,
+    quantity: Double,
+    promise: Promise,
+  ) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutSelectShippingOption(sessionKey: String, id: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutUpdateTaxId(sessionKey: String, type: String, value: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
+  override fun checkoutRefresh(sessionKey: String, promise: Promise) {
+    promise.reject("NotImplemented", "Checkout is not yet implemented on Android")
+  }
+
   /**
    * Safely get and cast the current activity as an AppCompatActivity. If that fails, the promise
    * provided will be resolved with an error message instructing the user to retry the method.
