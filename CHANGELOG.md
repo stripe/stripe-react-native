@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+**Changes**
+* Updated Stripe iOS SDK from 25.11.0 to 25.12.+.
+* Updated Stripe Android SDK from 23.4.+ to 23.6.+.
+* [Removed] Removed UPI support.
+
 ## 0.64.0 - 2026-04-16
 **Changes**
 * [Breaking] `platformPayParams` has changed from `PlatformPay.PaymentMethodParams` to `Onramp.OnrampPlatformPayParams` to better match expectations for GooglePay. ([#2390] (https://github.com/stripe/stripe-react-native/pull/2390))

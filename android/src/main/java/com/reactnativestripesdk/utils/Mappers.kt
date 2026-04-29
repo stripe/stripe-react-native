@@ -144,7 +144,6 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
     PaymentMethod.Type.Oxxo -> "Oxxo"
     PaymentMethod.Type.P24 -> "P24"
     PaymentMethod.Type.SepaDebit -> "SepaDebit"
-    PaymentMethod.Type.Upi -> "Upi"
     PaymentMethod.Type.WeChatPay -> "WeChatPay"
     PaymentMethod.Type.Klarna -> "Klarna"
     PaymentMethod.Type.USBankAccount -> "USBankAccount"
@@ -176,7 +175,6 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
     "Oxxo" -> PaymentMethod.Type.Oxxo
     "P24" -> PaymentMethod.Type.P24
     "SepaDebit" -> PaymentMethod.Type.SepaDebit
-    "Upi" -> PaymentMethod.Type.Upi
     "WeChatPay" -> PaymentMethod.Type.WeChatPay
     "Klarna" -> PaymentMethod.Type.Klarna
     "USBankAccount" -> PaymentMethod.Type.USBankAccount
@@ -436,7 +434,6 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
       it.putString("bank", paymentMethod.fpx?.bank)
     },
   )
-  pm.putMap("Upi", Arguments.createMap().also { it.putString("vpa", paymentMethod.upi?.vpa) })
   pm.putMap(
     "USBankAccount",
     Arguments.createMap().also {
