@@ -350,7 +350,10 @@ let financialConnectionsEventListener: EventSubscription | null = null;
 let paymentSheetCustomPaymentMethodConfirmCallback: EventSubscription | null =
   null;
 
-type NativeCheckoutSetupParams = Omit<PaymentSheet.CheckoutSetupParams, 'checkout'> & {
+type NativeCheckoutSetupParams = Omit<
+  PaymentSheet.CheckoutSetupParams,
+  'checkout'
+> & {
   checkout: {
     sessionKey: string;
   };
