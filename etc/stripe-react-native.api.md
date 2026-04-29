@@ -2707,7 +2707,6 @@ declare namespace PaymentMethod {
         FpxResult,
         IdealResult,
         SepaDebitResult,
-        UpiResult,
         USBankAccountResult,
         Type,
         CollectBankAccountParams,
@@ -3249,8 +3248,6 @@ interface Result_3 {
     paymentMethodType: Type;
     // (undocumented)
     SepaDebit: SepaDebitResult;
-    // (undocumented)
-    Upi: UpiResult;
     // (undocumented)
     USBankAccount: USBankAccountResult;
 }
@@ -3797,7 +3794,7 @@ type TokenResult_2 = {
 };
 
 // @public (undocumented)
-type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx' | 'CardPresent' | 'SepaDebit' | 'AuBecsDebit' | 'BacsDebit' | 'P24' | 'Eps' | 'Bancontact' | 'Multibanco' | 'Oxxo' | 'Upi' | 'USBankAccount' | 'PayPal' | 'Unknown';
+type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx' | 'CardPresent' | 'SepaDebit' | 'AuBecsDebit' | 'BacsDebit' | 'P24' | 'Eps' | 'Bancontact' | 'Multibanco' | 'Oxxo' | 'USBankAccount' | 'PayPal' | 'Unknown';
 
 // @public (undocumented)
 type Type_2 = 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii';
@@ -3812,12 +3809,6 @@ export const updatePlatformPaySheet: (params: {
 }) => Promise<{
     error?: StripeError<PlatformPayError>;
 }>;
-
-// @public (undocumented)
-interface UpiResult {
-    // (undocumented)
-    vpa?: string;
-}
 
 // @public
 type USBankAccountParams = {
@@ -4117,7 +4108,7 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
 // src/types/PaymentIntent.ts:269:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
-// src/types/PaymentMethod.ts:303:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:297:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 // src/types/PaymentSheet.ts:124:3 - (ae-forgotten-export) The symbol "Checkout" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
