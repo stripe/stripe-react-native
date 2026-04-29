@@ -20,7 +20,6 @@ export interface Result {
   Fpx: FpxResult;
   Ideal: IdealResult;
   SepaDebit: SepaDebitResult;
-  Upi: UpiResult;
   USBankAccount: USBankAccountResult;
 }
 
@@ -254,10 +253,6 @@ export interface SepaDebitResult {
   last4?: string;
 }
 
-export interface UpiResult {
-  vpa?: string;
-}
-
 export type USBankAccountResult = {
   routingNumber?: string;
   accountHolderType?: BankAcccountHolderType;
@@ -286,7 +281,6 @@ export type Type =
   | 'Bancontact'
   | 'Multibanco'
   | 'Oxxo'
-  | 'Upi'
   | 'USBankAccount'
   | 'PayPal'
   | 'Unknown';

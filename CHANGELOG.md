@@ -1,6 +1,10 @@
 # CHANGELOG
 
 ## Unreleased
+**Changes**
+* Updated Stripe iOS SDK from 25.11.0 to 25.12.+.
+* Updated Stripe Android SDK from 23.4.+ to 23.6.+.
+* [Removed] Removed UPI support.
 
 ## 0.65.0 - 2022-04-27
 **Features**
