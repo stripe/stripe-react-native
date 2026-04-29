@@ -71,7 +71,6 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     internal var checkoutInstances: [String: Checkout] = [:]
     internal var checkoutClientSecrets: [String: String] = [:]
     internal var checkoutConfigurationParams: [String: NSDictionary] = [:]
-    internal var checkoutLocalOverrides: [String: CheckoutLocalOverrides] = [:]
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 

@@ -1,136 +1,9 @@
 import Foundation
 @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 
-internal struct CheckoutAddressOverride: Equatable {
-    let country: String
-    let line1: String?
-    let line2: String?
-    let city: String?
-    let state: String?
-    let postalCode: String?
-    let name: String?
-    let phone: String?
-
-    init(
-        country: String,
-        line1: String? = nil,
-        line2: String? = nil,
-        city: String? = nil,
-        state: String? = nil,
-        postalCode: String? = nil,
-        name: String? = nil,
-        phone: String? = nil
-    ) {
-        self.country = country
-        self.line1 = line1
-        self.line2 = line2
-        self.city = city
-        self.state = state
-        self.postalCode = postalCode
-        self.name = name
-        self.phone = phone
-    }
-
-    init?(address: NSDictionary, name: String?, phone: String?) {
-        guard let country = address["country"] as? String, !country.isEmpty else {
-            return nil
-        }
-
-        self.init(
-            country: country,
-            line1: address["line1"] as? String,
-            line2: address["line2"] as? String,
-            city: address["city"] as? String,
-            state: address["state"] as? String,
-            postalCode: address["postalCode"] as? String,
-            name: name,
-            phone: phone
-        )
-    }
-
-    var paymentSheetAddress: PaymentSheet.Address {
-        PaymentSheet.Address(
-            city: city,
-            country: country,
-            line1: line1,
-            line2: line2,
-            postalCode: postalCode,
-            state: state
-        )
-    }
-
-    var reactNativeValue: NSDictionary {
-        let result = NSMutableDictionary()
-        result["address"] = addressValue
-
-        if let name {
-            result["name"] = name
-        }
-
-        if let phone {
-            result["phone"] = phone
-        }
-
-        return result
-    }
-
-    func shippingDetailsParams(isCheckboxSelected: Bool?) -> NSDictionary {
-        let result = NSMutableDictionary(dictionary: reactNativeValue)
-
-        if let isCheckboxSelected {
-            result["isCheckboxSelected"] = isCheckboxSelected
-        }
-
-        return result
-    }
-
-    private var addressValue: NSDictionary {
-        let result = NSMutableDictionary()
-        result["country"] = country
-
-        if let line1 {
-            result["line1"] = line1
-        }
-        if let line2 {
-            result["line2"] = line2
-        }
-        if let city {
-            result["city"] = city
-        }
-        if let state {
-            result["state"] = state
-        }
-        if let postalCode {
-            result["postalCode"] = postalCode
-        }
-
-        return result
-    }
-}
-
-internal struct CheckoutLocalOverrides: Equatable {
-    var billingAddress: CheckoutAddressOverride?
-    var shippingAddress: CheckoutAddressOverride?
-
-    init(
-        billingAddress: CheckoutAddressOverride? = nil,
-        shippingAddress: CheckoutAddressOverride? = nil
-    ) {
-        self.billingAddress = billingAddress
-        self.shippingAddress = shippingAddress
-    }
-}
-
 extension StripeSdkImpl {
-    internal func checkoutUnsupportedOperationMessage(for operation: String) -> String {
-        "\(operation) is not yet supported on iOS. TODO(porter): wire this through once the Stripe iOS SDK adds the required Checkout update API."
-    }
-
-    internal func currentCheckoutStateResult(sessionKey: String, checkout: Checkout) -> NSDictionary {
-        Mappers.mapFromCheckoutState(
-            checkout.state,
-            localOverrides: checkoutLocalOverrides[sessionKey]
-        )
+    internal func currentCheckoutStateResult(checkout: Checkout) -> NSDictionary {
+        Mappers.mapFromCheckoutState(checkout.state)
     }
 
     @objc(initCheckoutSession:configuration:resolver:rejecter:)
@@ -161,10 +34,7 @@ extension StripeSdkImpl {
 
                 resolve([
                     "sessionKey": sessionKey,
-                    "state": self.currentCheckoutStateResult(
-                        sessionKey: sessionKey,
-                        checkout: checkout
-                    ),
+                    "state": self.currentCheckoutStateResult(checkout: checkout),
                 ])
             } catch {
                 reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
@@ -192,7 +62,7 @@ extension StripeSdkImpl {
                 return
             }
 
-            guard let shippingAddress = CheckoutAddressOverride(
+            guard let shippingAddress = self.buildCheckoutAddressUpdate(
                 address: address,
                 name: name,
                 phone: phone
@@ -201,13 +71,12 @@ extension StripeSdkImpl {
                 return
             }
 
-            // TODO(porter): Replace this local override with checkout.updateShippingAddress
-            // once the RN-targeted Stripe iOS SDK exposes the server-backed API.
-            var localOverrides = self.checkoutLocalOverrides[sessionKey] ?? CheckoutLocalOverrides()
-            localOverrides.shippingAddress = shippingAddress
-            self.checkoutLocalOverrides[sessionKey] = localOverrides
-
-            resolve(self.currentCheckoutStateResult(sessionKey: sessionKey, checkout: checkout))
+            do {
+                try await checkout.updateShippingAddress(shippingAddress)
+                resolve(self.currentCheckoutStateResult(checkout: checkout))
+            } catch {
+                reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
+            }
         }
     }
 
@@ -231,7 +100,7 @@ extension StripeSdkImpl {
                 return
             }
 
-            guard let billingAddress = CheckoutAddressOverride(
+            guard let billingAddress = self.buildCheckoutAddressUpdate(
                 address: address,
                 name: name,
                 phone: phone
@@ -240,13 +109,12 @@ extension StripeSdkImpl {
                 return
             }
 
-            // TODO(porter): Replace this local override with checkout.updateBillingAddress
-            // once the RN-targeted Stripe iOS SDK exposes the server-backed API.
-            var localOverrides = self.checkoutLocalOverrides[sessionKey] ?? CheckoutLocalOverrides()
-            localOverrides.billingAddress = billingAddress
-            self.checkoutLocalOverrides[sessionKey] = localOverrides
-
-            resolve(self.currentCheckoutStateResult(sessionKey: sessionKey, checkout: checkout))
+            do {
+                try await checkout.updateBillingAddress(billingAddress)
+                resolve(self.currentCheckoutStateResult(checkout: checkout))
+            } catch {
+                reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
+            }
         }
     }
 
@@ -289,13 +157,23 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        _ = sessionKey
-        _ = lineItemId
-        _ = quantity
+        guard quantity == floor(quantity) else {
+            reject(ErrorType.Failed, "Line item quantity must be an integer.", nil)
+            return
+        }
 
-        // TODO(porter): Call checkout.updateQuantity(with:) after the Stripe iOS SDK
-        // exposes the line-item update API used by the React Native bridge.
-        reject(ErrorType.Failed, checkoutUnsupportedOperationMessage(for: "Updating Checkout line item quantities"), nil)
+        let lineItemUpdate = Checkout.LineItemUpdate(
+            lineItemId: lineItemId,
+            quantity: Int(quantity)
+        )
+
+        performCheckoutMutation(
+            sessionKey: sessionKey,
+            resolver: resolve,
+            rejecter: reject
+        ) { checkout in
+            try await checkout.updateQuantity(with: lineItemUpdate)
+        }
     }
 
     @objc(checkoutSelectShippingOption:id:resolver:rejecter:)
@@ -322,13 +200,15 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        _ = sessionKey
-        _ = type
-        _ = value
+        let taxIdUpdate = Checkout.TaxIdUpdate(type: type, value: value)
 
-        // TODO(porter): Call checkout.updateTaxId(with:) after the Stripe iOS SDK
-        // exposes the tax ID update API used by the React Native bridge.
-        reject(ErrorType.Failed, checkoutUnsupportedOperationMessage(for: "Updating Checkout tax IDs"), nil)
+        performCheckoutMutation(
+            sessionKey: sessionKey,
+            resolver: resolve,
+            rejecter: reject
+        ) { checkout in
+            try await checkout.updateTaxId(with: taxIdUpdate)
+        }
     }
 
     @objc(checkoutRefresh:resolver:rejecter:)
@@ -343,7 +223,7 @@ extension StripeSdkImpl {
                 return
             }
 
-            guard self.checkoutInstances[sessionKey] != nil else {
+            guard let checkout = self.checkoutInstances[sessionKey] else {
                 reject(ErrorType.Failed, "Checkout session not found", nil)
                 return
             }
@@ -358,12 +238,21 @@ extension StripeSdkImpl {
             )
 
             do {
-                let checkout = try await Checkout(
+                let refreshedCheckout = try await Checkout(
                     clientSecret: clientSecret,
                     configuration: configuration
                 )
-                self.checkoutInstances[sessionKey] = checkout
-                resolve(self.currentCheckoutStateResult(sessionKey: sessionKey, checkout: checkout))
+
+                if let billingAddress = checkout.state.session.billingAddress {
+                    try await refreshedCheckout.updateBillingAddress(billingAddress)
+                }
+
+                if let shippingAddress = checkout.state.session.shippingAddress {
+                    try await refreshedCheckout.updateShippingAddress(shippingAddress)
+                }
+
+                self.checkoutInstances[sessionKey] = refreshedCheckout
+                resolve(self.currentCheckoutStateResult(checkout: refreshedCheckout))
             } catch {
                 reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
             }
@@ -400,11 +289,36 @@ extension StripeSdkImpl {
 
             do {
                 try await operation(checkout)
-                resolve(self.currentCheckoutStateResult(sessionKey: sessionKey, checkout: checkout))
+                resolve(self.currentCheckoutStateResult(checkout: checkout))
             } catch {
                 reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
             }
         }
+    }
+
+    private func buildCheckoutAddressUpdate(
+        address: NSDictionary,
+        name: String?,
+        phone: String?
+    ) -> Checkout.AddressUpdate? {
+        guard let country = address["country"] as? String, !country.isEmpty else {
+            return nil
+        }
+
+        let checkoutAddress = Checkout.Address(
+            country: country,
+            line1: address["line1"] as? String,
+            line2: address["line2"] as? String,
+            city: address["city"] as? String,
+            state: address["state"] as? String,
+            postalCode: address["postalCode"] as? String
+        )
+
+        return Checkout.AddressUpdate(
+            name: name,
+            phone: phone,
+            address: checkoutAddress
+        )
     }
 
     private func checkoutErrorCode(for error: Error) -> String {
