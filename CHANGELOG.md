@@ -2,7 +2,16 @@
 
 ## Unreleased
 **Changes**
+* Updated Stripe iOS SDK from 25.11.0 to 25.12.+.
+* Updated Stripe Android SDK from 23.4.+ to 23.6.+.
 * [Removed] Removed UPI support.
+
+## 0.65.0 - 2022-04-27
+**Features**
+* [Added] Added PaymentMethodMessagingElement support in public preview. See [documentation](https://docs.stripe.com/payments/mobile/payment-method-messaging-element) for integration guide. ([#2351](https://github.com/stripe/stripe-react-native/pull/2351))
+
+**Fixes**
+* [Fixed] Fixes a crash when `retrievePaymentIntent` or `retrieveSetupIntent` is called with no network connectivity on Android. ([#2409](https://github.com/stripe/stripe-react-native/pull/2409))
 
 ## 0.64.0 - 2026-04-16
 **Changes**
