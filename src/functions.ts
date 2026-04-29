@@ -729,7 +729,7 @@ export const isPlatformPaySupported = async (params?: {
  * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to confirm a Stripe [SetupIntent](https://stripe.com/docs/api/setup_intents).
  * @param clientSecret The client secret of the SetupIntent.
  * @param params an object describing the Apple Pay and Google Pay configurations.
- * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `setupIntent` and `paymentMethod` fields.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with a `setupIntent` field.
  */
 export const confirmPlatformPaySetupIntent = async (
   clientSecret: string,
@@ -760,7 +760,7 @@ export const confirmPlatformPaySetupIntent = async (
  * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to confirm a Stripe [PaymentIntent](https://stripe.com/docs/api/payment_intents).
  * @param clientSecret The client secret of the PaymentIntent.
  * @param params an object describing the Apple Pay and Google Pay configurations.
- * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentIntent` and `paymentMethod` fields.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with a `paymentIntent` field.
  */
 export const confirmPlatformPayPayment = async (
   clientSecret: string,
