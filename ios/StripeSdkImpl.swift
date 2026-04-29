@@ -68,9 +68,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
-    // Stores the native Checkout instance plus the inputs needed to rebuild it when
-    // the linked preview build does not expose `Checkout.refresh()` to this bridge.
-    internal var checkoutContexts: [String: CheckoutSessionContext] = [:]
+    internal var checkoutInstances: [String: Checkout] = [:]
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 

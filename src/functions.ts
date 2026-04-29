@@ -350,6 +350,30 @@ let financialConnectionsEventListener: EventSubscription | null = null;
 let paymentSheetCustomPaymentMethodConfirmCallback: EventSubscription | null =
   null;
 
+type NativeCheckoutSetupParams = Omit<PaymentSheet.CheckoutSetupParams, 'checkout'> & {
+  checkout: {
+    sessionKey: string;
+  };
+};
+
+const toNativePaymentSheetSetupParams = (
+  params: PaymentSheet.SetupParams
+): PaymentSheet.SetupParams => {
+  if (!('checkout' in params)) {
+    return params;
+  }
+
+  const nativeCheckoutParams: NativeCheckoutSetupParams = {
+    ...params,
+    // The native side already owns the Checkout instance, so only pass its opaque session key.
+    checkout: {
+      sessionKey: params.checkout.sessionKey,
+    },
+  };
+
+  return nativeCheckoutParams as PaymentSheet.SetupParams;
+};
+
 export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
 ): Promise<InitPaymentSheetResult> => {
@@ -431,17 +455,9 @@ export const initPaymentSheet = async (
         `[@stripe/stripe-react-native] You have not provided the 'returnURL' field to 'initPaymentSheet', so payment methods that require redirects will not be shown in your iOS Payment Sheet. Visit https://stripe.com/docs/payments/accept-a-payment?platform=react-native&ui=payment-sheet#react-native-set-up-return-url to learn more.`
       );
     }
-    const nativeParams =
-      'checkout' in params && params.checkout
-        ? ({
-            ...params,
-            checkout: {
-              sessionKey: params.checkout.sessionKey,
-            },
-          } as PaymentSheet.SetupParams)
-        : params;
-
-    result = await NativeStripeSdk.initPaymentSheet(nativeParams);
+    result = await NativeStripeSdk.initPaymentSheet(
+      toNativePaymentSheetSetupParams(params)
+    );
 
     if (result.error) {
       return {

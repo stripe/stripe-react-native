@@ -1,11 +1,12 @@
+//
+//  StripeSdkImpl+Checkout.swift
+//  stripe-react-native
+//
+//  Created by Nick Porter on 4/29/26.
+//
+
 import Foundation
 @_spi(CheckoutSessionsPreview) import StripePaymentSheet
-
-internal struct CheckoutSessionContext {
-    var checkout: Checkout
-    let clientSecret: String
-    let configuration: Checkout.Configuration
-}
 
 extension StripeSdkImpl {
     internal func currentCheckoutStateResult(checkout: Checkout) -> NSDictionary {
@@ -34,11 +35,7 @@ extension StripeSdkImpl {
                 )
                 let sessionKey = UUID().uuidString
 
-                self.checkoutContexts[sessionKey] = CheckoutSessionContext(
-                    checkout: checkout,
-                    clientSecret: clientSecret,
-                    configuration: checkoutConfiguration
-                )
+                self.checkoutInstances[sessionKey] = checkout
 
                 resolve([
                     "sessionKey": sessionKey,
@@ -193,41 +190,12 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        Task { @MainActor [weak self] in
-            guard let self else {
-                reject(ErrorType.Failed, "Stripe SDK is unavailable", nil)
-                return
-            }
-
-            guard var context = self.checkoutContexts[sessionKey] else {
-                reject(ErrorType.Failed, "Checkout session not found", nil)
-                return
-            }
-
-            do {
-                // Some StripePaymentSheet preview builds linked by RN still do not expose
-                // `Checkout.refresh()` to this module. In that case, recreate the native
-                // Checkout instance from the original client secret/config and then reapply
-                // any address state already living on the Checkout object itself.
-                let refreshedCheckout = try await Checkout(
-                    clientSecret: context.clientSecret,
-                    configuration: context.configuration
-                )
-
-                if let billingAddress = context.checkout.state.session.billingAddress {
-                    try await refreshedCheckout.updateBillingAddress(billingAddress)
-                }
-
-                if let shippingAddress = context.checkout.state.session.shippingAddress {
-                    try await refreshedCheckout.updateShippingAddress(shippingAddress)
-                }
-
-                context.checkout = refreshedCheckout
-                self.checkoutContexts[sessionKey] = context
-                resolve(self.currentCheckoutStateResult(checkout: refreshedCheckout))
-            } catch {
-                reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
-            }
+        performCheckoutMutation(
+            sessionKey: sessionKey,
+            resolver: resolve,
+            rejecter: reject
+        ) { checkout in
+            try await checkout.refresh()
         }
     }
 
@@ -254,7 +222,7 @@ extension StripeSdkImpl {
                 return
             }
 
-            guard let checkout = self.checkoutContexts[sessionKey]?.checkout else {
+            guard let checkout = self.checkoutInstances[sessionKey] else {
                 reject(ErrorType.Failed, "Checkout session not found", nil)
                 return
             }

@@ -1,3 +1,10 @@
+//
+//  CheckoutBridgeTests.swift
+//  stripe-react-native
+//
+//  Created by Nick Porter on 4/29/26.
+//
+
 @testable import stripe_react_native
 @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 import XCTest

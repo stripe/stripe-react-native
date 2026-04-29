@@ -1820,13 +1820,13 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - Stripe (25.11.0):
-    - StripeApplePay (= 25.11.0)
-    - StripeCore (= 25.11.0)
-    - StripeIssuing (= 25.11.0)
-    - StripePayments (= 25.11.0)
-    - StripePaymentsUI (= 25.11.0)
-    - StripeUICore (= 25.11.0)
+  - Stripe (25.12.0):
+    - StripeApplePay (= 25.12.0)
+    - StripeCore (= 25.12.0)
+    - StripeIssuing (= 25.12.0)
+    - StripePayments (= 25.12.0)
+    - StripePaymentsUI (= 25.12.0)
+    - StripeUICore (= 25.12.0)
   - stripe-react-native (0.64.0):
     - hermes-engine
     - RCTRequired
@@ -1872,12 +1872,12 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - Stripe (~> 25.11.0)
-    - StripeApplePay (~> 25.11.0)
-    - StripeFinancialConnections (~> 25.11.0)
-    - StripePayments (~> 25.11.0)
-    - StripePaymentSheet (~> 25.11.0)
-    - StripePaymentsUI (~> 25.11.0)
+    - Stripe (~> 25.12.0)
+    - StripeApplePay (~> 25.12.0)
+    - StripeFinancialConnections (~> 25.12.0)
+    - StripePayments (~> 25.12.0)
+    - StripePaymentSheet (~> 25.12.0)
+    - StripePaymentsUI (~> 25.12.0)
     - Yoga
   - stripe-react-native/NewArch (0.64.0):
     - hermes-engine
@@ -1923,7 +1923,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - stripe-react-native/Core
-    - StripeCryptoOnramp (~> 25.11.0)
+    - StripeCryptoOnramp (~> 25.12.0)
     - Yoga
   - stripe-react-native/Tests (0.64.0):
     - hermes-engine
@@ -1947,46 +1947,46 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - StripeApplePay (25.11.0):
-    - StripeCore (= 25.11.0)
-  - StripeCameraCore (25.11.0):
-    - StripeCore (= 25.11.0)
-  - StripeCore (25.11.0)
-  - StripeCryptoOnramp (25.11.0):
-    - StripeApplePay (= 25.11.0)
-    - StripeCore (= 25.11.0)
-    - StripeIdentity (= 25.11.0)
-    - StripePayments (= 25.11.0)
-    - StripePaymentSheet (= 25.11.0)
-    - StripePaymentsUI (= 25.11.0)
-    - StripeUICore (= 25.11.0)
-  - StripeFinancialConnections (25.11.0):
-    - StripeCore (= 25.11.0)
-    - StripeUICore (= 25.11.0)
-  - StripeIdentity (25.11.0):
-    - StripeCameraCore (= 25.11.0)
-    - StripeCore (= 25.11.0)
-    - StripeUICore (= 25.11.0)
-  - StripeIssuing (25.11.0):
-    - StripeCore (= 25.11.0)
-    - StripePayments (= 25.11.0)
-    - StripePaymentsUI (= 25.11.0)
-  - StripePayments (25.11.0):
-    - StripeCore (= 25.11.0)
-    - StripePayments/Stripe3DS2 (= 25.11.0)
-  - StripePayments/Stripe3DS2 (25.11.0):
-    - StripeCore (= 25.11.0)
-  - StripePaymentSheet (25.11.0):
-    - StripeApplePay (= 25.11.0)
-    - StripeCore (= 25.11.0)
-    - StripePayments (= 25.11.0)
-    - StripePaymentsUI (= 25.11.0)
-  - StripePaymentsUI (25.11.0):
-    - StripeCore (= 25.11.0)
-    - StripePayments (= 25.11.0)
-    - StripeUICore (= 25.11.0)
-  - StripeUICore (25.11.0):
-    - StripeCore (= 25.11.0)
+  - StripeApplePay (25.12.0):
+    - StripeCore (= 25.12.0)
+  - StripeCameraCore (25.12.0):
+    - StripeCore (= 25.12.0)
+  - StripeCore (25.12.0)
+  - StripeCryptoOnramp (25.12.0):
+    - StripeApplePay (= 25.12.0)
+    - StripeCore (= 25.12.0)
+    - StripeIdentity (= 25.12.0)
+    - StripePayments (= 25.12.0)
+    - StripePaymentSheet (= 25.12.0)
+    - StripePaymentsUI (= 25.12.0)
+    - StripeUICore (= 25.12.0)
+  - StripeFinancialConnections (25.12.0):
+    - StripeCore (= 25.12.0)
+    - StripeUICore (= 25.12.0)
+  - StripeIdentity (25.12.0):
+    - StripeCameraCore (= 25.12.0)
+    - StripeCore (= 25.12.0)
+    - StripeUICore (= 25.12.0)
+  - StripeIssuing (25.12.0):
+    - StripeCore (= 25.12.0)
+    - StripePayments (= 25.12.0)
+    - StripePaymentsUI (= 25.12.0)
+  - StripePayments (25.12.0):
+    - StripeCore (= 25.12.0)
+    - StripePayments/Stripe3DS2 (= 25.12.0)
+  - StripePayments/Stripe3DS2 (25.12.0):
+    - StripeCore (= 25.12.0)
+  - StripePaymentSheet (25.12.0):
+    - StripeApplePay (= 25.12.0)
+    - StripeCore (= 25.12.0)
+    - StripePayments (= 25.12.0)
+    - StripePaymentsUI (= 25.12.0)
+  - StripePaymentsUI (25.12.0):
+    - StripeCore (= 25.12.0)
+    - StripePayments (= 25.12.0)
+    - StripeUICore (= 25.12.0)
+  - StripeUICore (25.12.0):
+    - StripeCore (= 25.12.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2311,19 +2311,19 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
   RNCPicker: c8a3584b74133464ee926224463fcc54dfdaebca
   RNScreens: 61c18865ab074f4d995ac8d7cf5060522a649d05
-  Stripe: 0421dcc510a52f2abf63bbf03a547caf6639dce7
-  stripe-react-native: 009c59c5b4f61f9e84071d558e5a67a43a7b992d
-  StripeApplePay: b74b487cdc4176b32ea3f250d63ceb7b0ab7dedb
-  StripeCameraCore: 44611536255dca20009f3b6ac60ddd1f0f4cedce
-  StripeCore: c9d8b48d4b9b14e73edfa2ca714dea44c0849f73
-  StripeCryptoOnramp: ddc07b93157710513de6d94ef1242a79d7116d90
-  StripeFinancialConnections: 0209e955d46e927089a017f56e4a34f2e3e85bfd
-  StripeIdentity: 258f917af1c587d33a4ad1f5692066a6ab5247aa
-  StripeIssuing: 2b1f0054ee9439e7e716f101099a22bb95addc08
-  StripePayments: c54ac68d13e5ef09c98aa5c12314a73d1e6a1fc6
-  StripePaymentSheet: 46ca981c6106b559d323d41b5ee9af0485252a63
-  StripePaymentsUI: e942824c2a21c67f41b3bf6c09e87ebe882dd5c5
-  StripeUICore: 9ee3c730f282fd34605f7ba00f2b77d80729d882
+  Stripe: 0befd1ef4c49e9e1b5a781f1e61805c856bb9c1c
+  stripe-react-native: 1a655d668d564118f064973d4bbad07ddce53a76
+  StripeApplePay: a58f76d25970050c4b3447cf6d34ce098cd0b517
+  StripeCameraCore: 8b5ff52f138220cfb96713c1736f36b764e3cdc0
+  StripeCore: c10a35ed2d1f2165ccb8db8077e10c6fa488c6b8
+  StripeCryptoOnramp: 68016bb14054aeea13cf1da61e6d7ad09865825c
+  StripeFinancialConnections: 6abb9257f511f8ba1fd17df07d48058f48eb7b22
+  StripeIdentity: b9a2bb898d6da31b527768c9532585bf49ba0891
+  StripeIssuing: c92d94e7f1e068d728715aa382f8b7907499b83f
+  StripePayments: fb4105c822f9f07ca2092c86b68ab366b5d4a144
+  StripePaymentSheet: 7285761bacc685b160fc31871632554577beec35
+  StripePaymentsUI: 6aabff3711d0543db04632a2d102deac7a139095
+  StripeUICore: fb5f1c2f7d702b2879f706e3db3a7b793125256e
   Yoga: 3fd22c2cae22d7a2b0f0b538f55f7c2a17dc94d5
 
 PODFILE CHECKSUM: 605f3cad878b7c0eee93ebb4a78a8141d34cd328
