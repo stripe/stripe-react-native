@@ -14,9 +14,10 @@ import UIKit
 @_spi(EmbeddedPaymentElementPrivateBeta)
 @_spi(CustomerSessionBetaAccess)
 @_spi(AppearanceAPIAdditionsPreview)
+@_spi(CheckoutSessionsPreview)
 import StripePaymentSheet
 #else
-@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) import StripePaymentSheet
+@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 #endif
 
 @available(iOS 13.0, *)
@@ -67,6 +68,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
+    internal var checkoutInstances: [String: Checkout] = [:]
+    internal var checkoutClientSecrets: [String: String] = [:]
+    internal var checkoutConfigurationParams: [String: NSDictionary] = [:]
+    internal var checkoutLocalOverrides: [String: CheckoutLocalOverrides] = [:]
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 

@@ -6,9 +6,32 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(ConfirmationTokensPublicPreview) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(ConfirmationTokensPublicPreview) @_spi(CardFundingFilteringPrivatePreview) @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 
 extension StripeSdkImpl {
+    internal func applyCheckoutLocalOverrides(
+        sessionKey: String,
+        to configuration: inout PaymentSheet.Configuration
+    ) {
+        guard let localOverrides = checkoutLocalOverrides[sessionKey] else {
+            return
+        }
+
+        if let billingAddress = localOverrides.billingAddress {
+            configuration.defaultBillingDetails.name = billingAddress.name
+            configuration.defaultBillingDetails.phone = billingAddress.phone
+            configuration.defaultBillingDetails.address = billingAddress.paymentSheetAddress
+        }
+
+        if let shippingAddress = localOverrides.shippingAddress {
+            configuration.shippingDetails = {
+                AddressSheetUtils.buildAddressDetails(
+                    params: shippingAddress.shippingDetailsParams(isCheckboxSelected: nil)
+                )
+            }
+        }
+    }
+
     internal func buildPaymentSheetConfiguration(
             params: NSDictionary
     ) -> (error: NSDictionary?, configuration: PaymentSheet.Configuration?) {
@@ -164,6 +187,7 @@ extension StripeSdkImpl {
         configuration: PaymentSheet.Configuration,
         resolve: @escaping RCTPromiseResolveBlock
     ) {
+        var configuration = configuration
         self.paymentSheetFlowController = nil
 
         func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdkImpl?) {
@@ -183,7 +207,25 @@ extension StripeSdkImpl {
             }
         }
 
-        if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
+        if let checkout = params["checkout"] as? NSDictionary,
+          let sessionKey = checkout["sessionKey"] as? String {
+            guard let checkout = checkoutInstances[sessionKey] else {
+                resolve(Errors.createError(ErrorType.Failed, "Checkout session not found"))
+                return
+            }
+
+            if params["customFlow"] as? Bool == true {
+                resolve(Errors.createError(
+                    ErrorType.Failed,
+                    "Custom Flow is not yet supported when initializing PaymentSheet with Checkout on iOS."
+                ))
+                return
+            }
+
+            applyCheckoutLocalOverrides(sessionKey: sessionKey, to: &configuration)
+            self.paymentSheet = PaymentSheet(checkout: checkout, configuration: configuration)
+            resolve([])
+        } else if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
             if !Errors.isPIClientSecretValid(clientSecret: paymentIntentClientSecret) {
                 resolve(Errors.createError(ErrorType.Failed, "`secret` format does not match expected client secret formatting."))
                 return

@@ -1,11 +1,11 @@
 import Contacts
 import Stripe
-@_spi(ConfirmationTokensPublicPreview) import StripePayments
+@_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
-@_spi(STP) import StripePaymentSheet
+@_spi(STP) @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 #else
-import StripePaymentSheet
+@_spi(CheckoutSessionsPreview) import StripePaymentSheet
 #endif
 
 class Mappers {
@@ -14,6 +14,365 @@ class Mappers {
         result[key] = value ?? NSNull()
         additionalFields?.forEach { (a, b) in result[a] = b }
         return result
+    }
+
+    class func mapFromCheckoutState(
+        _ state: Checkout.State,
+        localOverrides: CheckoutLocalOverrides? = nil
+    ) -> NSDictionary {
+        switch state {
+        case .loading(let session):
+            return mapFromCheckoutStatePayload(
+                status: "loading",
+                sessionResponse: mapFromCheckoutSessionResponseObject(session),
+                localOverrides: localOverrides
+            )
+        case .loaded(let session):
+            return mapFromCheckoutStatePayload(
+                status: "loaded",
+                sessionResponse: mapFromCheckoutSessionResponseObject(session),
+                localOverrides: localOverrides
+            )
+        @unknown default:
+            return mapFromCheckoutStatePayload(
+                status: "loaded",
+                sessionResponse: [:],
+                localOverrides: localOverrides
+            )
+        }
+    }
+
+    class func mapFromCheckoutStatePayload(
+        status: String,
+        sessionResponse: NSDictionary,
+        localOverrides: CheckoutLocalOverrides? = nil
+    ) -> NSDictionary {
+        return [
+            "status": status,
+            "session": mapFromCheckoutSessionResponse(
+                sessionResponse,
+                localOverrides: localOverrides
+            ),
+        ]
+    }
+
+    class func mapFromCheckoutSessionResponse(
+        _ sessionResponse: NSDictionary,
+        localOverrides: CheckoutLocalOverrides? = nil
+    ) -> NSDictionary {
+        let result = NSMutableDictionary()
+        result["id"] = checkoutString(from: sessionResponse["id"]) ?? ""
+        result["paymentStatus"] = mapFromCheckoutPaymentStatus(
+            checkoutString(from: sessionResponse["payment_status"])
+        )
+        result["livemode"] = checkoutBool(from: sessionResponse["livemode"]) ?? false
+        result["lineItems"] = mapFromCheckoutLineItems(sessionResponse)
+        result["shippingOptions"] = mapFromCheckoutShippingOptions(sessionResponse)
+        result["discounts"] = mapFromCheckoutDiscounts(sessionResponse)
+
+        if let status = mapFromCheckoutStatus(checkoutString(from: sessionResponse["status"])) {
+            result["status"] = status
+        }
+
+        if let currency = checkoutString(from: sessionResponse["currency"]) {
+            result["currency"] = currency
+        }
+
+        if let totals = mapFromCheckoutTotals(sessionResponse) {
+            result["totals"] = totals
+        }
+
+        if let customerId = checkoutString(from: sessionResponse["customer"]) {
+            result["customerId"] = customerId
+        }
+
+        let customerDetails = sessionResponse["customer_details"] as? NSDictionary
+        if let customerEmail = checkoutString(from: sessionResponse["customer_email"])
+            ?? checkoutString(from: customerDetails?["email"]) {
+            result["customerEmail"] = customerEmail
+        }
+
+        if let billingAddress = localOverrides?.billingAddress {
+            result["billingAddress"] = mapFromCheckoutAddressOverride(billingAddress)
+        }
+
+        if let shippingAddress = localOverrides?.shippingAddress {
+            result["shippingAddress"] = mapFromCheckoutAddressOverride(shippingAddress)
+        }
+
+        return result
+    }
+
+    class func mapFromCheckoutAddressOverride(_ address: CheckoutAddressOverride) -> NSDictionary {
+        return address.reactNativeValue
+    }
+
+    private class func mapFromCheckoutSessionResponseObject(_ session: Checkout.Session) -> NSDictionary {
+        guard let checkoutSession = session as? NSObject else {
+            return [:]
+        }
+
+        if let responseFields = checkoutSession.value(forKey: "allResponseFields") as? NSDictionary {
+            return responseFields
+        }
+
+        if let responseFields = checkoutSession.value(forKey: "allResponseFields") as? [AnyHashable: Any] {
+            return responseFields as NSDictionary
+        }
+
+        return [:]
+    }
+
+    private class func mapFromCheckoutTotals(_ sessionResponse: NSDictionary) -> NSDictionary? {
+        let subtotal = checkoutInt(from: sessionResponse["amount_subtotal"])
+        let total = checkoutInt(from: sessionResponse["amount_total"])
+        let totalDetails = sessionResponse["total_details"] as? NSDictionary
+        let shippingCost = sessionResponse["shipping_cost"] as? NSDictionary
+
+        guard subtotal != nil || total != nil || totalDetails != nil || shippingCost != nil else {
+            return nil
+        }
+
+        return [
+            "subtotal": subtotal ?? 0,
+            "total": total ?? 0,
+            "due": total ?? 0,
+            "discount": checkoutInt(from: totalDetails?["amount_discount"]) ?? 0,
+            "shipping": checkoutInt(from: totalDetails?["amount_shipping"])
+                ?? checkoutInt(from: shippingCost?["amount_total"])
+                ?? 0,
+            "tax": checkoutInt(from: totalDetails?["amount_tax"])
+                ?? checkoutInt(from: shippingCost?["amount_tax"])
+                ?? 0,
+        ]
+    }
+
+    private class func mapFromCheckoutLineItems(_ sessionResponse: NSDictionary) -> [NSDictionary] {
+        let lineItemsValue = (sessionResponse["line_items"] as? NSDictionary)?["data"]
+            ?? sessionResponse["line_items"]
+        let sessionCurrency = checkoutString(from: sessionResponse["currency"]) ?? ""
+
+        return checkoutDictionaryArray(from: lineItemsValue).map { lineItem in
+            let result = NSMutableDictionary()
+            let quantity = max(checkoutInt(from: lineItem["quantity"]) ?? 0, 0)
+            let price = lineItem["price"] as? NSDictionary
+            let subtotal = checkoutInt(from: lineItem["amount_subtotal"])
+                ?? checkoutInt(from: lineItem["amount_total"])
+            let fallbackUnitAmount = subtotal != nil && quantity > 0 ? (subtotal! / quantity) : nil
+
+            result["id"] = checkoutString(from: lineItem["id"]) ?? ""
+            result["name"] = checkoutString(from: lineItem["description"])
+                ?? checkoutString(from: price?["nickname"])
+                ?? ""
+            result["quantity"] = quantity
+            result["unitAmount"] = checkoutInt(from: price?["unit_amount"])
+                ?? fallbackUnitAmount
+                ?? 0
+            result["currency"] = checkoutString(from: lineItem["currency"])
+                ?? checkoutString(from: price?["currency"])
+                ?? sessionCurrency
+
+            return result
+        }
+    }
+
+    private class func mapFromCheckoutShippingOptions(_ sessionResponse: NSDictionary) -> [NSDictionary] {
+        let sessionCurrency = checkoutString(from: sessionResponse["currency"]) ?? ""
+
+        return checkoutDictionaryArray(from: sessionResponse["shipping_options"]).map { option in
+            let result = NSMutableDictionary()
+            let shippingRate = option["shipping_rate"] as? NSDictionary
+            let fixedAmount = shippingRate?["fixed_amount"] as? NSDictionary
+
+            result["id"] = checkoutString(from: shippingRate?["id"])
+                ?? checkoutString(from: option["shipping_rate"])
+                ?? ""
+            result["displayName"] = checkoutString(from: shippingRate?["display_name"])
+                ?? result["id"] as? String
+                ?? ""
+            result["amount"] = checkoutInt(from: option["shipping_amount"])
+                ?? checkoutInt(from: fixedAmount?["amount"])
+                ?? 0
+            result["currency"] = checkoutString(from: fixedAmount?["currency"]) ?? sessionCurrency
+
+            if let deliveryEstimate = mapFromCheckoutDeliveryEstimate(
+                shippingRate?["delivery_estimate"] as? NSDictionary
+            ) {
+                result["deliveryEstimate"] = deliveryEstimate
+            }
+
+            return result
+        }
+    }
+
+    private class func mapFromCheckoutDiscounts(_ sessionResponse: NSDictionary) -> [NSDictionary] {
+        let discountsValue = (sessionResponse["discounts"] as? NSDictionary)?["data"]
+            ?? sessionResponse["discounts"]
+
+        return checkoutDictionaryArray(from: discountsValue).map { discount in
+            let result = NSMutableDictionary()
+            result["coupon"] = mapFromCheckoutCoupon(discount["coupon"])
+            result["amount"] = checkoutInt(from: discount["amount"]) ?? 0
+
+            if let promotionCode = mapFromCheckoutPromotionCode(discount["promotion_code"]) {
+                result["promotionCode"] = promotionCode
+            }
+
+            return result
+        }
+    }
+
+    private class func mapFromCheckoutCoupon(_ couponValue: Any?) -> NSDictionary {
+        if let coupon = couponValue as? NSDictionary {
+            let result = NSMutableDictionary()
+            result["id"] = checkoutString(from: coupon["id"]) ?? ""
+
+            if let name = checkoutString(from: coupon["name"]) {
+                result["name"] = name
+            }
+            if let percentOff = checkoutNumber(from: coupon["percent_off"]) {
+                result["percentOff"] = percentOff
+            }
+            if let amountOff = checkoutNumber(from: coupon["amount_off"]) {
+                result["amountOff"] = amountOff
+            }
+
+            return result
+        }
+
+        return [
+            "id": checkoutString(from: couponValue) ?? "",
+        ]
+    }
+
+    private class func mapFromCheckoutPromotionCode(_ promotionCodeValue: Any?) -> String? {
+        if let promotionCode = promotionCodeValue as? NSDictionary {
+            return checkoutString(from: promotionCode["code"])
+                ?? checkoutString(from: promotionCode["id"])
+        }
+
+        return checkoutString(from: promotionCodeValue)
+    }
+
+    private class func mapFromCheckoutDeliveryEstimate(_ deliveryEstimate: NSDictionary?) -> String? {
+        guard let deliveryEstimate else {
+            return nil
+        }
+
+        let minimum = deliveryEstimate["minimum"] as? NSDictionary
+        let maximum = deliveryEstimate["maximum"] as? NSDictionary
+        let unit = checkoutString(from: minimum?["unit"]) ?? checkoutString(from: maximum?["unit"])
+        let minimumValue = checkoutInt(from: minimum?["value"])
+        let maximumValue = checkoutInt(from: maximum?["value"])
+
+        switch (minimumValue, maximumValue, unit) {
+        case let (minimumValue?, maximumValue?, unit?) where minimumValue == maximumValue:
+            return "\(minimumValue) \(unit)"
+        case let (minimumValue?, maximumValue?, unit?):
+            return "\(minimumValue)-\(maximumValue) \(unit)"
+        case let (minimumValue?, nil, unit?):
+            return "\(minimumValue) \(unit)"
+        case let (nil, maximumValue?, unit?):
+            return "\(maximumValue) \(unit)"
+        default:
+            return nil
+        }
+    }
+
+    private class func mapFromCheckoutStatus(_ status: String?) -> String? {
+        switch status {
+        case "open":
+            return "open"
+        case "complete":
+            return "complete"
+        case "expired":
+            return "expired"
+        case nil:
+            return nil
+        default:
+            return "unknown"
+        }
+    }
+
+    private class func mapFromCheckoutPaymentStatus(_ paymentStatus: String?) -> String {
+        switch paymentStatus {
+        case "paid":
+            return "paid"
+        case "unpaid":
+            return "unpaid"
+        case "no_payment_required":
+            return "noPaymentRequired"
+        default:
+            return "unknown"
+        }
+    }
+
+    private class func checkoutDictionaryArray(from value: Any?) -> [NSDictionary] {
+        if let dictionaries = value as? [NSDictionary] {
+            return dictionaries
+        }
+
+        if let array = value as? [Any] {
+            return array.compactMap { $0 as? NSDictionary }
+        }
+
+        return []
+    }
+
+    private class func checkoutString(from value: Any?) -> String? {
+        if let string = value as? String {
+            return string
+        }
+
+        if let number = value as? NSNumber {
+            return number.stringValue
+        }
+
+        return nil
+    }
+
+    private class func checkoutInt(from value: Any?) -> Int? {
+        if let intValue = value as? Int {
+            return intValue
+        }
+
+        if let number = value as? NSNumber {
+            return number.intValue
+        }
+
+        if let string = value as? String {
+            return Int(string)
+        }
+
+        return nil
+    }
+
+    private class func checkoutNumber(from value: Any?) -> NSNumber? {
+        if let number = value as? NSNumber {
+            return number
+        }
+
+        if let intValue = value as? Int {
+            return NSNumber(value: intValue)
+        }
+
+        if let doubleValue = value as? Double {
+            return NSNumber(value: doubleValue)
+        }
+
+        return nil
+    }
+
+    private class func checkoutBool(from value: Any?) -> Bool? {
+        if let boolValue = value as? Bool {
+            return boolValue
+        }
+
+        if let number = value as? NSNumber {
+            return number.boolValue
+        }
+
+        return nil
     }
 
     class func mapToPKContactField(field: String) -> PKContactField {
