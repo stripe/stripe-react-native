@@ -185,7 +185,7 @@ extension StripeSdkImpl {
 
         if let checkout = params["checkout"] as? NSDictionary,
           let sessionKey = checkout["sessionKey"] as? String {
-            guard let checkout = checkoutInstances[sessionKey] else {
+            guard let checkout = checkoutContexts[sessionKey]?.checkout else {
                 resolve(Errors.createError(ErrorType.Failed, "Checkout session not found"))
                 return
             }

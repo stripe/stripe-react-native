@@ -1,6 +1,12 @@
 import Foundation
 @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 
+internal struct CheckoutSessionContext {
+    var checkout: Checkout
+    let clientSecret: String
+    let configuration: Checkout.Configuration
+}
+
 extension StripeSdkImpl {
     internal func currentCheckoutStateResult(checkout: Checkout) -> NSDictionary {
         Mappers.mapFromCheckoutState(checkout.state)
@@ -28,9 +34,11 @@ extension StripeSdkImpl {
                 )
                 let sessionKey = UUID().uuidString
 
-                self.checkoutInstances[sessionKey] = checkout
-                self.checkoutClientSecrets[sessionKey] = clientSecret
-                self.checkoutConfigurationParams[sessionKey] = configuration
+                self.checkoutContexts[sessionKey] = CheckoutSessionContext(
+                    checkout: checkout,
+                    clientSecret: clientSecret,
+                    configuration: checkoutConfiguration
+                )
 
                 resolve([
                     "sessionKey": sessionKey,
@@ -51,32 +59,16 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        Task { @MainActor [weak self] in
-            guard let self else {
-                reject(ErrorType.Failed, "Stripe SDK is unavailable", nil)
-                return
-            }
-
-            guard let checkout = self.checkoutInstances[sessionKey] else {
-                reject(ErrorType.Failed, "Checkout session not found", nil)
-                return
-            }
-
-            guard let shippingAddress = self.buildCheckoutAddressUpdate(
-                address: address,
-                name: name,
-                phone: phone
-            ) else {
-                reject(ErrorType.Failed, "A shipping address country is required.", nil)
-                return
-            }
-
-            do {
-                try await checkout.updateShippingAddress(shippingAddress)
-                resolve(self.currentCheckoutStateResult(checkout: checkout))
-            } catch {
-                reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
-            }
+        performCheckoutAddressMutation(
+            sessionKey: sessionKey,
+            address: address,
+            name: name,
+            phone: phone,
+            missingCountryMessage: "A shipping address country is required.",
+            resolver: resolve,
+            rejecter: reject
+        ) { checkout, addressUpdate in
+            try await checkout.updateShippingAddress(addressUpdate)
         }
     }
 
@@ -89,32 +81,16 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        Task { @MainActor [weak self] in
-            guard let self else {
-                reject(ErrorType.Failed, "Stripe SDK is unavailable", nil)
-                return
-            }
-
-            guard let checkout = self.checkoutInstances[sessionKey] else {
-                reject(ErrorType.Failed, "Checkout session not found", nil)
-                return
-            }
-
-            guard let billingAddress = self.buildCheckoutAddressUpdate(
-                address: address,
-                name: name,
-                phone: phone
-            ) else {
-                reject(ErrorType.Failed, "A billing address country is required.", nil)
-                return
-            }
-
-            do {
-                try await checkout.updateBillingAddress(billingAddress)
-                resolve(self.currentCheckoutStateResult(checkout: checkout))
-            } catch {
-                reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
-            }
+        performCheckoutAddressMutation(
+            sessionKey: sessionKey,
+            address: address,
+            name: name,
+            phone: phone,
+            missingCountryMessage: "A billing address country is required.",
+            resolver: resolve,
+            rejecter: reject
+        ) { checkout, addressUpdate in
+            try await checkout.updateBillingAddress(addressUpdate)
         }
     }
 
@@ -157,14 +133,14 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        guard quantity == floor(quantity) else {
+        guard quantity.isFinite, let integerQuantity = Int(exactly: quantity) else {
             reject(ErrorType.Failed, "Line item quantity must be an integer.", nil)
             return
         }
 
         let lineItemUpdate = Checkout.LineItemUpdate(
             lineItemId: lineItemId,
-            quantity: Int(quantity)
+            quantity: integerQuantity
         )
 
         performCheckoutMutation(
@@ -223,35 +199,31 @@ extension StripeSdkImpl {
                 return
             }
 
-            guard let checkout = self.checkoutInstances[sessionKey] else {
+            guard var context = self.checkoutContexts[sessionKey] else {
                 reject(ErrorType.Failed, "Checkout session not found", nil)
                 return
             }
 
-            guard let clientSecret = self.checkoutClientSecrets[sessionKey] else {
-                reject(ErrorType.Failed, "Checkout session client secret not found", nil)
-                return
-            }
-
-            let configuration = self.buildCheckoutConfiguration(
-                params: self.checkoutConfigurationParams[sessionKey] ?? NSDictionary()
-            )
-
             do {
+                // Some StripePaymentSheet preview builds linked by RN still do not expose
+                // `Checkout.refresh()` to this module. In that case, recreate the native
+                // Checkout instance from the original client secret/config and then reapply
+                // any address state already living on the Checkout object itself.
                 let refreshedCheckout = try await Checkout(
-                    clientSecret: clientSecret,
-                    configuration: configuration
+                    clientSecret: context.clientSecret,
+                    configuration: context.configuration
                 )
 
-                if let billingAddress = checkout.state.session.billingAddress {
+                if let billingAddress = context.checkout.state.session.billingAddress {
                     try await refreshedCheckout.updateBillingAddress(billingAddress)
                 }
 
-                if let shippingAddress = checkout.state.session.shippingAddress {
+                if let shippingAddress = context.checkout.state.session.shippingAddress {
                     try await refreshedCheckout.updateShippingAddress(shippingAddress)
                 }
 
-                self.checkoutInstances[sessionKey] = refreshedCheckout
+                context.checkout = refreshedCheckout
+                self.checkoutContexts[sessionKey] = context
                 resolve(self.currentCheckoutStateResult(checkout: refreshedCheckout))
             } catch {
                 reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
@@ -282,7 +254,7 @@ extension StripeSdkImpl {
                 return
             }
 
-            guard let checkout = self.checkoutInstances[sessionKey] else {
+            guard let checkout = self.checkoutContexts[sessionKey]?.checkout else {
                 reject(ErrorType.Failed, "Checkout session not found", nil)
                 return
             }
@@ -293,6 +265,34 @@ extension StripeSdkImpl {
             } catch {
                 reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
             }
+        }
+    }
+
+    private func performCheckoutAddressMutation(
+        sessionKey: String,
+        address: NSDictionary,
+        name: String?,
+        phone: String?,
+        missingCountryMessage: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock,
+        operation: @escaping (Checkout, Checkout.AddressUpdate) async throws -> Void
+    ) {
+        guard let addressUpdate = buildCheckoutAddressUpdate(
+            address: address,
+            name: name,
+            phone: phone
+        ) else {
+            reject(ErrorType.Failed, missingCountryMessage, nil)
+            return
+        }
+
+        performCheckoutMutation(
+            sessionKey: sessionKey,
+            resolver: resolve,
+            rejecter: reject
+        ) { checkout in
+            try await operation(checkout, addressUpdate)
         }
     }
 
