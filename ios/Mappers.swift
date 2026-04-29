@@ -1,6 +1,6 @@
 import Contacts
 import Stripe
-@_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
+@_spi(ConfirmationTokensPublicPreview) import StripePayments
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
 @_spi(STP) import StripePaymentSheet
