@@ -178,6 +178,37 @@ The React Native SDK depends on underlying native [iOS](https://github.com/strip
 
 **Android:** Update `StripeSdk_stripeVersion` in `android/gradle.properties`.
 
+## Adding APIs
+
+The public API is everything exported from `src/index.tsx`.
+
+### In-development (not yet public) APIs
+
+- Don't export from `src/index.tsx`.
+- If a public type must reference it, tag with `@internal`, run `yarn api-extractor:update` and commit the diff.
+- Feel free to also mark with e.g. `@CheckoutSessionsPrivatePreview` for easy grepping later.
+
+```ts
+/**
+ * @CheckoutSessionsPrivatePreview
+ * @internal
+ */
+export type CheckoutSetupParams = { ... }
+```
+
+### Private Preview / Public Preview APIs
+
+- Export from `src/index.tsx`.
+- Use `@MyFeaturePrivatePreview` / `@MyFeaturePublicPreview`.
+- Run `yarn api-extractor:update` and commit the diff.
+
+```ts
+/**
+ * @CheckoutSessionsPrivatePreview
+ */
+export type CheckoutSetupParams = { ... }
+```
+
 ## Maintaining the Stripe old-architecture patch
 
 We ship `patches/old-arch-codegen-fix.patch` so that the library builds on **React-Native >= 0.74 in the old architecture** (it converts `EventEmitter` properties into callback functions so code-gen doesn't fail).
