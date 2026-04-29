@@ -557,7 +557,6 @@ internal fun mapNextAction(
     NextActionType.CashAppRedirect,
     NextActionType.BlikAuthorize,
     NextActionType.UseStripeSdk,
-    NextActionType.UpiAwaitNotification,
     NextActionType.DisplayPayNowDetails,
     NextActionType.DisplayPromptPayDetails,
     null,
