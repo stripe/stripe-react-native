@@ -41,7 +41,8 @@ class AuBECSDebitFormViewManager :
     view.setFormStyle(style.asMapOrNull())
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AuBECSDebitFormView = AuBECSDebitFormView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): AuBECSDebitFormView =
+    AuBECSDebitFormView(reactContext)
 
   companion object {
     const val REACT_CLASS = "AuBECSDebitForm"

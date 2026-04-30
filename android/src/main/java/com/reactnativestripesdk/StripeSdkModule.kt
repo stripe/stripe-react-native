@@ -1818,13 +1818,17 @@ class StripeSdkModule(
    */
   private fun preventActivityRecreation() {
     isRecreatingReactActivity = false
-    reactApplicationContext.currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    reactApplicationContext.currentActivity?.application?.unregisterActivityLifecycleCallbacks(
+      activityLifecycleCallbacks
+    )
     reactApplicationContext.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
-      composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext).also {
+      composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(
+        context = reactApplicationContext
+      ).also {
         reactApplicationContext.currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
           it,
         )
