@@ -46,38 +46,6 @@
     <ID>LongMethod:PaymentSheetAppearanceTest.kt:PaymentSheetAppearanceTest$@Test fun testPartialAppearanceConfiguration</ID>
     <ID>LongMethod:PaymentSheetManager.kt:PaymentSheetManager$fun configure</ID>
     <ID>LongMethod:StripeSdkModule.kt:StripeSdkModule$@ReactMethod override fun confirmPlatformPay</ID>
-    <ID>MagicNumber:CardFieldView.kt:CardFieldView$20</ID>
-    <ID>MagicNumber:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$100</ID>
-    <ID>MagicNumber:FinancialConnectionsSheetManager.kt:FinancialConnectionsSheetManager.Companion$1000.0</ID>
-    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$1000</ID>
-    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$1001</ID>
-    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$11</ID>
-    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$4</ID>
-    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$5</ID>
-    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$6</ID>
-    <ID>MagicNumber:GooglePayButtonView.kt:GooglePayButtonView$7</ID>
-    <ID>MagicNumber:Mappers.kt:1000</ID>
-    <ID>MagicNumber:Mappers.kt:3</ID>
-    <ID>MagicNumber:Mappers.kt:4</ID>
-    <ID>MagicNumber:Mappers.kt:5</ID>
-    <ID>MagicNumber:Mappers.kt:6</ID>
-    <ID>MagicNumber:Mappers.kt:7</ID>
-    <ID>MagicNumber:Mappers.kt:8</ID>
-    <ID>MagicNumber:NavigationBarView.kt:NavigationBarView$16</ID>
-    <ID>MagicNumber:NavigationBarView.kt:NavigationBarView$17f</ID>
-    <ID>MagicNumber:NavigationBarView.kt:NavigationBarView$4f</ID>
-    <ID>MagicNumber:NavigationBarView.kt:NavigationBarView$56</ID>
-    <ID>MagicNumber:PaymentMethodMessagingElementConfig.kt:16.0</ID>
-    <ID>MagicNumber:PaymentMethodMessagingElementConfig.kt:6</ID>
-    <ID>MagicNumber:PaymentMethodMessagingElementConfig.kt:8</ID>
-    <ID>MagicNumber:PaymentOptionDisplayDataMapper.kt:0xFFFFFF</ID>
-    <ID>MagicNumber:PaymentOptionDisplayDataMapper.kt:16f</ID>
-    <ID>MagicNumber:PaymentOptionDisplayDataMapper.kt:5_000L</ID>
-    <ID>MagicNumber:PaymentSheetAppearance.kt:6</ID>
-    <ID>MagicNumber:PaymentSheetAppearance.kt:8</ID>
-    <ID>MagicNumber:PaymentSheetManager.kt:100</ID>
-    <ID>MagicNumber:PaymentSheetManager.kt:PaymentSheetManager$100</ID>
-    <ID>MagicNumber:StripeSdkModule.kt:StripeSdkModule$3000</ID>
     <ID>MaxLineLength:AddToWalletButtonManager.kt:AddToWalletButtonManager$override fun createViewInstance: AddToWalletButtonView</ID>
     <ID>MaxLineLength:AddressLauncherManager.kt:AddressLauncherManager$"No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method."</ID>
     <ID>MaxLineLength:AddressSheetView.kt:AddressSheetView.Companion$internal</ID>

@@ -138,7 +138,7 @@ class FinancialConnectionsSheetManager(
         map.putString("status", mapFromStatus(account.status))
         map.putString("institutionName", account.institutionName)
         map.putString("last4", account.last4)
-        map.putDouble("created", account.created * 1000.0)
+        map.putDouble("created", account.created * SECONDS_TO_MILLIS)
         map.putMap("balance", mapFromAccountBalance(account.balance))
         map.putMap("balanceRefresh", mapFromAccountBalanceRefresh(account.balanceRefresh))
         map.putString("category", mapFromCategory(account.category))
@@ -166,7 +166,7 @@ class FinancialConnectionsSheetManager(
         return null
       }
       val map = Arguments.createMap()
-      map.putDouble("asOf", balance.asOf * 1000.0)
+      map.putDouble("asOf", balance.asOf * SECONDS_TO_MILLIS)
       map.putString("type", mapFromBalanceType(balance.type))
       Arguments.createMap().also {
         for (entry in balance.current.entries) {
@@ -210,7 +210,7 @@ class FinancialConnectionsSheetManager(
       }
       val map = Arguments.createMap()
       map.putString("status", mapFromBalanceRefreshStatus(balanceRefresh.status))
-      map.putDouble("lastAttemptedAt", balanceRefresh.lastAttemptedAt * 1000.0)
+      map.putDouble("lastAttemptedAt", balanceRefresh.lastAttemptedAt * SECONDS_TO_MILLIS)
       return map
     }
 
@@ -274,6 +274,8 @@ class FinancialConnectionsSheetManager(
         BalanceRefresh.BalanceRefreshStatus.UNKNOWN -> "unparsable"
         null -> "null"
       }
+
+    private const val SECONDS_TO_MILLIS = 1000.0
   }
 }
 
