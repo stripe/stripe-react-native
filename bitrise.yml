@@ -478,7 +478,9 @@ workflows:
             - content: |
                 cd example/android
                 yarn build:android
-                ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan
+                ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan || \
+                  (echo "Gradle build failed, retrying in 30s..." && sleep 30 && \
+                   ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan)
       - save-gradle-cache@1:
           is_always_run: true
       - deploy-to-bitrise-io@2:
@@ -544,12 +546,15 @@ workflows:
                 mkdir -p "$OUT_DIR"
 
                 DERIVED_DATA_PATH="$BITRISE_SOURCE_DIR/DerivedData"
-                xcodebuild -workspace example.xcworkspace \
-                  -scheme example \
-                  -configuration Release \
-                  -sdk iphonesimulator \
-                  -derivedDataPath "$DERIVED_DATA_PATH" \
-                  build | xcbeautify
+                build_ios() {
+                  xcodebuild -workspace example.xcworkspace \
+                    -scheme example \
+                    -configuration Release \
+                    -sdk iphonesimulator \
+                    -derivedDataPath "$DERIVED_DATA_PATH" \
+                    build | xcbeautify
+                }
+                build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)
 
                 APP_ROOT="$DERIVED_DATA_PATH/Build/Products/Release-iphonesimulator"
                 APP_DIR="$APP_ROOT/ReactTestApp.app"
