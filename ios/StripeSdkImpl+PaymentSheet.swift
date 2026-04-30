@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(ConfirmationTokensPublicPreview) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(ConfirmationTokensPublicPreview) @_spi(CardFundingFilteringPrivatePreview) @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 
 extension StripeSdkImpl {
     internal func buildPaymentSheetConfiguration(
@@ -183,7 +183,23 @@ extension StripeSdkImpl {
             }
         }
 
-        if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
+        if let checkout = params["checkout"] as? NSDictionary,
+          let sessionKey = checkout["sessionKey"] as? String {
+            guard let checkout = checkoutInstances[sessionKey] else {
+                resolve(Errors.createError(ErrorType.Failed, "Checkout session not found"))
+                return
+            }
+
+            if params["customFlow"] as? Bool == true {
+                PaymentSheet.FlowController.create(checkout: checkout,
+                                                   configuration: configuration) { [weak self] result in
+                    handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
+                }
+            } else {
+                self.paymentSheet = PaymentSheet(checkout: checkout, configuration: configuration)
+                resolve([])
+            }
+        } else if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
             if !Errors.isPIClientSecretValid(clientSecret: paymentIntentClientSecret) {
                 resolve(Errors.createError(ErrorType.Failed, "`secret` format does not match expected client secret formatting."))
                 return

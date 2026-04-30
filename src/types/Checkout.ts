@@ -1,11 +1,11 @@
 /**
  * All types for the Checkout Session API.
- * @checkoutSessionsPreview
+ * @internal
  */
 export namespace Checkout {
   /**
    * Configuration options for a `useCheckout` instance.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface Configuration {
     /**
@@ -21,7 +21,7 @@ export namespace Checkout {
 
   /**
    * Options for adaptive pricing behavior.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface AdaptivePricing {
     /**
@@ -46,7 +46,7 @@ export namespace Checkout {
    * - `loaded`  – session is current and ready.
    *
    * Before the initial session load completes, `state` is `null`.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export type State =
     | {
@@ -74,7 +74,7 @@ export namespace Checkout {
    * - `open` - The checkout session is still in progress.
    * - `complete` - The checkout session is complete.
    * - `expired` - The checkout session has expired.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export type Status = 'unknown' | 'open' | 'complete' | 'expired';
 
@@ -85,7 +85,7 @@ export namespace Checkout {
    * - `paid` - The payment funds are available in your account.
    * - `unpaid` - The payment funds are not yet available in your account.
    * - `noPaymentRequired` - No payment is currently required for the session.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export type PaymentStatus =
     | 'unknown'
@@ -95,7 +95,7 @@ export namespace Checkout {
 
   /**
    * A read-only snapshot of a Stripe Checkout Session.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface Session {
     /** Unique identifier for this checkout session. */
@@ -130,7 +130,7 @@ export namespace Checkout {
    * Monetary totals for a checkout session.
    *
    * All amounts are in the smallest currency unit (e.g. cents for USD).
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface Totals {
     /** The subtotal amount before discounts, shipping, and tax. */
@@ -149,7 +149,7 @@ export namespace Checkout {
 
   /**
    * A line item in a checkout session.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface LineItem {
     /** Unique identifier for this line item. */
@@ -166,7 +166,7 @@ export namespace Checkout {
 
   /**
    * A shipping option available in a checkout session.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface ShippingOption {
     /** The shipping rate identifier. */
@@ -183,7 +183,7 @@ export namespace Checkout {
 
   /**
    * A discount applied to a checkout session.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface Discount {
     /** The coupon associated with this discount. */
@@ -196,7 +196,7 @@ export namespace Checkout {
 
   /**
    * A coupon associated with a checkout discount.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface Coupon {
     /** The coupon identifier. */
@@ -215,7 +215,7 @@ export namespace Checkout {
    * Address updates are merged into PaymentSheet configuration and may also be
    * sent to Stripe when tax calculation depends on the billing or shipping
    * address.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface AddressUpdate {
     /** The customer's or recipient's name, if provided. */
@@ -228,7 +228,7 @@ export namespace Checkout {
 
   /**
    * A postal address used for billing, shipping, or tax updates.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface Address {
     /** The country for this address, such as `"US"`. */
@@ -248,7 +248,7 @@ export namespace Checkout {
   /**
    * A Checkout-specific error returned from `useCheckout` or a Checkout
    * mutation method.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export interface Error {
     /** A machine-readable error code describing the failure. */
@@ -267,7 +267,7 @@ export namespace Checkout {
    * - `SheetCurrentlyPresented` - The operation is unavailable while
    *   PaymentSheet is being presented.
    * - `Canceled` - The operation was canceled before completion.
-   * @checkoutSessionsPreview
+   * @internal
    */
   export type ErrorCode =
     | 'Failed'
@@ -282,7 +282,7 @@ export namespace Checkout {
  *
  * Returned by `useCheckout`. Call mutation methods to update the session;
  * the hook's `state` updates automatically after each mutation.
- * @checkoutSessionsPreview
+ * @internal
  */
 export interface Checkout {
   /** @internal Opaque key for the native Checkout instance. Used by `initPaymentSheet`. */
@@ -328,14 +328,14 @@ export interface Checkout {
    * Applies a promotion code to the session.
    * - Parameter code: The promotion code to apply (e.g. `"SUMMER2026"`).
    * - Throws: `CheckoutError` if applying the promotion code fails.
-   * @checkoutSessionsPreview
+   * @internal
    */
   applyPromotionCode(code: string): Promise<void>;
 
   /**
    * Removes the currently applied promotion code.
    * - Throws: `CheckoutError` if removing the promotion code fails.
-   * @checkoutSessionsPreview
+   * @internal
    */
   removePromotionCode(): Promise<void>;
 
@@ -344,7 +344,7 @@ export interface Checkout {
    * @param lineItemId - The ID of the line item to update.
    * @param quantity - The new quantity to set.
    * - Throws: `CheckoutError` if updating the line item quantity fails.
-   * @checkoutSessionsPreview
+   * @internal
    */
   updateLineItemQuantity(lineItemId: string, quantity: number): Promise<void>;
 
@@ -352,7 +352,7 @@ export interface Checkout {
    * Selects a shipping option for the session.
    * @param id - The ID of the shipping rate to select.
    * - Throws: `CheckoutError` if selecting the shipping option fails.
-   * @checkoutSessionsPreview
+   * @internal
    */
   selectShippingOption(id: string): Promise<void>;
 
@@ -361,7 +361,7 @@ export interface Checkout {
    * @param type - The tax ID type (e.g. `"eu_vat"`).
    * @param value - The tax ID value (e.g. `"DE123456789"`).
    * - Throws: `CheckoutError` if updating the tax ID fails.
-   * @checkoutSessionsPreview
+   * @internal
    */
   updateTaxId(type: string, value: string): Promise<void>;
 
@@ -371,7 +371,7 @@ export interface Checkout {
    * Call this after making server-side changes to the Checkout Session
    * so the local state stays in sync.
    * - Throws: `CheckoutError` if refreshing the session fails.
-   * @checkoutSessionsPreview
+   * @internal
    */
   refresh(): Promise<void>;
 }

@@ -19,7 +19,7 @@
     "update-pods": "cd example/ios && pod update Stripe StripeApplePay StripeFinancialConnections StripePayments StripePaymentSheet StripePaymentsUI StripeCore StripeUICore StripeCryptoOnramp",
     "bootstrap": "yarn example && yarn && yarn pods",
     "bootstrap-no-pods": "yarn example && yarn",
-    "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none --sort source-order",
+    "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none --sort source-order --excludeInternal",
     "run-example-ios": "cd example && yarn ios --simulator \"iPhone 16 Pro Max\"",
     "run-example-ios:release": "cd example && yarn build:ios && yarn ios --mode Release --simulator \"iPhone 16 Pro Max\" --no-packager",
     "run-example-android": "cd example && yarn android",
@@ -34,7 +34,9 @@
     "format:android:write": "cd android && ./gradlew detektFormat",
     "lint:android": "cd android && ./gradlew detekt",
     "format:ios:check": "swiftlint ios --config .swiftlint.yml --strict",
-    "format:ios:write": "./scripts/format-changed-ios"
+    "format:ios:write": "./scripts/format-changed-ios",
+    "api-extractor:update": "bob build && api-extractor run --local --verbose",
+    "api-extractor:check": "bob build && api-extractor run --verbose"
   },
   "files": [
     "src",
@@ -69,6 +71,7 @@
   "homepage": "https://github.com/stripe/stripe-react-native/#readme",
   "devDependencies": {
     "@expo/config-plugins": "^9.0.16",
+    "@microsoft/api-extractor": "^7.58.7",
     "@react-native/babel-preset": "^0.81.0",
     "@react-native/eslint-config": "^0.81.1",
     "@testing-library/react-hooks": "^8.0.1",

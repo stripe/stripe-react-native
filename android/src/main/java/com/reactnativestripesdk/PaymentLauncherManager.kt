@@ -354,7 +354,6 @@ class PaymentLauncherManager(
       StripeIntent.NextActionType.AlipayRedirect,
       StripeIntent.NextActionType.BlikAuthorize,
       StripeIntent.NextActionType.WeChatPayRedirect,
-      StripeIntent.NextActionType.UpiAwaitNotification,
       StripeIntent.NextActionType.CashAppRedirect,
       StripeIntent.NextActionType.SwishRedirect,
       StripeIntent.NextActionType.DisplayPromptPayDetails,
