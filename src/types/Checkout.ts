@@ -14,7 +14,7 @@ export namespace Checkout {
      * When allowed, Stripe may present prices in the customer's local
      * currency alongside the merchant's settlement currency.
      *
-     * Default: `{ allowed: true }`.
+     * Default: `{ allowed: false }`.
      */
     adaptivePricing?: AdaptivePricing;
   }
@@ -30,7 +30,7 @@ export namespace Checkout {
      * Set to `false` to prevent Stripe from activating adaptive pricing even
      * if the Checkout Session is configured for it on the server.
      *
-     * Default: `true`.
+     * Default: `false`.
      */
     allowed: boolean;
   }
