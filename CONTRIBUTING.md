@@ -1,7 +1,5 @@
 # Contributing
 
-We want this community to be friendly and respectful to each other.
-
 ## Prerequisites
 
 ### Required (all platforms)
@@ -178,15 +176,17 @@ The React Native SDK depends on underlying native [iOS](https://github.com/strip
 
 **Android:** Update `StripeSdk_stripeVersion` in `android/gradle.properties`.
 
-## Adding APIs
+## Changing the public APIs
 
-The public API is everything exported from `src/index.tsx`.
+The public API is everything exported from `src/index.tsx`. 
+**Important**: After you make changes, run `yarn api-extractor:update`. 
 
 ### In-development (not yet public) APIs
 
 - Don't export from `src/index.tsx`.
-- If a public type must reference it, tag with `@internal`, run `yarn api-extractor:update` and commit the diff.
-- Feel free to also mark with e.g. `@CheckoutSessionsPrivatePreview` for easy grepping later.
+- Exception - if a public type must reference it:
+  - Tag it with `@internal`. 
+  - Teel free to also mark with e.g. `@CheckoutSessionsPrivatePreview` for easy grepping later.
 
 ```ts
 /**
@@ -200,7 +200,6 @@ export type CheckoutSetupParams = { ... }
 
 - Export from `src/index.tsx`.
 - Use `@MyFeaturePrivatePreview` / `@MyFeaturePublicPreview`.
-- Run `yarn api-extractor:update` and commit the diff.
 
 ```ts
 /**
