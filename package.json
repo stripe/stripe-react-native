@@ -35,6 +35,8 @@
     "lint:android": "cd android && ./gradlew detekt",
     "format:ios:check": "swiftlint ios --config .swiftlint.yml --strict",
     "format:ios:write": "./scripts/format-changed-ios",
+    "test:package-types": "attw --pack .",
+    "prepublishOnly": "echo \"\\nPlease use ./scripts/publish instead\\n\" && exit 1",
     "api-extractor:update": "bob build && api-extractor run --local --verbose",
     "api-extractor:check": "bob build && api-extractor run --verbose"
   },
@@ -70,6 +72,7 @@
   },
   "homepage": "https://github.com/stripe/stripe-react-native/#readme",
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.17.0",
     "@expo/config-plugins": "^9.0.16",
     "@microsoft/api-extractor": "^7.58.7",
     "@react-native/babel-preset": "^0.81.0",

@@ -70,6 +70,10 @@ workflows:
           inputs:
             - content: yarn test
       - script@1:
+          title: Validate Package Types
+          inputs:
+            - content: yarn test:package-types
+      - script@1:
           title: Run Example TypeScript Checks
           inputs:
             - content: cd example && yarn typescript
