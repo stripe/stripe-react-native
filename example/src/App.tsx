@@ -18,6 +18,7 @@ import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
 import BilliePaymentScreen from './screens/BilliePaymentScreen';
 import CashAppScreen from './screens/CashAppScreen';
+import CheckoutScreen from './screens/CheckoutScreen';
 import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 import ConnectAccountOnboardingScreen from './screens/ConnectAccountOnboardingScreen';
 import ConnectPaymentsListScreen from './screens/ConnectPaymentsListScreen';
@@ -98,6 +99,7 @@ export type RootStackParamList = {
   ACHSetupScreen: undefined;
   PayPalScreen: undefined;
   CashAppScreen: undefined;
+  CheckoutScreen: undefined;
   AffirmScreen: undefined;
   CollectBankAccountScreen: undefined;
   PaymentSheetDeferredIntentScreen: undefined;
@@ -287,6 +289,11 @@ export default function App() {
           <Stack.Screen name="ACHSetupScreen" component={ACHSetupScreen} />
           <Stack.Screen name="PayPalScreen" component={PayPalScreen} />
           <Stack.Screen name="CashAppScreen" component={CashAppScreen} />
+          <Stack.Screen
+            name="CheckoutScreen"
+            component={CheckoutScreen}
+            options={{ title: 'Checkout Playground' }}
+          />
           <Stack.Screen name="AffirmScreen" component={AffirmScreen} />
           <Stack.Screen
             name="CollectBankAccountScreen"
