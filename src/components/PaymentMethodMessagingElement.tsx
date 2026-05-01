@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityProps,
   HostComponent,
@@ -50,60 +50,62 @@ export interface Props extends AccessibilityProps {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export const PaymentMethodMessagingElement = forwardRef<any, Props>(
-  ({ appearance, configuration, onStateChange, ...props }) => {
-    const viewRef =
-      useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
+export const PaymentMethodMessagingElement = ({
+  appearance,
+  configuration,
+  onStateChange,
+  ...props
+}: Props) => {
+  const viewRef = useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
 
-    const [height, setHeight] = useState<number | undefined>();
+  const [height, setHeight] = useState<number | undefined>();
 
-    useEffect(() => {
-      // listen for height changes
-      const sub = addListener(
-        'paymentMethodMessagingElementDidUpdateHeight',
-        ({ height: h }) => {
-          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-          setHeight(h);
-        }
-      );
-      return () => sub.remove();
-    });
-
-    useEffect(() => {
-      // listen for load complete
-      const sub = addListener(
-        'paymentMethodMessagingElementConfigureResult',
-        ({ status: s }) => {
-          let state: PaymentMethodMessagingElementState;
-
-          if (s === 'loaded') {
-            state = { status: 'loaded' };
-          } else if (s === 'loading') {
-            state = { status: 'loading' };
-          } else if (s === 'no_content') {
-            state = { status: 'no_content' };
-          } else {
-            state = {
-              status: 'failed',
-              error: new Error(
-                'Failed to configure payment method messaging element'
-              ),
-            };
-          }
-          onStateChange?.(state);
-        }
-      );
-      return () => sub.remove();
-    }, [onStateChange]);
-
-    return (
-      <NativePaymentMethodMessagingElement
-        appearance={appearance}
-        style={[{ width: '100%', height: height }]}
-        configuration={configuration}
-        {...props}
-        ref={viewRef}
-      />
+  useEffect(() => {
+    // listen for height changes
+    const sub = addListener(
+      'paymentMethodMessagingElementDidUpdateHeight',
+      ({ height: h }) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setHeight(h);
+      }
     );
-  }
-);
+    return () => sub.remove();
+  });
+
+  useEffect(() => {
+    // listen for load complete
+    const sub = addListener(
+      'paymentMethodMessagingElementConfigureResult',
+      ({ status: s }) => {
+        let state: PaymentMethodMessagingElementState;
+
+        if (s === 'loaded') {
+          state = { status: 'loaded' };
+        } else if (s === 'loading') {
+          state = { status: 'loading' };
+        } else if (s === 'no_content') {
+          state = { status: 'no_content' };
+        } else {
+          state = {
+            status: 'failed',
+            error: new Error(
+              'Failed to configure payment method messaging element'
+            ),
+          };
+        }
+        onStateChange?.(state);
+      }
+    );
+    return () => sub.remove();
+  }, [onStateChange]);
+
+  return (
+    <NativePaymentMethodMessagingElement
+      appearance={appearance}
+      style={[{ width: '100%', height: height }]}
+      configuration={configuration}
+      {...props}
+      ref={viewRef}
+    />
+  );
+};
