@@ -1,17 +1,11 @@
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
-import {
-  AccessibilityProps,
-  HostComponent,
-  LayoutAnimation,
-} from 'react-native';
+import React, { forwardRef, useEffect, useState } from 'react';
+import { AccessibilityProps, LayoutAnimation } from 'react-native';
 import {
   PaymentMethodMessagingElementAppearance,
   PaymentMethodMessagingElementState,
 } from '../types/components/PaymentMethodMessagingElementComponent';
 import { PaymentMethodMessagingElementConfiguration } from '../types/components/PaymentMethodMessagingElementComponent';
-import NativePaymentMethodMessagingElement, {
-  NativeProps,
-} from '../specs/NativePaymentMethodMessagingElement';
+import NativePaymentMethodMessagingElement from '../specs/NativePaymentMethodMessagingElement';
 import { addListener } from '../events';
 
 export interface Props extends AccessibilityProps {
@@ -51,10 +45,7 @@ export interface Props extends AccessibilityProps {
  * @category ReactComponents
  */
 export const PaymentMethodMessagingElement = forwardRef<any, Props>(
-  ({ appearance, configuration, onStateChange, ...props }) => {
-    const viewRef =
-      useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
-
+  ({ appearance, configuration, onStateChange, ...props }, ref) => {
     const [height, setHeight] = useState<number | undefined>();
 
     useEffect(() => {
@@ -102,7 +93,7 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
         style={[{ width: '100%', height: height }]}
         configuration={configuration}
         {...props}
-        ref={viewRef}
+        ref={ref}
       />
     );
   }
