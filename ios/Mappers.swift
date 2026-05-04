@@ -297,7 +297,6 @@ class Mappers {
         case STPPaymentMethodType.billie: return "Billie"
         case STPPaymentMethodType.multibanco: return "Multibanco"
         case STPPaymentMethodType.OXXO: return "Oxxo"
-        case STPPaymentMethodType.UPI: return "Upi"
         case STPPaymentMethodType.afterpayClearpay: return "AfterpayClearpay"
         case STPPaymentMethodType.klarna: return "Klarna"
         case STPPaymentMethodType.USBankAccount: return "USBankAccount"
@@ -330,7 +329,6 @@ class Mappers {
             case "Billie": return STPPaymentMethodType.billie
             case "Multibanco": return STPPaymentMethodType.multibanco
             case "Oxxo": return STPPaymentMethodType.OXXO
-            case "Upi": return STPPaymentMethodType.UPI
             case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
             case "Klarna": return STPPaymentMethodType.klarna
             case "WeChatPay": return STPPaymentMethodType.weChatPay
@@ -701,9 +699,6 @@ class Mappers {
             "SepaDebit": sepaDebit,
             "BacsDebit": bacsDebit,
             "AuBecsDebit": auBECSDebit,
-            "Upi": [
-                "vpa": paymentMethod.upi?.vpa
-            ],
             "USBankAccount": USBankAccount,
         ]
         return method

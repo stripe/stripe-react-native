@@ -15,6 +15,7 @@ import type { FutureUsage } from './PaymentIntent';
 import type { Result } from './PaymentMethod';
 import type { StripeError } from './Errors';
 import type { Result as ConfirmationTokenResult } from './ConfirmationToken';
+import type { Checkout } from './Checkout';
 
 export type SetupParamsBase = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
@@ -46,7 +47,7 @@ export type SetupParamsBase = IntentParams & {
   defaultShippingDetails?: AddressDetails;
   /** If true, allows payment methods that do not move money at the end of the checkout. Defaults to false.
    *
-   * Some payment methods can’t guarantee you will receive funds from your customer at the end of the checkout
+   * Some payment methods can't guarantee you will receive funds from your customer at the end of the checkout
    * because they take time to settle (eg. most bank debits, like SEPA or ACH) or require customer action to
    * complete (e.g. OXXO, Konbini, Boleto). If this is set to true, make sure your integration listens to webhooks
    * for notifications on whether a payment has succeeded or not.
@@ -65,7 +66,7 @@ export type SetupParamsBase = IntentParams & {
    *  You can override the default order in which payment methods are displayed in PaymentSheet with a list of payment method types.
    *  See https://stripe.com/docs/api/payment_methods/object#payment_method_object-type for the list of valid types.  You may also pass external payment methods.
    *  - Example: ["card", "external_paypal", "klarna"]
-   *  - Note: If you omit payment methods from this list, they’ll be automatically ordered by Stripe after the ones you provide. Invalid payment methods are ignored.
+   *  - Note: If you omit payment methods from this list, they'll be automatically ordered by Stripe after the ones you provide. Invalid payment methods are ignored.
    */
   paymentMethodOrder?: Array<String>;
   /** This is an experimental feature that may be removed at any time.
@@ -112,9 +113,30 @@ export type SetupParamsBase = IntentParams & {
   };
 };
 
+/**
+ * Parameters for initializing PaymentSheet from a Checkout Session.
+ * Use when you have called `useCheckout` and the state is `loaded`.
+ * @checkoutSessionsPreview
+ * @internal
+ */
+export type CheckoutSetupParams = {
+  /** A fully loaded Checkout instance whose `state.status` is `'loaded'`. */
+  checkout: Checkout;
+  paymentIntentClientSecret?: never;
+  setupIntentClientSecret?: never;
+  intentConfiguration?: never;
+  customerEphemeralKeySecret?: never;
+  customerSessionClientSecret?: never;
+} & Omit<
+  SetupParamsBase,
+  | 'paymentIntentClientSecret'
+  | 'setupIntentClientSecret'
+  | 'intentConfiguration'
+>;
+
 export type SetupParams =
   | (SetupParamsBase & {
-      /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
+      /** A short-lived token that allows the SDK to access a Customer's payment methods. */
       customerEphemeralKeySecret: string;
       customerSessionClientSecret?: never;
     })
@@ -123,7 +145,8 @@ export type SetupParams =
       /** The client secret of this Customer Session. Used on the client to set up secure access to the given customer. */
       customerSessionClientSecret: string;
     })
-  | SetupParamsBase;
+  | SetupParamsBase
+  | CheckoutSetupParams;
 
 export type IntentParams =
   | {
@@ -406,7 +429,7 @@ export type PrimaryButtonColorConfig = {
   successTextColor?: ThemedColor;
 };
 
-/** A color that’s either a single hex or a light/dark pair */
+/** A color that's either a single hex or a light/dark pair */
 export type ThemedColor = string | { light: string; dark: string };
 
 /** Represents edge insets */
@@ -649,7 +672,7 @@ export type Mode = PaymentMode | SetupMode;
 export enum CaptureMethod {
   /** (Default) Stripe automatically captures funds when the customer authorizes the payment. */
   Automatic = 'Automatic',
-  /** Place a hold on the funds when the customer authorizes the payment, but don’t capture the funds until later. (Not all payment methods support this.) */
+  /** Place a hold on the funds when the customer authorizes the payment, but don't capture the funds until later. (Not all payment methods support this.) */
   Manual = 'Manual',
   /** Asynchronously capture funds when the customer authorizes the payment.
   - Note: Recommended over `CaptureMethod.Automatic` due to improved latency, but may require additional integration changes.

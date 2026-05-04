@@ -74,3 +74,6 @@ example/android/stripe-android
 
 # e2e tests
 e2e-artifacts/
+
+# api-extractor temp files
+temp/

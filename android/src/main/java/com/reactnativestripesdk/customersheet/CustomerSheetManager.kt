@@ -326,7 +326,9 @@ class CustomerSheetManager(
     internal fun createDefaultBillingDetails(map: ReadableMap): PaymentSheet.BillingDetails =
       buildBillingDetails(map) ?: PaymentSheet.BillingDetails()
 
-    internal fun createBillingDetailsCollectionConfiguration(map: ReadableMap): PaymentSheet.BillingDetailsCollectionConfiguration =
+    internal fun createBillingDetailsCollectionConfiguration(
+      map: ReadableMap
+    ): PaymentSheet.BillingDetailsCollectionConfiguration =
       buildBillingDetailsCollectionConfiguration(map)
 
     internal fun createCustomerAdapter(
@@ -405,7 +407,9 @@ class CustomerSheetManager(
       return paymentOptionResult
     }
 
-    internal fun createIntentConfiguration(intentConfigurationBundle: ReadableMap?): CustomerSheet.IntentConfiguration? =
+    internal fun createIntentConfiguration(
+      intentConfigurationBundle: ReadableMap?
+    ): CustomerSheet.IntentConfiguration? =
       intentConfigurationBundle?.let { bundle ->
         val onBehalfOf = bundle.getString("onBehalfOf")
         CustomerSheet.IntentConfiguration

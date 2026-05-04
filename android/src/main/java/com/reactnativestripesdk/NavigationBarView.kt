@@ -67,7 +67,9 @@ class NavigationBarView(
           ),
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          drawable?.setColorFilter(android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN))
+          drawable?.setColorFilter(
+            android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN)
+          )
         } else {
           @Suppress("DEPRECATION")
           drawable?.setColorFilter(PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN))

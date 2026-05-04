@@ -14,7 +14,8 @@ class ReactNativeCustomerSessionProvider(
   internal var providesCustomerSessionClientSecretCallback:
     CompletableDeferred<CustomerSheet.CustomerSessionClientSecret>? = null
 
-  override suspend fun intentConfiguration(): Result<CustomerSheet.IntentConfiguration> = Result.success(intentConfiguration)
+  override suspend fun intentConfiguration(): Result<CustomerSheet.IntentConfiguration> =
+    Result.success(intentConfiguration)
 
   override suspend fun provideSetupIntentClientSecret(customerId: String): Result<String> {
     CompletableDeferred<String>().also {

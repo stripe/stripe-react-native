@@ -295,6 +295,42 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void initCheckoutSession(String clientSecret, ReadableMap configuration, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void checkoutUpdateShippingAddress(String sessionKey, ReadableMap address, @Nullable String name, @Nullable String phone, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void checkoutUpdateBillingAddress(String sessionKey, ReadableMap address, @Nullable String name, @Nullable String phone, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void checkoutApplyPromotionCode(String sessionKey, String code, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void checkoutRemovePromotionCode(String sessionKey, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void checkoutUpdateLineItemQuantity(String sessionKey, String lineItemId, double quantity, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void checkoutSelectShippingOption(String sessionKey, String id, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void checkoutUpdateTaxId(String sessionKey, String type, String value, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void checkoutRefresh(String sessionKey, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void addListener(String eventType);
 
   @ReactMethod

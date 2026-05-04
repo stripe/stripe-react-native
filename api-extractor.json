@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "projectFolder": ".",
+  // Must match "types" in package.json — this is what consumers resolve via TS.
+  "mainEntryPointFilePath": "lib/typescript/src/index.d.ts",
+  "compiler": {
+    "tsconfigFilePath": "<projectFolder>/tsconfig.json"
+  },
+  "apiReport": {
+    "enabled": true,
+    "reportFolder": "<projectFolder>/etc/",
+    "reportFileName": "<unscopedPackageName>.api.md"
+  },
+  // We use typedoc for docs, not api-extractor's doc pipeline.
+  "docModel": {
+    "enabled": false
+  },
+  "dtsRollup": {
+    "enabled": false
+  },
+  "tsdocMetadata": {
+    "enabled": false
+  },
+  "messages": {
+    "compilerMessageReporting": {
+      "default": { "logLevel": "warning" }
+    },
+    "extractorMessageReporting": {
+      "default": { "logLevel": "warning" },
+      // We don't use @public/@beta/@alpha release tags (not an RN ecosystem convention).
+      "ae-missing-release-tag": { "logLevel": "none" },
+      // We use @internal without underscore prefixes — these types will be renamed at GA.
+      "ae-internal-missing-underscore": { "logLevel": "none", "addToApiReportFile": false }
+    },
+    "tsdocMessageReporting": {
+      // Existing JSDoc uses non-tsdoc conventions (@ignore, JSDoc-style {type} params).
+      "default": { "logLevel": "none" }
+    }
+  }
+}

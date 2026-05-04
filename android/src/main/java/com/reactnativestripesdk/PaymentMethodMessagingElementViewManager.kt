@@ -25,7 +25,8 @@ class PaymentMethodMessagingElementViewManager :
 
   override fun getDelegate() = delegate
 
-  override fun createViewInstance(ctx: ThemedReactContext): PaymentMethodMessagingElementView = PaymentMethodMessagingElementView(ctx)
+  override fun createViewInstance(ctx: ThemedReactContext): PaymentMethodMessagingElementView =
+    PaymentMethodMessagingElementView(ctx)
 
   override fun onDropViewInstance(view: PaymentMethodMessagingElementView) {
     super.onDropViewInstance(view)
