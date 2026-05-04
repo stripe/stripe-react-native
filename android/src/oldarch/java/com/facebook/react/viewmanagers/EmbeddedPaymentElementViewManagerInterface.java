@@ -16,6 +16,7 @@ import com.facebook.react.bridge.Dynamic;
 public interface EmbeddedPaymentElementViewManagerInterface<T extends View>  {
   void setConfiguration(T view, Dynamic value);
   void setIntentConfiguration(T view, Dynamic value);
+  void setCheckout(T view, Dynamic value);
   void confirm(T view);
   void clearPaymentOption(T view);
   void update(T view, @Nullable String intentConfigurationJson);

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) @_spi(CustomPaymentMethodsBeta) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
+@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) @_spi(CustomPaymentMethodsBeta) @_spi(CardFundingFilteringPrivatePreview) @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 
 @objc(StripeSdkImpl)
 extension StripeSdkImpl {
@@ -18,20 +18,26 @@ extension StripeSdkImpl {
                                            configuration: NSDictionary,
                                            resolve: @escaping RCTPromiseResolveBlock,
                                            reject: @escaping RCTPromiseRejectBlock) {
+    // JS only listens for the loading-failed event, so surface validation
+    // errors via emitLoadingFailed and resolve nil — the resolved value
+    // would otherwise be dropped on the floor.
     guard let modeParams = intentConfig["mode"] as? NSDictionary else {
-      resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
+      emitLoadingFailed(message: "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required")
+      resolve(nil)
       return
     }
     let hasConfirmHandler = intentConfig.object(forKey: "confirmHandler") != nil
     let hasConfirmationTokenHandler = intentConfig.object(forKey: "confirmationTokenConfirmHandler") != nil
 
     if !hasConfirmHandler && !hasConfirmationTokenHandler {
-      resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmationTokenConfirmHandler` if you are not passing an intent client secret"))
+      emitLoadingFailed(message: "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmationTokenConfirmHandler` if you are not passing an intent client secret")
+      resolve(nil)
       return
     }
 
     if hasConfirmHandler && hasConfirmationTokenHandler {
-      resolve(Errors.createError(ErrorType.Failed, "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
+      emitLoadingFailed(message: "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both")
+      resolve(nil)
       return
     }
     let captureMethodString = intentConfig["captureMethod"] as? String
@@ -44,7 +50,8 @@ extension StripeSdkImpl {
     )
 
     guard let configuration = buildEmbeddedPaymentElementConfiguration(params: configuration).configuration else {
-      resolve(Errors.createError(ErrorType.Failed, "Invalid configuration"))
+      emitLoadingFailed(message: "Invalid configuration")
+      resolve(nil)
       return
     }
 
@@ -54,26 +61,75 @@ extension StripeSdkImpl {
           intentConfiguration: intentConfig,
           configuration: configuration
         )
-        embeddedPaymentElement.delegate = embeddedInstanceDelegate
-        embeddedPaymentElement.presentingViewController = RCTPresentedViewController()
-        self.embeddedInstance = embeddedPaymentElement
-
-        // success: resolve promise
+        attachEmbedded(embeddedPaymentElement)
         resolve(nil)
-
-        // publish initial state
-        embeddedInstanceDelegate.embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: embeddedPaymentElement)
-        embeddedInstanceDelegate.embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: embeddedPaymentElement)
       } catch {
-        // 1) still resolve the promise so JS hook can finish loading
+        emitLoadingFailed(error: error)
+        // Resolve so the JS hook can finish loading; loading errors are
+        // surfaced through the embeddedPaymentElementLoadingFailed event.
         resolve(nil)
-
-        // 2) emit a loading‐failed event with the error message
-        let msg = error.localizedDescription
-        self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": msg])
       }
     }
+  }
 
+  @objc(createEmbeddedPaymentElementWithCheckout:configuration:resolve:reject:)
+  public func createEmbeddedPaymentElementWithCheckout(
+    sessionKey: String,
+    configuration: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    guard let checkout = checkoutInstances[sessionKey] else {
+      // Emit so a stale or unknown session key shows up as the JS hook's
+      // loadingError, rather than a silently resolved error payload.
+      emitLoadingFailed(message: "Checkout session not found")
+      resolve(nil)
+      return
+    }
+
+    guard let configuration = buildEmbeddedPaymentElementConfiguration(params: configuration).configuration else {
+      emitLoadingFailed(message: "Invalid configuration")
+      resolve(nil)
+      return
+    }
+
+    Task {
+      do {
+        let embeddedPaymentElement = try await EmbeddedPaymentElement.create(
+          checkout: checkout,
+          configuration: configuration
+        )
+        attachEmbedded(embeddedPaymentElement)
+        resolve(nil)
+      } catch {
+        emitLoadingFailed(error: error)
+        // Resolve so the JS hook can finish loading; loading errors are
+        // surfaced through the embeddedPaymentElementLoadingFailed event.
+        resolve(nil)
+      }
+    }
+  }
+
+  /// Wires up a freshly created element and emits its initial height /
+  /// payment-option state to JS.
+  @nonobjc
+  private func attachEmbedded(_ element: EmbeddedPaymentElement) {
+    element.delegate = embeddedInstanceDelegate
+    element.presentingViewController = RCTPresentedViewController()
+    self.embeddedInstance = element
+
+    embeddedInstanceDelegate.embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: element)
+    embeddedInstanceDelegate.embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: element)
+  }
+
+  @nonobjc
+  private func emitLoadingFailed(message: String) {
+    self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": message])
+  }
+
+  @nonobjc
+  private func emitLoadingFailed(error: Error) {
+    emitLoadingFailed(message: error.localizedDescription)
   }
 
   @objc(confirmEmbeddedPaymentElement:reject:)

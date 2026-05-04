@@ -3864,6 +3864,9 @@ export function useConfirmSetupIntent(): {
 // @public
 export function useEmbeddedPaymentElement(intentConfig: PaymentSheet.IntentConfiguration, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
 
+// @public
+export function useEmbeddedPaymentElement(checkout: Checkout, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
+
 // @public (undocumented)
 export interface UseEmbeddedPaymentElementResult {
     // (undocumented)

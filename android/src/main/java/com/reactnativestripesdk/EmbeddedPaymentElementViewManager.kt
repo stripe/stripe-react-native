@@ -23,6 +23,7 @@ import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
+import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
@@ -30,6 +31,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 @ReactModule(name = EmbeddedPaymentElementViewManager.NAME)
+@OptIn(CheckoutSessionPreview::class)
 class EmbeddedPaymentElementViewManager :
   ViewGroupManager<EmbeddedPaymentElementView>(),
   EmbeddedPaymentElementViewManagerInterface<EmbeddedPaymentElementView> {
@@ -66,9 +68,7 @@ class EmbeddedPaymentElementViewManager :
 
     val elementConfig = parseElementConfiguration(readableMap, view.context)
     view.latestElementConfig = elementConfig
-    // if intentConfig is already set, configure immediately:
-    view.latestIntentConfig?.let { intentCfg ->
-      view.configure(elementConfig, intentCfg)
+    if (configureIfReady(view, elementConfig)) {
       view.post {
         view.requestLayout()
         view.invalidate()
@@ -82,17 +82,78 @@ class EmbeddedPaymentElementViewManager :
     cfg: Dynamic,
   ) {
     val readableMap = cfg.asMapOrNull()
-    if (readableMap == null) return
+    if (readableMap == null) {
+      // JS dropped the intent config (e.g. switched to checkout); reconfigure
+      // with whatever source is left.
+      view.latestIntentConfig = null
+      view.latestElementConfig?.let { configureIfReady(view, it) }
+      return
+    }
 
     // Detect which callback type to use based on the presence of the confirmation token handler
     val useConfirmationTokenCallback = readableMap.hasKey("confirmationTokenConfirmHandler")
     view.setUseConfirmationTokenCallback(useConfirmationTokenCallback)
 
-    val intentConfig = parseIntentConfiguration(readableMap)
-    view.latestIntentConfig = intentConfig
-    view.latestElementConfig?.let { elemCfg ->
-      view.configure(elemCfg, intentConfig)
+    view.latestIntentConfig = parseIntentConfiguration(readableMap)
+    view.latestElementConfig?.let { configureIfReady(view, it) }
+  }
+
+  @ReactProp(name = "checkout")
+  override fun setCheckout(
+    view: EmbeddedPaymentElementView,
+    cfg: Dynamic,
+  ) {
+    val sessionKey = cfg.asMapOrNull()?.getString("sessionKey")
+    if (sessionKey == null) {
+      // JS dropped the checkout (e.g. switched to intent config); reconfigure
+      // with whatever source is left.
+      view.latestCheckout = null
+      view.latestElementConfig?.let { configureIfReady(view, it) }
+      return
     }
+
+    val stripeSdkModule =
+      (view.context as ThemedReactContext).getNativeModule(StripeSdkModule::class.java)
+    val checkout = stripeSdkModule?.checkoutInstances?.get(sessionKey)
+    if (checkout == null) {
+      // Stale or unknown session key — surface it via loadingError instead
+      // of silently doing nothing.
+      view.latestCheckout = null
+      val payload =
+        Arguments.createMap().apply {
+          putString("message", "Checkout session not found.")
+        }
+      stripeSdkModule?.eventEmitter?.emitEmbeddedPaymentElementLoadingFailed(payload)
+      return
+    }
+
+    view.latestCheckout = checkout
+    view.latestElementConfig?.let { configureIfReady(view, it) }
+  }
+
+  /**
+   * Configures the embedded element once both the element config and an
+   * intent source (intent configuration or checkout) are set.
+   *
+   * Checkout wins when both are present so source selection is stable
+   * regardless of which prop arrived last. JS only ever sets one of the
+   * two at a time, so this only matters during transitional reconfigures.
+   *
+   * @return `true` when a configure was dispatched.
+   */
+  private fun configureIfReady(
+    view: EmbeddedPaymentElementView,
+    elementConfig: EmbeddedPaymentElement.Configuration,
+  ): Boolean {
+    view.latestCheckout?.let { checkout ->
+      view.configureWithCheckout(elementConfig, checkout)
+      return true
+    }
+    view.latestIntentConfig?.let { intentCfg ->
+      view.configure(elementConfig, intentCfg)
+      return true
+    }
+    return false
   }
 
   @SuppressLint("RestrictedApi")
