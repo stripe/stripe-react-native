@@ -1,5 +1,30 @@
 # Migration Guide
 
+## Android SDK 36 requirement (stripe-android 23.x)
+
+Recent versions of `@stripe/stripe-react-native` depend on `stripe-android 23.x`, which requires:
+
+- `compileSdkVersion` 36
+- `targetSdkVersion` 36
+- `minSdkVersion` 23
+
+Update your app's `android/build.gradle`:
+
+```groovy
+android {
+    compileSdkVersion 36
+
+    defaultConfig {
+        minSdkVersion 23
+        targetSdkVersion 36
+    }
+}
+```
+
+If you cannot upgrade to Android SDK 36, pin to an older `@stripe/stripe-react-native` version that uses `stripe-android` 22.x or earlier.
+
+This is an Android-specific build requirement and does not affect iOS.
+
 ## Migrating from versions < 0.29.0
 
 The legacy Apple Pay and Google Pay APIs (`useApplePay`, `useGooglePay`, `presentApplePay`, `confirmApplePayPayment`, `initGooglePay`, `presentGooglePay`, `createGooglePayPaymentMethod`, `<ApplePayButton />`, `<GooglePayButton />`) were removed in v0.29.0.
