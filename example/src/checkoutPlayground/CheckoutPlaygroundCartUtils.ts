@@ -62,20 +62,6 @@ export const getAddressLines = (
   ].filter(Boolean) as string[];
 };
 
-export const getEmojiForProduct = (name: string) => {
-  const normalizedName = name.toLowerCase();
-
-  if (normalizedName.includes('hoodie')) {
-    return '🧥';
-  }
-
-  if (normalizedName.includes('shoe')) {
-    return '👟';
-  }
-
-  return '📦';
-};
-
 export const buildOrderSummaryRows = (
   totals?: Checkout.Totals
 ): OrderSummaryRow[] => {

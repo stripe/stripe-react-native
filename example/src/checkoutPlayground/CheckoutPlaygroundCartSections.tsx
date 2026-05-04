@@ -4,10 +4,7 @@ import type { Checkout } from '@stripe/stripe-react-native/src/types/Checkout';
 import { colors } from '../colors';
 import { GroupedCard, SectionHeader } from './components';
 import { cartStyles as styles } from './CheckoutPlaygroundCartStyles';
-import {
-  getEmojiForProduct,
-  type OrderSummaryRow,
-} from './CheckoutPlaygroundCartUtils';
+import { type OrderSummaryRow } from './CheckoutPlaygroundCartUtils';
 import {
   formatCurrencyAmount,
   shouldShowAutomaticTax,
@@ -125,7 +122,7 @@ export function ItemsSection({
           <View key={item.id} style={styles.itemCard}>
             <View style={styles.itemImageContainer}>
               <Text style={styles.itemImageEmoji}>
-                {getEmojiForProduct(item.name)}
+                {item.name.toLowerCase().includes('hoodie') ? '🧥' : '👕'}
               </Text>
             </View>
             <View style={styles.itemDetails}>
