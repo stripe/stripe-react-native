@@ -223,16 +223,11 @@ export interface EmbeddedPaymentElementConfiguration {
   opensCardScannerAutomatically?: boolean;
 }
 
-// `IntentConfiguration` requires `mode`; `Checkout` always has `sessionKey`
-// and never has `mode`. Check both so a stray object with a `sessionKey`
-// field doesn't get classified as a Checkout handle. We use `in` rather
-// than property access so we don't trigger the throwing `sessionKey`
-// getter on an unloaded handle.
-const isCheckout = (intent: unknown): intent is Checkout =>
-  typeof intent === 'object' &&
-  intent !== null &&
-  'sessionKey' in intent &&
-  !('mode' in intent);
+// `Checkout` has `sessionKey`, `IntentConfiguration` has `mode`. We use `in`
+// to avoid tripping the throwing `sessionKey` getter on an unloaded handle.
+const isCheckoutSession = (
+  value: PaymentSheetTypes.IntentConfiguration | Checkout
+): value is Checkout => 'sessionKey' in value && !('mode' in value);
 
 // -----------------------------------------------------------------------------
 // Embedded API
@@ -285,7 +280,7 @@ async function createEmbeddedPaymentElement(
 ): Promise<EmbeddedPaymentElement> {
   setupConfigurationHandlers(configuration);
 
-  if (isCheckout(intent)) {
+  if (isCheckoutSession(intent)) {
     await NativeStripeSdkModule.createEmbeddedPaymentElementWithCheckout(
       intent.sessionKey,
       configuration
@@ -454,30 +449,25 @@ export function useEmbeddedPaymentElement(
   configuration: EmbeddedPaymentElementConfiguration
 ): UseEmbeddedPaymentElementResult;
 /**
- * Initializes an `EmbeddedPaymentElement` from a Checkout session.
+ * Initializes an `EmbeddedPaymentElement` from a Stripe Checkout Session.
  *
- * The `checkout` argument must be a loaded handle (i.e. `state.status === 'loaded'`
- * from `useCheckout`). Because hooks must be called unconditionally, gate the
- * consuming component on the loaded state and pass the handle into a child
- * component, e.g.:
+ * Pass a loaded handle from `useCheckout`. Render the consumer in a child
+ * component so the hook only runs once `state.status === 'loaded'`.
  *
  * @example
- * function CheckoutScreen() {
- *   const { checkout, state, error } = useCheckout(clientSecret);
- *   if (error) return <ErrorView error={error} />;
- *   if (state?.status !== 'loaded') return <Loading />;
- *   return <EmbeddedView checkout={checkout} />;
+ * function Cart() {
+ *   const { checkout, state } = useCheckout(clientSecret);
+ *   if (state?.status !== 'loaded') return null;
+ *   return <EmbeddedCheckout checkout={checkout} />;
  * }
  *
- * function EmbeddedView({ checkout }: { checkout: Checkout }) {
+ * function EmbeddedCheckout({ checkout }: { checkout: Checkout }) {
  *   const { embeddedPaymentElementView } =
  *     useEmbeddedPaymentElement(checkout, configuration);
  *   return embeddedPaymentElementView;
  * }
  *
- * @param checkout - A loaded `Checkout` handle from `useCheckout`. Accessing
- *   `checkout.sessionKey` (which this hook does internally) throws if the
- *   session has not finished loading.
+ * @param checkout - A loaded `Checkout` handle from `useCheckout`.
  * @param configuration - Configuration for the embedded element.
  */
 export function useEmbeddedPaymentElement(
@@ -512,14 +502,9 @@ export function useEmbeddedPaymentElement(
     return ref.current;
   }
 
-  // For Checkout the dep collapses to the session key string so we don't
-  // re-create the element when only the handle reference changes. For
-  // IntentConfiguration the dep is the intent object itself.
-  const intentKey: string | PaymentSheetTypes.IntentConfiguration = isCheckout(
-    intent
-  )
-    ? intent.sessionKey
-    : intent;
+  // Re-key on the session key (Checkout) or intent object so we only
+  // recreate the element when the source actually changes.
+  const intentKey = isCheckoutSession(intent) ? intent.sessionKey : intent;
   const intentRef = useRef(intent);
   intentRef.current = intent;
 
@@ -578,6 +563,7 @@ export function useEmbeddedPaymentElement(
 
   // Render the embedded view
   const embeddedPaymentElementView = useMemo(() => {
+    // `intentKey` is the session key string for Checkout, the IntentConfiguration object otherwise.
     const intentProps =
       typeof intentKey === 'string'
         ? { checkout: { sessionKey: intentKey } }
