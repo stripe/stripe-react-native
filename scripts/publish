@@ -127,18 +127,27 @@ git fetch
 GIT_STATUS=$(git status)
 
 if ! grep -q 'On branch master' <<< "$GIT_STATUS"; then
-  echo "Error! Must be on master branch to publish"
-  exit 1
+  echo "Warning: Not on master branch"
+  if [ "$DRY_RUN" = false ]; then
+    echo "Error! Must be on master branch to publish"
+    exit 1
+  fi
 fi
 
 if ! grep -q "Your branch is up to date with 'origin/master'." <<< "$GIT_STATUS"; then
-  echo "Error! Must be up to date with origin/master to publish"
-  exit 1
+  echo "Warning: Not up to date with origin/master"
+  if [ "$DRY_RUN" = false ]; then
+    echo "Error! Must be up to date with origin/master to publish"
+    exit 1
+  fi
 fi
 
 if ! grep -q 'working tree clean' <<< "$GIT_STATUS"; then
-  echo "Error! Cannot publish with dirty working tree"
-  exit 1
+  echo "Warning: Working tree is dirty"
+  if [ "$DRY_RUN" = false ]; then
+    echo "Error! Cannot publish with dirty working tree"
+    exit 1
+  fi
 fi
 
 echo "Installing dependencies according to lockfile"
