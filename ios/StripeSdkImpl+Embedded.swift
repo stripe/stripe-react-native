@@ -18,9 +18,6 @@ extension StripeSdkImpl {
                                            configuration: NSDictionary,
                                            resolve: @escaping RCTPromiseResolveBlock,
                                            reject: @escaping RCTPromiseRejectBlock) {
-    // JS only listens for the loading-failed event, so surface validation
-    // errors via emitLoadingFailed and resolve nil — the resolved value
-    // would otherwise be dropped on the floor.
     guard let modeParams = intentConfig["mode"] as? NSDictionary else {
       emitLoadingFailed(message: "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required")
       resolve(nil)
@@ -80,8 +77,6 @@ extension StripeSdkImpl {
     reject: @escaping RCTPromiseRejectBlock
   ) {
     guard let checkout = checkoutInstances[sessionKey] else {
-      // Emit so a stale or unknown session key shows up as the JS hook's
-      // loadingError, rather than a silently resolved error payload.
       emitLoadingFailed(message: "Checkout session not found")
       resolve(nil)
       return
@@ -103,8 +98,6 @@ extension StripeSdkImpl {
         resolve(nil)
       } catch {
         emitLoadingFailed(error: error)
-        // Resolve so the JS hook can finish loading; loading errors are
-        // surfaced through the embeddedPaymentElementLoadingFailed event.
         resolve(nil)
       }
     }
