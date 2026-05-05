@@ -223,11 +223,14 @@ export interface EmbeddedPaymentElementConfiguration {
   opensCardScannerAutomatically?: boolean;
 }
 
-// `Checkout` has `sessionKey`, `IntentConfiguration` has `mode`. We use `in`
-// to avoid tripping the throwing `sessionKey` getter on an unloaded handle.
+// Narrows a value to `Checkout` vs. `IntentConfiguration`.
 const isCheckoutSession = (
   value: PaymentSheetTypes.IntentConfiguration | Checkout
-): value is Checkout => 'sessionKey' in value && !('mode' in value);
+): value is Checkout =>
+  typeof value === 'object' &&
+  value !== null &&
+  'sessionKey' in value &&
+  !('mode' in value);
 
 // -----------------------------------------------------------------------------
 // Embedded API

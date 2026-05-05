@@ -11,12 +11,6 @@ import type { Checkout } from '../types/Checkout';
  *
  * Pass the returned `checkout` to `initPaymentSheet` to complete the purchase.
  *
- * The returned `checkout` handle is a stable reference, but its `sessionKey`
- * is not valid until `state.status === 'loaded'`. When passing `checkout` to
- * `useEmbeddedPaymentElement`, gate rendering on the loaded state and split
- * the consumer into a child component (see `useEmbeddedPaymentElement` docs
- * for an example).
- *
  * @internal
  */
 export function useCheckout(
