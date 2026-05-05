@@ -22,7 +22,10 @@ export type AdaptivePricingCountry =
   | 'gb'
   | 'br';
 
-export type CheckoutPlaygroundIntegrationType = 'paymentSheet' | 'embedded';
+export type CheckoutPlaygroundIntegrationType =
+  | 'paymentSheet'
+  | 'paymentSheetFlowController'
+  | 'embedded';
 
 export type SelectionOption<T extends string> = {
   label: string;
@@ -77,6 +80,10 @@ export const customerTypeOptions: SelectionOption<CheckoutPlaygroundCustomerType
 export const integrationTypeOptions: SelectionOption<CheckoutPlaygroundIntegrationType>[] =
   [
     { label: 'PaymentSheet', value: 'paymentSheet' },
+    {
+      label: 'PaymentSheet.FlowController',
+      value: 'paymentSheetFlowController',
+    },
     { label: 'Embedded', value: 'embedded' },
   ];
 
@@ -151,6 +158,12 @@ export const normalizePaymentMethodTypes = (
 
 export const getCurrencyOption = (currency: string) =>
   currencyOptions.find((option) => option.value === currency);
+
+export const getIntegrationTypeLabel = (
+  integrationType: CheckoutPlaygroundIntegrationType
+): string =>
+  integrationTypeOptions.find((option) => option.value === integrationType)
+    ?.label ?? integrationType;
 
 export const formatCurrencyAmount = (
   amount?: number,
