@@ -89,10 +89,7 @@ export function useCheckout(
     []
   );
 
-  // Mutation methods — each delegates to withLoading. Hoisted out as
-  // individual useCallbacks so the memoized `checkout` below has a stable
-  // identity across renders (downstream consumers, e.g. `useEmbeddedPaymentElement`,
-  // rely on this).
+  // Mutation methods. Each is memoized so `checkout` has a stable identity.
   const updateShippingAddress = useCallback<Checkout['updateShippingAddress']>(
     (address, name, phone) =>
       withLoading((key) =>

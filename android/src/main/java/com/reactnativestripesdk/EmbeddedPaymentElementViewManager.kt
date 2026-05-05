@@ -81,18 +81,9 @@ class EmbeddedPaymentElementViewManager :
     view: EmbeddedPaymentElementView,
     cfg: Dynamic,
   ) {
-    val readableMap = cfg.asMapOrNull()
-    if (readableMap == null) {
-      // JS dropped the intent config (e.g. switched to checkout); reconfigure
-      // with whatever source is left.
-      view.latestIntentConfig = null
-      view.latestElementConfig?.let { configureIfReady(view, it) }
-      return
-    }
+    val readableMap = cfg.asMapOrNull() ?: return
 
-    // Detect which callback type to use based on the presence of the confirmation token handler
-    val useConfirmationTokenCallback = readableMap.hasKey("confirmationTokenConfirmHandler")
-    view.setUseConfirmationTokenCallback(useConfirmationTokenCallback)
+    view.setUseConfirmationTokenCallback(readableMap.hasKey("confirmationTokenConfirmHandler"))
 
     view.latestIntentConfig = parseIntentConfiguration(readableMap)
     view.latestElementConfig?.let { configureIfReady(view, it) }
@@ -103,22 +94,12 @@ class EmbeddedPaymentElementViewManager :
     view: EmbeddedPaymentElementView,
     cfg: Dynamic,
   ) {
-    val sessionKey = cfg.asMapOrNull()?.getString("sessionKey")
-    if (sessionKey == null) {
-      // JS dropped the checkout (e.g. switched to intent config); reconfigure
-      // with whatever source is left.
-      view.latestCheckout = null
-      view.latestElementConfig?.let { configureIfReady(view, it) }
-      return
-    }
+    val sessionKey = cfg.asMapOrNull()?.getString("sessionKey") ?: return
 
     val stripeSdkModule =
       (view.context as ThemedReactContext).getNativeModule(StripeSdkModule::class.java)
     val checkout = stripeSdkModule?.checkoutInstances?.get(sessionKey)
     if (checkout == null) {
-      // Stale or unknown session key — surface it via loadingError instead
-      // of silently doing nothing.
-      view.latestCheckout = null
       val payload =
         Arguments.createMap().apply {
           putString("message", "Checkout session not found.")
@@ -133,13 +114,8 @@ class EmbeddedPaymentElementViewManager :
 
   /**
    * Configures the embedded element once both the element config and an
-   * intent source (intent configuration or checkout) are set.
-   *
-   * Checkout wins when both are present so source selection is stable
-   * regardless of which prop arrived last. JS only ever sets one of the
-   * two at a time, so this only matters during transitional reconfigures.
-   *
-   * @return `true` when a configure was dispatched.
+   * intent source (intent configuration or checkout) have arrived. Returns
+   * `true` when a configure was dispatched.
    */
   private fun configureIfReady(
     view: EmbeddedPaymentElementView,
