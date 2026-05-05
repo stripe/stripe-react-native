@@ -11,6 +11,7 @@ import UIKit
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
 
 @_spi(CryptoOnrampAlpha)
+@_spi(ReactNativeSDK)
 @_spi(EmbeddedPaymentElementPrivateBeta)
 @_spi(CustomerSessionBetaAccess)
 @_spi(AppearanceAPIAdditionsPreview)
