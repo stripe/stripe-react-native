@@ -10,7 +10,7 @@ import UIKit
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
 
-@_spi(STP)
+@_spi(CryptoOnrampAlpha)
 @_spi(EmbeddedPaymentElementPrivateBeta)
 @_spi(CustomerSessionBetaAccess)
 @_spi(AppearanceAPIAdditionsPreview)
