@@ -56,7 +56,7 @@ extension Mappers {
         return result
     }
 
-    class func mapFromCheckoutAddressUpdate(_ addressUpdate: Checkout.AddressUpdate) -> NSDictionary {
+    class func mapFromCheckoutAddressUpdate(_ addressUpdate: Checkout.ContactAddress) -> NSDictionary {
         let result = NSMutableDictionary()
         result["address"] = mapFromCheckoutAddress(addressUpdate.address)
 
