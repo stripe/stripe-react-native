@@ -21,4 +21,24 @@ options = {
 use_test_app! options do |target|
   pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native', testspecs: ['Tests']
   pod 'stripe-react-native/Onramp', path: '../node_modules/@stripe/stripe-react-native'
+
+  stripe_ios_path = File.expand_path('../../../stripe-ios', __dir__)
+  ENV['STRIPE_IOS_VERSION'] = '~> 25.13.0'
+
+  %w[
+    Stripe
+    StripeApplePay
+    StripeCameraCore
+    StripeCore
+    StripeCryptoOnramp
+    StripeFinancialConnections
+    StripeIdentity
+    StripeIssuing
+    StripePayments
+    StripePaymentSheet
+    StripePaymentsUI
+    StripeUICore
+  ].each do |pod_name|
+    pod pod_name, path: stripe_ios_path
+  end
 end
