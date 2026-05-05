@@ -22,6 +22,8 @@ export type AdaptivePricingCountry =
   | 'gb'
   | 'br';
 
+export type CheckoutPlaygroundIntegrationType = 'paymentSheet' | 'embedded';
+
 export type SelectionOption<T extends string> = {
   label: string;
   value: T;
@@ -31,6 +33,7 @@ export type CheckoutPlaygroundConfig = {
   mode: CheckoutPlaygroundMode;
   currency: CheckoutPlaygroundCurrency;
   customerType: CheckoutPlaygroundCustomerType;
+  integrationType: CheckoutPlaygroundIntegrationType;
   enableShipping: boolean;
   allowPromotionCodes: boolean;
   phoneNumberCollection: boolean;
@@ -71,6 +74,12 @@ export const customerTypeOptions: SelectionOption<CheckoutPlaygroundCustomerType
     { label: 'Returning', value: 'returning' },
   ];
 
+export const integrationTypeOptions: SelectionOption<CheckoutPlaygroundIntegrationType>[] =
+  [
+    { label: 'PaymentSheet', value: 'paymentSheet' },
+    { label: 'Embedded', value: 'embedded' },
+  ];
+
 export const adaptivePricingCountryOptions: SelectionOption<AdaptivePricingCountry>[] =
   [
     { label: 'None', value: 'none' },
@@ -94,6 +103,7 @@ export const defaultCheckoutPlaygroundConfig: CheckoutPlaygroundConfig = {
   mode: 'payment',
   currency: 'usd',
   customerType: 'guest',
+  integrationType: 'paymentSheet',
   enableShipping: true,
   allowPromotionCodes: true,
   phoneNumberCollection: false,

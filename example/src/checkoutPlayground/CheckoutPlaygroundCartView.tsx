@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Modal, ScrollView, View } from 'react-native';
 import {
   AddressSheet,
   AddressSheetError,
@@ -16,6 +16,7 @@ import {
   SessionSection,
   ShippingOptionsSection,
 } from './CheckoutPlaygroundCartSections';
+import { CheckoutPlaygroundEmbeddedView } from './CheckoutPlaygroundEmbeddedView';
 import { cartStyles as styles } from './CheckoutPlaygroundCartStyles';
 import {
   buildOrderSummaryRows,
@@ -70,6 +71,7 @@ export function CheckoutPlaygroundCartView({
   const [promotionCode, setPromotionCode] = useState('');
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [presentingPaymentSheet, setPresentingPaymentSheet] = useState(false);
+  const [embeddedModalVisible, setEmbeddedModalVisible] = useState(false);
   const [showShippingAddressSheet, setShowShippingAddressSheet] =
     useState(false);
   const [showBillingAddressSheet, setShowBillingAddressSheet] = useState(false);
@@ -510,9 +512,35 @@ export function CheckoutPlaygroundCartView({
         primaryDisabled={state?.status !== 'loaded' || presentingPaymentSheet}
         primaryLoading={presentingPaymentSheet}
         onPrimaryPress={() => {
-          handlePresentPaymentSheet();
+          if (config.integrationType === 'embedded') {
+            setFeedback(null);
+            setEmbeddedModalVisible(true);
+          } else {
+            handlePresentPaymentSheet();
+          }
         }}
       />
+
+      <Modal
+        visible={embeddedModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setEmbeddedModalVisible(false)}
+      >
+        {state?.status === 'loaded' ? (
+          <CheckoutPlaygroundEmbeddedView
+            checkout={checkout}
+            mode={config.mode}
+            currency={session.currency}
+            total={session.totals?.total}
+            onClose={() => setEmbeddedModalVisible(false)}
+            onSuccessfulPayment={() => {
+              setEmbeddedModalVisible(false);
+              onSuccessfulPayment();
+            }}
+          />
+        ) : null}
+      </Modal>
     </View>
   );
 }
