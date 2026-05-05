@@ -67,7 +67,9 @@ class ReactNativeCustomerAdapter(
     return adapter.detachPaymentMethod(paymentMethodId)
   }
 
-  override suspend fun setSelectedPaymentOption(paymentOption: CustomerAdapter.PaymentOption?): CustomerAdapter.Result<Unit> {
+  override suspend fun setSelectedPaymentOption(
+    paymentOption: CustomerAdapter.PaymentOption?
+  ): CustomerAdapter.Result<Unit> {
     if (overridesSetSelectedPaymentOption) {
       CompletableDeferred<Unit>().also {
         setSelectedPaymentOptionCallback = it

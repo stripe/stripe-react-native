@@ -11,7 +11,7 @@ import type { Checkout } from '../types/Checkout';
  *
  * Pass the returned `checkout` to `initPaymentSheet` to complete the purchase.
  *
- * @checkoutSessionsPreview
+ * @internal
  */
 export function useCheckout(
   clientSecret: string,

@@ -30,7 +30,8 @@ class AddToWalletButtonManager :
     view.onAfterUpdateTransaction()
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView = AddToWalletButtonView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView =
+    AddToWalletButtonView(reactContext)
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(

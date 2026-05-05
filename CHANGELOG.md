@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## Unreleased
+
+## 0.65.0 - 2026-04-29
+**Changes**
+* Updated Stripe iOS SDK from 25.11.0 to 25.12.+.
+* Updated Stripe Android SDK from 23.4.+ to 23.6.+.
+* [Removed] Removed UPI support.
+
+**Features**
+* [Added] Added PaymentMethodMessagingElement support in public preview. See [documentation](https://docs.stripe.com/payments/mobile/payment-method-messaging-element) for integration guide. ([#2351](https://github.com/stripe/stripe-react-native/pull/2351))
+
+**Fixes**
+* [Fixed] Fixes a crash when `retrievePaymentIntent` or `retrieveSetupIntent` is called with no network connectivity on Android. ([#2409](https://github.com/stripe/stripe-react-native/pull/2409))
+
 ## 0.64.0 - 2026-04-16
 **Changes**
 * [Breaking] `platformPayParams` has changed from `PlatformPay.PaymentMethodParams` to `Onramp.OnrampPlatformPayParams` to better match expectations for GooglePay. ([#2390] (https://github.com/stripe/stripe-react-native/pull/2390))
@@ -524,7 +538,7 @@
 
 **Breaking changes**
 
-- The Apple Pay and Google Pay APIs, which are deprecated and were replaced with the [Platform Pay API](https://github.com/stripe/stripe-react-native/blob/master/docs/Platform-Pay-Migration.md) last year, have been removed. [#1424](https://github.com/stripe/stripe-react-native/pull/1424)
+- The Apple Pay and Google Pay APIs, which are deprecated and were replaced with the [Platform Pay API](./MIGRATING.md#migrating-from-versions--0290) last year, have been removed. [#1424](https://github.com/stripe/stripe-react-native/pull/1424)
 
 **Features**
 
@@ -673,7 +687,7 @@
 **Features**
 
 - Added the `hasPairedAppleWatch` option to `canAddCardToWallet`. [#1219](https://github.com/stripe/stripe-react-native/pull/1219)
-- Added new functions and a new component to streamline integrating with Apple and Google Pay and add more feature support. See the [Migrating to Platform Pay guide](https://github.com/stripe/stripe-react-native/blob/master/docs/Platform-Pay-Migration.md) for more details. The old Apple and Google Pay APIs are marked as `deprecated` and will be removed in a future release, but are still supported in this version.
+- Added new functions and a new component to streamline integrating with Apple and Google Pay and add more feature support. See the [Migrating to Platform Pay guide](./MIGRATING.md#migrating-from-versions--0290) for more details. The old Apple and Google Pay APIs are marked as `deprecated` and will be removed in a future release, but are still supported in this version.
 
 **Fixes**
 
@@ -925,7 +939,7 @@
 - **Breaking: This version requires you use `react-native@0.64.0` or above**
 - [#902](https://github.com/stripe/stripe-react-native/pull/902) fix: create custom babel plugin for package.json imports in src/
 - [#889](https://github.com/stripe/stripe-react-native/pull/889) Feat: add support for push provisioning (adding cards to native wallets)
-- [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`. Please read [this migration guide](./docs/upgrading-from-v0.7.0.md) for details.
+- [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`. Please read [this migration guide](./MIGRATING.md#migrating-from-versions--080) for details.
   - Renamed `type` field to `paymentMethodType` on `PaymentMethod.Result`, `PaymentIntent.Result`, and `SetupIntent.Result` (result of `createPaymentMethod`, `retrieveSetupIntent`, `confirmSetupIntent`, `confirmPayment`, `collectBankAccountForPayment`, `collectBankAccountForSetup`, `verifyMicrodepositsForPayment`, and `verifyMicrodepositsForSetup`).
 - [#849](https://github.com/stripe/stripe-react-native/pull/849) BREAKING CHANGE: Renamed `placeholder` prop on `<CardField />` and `<CardForm />` to `placeholders`.
 - [#849](https://github.com/stripe/stripe-react-native/pull/849) Feat: Added customized styling options to `<CardForm />` on Android.

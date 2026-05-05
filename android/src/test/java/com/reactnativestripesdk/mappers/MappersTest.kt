@@ -2,6 +2,7 @@ package com.reactnativestripesdk.mappers
 
 import android.annotation.SuppressLint
 import com.facebook.react.bridge.WritableMap
+import com.reactnativestripesdk.utils.buildCheckoutAddressUpdate
 import com.reactnativestripesdk.utils.createCanAddCardResult
 import com.reactnativestripesdk.utils.mapNextAction
 import com.reactnativestripesdk.utils.mapPaymentMethodType
@@ -346,6 +347,65 @@ class MappersTest {
     val result = parseCustomPaymentMethods(params)
     assertEquals(1, result.size)
     assertEquals("cpmt_valid", result[0].id)
+  }
+
+  // ============================================
+  // buildCheckoutAddressUpdate Tests
+  // ============================================
+
+  @Test
+  fun buildCheckoutAddressUpdate_TrimsFields() {
+    val update =
+      buildCheckoutAddressUpdate(
+        name = " Jane Doe ",
+        phone = " 5551234567 ",
+        address =
+          readableMapOf(
+            "country" to " US ",
+            "line1" to " 123 Main St ",
+            "line2" to " Apt 4 ",
+            "city" to " San Francisco ",
+            "state" to " CA ",
+            "postalCode" to " 94111 ",
+          ),
+      )
+
+    assertNotNull(update)
+    assertEquals("Jane Doe", update!!.name)
+    assertEquals("5551234567", update.phone)
+    assertEquals("US", update.country)
+    assertEquals("123 Main St", update.line1)
+    assertEquals("Apt 4", update.line2)
+    assertEquals("San Francisco", update.city)
+    assertEquals("CA", update.state)
+    assertEquals("94111", update.postalCode)
+  }
+
+  @Test
+  fun buildCheckoutAddressUpdate_RequiresCountry() {
+    val withoutCountry =
+      buildCheckoutAddressUpdate(
+        name = "Jane Doe",
+        phone = "5551234567",
+        address =
+          readableMapOf(
+            "line1" to "123 Main St",
+            "city" to "San Francisco",
+          ),
+      )
+
+    val blankCountry =
+      buildCheckoutAddressUpdate(
+        name = "Jane Doe",
+        phone = "5551234567",
+        address =
+          readableMapOf(
+            "country" to "   ",
+          ),
+      )
+
+    assertNull(withoutCountry)
+    assertNull(blankCountry)
   }
 
   // ============================================

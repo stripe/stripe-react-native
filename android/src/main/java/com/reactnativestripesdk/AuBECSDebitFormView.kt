@@ -109,7 +109,9 @@ class AuBECSDebitFormView(
         "email" to billingDetails["email"] as String,
       )
 
-    UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(FormCompleteEvent(context.surfaceId, id, formDetails))
+    UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(
+      FormCompleteEvent(context.surfaceId, id, formDetails)
+    )
   }
 
   private fun setListeners() {

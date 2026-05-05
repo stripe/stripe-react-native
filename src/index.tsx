@@ -6,7 +6,6 @@ export { usePlatformPay } from './hooks/usePlatformPay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
 export { useFinancialConnectionsSheet } from './hooks/useFinancialConnectionsSheet';
 export { useOnramp } from './hooks/useOnramp';
-export { useCheckout } from './hooks/useCheckout';
 
 //components
 export { initStripe, StripeProvider } from './components/StripeProvider';
@@ -36,7 +35,6 @@ export type { Props as CustomerSheetProps } from './components/CustomerSheet';
 export * from './types/EmbeddedPaymentElement';
 export * from './types/PaymentSheet';
 export * from './types/ConfirmationToken';
-export * from './types/Checkout';
 
 export * from './types/components/PaymentMethodMessagingElementComponent';
 export type { Props as PaymentMethodMessagingElementProps } from './components/PaymentMethodMessagingElement';

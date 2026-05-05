@@ -117,6 +117,7 @@ export type SetupParamsBase = IntentParams & {
  * Parameters for initializing PaymentSheet from a Checkout Session.
  * Use when you have called `useCheckout` and the state is `loaded`.
  * @checkoutSessionsPreview
+ * @internal
  */
 export type CheckoutSetupParams = {
   /** A fully loaded Checkout instance whose `state.status` is `'loaded'`. */

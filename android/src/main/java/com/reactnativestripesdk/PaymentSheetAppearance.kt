@@ -474,7 +474,9 @@ private fun buildEmbeddedAppearance(
     }
 
     else -> {
-      System.err.println("WARN: Unsupported embedded payment element row style received: $styleString. Falling back to default.")
+      System.err.println(
+        "WARN: Unsupported embedded payment element row style received: $styleString. Falling back to default."
+      )
     }
   }
   return embeddedBuilder.build()
@@ -554,7 +556,8 @@ internal fun getFontResId(
       )
   if (Regex("[^a-z0-9]").containsMatchIn(fontFileName)) {
     throw PaymentSheetAppearanceException(
-      "$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font",
+      "$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android," +
+        " but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font",
     )
   }
 
