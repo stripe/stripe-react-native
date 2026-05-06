@@ -252,12 +252,9 @@ class EmbeddedPaymentElement {
   }
 
   async updateCheckout(checkout: Checkout): Promise<unknown> {
-    if (isCheckoutSession(checkout)) {
-      return await NativeStripeSdkModule.updateEmbeddedPaymentElementWithCheckout(
-        checkout.sessionKey
-      );
-    }
-    return null;
+    return await NativeStripeSdkModule.updateEmbeddedPaymentElementWithCheckout(
+      checkout.sessionKey
+    );
   }
 
   /**

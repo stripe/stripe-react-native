@@ -278,11 +278,6 @@ const EmbeddedPaymentElementMocks = {
     FAILED: 'failed',
   },
 
-  EmbeddedPaymentElementUpdateStatus: {
-    SUCCEEDED: 'succeeded',
-    CANCELED: 'canceled',
-  },
-
   // Form sheet action types (from EmbeddedFormSheetAction)
   EmbeddedFormSheetActionType: {
     CONFIRM: 'confirm',
@@ -362,8 +357,6 @@ const EmbeddedPaymentElementMocks = {
     canceled: { status: 'canceled' },
     failed: { status: 'failed', error: new Error('Payment failed') },
     networkError: { status: 'failed', error: new Error('Network error') },
-    updateSucceeded: { status: 'succeeded' },
-    updateCanceled: { status: 'canceled' },
   },
 };
 
