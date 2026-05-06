@@ -440,6 +440,12 @@ export interface UseEmbeddedPaymentElementResult {
    */
   update: {
     (intentConfig: PaymentSheetTypes.IntentConfiguration): void;
+    /**
+     * Call this method when the Checkout Session values you used to initialize
+     * `EmbeddedPaymentElement` change.
+     * @checkoutSessionsPreview
+     * @internal
+     */
     (checkout: Checkout): void;
   };
   // Sets the currently selected payment option to null
@@ -483,6 +489,8 @@ export function useEmbeddedPaymentElement(
  *
  * @param checkout - A loaded `Checkout` handle from `useCheckout`.
  * @param configuration - Configuration for the embedded element.
+ * @checkoutSessionsPreview
+ * @internal
  */
 export function useEmbeddedPaymentElement(
   checkout: Checkout,
