@@ -24,11 +24,6 @@ def execute_or_fail(command)
   system(command) or raise "Failed to execute: #{command}"
 end
 
-def wait_for_user
-  rputs "Press enter to continue..."
-  STDIN.gets
-end
-
 def git_status
   stdout, _, _ = Open3.capture3("git status")
   stdout
