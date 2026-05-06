@@ -8,8 +8,11 @@
    Int32,
  } from 'react-native/Libraries/Types/CodegenTypes';
  import type {
-@@ -185,35 +184,47 @@
+@@ -185,38 +184,50 @@
    ): Promise<void>;
+   updateEmbeddedPaymentElementWithCheckout(
+     sessionKey: string
+   ): Promise<EmbeddedPaymentElementUpdateResult>;
    clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
 
 -  // Events

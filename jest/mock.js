@@ -197,7 +197,7 @@ const mockHooks = {
     confirm: jest.fn(async () => ({
       status: 'completed',
     })),
-    update: jest.fn(async () => ({ status: 'completed', error: null })),
+    update: jest.fn(() => {}),
     clearPaymentOption: jest.fn(() => {}),
     loadingError: null,
   })),
@@ -276,6 +276,11 @@ const EmbeddedPaymentElementMocks = {
     COMPLETED: 'completed',
     CANCELED: 'canceled',
     FAILED: 'failed',
+  },
+
+  EmbeddedPaymentElementUpdateStatus: {
+    SUCCEEDED: 'succeeded',
+    CANCELED: 'canceled',
   },
 
   // Form sheet action types (from EmbeddedFormSheetAction)
@@ -357,6 +362,8 @@ const EmbeddedPaymentElementMocks = {
     canceled: { status: 'canceled' },
     failed: { status: 'failed', error: new Error('Payment failed') },
     networkError: { status: 'failed', error: new Error('Network error') },
+    updateSucceeded: { status: 'succeeded' },
+    updateCanceled: { status: 'canceled' },
   },
 };
 
@@ -397,5 +404,17 @@ jest.mock('../src/specs/NativeStripeSdkModule', () => ({
       },
     })),
     openAuthenticatedWebView: jest.fn(),
+    createEmbeddedPaymentElement: jest.fn(async () => undefined),
+    createEmbeddedPaymentElementWithCheckout: jest.fn(async () => undefined),
+    confirmEmbeddedPaymentElement: jest.fn(async () => ({
+      status: 'completed',
+    })),
+    updateEmbeddedPaymentElement: jest.fn(async () => ({
+      status: 'succeeded',
+    })),
+    updateEmbeddedPaymentElementWithCheckout: jest.fn(async () => ({
+      status: 'succeeded',
+    })),
+    clearEmbeddedPaymentOption: jest.fn(async () => undefined),
   },
 }));
