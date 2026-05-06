@@ -3861,10 +3861,12 @@ export function useConfirmSetupIntent(): {
     loading: boolean;
 };
 
+// Warning: (ae-internal-mixed-release-tag) Mixed release tags are not allowed for "useEmbeddedPaymentElement" because one of its declarations is marked as @internal
+//
 // @public
 export function useEmbeddedPaymentElement(intentConfig: PaymentSheet.IntentConfiguration, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
 
-// @public
+// @internal
 export function useEmbeddedPaymentElement(checkout: Checkout, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
 
 // @public (undocumented)
