@@ -112,7 +112,7 @@ class StripeSdkModule(
   private var financialConnectionsSheetManager: FinancialConnectionsSheetManager? = null
   private var googlePayLauncherManager: GooglePayLauncherManager? = null
   private var googlePayPaymentMethodLauncherManager: GooglePayPaymentMethodLauncherManager? = null
-  private val checkoutInstances = mutableMapOf<String, Checkout>()
+  internal val checkoutInstances = mutableMapOf<String, Checkout>()
 
   private var customerSheetManager: CustomerSheetManager? = null
 
@@ -1390,13 +1390,26 @@ class StripeSdkModule(
     )
   }
 
+  // Android configures the embedded element through view props (see
+  // EmbeddedPaymentElementViewManager), so the bridge calls below are no-ops
+  // and only exist to keep the TurboModule contract symmetric with iOS.
+
   @ReactMethod
   override fun createEmbeddedPaymentElement(
     intentConfig: ReadableMap,
     configuration: ReadableMap,
     promise: Promise,
   ) {
-    // TODO:
+    promise.resolve(null)
+  }
+
+  @ReactMethod
+  override fun createEmbeddedPaymentElementWithCheckout(
+    sessionKey: String,
+    configuration: ReadableMap,
+    promise: Promise,
+  ) {
+    promise.resolve(null)
   }
 
   @ReactMethod

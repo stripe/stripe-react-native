@@ -25,7 +25,9 @@ import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
+import com.stripe.android.checkout.Checkout
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.paymentelement.CustomPaymentMethodResult
 import com.stripe.android.paymentelement.CustomPaymentMethodResultHandler
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
@@ -43,6 +45,7 @@ enum class RowSelectionBehaviorType {
   ImmediateAction,
 }
 
+@OptIn(CheckoutSessionPreview::class)
 class EmbeddedPaymentElementView(
   context: Context,
 ) : StripeAbstractComposeView(context) {
@@ -50,6 +53,11 @@ class EmbeddedPaymentElementView(
     data class Configure(
       val configuration: EmbeddedPaymentElement.Configuration,
       val intentConfiguration: PaymentSheet.IntentConfiguration,
+    ) : Event
+
+    data class ConfigureWithCheckout(
+      val configuration: EmbeddedPaymentElement.Configuration,
+      val checkout: Checkout,
     ) : Event
 
     data class Update(
@@ -63,6 +71,7 @@ class EmbeddedPaymentElementView(
 
   var latestIntentConfig: PaymentSheet.IntentConfiguration? = null
   var latestElementConfig: EmbeddedPaymentElement.Configuration? = null
+  var latestCheckout: Checkout? = null
 
   val rowSelectionBehaviorType = mutableStateOf<RowSelectionBehaviorType?>(null)
   val useConfirmationTokenCallback = mutableStateOf(false)
@@ -303,27 +312,21 @@ class EmbeddedPaymentElementView(
       events.consumeAsFlow().collect { ev ->
         when (ev) {
           is Event.Configure -> {
-            // call configure and grab the result
-            val result =
+            handleConfigureResult(
               embedded.configure(
                 intentConfiguration = ev.intentConfiguration,
                 configuration = ev.configuration,
-              )
+              ),
+            )
+          }
 
-            when (result) {
-              is EmbeddedPaymentElement.ConfigureResult.Succeeded -> reportHeightChange(1f)
-              is EmbeddedPaymentElement.ConfigureResult.Failed -> {
-                // send the error back to JS
-                val err = result.error
-                val msg = err.localizedMessage ?: err.toString()
-                // build a RN map
-                val payload =
-                  Arguments.createMap().apply {
-                    putString("message", msg)
-                  }
-                requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementLoadingFailed(payload)
-              }
-            }
+          is Event.ConfigureWithCheckout -> {
+            handleConfigureResult(
+              embedded.configure(
+                checkout = ev.checkout,
+                configuration = ev.configuration,
+              ),
+            )
           }
 
           is Event.Update -> {
@@ -449,12 +452,34 @@ class EmbeddedPaymentElementView(
     requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementDidUpdateHeight(params)
   }
 
+  private fun handleConfigureResult(result: EmbeddedPaymentElement.ConfigureResult) {
+    when (result) {
+      is EmbeddedPaymentElement.ConfigureResult.Succeeded -> reportHeightChange(1f)
+      is EmbeddedPaymentElement.ConfigureResult.Failed -> {
+        val err = result.error
+        val msg = err.localizedMessage ?: err.toString()
+        val payload =
+          Arguments.createMap().apply {
+            putString("message", msg)
+          }
+        requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementLoadingFailed(payload)
+      }
+    }
+  }
+
   // APIs
   fun configure(
     config: EmbeddedPaymentElement.Configuration,
     intentConfig: PaymentSheet.IntentConfiguration,
   ) {
     events.trySend(Event.Configure(config, intentConfig))
+  }
+
+  fun configureWithCheckout(
+    config: EmbeddedPaymentElement.Configuration,
+    checkout: Checkout,
+  ) {
+    events.trySend(Event.ConfigureWithCheckout(config, checkout))
   }
 
   fun update(intentConfig: PaymentSheet.IntentConfiguration) {
