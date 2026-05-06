@@ -62,9 +62,12 @@ def ensure_clean_repo
   end
 end
 
-def fetch_remotes
+def preflight_checks
   puts "Fetching git remotes"
   execute_or_fail("git fetch")
+  ensure_on_master
+  ensure_up_to_date
+  ensure_clean_repo
 end
 
 def install_dependencies
@@ -213,10 +216,7 @@ end
 Dir.chdir(`git rev-parse --show-toplevel`.strip)
 
 steps = [
-  { name: "Fetch remotes", action: method(:fetch_remotes) },
-  { name: "Verify on master branch", action: method(:ensure_on_master) },
-  { name: "Verify up to date with origin", action: method(:ensure_up_to_date) },
-  { name: "Verify clean working tree", action: method(:ensure_clean_repo) },
+  { name: "Preflight checks", action: method(:preflight_checks) },
   { name: "Install dependencies", action: method(:install_dependencies) },
   { name: "Run tests", action: method(:run_tests) },
   { name: "Bump version", action: method(:bump_version) },
