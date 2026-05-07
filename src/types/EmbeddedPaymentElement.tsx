@@ -238,15 +238,23 @@ const isCheckoutSession = (
 
 class EmbeddedPaymentElement {
   /**
-   * Call this when the intent configuration changes (e.g., amount or currency).
+   * Call this when the intent configuration or Checkout Session changes.
    * Cancels any in-progress update. Ensures the correct payment methods are shown and fields are collected.
    * If the selected payment option becomes invalid, it may be cleared.
    * Returns the final result of the update; earlier in-flight updates will return `{ status: 'canceled' }`.
    */
-  async update(intentConfig: PaymentSheetTypes.IntentConfiguration) {
-    const result =
-      await NativeStripeSdkModule.updateEmbeddedPaymentElement(intentConfig);
-    return result;
+  async updateIntent(
+    intentConfig: PaymentSheetTypes.IntentConfiguration
+  ): Promise<unknown> {
+    return await NativeStripeSdkModule.updateEmbeddedPaymentElement(
+      intentConfig
+    );
+  }
+
+  async updateCheckout(checkout: Checkout): Promise<unknown> {
+    return await NativeStripeSdkModule.updateEmbeddedPaymentElementWithCheckout(
+      checkout.sessionKey
+    );
   }
 
   /**
@@ -430,7 +438,16 @@ export interface UseEmbeddedPaymentElementResult {
    * @note Upon completion, `paymentOption` may become null if it's no longer available.
    * @note If you call `update` while a previous call to `update` is still in progress, the previous call is canceled.
    */
-  update: (intentConfig: PaymentSheetTypes.IntentConfiguration) => void;
+  update: {
+    (intentConfig: PaymentSheetTypes.IntentConfiguration): void;
+    /**
+     * Call this method when the Checkout Session values you used to initialize
+     * `EmbeddedPaymentElement` change.
+     * @checkoutSessionsPreview
+     * @internal
+     */
+    (checkout: Checkout): void;
+  };
   // Sets the currently selected payment option to null
   clearPaymentOption: () => void;
   // Any error encountered during creation/update, or null
@@ -472,6 +489,8 @@ export function useEmbeddedPaymentElement(
  *
  * @param checkout - A loaded `Checkout` handle from `useCheckout`.
  * @param configuration - Configuration for the embedded element.
+ * @checkoutSessionsPreview
+ * @internal
  */
 export function useEmbeddedPaymentElement(
   checkout: Checkout,
@@ -623,19 +642,25 @@ export function useEmbeddedPaymentElement(
     return getElementOrThrow(elementRef).confirm();
   }, [isAndroid]);
   const update = useCallback(
-    (cfg: PaymentSheetTypes.IntentConfiguration) => {
+    (
+      updateSource: PaymentSheetTypes.IntentConfiguration | Checkout
+    ): Promise<unknown> => {
       if (isAndroid) {
         const currentRef = viewRef.current;
         if (currentRef) {
-          return new Promise<{ status: string } | null>((resolve) => {
+          return new Promise((resolve) => {
             const sub = addListener(
               'embeddedPaymentElementUpdateComplete',
-              (result: { status: string } | null) => {
+              (result) => {
                 sub.remove();
                 resolve(result);
               }
             );
-            Commands.update(currentRef, JSON.stringify(cfg));
+            if (isCheckoutSession(updateSource)) {
+              Commands.updateWithCheckout(currentRef, updateSource.sessionKey);
+            } else {
+              Commands.update(currentRef, JSON.stringify(updateSource));
+            }
           });
         }
         return Promise.reject(
@@ -644,7 +669,10 @@ export function useEmbeddedPaymentElement(
       }
 
       // iOS: use native module directly
-      return getElementOrThrow(elementRef).update(cfg);
+      const embeddedElement = getElementOrThrow(elementRef);
+      return isCheckoutSession(updateSource)
+        ? embeddedElement.updateCheckout(updateSource)
+        : embeddedElement.updateIntent(updateSource);
     },
     [isAndroid]
   );

@@ -1390,9 +1390,11 @@ class StripeSdkModule(
     )
   }
 
-  // Android configures the embedded element through view props (see
-  // EmbeddedPaymentElementViewManager), so the bridge calls below are no-ops
-  // and only exist to keep the TurboModule contract symmetric with iOS.
+  // Android owns EmbeddedPaymentElement through its native view. Configuration,
+  // update, confirm, and clear commands are handled by EmbeddedPaymentElementViewManager
+  // so they can target the mounted Compose view instance. iOS stores its
+  // EmbeddedPaymentElement on StripeSdkImpl instead, so the shared TurboModule
+  // spec includes these module methods for the iOS implementation.
 
   @ReactMethod
   override fun createEmbeddedPaymentElement(
@@ -1417,7 +1419,7 @@ class StripeSdkModule(
     viewTag: Double,
     promise: Promise,
   ) {
-    // noop, iOS only
+    // No-op on Android. JS dispatches confirm through the view command instead.
   }
 
   @ReactMethod
@@ -1429,11 +1431,20 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  override fun updateEmbeddedPaymentElementWithCheckout(
+    sessionKey: String,
+    promise: Promise,
+  ) {
+    // No-op on Android. JS dispatches Checkout updates through the view command instead.
+    promise.resolve(null)
+  }
+
+  @ReactMethod
   override fun clearEmbeddedPaymentOption(
     viewTag: Double,
     promise: Promise,
   ) {
-    // noop, iOS only
+    // No-op on Android. JS dispatches clear through the view command instead.
   }
 
   @ReactMethod

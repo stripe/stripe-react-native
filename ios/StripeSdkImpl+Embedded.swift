@@ -125,6 +125,23 @@ extension StripeSdkImpl {
     emitLoadingFailed(message: error.localizedDescription)
   }
 
+  @nonobjc
+  private func resolveEmbeddedUpdateResult(
+    _ updateResult: EmbeddedPaymentElement.UpdateResult,
+    resolve: @escaping RCTPromiseResolveBlock
+  ) {
+    switch updateResult {
+    case .succeeded:
+      resolve(["status": "succeeded"])
+    case .canceled:
+      resolve(["status": "canceled"])
+    case .failed(let error):
+      self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": error.localizedDescription])
+      // We don't resolve with an error b/c loading errors are handled via the embeddedPaymentElementLoadingFailed event
+      resolve(nil)
+    }
+  }
+
   @objc(confirmEmbeddedPaymentElement:reject:)
   public func confirmEmbeddedPaymentElement(resolve: @escaping RCTPromiseResolveBlock,
                                             reject: @escaping RCTPromiseRejectBlock) {
@@ -192,16 +209,31 @@ extension StripeSdkImpl {
         return
       }
 
-      switch updateResult {
-      case .succeeded:
-        resolve(["status": "succeeded"])
-      case .canceled:
-        resolve(["status": "canceled"])
-      case .failed(let error):
-        self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": error.localizedDescription])
-        // We don't resolve with an error b/c loading errors are handled via the embeddedPaymentElementLoadingFailed event
-        resolve(nil)
+      self.resolveEmbeddedUpdateResult(updateResult, resolve: resolve)
+    }
+  }
+
+  @objc(updateEmbeddedPaymentElementWithCheckout:resolve:reject:)
+  public func updateEmbeddedPaymentElementWithCheckout(
+    sessionKey: String,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    guard let checkout = checkoutInstances[sessionKey] else {
+      resolve(Errors.createError(ErrorType.Failed, "Checkout session not found"))
+      return
+    }
+
+    Task {
+      guard let updateResult = await self.embeddedInstance?.update(checkout: checkout) else {
+        resolve(Errors.createError(
+          ErrorType.Failed,
+          "No EmbeddedPaymentElement instance — did you call create first?"
+        ))
+        return
       }
+
+      self.resolveEmbeddedUpdateResult(updateResult, resolve: resolve)
     }
   }
 

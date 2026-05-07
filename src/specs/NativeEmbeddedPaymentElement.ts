@@ -20,10 +20,19 @@ export interface NativeCommands {
     viewRef: React.ElementRef<HostComponent<NativeProps>>,
     intentConfigurationJson: string
   ) => void;
+  updateWithCheckout: (
+    viewRef: React.ElementRef<HostComponent<NativeProps>>,
+    sessionKey: string
+  ) => void;
 }
 
 export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ['confirm', 'clearPaymentOption', 'update'],
+  supportedCommands: [
+    'confirm',
+    'clearPaymentOption',
+    'update',
+    'updateWithCheckout',
+  ],
 });
 
 type ComponentType = HostComponent<NativeProps>;

@@ -32,6 +32,7 @@ import org.json.JSONObject
 
 @ReactModule(name = EmbeddedPaymentElementViewManager.NAME)
 @OptIn(CheckoutSessionPreview::class)
+@Suppress("TooManyFunctions")
 class EmbeddedPaymentElementViewManager :
   ViewGroupManager<EmbeddedPaymentElementView>(),
   EmbeddedPaymentElementViewManagerInterface<EmbeddedPaymentElementView> {
@@ -241,6 +242,28 @@ class EmbeddedPaymentElementViewManager :
         android.util.Log.e("EmbeddedPaymentElement", "Failed to parse intent config JSON", e)
       }
     }
+  }
+
+  override fun updateWithCheckout(
+    view: EmbeddedPaymentElementView,
+    sessionKey: String?,
+  ) {
+    if (sessionKey == null) return
+
+    val stripeSdkModule =
+      (view.context as ThemedReactContext).getNativeModule(StripeSdkModule::class.java)
+    val checkout = stripeSdkModule?.checkoutInstances?.get(sessionKey)
+    if (checkout == null) {
+      val payload =
+        Arguments.createMap().apply {
+          putString("message", "Checkout session not found.")
+        }
+      stripeSdkModule?.eventEmitter?.emitEmbeddedPaymentElementLoadingFailed(payload)
+      stripeSdkModule?.eventEmitter?.emitEmbeddedPaymentElementUpdateComplete(null)
+      return
+    }
+
+    view.updateWithCheckout(checkout)
   }
 
   private fun jsonToWritableMap(json: JSONObject): WritableMap {

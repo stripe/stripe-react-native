@@ -208,7 +208,10 @@ export interface Spec extends TurboModule {
   ): Promise<EmbeddedPaymentElementResult>;
   updateEmbeddedPaymentElement(
     intentConfig: UnsafeObject<IntentConfiguration>
-  ): Promise<void>;
+  ): Promise<UnsafeObject<any> | null>;
+  updateEmbeddedPaymentElementWithCheckout(
+    sessionKey: string
+  ): Promise<UnsafeObject<any> | null>;
   clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
   createRadarSession(): Promise<CreateRadarSessionResult>;
 
