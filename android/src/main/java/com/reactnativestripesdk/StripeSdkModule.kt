@@ -85,6 +85,9 @@ import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.UUID
@@ -113,6 +116,11 @@ class StripeSdkModule(
   private var googlePayLauncherManager: GooglePayLauncherManager? = null
   private var googlePayPaymentMethodLauncherManager: GooglePayPaymentMethodLauncherManager? = null
   internal val checkoutInstances = mutableMapOf<String, Checkout>()
+
+  // / Tracks the long-running coroutine that observes each Checkout's
+  // / `checkoutSession` + `isLoading` flows and forwards transitions to JS as
+  // / `checkoutSessionDidChangeState` events.
+  private val checkoutStateObservers = mutableMapOf<String, Job>()
 
   private var customerSheetManager: CustomerSheetManager? = null
 
@@ -165,6 +173,8 @@ class StripeSdkModule(
 
     stripeUIManagers.forEach { it.destroy() }
     stripeUIManagers.clear()
+    checkoutStateObservers.values.forEach { it.cancel() }
+    checkoutStateObservers.clear()
     checkoutInstances.clear()
   }
 
@@ -1593,9 +1603,10 @@ class StripeSdkModule(
       activity.startActivity(chooser)
 
       // Schedule cleanup
+      @Suppress("MagicNumber")
       android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
         file.delete()
-      }, FILE_CLEANUP_DELAY_MS)
+      }, 3000)
 
       promise.resolve(
         Arguments.createMap().apply {
@@ -1743,6 +1754,7 @@ class StripeSdkModule(
         onSuccess = { checkout ->
           val sessionKey = UUID.randomUUID().toString()
           checkoutInstances[sessionKey] = checkout
+          observeCheckoutState(sessionKey, checkout)
 
           promise.resolve(
             Arguments.createMap().apply {
@@ -1884,6 +1896,41 @@ class StripeSdkModule(
     return checkoutConfiguration
   }
 
+  /**
+   * Forwards the checkout's `(checkoutSession, isLoading)` flow to JS as
+   * `checkoutSessionDidChangeState` events. Equivalent to the iOS
+   * `CheckoutDelegate` bridge — every native-side mutation (currency selection,
+   * promo code, refresh, etc.) goes through one canonical channel that
+   * `useCheckout` listens to.
+   */
+  private fun observeCheckoutState(
+    sessionKey: String,
+    checkout: Checkout,
+  ) {
+    checkoutStateObservers[sessionKey]?.cancel()
+
+    val job = CoroutineScope(Dispatchers.Main).launch {
+      // `combine` re-emits on every upstream tick. `distinctUntilChanged`
+      // collapses runs where neither field actually moved — both flows are
+      // StateFlows so we'd otherwise see a redundant initial replay when
+      // wiring up.
+      combine(
+        checkout.checkoutSession,
+        checkout.isLoading,
+      ) { session, isLoading -> session to isLoading }
+        .distinctUntilChanged()
+        .collect {
+          eventEmitter.emitCheckoutSessionDidChangeState(
+            Arguments.createMap().apply {
+              putString("sessionKey", sessionKey)
+              putMap("state", mapFromCheckoutState(checkout))
+            },
+          )
+        }
+    }
+    checkoutStateObservers[sessionKey] = job
+  }
+
   private fun performCheckoutMutation(
     sessionKey: String,
     promise: Promise,
@@ -2005,8 +2052,6 @@ class StripeSdkModule(
 
     // Timeout for auth webview fallback (if JavaScript doesn't call authWebViewDeepLinkHandled)
     private const val AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS = 60_000L
-
-    private const val FILE_CLEANUP_DELAY_MS = 3000L
 
     // SDK-managed storage for pending stripe-connect:// URLs
     // This is static because deep links can arrive before ReactContext is available

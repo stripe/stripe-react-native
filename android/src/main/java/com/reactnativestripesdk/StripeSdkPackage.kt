@@ -61,6 +61,7 @@ class StripeSdkPackage : BaseReactPackage() {
       EmbeddedPaymentElementViewManager(),
       NavigationBarManager(),
       PaymentMethodMessagingElementViewManager(),
+      CurrencySelectorElementViewManager(),
     )
 
   private fun getOnrampModuleClass(): Class<out NativeModule?>? {
