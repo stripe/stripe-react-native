@@ -7,6 +7,7 @@ import {
   PaymentSheetError,
   useStripe,
 } from '@stripe/stripe-react-native';
+import { CurrencySelectorElement } from '@stripe/stripe-react-native/src/components/CurrencySelectorElement';
 import { useCheckout } from '@stripe/stripe-react-native/src/hooks/useCheckout';
 import SelectedPaymentOption from '../components/SelectedPaymentOption';
 import { BottomActionBar, PlaygroundTitle, StatusBanner } from './components';
@@ -670,6 +671,15 @@ export function CheckoutPlaygroundCartView({
             }}
             promotionCode={promotionCode}
           />
+        ) : null}
+
+        {config.adaptivePricing ? (
+          <View style={{ marginBottom: 16 }}>
+            <CurrencySelectorElement
+              checkout={checkout}
+              disabled={isUpdating}
+            />
+          </View>
         ) : null}
 
         {orderSummaryRows.length > 0 ? (
