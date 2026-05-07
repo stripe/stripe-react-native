@@ -72,7 +72,7 @@ export const CurrencySelectorElement = forwardRef<
   unknown,
   CurrencySelectorElementProps
 >(({ checkout, disabled = false, ...a11yProps }, _ref) => {
-  const [height, setHeight] = useState<number | undefined>(undefined);
+  const [height, setHeight] = useState<number>(0);
 
   const handleHeightChange = useCallback(
     (e: NativeSyntheticEvent<HeightChangeEvent>) => {
