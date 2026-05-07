@@ -56,11 +56,8 @@ export function useCheckout(
       }
     })();
 
-    // Mirror every native-side state transition into our React `state`.
-    // This covers JS-initiated mutations (the bridge calls below also resolve
-    // with the latest state) AND native-driven mutations like
-    // `CurrencySelectorElement`'s `selectCurrency`, which never round-trip
-    // through JS.
+    // Listen for state changes from native (e.g. currency selector taps)
+    // so we stay in sync even when mutations don't originate from JS.
     const sub = addListener(
       'checkoutSessionDidChangeState',
       ({ sessionKey, state: nextState }) => {
