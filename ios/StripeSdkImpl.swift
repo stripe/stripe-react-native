@@ -1,4 +1,5 @@
 import AuthenticationServices
+import Combine
 import Foundation
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
@@ -69,6 +70,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
     internal var checkoutInstances: [String: Checkout] = [:]
+    /// One Combine subscription per active `Checkout`, keyed by `sessionKey`.
+    internal var checkoutStateCancellables: [String: AnyCancellable] = [:]
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 
