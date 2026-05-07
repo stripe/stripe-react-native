@@ -5,35 +5,12 @@
 //  Created by Nick Porter on 4/29/26.
 //
 
-import Combine
 import Foundation
 @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 
 extension StripeSdkImpl {
     internal func currentCheckoutStateResult(checkout: Checkout) -> NSDictionary {
         Mappers.mapFromCheckoutState(checkout.state)
-    }
-
-    /// Forwards every `Checkout` state change to JS. We listen on `$state`
-    /// instead of `CheckoutDelegate` since the delegate misses the loading
-    /// transitions, but `$state` fires on every assignment.
-    @MainActor
-    internal func observeCheckoutState(
-        _ checkout: Checkout,
-        sessionKey: String
-    ) {
-        checkoutStateCancellables[sessionKey]?.cancel()
-
-        checkoutStateCancellables[sessionKey] = checkout.$state
-            // JS already has the initial state from `initCheckoutSession`.
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
-                self?.emitter?.emitCheckoutSessionDidChangeState([
-                    "sessionKey": sessionKey,
-                    "state": Mappers.mapFromCheckoutState(state),
-                ])
-            }
     }
 
     @objc(initCheckoutSession:configuration:resolver:rejecter:)
@@ -59,7 +36,6 @@ extension StripeSdkImpl {
                 let sessionKey = UUID().uuidString
 
                 self.checkoutInstances[sessionKey] = checkout
-                self.observeCheckoutState(checkout, sessionKey: sessionKey)
 
                 resolve([
                     "sessionKey": sessionKey,
