@@ -2,7 +2,6 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -10,7 +9,6 @@ import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.ReactActivity
@@ -31,6 +29,7 @@ import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
 import com.reactnativestripesdk.utils.CreateTokenErrorType
+import com.reactnativestripesdk.utils.DefaultActivityLifecycleCallbacks
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.GooglePayErrorType
 import com.reactnativestripesdk.utils.RetrievePaymentIntentErrorType
@@ -1925,7 +1924,7 @@ class StripeSdkModule(
   private var isRecreatingReactActivity = false
   private var isAuthWebViewActive = false
   private val activityLifecycleCallbacks =
-    object : Application.ActivityLifecycleCallbacks {
+    object : DefaultActivityLifecycleCallbacks() {
       override fun onActivityCreated(
         activity: Activity,
         bundle: Bundle?,
@@ -1951,21 +1950,6 @@ class StripeSdkModule(
           }
         }
       }
-
-      override fun onActivityStarted(activity: Activity) {}
-
-      override fun onActivityResumed(activity: Activity) {}
-
-      override fun onActivityPaused(activity: Activity) {}
-
-      override fun onActivityStopped(activity: Activity) {}
-
-      override fun onActivitySaveInstanceState(
-        activity: Activity,
-        bundle: Bundle,
-      ) {}
-
-      override fun onActivityDestroyed(activity: Activity) {}
     }
 
   /**

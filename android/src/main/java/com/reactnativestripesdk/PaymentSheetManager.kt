@@ -2,7 +2,6 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.Application
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -21,6 +20,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.addresssheet.AddressSheetView
+import com.reactnativestripesdk.utils.DefaultActivityLifecycleCallbacks
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
@@ -63,7 +63,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
-import kotlin.Exception
 import kotlin.coroutines.resume
 
 @OptIn(
@@ -468,26 +467,12 @@ class PaymentSheetManager(
     var paymentSheetActivity: Activity? = null
 
     val activityLifecycleCallbacks =
-      object : Application.ActivityLifecycleCallbacks {
+      object : DefaultActivityLifecycleCallbacks() {
         override fun onActivityCreated(
           activity: Activity,
           savedInstanceState: Bundle?,
         ) {
           paymentSheetActivity = activity
-        }
-
-        override fun onActivityStarted(activity: Activity) {}
-
-        override fun onActivityResumed(activity: Activity) {}
-
-        override fun onActivityPaused(activity: Activity) {}
-
-        override fun onActivityStopped(activity: Activity) {}
-
-        override fun onActivitySaveInstanceState(
-          activity: Activity,
-          outState: Bundle,
-        ) {
         }
 
         override fun onActivityDestroyed(activity: Activity) {
@@ -694,12 +679,16 @@ suspend fun waitForDrawableToLoad(
             who: Drawable,
             what: Runnable,
             `when`: Long,
-          ) {}
+          ) {
+            // NO-OP
+          }
 
           override fun unscheduleDrawable(
             who: Drawable,
             what: Runnable,
-          ) {}
+          ) {
+            // NO-OP
+          }
         }
 
       drawable.callback = callback
