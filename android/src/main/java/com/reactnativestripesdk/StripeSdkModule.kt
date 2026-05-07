@@ -1927,11 +1927,11 @@ class StripeSdkModule(
     object : DefaultActivityLifecycleCallbacks() {
       override fun onActivityCreated(
         activity: Activity,
-        bundle: Bundle?,
+        savedInstanceState: Bundle?,
       ) {
-        // Only set flag when ReactActivity is actually being recreated (bundle != null)
-        // bundle != null means this is a recreation, not first creation
-        if (activity is ReactActivity && bundle != null) {
+        // Only set flag when ReactActivity is actually being recreated (savedInstanceState != null)
+        // savedInstanceState != null means this is a recreation, not first creation
+        if (activity is ReactActivity && savedInstanceState != null) {
           isRecreatingReactActivity = true
         }
 
