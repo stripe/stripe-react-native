@@ -23,6 +23,7 @@ import {
   availablePaymentMethods,
   currencyOptions,
   customerTypeOptions,
+  integrationTypeOptions,
   modeOptions,
   normalizePaymentMethodTypes,
   shouldShowAdaptivePricingCountry,
@@ -71,7 +72,7 @@ export function CheckoutPlaygroundConfigView({
       >
         <PlaygroundTitle
           title="Checkout Playground"
-          subtitle="Configure a Checkout Session against the hosted demo backend, then explore the backend-defined cart and PaymentSheet flow."
+          subtitle="Configure a Checkout Session against the hosted demo backend, then explore the backend-defined cart and payment flow."
         />
 
         {errorMessage ? (
@@ -84,6 +85,18 @@ export function CheckoutPlaygroundConfigView({
 
         <SectionHeader badge="G" title="Configuration" />
         <GroupedCard>
+          <PickerRow
+            title="Integration"
+            description="PaymentSheet, PaymentSheet.FlowController, or Embedded."
+            selectedValue={config.integrationType}
+            options={integrationTypeOptions}
+            onValueChange={(integrationType) =>
+              updateConfig({
+                integrationType:
+                  integrationType as CheckoutPlaygroundConfig['integrationType'],
+              })
+            }
+          />
           <PickerRow
             title="Mode"
             description="Payment, subscription, or setup."

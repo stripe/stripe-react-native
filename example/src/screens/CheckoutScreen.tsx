@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
+import { Alert } from 'react-native';
 import { initStripe } from '@stripe/stripe-react-native';
 import { fetchCheckoutSessionParams } from '../api/checkoutSession';
 import { CheckoutPlaygroundCartView } from '../checkoutPlayground/CheckoutPlaygroundCartView';
@@ -70,6 +71,10 @@ export default function CheckoutScreen() {
         config={config}
         onSuccessfulPayment={() => {
           navigation.goBack();
+          Alert.alert(
+            'Payment successful',
+            'The Checkout Session was confirmed.'
+          );
         }}
       />
     );

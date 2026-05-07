@@ -107,6 +107,7 @@ export function BottomActionBar({
   primaryDisabled,
   primaryLoading,
   secondaryLabel,
+  secondaryDisabled,
   onSecondaryPress,
 }: {
   primaryLabel: string;
@@ -114,16 +115,28 @@ export function BottomActionBar({
   primaryDisabled?: boolean;
   primaryLoading?: boolean;
   secondaryLabel?: string;
+  secondaryDisabled?: boolean;
   onSecondaryPress?(): void;
 }) {
   return (
     <View style={styles.actionBar}>
       {secondaryLabel && onSecondaryPress ? (
         <TouchableOpacity
+          disabled={secondaryDisabled}
           onPress={onSecondaryPress}
-          style={styles.secondaryAction}
+          style={[
+            styles.secondaryAction,
+            secondaryDisabled && styles.secondaryActionDisabled,
+          ]}
         >
-          <Text style={styles.secondaryActionText}>{secondaryLabel}</Text>
+          <Text
+            style={[
+              styles.secondaryActionText,
+              secondaryDisabled && styles.secondaryActionTextDisabled,
+            ]}
+          >
+            {secondaryLabel}
+          </Text>
         </TouchableOpacity>
       ) : null}
       <TouchableOpacity
@@ -274,12 +287,27 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   secondaryAction: {
-    alignSelf: 'center',
+    alignSelf: 'stretch',
+    minHeight: 52,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.blurple,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
     marginBottom: 12,
   },
+  secondaryActionDisabled: {
+    opacity: 0.5,
+  },
   secondaryActionText: {
-    color: colors.dark_gray,
-    fontWeight: '600',
+    color: colors.blurple_dark,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  secondaryActionTextDisabled: {
+    color: '#94A3B8',
   },
   primaryAction: {
     backgroundColor: colors.slate,
