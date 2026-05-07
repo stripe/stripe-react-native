@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import type { Checkout } from '../types/Checkout';
+import { addListener } from '../events';
 
 /**
  * Initializes a Stripe Checkout Session and returns a reactive handle.
@@ -55,9 +56,23 @@ export function useCheckout(
       }
     })();
 
+    // Mirror every native-side state transition into our React `state`.
+    // This covers JS-initiated mutations (the bridge calls below also resolve
+    // with the latest state) AND native-driven mutations like
+    // `CurrencySelectorElement`'s `selectCurrency`, which never round-trip
+    // through JS.
+    const sub = addListener(
+      'checkoutSessionDidChangeState',
+      ({ sessionKey, state: nextState }) => {
+        if (sessionKey !== sessionKeyRef.current) return;
+        setState(nextState as Checkout.State);
+      }
+    );
+
     // Ignore in-flight init if unmounted or clientSecret changed.
     return () => {
       cancelled = true;
+      sub.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientSecret]);
