@@ -7,11 +7,23 @@ export type OrderSummaryRow = {
   emphasized?: boolean;
 };
 
+// Pre-fills the AddressSheet with Stripe HQ when the session has no address yet
+// so the playground doesn't require manually typing every field on every run.
+const DEFAULT_ADDRESS_SHEET_VALUES: AddressDetails = {
+  address: {
+    country: 'US',
+    line1: '354 Oyster Point Blvd',
+    city: 'South San Francisco',
+    state: 'CA',
+    postalCode: '94080',
+  },
+};
+
 export const toAddressSheetDefaultValues = (
   addressUpdate?: Checkout.AddressUpdate
-): AddressDetails | undefined => {
+): AddressDetails => {
   if (!addressUpdate) {
-    return undefined;
+    return DEFAULT_ADDRESS_SHEET_VALUES;
   }
 
   return {

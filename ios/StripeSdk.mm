@@ -553,6 +553,17 @@ RCT_EXPORT_METHOD(createEmbeddedPaymentElement:(nonnull NSDictionary *)intentCon
                                               reject:reject];
 }
 
+RCT_EXPORT_METHOD(createEmbeddedPaymentElementWithCheckout:(nonnull NSString *)sessionKey
+                                             configuration:(nonnull NSDictionary *)configuration
+                                                   resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                    reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared createEmbeddedPaymentElementWithCheckout:sessionKey
+                                                   configuration:configuration
+                                                         resolve:resolve
+                                                          reject:reject];
+}
+
 RCT_EXPORT_METHOD(confirmEmbeddedPaymentElement:(NSInteger)viewTag
                                         resolve:(nonnull RCTPromiseResolveBlock)resolve
                                          reject:(nonnull RCTPromiseRejectBlock)reject)
@@ -565,6 +576,13 @@ RCT_EXPORT_METHOD(updateEmbeddedPaymentElement:(NSDictionary *)intentConfig
                                         reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared updateEmbeddedPaymentElement:intentConfig resolve:resolve reject:reject];
+}
+
+RCT_EXPORT_METHOD(updateEmbeddedPaymentElementWithCheckout:(nonnull NSString *)sessionKey
+                                                   resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                    reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared updateEmbeddedPaymentElementWithCheckout:sessionKey resolve:resolve reject:reject];
 }
 
 RCT_EXPORT_METHOD(clearEmbeddedPaymentOption:(NSInteger)viewTag

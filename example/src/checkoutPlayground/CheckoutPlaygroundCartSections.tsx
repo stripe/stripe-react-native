@@ -7,6 +7,7 @@ import { cartStyles as styles } from './CheckoutPlaygroundCartStyles';
 import { type OrderSummaryRow } from './CheckoutPlaygroundCartUtils';
 import {
   formatCurrencyAmount,
+  getIntegrationTypeLabel,
   shouldShowAutomaticTax,
   type CheckoutPlaygroundConfig,
 } from './types';
@@ -76,6 +77,10 @@ export function SessionSection({
             label="Session ID"
             value={session.id}
             hint="Long press to copy"
+          />
+          <DetailRow
+            label="Integration"
+            value={getIntegrationTypeLabel(config.integrationType)}
           />
           <DetailRow label="Mode" value={config.mode} />
           <DetailRow label="Status" value={session.status ?? 'unknown'} />

@@ -48,14 +48,28 @@ using namespace facebook::react;
   RCTEmbeddedPaymentElementViewHandleCommand(self, commandName, args);
 }
 
+#pragma mark - Shared Codegen Commands
+
+// These commands are declared on the shared `NativeEmbeddedPaymentElement`
+// component spec because Android targets its mounted Compose view directly.
+// iOS does not handle EPE actions through this view: the view only hosts
+// `StripeSdkImpl.shared.embeddedInstance.view`, while create/update/confirm/
+// clear are routed through `StripeSdkImpl` module methods. The no-op methods
+// keep the generated Fabric command protocol satisfied on iOS.
 - (void)clearPaymentOption
 {
-  // Android only.
 }
 
 - (void)confirm
 {
-  // Android only.
+}
+
+- (void)update:(NSString *)intentConfigurationJson
+{
+}
+
+- (void)updateWithCheckout:(NSString *)sessionKey
+{
 }
 
 #pragma mark - RCTComponentViewProtocol
