@@ -197,7 +197,7 @@ const mockHooks = {
     confirm: jest.fn(async () => ({
       status: 'completed',
     })),
-    update: jest.fn(async () => ({ status: 'completed', error: null })),
+    update: jest.fn(() => {}),
     clearPaymentOption: jest.fn(() => {}),
     loadingError: null,
   })),
@@ -397,5 +397,17 @@ jest.mock('../src/specs/NativeStripeSdkModule', () => ({
       },
     })),
     openAuthenticatedWebView: jest.fn(),
+    createEmbeddedPaymentElement: jest.fn(async () => undefined),
+    createEmbeddedPaymentElementWithCheckout: jest.fn(async () => undefined),
+    confirmEmbeddedPaymentElement: jest.fn(async () => ({
+      status: 'completed',
+    })),
+    updateEmbeddedPaymentElement: jest.fn(async () => ({
+      status: 'succeeded',
+    })),
+    updateEmbeddedPaymentElementWithCheckout: jest.fn(async () => ({
+      status: 'succeeded',
+    })),
+    clearEmbeddedPaymentOption: jest.fn(async () => undefined),
   },
 }));

@@ -64,6 +64,10 @@ class EmbeddedPaymentElementView(
       val intentConfiguration: PaymentSheet.IntentConfiguration,
     ) : Event
 
+    data class UpdateWithCheckout(
+      val checkout: Checkout,
+    ) : Event
+
     data object Confirm : Event
 
     data object ClearPaymentOption : Event
@@ -124,7 +128,7 @@ class EmbeddedPaymentElementView(
           coroutineScope.launch {
             try {
               // Give the CustomPaymentMethodActivity a moment to fully initialize
-              delay(100)
+              delay(CUSTOM_PAYMENT_METHOD_INIT_DELAY_MS)
 
               // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
               stripeSdkModule.eventEmitter.emitOnCustomPaymentMethodConfirmHandlerCallback(
@@ -330,16 +334,7 @@ class EmbeddedPaymentElementView(
           }
 
           is Event.Update -> {
-            val elemConfig = latestElementConfig
-            if (elemConfig == null) {
-              val payload =
-                Arguments.createMap().apply {
-                  putString("message", "Cannot update: no element configuration exists")
-                }
-              requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementLoadingFailed(payload)
-              requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(null)
-              return@collect
-            }
+            val elemConfig = latestElementConfig ?: return@collect emitUpdateMissingConfiguration()
 
             val result =
               embedded.configure(
@@ -347,27 +342,23 @@ class EmbeddedPaymentElementView(
                 configuration = elemConfig,
               )
 
-            when (result) {
-              is EmbeddedPaymentElement.ConfigureResult.Succeeded -> {
-                val payload =
-                  Arguments.createMap().apply {
-                    putString("status", "succeeded")
-                  }
-                requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(payload)
-              }
-              is EmbeddedPaymentElement.ConfigureResult.Failed -> {
-                val err = result.error
-                val msg = err.localizedMessage ?: err.toString()
-                val failPayload =
-                  Arguments.createMap().apply {
-                    putString("message", msg)
-                  }
-                requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementLoadingFailed(failPayload)
-                requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(null)
-              }
-            }
+            handleUpdateResult(result)
 
             latestIntentConfig = ev.intentConfiguration
+          }
+
+          is Event.UpdateWithCheckout -> {
+            val elemConfig = latestElementConfig ?: return@collect emitUpdateMissingConfiguration()
+
+            val result =
+              embedded.configure(
+                checkout = ev.checkout,
+                configuration = elemConfig,
+              )
+
+            handleUpdateResult(result)
+
+            latestCheckout = ev.checkout
           }
 
           is Event.Confirm -> {
@@ -467,6 +458,35 @@ class EmbeddedPaymentElementView(
     }
   }
 
+  private fun handleUpdateResult(result: EmbeddedPaymentElement.ConfigureResult) {
+    when (result) {
+      is EmbeddedPaymentElement.ConfigureResult.Succeeded -> {
+        val payload =
+          Arguments.createMap().apply {
+            putString("status", "succeeded")
+          }
+        requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(payload)
+      }
+      is EmbeddedPaymentElement.ConfigureResult.Failed -> {
+        emitUpdateFailed(result.error)
+      }
+    }
+  }
+
+  private fun emitUpdateMissingConfiguration() {
+    emitUpdateFailed(IllegalStateException("Cannot update: no element configuration exists"))
+  }
+
+  private fun emitUpdateFailed(error: Throwable) {
+    val msg = error.localizedMessage ?: error.toString()
+    val payload =
+      Arguments.createMap().apply {
+        putString("message", msg)
+      }
+    requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementLoadingFailed(payload)
+    requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(null)
+  }
+
   // APIs
   fun configure(
     config: EmbeddedPaymentElement.Configuration,
@@ -486,6 +506,10 @@ class EmbeddedPaymentElementView(
     events.trySend(Event.Update(intentConfig))
   }
 
+  fun updateWithCheckout(checkout: Checkout) {
+    events.trySend(Event.UpdateWithCheckout(checkout))
+  }
+
   fun confirm() {
     events.trySend(Event.Confirm)
   }
@@ -495,4 +519,8 @@ class EmbeddedPaymentElementView(
   }
 
   private fun requireStripeSdkModule() = requireNotNull(reactContext.getNativeModule(StripeSdkModule::class.java))
+
+  private companion object {
+    const val CUSTOM_PAYMENT_METHOD_INIT_DELAY_MS = 100L
+  }
 }

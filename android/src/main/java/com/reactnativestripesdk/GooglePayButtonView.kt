@@ -77,23 +77,23 @@ class GooglePayButtonView(
 
   private fun getButtonType(): Int? =
     when (this.type) {
-      0,
-      1,
+      BUTTON_TYPE_BUY_DEFAULT,
+      BUTTON_TYPE_BUY_ALT,
       -> ButtonType.BUY
-      6 -> ButtonType.BOOK
-      5 -> ButtonType.CHECKOUT
-      4 -> ButtonType.DONATE
-      11 -> ButtonType.ORDER
-      7 -> ButtonType.SUBSCRIBE
-      1000 -> ButtonType.PAY
-      1001 -> ButtonType.PLAIN
+      BUTTON_TYPE_BOOK -> ButtonType.BOOK
+      BUTTON_TYPE_CHECKOUT -> ButtonType.CHECKOUT
+      BUTTON_TYPE_DONATE -> ButtonType.DONATE
+      BUTTON_TYPE_ORDER -> ButtonType.ORDER
+      BUTTON_TYPE_SUBSCRIBE -> ButtonType.SUBSCRIBE
+      BUTTON_TYPE_PAY -> ButtonType.PAY
+      BUTTON_TYPE_PLAIN -> ButtonType.PLAIN
       else -> null
     }
 
   private fun getButtonTheme(): Int? =
     when (this.appearance) {
-      0, 1 -> ButtonTheme.LIGHT
-      2 -> ButtonTheme.DARK
+      BUTTON_THEME_LIGHT_DEFAULT, BUTTON_THEME_LIGHT_ALT -> ButtonTheme.LIGHT
+      BUTTON_THEME_DARK -> ButtonTheme.DARK
       else -> null
     }
 
@@ -121,5 +121,20 @@ class GooglePayButtonView(
 
   fun setBorderRadius(borderRadius: Int) {
     this.borderRadius = borderRadius
+  }
+
+  private companion object {
+    const val BUTTON_TYPE_BUY_DEFAULT = 0
+    const val BUTTON_TYPE_BUY_ALT = 1
+    const val BUTTON_TYPE_DONATE = 4
+    const val BUTTON_TYPE_CHECKOUT = 5
+    const val BUTTON_TYPE_BOOK = 6
+    const val BUTTON_TYPE_SUBSCRIBE = 7
+    const val BUTTON_TYPE_ORDER = 11
+    const val BUTTON_TYPE_PAY = 1000
+    const val BUTTON_TYPE_PLAIN = 1001
+    const val BUTTON_THEME_LIGHT_DEFAULT = 0
+    const val BUTTON_THEME_LIGHT_ALT = 1
+    const val BUTTON_THEME_DARK = 2
   }
 }

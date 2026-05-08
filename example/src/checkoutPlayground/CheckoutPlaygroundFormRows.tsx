@@ -249,7 +249,6 @@ const styles = StyleSheet.create({
   },
   selectionTrigger: {
     minWidth: 116,
-    maxWidth: 152,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 999,
@@ -257,9 +256,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexShrink: 0,
   },
   selectionTriggerText: {
-    flex: 1,
     color: colors.slate,
     fontWeight: '600',
     marginRight: 8,
