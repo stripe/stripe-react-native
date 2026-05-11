@@ -122,12 +122,10 @@ class ConnectAccountOnboardingViewController: UIViewController {
         reactContentView?.layoutIfNeeded()
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        // If being dismissed (not just going to background), notify
-        if isBeingDismissed {
-            onClose?()
-        }
-    }
+    // No viewWillDisappear/isBeingDismissed handler here. The modal uses .fullScreen
+    // presentation which prevents swipe-to-dismiss, so the only user-initiated exit path
+    // is the close button (handleCloseButtonPressed). Adding isBeingDismissed here would
+    // cause spurious onExit events when iOS presents a child VC (e.g. ASWebAuthenticationSession
+    // for identity verification) over this modal — UIKit calls viewWillDisappear and reports
+    // isBeingDismissed = true even though the user didn't close the modal.
 }
