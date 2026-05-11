@@ -202,7 +202,8 @@
         "CardForm": "CardFormComponentView",
         "EmbeddedPaymentElementView": "EmbeddedPaymentElementViewComponentView",
         "NavigationBar": "NavigationBarComponentView",
-        "StripeContainer": "StripeContainerComponentView"
+        "StripeContainer": "StripeContainerComponentView",
+        "StripeCurrencySelectorElement": "StripeCurrencySelectorElementComponentView"
       }
     },
     "name": "rnstripe",
