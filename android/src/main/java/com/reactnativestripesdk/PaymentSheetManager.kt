@@ -473,7 +473,10 @@ class PaymentSheetManager(
           activity: Activity,
           savedInstanceState: Bundle?,
         ) {
-          paymentSheetActivity = activity
+          if (activity.javaClass.name == PAYMENT_SHEET_ACTIVITY ||
+            activity.javaClass.name == PAYMENT_OPTIONS_ACTIVITY) {
+            paymentSheetActivity = activity
+          }
         }
 
         override fun onActivityStarted(activity: Activity) {}
@@ -491,8 +494,12 @@ class PaymentSheetManager(
         }
 
         override fun onActivityDestroyed(activity: Activity) {
-          paymentSheetActivity = null
-          context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
+          if (activity.javaClass.name == PAYMENT_SHEET_ACTIVITY ||
+            activity.javaClass.name == PAYMENT_OPTIONS_ACTIVITY
+            ) {
+            paymentSheetActivity = null
+            context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
+          }
         }
       }
 
@@ -846,3 +853,5 @@ internal fun handleFlowControllerConfigured(
 }
 
 private const val BITMAP_COMPRESS_QUALITY = 100
+private const val PAYMENT_SHEET_ACTIVITY = "com.stripe.android.paymentsheet.PaymentSheetActivity"
+private const val PAYMENT_OPTIONS_ACTIVITY = "com.stripe.android.paymentsheet.PaymentOptionsActivity"
