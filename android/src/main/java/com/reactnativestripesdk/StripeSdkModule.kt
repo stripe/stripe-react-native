@@ -303,14 +303,7 @@ class StripeSdkModule(
     }
 
     val timeout = options.getLongOrNull("timeout")
-    if (timeout != null) {
-      paymentSheetManager?.presentWithTimeout(
-        timeout,
-        promise,
-      )
-    } else {
-      paymentSheetManager?.present(promise)
-    }
+    paymentSheetManager?.present(promise, timeout)
   }
 
   @ReactMethod

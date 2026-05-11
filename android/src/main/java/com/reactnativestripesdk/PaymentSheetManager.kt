@@ -437,6 +437,15 @@ class PaymentSheetManager(
 
   override fun onPresent() {
     keepJsAwake = KeepJsAwakeTask(context).apply { start() }
+    val timeout = timeout
+    if (timeout != null) {
+      presentWithTimeout(timeout)
+    } else {
+      launchPaymentSheet()
+    }
+  }
+
+  private fun launchPaymentSheet() {
     if (lastConfigureWasCustomFlow == false) {
       val checkout = getCheckoutInstanceOrResolveError(promise)
       if (checkout != null) {
@@ -461,11 +470,8 @@ class PaymentSheetManager(
     }
   }
 
-  fun presentWithTimeout(
-    timeout: Long,
-    promise: Promise,
-  ) {
-    var paymentSheetActivity: Activity? = null
+  private fun presentWithTimeout(timeout: Long) {
+    var activities: MutableList<Activity> = mutableListOf()
 
     val activityLifecycleCallbacks =
       object : Application.ActivityLifecycleCallbacks {
@@ -473,7 +479,7 @@ class PaymentSheetManager(
           activity: Activity,
           savedInstanceState: Bundle?,
         ) {
-          paymentSheetActivity = activity
+          activities.add(activity)
         }
 
         override fun onActivityStarted(activity: Activity) {}
@@ -491,7 +497,7 @@ class PaymentSheetManager(
         }
 
         override fun onActivityDestroyed(activity: Activity) {
-          paymentSheetActivity = null
+          activities = mutableListOf()
           context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
         }
       }
@@ -499,9 +505,11 @@ class PaymentSheetManager(
     Handler(Looper.getMainLooper())
       .postDelayed(
         {
-          paymentSheetActivity?.let {
-            it.finish()
+          if (activities.isNotEmpty()) {
             paymentSheetTimedOut = true
+            for (a in activities) {
+              a.finish()
+            }
           }
         },
         timeout,
@@ -511,7 +519,7 @@ class PaymentSheetManager(
       ?.application
       ?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
-    this.present(promise)
+    launchPaymentSheet()
   }
 
   fun confirmPayment(promise: Promise) {
