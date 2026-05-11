@@ -474,7 +474,8 @@ class PaymentSheetManager(
           savedInstanceState: Bundle?,
         ) {
           if (activity.javaClass.name == PAYMENT_SHEET_ACTIVITY ||
-            activity.javaClass.name == PAYMENT_OPTIONS_ACTIVITY) {
+            activity.javaClass.name == PAYMENT_OPTIONS_ACTIVITY
+          ) {
             paymentSheetActivity = activity
           }
         }
@@ -496,7 +497,7 @@ class PaymentSheetManager(
         override fun onActivityDestroyed(activity: Activity) {
           if (activity.javaClass.name == PAYMENT_SHEET_ACTIVITY ||
             activity.javaClass.name == PAYMENT_OPTIONS_ACTIVITY
-            ) {
+          ) {
             paymentSheetActivity = null
             context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
           }
