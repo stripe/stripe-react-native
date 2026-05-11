@@ -30,6 +30,9 @@ public class EmbeddedPaymentElementViewManagerDelegate<T extends View, U extends
       case "intentConfiguration":
         mViewManager.setIntentConfiguration(view, new DynamicFromObject(value));
         break;
+      case "checkout":
+        mViewManager.setCheckout(view, new DynamicFromObject(value));
+        break;
       default:
         super.setProperty(view, propName, value);
     }
@@ -46,6 +49,9 @@ public class EmbeddedPaymentElementViewManagerDelegate<T extends View, U extends
         break;
       case "update":
         mViewManager.update(view, args != null ? args.getString(0) : null);
+        break;
+      case "updateWithCheckout":
+        mViewManager.updateWithCheckout(view, args != null ? args.getString(0) : null);
         break;
     }
   }
