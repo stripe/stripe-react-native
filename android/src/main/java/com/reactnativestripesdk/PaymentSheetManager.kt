@@ -471,7 +471,7 @@ class PaymentSheetManager(
   }
 
   private fun presentWithTimeout(timeout: Long) {
-    var activities: MutableList<Activity> = mutableListOf()
+    var foregroundActivity: Activity? = null
 
     val activityLifecycleCallbacks =
       object : Application.ActivityLifecycleCallbacks {
@@ -479,12 +479,13 @@ class PaymentSheetManager(
           activity: Activity,
           savedInstanceState: Bundle?,
         ) {
-          activities.add(activity)
         }
 
         override fun onActivityStarted(activity: Activity) {}
 
-        override fun onActivityResumed(activity: Activity) {}
+        override fun onActivityResumed(activity: Activity) {
+          foregroundActivity = activity
+        }
 
         override fun onActivityPaused(activity: Activity) {}
 
@@ -496,28 +497,21 @@ class PaymentSheetManager(
         ) {
         }
 
-        override fun onActivityDestroyed(activity: Activity) {
-          activities = mutableListOf()
-          context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
-        }
+        override fun onActivityDestroyed(activity: Activity) {}
       }
+
+    val application = context.currentActivity?.application
+    application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
     Handler(Looper.getMainLooper())
       .postDelayed(
         {
-          if (activities.isNotEmpty()) {
-            paymentSheetTimedOut = true
-            for (a in activities) {
-              a.finish()
-            }
-          }
+          paymentSheetTimedOut = true
+          foregroundActivity?.finish()
+          application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
         },
         timeout,
       )
-
-    context.currentActivity
-      ?.application
-      ?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
     launchPaymentSheet()
   }
