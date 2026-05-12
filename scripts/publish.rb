@@ -180,7 +180,7 @@ def execute_steps(steps, step_index)
     rputs "# #{step[:name]} (step #{current_step}/#{step_count})"
     step[:action].call
   rescue => e
-    rputs "Failed at step #{current_step}: #{step[:name]}"
+    rputs "Failed at step #{current_step}: #{step[:name]}: #{e.message}"
     rputs "Restart with --continue-from #{current_step} to re-run from this step."
     raise
   end
