@@ -2,7 +2,6 @@
 
 require 'optparse'
 require 'open3'
-require 'json'
 
 @is_dry_run = false
 @release_type = nil
