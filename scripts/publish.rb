@@ -112,7 +112,10 @@ def publish_to_npm
 end
 
 def create_github_release
-  return if @is_dry_run
+  if @is_dry_run
+    puts "[dry-run] Would create GitHub release for current version from CHANGELOG.md"
+    return
+  end
 
   changelog_lines = File.readlines("CHANGELOG.md")
   version_and_date = nil
