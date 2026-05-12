@@ -2,6 +2,7 @@
 
 require 'optparse'
 require 'open3'
+require 'json'
 
 @is_dry_run = false
 @release_type = nil
@@ -99,6 +100,8 @@ def publish_to_npm
     puts "[dry-run] Would create a GitHub release"
     puts ""
     puts "Dry run complete. Cleaning up..."
+    version = JSON.parse(File.read("package.json"))["version"]
+    execute("git tag -d v#{version}")
     execute("git checkout master")
     execute("git branch -D #{current_branch}")
   else
