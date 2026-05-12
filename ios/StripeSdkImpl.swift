@@ -88,6 +88,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var platformPayUsesDeprecatedTokenFlow = false
     var applePaymentMethodFlowCanBeCanceled = false
 
+    var paymentSheetTimedOut = false
+
     var confirmPaymentClientSecret: String?
 
     var shippingMethodUpdateCompletion: ((PKPaymentRequestShippingMethodUpdate) -> Void)?
@@ -299,8 +301,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         if let timeout = options["timeout"] as? Double {
             DispatchQueue.main.asyncAfter(deadline: .now() + timeout/1000) {
                 if let paymentSheetViewController = paymentSheetViewController {
+                    self.paymentSheetTimedOut = true
                     paymentSheetViewController.dismiss(animated: true)
-                    resolve(Errors.createError(ErrorType.Timeout, "The payment has timed out."))
                 }
             }
         }
@@ -310,7 +312,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 paymentSheetFlowController.presentPaymentOptions(from: findViewControllerPresenter(from: paymentSheetViewController!)
                 ) { didCancel in
                     paymentSheetViewController = nil
-                    if let paymentOption = self.paymentSheetFlowController?.paymentOption {
+                    if self.paymentSheetTimedOut {
+                        self.paymentSheetTimedOut = false
+                        resolve(Errors.createError(ErrorType.Timeout, "The payment has timed out."))
+                    } else if let paymentOption = self.paymentSheetFlowController?.paymentOption {
                         let option: NSDictionary = [
                             "label": paymentOption.label,
                             "image": paymentOption.image.pngData()?.base64EncodedString() ?? "",
@@ -324,14 +329,19 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 paymentSheet.present(from: findViewControllerPresenter(from: paymentSheetViewController!)
                 ) { paymentResult in
                     paymentSheetViewController = nil
-                    switch paymentResult {
-                    case .completed:
-                        resolve([])
-                        self.paymentSheet = nil
-                    case .canceled:
-                        resolve(Errors.createError(ErrorType.Canceled, "The payment has been canceled"))
-                    case .failed(let error):
-                        resolve(Errors.createError(ErrorType.Failed, error as NSError))
+                    if self.paymentSheetTimedOut {
+                        self.paymentSheetTimedOut = false
+                        resolve(Errors.createError(ErrorType.Timeout, "The payment has timed out."))
+                    } else {
+                        switch paymentResult {
+                        case .completed:
+                            resolve([])
+                            self.paymentSheet = nil
+                        case .canceled:
+                            resolve(Errors.createError(ErrorType.Canceled, "The payment has been canceled"))
+                        case .failed(let error):
+                            resolve(Errors.createError(ErrorType.Failed, error as NSError))
+                        }
                     }
                 }
             } else {
