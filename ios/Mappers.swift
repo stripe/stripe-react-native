@@ -1336,6 +1336,48 @@ class Mappers {
         ]
     }
 
+    class func mapToComplianceIdentifier(_ params: [String: Any]) throws -> ComplianceIdentifier {
+        guard let type = normalizedString(params["type"]) else {
+            throw ComplianceIdentifierError.invalidField("type")
+        }
+
+        guard let value = normalizedString(params["value"]) else {
+            throw ComplianceIdentifierError.invalidField("value")
+        }
+
+        return ComplianceIdentifier(type: ComplianceIdentifierType(rawValue: type), value: value)
+    }
+
+    class func mapFromComplianceIdentifierRequirements(_ requirements: ComplianceIdentifierRequirements) -> [String: Any] {
+        [
+            "identifiers": requirements.identifiers.map(mapFromComplianceIdentifierRequirement),
+            "alternatives": requirements.alternatives.map(mapFromComplianceIdentifierAlternativeGroup),
+        ]
+    }
+
+    class func mapFromSubmitIdentifiersResult(_ result: SubmitIdentifiersResult) -> [String: Any] {
+        [
+            "valid": result.valid,
+            "identifiers": result.identifiers.map(mapFromComplianceIdentifierRequirement),
+            "alternatives": result.alternatives.map(mapFromComplianceIdentifierAlternativeGroup),
+            "invalidIdentifiers": result.invalidIdentifiers.map(\.rawValue),
+        ]
+    }
+
+    private class func mapFromComplianceIdentifierRequirement(_ requirement: ComplianceIdentifierRequirement) -> [String: String] {
+        [
+            "type": requirement.type.rawValue,
+            "regulation": requirement.regulation.rawValue,
+        ]
+    }
+
+    private class func mapFromComplianceIdentifierAlternativeGroup(_ group: ComplianceIdentifierAlternativeGroup) -> [String: [String]] {
+        [
+            "originalMissingIdentifiers": group.originalMissingIdentifiers.map(\.rawValue),
+            "alternativeMissingIdentifiers": group.alternativeMissingIdentifiers.map(\.rawValue),
+        ]
+    }
+
     private class func mapOptionalKycAddress(_ value: Any?) throws -> Address? {
         guard let value else {
             return nil
@@ -1413,6 +1455,10 @@ class Mappers {
     }
 
     enum KycInfoError: Swift.Error {
+        case invalidField(String)
+    }
+
+    enum ComplianceIdentifierError: Swift.Error {
         case invalidField(String)
     }
 #endif
