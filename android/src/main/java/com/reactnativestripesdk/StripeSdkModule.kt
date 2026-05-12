@@ -1603,10 +1603,9 @@ class StripeSdkModule(
       activity.startActivity(chooser)
 
       // Schedule cleanup
-      @Suppress("MagicNumber")
       android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
         file.delete()
-      }, 3000)
+      }, FILE_CLEANUP_DELAY_MS)
 
       promise.resolve(
         Arguments.createMap().apply {
@@ -2052,6 +2051,8 @@ class StripeSdkModule(
 
     // Timeout for auth webview fallback (if JavaScript doesn't call authWebViewDeepLinkHandled)
     private const val AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS = 60_000L
+
+    private const val FILE_CLEANUP_DELAY_MS = 3_000L
 
     // SDK-managed storage for pending stripe-connect:// URLs
     // This is static because deep links can arrive before ReactContext is available
