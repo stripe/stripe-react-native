@@ -66,6 +66,17 @@ type Events = {
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementConfigureResult: EventEmitter<UnsafeObject<any>>;
+  /**
+   * Fired by native every time a `Checkout` instance's state transitions —
+   * regardless of whether the mutation was JS-driven (e.g. `applyPromotionCode`
+   * via `useCheckout`) or native-driven (e.g. `CurrencySelectorElement`).
+   * `useCheckout` mirrors this into its `state` so the entire React tree
+   * stays in sync with the underlying native session.
+   */
+  checkoutSessionDidChangeState: EventEmitter<{
+    sessionKey: string;
+    state: UnsafeObject<any>;
+  }>;
 };
 
 export function addListener<EventT extends keyof Events>(

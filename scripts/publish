@@ -3,16 +3,32 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-RELEASE_TYPE=${1:-}
+DRY_RUN=false
+RELEASE_TYPE=""
+
+for arg in "$@"; do
+  case $arg in
+    --dry-run)
+      DRY_RUN=true
+      ;;
+    *)
+      RELEASE_TYPE=$arg
+      ;;
+  esac
+done
 
 echo_help() {
   cat << EOF
 USAGE:
-    ./scripts/publish <release_type>
+    ./scripts/publish [--dry-run] <release_type>
 
 ARGS:
     <release_type>
             A Semantic Versioning release type used to bump the version number. Either "patch", "minor", or "major".
+
+OPTIONS:
+    --dry-run
+            Run all steps except the actual npm publish, git push, and GitHub release.
 EOF
 }
 
@@ -73,8 +89,8 @@ $release_notes
 EOF
 }
 
-# Show help if no arguments passed
-if [ $# -eq 0 ]; then
+# Show help if no release type provided
+if [ -z "$RELEASE_TYPE" ]; then
   echo "Error! Missing release type argument"
   echo ""
   echo_help
@@ -82,7 +98,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # Show help message if -h, --help, or help passed
-case $1 in
+case ${1:-} in
   -h | --help | help)
     echo_help
     exit 0
@@ -111,18 +127,27 @@ git fetch
 GIT_STATUS=$(git status)
 
 if ! grep -q 'On branch master' <<< "$GIT_STATUS"; then
-  echo "Error! Must be on master branch to publish"
-  exit 1
+  echo "Warning: Not on master branch"
+  if [ "$DRY_RUN" = false ]; then
+    echo "Error! Must be on master branch to publish"
+    exit 1
+  fi
 fi
 
 if ! grep -q "Your branch is up to date with 'origin/master'." <<< "$GIT_STATUS"; then
-  echo "Error! Must be up to date with origin/master to publish"
-  exit 1
+  echo "Warning: Not up to date with origin/master"
+  if [ "$DRY_RUN" = false ]; then
+    echo "Error! Must be up to date with origin/master to publish"
+    exit 1
+  fi
 fi
 
 if ! grep -q 'working tree clean' <<< "$GIT_STATUS"; then
-  echo "Error! Cannot publish with dirty working tree"
-  exit 1
+  echo "Warning: Working tree is dirty"
+  if [ "$DRY_RUN" = false ]; then
+    echo "Error! Cannot publish with dirty working tree"
+    exit 1
+  fi
 fi
 
 echo "Installing dependencies according to lockfile"
@@ -137,15 +162,26 @@ git checkout -b "$BRANCH_NAME"
 echo "Bumping package.json $RELEASE_TYPE version and tagging commit"
 yarn version --"$RELEASE_TYPE"
 
-echo "Publishing release"
-npm publish --ignore-scripts --access=public
-echo "Published to npm!"
+if [ "$DRY_RUN" = true ]; then
+  echo ""
+  echo "[dry-run] Would publish to npm with: npm publish --ignore-scripts --access=public"
+  echo "[dry-run] Would push branch '$BRANCH_NAME' with tags to origin"
+  echo "[dry-run] Would create a GitHub release"
+  echo ""
+  echo "Dry run complete. Cleaning up..."
+  git checkout master
+  git branch -D "$BRANCH_NAME"
+else
+  echo "Publishing release"
+  npm publish --ignore-scripts --access=public
+  echo "Published to npm!"
 
-echo "Pushing git commit and tag"
-git push -u origin "$BRANCH_NAME" --follow-tags
+  echo "Pushing git commit and tag"
+  git push -u origin "$BRANCH_NAME" --follow-tags
 
-echo ""
-echo "Tag pushed! Please open a PR for your version bump: https://github.com/stripe/stripe-react-native/pulls"
-echo ""
+  echo ""
+  echo "Tag pushed! Please open a PR for your version bump: https://github.com/stripe/stripe-react-native/pulls"
+  echo ""
 
-create_github_release
+  create_github_release
+fi

@@ -1,12 +1,14 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Modal, ScrollView, View } from 'react-native';
 import {
   AddressSheet,
   AddressSheetError,
+  PaymentSheet,
   PaymentSheetError,
   useStripe,
 } from '@stripe/stripe-react-native';
 import { useCheckout } from '@stripe/stripe-react-native/src/hooks/useCheckout';
+import SelectedPaymentOption from '../components/SelectedPaymentOption';
 import { BottomActionBar, PlaygroundTitle, StatusBanner } from './components';
 import {
   AddressSection,
@@ -16,6 +18,7 @@ import {
   SessionSection,
   ShippingOptionsSection,
 } from './CheckoutPlaygroundCartSections';
+import { CheckoutPlaygroundEmbeddedView } from './CheckoutPlaygroundEmbeddedView';
 import { cartStyles as styles } from './CheckoutPlaygroundCartStyles';
 import {
   buildOrderSummaryRows,
@@ -35,6 +38,8 @@ type FeedbackState = {
   title: string;
   message: string;
 };
+
+type FlowControllerStatus = 'idle' | 'initializing' | 'ready' | 'failed';
 
 type Props = {
   clientSecret: string;
@@ -61,15 +66,65 @@ const getErrorCode = (error: unknown): string | undefined => {
   return undefined;
 };
 
+const getPaymentSheetFeedback = ({
+  error,
+  fallbackTitle,
+  fallbackMessage,
+  canceledTitle,
+  canceledMessage,
+}: {
+  error: unknown;
+  fallbackTitle: string;
+  fallbackMessage: string;
+  canceledTitle?: string;
+  canceledMessage?: string;
+}): FeedbackState => {
+  const errorCode = getErrorCode(error);
+
+  if (errorCode === PaymentSheetError.Canceled) {
+    return {
+      tone: 'info',
+      title: canceledTitle ?? fallbackTitle,
+      message:
+        canceledMessage ??
+        'The customer canceled the payment flow before it completed.',
+    };
+  }
+
+  if (errorCode === PaymentSheetError.Timeout) {
+    return {
+      tone: 'error',
+      title: fallbackTitle,
+      message: 'PaymentSheet timed out before the customer completed the flow.',
+    };
+  }
+
+  return {
+    tone: 'error',
+    title: fallbackTitle,
+    message: getErrorMessage(error, fallbackMessage),
+  };
+};
+
 export function CheckoutPlaygroundCartView({
   clientSecret,
   config,
   onSuccessfulPayment,
 }: Props) {
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const { confirmPaymentSheetPayment, initPaymentSheet, presentPaymentSheet } =
+    useStripe();
   const [promotionCode, setPromotionCode] = useState('');
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [presentingPaymentSheet, setPresentingPaymentSheet] = useState(false);
+  const [flowControllerStatus, setFlowControllerStatus] =
+    useState<FlowControllerStatus>('idle');
+  const [presentingFlowController, setPresentingFlowController] =
+    useState(false);
+  const [confirmingFlowController, setConfirmingFlowController] =
+    useState(false);
+  const [selectedPaymentOption, setSelectedPaymentOption] =
+    useState<PaymentSheet.PaymentOption | null>(null);
+  const [embeddedModalVisible, setEmbeddedModalVisible] = useState(false);
   const [showShippingAddressSheet, setShowShippingAddressSheet] =
     useState(false);
   const [showBillingAddressSheet, setShowBillingAddressSheet] = useState(false);
@@ -91,9 +146,19 @@ export function CheckoutPlaygroundCartView({
     checkoutConfiguration
   );
 
+  const isEmbeddedIntegration = config.integrationType === 'embedded';
+  const isFlowControllerIntegration =
+    config.integrationType === 'paymentSheetFlowController';
   const session = state?.session;
   const isUpdating = state?.status === 'loading';
-  const disableActions = isUpdating || presentingPaymentSheet;
+  const isFlowControllerInitializing = flowControllerStatus === 'initializing';
+  const isFlowControllerReady = flowControllerStatus === 'ready';
+  const isProcessingPaymentUi =
+    presentingPaymentSheet ||
+    isFlowControllerInitializing ||
+    presentingFlowController ||
+    confirmingFlowController;
+  const disableActions = isUpdating || isProcessingPaymentUi;
   const shouldShowPromotionSection = supportsAdvancedCollection(config);
   const shouldShowLineItemSection = Boolean(session?.lineItems.length);
   const shouldShowShippingSection = Boolean(session?.shippingOptions.length);
@@ -128,6 +193,86 @@ export function CheckoutPlaygroundCartView({
     () => buildOrderSummaryRows(session?.totals),
     [session?.totals]
   );
+  const flowControllerActionLabel = selectedPaymentOption
+    ? 'Change payment method'
+    : 'Choose payment method';
+  const paymentSheetSetupParams = useMemo(
+    () => ({
+      checkout,
+      merchantDisplayName: 'Checkout Playground',
+      returnURL: 'com.stripe.react.native://stripe-redirect',
+      allowsDelayedPaymentMethods: true,
+      billingDetailsCollectionConfiguration: {
+        // TODO: Remove this once Android updates to set the customer email on the payment method.
+        attachDefaultsToPaymentMethod: true,
+      },
+    }),
+    [checkout]
+  );
+
+  const initialiseFlowController = useCallback(
+    async (options?: { reportError?: boolean }) => {
+      if (state?.status !== 'loaded') {
+        return false;
+      }
+
+      const reportError = options?.reportError ?? true;
+
+      setFlowControllerStatus('initializing');
+      setSelectedPaymentOption(null);
+
+      try {
+        const initResult = await initPaymentSheet({
+          ...paymentSheetSetupParams,
+          customFlow: true,
+        });
+
+        if (initResult.error) {
+          throw initResult.error;
+        }
+
+        setSelectedPaymentOption(initResult.paymentOption ?? null);
+        setFlowControllerStatus('ready');
+        return true;
+      } catch (paymentSheetError: unknown) {
+        setFlowControllerStatus('failed');
+        setSelectedPaymentOption(null);
+
+        if (reportError) {
+          setFeedback(
+            getPaymentSheetFeedback({
+              error: paymentSheetError,
+              fallbackTitle: 'PaymentSheet.FlowController failed',
+              fallbackMessage:
+                'Unable to prepare the custom PaymentSheet flow.',
+            })
+          );
+        }
+
+        return false;
+      }
+    },
+    [initPaymentSheet, paymentSheetSetupParams, state?.status]
+  );
+
+  useEffect(() => {
+    if (!isFlowControllerIntegration) {
+      setFlowControllerStatus('idle');
+      setSelectedPaymentOption(null);
+      return;
+    }
+
+    if (state?.status !== 'loaded' || flowControllerStatus !== 'idle') {
+      return;
+    }
+
+    initialiseFlowController().catch(() => {});
+  }, [
+    flowControllerStatus,
+    initialiseFlowController,
+    isFlowControllerIntegration,
+    state?.status,
+  ]);
 
   const runCheckoutAction = useCallback(
     async (title: string, action: () => Promise<void>) => {
@@ -135,6 +280,10 @@ export function CheckoutPlaygroundCartView({
 
       try {
         await action();
+
+        if (isFlowControllerIntegration) {
+          await initialiseFlowController();
+        }
       } catch (actionError: unknown) {
         setFeedback({
           tone: 'error',
@@ -146,7 +295,7 @@ export function CheckoutPlaygroundCartView({
         });
       }
     },
-    []
+    [initialiseFlowController, isFlowControllerIntegration]
   );
 
   const handleRefresh = useCallback(() => {
@@ -222,16 +371,7 @@ export function CheckoutPlaygroundCartView({
     let shouldNavigateBack = false;
 
     try {
-      const initResult = await initPaymentSheet({
-        checkout,
-        merchantDisplayName: 'Checkout Playground',
-        returnURL: 'com.stripe.react.native://stripe-redirect',
-        allowsDelayedPaymentMethods: true,
-        billingDetailsCollectionConfiguration: {
-          // TODO: Remove this once Android updates to set the customer email on the payment method.
-          attachDefaultsToPaymentMethod: true,
-        },
-      });
+      const initResult = await initPaymentSheet(paymentSheetSetupParams);
 
       if (initResult.error) {
         throw initResult.error;
@@ -252,21 +392,15 @@ export function CheckoutPlaygroundCartView({
         shouldNavigateBack = true;
       }
     } catch (paymentSheetError: unknown) {
-      const errorCode = getErrorCode(paymentSheetError);
-      let message = getErrorMessage(paymentSheetError, 'PaymentSheet failed.');
-
-      if (errorCode === PaymentSheetError.Canceled) {
-        message = 'The customer canceled PaymentSheet.';
-      } else if (errorCode === PaymentSheetError.Timeout) {
-        message =
-          'PaymentSheet timed out before the customer completed the flow.';
-      }
-
-      setFeedback({
-        tone: 'error',
-        title: 'PaymentSheet failed',
-        message,
-      });
+      setFeedback(
+        getPaymentSheetFeedback({
+          error: paymentSheetError,
+          fallbackTitle: 'PaymentSheet failed',
+          fallbackMessage: 'PaymentSheet failed.',
+          canceledTitle: 'PaymentSheet canceled',
+          canceledMessage: 'The customer canceled PaymentSheet.',
+        })
+      );
     } finally {
       setPresentingPaymentSheet(false);
     }
@@ -275,12 +409,106 @@ export function CheckoutPlaygroundCartView({
       onSuccessfulPayment();
     }
   }, [
-    checkout,
     initPaymentSheet,
     onSuccessfulPayment,
+    paymentSheetSetupParams,
     presentPaymentSheet,
     state?.status,
   ]);
+
+  const handleChoosePaymentMethod = useCallback(async () => {
+    if (state?.status !== 'loaded') {
+      return;
+    }
+
+    setFeedback(null);
+
+    let isReady = isFlowControllerReady;
+    if (!isReady) {
+      isReady = await initialiseFlowController();
+    }
+
+    if (!isReady) {
+      return;
+    }
+
+    setPresentingFlowController(true);
+
+    try {
+      const presentResult = await presentPaymentSheet();
+
+      if (presentResult.error) {
+        throw presentResult.error;
+      }
+
+      if (presentResult.paymentOption) {
+        setSelectedPaymentOption(presentResult.paymentOption);
+      } else if (!presentResult.didCancel) {
+        setSelectedPaymentOption(null);
+      }
+
+      if (presentResult.didCancel) {
+        setFeedback({
+          tone: 'info',
+          title: 'Payment method selection canceled',
+          message: 'The customer dismissed payment method selection.',
+        });
+      }
+    } catch (paymentSheetError: unknown) {
+      setFeedback(
+        getPaymentSheetFeedback({
+          error: paymentSheetError,
+          fallbackTitle: 'PaymentSheet.FlowController failed',
+          fallbackMessage: 'Unable to load payment methods.',
+          canceledTitle: 'Payment method selection canceled',
+          canceledMessage: 'The customer dismissed payment method selection.',
+        })
+      );
+    } finally {
+      setPresentingFlowController(false);
+    }
+  }, [
+    initialiseFlowController,
+    isFlowControllerReady,
+    presentPaymentSheet,
+    state?.status,
+  ]);
+
+  const handleConfirmFlowControllerPayment = useCallback(async () => {
+    if (!selectedPaymentOption) {
+      return;
+    }
+
+    setFeedback(null);
+    setConfirmingFlowController(true);
+    let shouldNavigateBack = false;
+
+    try {
+      const confirmResult = await confirmPaymentSheetPayment();
+      if (confirmResult.error) {
+        throw confirmResult.error;
+      }
+
+      shouldNavigateBack = true;
+    } catch (paymentSheetError: unknown) {
+      setFeedback(
+        getPaymentSheetFeedback({
+          error: paymentSheetError,
+          fallbackTitle: 'PaymentSheet.FlowController failed',
+          fallbackMessage: 'Unable to confirm the Checkout Session.',
+          canceledTitle: 'Confirmation canceled',
+          canceledMessage:
+            'The customer canceled before the Checkout Session was confirmed.',
+        })
+      );
+    } finally {
+      setConfirmingFlowController(false);
+    }
+
+    if (shouldNavigateBack) {
+      onSuccessfulPayment();
+    }
+  }, [confirmPaymentSheetPayment, onSuccessfulPayment, selectedPaymentOption]);
 
   if (error) {
     return (
@@ -321,12 +549,19 @@ export function CheckoutPlaygroundCartView({
   return (
     <View style={styles.root}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: isFlowControllerIntegration ? 216 : 128 },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <PlaygroundTitle
           title="Your Cart"
-          subtitle="Review your items and complete checkout."
+          subtitle={
+            isFlowControllerIntegration
+              ? 'Review your items, choose a payment method, then confirm the Checkout Session.'
+              : 'Review your items and complete checkout.'
+          }
         />
 
         {feedback ? (
@@ -343,6 +578,14 @@ export function CheckoutPlaygroundCartView({
             tone="info"
             title="Updating checkout"
             message="A checkout mutation is in flight. The totals shown below may still be refreshing."
+          />
+        ) : null}
+
+        {isFlowControllerIntegration && isFlowControllerInitializing ? (
+          <StatusBanner
+            tone="info"
+            title="Preparing PaymentSheet.FlowController"
+            message="Refreshing payment options for the latest checkout session."
           />
         ) : null}
 
@@ -435,6 +678,10 @@ export function CheckoutPlaygroundCartView({
             rows={orderSummaryRows}
           />
         ) : null}
+
+        {isFlowControllerIntegration ? (
+          <SelectedPaymentOption paymentOption={selectedPaymentOption} />
+        ) : null}
       </ScrollView>
 
       <AddressSheet
@@ -507,12 +754,51 @@ export function CheckoutPlaygroundCartView({
                 session.currency
               )}`
         }
-        primaryDisabled={state?.status !== 'loaded' || presentingPaymentSheet}
-        primaryLoading={presentingPaymentSheet}
+        primaryDisabled={
+          state?.status !== 'loaded' ||
+          disableActions ||
+          (isFlowControllerIntegration && !selectedPaymentOption)
+        }
+        primaryLoading={presentingPaymentSheet || confirmingFlowController}
+        secondaryLabel={
+          isFlowControllerIntegration ? flowControllerActionLabel : undefined
+        }
+        secondaryDisabled={state?.status !== 'loaded' || disableActions}
+        onSecondaryPress={
+          isFlowControllerIntegration ? handleChoosePaymentMethod : undefined
+        }
         onPrimaryPress={() => {
-          handlePresentPaymentSheet();
+          if (isEmbeddedIntegration) {
+            setFeedback(null);
+            setEmbeddedModalVisible(true);
+          } else if (isFlowControllerIntegration) {
+            handleConfirmFlowControllerPayment();
+          } else {
+            handlePresentPaymentSheet();
+          }
         }}
       />
+
+      <Modal
+        visible={embeddedModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setEmbeddedModalVisible(false)}
+      >
+        {state?.status === 'loaded' ? (
+          <CheckoutPlaygroundEmbeddedView
+            checkout={checkout}
+            mode={config.mode}
+            currency={session.currency}
+            total={session.totals?.total}
+            onClose={() => setEmbeddedModalVisible(false)}
+            onSuccessfulPayment={() => {
+              setEmbeddedModalVisible(false);
+              onSuccessfulPayment();
+            }}
+          />
+        ) : null}
+      </Modal>
     </View>
   );
 }

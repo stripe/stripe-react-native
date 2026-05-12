@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import type { Checkout } from '../types/Checkout';
+import { addListener } from '../events';
 
 /**
  * Initializes a Stripe Checkout Session and returns a reactive handle.
@@ -55,9 +56,20 @@ export function useCheckout(
       }
     })();
 
+    // Listen for state changes from native (e.g. currency selector taps)
+    // so we stay in sync even when mutations don't originate from JS.
+    const sub = addListener(
+      'checkoutSessionDidChangeState',
+      ({ sessionKey, state: nextState }) => {
+        if (sessionKey !== sessionKeyRef.current) return;
+        setState(nextState as Checkout.State);
+      }
+    );
+
     // Ignore in-flight init if unmounted or clientSecret changed.
     return () => {
       cancelled = true;
+      sub.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientSecret]);
@@ -89,80 +101,107 @@ export function useCheckout(
     []
   );
 
-  // Mutation methods — each delegates to withLoading.
-  const checkout: Checkout = {
-    get sessionKey(): string {
-      if (!sessionKeyRef.current) {
-        throw new Error('Checkout session not initialized.');
-      }
-      return sessionKeyRef.current;
-    },
-    updateShippingAddress: useCallback(
-      (address, name, phone) =>
-        withLoading((key) =>
-          NativeStripeSdk.checkoutUpdateShippingAddress(
-            key,
-            address,
-            name ?? null,
-            phone ?? null
-          )
-        ),
-      [withLoading]
-    ),
-    updateBillingAddress: useCallback(
-      (address, name, phone) =>
-        withLoading((key) =>
-          NativeStripeSdk.checkoutUpdateBillingAddress(
-            key,
-            address,
-            name ?? null,
-            phone ?? null
-          )
-        ),
-      [withLoading]
-    ),
-    applyPromotionCode: useCallback(
-      (code) =>
-        withLoading((key) =>
-          NativeStripeSdk.checkoutApplyPromotionCode(key, code)
-        ),
-      [withLoading]
-    ),
-    removePromotionCode: useCallback(
-      () =>
-        withLoading((key) => NativeStripeSdk.checkoutRemovePromotionCode(key)),
-      [withLoading]
-    ),
-    updateLineItemQuantity: useCallback(
-      (lineItemId, quantity) =>
-        withLoading((key) =>
-          NativeStripeSdk.checkoutUpdateLineItemQuantity(
-            key,
-            lineItemId,
-            quantity
-          )
-        ),
-      [withLoading]
-    ),
-    selectShippingOption: useCallback(
-      (id) =>
-        withLoading((key) =>
-          NativeStripeSdk.checkoutSelectShippingOption(key, id)
-        ),
-      [withLoading]
-    ),
-    updateTaxId: useCallback(
-      (type, value) =>
-        withLoading((key) =>
-          NativeStripeSdk.checkoutUpdateTaxId(key, type, value)
-        ),
-      [withLoading]
-    ),
-    refresh: useCallback(
-      () => withLoading((key) => NativeStripeSdk.checkoutRefresh(key)),
-      [withLoading]
-    ),
-  };
+  // Mutation methods. Each is memoized so `checkout` has a stable identity.
+  const updateShippingAddress = useCallback<Checkout['updateShippingAddress']>(
+    (address, name, phone) =>
+      withLoading((key) =>
+        NativeStripeSdk.checkoutUpdateShippingAddress(
+          key,
+          address,
+          name ?? null,
+          phone ?? null
+        )
+      ),
+    [withLoading]
+  );
+  const updateBillingAddress = useCallback<Checkout['updateBillingAddress']>(
+    (address, name, phone) =>
+      withLoading((key) =>
+        NativeStripeSdk.checkoutUpdateBillingAddress(
+          key,
+          address,
+          name ?? null,
+          phone ?? null
+        )
+      ),
+    [withLoading]
+  );
+  const applyPromotionCode = useCallback<Checkout['applyPromotionCode']>(
+    (code) =>
+      withLoading((key) =>
+        NativeStripeSdk.checkoutApplyPromotionCode(key, code)
+      ),
+    [withLoading]
+  );
+  const removePromotionCode = useCallback<Checkout['removePromotionCode']>(
+    () =>
+      withLoading((key) => NativeStripeSdk.checkoutRemovePromotionCode(key)),
+    [withLoading]
+  );
+  const updateLineItemQuantity = useCallback<
+    Checkout['updateLineItemQuantity']
+  >(
+    (lineItemId, quantity) =>
+      withLoading((key) =>
+        NativeStripeSdk.checkoutUpdateLineItemQuantity(
+          key,
+          lineItemId,
+          quantity
+        )
+      ),
+    [withLoading]
+  );
+  const selectShippingOption = useCallback<Checkout['selectShippingOption']>(
+    (id) =>
+      withLoading((key) =>
+        NativeStripeSdk.checkoutSelectShippingOption(key, id)
+      ),
+    [withLoading]
+  );
+  const updateTaxId = useCallback<Checkout['updateTaxId']>(
+    (type, value) =>
+      withLoading((key) =>
+        NativeStripeSdk.checkoutUpdateTaxId(key, type, value)
+      ),
+    [withLoading]
+  );
+  const refresh = useCallback<Checkout['refresh']>(
+    () => withLoading((key) => NativeStripeSdk.checkoutRefresh(key)),
+    [withLoading]
+  );
+
+  const checkout = useMemo<Checkout>(
+    () => ({
+      get sessionKey(): string {
+        if (!sessionKeyRef.current) {
+          throw new Error(
+            'Checkout session not initialized. Wait for `state.status === "loaded"` ' +
+              'before passing `checkout` to `useEmbeddedPaymentElement` or calling a ' +
+              'mutation method (e.g. `applyPromotionCode`).'
+          );
+        }
+        return sessionKeyRef.current;
+      },
+      updateShippingAddress,
+      updateBillingAddress,
+      applyPromotionCode,
+      removePromotionCode,
+      updateLineItemQuantity,
+      selectShippingOption,
+      updateTaxId,
+      refresh,
+    }),
+    [
+      updateShippingAddress,
+      updateBillingAddress,
+      applyPromotionCode,
+      removePromotionCode,
+      updateLineItemQuantity,
+      selectShippingOption,
+      updateTaxId,
+      refresh,
+    ]
+  );
 
   return { state, checkout, error };
 }

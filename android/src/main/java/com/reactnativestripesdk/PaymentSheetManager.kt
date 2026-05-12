@@ -473,7 +473,11 @@ class PaymentSheetManager(
           activity: Activity,
           savedInstanceState: Bundle?,
         ) {
-          paymentSheetActivity = activity
+          if (activity.javaClass.name == PAYMENT_SHEET_ACTIVITY ||
+            activity.javaClass.name == PAYMENT_OPTIONS_ACTIVITY
+          ) {
+            paymentSheetActivity = activity
+          }
         }
 
         override fun onActivityStarted(activity: Activity) {}
@@ -491,8 +495,12 @@ class PaymentSheetManager(
         }
 
         override fun onActivityDestroyed(activity: Activity) {
-          paymentSheetActivity = null
-          context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
+          if (activity.javaClass.name == PAYMENT_SHEET_ACTIVITY ||
+            activity.javaClass.name == PAYMENT_OPTIONS_ACTIVITY
+          ) {
+            paymentSheetActivity = null
+            context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
+          }
         }
       }
 
@@ -615,7 +623,7 @@ class PaymentSheetManager(
     CoroutineScope(Dispatchers.Main).launch {
       try {
         // Give the CustomPaymentMethodActivity a moment to fully initialize
-        delay(100)
+        delay(CUSTOM_PAYMENT_METHOD_INIT_DELAY_MS)
 
         // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
         stripeSdkModule.eventEmitter.emitOnCustomPaymentMethodConfirmHandlerCallback(
@@ -661,6 +669,8 @@ class PaymentSheetManager(
         PaymentSheetErrorType.Failed.toString(),
         "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`.",
       )
+
+    private const val CUSTOM_PAYMENT_METHOD_INIT_DELAY_MS = 100L
   }
 }
 
@@ -752,7 +762,7 @@ fun getBase64FromBitmap(bitmap: Bitmap?): String? {
     return null
   }
   val stream = ByteArrayOutputStream()
-  bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+  bitmap.compress(Bitmap.CompressFormat.PNG, BITMAP_COMPRESS_QUALITY, stream)
   val imageBytes: ByteArray = stream.toByteArray()
   return Base64.encodeToString(imageBytes, Base64.DEFAULT)
 }
@@ -842,3 +852,7 @@ internal fun handleFlowControllerConfigured(
     promise.resolve(Arguments.createMap())
   }
 }
+
+private const val BITMAP_COMPRESS_QUALITY = 100
+private const val PAYMENT_SHEET_ACTIVITY = "com.stripe.android.paymentsheet.PaymentSheetActivity"
+private const val PAYMENT_OPTIONS_ACTIVITY = "com.stripe.android.paymentsheet.PaymentOptionsActivity"
