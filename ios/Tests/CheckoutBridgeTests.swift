@@ -6,7 +6,7 @@
 //
 
 @testable import stripe_react_native
-@_spi(CheckoutSessionsPreview) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 import XCTest
 
 class CheckoutBridgeTests: XCTestCase {

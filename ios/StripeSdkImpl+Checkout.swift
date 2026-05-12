@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(CheckoutSessionsPreview) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 extension StripeSdkImpl {
     internal func currentCheckoutStateResult(checkout: Checkout) -> NSDictionary {

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(CheckoutSessionsPreview) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 extension Mappers {
     class func mapFromCheckoutState(_ state: Checkout.State) -> NSDictionary {
