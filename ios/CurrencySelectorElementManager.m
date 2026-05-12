@@ -1,3 +1,10 @@
+//
+//  CurrencySelectorElementManager.m
+//  stripe-react-native
+//
+//  Created by Nick Porter on 5/7/26.
+//
+
 #import <Foundation/Foundation.h>
 #import <React/RCTBridgeModule.h>
 #import <React/RCTViewManager.h>
