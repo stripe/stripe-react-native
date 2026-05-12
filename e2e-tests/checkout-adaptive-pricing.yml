@@ -28,7 +28,10 @@ appId: ${APP_ID}
     timeout: 30000
 - tapOn:
     id: "adaptive_pricing_country_picker"
-- tapOn: "DE"
+# The picker option's accessibility label combines the country code with
+# its selection state ("DE, Choose"), so match the country prefix.
+- tapOn:
+    text: "DE, .*"
 
 - scrollUntilVisible:
     element:
