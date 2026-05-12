@@ -87,23 +87,27 @@ def bump_version
   execute_or_fail("yarn version --#{@release_type}")
 end
 
+def current_branch
+  @branch_name || `git rev-parse --abbrev-ref HEAD`.strip
+end
+
 def publish_to_npm
   if @is_dry_run
     puts ""
     puts "[dry-run] Would publish to npm with: npm publish --ignore-scripts --access=public"
-    puts "[dry-run] Would push branch '#{@branch_name}' with tags to origin"
+    puts "[dry-run] Would push branch '#{current_branch}' with tags to origin"
     puts "[dry-run] Would create a GitHub release"
     puts ""
     puts "Dry run complete. Cleaning up..."
     execute("git checkout master")
-    execute("git branch -D #{@branch_name}")
+    execute("git branch -D #{current_branch}")
   else
     puts "Publishing release"
     execute_or_fail("npm publish --ignore-scripts --access=public")
     puts "Published to npm!"
 
     puts "Pushing git commit and tag"
-    execute_or_fail("git push -u origin #{@branch_name} --follow-tags")
+    execute_or_fail("git push -u origin #{current_branch} --follow-tags")
 
     puts ""
     puts "Tag pushed! Please open a PR for your version bump: https://github.com/stripe/stripe-react-native/pulls"
