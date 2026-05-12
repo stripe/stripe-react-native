@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   AccessibilityProps,
   LayoutAnimation,
@@ -68,11 +68,12 @@ export interface CurrencySelectorElementProps extends AccessibilityProps {
  * @category ReactComponents
  * @internal
  */
-export const CurrencySelectorElement = forwardRef<
-  unknown,
-  CurrencySelectorElementProps
->(({ checkout, disabled = false, ...a11yProps }, _ref) => {
-  const [height, setHeight] = useState<number | undefined>(undefined);
+export function CurrencySelectorElement({
+  checkout,
+  disabled = false,
+  ...a11yProps
+}: CurrencySelectorElementProps) {
+  const [height, setHeight] = useState<number>(0);
 
   const handleHeightChange = useCallback(
     (e: NativeSyntheticEvent<HeightChangeEvent>) => {
@@ -91,6 +92,4 @@ export const CurrencySelectorElement = forwardRef<
       {...a11yProps}
     />
   );
-});
-
-CurrencySelectorElement.displayName = 'CurrencySelectorElement';
+}

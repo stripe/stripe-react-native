@@ -1,6 +1,9 @@
 # CHANGELOG
 
-## Unreleased
+## 0.65.1 - 2026-05-11
+**Fixes**
+* [Fixed] Fixed bug preventing PaymentSheet from dismissing when presenting with timeout. ([#2451](https://github.com/stripe/stripe-react-native/pull/2451))
+* [Fixed] Fixed spurious `onExit` events firing when using `ASWebAuthenticationSession`. ([#2447](https://github.com/stripe/stripe-react-native/pull/2447))
 
 ## 0.65.0 - 2026-04-29
 **Changes**

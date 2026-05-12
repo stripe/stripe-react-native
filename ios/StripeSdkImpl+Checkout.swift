@@ -5,6 +5,7 @@
 //  Created by Nick Porter on 4/29/26.
 //
 
+import Combine
 import Foundation
 @_spi(CheckoutSessionsPreview) import StripePaymentSheet
 
@@ -35,7 +36,17 @@ extension StripeSdkImpl {
                 )
                 let sessionKey = UUID().uuidString
 
+                let cancellable = checkout.$state
+                    .dropFirst()
+                    .sink { [weak self] state in
+                        self?.emitter?.emitCheckoutSessionDidChangeState([
+                            "sessionKey": sessionKey,
+                            "state": Mappers.mapFromCheckoutState(state),
+                        ])
+                    }
+
                 self.checkoutInstances[sessionKey] = checkout
+                self.checkoutStateCancellables[sessionKey] = cancellable
 
                 resolve([
                     "sessionKey": sessionKey,
