@@ -1827,7 +1827,7 @@ PODS:
     - StripePayments (= 25.13.0)
     - StripePaymentsUI (= 25.13.0)
     - StripeUICore (= 25.13.0)
-  - stripe-react-native (0.64.0):
+  - stripe-react-native (0.65.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1848,10 +1848,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - stripe-react-native/Core (= 0.64.0)
-    - stripe-react-native/NewArch (= 0.64.0)
+    - stripe-react-native/Core (= 0.65.1)
+    - stripe-react-native/NewArch (= 0.65.1)
     - Yoga
-  - stripe-react-native/Core (0.64.0):
+  - stripe-react-native/Core (0.65.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1879,7 +1879,7 @@ PODS:
     - StripePaymentSheet (~> 25.13.0)
     - StripePaymentsUI (~> 25.13.0)
     - Yoga
-  - stripe-react-native/NewArch (0.64.0):
+  - stripe-react-native/NewArch (0.65.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1901,7 +1901,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-react-native/Onramp (0.64.0):
+  - stripe-react-native/Onramp (0.65.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1925,7 +1925,7 @@ PODS:
     - stripe-react-native/Core
     - StripeCryptoOnramp (~> 25.13.0)
     - Yoga
-  - stripe-react-native/Tests (0.64.0):
+  - stripe-react-native/Tests (0.65.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2333,7 +2333,7 @@ SPEC CHECKSUMS:
   RNCPicker: c8a3584b74133464ee926224463fcc54dfdaebca
   RNScreens: 61c18865ab074f4d995ac8d7cf5060522a649d05
   Stripe: 3d241be743456d16f96110a59fe6497ca5a00697
-  stripe-react-native: 35ecfc5e6dc35b0c6f2892d6acdbf75426cd1397
+  stripe-react-native: 68b0f32a408b15a4ed68dfc62129b9eda026b68f
   StripeApplePay: 9e074a663f407f3bd93e457c564b4aba839bf034
   StripeCameraCore: a5a96f71d826cfecba3c67959d1b76c24e280b8a
   StripeCore: 4b07dcfb8baa5d5b970a48af4cb63ebf68ddfbeb
