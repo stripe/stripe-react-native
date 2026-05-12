@@ -4,15 +4,28 @@ package com.reactnativestripesdk.mappers
 
 import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.toArgb
+import com.facebook.react.bridge.ReadableArray
+import com.reactnativestripesdk.ComplianceIdentifierFieldException
+import com.reactnativestripesdk.InvalidIdentifiersArrayException
 import com.reactnativestripesdk.mapAppearance
 import com.reactnativestripesdk.mapConfig
+import com.reactnativestripesdk.mapFromComplianceIdentifierRequirements
 import com.reactnativestripesdk.mapFromKycInfo
+import com.reactnativestripesdk.mapFromSubmitIdentifiersResult
 import com.reactnativestripesdk.mapGooglePayConfig
 import com.reactnativestripesdk.mapPaymentDetailsType
+import com.reactnativestripesdk.mapToComplianceIdentifiers
+import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierAlternativeGroup
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierRequirement
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierRequirements
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierType
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceRegulation
+import com.stripe.android.crypto.onramp.model.compliance.SubmitIdentifiersResult
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance.Style
@@ -22,12 +35,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @SuppressLint("RestrictedApi")
+@Suppress("LargeClass")
 @RunWith(RobolectricTestRunner::class)
 class OnrampMappersTest {
   @Test
@@ -555,4 +570,179 @@ class OnrampMappersTest {
     assertFalse(address.hasKey("postalCode"))
     assertFalse(address.hasKey("state"))
   }
+
+  @Test
+  fun mapToComplianceIdentifiers_ValidIdentifiers_TrimsAndMapsValues() {
+    val identifiers =
+      readableArrayOf(
+        readableMapOf(
+          "type" to " AT_STN ",
+          "value" to " 123456789 ",
+        ),
+        readableMapOf(
+          "type" to "DE_STN",
+          "value" to "987654321",
+        ),
+      )
+
+    val result = mapToComplianceIdentifiers(identifiers)
+
+    assertEquals(2, result.size)
+    val first = result[0].`build$crypto_onramp_release`()
+    val second = result[1].`build$crypto_onramp_release`()
+    assertEquals("AT_STN", first.type.value)
+    assertEquals("123456789", first.value)
+    assertEquals("DE_STN", second.type.value)
+    assertEquals("987654321", second.value)
+  }
+
+  @Test
+  fun mapToComplianceIdentifiers_BlankType_ThrowsFieldException() {
+    val identifiers =
+      readableArrayOf(
+        readableMapOf(
+          "type" to "   ",
+          "value" to "123456789",
+        ),
+      )
+
+    val error =
+      assertThrows(ComplianceIdentifierFieldException::class.java) {
+        mapToComplianceIdentifiers(identifiers)
+      }
+
+    assertEquals("Invalid format for field: type", error.message)
+  }
+
+  @Test
+  fun mapToComplianceIdentifiers_BlankValue_ThrowsFieldException() {
+    val identifiers =
+      readableArrayOf(
+        readableMapOf(
+          "type" to "AT_STN",
+          "value" to "   ",
+        ),
+      )
+
+    val error =
+      assertThrows(ComplianceIdentifierFieldException::class.java) {
+        mapToComplianceIdentifiers(identifiers)
+      }
+
+    assertEquals("Invalid format for field: value", error.message)
+  }
+
+  @Test
+  fun mapToComplianceIdentifiers_NonMapEntry_ThrowsInvalidArrayException() {
+    val identifiers = readableArrayOf("AT_STN")
+
+    val error =
+      assertThrows(InvalidIdentifiersArrayException::class.java) {
+        mapToComplianceIdentifiers(identifiers)
+      }
+
+    assertEquals(
+      "Unexpected format of identifiers array. Expected dictionaries with String keys.",
+      error.message,
+    )
+  }
+
+  @Test
+  fun mapFromComplianceIdentifierRequirements_MapsIdentifiersAndAlternatives() {
+    val requirements =
+      ComplianceIdentifierRequirements(
+        identifiers =
+          listOf(
+            ComplianceIdentifierRequirement(
+              ComplianceIdentifierType("AT_STN"),
+              ComplianceRegulation.EuCarf,
+            ),
+            ComplianceIdentifierRequirement(
+              ComplianceIdentifierType("DE_STN"),
+              ComplianceRegulation.EuMica,
+            ),
+          ),
+        alternatives =
+          listOf(
+            ComplianceIdentifierAlternativeGroup(
+              originalMissingIdentifiers =
+                listOf(
+                  ComplianceIdentifierType("AT_STN"),
+                  ComplianceIdentifierType("DE_STN"),
+                ),
+              alternativeMissingIdentifiers =
+                listOf(
+                  ComplianceIdentifierType("FR_SPI"),
+                ),
+            ),
+          ),
+      )
+
+    val result = mapFromComplianceIdentifierRequirements(requirements)
+
+    val identifierMaps = result.getArray("identifiers")!!
+    assertEquals(2, identifierMaps.size())
+    assertEquals("AT_STN", identifierMaps.getMap(0)!!.getString("type"))
+    assertEquals("eu_carf", identifierMaps.getMap(0)!!.getString("regulation"))
+    assertEquals("DE_STN", identifierMaps.getMap(1)!!.getString("type"))
+    assertEquals("eu_mica", identifierMaps.getMap(1)!!.getString("regulation"))
+
+    val alternativeGroups = result.getArray("alternatives")!!
+    assertEquals(1, alternativeGroups.size())
+    val firstGroup = alternativeGroups.getMap(0)!!
+    assertEquals(
+      listOf("AT_STN", "DE_STN"),
+      firstGroup.getArray("originalMissingIdentifiers")!!.asStringList(),
+    )
+    assertEquals(
+      listOf("FR_SPI"),
+      firstGroup.getArray("alternativeMissingIdentifiers")!!.asStringList(),
+    )
+  }
+
+  @Test
+  fun mapFromSubmitIdentifiersResult_MapsValidityIdentifiersAlternativesAndInvalidIdentifiers() {
+    val result =
+      SubmitIdentifiersResult(
+        valid = false,
+        identifiers =
+          listOf(
+            ComplianceIdentifierRequirement(
+              ComplianceIdentifierType("AT_STN"),
+              ComplianceRegulation.EuCarf,
+            ),
+          ),
+        alternatives =
+          listOf(
+            ComplianceIdentifierAlternativeGroup(
+              originalMissingIdentifiers = listOf(ComplianceIdentifierType("DE_STN")),
+              alternativeMissingIdentifiers = listOf(ComplianceIdentifierType("FR_SPI")),
+            ),
+          ),
+        invalidIdentifiers =
+          listOf(
+            ComplianceIdentifierType("AT_STN"),
+            ComplianceIdentifierType("FR_SPI"),
+          ),
+      )
+
+    val mapped = mapFromSubmitIdentifiersResult(result)
+
+    assertFalse(mapped.getBoolean("valid"))
+    assertEquals("AT_STN", mapped.getArray("identifiers")!!.getMap(0)!!.getString("type"))
+    assertEquals(
+      listOf("DE_STN"),
+      mapped.getArray("alternatives")!!
+        .getMap(0)!!
+        .getArray("originalMissingIdentifiers")!!
+        .asStringList(),
+    )
+    assertEquals(
+      listOf("AT_STN", "FR_SPI"),
+      mapped.getArray("invalidIdentifiers")!!.asStringList(),
+    )
+  }
+
+  private fun ReadableArray.asStringList(): List<String> =
+    (0 until size()).map { index -> getString(index)!! }
 }

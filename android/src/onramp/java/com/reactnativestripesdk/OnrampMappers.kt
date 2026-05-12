@@ -5,11 +5,20 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.Color
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifier
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierAlternativeGroup
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierRequirement
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierRequirements
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierType
+import com.stripe.android.crypto.onramp.model.compliance.SubmitIdentifiersResult
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance
@@ -182,6 +191,91 @@ internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
   return result
 }
 
+internal fun mapToComplianceIdentifiers(identifiers: ReadableArray): List<ComplianceIdentifier> {
+  val complianceIdentifiers = mutableListOf<ComplianceIdentifier>()
+
+  for (index in 0 until identifiers.size()) {
+    val identifierMap =
+      identifiers.getMap(index)
+        ?: throw InvalidIdentifiersArrayException()
+    val type = identifierMap.getRequiredNormalizedString("type")
+    val value = identifierMap.getRequiredNormalizedString("value")
+
+    complianceIdentifiers.add(
+      ComplianceIdentifier()
+        .type(ComplianceIdentifierType(type))
+        .value(value),
+    )
+  }
+
+  return complianceIdentifiers
+}
+
+internal fun mapFromComplianceIdentifierRequirements(
+  requirements: ComplianceIdentifierRequirements,
+) = WritableNativeMap().apply {
+  putArray("identifiers", mapFromComplianceIdentifierRequirementsList(requirements.identifiers))
+  putArray("alternatives", mapFromComplianceIdentifierAlternativeGroups(requirements.alternatives))
+}
+
+internal fun mapFromSubmitIdentifiersResult(
+  result: SubmitIdentifiersResult,
+) = WritableNativeMap().apply {
+  putBoolean("valid", result.valid)
+  putArray("identifiers", mapFromComplianceIdentifierRequirementsList(result.identifiers))
+  putArray("alternatives", mapFromComplianceIdentifierAlternativeGroups(result.alternatives))
+  putArray("invalidIdentifiers", mapFromComplianceIdentifierTypes(result.invalidIdentifiers))
+}
+
+private fun mapFromComplianceIdentifierRequirementsList(
+  requirements: List<ComplianceIdentifierRequirement>,
+): WritableArray =
+  Arguments.createArray().apply {
+    requirements.forEach { requirement ->
+      pushMap(
+        WritableNativeMap().apply {
+          putString("type", requirement.type.value)
+          putString("regulation", requirement.regulation.value)
+        },
+      )
+    }
+  }
+
+private fun mapFromComplianceIdentifierAlternativeGroups(
+  groups: List<ComplianceIdentifierAlternativeGroup>,
+): WritableArray =
+  Arguments.createArray().apply {
+    groups.forEach { group ->
+      pushMap(
+        WritableNativeMap().apply {
+          putArray(
+            "originalMissingIdentifiers",
+            mapFromComplianceIdentifierTypes(group.originalMissingIdentifiers),
+          )
+          putArray(
+            "alternativeMissingIdentifiers",
+            mapFromComplianceIdentifierTypes(group.alternativeMissingIdentifiers),
+          )
+        },
+      )
+    }
+  }
+
+private fun mapFromComplianceIdentifierTypes(
+  identifierTypes: List<ComplianceIdentifierType>,
+): WritableArray =
+  Arguments.createArray().apply {
+    identifierTypes.forEach { identifierType ->
+      pushString(identifierType.value)
+    }
+  }
+
+private fun ReadableMap.getRequiredNormalizedString(key: String): String =
+  getString(key)
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw ComplianceIdentifierFieldException(key)
+
 private fun mapFromKycAddress(address: PaymentSheet.Address): ReadableMap {
   val result = Arguments.createMap()
 
@@ -202,3 +296,10 @@ private fun mapFromDateOfBirth(dateOfBirth: DateOfBirth): ReadableMap {
   result.putInt("year", dateOfBirth.year)
   return result
 }
+
+internal class ComplianceIdentifierFieldException(
+  field: String,
+) : IllegalArgumentException("Invalid format for field: $field")
+
+internal class InvalidIdentifiersArrayException :
+  IllegalArgumentException("Unexpected format of identifiers array. Expected dictionaries with String keys.")
