@@ -1,0 +1,111 @@
+# Test the Checkout Playground's CurrencySelectorElement (Adaptive Pricing).
+# Toggles the selector from the merchant currency (USD) to the localized
+# currency (EUR for DE), waits for the session to update, then completes
+# the payment to verify the selected currency flows through PaymentSheet.
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Accept a payment"
+- tapOn: "Checkout Playground"
+
+# Enable Adaptive Pricing. The toggle lives below the fold, so scroll
+# until it's visible regardless of where it lands on a given screen size.
+- scrollUntilVisible:
+    element:
+      id: "adaptive_pricing_toggle"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: "adaptive_pricing_toggle"
+
+# Pick a country that produces a different currency than the session's
+# USD merchant currency so the selector renders both options.
+- scrollUntilVisible:
+    element:
+      id: "adaptive_pricing_country_picker"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: "adaptive_pricing_country_picker"
+- tapOn: "DE"
+
+- scrollUntilVisible:
+    element:
+      text: "Create checkout session"
+    direction: DOWN
+    timeout: 30000
+- tapOn: "Create checkout session"
+
+# Wait for the cart to load. The Pay button's currency code is the most
+# reliable signal that the session is fully loaded with totals available.
+- extendedWaitUntil:
+    visible:
+      text: "Pay USD .*"
+    timeout: 150000
+
+# The CurrencySelectorElement is rendered below the promotion code row.
+# Scroll to it and tap the EUR option (matched by currency symbol so the
+# test isn't tied to a specific exchange-rate amount).
+- scrollUntilVisible:
+    element:
+      text: ".*€.*"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: ".*€.*"
+
+# After tapping EUR, the session re-prices and the Pay button updates.
+# Waiting on this transition guards against asserting before the
+# selectCurrency network round-trip completes.
+- extendedWaitUntil:
+    visible:
+      text: "Pay EUR .*"
+    timeout: 60000
+
+# Open PaymentSheet and pay with a test card.
+- scrollUntilVisible:
+    element:
+      text: "Pay EUR .*"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: "Pay EUR .*"
+
+- extendedWaitUntil:
+    visible: "TEST"
+    timeout: 150000
+- tapOn:
+    text: "Card"
+    optional: true
+- tapOn:
+    text: "New card"
+    optional: true
+
+- tapOn:
+    text: "Card number"
+- inputText: "4242424242424242"
+- tapOn:
+    text: "MM / YY"
+    optional: true
+- inputText: "0145"
+- inputText: "123"
+
+- scrollUntilVisible:
+    element:
+      id: primary_button # Android
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "purchase!" # iOS
+    optional: true
+- tapOn:
+    id: primary_button # Android
+    optional: true
+- tapOn:
+    text: "purchase!" # iOS
+    optional: true
+
+- assertVisible:
+    text: "Payment successful"
+- tapOn: "OK"
