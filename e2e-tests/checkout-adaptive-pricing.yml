@@ -37,17 +37,22 @@ appId: ${APP_ID}
 
 - scrollUntilVisible:
     element:
-      text: ".*\\$.*"
+      id: "currency_selector_element"
     direction: DOWN
     centerElement: true
     timeout: 30000
-- extendedWaitUntil:
-    visible:
-      text: ".*USD = .*EUR.*"
-    timeout: 30000
-- tapOn:
-    text: ".*\\$.*"
-    selected: false
+- runFlow:
+    when:
+      platform: ios
+    commands:
+      - tapOn:
+          text: ".*\\$.*"
+- runFlow:
+    when:
+      platform: android
+    commands:
+      - tapOn:
+          point: "25%,58%"
 
 - extendedWaitUntil:
     visible:
@@ -100,7 +105,7 @@ appId: ${APP_ID}
 - inputText: "0145"
 - inputText: "123"
 - tapOn:
-    text: "ZIP"
+    text: "ZIP.*"
 - inputText: "12345"
 
 - scrollUntilVisible:

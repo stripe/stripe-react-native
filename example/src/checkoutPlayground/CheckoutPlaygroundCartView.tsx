@@ -674,7 +674,7 @@ export function CheckoutPlaygroundCartView({
         ) : null}
 
         {config.adaptivePricing ? (
-          <View style={{ marginBottom: 16 }}>
+          <View style={{ marginBottom: 16 }} testID="currency_selector_element">
             <CurrencySelectorElement
               checkout={checkout}
               disabled={isUpdating}
