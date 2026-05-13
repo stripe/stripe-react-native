@@ -498,9 +498,7 @@ export default function CryptoOnrampFlow() {
       if (result.error.code === 'Canceled') {
         showCanceled('CRS/CARF declaration cancelled.');
       } else {
-        showError(
-          `Failed to present CRS/CARF declaration: ${result.error.message}.`
-        );
+        showError(`Failed to attest: ${result.error.message}.`);
       }
       return;
     }
