@@ -21,7 +21,7 @@ appId: ${APP_ID}
 - tapOn:
     id: "adaptive_pricing_country_picker"
 - tapOn:
-    text: "DE, .*"
+    text: "DE.*"
 
 - scrollUntilVisible:
     element:
