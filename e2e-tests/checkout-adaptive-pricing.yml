@@ -50,6 +50,24 @@ appId: ${APP_ID}
 
 - scrollUntilVisible:
     element:
+      text: "Add shipping address"
+    direction: UP
+    timeout: 30000
+- tapOn: "Add shipping address"
+- extendedWaitUntil:
+    visible: "Shipping address"
+    timeout: 30000
+- tapOn:
+    text: "Full name"
+- inputText: "Jenny Rosen"
+- tapOn: "Use shipping address"
+
+- extendedWaitUntil:
+    visible:
+      text: "Pay USD .*"
+    timeout: 60000
+- scrollUntilVisible:
+    element:
       text: "Pay USD .*"
     direction: DOWN
     timeout: 30000
