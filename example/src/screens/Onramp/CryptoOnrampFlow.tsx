@@ -1,10 +1,7 @@
-import {
-  Onramp,
-  PlatformPay,
-  useOnramp,
-  useStripe,
-} from '@stripe/stripe-react-native';
+import { PlatformPay, useStripe } from '@stripe/stripe-react-native';
 import type { Address } from '@stripe/stripe-react-native';
+import { useOnramp } from '@stripe/stripe-react-native/src/hooks/useOnramp';
+import { Onramp } from '@stripe/stripe-react-native/src/types';
 import React, { useCallback, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -30,6 +27,8 @@ import {
 } from '../../api/onrampBackend';
 import {
   getDestinationParamsForNetwork,
+  formatIdentifierRequirements,
+  formatSubmitIdentifiersResult,
   showError,
   showSuccess,
   showCanceled,
@@ -44,6 +43,7 @@ import {
   VerifyIdentitySection,
   PhoneNumberUpdateSection,
   LinkAuthenticationSection,
+  ComplianceIdentifiersSection,
   PaymentCollectionSection,
   CryptoOperationsSection,
   OnrampSessionCreationSection,
@@ -58,6 +58,9 @@ export default function CryptoOnrampFlow() {
     hasLinkAccount,
     verifyIdentity,
     attachKycInfo,
+    retrieveMissingIdentifiers,
+    submitIdentifiers,
+    presentCRSCARFDeclaration,
     presentKycInfoVerification,
     updatePhoneNumber,
     collectPaymentMethod,
@@ -89,6 +92,18 @@ export default function CryptoOnrampFlow() {
 
   const [response, setResponse] = useState<string | null>(null);
   const [isLinkUser, setIsLinkUser] = useState(false);
+  const [identifierInputs, setIdentifierInputs] = useState<
+    Array<{ type: string; value: string }>
+  >([{ type: '', value: '' }]);
+  const [missingIdentifiersSummary, setMissingIdentifiersSummary] = useState<
+    string | null
+  >(null);
+  const [submitIdentifiersSummary, setSubmitIdentifiersSummary] = useState<
+    string | null
+  >(null);
+  const [crsCarfDeclarationStatus, setCrsCarfDeclarationStatus] = useState<
+    string | null
+  >(null);
 
   const [customerId, setCustomerId] = useState<string | null>(null);
 
@@ -368,6 +383,131 @@ export default function CryptoOnrampFlow() {
     authorize,
     linkAuthIntentId,
   ]);
+
+  const updateIdentifierType = useCallback((index: number, value: string) => {
+    setIdentifierInputs((current) =>
+      current.map((input, currentIndex) =>
+        currentIndex === index ? { ...input, type: value } : input
+      )
+    );
+  }, []);
+
+  const updateIdentifierValue = useCallback((index: number, value: string) => {
+    setIdentifierInputs((current) =>
+      current.map((input, currentIndex) =>
+        currentIndex === index ? { ...input, value } : input
+      )
+    );
+  }, []);
+
+  const addIdentifierInput = useCallback(() => {
+    setIdentifierInputs((current) => [...current, { type: '', value: '' }]);
+  }, []);
+
+  const removeIdentifierInput = useCallback((index: number) => {
+    setIdentifierInputs((current) => {
+      if (current.length === 1) {
+        return [{ type: '', value: '' }];
+      }
+
+      return current.filter((_, currentIndex) => currentIndex !== index);
+    });
+  }, []);
+
+  const buildIdentifiersRequest = useCallback(() => {
+    const identifiers: Onramp.ComplianceIdentifier[] = [];
+
+    for (const [index, identifierInput] of identifierInputs.entries()) {
+      const type = identifierInput.type.trim();
+      const value = identifierInput.value.trim();
+
+      if (type === '' && value === '') {
+        continue;
+      }
+
+      if (type === '' || value === '') {
+        showError(`Identifier ${index + 1} requires both type and value.`);
+        return null;
+      }
+
+      identifiers.push({ type, value });
+    }
+
+    if (identifiers.length === 0) {
+      showError('Enter at least one identifier.');
+      return null;
+    }
+
+    return identifiers;
+  }, [identifierInputs]);
+
+  const handleRetrieveMissingIdentifiers = useCallback(async () => {
+    const result = await withReauth(
+      () => retrieveMissingIdentifiers(),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result.error) {
+      showError(
+        `Failed to retrieve missing identifiers: ${result.error.message}.`
+      );
+      return;
+    }
+
+    setMissingIdentifiersSummary(formatIdentifierRequirements(result));
+    showSuccess('Missing identifiers retrieved.');
+  }, [retrieveMissingIdentifiers, withReauth, authorize, linkAuthIntentId]);
+
+  const handleSubmitIdentifiers = useCallback(async () => {
+    const identifiers = buildIdentifiersRequest();
+    if (!identifiers) {
+      return;
+    }
+
+    const result = await withReauth(
+      () => submitIdentifiers(identifiers),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result.error) {
+      showError(`Failed to submit identifiers: ${result.error.message}.`);
+      return;
+    }
+
+    setSubmitIdentifiersSummary(formatSubmitIdentifiersResult(result));
+    showSuccess(
+      result.valid
+        ? 'Identifiers submitted successfully.'
+        : 'Identifiers submitted. Review the remaining requirements below.'
+    );
+  }, [
+    buildIdentifiersRequest,
+    submitIdentifiers,
+    withReauth,
+    authorize,
+    linkAuthIntentId,
+  ]);
+
+  const handlePresentCRSCARFDeclaration = useCallback(async () => {
+    const result = await withReauth(
+      () => presentCRSCARFDeclaration(),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result.error) {
+      if (result.error.code === 'Canceled') {
+        showCanceled('CRS/CARF declaration cancelled.');
+      } else {
+        showError(
+          `Failed to present CRS/CARF declaration: ${result.error.message}.`
+        );
+      }
+      return;
+    }
+
+    setCrsCarfDeclarationStatus(result.status);
+    showSuccess('CRS/CARF declaration confirmed.');
+  }, [presentCRSCARFDeclaration, withReauth, authorize, linkAuthIntentId]);
 
   const handlePresentKycVerification = useCallback(
     async (updatedAddress: Address | null) => {
@@ -676,6 +816,10 @@ export default function CryptoOnrampFlow() {
       setLinkAuthIntentId('');
       setResponse(null);
       setIsLinkUser(false);
+      setIdentifierInputs([{ type: '', value: '' }]);
+      setMissingIdentifiersSummary(null);
+      setSubmitIdentifiersSummary(null);
+      setCrsCarfDeclarationStatus(null);
       setCustomerId(null);
       setCurrentPaymentDisplayData(null);
       setCryptoPaymentToken(null);
@@ -897,7 +1041,22 @@ export default function CryptoOnrampFlow() {
             setUpdatedAddress={setKycUpdatedAddress}
             onVerifyKyc={(addr) => handlePresentKycVerification(addr)}
           />
-          <VerifyIdentitySection handleVerifyIdentity={handleVerifyIdentity} />
+          <ComplianceIdentifiersSection
+            identifierInputs={identifierInputs}
+            missingIdentifiersSummary={missingIdentifiersSummary}
+            submitIdentifiersSummary={submitIdentifiersSummary}
+            onIdentifierTypeChange={updateIdentifierType}
+            onIdentifierValueChange={updateIdentifierValue}
+            onAddIdentifier={addIdentifierInput}
+            onRemoveIdentifier={removeIdentifierInput}
+            handleRetrieveMissingIdentifiers={handleRetrieveMissingIdentifiers}
+            handleSubmitIdentifiers={handleSubmitIdentifiers}
+          />
+          <VerifyIdentitySection
+            handleVerifyIdentity={handleVerifyIdentity}
+            handlePresentCRSCARFDeclaration={handlePresentCRSCARFDeclaration}
+            crsCarfDeclarationStatus={crsCarfDeclarationStatus}
+          />
           <PaymentCollectionSection
             isPlatformPaySupported={isPlatformPayAvailable}
             handleCollectPlatformPayPayment={

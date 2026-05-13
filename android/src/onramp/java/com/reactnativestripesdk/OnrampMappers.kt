@@ -8,7 +8,6 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
-import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
@@ -196,7 +195,8 @@ internal fun mapToComplianceIdentifiers(identifiers: ReadableArray): List<Compli
 
   for (index in 0 until identifiers.size()) {
     val identifierMap =
-      identifiers.getMap(index)
+      runCatching { identifiers.getMap(index) }
+        .getOrNull()
         ?: throw InvalidIdentifiersArrayException()
     val type = identifierMap.getRequiredNormalizedString("type")
     val value = identifierMap.getRequiredNormalizedString("value")
@@ -213,14 +213,14 @@ internal fun mapToComplianceIdentifiers(identifiers: ReadableArray): List<Compli
 
 internal fun mapFromComplianceIdentifierRequirements(
   requirements: ComplianceIdentifierRequirements,
-) = WritableNativeMap().apply {
+) = Arguments.createMap().apply {
   putArray("identifiers", mapFromComplianceIdentifierRequirementsList(requirements.identifiers))
   putArray("alternatives", mapFromComplianceIdentifierAlternativeGroups(requirements.alternatives))
 }
 
 internal fun mapFromSubmitIdentifiersResult(
   result: SubmitIdentifiersResult,
-) = WritableNativeMap().apply {
+) = Arguments.createMap().apply {
   putBoolean("valid", result.valid)
   putArray("identifiers", mapFromComplianceIdentifierRequirementsList(result.identifiers))
   putArray("alternatives", mapFromComplianceIdentifierAlternativeGroups(result.alternatives))
@@ -233,7 +233,7 @@ private fun mapFromComplianceIdentifierRequirementsList(
   Arguments.createArray().apply {
     requirements.forEach { requirement ->
       pushMap(
-        WritableNativeMap().apply {
+        Arguments.createMap().apply {
           putString("type", requirement.type.value)
           putString("regulation", requirement.regulation.value)
         },
@@ -247,7 +247,7 @@ private fun mapFromComplianceIdentifierAlternativeGroups(
   Arguments.createArray().apply {
     groups.forEach { group ->
       pushMap(
-        WritableNativeMap().apply {
+        Arguments.createMap().apply {
           putArray(
             "originalMissingIdentifiers",
             mapFromComplianceIdentifierTypes(group.originalMissingIdentifiers),
