@@ -51,7 +51,7 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       text: "Add shipping address"
-    direction: UP
+    direction: DOWN
     timeout: 30000
 - tapOn: "Add shipping address"
 - extendedWaitUntil:
