@@ -8,6 +8,7 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
+import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
@@ -186,6 +187,11 @@ internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
   kycInfo.idNumber?.let { result.putString("idNumber", it) }
   kycInfo.address?.let { result.putMap("address", mapFromKycAddress(it)) }
   kycInfo.dateOfBirth?.let { result.putMap("dateOfBirth", mapFromDateOfBirth(it)) }
+  kycInfo.birthCountry?.let { result.putString("birthCountry", it.value) }
+  kycInfo.birthCity?.let { result.putString("birthCity", it) }
+  kycInfo.nationalities?.let {
+    result.putArray("nationalities", mapFromCountryCodes(it))
+  }
 
   return result
 }
@@ -267,6 +273,15 @@ private fun mapFromComplianceIdentifierTypes(
   Arguments.createArray().apply {
     identifierTypes.forEach { identifierType ->
       pushString(identifierType.value)
+    }
+  }
+
+private fun mapFromCountryCodes(
+  countryCodes: List<CountryCode>,
+): WritableArray =
+  Arguments.createArray().apply {
+    countryCodes.forEach { countryCode ->
+      pushString(countryCode.value)
     }
   }
 

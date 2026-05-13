@@ -50,8 +50,34 @@ import {
   RegisterWalletAddressSection,
   OnrampResponseStatusSection,
 } from './sections';
+import type { KycInfoInput } from './sections/AttachKycInfoSection';
+import type { UserInfo } from './sections/PhoneNumberUpdateSection';
 import { colors } from '../../colors';
 import { PaymentMethodDisplayData } from '@stripe/stripe-react-native/src/types/Onramp';
+
+const createInitialUserInfo = (): UserInfo => ({
+  email: '',
+  password: '',
+  phoneNumber: '',
+});
+
+const createInitialKycInfoInput = (): KycInfoInput => ({
+  firstName: '',
+  lastName: '',
+  idNumber: '',
+  dateOfBirthDay: '',
+  dateOfBirthMonth: '',
+  dateOfBirthYear: '',
+  addressLine1: '',
+  addressLine2: '',
+  addressCity: '',
+  addressState: '',
+  addressPostalCode: '',
+  addressCountry: '',
+  birthCountry: '',
+  birthCity: '',
+  nationalities: '',
+});
 
 export default function CryptoOnrampFlow() {
   const {
@@ -73,13 +99,10 @@ export default function CryptoOnrampFlow() {
     authenticateUserWithToken,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
-  const [userInfo, setUserInfo] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-  });
+  const [userInfo, setUserInfo] = useState<UserInfo>(createInitialUserInfo);
+  const [kycInfoInput, setKycInfoInput] = useState<KycInfoInput>(
+    createInitialKycInfoInput
+  );
   const [linkAuthIntentId, setLinkAuthIntentId] = useState('');
 
   // Seamless sign-in persistence
@@ -346,24 +369,11 @@ export default function CryptoOnrampFlow() {
   }, [verifyIdentity, withReauth, authorize, linkAuthIntentId]);
 
   const handleAttachKycInfo = useCallback(async () => {
-    const kycInfo = {
-      firstName: userInfo.firstName,
-      lastName: userInfo.lastName,
-      idNumber: '000000000',
-      dateOfBirth: {
-        day: 1,
-        month: 1,
-        year: 1990,
-      },
-      address: {
-        line1: '123 Main St',
-        line2: 'Apt 4B',
-        city: 'San Francisco',
-        state: 'CA',
-        postalCode: '94111',
-        country: 'US',
-      },
-    };
+    const kycInfo = buildKycInfoInput(kycInfoInput);
+
+    if (kycInfo === null) {
+      return;
+    }
 
     const result = await withReauth(
       () => attachKycInfo(kycInfo),
@@ -375,14 +385,7 @@ export default function CryptoOnrampFlow() {
     } else {
       showSuccess('KYC Attached');
     }
-  }, [
-    attachKycInfo,
-    userInfo.firstName,
-    userInfo.lastName,
-    withReauth,
-    authorize,
-    linkAuthIntentId,
-  ]);
+  }, [attachKycInfo, kycInfoInput, withReauth, authorize, linkAuthIntentId]);
 
   const updateIdentifierType = useCallback((index: number, value: string) => {
     setIdentifierInputs((current) =>
@@ -804,13 +807,8 @@ export default function CryptoOnrampFlow() {
     } else {
       showSuccess('Logged out successfully!');
       // Reset all state to initial values
-      setUserInfo({
-        email: '',
-        password: '',
-        firstName: '',
-        lastName: '',
-        phoneNumber: '',
-      });
+      setUserInfo(createInitialUserInfo());
+      setKycInfoInput(createInitialKycInfoInput());
       setLinkAuthIntentId('');
       setResponse(null);
       setIsLinkUser(false);
@@ -1029,8 +1027,8 @@ export default function CryptoOnrampFlow() {
             />
           </View>
           <AttachKycInfoSection
-            userInfo={userInfo}
-            setUserInfo={setUserInfo}
+            kycInfo={kycInfoInput}
+            setKycInfo={setKycInfoInput}
             handleAttachKycInfo={handleAttachKycInfo}
           />
           <KycRefreshSection
@@ -1130,6 +1128,139 @@ export default function CryptoOnrampFlow() {
       <View style={{ height: 32 }} />
     </ScrollView>
   );
+}
+
+function buildKycInfoInput(kycInfoInput: KycInfoInput): Onramp.KycInfo | null {
+  const day = normalizeOptionalString(kycInfoInput.dateOfBirthDay);
+  const month = normalizeOptionalString(kycInfoInput.dateOfBirthMonth);
+  const year = normalizeOptionalString(kycInfoInput.dateOfBirthYear);
+  const hasAnyDateOfBirthValue = !!(day || month || year);
+
+  if (hasAnyDateOfBirthValue && (!day || !month || !year)) {
+    showError('Date of birth requires day, month, and year.');
+    return null;
+  }
+
+  const result: Onramp.KycInfo = {};
+
+  const firstName = normalizeOptionalString(kycInfoInput.firstName);
+  if (firstName) {
+    result.firstName = firstName;
+  }
+
+  const lastName = normalizeOptionalString(kycInfoInput.lastName);
+  if (lastName) {
+    result.lastName = lastName;
+  }
+
+  const idNumber = normalizeOptionalString(kycInfoInput.idNumber);
+  if (idNumber) {
+    result.idNumber = idNumber;
+  }
+
+  if (hasAnyDateOfBirthValue) {
+    const parsedDay = Number(day);
+    const parsedMonth = Number(month);
+    const parsedYear = Number(year);
+
+    if (
+      !Number.isInteger(parsedDay) ||
+      !Number.isInteger(parsedMonth) ||
+      !Number.isInteger(parsedYear)
+    ) {
+      showError('Date of birth values must be whole numbers.');
+      return null;
+    }
+
+    if (
+      parsedDay < 1 ||
+      parsedDay > 31 ||
+      parsedMonth < 1 ||
+      parsedMonth > 12 ||
+      parsedYear < 1
+    ) {
+      showError('Date of birth values are out of range.');
+      return null;
+    }
+
+    result.dateOfBirth = {
+      day: parsedDay,
+      month: parsedMonth,
+      year: parsedYear,
+    };
+  }
+
+  const address: Address = {};
+
+  const addressLine1 = normalizeOptionalString(kycInfoInput.addressLine1);
+  if (addressLine1) {
+    address.line1 = addressLine1;
+  }
+
+  const addressLine2 = normalizeOptionalString(kycInfoInput.addressLine2);
+  if (addressLine2) {
+    address.line2 = addressLine2;
+  }
+
+  const addressCity = normalizeOptionalString(kycInfoInput.addressCity);
+  if (addressCity) {
+    address.city = addressCity;
+  }
+
+  const addressState = normalizeOptionalString(kycInfoInput.addressState);
+  if (addressState) {
+    address.state = addressState;
+  }
+
+  const addressPostalCode = normalizeOptionalString(
+    kycInfoInput.addressPostalCode
+  );
+  if (addressPostalCode) {
+    address.postalCode = addressPostalCode;
+  }
+
+  const addressCountry = normalizeCountryCode(kycInfoInput.addressCountry);
+  if (addressCountry) {
+    address.country = addressCountry;
+  }
+
+  if (Object.keys(address).length > 0) {
+    result.address = address;
+  }
+
+  const birthCountry = normalizeCountryCode(kycInfoInput.birthCountry);
+  if (birthCountry) {
+    result.birthCountry = birthCountry;
+  }
+
+  const birthCity = normalizeOptionalString(kycInfoInput.birthCity);
+  if (birthCity) {
+    result.birthCity = birthCity;
+  }
+
+  const nationalities = normalizeCountryCodeList(kycInfoInput.nationalities);
+  if (nationalities.length > 0) {
+    result.nationalities = nationalities;
+  }
+
+  return result;
+}
+
+function normalizeOptionalString(value: string): string | undefined {
+  const normalized = value.trim();
+  return normalized === '' ? undefined : normalized;
+}
+
+function normalizeCountryCode(value: string): string | undefined {
+  const normalized = normalizeOptionalString(value);
+  return normalized?.toUpperCase();
+}
+
+function normalizeCountryCodeList(value: string): string[] {
+  return value
+    .split(',')
+    .map((entry) => entry.trim().toUpperCase())
+    .filter((entry) => entry.length > 0);
 }
 
 function formatKycInfoForAlert(kycInfo: Onramp.KycInfo): string {

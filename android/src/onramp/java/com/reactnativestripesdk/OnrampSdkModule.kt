@@ -7,6 +7,7 @@ import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.SavedStateHandle
+import com.stripe.android.core.model.CountryCode
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -24,6 +25,7 @@ import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
+import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
@@ -320,10 +322,16 @@ class OnrampSdkModule(
           )
         } else {
           null
-        }
+      }
 
       val addressMap = kycInfo.getMap("address")
       val addressObj = mapToPaymentSheetAddress(addressMap)
+      val birthCountry = kycInfo.getString("birthCountry")?.let(CountryCode::create)
+      val birthCity = kycInfo.getString("birthCity")
+      val nationalities =
+        kycInfo.getStringList("nationalities")
+          ?.map(CountryCode::create)
+          ?.takeIf { it.isNotEmpty() }
 
       val kycInfoObj =
         KycInfo(
@@ -332,6 +340,9 @@ class OnrampSdkModule(
           idNumber = idNumber,
           dateOfBirth = dob,
           address = addressObj,
+          birthCountry = birthCountry,
+          birthCity = birthCity,
+          nationalities = nationalities,
         )
 
       when (val result = coordinator.attachKycInfo(kycInfoObj)) {

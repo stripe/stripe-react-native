@@ -196,6 +196,9 @@ class OnrampMappersTests: XCTestCase {
             "firstName": " Jane ",
             "lastName": " Doe ",
             "idNumber": " 123456789 ",
+            "birthCountry": " FR ",
+            "birthCity": " Paris ",
+            "nationalities": [" FR ", " DE "],
             "address": [
                 "city": " San Francisco ",
                 "country": " US ",
@@ -229,6 +232,9 @@ class OnrampMappersTests: XCTestCase {
             result.dateOfBirth,
             KycInfo.DateOfBirth(day: 15, month: 6, year: 1990)
         )
+        XCTAssertEqual(result.birthCountry, "FR")
+        XCTAssertEqual(result.birthCity, "Paris")
+        XCTAssertEqual(result.nationalities, ["FR", "DE"])
     }
 
     func test_mapToKycInfo_invalidAddressThrowsInvalidField() {
@@ -280,6 +286,20 @@ class OnrampMappersTests: XCTestCase {
         }
     }
 
+    func test_mapToKycInfo_invalidNationalitiesThrowsInvalidField() {
+        XCTAssertThrowsError(
+            try Mappers.mapToKycInfo([
+                "nationalities": ["FR", 123],
+            ])
+        ) { error in
+            guard case let Mappers.KycInfoError.invalidField(field) = error else {
+                return XCTFail("Expected invalidField error, got \(error)")
+            }
+
+            XCTAssertEqual(field, "nationalities")
+        }
+    }
+
     func test_mapToKycInfo_emptyParamsReturnsAllNil() throws {
         let result = try Mappers.mapToKycInfo([:])
 
@@ -288,6 +308,9 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertNil(result.idNumber)
         XCTAssertNil(result.address)
         XCTAssertNil(result.dateOfBirth)
+        XCTAssertNil(result.birthCountry)
+        XCTAssertNil(result.birthCity)
+        XCTAssertNil(result.nationalities)
     }
 
     func test_mapFromKycInfo_fullInfoMapsNestedValues() {
@@ -304,7 +327,10 @@ class OnrampMappersTests: XCTestCase {
                     postalCode: "94105",
                     state: "CA"
                 ),
-                dateOfBirth: KycInfo.DateOfBirth(day: 15, month: 6, year: 1990)
+                dateOfBirth: KycInfo.DateOfBirth(day: 15, month: 6, year: 1990),
+                birthCountry: "FR",
+                birthCity: "Paris",
+                nationalities: ["FR", "DE"]
             )
         )
 
@@ -324,6 +350,9 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertEqual(dateOfBirth?["day"], 15)
         XCTAssertEqual(dateOfBirth?["month"], 6)
         XCTAssertEqual(dateOfBirth?["year"], 1990)
+        XCTAssertEqual(result["birthCountry"] as? String, "FR")
+        XCTAssertEqual(result["birthCity"] as? String, "Paris")
+        XCTAssertEqual(result["nationalities"] as? [String], ["FR", "DE"])
     }
 
     func test_mapFromKycInfo_omitsNilFields() {
@@ -333,7 +362,10 @@ class OnrampMappersTests: XCTestCase {
                 lastName: nil,
                 idNumber: nil,
                 address: nil,
-                dateOfBirth: nil
+                dateOfBirth: nil,
+                birthCountry: nil,
+                birthCity: nil,
+                nationalities: nil
             )
         )
 
@@ -342,6 +374,9 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertNil(result["idNumber"])
         XCTAssertNil(result["address"])
         XCTAssertNil(result["dateOfBirth"])
+        XCTAssertNil(result["birthCountry"])
+        XCTAssertNil(result["birthCity"])
+        XCTAssertNil(result["nationalities"])
     }
 
     func test_mapFromKycInfo_partialAddressOmitsNilFields() {
@@ -358,7 +393,10 @@ class OnrampMappersTests: XCTestCase {
                     postalCode: nil,
                     state: nil
                 ),
-                dateOfBirth: nil
+                dateOfBirth: nil,
+                birthCountry: nil,
+                birthCity: nil,
+                nationalities: nil
             )
         )
 

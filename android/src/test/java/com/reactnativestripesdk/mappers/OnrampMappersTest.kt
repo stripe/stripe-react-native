@@ -14,6 +14,7 @@ import com.reactnativestripesdk.mapPaymentDetailsType
 import com.reactnativestripesdk.mapToComplianceIdentifiers
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
+import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
@@ -466,6 +467,13 @@ class OnrampMappersTest {
             state = "CA",
           ),
         dateOfBirth = DateOfBirth(day = 15, month = 6, year = 1990),
+        birthCountry = CountryCode.create("FR"),
+        birthCity = "Paris",
+        nationalities =
+          listOf(
+            CountryCode.create("FR"),
+            CountryCode.create("DE"),
+          ),
       )
     val result = mapFromKycInfo(kycInfo)
 
@@ -487,6 +495,14 @@ class OnrampMappersTest {
     assertEquals(15, dob!!.getInt("day"))
     assertEquals(6, dob.getInt("month"))
     assertEquals(1990, dob.getInt("year"))
+
+    assertEquals("FR", result.getString("birthCountry"))
+    assertEquals("Paris", result.getString("birthCity"))
+
+    val nationalities = result.getArray("nationalities")
+    assertNotNull(nationalities)
+    assertEquals("FR", nationalities!!.getString(0))
+    assertEquals("DE", nationalities.getString(1))
   }
 
   @Test
@@ -498,6 +514,9 @@ class OnrampMappersTest {
         idNumber = null,
         address = null,
         dateOfBirth = null,
+        birthCountry = null,
+        birthCity = null,
+        nationalities = null,
       )
     val result = mapFromKycInfo(kycInfo)
 
@@ -506,6 +525,9 @@ class OnrampMappersTest {
     assertFalse(result.hasKey("idNumber"))
     assertFalse(result.hasKey("address"))
     assertFalse(result.hasKey("dateOfBirth"))
+    assertFalse(result.hasKey("birthCountry"))
+    assertFalse(result.hasKey("birthCity"))
+    assertFalse(result.hasKey("nationalities"))
   }
 
   @Test
@@ -517,6 +539,9 @@ class OnrampMappersTest {
         idNumber = null,
         address = null,
         dateOfBirth = DateOfBirth(day = 1, month = 1, year = 2000),
+        birthCountry = CountryCode.create("IT"),
+        birthCity = "Rome",
+        nationalities = listOf(CountryCode.create("IT")),
       )
     val result = mapFromKycInfo(kycInfo)
 
@@ -530,6 +555,9 @@ class OnrampMappersTest {
     assertEquals(1, dob!!.getInt("day"))
     assertEquals(1, dob.getInt("month"))
     assertEquals(2000, dob.getInt("year"))
+    assertEquals("IT", result.getString("birthCountry"))
+    assertEquals("Rome", result.getString("birthCity"))
+    assertEquals("IT", result.getArray("nationalities")!!.getString(0))
   }
 
   @Test
@@ -549,6 +577,9 @@ class OnrampMappersTest {
             state = null,
           ),
         dateOfBirth = null,
+        birthCountry = null,
+        birthCity = null,
+        nationalities = null,
       )
     val result = mapFromKycInfo(kycInfo)
 

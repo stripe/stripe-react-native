@@ -199,6 +199,12 @@ export type KycInfo = {
   dateOfBirth?: DateOfBirth;
   /** Customer’s address, if collected. */
   address?: Address;
+  /** Two-letter ISO 3166-1 alpha-2 code for the country where the customer was born. */
+  birthCountry?: string;
+  /** City where the customer was born. */
+  birthCity?: string;
+  /** Two-letter ISO 3166-1 alpha-2 codes for the customer's nationalities. */
+  nationalities?: string[];
 };
 
 /**

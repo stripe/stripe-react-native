@@ -2,7 +2,12 @@ import React from 'react';
 import { Collapse } from '../../../components/Collapse';
 import Button from '../../../components/Button';
 import { FormField } from '../FormField';
-import type { UserInfo } from './AttachKycInfoSection';
+
+export interface UserInfo {
+  email: string;
+  password: string;
+  phoneNumber: string;
+}
 
 interface PhoneNumberUpdateSectionProps {
   userInfo: UserInfo;

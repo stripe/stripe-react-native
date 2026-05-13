@@ -1262,13 +1262,20 @@ class Mappers {
     class func mapToKycInfo(_ params: [String: Any]) throws -> KycInfo {
         let address = try mapOptionalKycAddress(params["address"])
         let dateOfBirth = try mapOptionalDateOfBirth(params["dateOfBirth"])
+        let nationalities = try mapOptionalNormalizedStringArray(
+            params["nationalities"],
+            field: "nationalities"
+        )
 
         return KycInfo(
             firstName: normalizedString(params["firstName"]),
             lastName: normalizedString(params["lastName"]),
             idNumber: normalizedString(params["idNumber"]),
             address: address,
-            dateOfBirth: dateOfBirth
+            dateOfBirth: dateOfBirth,
+            birthCountry: normalizedString(params["birthCountry"]),
+            birthCity: normalizedString(params["birthCity"]),
+            nationalities: nationalities
         )
     }
 
@@ -1293,6 +1300,18 @@ class Mappers {
 
         if let dateOfBirth = kycInfo.dateOfBirth {
             result["dateOfBirth"] = mapFromDateOfBirth(dateOfBirth)
+        }
+
+        if let birthCountry = kycInfo.birthCountry {
+            result["birthCountry"] = birthCountry
+        }
+
+        if let birthCity = kycInfo.birthCity {
+            result["birthCity"] = birthCity
+        }
+
+        if let nationalities = kycInfo.nationalities {
+            result["nationalities"] = nationalities
         }
 
         return result
@@ -1420,6 +1439,29 @@ class Mappers {
         }
 
         return nil
+    }
+
+    private class func mapOptionalNormalizedStringArray(
+        _ value: Any?,
+        field: String
+    ) throws -> [String]? {
+        guard let value else {
+            return nil
+        }
+
+        guard let values = value as? [Any] else {
+            throw KycInfoError.invalidField(field)
+        }
+
+        let normalizedValues = try values.map { value in
+            guard let normalizedValue = normalizedString(value) else {
+                throw KycInfoError.invalidField(field)
+            }
+
+            return normalizedValue
+        }
+
+        return normalizedValues.isEmpty ? nil : normalizedValues
     }
 
     private class func normalizedString(_ value: Any?) -> String? {
