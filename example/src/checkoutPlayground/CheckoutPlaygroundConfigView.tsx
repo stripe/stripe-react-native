@@ -186,6 +186,7 @@ export function CheckoutPlaygroundConfigView({
                 />
               ) : null}
               <ToggleRow
+                testID="adaptive_pricing_toggle"
                 title="Adaptive pricing"
                 description="Requests localized pricing when available."
                 value={config.adaptivePricing}
@@ -216,6 +217,7 @@ export function CheckoutPlaygroundConfigView({
               />
               {shouldShowAdaptivePricingCountry(config) ? (
                 <PickerRow
+                  testID="adaptive_pricing_country_picker"
                   title="Adaptive pricing country"
                   description="Adds a location-based customer email override."
                   selectedValue={config.adaptivePricingCountry}
