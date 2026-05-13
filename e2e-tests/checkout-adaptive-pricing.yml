@@ -39,9 +39,15 @@ appId: ${APP_ID}
     element:
       text: ".*\\$.*"
     direction: DOWN
+    centerElement: true
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      text: ".*USD = .*EUR.*"
     timeout: 30000
 - tapOn:
     text: ".*\\$.*"
+    selected: false
 
 - extendedWaitUntil:
     visible:
