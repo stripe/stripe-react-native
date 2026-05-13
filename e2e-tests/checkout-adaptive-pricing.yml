@@ -41,18 +41,8 @@ appId: ${APP_ID}
     direction: DOWN
     centerElement: true
     timeout: 30000
-- runFlow:
-    when:
-      platform: ios
-    commands:
-      - tapOn:
-          text: ".*\\$.*"
-- runFlow:
-    when:
-      platform: android
-    commands:
-      - tapOn:
-          point: "25%,58%"
+- tapOn:
+    text: ".*\\$.*"
 
 - extendedWaitUntil:
     visible:
