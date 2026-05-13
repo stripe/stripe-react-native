@@ -1,7 +1,8 @@
 # Test the Checkout Playground's CurrencySelectorElement (Adaptive Pricing).
-# Toggles the selector from the merchant currency (USD) to the localized
-# currency (EUR for DE), waits for the session to update, then completes
-# the payment to verify the selected currency flows through PaymentSheet.
+# The session loads with EUR auto-selected for the DE customer; tap the
+# USD option in the selector, wait for the session to re-price, then
+# complete the payment to verify the selected currency flows through
+# PaymentSheet.
 appId: ${APP_ID}
 ---
 - launchApp:
@@ -40,40 +41,40 @@ appId: ${APP_ID}
     timeout: 30000
 - tapOn: "Create checkout session"
 
-# Wait for the cart to load. The Pay button's currency code is the most
-# reliable signal that the session is fully loaded with totals available.
+# Wait for the cart to load. The session auto-selects EUR for the DE
+# customer, so the Pay button starts as "Pay EUR …".
 - extendedWaitUntil:
     visible:
-      text: "Pay USD .*"
+      text: "Pay EUR .*"
     timeout: 150000
 
-# The CurrencySelectorElement is rendered below the promotion code row.
-# Scroll to it and tap the EUR option (matched by currency symbol so the
-# test isn't tied to a specific exchange-rate amount).
+# Scroll down to the CurrencySelectorElement and tap the USD option
+# (matched by currency symbol so the test isn't tied to a specific
+# exchange-rate amount).
 - scrollUntilVisible:
     element:
-      text: ".*€.*"
+      text: ".*\\$.*"
     direction: DOWN
     timeout: 30000
 - tapOn:
-    text: ".*€.*"
+    text: ".*\\$.*"
 
-# After tapping EUR, the session re-prices and the Pay button updates.
+# After tapping USD, the session re-prices and the Pay button updates.
 # Waiting on this transition guards against asserting before the
 # selectCurrency network round-trip completes.
 - extendedWaitUntil:
     visible:
-      text: "Pay EUR .*"
+      text: "Pay USD .*"
     timeout: 60000
 
 # Open PaymentSheet and pay with a test card.
 - scrollUntilVisible:
     element:
-      text: "Pay EUR .*"
+      text: "Pay USD .*"
     direction: DOWN
     timeout: 30000
 - tapOn:
-    text: "Pay EUR .*"
+    text: "Pay USD .*"
 
 - extendedWaitUntil:
     visible: "TEST"
