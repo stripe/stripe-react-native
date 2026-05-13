@@ -13,7 +13,7 @@ appId: ${APP_ID}
     visible: "TEST"
     timeout: 150000
 - tapOn:
-    text: "Card number"
+    text: "Card number. Supported cards include.*"
 - inputText: "4242424242424242"
 - tapOn:
     text: "MM / YY"
