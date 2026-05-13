@@ -41,6 +41,20 @@ using namespace facebook::react;
 {
   _view = [[StripeCurrencySelectorElementContainerView alloc] initWithFrame:self.frame];
   self.contentView = _view;
+
+  __weak __typeof(self) weakSelf = self;
+
+  _view.onHeightChange = ^(NSDictionary *event) {
+    __typeof(self) strongSelf = weakSelf;
+    if (!strongSelf || !strongSelf->_eventEmitter) {
+      return;
+    }
+    StripeCurrencySelectorElementEventEmitter::OnHeightChange emitterEvent = {
+      .height = [(NSNumber *)event[@"height"] doubleValue],
+    };
+    std::static_pointer_cast<const StripeCurrencySelectorElementEventEmitter>(strongSelf->_eventEmitter)
+        ->onHeightChange(std::move(emitterEvent));
+  };
 }
 
 - (void)updateProps:(const facebook::react::Props::Shared &)props

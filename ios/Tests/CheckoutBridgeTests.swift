@@ -11,7 +11,7 @@ import XCTest
 
 class CheckoutBridgeTests: XCTestCase {
     func test_mapFromCheckoutAddressUpdate_mapsOptionalFields() throws {
-        let addressUpdate = Checkout.AddressUpdate(
+        let addressUpdate = Checkout.ContactAddress(
             name: "Billing Name",
             phone: "+15555550101",
             address: Checkout.Address(
@@ -95,7 +95,7 @@ class CheckoutBridgeTests: XCTestCase {
         let customerId: String? = "cus_123"
         let customerEmail: String? = "customer@example.com"
         let url: URL? = URL(string: "https://example.com")
-        let billingAddress: Checkout.AddressUpdate? = Checkout.AddressUpdate(
+        let billingAddress: Checkout.ContactAddress? = Checkout.ContactAddress(
             name: "Billing Name",
             phone: "+15555550101",
             address: Checkout.Address(
@@ -106,7 +106,7 @@ class CheckoutBridgeTests: XCTestCase {
                 postalCode: "94111"
             )
         )
-        let shippingAddress: Checkout.AddressUpdate? = Checkout.AddressUpdate(
+        let shippingAddress: Checkout.ContactAddress? = Checkout.ContactAddress(
             name: "Shipping Name",
             phone: "+447700900000",
             address: Checkout.Address(
