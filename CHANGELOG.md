@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## X.Y.Z - changes pending release
+**Changes**
+* Updated Stripe iOS SDK from 25.12.0 to 25.14.0.
+* Updated Stripe Android SDK from 23.6.+ to 23.8.+.
+
+**Features**
+* [Added] Added EU support to Onramp. This includes three new APIs, `retrieveMissingIdentifiers`, `submitIdentifiers`, and `presentCRSCARFDeclaration`, EU-specific additions to `KycInfo` including `birthCountry`, `birthCity`, and `nationalities`, as well as associated helper model types in `Onramp.ts`.
+
 ## 0.65.1 - 2026-05-11
 **Fixes**
 * [Fixed] Fixed bug preventing PaymentSheet from dismissing when presenting with timeout. ([#2451](https://github.com/stripe/stripe-react-native/pull/2451))
