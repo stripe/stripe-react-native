@@ -7,7 +7,7 @@
 
 import Combine
 import Foundation
-@_spi(CheckoutSessionsPreview) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 import UIKit
 
 @objc(StripeCurrencySelectorElementManager)

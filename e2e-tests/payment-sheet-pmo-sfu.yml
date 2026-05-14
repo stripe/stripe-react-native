@@ -12,12 +12,12 @@ appId: ${APP_ID}
     text: "Card"
     optional: true
 - tapOn:
-    text: "New card"
+    text: "+ Add"
     optional: true
 - assertVisible:
     text: "By providing your card information, you allow Example Inc. to charge your card for future payments in accordance with their terms."
 - tapOn:
-    text: "Card number"
+    text: "Card number. Supported cards include.*"
 - inputText: "4242424242424242"
 - tapOn:
     text: "MM / YY"

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+import StripePaymentSheet
 
 extension EmbeddedPaymentElement.PaymentOptionDisplayData {
     /// Convert `PaymentOptionDisplayData` into a dictionary compatible with React Native bridge.

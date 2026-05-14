@@ -3,7 +3,7 @@ import Stripe
 @_spi(ConfirmationTokensPublicPreview) import StripePayments
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
-@_spi(STP) import StripePaymentSheet
+@_spi(CryptoOnrampAlpha) import StripePaymentSheet
 #else
 import StripePaymentSheet
 #endif

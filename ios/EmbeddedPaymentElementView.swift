@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+import StripePaymentSheet
 import UIKit
 
 @objc(EmbeddedPaymentElementView)
