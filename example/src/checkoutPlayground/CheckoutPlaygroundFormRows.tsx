@@ -19,12 +19,14 @@ export function PickerRow({
   selectedValue,
   options,
   onValueChange,
+  testID,
 }: {
   title: string;
   description?: string;
   selectedValue: string;
   options: SelectionOption<string>[];
   onValueChange(value: string): void;
+  testID?: string;
 }) {
   const [isSelectionVisible, setSelectionVisible] = useState(false);
   const selectedOption = options.find(
@@ -37,6 +39,7 @@ export function PickerRow({
         activeOpacity={0.85}
         onPress={() => setSelectionVisible(true)}
         style={styles.row}
+        testID={testID}
       >
         <View style={styles.rowTextContainer}>
           <Text style={styles.rowTitle}>{title}</Text>
@@ -73,11 +76,13 @@ export function ToggleRow({
   description,
   value,
   onValueChange,
+  testID,
 }: {
   title: string;
   description?: string;
   value: boolean;
   onValueChange(nextValue: boolean): void;
+  testID?: string;
 }) {
   return (
     <View style={styles.row}>
@@ -92,6 +97,7 @@ export function ToggleRow({
         onValueChange={onValueChange}
         trackColor={{ false: '#DCE6F1', true: '#A3BCFF' }}
         thumbColor={value ? colors.blurple : colors.white}
+        testID={testID}
       />
     </View>
   );

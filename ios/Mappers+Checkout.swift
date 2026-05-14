@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(CheckoutSessionsPreview) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 extension Mappers {
     class func mapFromCheckoutState(_ state: Checkout.State) -> NSDictionary {
@@ -56,7 +56,7 @@ extension Mappers {
         return result
     }
 
-    class func mapFromCheckoutAddressUpdate(_ addressUpdate: Checkout.AddressUpdate) -> NSDictionary {
+    class func mapFromCheckoutAddressUpdate(_ addressUpdate: Checkout.ContactAddress) -> NSDictionary {
         let result = NSMutableDictionary()
         result["address"] = mapFromCheckoutAddress(addressUpdate.address)
 

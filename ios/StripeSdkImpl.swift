@@ -1,4 +1,5 @@
 import AuthenticationServices
+import Combine
 import Foundation
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
@@ -9,15 +10,9 @@ import StripePaymentsUI
 import UIKit
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
-
-@_spi(STP)
-@_spi(EmbeddedPaymentElementPrivateBeta)
-@_spi(CustomerSessionBetaAccess)
-@_spi(AppearanceAPIAdditionsPreview)
-@_spi(CheckoutSessionsPreview)
-import StripePaymentSheet
+@_spi(CryptoOnrampAlpha) @_spi(ReactNativeSDK) @_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
 #else
-@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) @_spi(CheckoutSessionsPreview) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 #endif
 
 @available(iOS 13.0, *)
@@ -69,6 +64,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
     internal var checkoutInstances: [String: Checkout] = [:]
+    internal var checkoutStateCancellables: [String: AnyCancellable] = [:]
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 

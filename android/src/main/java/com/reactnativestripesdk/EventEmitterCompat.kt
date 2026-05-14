@@ -103,4 +103,8 @@ class EventEmitterCompat(
   fun emitOnCheckoutClientSecretRequested(value: ReadableMap?) {
     invoke("onCheckoutClientSecretRequested", value)
   }
+
+  fun emitCheckoutSessionDidChangeState(value: ReadableMap?) {
+    invoke("checkoutSessionDidChangeState", value)
+  }
 }

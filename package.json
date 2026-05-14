@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-react-native",
-  "version": "0.64.0",
+  "version": "0.65.1",
   "author": "Stripe",
   "description": "Stripe SDK for React Native",
   "main": "lib/commonjs/index",
@@ -13,7 +13,7 @@
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
     "prepare": "bob build && rm -rf lib/*/package.json && husky",
-    "release": "./scripts/publish",
+    "release": "./scripts/publish.rb",
     "example": "yarn --cwd example",
     "pods": "cd example && npx pod-install --quiet",
     "update-pods": "cd example/ios && pod update Stripe StripeApplePay StripeFinancialConnections StripePayments StripePaymentSheet StripePaymentsUI StripeCore StripeUICore StripeCryptoOnramp",
@@ -202,7 +202,8 @@
         "CardForm": "CardFormComponentView",
         "EmbeddedPaymentElementView": "EmbeddedPaymentElementViewComponentView",
         "NavigationBar": "NavigationBarComponentView",
-        "StripeContainer": "StripeContainerComponentView"
+        "StripeContainer": "StripeContainerComponentView",
+        "StripeCurrencySelectorElement": "StripeCurrencySelectorElementComponentView"
       }
     },
     "name": "rnstripe",

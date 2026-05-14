@@ -1,5 +1,5 @@
 @testable import stripe_react_native
-@_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+import StripePaymentSheet
 import XCTest
 
 class PaymentSheetAppearanceTests: XCTestCase {

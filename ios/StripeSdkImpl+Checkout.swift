@@ -5,8 +5,9 @@
 //  Created by Nick Porter on 4/29/26.
 //
 
+import Combine
 import Foundation
-@_spi(CheckoutSessionsPreview) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 extension StripeSdkImpl {
     internal func currentCheckoutStateResult(checkout: Checkout) -> NSDictionary {
@@ -35,7 +36,17 @@ extension StripeSdkImpl {
                 )
                 let sessionKey = UUID().uuidString
 
+                let cancellable = checkout.$state
+                    .dropFirst()
+                    .sink { [weak self] state in
+                        self?.emitter?.emitCheckoutSessionDidChangeState([
+                            "sessionKey": sessionKey,
+                            "state": Mappers.mapFromCheckoutState(state),
+                        ])
+                    }
+
                 self.checkoutInstances[sessionKey] = checkout
+                self.checkoutStateCancellables[sessionKey] = cancellable
 
                 resolve([
                     "sessionKey": sessionKey,
@@ -65,7 +76,11 @@ extension StripeSdkImpl {
             resolver: resolve,
             rejecter: reject
         ) { checkout, addressUpdate in
-            try await checkout.updateShippingAddress(addressUpdate)
+            try await checkout.updateShippingAddress(
+                name: addressUpdate.name,
+                phone: addressUpdate.phone,
+                address: addressUpdate.address
+            )
         }
     }
 
@@ -87,7 +102,11 @@ extension StripeSdkImpl {
             resolver: resolve,
             rejecter: reject
         ) { checkout, addressUpdate in
-            try await checkout.updateBillingAddress(addressUpdate)
+            try await checkout.updateBillingAddress(
+                name: addressUpdate.name,
+                phone: addressUpdate.phone,
+                address: addressUpdate.address
+            )
         }
     }
 
@@ -135,17 +154,12 @@ extension StripeSdkImpl {
             return
         }
 
-        let lineItemUpdate = Checkout.LineItemUpdate(
-            lineItemId: lineItemId,
-            quantity: integerQuantity
-        )
-
         performCheckoutMutation(
             sessionKey: sessionKey,
             resolver: resolve,
             rejecter: reject
         ) { checkout in
-            try await checkout.updateQuantity(with: lineItemUpdate)
+            try await checkout.updateQuantity(lineItemId: lineItemId, quantity: integerQuantity)
         }
     }
 
@@ -173,14 +187,12 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        let taxIdUpdate = Checkout.TaxIdUpdate(type: type, value: value)
-
         performCheckoutMutation(
             sessionKey: sessionKey,
             resolver: resolve,
             rejecter: reject
         ) { checkout in
-            try await checkout.updateTaxId(with: taxIdUpdate)
+            try await checkout.updateTaxId(type: type, value: value)
         }
     }
 
@@ -244,7 +256,7 @@ extension StripeSdkImpl {
         missingCountryMessage: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock,
-        operation: @escaping (Checkout, Checkout.AddressUpdate) async throws -> Void
+        operation: @escaping (Checkout, Checkout.ContactAddress) async throws -> Void
     ) {
         guard let addressUpdate = buildCheckoutAddressUpdate(
             address: address,
@@ -268,7 +280,7 @@ extension StripeSdkImpl {
         address: NSDictionary,
         name: String?,
         phone: String?
-    ) -> Checkout.AddressUpdate? {
+    ) -> Checkout.ContactAddress? {
         guard let country = address["country"] as? String, !country.isEmpty else {
             return nil
         }
@@ -282,7 +294,7 @@ extension StripeSdkImpl {
             postalCode: address["postalCode"] as? String
         )
 
-        return Checkout.AddressUpdate(
+        return Checkout.ContactAddress(
             name: name,
             phone: phone,
             address: checkoutAddress
