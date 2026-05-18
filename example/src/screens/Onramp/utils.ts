@@ -1,4 +1,4 @@
-import { Onramp } from '@stripe/stripe-react-native/src/types';
+import { Onramp } from '@stripe/stripe-react-native';
 import { Alert } from 'react-native';
 
 export function getDefaultAddressForNetwork(

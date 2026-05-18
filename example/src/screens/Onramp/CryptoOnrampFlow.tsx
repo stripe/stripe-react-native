@@ -1,7 +1,10 @@
-import { PlatformPay, useStripe } from '@stripe/stripe-react-native';
+import {
+  Onramp,
+  PlatformPay,
+  useOnramp,
+  useStripe,
+} from '@stripe/stripe-react-native';
 import type { Address } from '@stripe/stripe-react-native';
-import { useOnramp } from '@stripe/stripe-react-native/src/hooks/useOnramp';
-import { Onramp } from '@stripe/stripe-react-native/src/types';
 import React, { useCallback, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
