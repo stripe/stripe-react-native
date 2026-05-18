@@ -2782,7 +2782,7 @@ export enum PaymentMethodLayout {
 }
 
 // @public
-export const PaymentMethodMessagingElement: React_2.ForwardRefExoticComponent<PaymentMethodMessagingElementProps & React_2.RefAttributes<any>>;
+export const PaymentMethodMessagingElement: (input: PaymentMethodMessagingElementProps) => React_2.JSX.Element;
 
 // @public (undocumented)
 export interface PaymentMethodMessagingElementAppearance {
