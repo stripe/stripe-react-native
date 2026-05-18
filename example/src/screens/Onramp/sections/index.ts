@@ -1,4 +1,5 @@
 export { AttachKycInfoSection } from './AttachKycInfoSection';
+export { ComplianceIdentifiersSection } from './ComplianceIdentifiersSection';
 export { KycRefreshSection } from './KycRefreshSection';
 export { VerifyIdentitySection } from './VerifyIdentitySection';
 export { PhoneNumberUpdateSection } from './PhoneNumberUpdateSection';

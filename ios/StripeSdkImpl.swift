@@ -1437,6 +1437,89 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(retrieveMissingIdentifiers:rejecter:)
+    public func retrieveMissingIdentifiers(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let requirements = try await coordinator.retrieveMissingIdentifiers()
+                resolve(Mappers.mapFromComplianceIdentifierRequirements(requirements))
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(submitIdentifiers:resolver:rejecter:)
+    public func submitIdentifiers(
+        identifiers: NSArray,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        guard let identifierDictionaries = identifiers as? [[String: Any]] else {
+            let errorResult = Errors.createError(ErrorType.Failed, "Unexpected format of identifiers array. Expected dictionaries with String keys.")
+            resolve(["error": errorResult["error"]!])
+            return
+        }
+
+        Task {
+            do {
+                let complianceIdentifiers = try identifierDictionaries.map(Mappers.mapToComplianceIdentifier)
+                let result = try await coordinator.submitIdentifiers(complianceIdentifiers)
+                resolve(Mappers.mapFromSubmitIdentifiersResult(result))
+            } catch {
+                if let identifierError = error as? Mappers.ComplianceIdentifierError,
+                   case let .invalidField(field) = identifierError {
+                    let errorResult = Errors.createError(ErrorType.Unknown, "Invalid format for field: \(field)")
+                    resolve(["error": errorResult["error"]!])
+                } else {
+                    let errorResult = Errors.createError(ErrorType.Failed, error)
+                    resolve(["error": errorResult["error"]!])
+                }
+            }
+        }
+    }
+
+    @objc(presentCRSCARFDeclaration:rejecter:)
+    public func presentCRSCARFDeclaration(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
+                }
+                let result = try await coordinator.presentCRSCARFDeclaration(from: presentingViewController)
+                switch result {
+                case .confirmed:
+                    resolve(["status": "Confirmed"])
+                case .canceled:
+                    let errorResult = Errors.createError(ErrorType.Canceled, "CRS/CARF declaration was cancelled")
+                    resolve(["error": errorResult["error"]!])
+                }
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
     @objc(presentKycInfoVerification:resolver:rejecter:)
     public func presentKycInfoVerification(
         updatedAddressDictionary: NSDictionary?,

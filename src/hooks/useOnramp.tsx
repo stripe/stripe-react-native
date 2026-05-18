@@ -75,6 +75,25 @@ export function useOnramp() {
     []
   );
 
+  const _retrieveMissingIdentifiers =
+    useCallback(async (): Promise<Onramp.RetrieveMissingIdentifiersResult> => {
+      return requireOnrampModule().retrieveMissingIdentifiers();
+    }, []);
+
+  const _submitIdentifiers = useCallback(
+    async (
+      identifiers: Onramp.ComplianceIdentifier[]
+    ): Promise<Onramp.SubmitIdentifiersResult> => {
+      return requireOnrampModule().submitIdentifiers(identifiers);
+    },
+    []
+  );
+
+  const _presentCRSCARFDeclaration =
+    useCallback(async (): Promise<Onramp.CRSCARFDeclarationResult> => {
+      return requireOnrampModule().presentCRSCARFDeclaration();
+    }, []);
+
   const _presentKycInfoVerification = useCallback(
     async (updatedAddress: Address | null): Promise<Onramp.VerifyKycResult> => {
       return requireOnrampModule().presentKycInfoVerification(updatedAddress);
@@ -243,6 +262,31 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     attachKycInfo: _attachKycInfo,
+
+    /**
+     * Retrieves any missing MiCA or CRS/CARF compliance identifiers for the current Link user.
+     * Requires an authenticated Link user.
+     *
+     * @returns Promise that resolves to identifier requirements and alternatives, or error
+     */
+    retrieveMissingIdentifiers: _retrieveMissingIdentifiers,
+
+    /**
+     * Submits MiCA or CRS/CARF compliance identifiers for the current Link user.
+     * Requires an authenticated Link user.
+     *
+     * @param identifiers The compliance identifiers to submit
+     * @returns Promise that resolves to whether the submission was valid, any remaining requirements, invalid identifiers, or error
+     */
+    submitIdentifiers: _submitIdentifiers,
+
+    /**
+     * Presents UI for the current Link user to accept the CRS/CARF declaration.
+     * Requires an authenticated Link user.
+     *
+     * @returns Promise that resolves to `Confirmed` when accepted, or error
+     */
+    presentCRSCARFDeclaration: _presentCRSCARFDeclaration,
 
     /**
      * Presents UI to verify KYC information for the current Link user.

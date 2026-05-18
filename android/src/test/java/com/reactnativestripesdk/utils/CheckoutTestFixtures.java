@@ -25,7 +25,11 @@ public final class CheckoutTestFixtures {
 
     return new CheckoutSession(
         "cs_test_123",
+        CheckoutSession.Status.Open,
+        false,
         "usd",
+        null,
+        new CheckoutSession.Tax(CheckoutSession.Tax.Status.Ready),
         totals,
         Arrays.asList(
             new CheckoutSession.LineItem("li_item1", "Llama Figure", 2, null, 1998L, 1998L),
@@ -40,7 +44,11 @@ public final class CheckoutTestFixtures {
   public static CheckoutSession blankCurrencySession() {
     return new CheckoutSession(
         "cs_test_blank_currency",
+        CheckoutSession.Status.Open,
+        false,
         "",
+        null,
+        new CheckoutSession.Tax(CheckoutSession.Tax.Status.Ready),
         null,
         Collections.<CheckoutSession.LineItem>emptyList(),
         Collections.<CheckoutSession.ShippingRate>emptyList(),

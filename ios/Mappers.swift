@@ -1262,13 +1262,20 @@ class Mappers {
     class func mapToKycInfo(_ params: [String: Any]) throws -> KycInfo {
         let address = try mapOptionalKycAddress(params["address"])
         let dateOfBirth = try mapOptionalDateOfBirth(params["dateOfBirth"])
+        let nationalities = try mapOptionalNormalizedStringArray(
+            params["nationalities"],
+            field: "nationalities"
+        )
 
         return KycInfo(
             firstName: normalizedString(params["firstName"]),
             lastName: normalizedString(params["lastName"]),
             idNumber: normalizedString(params["idNumber"]),
             address: address,
-            dateOfBirth: dateOfBirth
+            dateOfBirth: dateOfBirth,
+            birthCountry: normalizedString(params["birthCountry"]),
+            birthCity: normalizedString(params["birthCity"]),
+            nationalities: nationalities
         )
     }
 
@@ -1293,6 +1300,18 @@ class Mappers {
 
         if let dateOfBirth = kycInfo.dateOfBirth {
             result["dateOfBirth"] = mapFromDateOfBirth(dateOfBirth)
+        }
+
+        if let birthCountry = kycInfo.birthCountry {
+            result["birthCountry"] = birthCountry
+        }
+
+        if let birthCity = kycInfo.birthCity {
+            result["birthCity"] = birthCity
+        }
+
+        if let nationalities = kycInfo.nationalities {
+            result["nationalities"] = nationalities
         }
 
         return result
@@ -1333,6 +1352,48 @@ class Mappers {
             "day": dateOfBirth.day,
             "month": dateOfBirth.month,
             "year": dateOfBirth.year,
+        ]
+    }
+
+    class func mapToComplianceIdentifier(_ params: [String: Any]) throws -> ComplianceIdentifier {
+        guard let type = normalizedString(params["type"]) else {
+            throw ComplianceIdentifierError.invalidField("type")
+        }
+
+        guard let value = normalizedString(params["value"]) else {
+            throw ComplianceIdentifierError.invalidField("value")
+        }
+
+        return ComplianceIdentifier(type: ComplianceIdentifierType(rawValue: type), value: value)
+    }
+
+    class func mapFromComplianceIdentifierRequirements(_ requirements: ComplianceIdentifierRequirements) -> [String: Any] {
+        [
+            "identifiers": requirements.identifiers.map(mapFromComplianceIdentifierRequirement),
+            "alternatives": requirements.alternatives.map(mapFromComplianceIdentifierAlternativeGroup),
+        ]
+    }
+
+    class func mapFromSubmitIdentifiersResult(_ result: SubmitIdentifiersResult) -> [String: Any] {
+        [
+            "valid": result.valid,
+            "identifiers": result.identifiers.map(mapFromComplianceIdentifierRequirement),
+            "alternatives": result.alternatives.map(mapFromComplianceIdentifierAlternativeGroup),
+            "invalidIdentifiers": result.invalidIdentifiers.map(\.rawValue),
+        ]
+    }
+
+    private class func mapFromComplianceIdentifierRequirement(_ requirement: ComplianceIdentifierRequirement) -> [String: String] {
+        [
+            "type": requirement.type.rawValue,
+            "regulation": requirement.regulation.rawValue,
+        ]
+    }
+
+    private class func mapFromComplianceIdentifierAlternativeGroup(_ group: ComplianceIdentifierAlternativeGroup) -> [String: [String]] {
+        [
+            "originalMissingIdentifiers": group.originalMissingIdentifiers.map(\.rawValue),
+            "alternativeMissingIdentifiers": group.alternativeMissingIdentifiers.map(\.rawValue),
         ]
     }
 
@@ -1380,6 +1441,29 @@ class Mappers {
         return nil
     }
 
+    private class func mapOptionalNormalizedStringArray(
+        _ value: Any?,
+        field: String
+    ) throws -> [String]? {
+        guard let value else {
+            return nil
+        }
+
+        guard let values = value as? [Any] else {
+            throw KycInfoError.invalidField(field)
+        }
+
+        let normalizedValues = try values.map { value in
+            guard let normalizedValue = normalizedString(value) else {
+                throw KycInfoError.invalidField(field)
+            }
+
+            return normalizedValue
+        }
+
+        return normalizedValues.isEmpty ? nil : normalizedValues
+    }
+
     private class func normalizedString(_ value: Any?) -> String? {
         guard let stringValue = value as? String else {
             return nil
@@ -1413,6 +1497,10 @@ class Mappers {
     }
 
     enum KycInfoError: Swift.Error {
+        case invalidField(String)
+    }
+
+    enum ComplianceIdentifierError: Swift.Error {
         case invalidField(String)
     }
 #endif

@@ -65,6 +65,25 @@ RCT_EXPORT_METHOD(attachKycInfo:(nonnull NSDictionary *)info
   [StripeSdkImpl.shared attachKycInfo:info resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(retrieveMissingIdentifiers:(nonnull RCTPromiseResolveBlock)resolve
+                                      reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared retrieveMissingIdentifiers:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(submitIdentifiers:(nonnull NSArray *)identifiers
+                            resolve:(nonnull RCTPromiseResolveBlock)resolve
+                             reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared submitIdentifiers:identifiers resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(presentCRSCARFDeclaration:(nonnull RCTPromiseResolveBlock)resolve
+                                     reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentCRSCARFDeclaration:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(presentKycInfoVerification:(NSDictionary *)updatedAddress
                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
                                       reject:(nonnull RCTPromiseRejectBlock)reject)

@@ -196,6 +196,9 @@ class OnrampMappersTests: XCTestCase {
             "firstName": " Jane ",
             "lastName": " Doe ",
             "idNumber": " 123456789 ",
+            "birthCountry": " FR ",
+            "birthCity": " Paris ",
+            "nationalities": [" FR ", " DE "],
             "address": [
                 "city": " San Francisco ",
                 "country": " US ",
@@ -229,6 +232,9 @@ class OnrampMappersTests: XCTestCase {
             result.dateOfBirth,
             KycInfo.DateOfBirth(day: 15, month: 6, year: 1990)
         )
+        XCTAssertEqual(result.birthCountry, "FR")
+        XCTAssertEqual(result.birthCity, "Paris")
+        XCTAssertEqual(result.nationalities, ["FR", "DE"])
     }
 
     func test_mapToKycInfo_invalidAddressThrowsInvalidField() {
@@ -280,6 +286,20 @@ class OnrampMappersTests: XCTestCase {
         }
     }
 
+    func test_mapToKycInfo_invalidNationalitiesThrowsInvalidField() {
+        XCTAssertThrowsError(
+            try Mappers.mapToKycInfo([
+                "nationalities": ["FR", 123],
+            ])
+        ) { error in
+            guard case let Mappers.KycInfoError.invalidField(field) = error else {
+                return XCTFail("Expected invalidField error, got \(error)")
+            }
+
+            XCTAssertEqual(field, "nationalities")
+        }
+    }
+
     func test_mapToKycInfo_emptyParamsReturnsAllNil() throws {
         let result = try Mappers.mapToKycInfo([:])
 
@@ -288,6 +308,9 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertNil(result.idNumber)
         XCTAssertNil(result.address)
         XCTAssertNil(result.dateOfBirth)
+        XCTAssertNil(result.birthCountry)
+        XCTAssertNil(result.birthCity)
+        XCTAssertNil(result.nationalities)
     }
 
     func test_mapFromKycInfo_fullInfoMapsNestedValues() {
@@ -304,7 +327,10 @@ class OnrampMappersTests: XCTestCase {
                     postalCode: "94105",
                     state: "CA"
                 ),
-                dateOfBirth: KycInfo.DateOfBirth(day: 15, month: 6, year: 1990)
+                dateOfBirth: KycInfo.DateOfBirth(day: 15, month: 6, year: 1990),
+                birthCountry: "FR",
+                birthCity: "Paris",
+                nationalities: ["FR", "DE"]
             )
         )
 
@@ -324,6 +350,9 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertEqual(dateOfBirth?["day"], 15)
         XCTAssertEqual(dateOfBirth?["month"], 6)
         XCTAssertEqual(dateOfBirth?["year"], 1990)
+        XCTAssertEqual(result["birthCountry"] as? String, "FR")
+        XCTAssertEqual(result["birthCity"] as? String, "Paris")
+        XCTAssertEqual(result["nationalities"] as? [String], ["FR", "DE"])
     }
 
     func test_mapFromKycInfo_omitsNilFields() {
@@ -333,7 +362,10 @@ class OnrampMappersTests: XCTestCase {
                 lastName: nil,
                 idNumber: nil,
                 address: nil,
-                dateOfBirth: nil
+                dateOfBirth: nil,
+                birthCountry: nil,
+                birthCity: nil,
+                nationalities: nil
             )
         )
 
@@ -342,6 +374,9 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertNil(result["idNumber"])
         XCTAssertNil(result["address"])
         XCTAssertNil(result["dateOfBirth"])
+        XCTAssertNil(result["birthCountry"])
+        XCTAssertNil(result["birthCity"])
+        XCTAssertNil(result["nationalities"])
     }
 
     func test_mapFromKycInfo_partialAddressOmitsNilFields() {
@@ -358,7 +393,10 @@ class OnrampMappersTests: XCTestCase {
                     postalCode: nil,
                     state: nil
                 ),
-                dateOfBirth: nil
+                dateOfBirth: nil,
+                birthCountry: nil,
+                birthCity: nil,
+                nationalities: nil
             )
         )
 
@@ -398,6 +436,116 @@ class OnrampMappersTests: XCTestCase {
         )
 
         XCTAssertEqual(result, ["day": 15, "month": 6, "year": 1990])
+    }
+
+    func test_mapToComplianceIdentifier_trimsWhitespace() throws {
+        let result = try Mappers.mapToComplianceIdentifier([
+            "type": " ee_ik ",
+            "value": " ABC123 ",
+        ])
+
+        XCTAssertEqual(result.type, .eeIK)
+        XCTAssertEqual(result.value, "ABC123")
+    }
+
+    func test_mapToComplianceIdentifier_missingTypeThrowsInvalidField() {
+        XCTAssertThrowsError(
+            try Mappers.mapToComplianceIdentifier([
+                "value": "ABC123",
+            ])
+        ) { error in
+            guard case let Mappers.ComplianceIdentifierError.invalidField(field) = error else {
+                return XCTFail("Expected invalidField error, got \(error)")
+            }
+
+            XCTAssertEqual(field, "type")
+        }
+    }
+
+    func test_mapToComplianceIdentifier_emptyValueThrowsInvalidField() {
+        XCTAssertThrowsError(
+            try Mappers.mapToComplianceIdentifier([
+                "type": "ee_ik",
+                "value": "   ",
+            ])
+        ) { error in
+            guard case let Mappers.ComplianceIdentifierError.invalidField(field) = error else {
+                return XCTFail("Expected invalidField error, got \(error)")
+            }
+
+            XCTAssertEqual(field, "value")
+        }
+    }
+
+    func test_mapFromComplianceIdentifierRequirements_mapsIdentifiersAndAlternatives() {
+        let result = Mappers.mapFromComplianceIdentifierRequirements(
+            ComplianceIdentifierRequirements(
+                identifiers: [
+                    ComplianceIdentifierRequirement(type: .eeIK, regulation: .euMiCA),
+                    ComplianceIdentifierRequirement(type: .grAFM, regulation: .euCARF),
+                ],
+                alternatives: [
+                    ComplianceIdentifierAlternativeGroup(
+                        originalMissingIdentifiers: [.mtNIC],
+                        alternativeMissingIdentifiers: [.mtPP]
+                    ),
+                ]
+            )
+        )
+
+        let identifiers = result["identifiers"] as? [[String: String]]
+        XCTAssertEqual(identifiers?.count, 2)
+        XCTAssertEqual(identifiers?[0]["type"], "ee_ik")
+        XCTAssertEqual(identifiers?[0]["regulation"], "eu_mica")
+        XCTAssertEqual(identifiers?[1]["type"], "gr_afm")
+        XCTAssertEqual(identifiers?[1]["regulation"], "eu_carf")
+
+        let alternatives = result["alternatives"] as? [[String: [String]]]
+        XCTAssertEqual(alternatives?.count, 1)
+        XCTAssertEqual(alternatives?[0]["originalMissingIdentifiers"], ["mt_nic"])
+        XCTAssertEqual(alternatives?[0]["alternativeMissingIdentifiers"], ["mt_pp"])
+    }
+
+    func test_mapFromSubmitIdentifiersResult_mapsValidationResult() throws {
+        // We don't have a memberwise initializer exposed for `SubmitIdentifiersResult` since it's only
+        // generated via Decodable network response parsing, so we decode from JSON here to create
+        // the test parameter.
+        let data = Data(
+            """
+            {
+              "valid": false,
+              "identifiers": [
+                {
+                  "type": "ee_ik",
+                  "regulation": "eu_mica"
+                }
+              ],
+              "alternatives": [
+                {
+                  "original_missing_identifiers": ["mt_nic"],
+                  "alternative_missing_identifiers": ["mt_pp"]
+                }
+              ],
+              "invalid_identifiers": ["gr_afm"]
+            }
+            """.utf8
+        )
+        let submitResult = try JSONDecoder().decode(SubmitIdentifiersResult.self, from: data)
+
+        let result = Mappers.mapFromSubmitIdentifiersResult(submitResult)
+
+        XCTAssertEqual(result["valid"] as? Bool, false)
+        XCTAssertEqual(result["invalidIdentifiers"] as? [String], ["gr_afm"])
+
+        let identifiers = result["identifiers"] as? [[String: String]]
+        XCTAssertEqual(identifiers?.count, 1)
+        XCTAssertEqual(identifiers?[0]["type"], "ee_ik")
+        XCTAssertEqual(identifiers?[0]["regulation"], "eu_mica")
+
+        let alternatives = result["alternatives"] as? [[String: [String]]]
+        XCTAssertEqual(alternatives?.count, 1)
+        XCTAssertEqual(alternatives?[0]["originalMissingIdentifiers"], ["mt_nic"])
+        XCTAssertEqual(alternatives?[0]["alternativeMissingIdentifiers"], ["mt_pp"])
     }
 
     func test_paymentMethodDisplayDataToMap_mapsAllSupportedTypes() {

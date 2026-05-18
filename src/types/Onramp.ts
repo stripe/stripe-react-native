@@ -199,7 +199,116 @@ export type KycInfo = {
   dateOfBirth?: DateOfBirth;
   /** Customer’s address, if collected. */
   address?: Address;
+  /** Two-letter ISO 3166-1 alpha-2 code for the country where the customer was born. */
+  birthCountry?: string;
+  /** City where the customer was born. */
+  birthCity?: string;
+  /** Two-letter ISO 3166-1 alpha-2 codes for the customer's nationalities. */
+  nationalities?: string[];
 };
+
+/**
+ * The type of compliance identifier required or submitted for regulatory compliance.
+ */
+export type ComplianceIdentifierType = string;
+
+/**
+ * The regulation requiring a compliance identifier.
+ */
+export type ComplianceRegulation = 'eu_carf' | 'eu_mica';
+
+/**
+ * A compliance identifier collected for MiCA or CRS/CARF compliance.
+ */
+export type ComplianceIdentifier = {
+  /** The type of identifier provided. */
+  type: ComplianceIdentifierType;
+  /** The identifier value. */
+  value: string;
+};
+
+/**
+ * A compliance identifier the customer still needs to provide.
+ */
+export type ComplianceIdentifierRequirement = {
+  /** The type of identifier required. */
+  type: ComplianceIdentifierType;
+  /** The regulation requiring this identifier. */
+  regulation: ComplianceRegulation;
+};
+
+/**
+ * A group describing alternative identifier types that may satisfy a requirement.
+ */
+export type ComplianceIdentifierAlternativeGroup = {
+  /** The original identifier types required. */
+  originalMissingIdentifiers: ComplianceIdentifierType[];
+  /** Alternative identifier types that may satisfy the original requirement. */
+  alternativeMissingIdentifiers: ComplianceIdentifierType[];
+};
+
+/**
+ * The compliance identifiers a customer still needs to provide.
+ */
+export type ComplianceIdentifierRequirements = {
+  /** Required identifier types and the regulations requiring them. */
+  identifiers: ComplianceIdentifierRequirement[];
+  /** Alternative identifier groups that may satisfy one or more requirements. */
+  alternatives: ComplianceIdentifierAlternativeGroup[];
+};
+
+/**
+ * Result of retrieving missing compliance identifiers.
+ */
+export type RetrieveMissingIdentifiersResult =
+  | (ComplianceIdentifierRequirements & {
+      error?: undefined;
+    })
+  | {
+      identifiers?: undefined;
+      alternatives?: undefined;
+      /** Present if retrieval failed with an error. */
+      error: StripeError<OnrampError>;
+    };
+
+/**
+ * Result of submitting compliance identifiers for MiCA and CRS/CARF compliance.
+ */
+export type SubmitIdentifiersResult =
+  | {
+      /** Whether all required identifiers were accepted. */
+      valid: boolean;
+      /** Any identifiers that still need to be collected. */
+      identifiers: ComplianceIdentifierRequirement[];
+      /** Alternative identifier groups that may satisfy one or more requirements. */
+      alternatives: ComplianceIdentifierAlternativeGroup[];
+      /** Submitted identifier types whose values were invalid. */
+      invalidIdentifiers: ComplianceIdentifierType[];
+      error?: undefined;
+    }
+  | {
+      valid?: undefined;
+      identifiers?: undefined;
+      alternatives?: undefined;
+      invalidIdentifiers?: undefined;
+      /** Present if submission failed with an error. */
+      error: StripeError<OnrampError>;
+    };
+
+/**
+ * Result of presenting the CRS/CARF declaration.
+ */
+export type CRSCARFDeclarationResult =
+  | {
+      /** The customer accepted the declaration. */
+      status: 'Confirmed';
+      error?: undefined;
+    }
+  | {
+      status?: undefined;
+      /** Present if the declaration failed or was cancelled. */
+      error: StripeError<OnrampError>;
+    };
 
 /**
  * Result of KYC verification.

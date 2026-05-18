@@ -17,9 +17,11 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.turbomodule.core.interfaces.TurboModule;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModule implements TurboModule {
   public static final String NAME = "OnrampSdk";
@@ -59,6 +61,18 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void retrieveMissingIdentifiers(Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void submitIdentifiers(ReadableArray identifiers, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void presentCRSCARFDeclaration(Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void updatePhoneNumber(String phone, Promise promise);
 
   @ReactMethod
@@ -71,7 +85,7 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void provideCheckoutClientSecret(String clientSecret);
+  public abstract void provideCheckoutClientSecret(@Nullable String clientSecret);
 
   @ReactMethod
   @DoNotStrip
@@ -91,11 +105,11 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void authenticateUserWithToken(String token, Promise promise);
+  public abstract void authenticateUserWithToken(String linkAuthTokenClientSecret, Promise promise);
 
   @ReactMethod
   @DoNotStrip
-  public abstract void presentKycInfoVerification(ReadableMap updatedAddress, Promise promise);
+  public abstract void presentKycInfoVerification(@Nullable ReadableMap updatedAddress, Promise promise);
 
   @ReactMethod
   @DoNotStrip

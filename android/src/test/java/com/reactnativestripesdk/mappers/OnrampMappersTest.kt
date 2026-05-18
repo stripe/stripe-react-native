@@ -4,12 +4,17 @@ package com.reactnativestripesdk.mappers
 
 import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.toArgb
+import com.reactnativestripesdk.ComplianceIdentifierFieldException
+import com.reactnativestripesdk.InvalidIdentifiersArrayException
 import com.reactnativestripesdk.mapAppearance
 import com.reactnativestripesdk.mapConfig
 import com.reactnativestripesdk.mapFromKycInfo
 import com.reactnativestripesdk.mapGooglePayConfig
 import com.reactnativestripesdk.mapPaymentDetailsType
+import com.reactnativestripesdk.mapToComplianceIdentifiers
+import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
+import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
@@ -22,12 +27,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @SuppressLint("RestrictedApi")
+@Suppress("LargeClass")
 @RunWith(RobolectricTestRunner::class)
 class OnrampMappersTest {
   @Test
@@ -460,6 +467,13 @@ class OnrampMappersTest {
             state = "CA",
           ),
         dateOfBirth = DateOfBirth(day = 15, month = 6, year = 1990),
+        birthCountry = CountryCode.create("FR"),
+        birthCity = "Paris",
+        nationalities =
+          listOf(
+            CountryCode.create("FR"),
+            CountryCode.create("DE"),
+          ),
       )
     val result = mapFromKycInfo(kycInfo)
 
@@ -481,6 +495,14 @@ class OnrampMappersTest {
     assertEquals(15, dob!!.getInt("day"))
     assertEquals(6, dob.getInt("month"))
     assertEquals(1990, dob.getInt("year"))
+
+    assertEquals("FR", result.getString("birthCountry"))
+    assertEquals("Paris", result.getString("birthCity"))
+
+    val nationalities = result.getArray("nationalities")
+    assertNotNull(nationalities)
+    assertEquals("FR", nationalities!!.getString(0))
+    assertEquals("DE", nationalities.getString(1))
   }
 
   @Test
@@ -492,6 +514,9 @@ class OnrampMappersTest {
         idNumber = null,
         address = null,
         dateOfBirth = null,
+        birthCountry = null,
+        birthCity = null,
+        nationalities = null,
       )
     val result = mapFromKycInfo(kycInfo)
 
@@ -500,6 +525,9 @@ class OnrampMappersTest {
     assertFalse(result.hasKey("idNumber"))
     assertFalse(result.hasKey("address"))
     assertFalse(result.hasKey("dateOfBirth"))
+    assertFalse(result.hasKey("birthCountry"))
+    assertFalse(result.hasKey("birthCity"))
+    assertFalse(result.hasKey("nationalities"))
   }
 
   @Test
@@ -511,6 +539,9 @@ class OnrampMappersTest {
         idNumber = null,
         address = null,
         dateOfBirth = DateOfBirth(day = 1, month = 1, year = 2000),
+        birthCountry = CountryCode.create("IT"),
+        birthCity = "Rome",
+        nationalities = listOf(CountryCode.create("IT")),
       )
     val result = mapFromKycInfo(kycInfo)
 
@@ -524,6 +555,9 @@ class OnrampMappersTest {
     assertEquals(1, dob!!.getInt("day"))
     assertEquals(1, dob.getInt("month"))
     assertEquals(2000, dob.getInt("year"))
+    assertEquals("IT", result.getString("birthCountry"))
+    assertEquals("Rome", result.getString("birthCity"))
+    assertEquals("IT", result.getArray("nationalities")!!.getString(0))
   }
 
   @Test
@@ -543,6 +577,9 @@ class OnrampMappersTest {
             state = null,
           ),
         dateOfBirth = null,
+        birthCountry = null,
+        birthCity = null,
+        nationalities = null,
       )
     val result = mapFromKycInfo(kycInfo)
 
@@ -554,5 +591,75 @@ class OnrampMappersTest {
     assertFalse(address.hasKey("line2"))
     assertFalse(address.hasKey("postalCode"))
     assertFalse(address.hasKey("state"))
+  }
+
+  @Test
+  fun mapToComplianceIdentifiers_ValidIdentifiers_ReturnsIdentifiers() {
+    val identifiers =
+      readableArrayOf(
+        readableMapOf(
+          "type" to " AT_STN ",
+          "value" to " 123456789 ",
+        ),
+        readableMapOf(
+          "type" to "DE_STN",
+          "value" to "987654321",
+        ),
+      )
+
+    val result = mapToComplianceIdentifiers(identifiers)
+
+    assertEquals(2, result.size)
+  }
+
+  @Test
+  fun mapToComplianceIdentifiers_BlankType_ThrowsFieldException() {
+    val identifiers =
+      readableArrayOf(
+        readableMapOf(
+          "type" to "   ",
+          "value" to "123456789",
+        ),
+      )
+
+    val error =
+      assertThrows(ComplianceIdentifierFieldException::class.java) {
+        mapToComplianceIdentifiers(identifiers)
+      }
+
+    assertEquals("Invalid format for field: type", error.message)
+  }
+
+  @Test
+  fun mapToComplianceIdentifiers_BlankValue_ThrowsFieldException() {
+    val identifiers =
+      readableArrayOf(
+        readableMapOf(
+          "type" to "AT_STN",
+          "value" to "   ",
+        ),
+      )
+
+    val error =
+      assertThrows(ComplianceIdentifierFieldException::class.java) {
+        mapToComplianceIdentifiers(identifiers)
+      }
+
+    assertEquals("Invalid format for field: value", error.message)
+  }
+
+  @Test
+  fun mapToComplianceIdentifiers_NonMapEntry_ThrowsInvalidArrayException() {
+    val identifiers = readableArrayOf("AT_STN")
+
+    val error =
+      assertThrows(InvalidIdentifiersArrayException::class.java) {
+        mapToComplianceIdentifiers(identifiers)
+      }
+
+    assertEquals(
+      "Unexpected format of identifiers array. Expected dictionaries with String keys.",
+      error.message,
+    )
   }
 }
