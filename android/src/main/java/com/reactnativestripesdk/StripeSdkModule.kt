@@ -1882,7 +1882,7 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     performCheckoutMutation(sessionKey, promise) { checkout ->
-      checkout.refresh()
+      checkout.runServerUpdate { Result.success(Unit) }
     }
   }
 
