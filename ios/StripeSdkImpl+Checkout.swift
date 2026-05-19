@@ -196,6 +196,61 @@ extension StripeSdkImpl {
         }
     }
 
+    @objc(checkoutRunServerUpdateStart:resolver:rejecter:)
+    public func checkoutRunServerUpdateStart(
+        sessionKey: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self else {
+                reject(ErrorType.Failed, "Stripe SDK is unavailable", nil)
+                return
+            }
+
+            guard let checkout = self.checkoutInstances[sessionKey] else {
+                reject(ErrorType.Failed, "Checkout session not found", nil)
+                return
+            }
+
+            guard self.serverUpdateContinuations[sessionKey] == nil else {
+                reject(ErrorType.Failed, "A server update is already in progress for this session", nil)
+                return
+            }
+
+            do {
+                try await checkout.runServerUpdate {
+                    try await withCheckedThrowingContinuation { continuation in
+                        self.serverUpdateContinuations[sessionKey] = continuation
+                    }
+                }
+                resolve(self.currentCheckoutStateResult(checkout: checkout))
+            } catch {
+                reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
+            }
+        }
+    }
+
+    @objc(checkoutRunServerUpdateComplete:error:resolver:rejecter:)
+    public func checkoutRunServerUpdateComplete(
+        sessionKey: String,
+        error: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard let continuation = serverUpdateContinuations.removeValue(forKey: sessionKey) else {
+            reject(ErrorType.Failed, "No pending server update for this session", nil)
+            return
+        }
+
+        if let error {
+            continuation.resume(throwing: CheckoutError.apiError(message: error))
+        } else {
+            continuation.resume()
+        }
+        resolve(nil)
+    }
+
     internal func buildCheckoutConfiguration(params: NSDictionary) -> Checkout.Configuration {
         var configuration = Checkout.Configuration()
 

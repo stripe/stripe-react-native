@@ -565,4 +565,18 @@ export interface Checkout {
    * @internal
    */
   updateTaxId(type: string, value: string): Promise<void>;
+
+  /**
+   * Runs an async operation that updates the Checkout Session on your server,
+   * then automatically refreshes the local session state.
+   *
+   * Call your server inside `serverUpdate` to modify the Checkout Session.
+   * A 20-second timeout is enforced by the native SDK.
+   *
+   * @param serverUpdate - An async function that calls your server to update the session.
+   * - Throws: `CheckoutError` if the operation times out or fails.
+   * @checkoutSessionsPreview
+   * @internal
+   */
+  runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
 }

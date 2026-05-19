@@ -165,6 +165,27 @@ export function useCheckout(
       ),
     [withLoading]
   );
+  const runServerUpdate = useCallback<Checkout['runServerUpdate']>(
+    (serverUpdate) =>
+      withLoading(async (key) => {
+        const startPromise = NativeStripeSdk.checkoutRunServerUpdateStart(key);
+
+        try {
+          await serverUpdate();
+          await NativeStripeSdk.checkoutRunServerUpdateComplete(key, null);
+        } catch (e: any) {
+          await NativeStripeSdk.checkoutRunServerUpdateComplete(
+            key,
+            e.message ?? 'Server update failed'
+          );
+          throw e;
+        }
+
+        return await startPromise;
+      }),
+    [withLoading]
+  );
+
   const checkout = useMemo<Checkout>(
     () => ({
       get sessionKey(): string {
@@ -184,6 +205,7 @@ export function useCheckout(
       updateLineItemQuantity,
       selectShippingOption,
       updateTaxId,
+      runServerUpdate,
     }),
     [
       updateShippingAddress,
@@ -193,6 +215,7 @@ export function useCheckout(
       updateLineItemQuantity,
       selectShippingOption,
       updateTaxId,
+      runServerUpdate,
     ]
   );
 
