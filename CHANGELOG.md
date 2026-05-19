@@ -2,8 +2,8 @@
 
 ## X.Y.Z - changes pending release
 **Changes**
-* Updated Stripe iOS SDK from 25.12.0 to 25.14.0.
-* Updated Stripe Android SDK from 23.6.+ to 23.8.+.
+* Updated Stripe iOS SDK from 25.14.0 to 25.15.0.
+* Updated Stripe Android SDK from 23.8.+ to 23.9.+.
 
 **Features**
 * [Added] Added EU support to Onramp. This includes three new APIs, `retrieveMissingIdentifiers`, `submitIdentifiers`, and `presentCRSCARFDeclaration`, EU-specific additions to `KycInfo` including `birthCountry`, `birthCity`, and `nationalities`, as well as associated helper model types in `Onramp.ts`.

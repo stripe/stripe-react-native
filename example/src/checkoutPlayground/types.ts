@@ -156,29 +156,8 @@ export const normalizePaymentMethodTypes = (
   return normalized;
 };
 
-export const getCurrencyOption = (currency: string) =>
-  currencyOptions.find((option) => option.value === currency);
-
 export const getIntegrationTypeLabel = (
   integrationType: CheckoutPlaygroundIntegrationType
 ): string =>
   integrationTypeOptions.find((option) => option.value === integrationType)
     ?.label ?? integrationType;
-
-export const formatCurrencyAmount = (
-  amount?: number,
-  currency?: string
-): string => {
-  if (amount == null) {
-    return '--';
-  }
-
-  const option = getCurrencyOption(currency ?? 'usd');
-  const label = option?.label ?? currency?.toUpperCase() ?? 'USD';
-
-  if (option?.isZeroDecimal) {
-    return `${label} ${amount}`;
-  }
-
-  return `${label} ${(amount / 100).toFixed(2)}`;
-};

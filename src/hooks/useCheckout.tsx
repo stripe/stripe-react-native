@@ -165,11 +165,6 @@ export function useCheckout(
       ),
     [withLoading]
   );
-  const refresh = useCallback<Checkout['refresh']>(
-    () => withLoading((key) => NativeStripeSdk.checkoutRefresh(key)),
-    [withLoading]
-  );
-
   const checkout = useMemo<Checkout>(
     () => ({
       get sessionKey(): string {
@@ -189,7 +184,6 @@ export function useCheckout(
       updateLineItemQuantity,
       selectShippingOption,
       updateTaxId,
-      refresh,
     }),
     [
       updateShippingAddress,
@@ -199,7 +193,6 @@ export function useCheckout(
       updateLineItemQuantity,
       selectShippingOption,
       updateTaxId,
-      refresh,
     ]
   );
 

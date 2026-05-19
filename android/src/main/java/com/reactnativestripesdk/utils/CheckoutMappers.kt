@@ -25,51 +25,70 @@ internal fun mapFromCheckoutState(
   }
 
 @OptIn(CheckoutSessionPreview::class)
-private fun mapFromCheckoutSession(
-  session: CheckoutSession,
-): WritableMap =
+private fun mapFromCheckoutSession(session: CheckoutSession): WritableMap =
   Arguments.createMap().apply {
     putString("id", session.id)
-    // TODO(CheckoutSessionsPreview): Populate from public Android checkout fields once
-    // stripe-android exposes status, paymentStatus, and livemode on CheckoutSession.
-    putString("status", "unknown")
-    putString("paymentStatus", "unknown")
     putBoolean("livemode", false)
 
     if (session.currency.isNotBlank()) {
       putString("currency", session.currency)
     }
 
-    session.totalSummary?.let { putMap("totals", mapFromCheckoutTotals(it)) }
-    putArray("lineItems", mapFromCheckoutLineItems(session))
-    putArray("shippingOptions", mapFromCheckoutShippingOptions(session))
+    putMap("status", mapFromStatus(session.status))
+    putMap("tax", mapFromTax(session.tax))
+    session.totalSummary?.let { putMap("total", mapFromTotal(it)) }
 
-    // TODO(CheckoutSessionsPreview): Populate top-level discounts once stripe-android
-    // exposes them directly instead of only exposing TotalSummary.discountAmounts.
-    putArray("discounts", Arguments.createArray())
-
-    // TODO(CheckoutSessionsPreview): Populate customerId, customerEmail, billingAddress,
-    // and shippingAddress once stripe-android exposes them on public checkout models.
+    putArray("lineItems", mapFromLineItems(session))
+    putArray("shippingOptions", mapFromShippingOptions(session))
+    putArray("discountAmounts", Arguments.createArray())
+    putArray("currencyOptions", Arguments.createArray())
   }
 
 @OptIn(CheckoutSessionPreview::class)
-private fun mapFromCheckoutTotals(totals: CheckoutSession.TotalSummary): WritableMap {
-  val taxTotal = totals.taxAmounts.sumOf { it.amount }
-
-  return Arguments.createMap().apply {
-    putDouble("subtotal", totals.subtotal.toDouble())
-    putDouble("total", totals.totalAmountDue.toDouble())
-    putDouble("due", totals.totalDueToday.toDouble())
-    // TODO(CheckoutSessionsPreview): Populate the top-level discount total once the
-    // Android TotalSummary model exposes it directly.
-    putDouble("discount", 0.0)
-    putDouble("shipping", (totals.shippingRate?.amount ?: 0L).toDouble())
-    putDouble("tax", taxTotal.toDouble())
+private fun mapFromStatus(status: CheckoutSession.Status): WritableMap =
+  Arguments.createMap().apply {
+    putString(
+        "type",
+        when (status) {
+      CheckoutSession.Status.Open -> "open"
+      CheckoutSession.Status.Complete -> "complete"
+      CheckoutSession.Status.Expired -> "expired"
+      else -> "unknown"
+    }
+    )
   }
-}
 
 @OptIn(CheckoutSessionPreview::class)
-private fun mapFromCheckoutLineItems(session: CheckoutSession): WritableArray =
+private fun mapFromTax(tax: CheckoutSession.Tax): WritableMap =
+  Arguments.createMap().apply {
+    putString(
+        "status",
+        when (tax.status) {
+      CheckoutSession.Tax.Status.Ready -> "ready"
+      CheckoutSession.Tax.Status.RequiresShippingAddress -> "requiresShippingAddress"
+      CheckoutSession.Tax.Status.RequiresBillingAddress -> "requiresBillingAddress"
+      else -> "unknown"
+    }
+    )
+  }
+
+@OptIn(CheckoutSessionPreview::class)
+private fun mapFromTotal(totals: CheckoutSession.TotalSummary): WritableMap =
+  Arguments.createMap().apply {
+    val taxTotal = totals.taxAmounts.sumOf { it.amount }
+
+    putMap("subtotal", makeAmount(totals.subtotal))
+    putMap("taxExclusive", makeAmount(taxTotal))
+    putMap("taxInclusive", makeAmount(0L))
+    putMap("shippingRate", makeAmount(totals.shippingRate?.amount ?: 0L))
+    putMap("discount", makeAmount(0L))
+    putMap("total", makeAmount(totals.totalAmountDue))
+    putMap("appliedBalance", makeAmount(0L))
+    putBoolean("balanceAppliedToNextInvoice", false)
+  }
+
+@OptIn(CheckoutSessionPreview::class)
+private fun mapFromLineItems(session: CheckoutSession): WritableArray =
   Arguments.createArray().apply {
     session.lineItems.forEach { item ->
       pushMap(
@@ -77,25 +96,32 @@ private fun mapFromCheckoutLineItems(session: CheckoutSession): WritableArray =
           putString("id", item.id)
           putString("name", item.name)
           putInt("quantity", item.quantity)
-          putDouble("unitAmount", (item.unitAmount ?: 0L).toDouble())
-          putString("currency", session.currency)
+          putArray("images", Arguments.createArray())
+          putArray("discountAmounts", Arguments.createArray())
+          putArray("taxAmounts", Arguments.createArray())
+          item.unitAmount?.let { putMap("unitAmount", makeAmount(it)) }
         },
       )
     }
   }
 
 @OptIn(CheckoutSessionPreview::class)
-private fun mapFromCheckoutShippingOptions(session: CheckoutSession): WritableArray =
+private fun mapFromShippingOptions(session: CheckoutSession): WritableArray =
   Arguments.createArray().apply {
     session.shippingOptions.forEach { option ->
       pushMap(
         Arguments.createMap().apply {
           putString("id", option.id)
           putString("displayName", option.displayName)
-          putDouble("amount", option.amount.toDouble())
+          putMap("amount", makeAmount(option.amount))
           putString("currency", session.currency)
-          option.deliveryEstimate?.let { putString("deliveryEstimate", it) }
         },
       )
     }
+  }
+
+private fun makeAmount(minorUnits: Long): WritableMap =
+  Arguments.createMap().apply {
+    putString("amount", "")
+    putDouble("minorUnitsAmount", minorUnits.toDouble())
   }

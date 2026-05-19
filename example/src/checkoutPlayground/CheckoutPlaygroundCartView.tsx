@@ -29,7 +29,6 @@ import {
   toCheckoutAddress,
 } from './CheckoutPlaygroundCartUtils';
 import {
-  formatCurrencyAmount,
   supportsAdvancedCollection,
   type CheckoutPlaygroundConfig,
 } from './types';
@@ -191,8 +190,8 @@ export function CheckoutPlaygroundCartView({
     [session?.billingAddress]
   );
   const orderSummaryRows = useMemo(
-    () => buildOrderSummaryRows(session?.totals),
-    [session?.totals]
+    () => buildOrderSummaryRows(session?.total),
+    [session?.total]
   );
   const flowControllerActionLabel = selectedPaymentOption
     ? 'Change payment method'
@@ -298,17 +297,6 @@ export function CheckoutPlaygroundCartView({
     },
     [initialiseFlowController, isFlowControllerIntegration]
   );
-
-  const handleRefresh = useCallback(() => {
-    runCheckoutAction('Refresh', async () => {
-      await checkout.refresh();
-      setFeedback({
-        tone: 'info',
-        title: 'Checkout refreshed',
-        message: 'Fetched the latest checkout session from Stripe.',
-      });
-    });
-  }, [checkout, runCheckoutAction]);
 
   const handleUpdateQuantity = useCallback(
     (lineItemId: string, quantity: number) => {
@@ -602,11 +590,7 @@ export function CheckoutPlaygroundCartView({
           />
         ) : null}
 
-        <SessionSection
-          config={config}
-          onRefresh={handleRefresh}
-          session={session}
-        />
+        <SessionSection config={config} session={session} />
 
         {shouldShowLineItemSection ? (
           <ItemsSection
@@ -659,9 +643,8 @@ export function CheckoutPlaygroundCartView({
 
         {shouldShowPromotionSection ? (
           <PromotionSection
-            currency={session.currency}
             disableActions={disableActions}
-            discounts={session.discounts}
+            discountAmounts={session.discountAmounts}
             onApplyPromotionCode={() => {
               handleApplyPromotionCode();
             }}
@@ -683,10 +666,7 @@ export function CheckoutPlaygroundCartView({
         ) : null}
 
         {orderSummaryRows.length > 0 ? (
-          <OrderSummarySection
-            currency={session.currency}
-            rows={orderSummaryRows}
-          />
+          <OrderSummarySection rows={orderSummaryRows} />
         ) : null}
 
         {isFlowControllerIntegration ? (
@@ -759,10 +739,7 @@ export function CheckoutPlaygroundCartView({
         primaryLabel={
           config.mode === 'setup'
             ? 'Set up payment method'
-            : `Pay ${formatCurrencyAmount(
-                session.totals?.total ?? 0,
-                session.currency
-              )}`
+            : `Pay ${session.total?.total.amount ?? '--'}`
         }
         primaryDisabled={
           state?.status !== 'loaded' ||
@@ -799,8 +776,7 @@ export function CheckoutPlaygroundCartView({
           <CheckoutPlaygroundEmbeddedView
             checkout={checkout}
             mode={config.mode}
-            currency={session.currency}
-            total={session.totals?.total}
+            totalLabel={session.total?.total.amount}
             onClose={() => setEmbeddedModalVisible(false)}
             onSuccessfulPayment={() => {
               setEmbeddedModalVisible(false);

@@ -196,21 +196,6 @@ extension StripeSdkImpl {
         }
     }
 
-    @objc(checkoutRefresh:resolver:rejecter:)
-    public func checkoutRefresh(
-        sessionKey: String,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) {
-        performCheckoutMutation(
-            sessionKey: sessionKey,
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout in
-            try await checkout.refresh()
-        }
-    }
-
     internal func buildCheckoutConfiguration(params: NSDictionary) -> Checkout.Configuration {
         var configuration = Checkout.Configuration()
 

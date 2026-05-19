@@ -16,7 +16,7 @@ import type { Checkout } from '@stripe/stripe-react-native/src/types/Checkout';
 import { colors } from '../colors';
 import SelectedPaymentOption from '../components/SelectedPaymentOption';
 import { BottomActionBar, StatusBanner } from './components';
-import { formatCurrencyAmount, type CheckoutPlaygroundMode } from './types';
+import { type CheckoutPlaygroundMode } from './types';
 
 type FeedbackState = {
   tone: 'error' | 'success' | 'info';
@@ -27,8 +27,7 @@ type FeedbackState = {
 type Props = {
   checkout: Checkout;
   mode: CheckoutPlaygroundMode;
-  currency?: string;
-  total?: number;
+  totalLabel?: string;
   onClose(): void;
   onSuccessfulPayment(): void;
 };
@@ -36,8 +35,7 @@ type Props = {
 export function CheckoutPlaygroundEmbeddedView({
   checkout,
   mode,
-  currency,
-  total,
+  totalLabel,
   onClose,
   onSuccessfulPayment,
 }: Props) {
@@ -57,8 +55,7 @@ export function CheckoutPlaygroundEmbeddedView({
       <EmbeddedCheckoutBody
         checkout={checkout}
         mode={mode}
-        currency={currency}
-        total={total}
+        totalLabel={totalLabel}
         onSuccessfulPayment={onSuccessfulPayment}
       />
     </SafeAreaView>
@@ -68,16 +65,14 @@ export function CheckoutPlaygroundEmbeddedView({
 type BodyProps = {
   checkout: Checkout;
   mode: CheckoutPlaygroundMode;
-  currency?: string;
-  total?: number;
+  totalLabel?: string;
   onSuccessfulPayment(): void;
 };
 
 function EmbeddedCheckoutBody({
   checkout,
   mode,
-  currency,
-  total,
+  totalLabel,
   onSuccessfulPayment,
 }: BodyProps) {
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
@@ -146,9 +141,7 @@ function EmbeddedCheckoutBody({
   }, [confirm, handlePaymentResult]);
 
   const primaryLabel =
-    mode === 'setup'
-      ? 'Set up payment method'
-      : `Pay ${formatCurrencyAmount(total ?? 0, currency)}`;
+    mode === 'setup' ? 'Set up payment method' : `Pay ${totalLabel ?? '--'}`;
 
   return (
     <>

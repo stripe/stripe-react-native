@@ -262,8 +262,6 @@ export interface Spec extends TurboModule {
     value: string
   ): Promise<UnsafeObject<Checkout.State>>;
 
-  checkoutRefresh(sessionKey: string): Promise<UnsafeObject<Checkout.State>>;
-
   setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;
 
   openAuthenticatedWebView(

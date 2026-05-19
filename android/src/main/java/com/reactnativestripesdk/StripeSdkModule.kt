@@ -1877,15 +1877,6 @@ class StripeSdkModule(
     }
   }
 
-  override fun checkoutRefresh(
-    sessionKey: String,
-    promise: Promise,
-  ) {
-    performCheckoutMutation(sessionKey, promise) { checkout ->
-      checkout.refresh()
-    }
-  }
-
   private fun buildCheckoutConfiguration(configuration: ReadableMap): Checkout.Configuration {
     val checkoutConfiguration = Checkout.Configuration()
     val adaptivePricing = configuration.getMap("adaptivePricing")
