@@ -77,8 +77,6 @@ def create_github_release
     return
   end
 
-  current_ver = version_and_date.split(" -").first.strip
-
   release_notes = <<~NOTES
     #{version_and_date}
 
@@ -88,10 +86,10 @@ def create_github_release
   NOTES
 
   if system("which hub > /dev/null 2>&1")
-    puts "Creating GitHub release for tag: v#{current_ver}"
+    puts "Creating GitHub release for tag: v#{current_version}"
     puts ""
     print "    "
-    execute_or_fail("hub release create -m #{release_notes.shellescape} \"v#{current_ver}\"")
+    execute_or_fail("hub release create -m #{release_notes.shellescape} \"v#{current_version}\"")
   else
     puts ""
     puts "Remember to create a release on GitHub at https://github.com/stripe/stripe-react-native/releases/new"
