@@ -1,28 +1,14 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'open3'
-require 'json'
 require 'date'
 require 'tmpdir'
 require 'shellwords'
+require_relative 'helpers'
 
 @release_type = nil
 
 VALID_RELEASE_TYPES = %w[patch minor major].freeze
-
-def rputs(string)
-  puts "\e[31m#{string}\e[0m"
-end
-
-def execute_or_fail(command)
-  puts "Executing: #{command}"
-  system(command) or abort "Failed to execute: #{command}"
-end
-
-def current_version
-  JSON.parse(File.read("package.json"))["version"]
-end
 
 def next_version
   parts = current_version.split(".").map(&:to_i)
@@ -120,6 +106,8 @@ unless VALID_RELEASE_TYPES.include?(@release_type)
 end
 
 Dir.chdir(`git rev-parse --show-toplevel`.strip)
+
+preflight_checks
 
 version = next_version
 puts "Proposing #{version} (currently #{current_version})"

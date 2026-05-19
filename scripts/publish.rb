@@ -1,75 +1,10 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'open3'
-require 'json'
+require_relative 'helpers'
 
 @is_dry_run = false
 @step_index = 1
-
-def rputs(string)
-  puts "\e[31m#{string}\e[0m"
-end
-
-def execute(command)
-  puts "Executing: #{command}"
-  system(command)
-end
-
-def execute_or_fail(command)
-  puts "Executing: #{command}"
-  system(command) or raise "Failed to execute: #{command}"
-end
-
-def git_status
-  stdout, _, _ = Open3.capture3("git status")
-  stdout
-end
-
-def current_version
-  JSON.parse(File.read("package.json"))["version"]
-end
-
-def ensure_on_master
-  status = git_status
-  unless status.include?("On branch master")
-    if @is_dry_run
-      rputs "Warning: Not on master branch (continuing for dry run)"
-    else
-      abort "Error! Must be on master branch to publish"
-    end
-  end
-end
-
-def ensure_up_to_date
-  status = git_status
-  unless status.include?("Your branch is up to date with 'origin/master'.")
-    if @is_dry_run
-      rputs "Warning: Not up to date with origin/master (continuing for dry run)"
-    else
-      abort "Error! Must be up to date with origin/master to publish"
-    end
-  end
-end
-
-def ensure_clean_repo
-  status = git_status
-  unless status.include?("working tree clean")
-    if @is_dry_run
-      rputs "Warning: Working tree is dirty (continuing for dry run)"
-    else
-      abort "Error! Cannot publish with dirty working tree"
-    end
-  end
-end
-
-def preflight_checks
-  puts "Fetching git remotes"
-  execute_or_fail("git fetch")
-  ensure_on_master
-  ensure_up_to_date
-  ensure_clean_repo
-end
 
 def install_dependencies
   puts "Installing dependencies according to lockfile"
@@ -214,7 +149,7 @@ Dir.chdir(`git rev-parse --show-toplevel`.strip)
 puts "Publishing v#{current_version}"
 
 steps = [
-  { name: "Preflight checks", action: method(:preflight_checks) },
+  { name: "Preflight checks", action: -> { preflight_checks(is_dry_run: @is_dry_run) } },
   { name: "Install dependencies", action: method(:install_dependencies) },
   { name: "Run tests", action: method(:run_tests) },
   { name: "Create git tag", action: method(:create_git_tag) },
