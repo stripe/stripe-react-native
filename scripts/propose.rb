@@ -51,13 +51,18 @@ def update_changelog(version)
   File.write("CHANGELOG.md", changelog.sub("## Unreleased", header))
 end
 
+def bump_version(version)
+  execute_or_fail("yarn version --no-git-tag-version --new-version #{version}")
+end
+
 def create_proposal_pr(version)
   branch = "release/propose-#{version}"
   execute_or_fail("git checkout -b #{branch}")
 
+  bump_version(version)
   update_changelog(version)
 
-  execute_or_fail("git add CHANGELOG.md")
+  execute_or_fail("git add package.json CHANGELOG.md")
   execute_or_fail("git commit -m 'Propose #{version}'")
   execute_or_fail("git push -u origin #{branch}")
 
