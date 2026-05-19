@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, ScrollView, View } from 'react-native';
+import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import {
   AddressSheet,
   AddressSheetError,
@@ -350,6 +350,20 @@ export function CheckoutPlaygroundCartView({
     });
   }, [checkout, runCheckoutAction]);
 
+  const handleRunServerUpdate = useCallback(async () => {
+    await runCheckoutAction('Server update', async () => {
+      await checkout.runServerUpdate(async () => {
+        // Simulate a server call with a short delay
+        await new Promise<void>((resolve) => setTimeout(resolve, 2000));
+      });
+      setFeedback({
+        tone: 'success',
+        title: 'Server update complete',
+        message: 'The session was refreshed after the simulated server call.',
+      });
+    });
+  }, [checkout, runCheckoutAction]);
+
   const handlePresentPaymentSheet = useCallback(async () => {
     if (state?.status !== 'loaded') {
       return;
@@ -591,6 +605,27 @@ export function CheckoutPlaygroundCartView({
         ) : null}
 
         <SessionSection config={config} session={session} />
+
+        <TouchableOpacity
+          disabled={disableActions}
+          onPress={handleRunServerUpdate}
+          style={{
+            marginBottom: 16,
+            padding: 12,
+            borderRadius: 8,
+            backgroundColor: disableActions ? '#E5E7EB' : '#EEF2FF',
+            alignItems: 'center',
+          }}
+        >
+          <Text
+            style={{
+              color: disableActions ? '#9CA3AF' : '#4338CA',
+              fontWeight: '600',
+            }}
+          >
+            Test runServerUpdate (2s simulated server call)
+          </Text>
+        </TouchableOpacity>
 
         {shouldShowLineItemSection ? (
           <ItemsSection

@@ -361,6 +361,26 @@ RCT_EXPORT_METHOD(checkoutUpdateTaxId:(nonnull NSString *)sessionKey
                                    rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(checkoutRunServerUpdateStart:(nonnull NSString *)sessionKey
+                                        resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                         reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared checkoutRunServerUpdateStart:sessionKey
+                                            resolver:resolve
+                                            rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(checkoutRunServerUpdateComplete:(nonnull NSString *)sessionKey
+                                            error:(NSString *)error
+                                          resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                           reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared checkoutRunServerUpdateComplete:sessionKey
+                                                  error:error
+                                               resolver:resolve
+                                               rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(initCustomerSheet:(nonnull NSDictionary *)params
           customerAdapterOverrides:(nonnull NSDictionary *)customerAdapterOverrides
                            resolve:(nonnull RCTPromiseResolveBlock)resolve

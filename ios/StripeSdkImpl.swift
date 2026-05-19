@@ -65,6 +65,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
     internal var checkoutInstances: [String: Checkout] = [:]
     internal var checkoutStateCancellables: [String: AnyCancellable] = [:]
+    internal var serverUpdateContinuations: [String: CheckedContinuation<Void, Error>] = [:]
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 
