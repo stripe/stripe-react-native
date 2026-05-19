@@ -2,7 +2,7 @@
 
 ## X.Y.Z - changes pending release
 **Changes**
-* Updated Stripe iOS SDK from 25.12.0 to 25.14.0.
+* Updated Stripe iOS SDK from 25.12.0 to 25.15.0.
 * Updated Stripe Android SDK from 23.6.+ to 23.8.+.
 
 **Features**
