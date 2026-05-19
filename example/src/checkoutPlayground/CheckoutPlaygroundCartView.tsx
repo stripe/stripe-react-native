@@ -354,7 +354,7 @@ export function CheckoutPlaygroundCartView({
     await runCheckoutAction('Server update', async () => {
       await checkout.runServerUpdate(async () => {
         // Simulate a server call with a short delay
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise<void>((resolve) => setTimeout(resolve, 2000));
       });
       setFeedback({
         tone: 'success',
