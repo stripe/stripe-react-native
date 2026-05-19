@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.66.0 - 2026-05-19
+asdfasdas
+
 ## 0.65.1 - 2026-05-11
 **Fixes**
 * [Fixed] Fixed bug preventing PaymentSheet from dismissing when presenting with timeout. ([#2451](https://github.com/stripe/stripe-react-native/pull/2451))
