@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## X.Y.Z - changes pending release
+**Fixes**
+* [Fixed] Matched iOS Onramp `LinkAppearance.PrimaryButtonConfiguration` mapping to Android so unspecified custom height and corner radius values use Link defaults.
+
 ## 0.66.0 - 2026-05-20
 **Changes**
 * Updated Stripe iOS SDK from 25.14.0 to 25.15.0.
