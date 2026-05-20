@@ -7,6 +7,45 @@ require_relative 'helpers'
 @is_dry_run = false
 @step_index = 1
 
+def ensure_node_version
+  version_file = File.join(Dir.pwd, ".node-version")
+  abort "Error! .node-version file not found" unless File.exist?(version_file)
+
+  required_version = File.read(version_file).strip
+  installed_versions, _, _ = Open3.capture3("nodenv versions --bare")
+
+  unless installed_versions.split("\n").map(&:strip).include?(required_version)
+    puts "Node #{required_version} not installed, installing via nodenv..."
+    execute_or_fail("nodenv install #{required_version}")
+    execute_or_fail("nodenv rehash")
+  end
+
+  execute_or_fail("nodenv local #{required_version}")
+  puts "Using node #{required_version}"
+end
+
+def ensure_npm_logged_in
+  stdout, _, status = Open3.capture3("npm whoami")
+  if status.success?
+    puts "Logged into npm as #{stdout.strip}"
+  else
+    abort "Error! Not logged into npm. Please run `npm login` and try again."
+  end
+end
+
+def ensure_nodenv_yarn_install
+  nodenv_root = `nodenv root`.strip
+  unless Dir.exist?(File.join(nodenv_root, "plugins", "nodenv-yarn-install"))
+    abort "Error! `nodenv-yarn-install` plugin is not installed. Please install it: See https://github.com/pine/nodenv-yarn-install for details."
+  end
+end
+
+def pre_release_checks
+  ensure_nodenv_yarn_install
+  ensure_node_version
+  ensure_npm_logged_in
+end
+
 def install_dependencies
   puts "Installing dependencies according to lockfile"
   execute_or_fail("yarn install --frozen-lockfile")
@@ -149,6 +188,7 @@ puts "Publishing v#{current_version}"
 
 steps = [
   { name: "Preflight checks", action: -> { preflight_checks(is_dry_run: @is_dry_run) } },
+  { name: "Prerelease checks", action: method(:pre_release_checks) },
   { name: "Install dependencies", action: method(:install_dependencies) },
   { name: "Run tests", action: method(:run_tests) },
   { name: "Create git tag", action: method(:create_git_tag) },
