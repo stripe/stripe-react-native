@@ -13,6 +13,7 @@
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
     "prepare": "bob build && rm -rf lib/*/package.json && husky",
+    "propose": "./scripts/propose.rb",
     "release": "./scripts/publish.rb",
     "example": "yarn --cwd example",
     "pods": "cd example && npx pod-install --quiet",
