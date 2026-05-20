@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
+require 'shellwords'
 require_relative 'helpers'
 
 @is_dry_run = false
