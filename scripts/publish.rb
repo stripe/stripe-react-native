@@ -34,12 +34,6 @@ def ensure_npm_logged_in
   end
 end
 
-def ensure_hub_installed
-  unless system("which hub > /dev/null 2>&1")
-    abort "Error! `hub` is not installed. Please run `brew install hub` and try again."
-  end
-end
-
 def ensure_nodenv_yarn_install
   nodenv_root = `nodenv root`.strip
   unless Dir.exist?(File.join(nodenv_root, "plugins", "nodenv-yarn-install"))
@@ -51,7 +45,6 @@ def pre_release_checks
   ensure_nodenv_yarn_install
   ensure_node_version
   ensure_npm_logged_in
-  ensure_hub_installed
 end
 
 def install_dependencies
