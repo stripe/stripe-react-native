@@ -30,6 +30,8 @@ import {
 } from '../../api/onrampBackend';
 import {
   getDestinationParamsForNetwork,
+  formatIdentifierRequirements,
+  formatSubmitIdentifiersResult,
   showError,
   showSuccess,
   showCanceled,
@@ -44,20 +46,50 @@ import {
   VerifyIdentitySection,
   PhoneNumberUpdateSection,
   LinkAuthenticationSection,
+  ComplianceIdentifiersSection,
   PaymentCollectionSection,
   CryptoOperationsSection,
   OnrampSessionCreationSection,
   RegisterWalletAddressSection,
   OnrampResponseStatusSection,
 } from './sections';
+import type { KycInfoInput } from './sections/AttachKycInfoSection';
+import type { UserInfo } from './sections/PhoneNumberUpdateSection';
 import { colors } from '../../colors';
 import { PaymentMethodDisplayData } from '@stripe/stripe-react-native/src/types/Onramp';
+
+const createInitialUserInfo = (): UserInfo => ({
+  email: '',
+  password: '',
+  phoneNumber: '',
+});
+
+const createInitialKycInfoInput = (): KycInfoInput => ({
+  firstName: '',
+  lastName: '',
+  idNumber: '',
+  dateOfBirthDay: '',
+  dateOfBirthMonth: '',
+  dateOfBirthYear: '',
+  addressLine1: '',
+  addressLine2: '',
+  addressCity: '',
+  addressState: '',
+  addressPostalCode: '',
+  addressCountry: '',
+  birthCountry: '',
+  birthCity: '',
+  nationalities: '',
+});
 
 export default function CryptoOnrampFlow() {
   const {
     hasLinkAccount,
     verifyIdentity,
     attachKycInfo,
+    retrieveMissingIdentifiers,
+    submitIdentifiers,
+    presentCRSCARFDeclaration,
     presentKycInfoVerification,
     updatePhoneNumber,
     collectPaymentMethod,
@@ -70,13 +102,10 @@ export default function CryptoOnrampFlow() {
     authenticateUserWithToken,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
-  const [userInfo, setUserInfo] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-  });
+  const [userInfo, setUserInfo] = useState<UserInfo>(createInitialUserInfo);
+  const [kycInfoInput, setKycInfoInput] = useState<KycInfoInput>(
+    createInitialKycInfoInput
+  );
   const [linkAuthIntentId, setLinkAuthIntentId] = useState('');
 
   // Seamless sign-in persistence
@@ -89,6 +118,18 @@ export default function CryptoOnrampFlow() {
 
   const [response, setResponse] = useState<string | null>(null);
   const [isLinkUser, setIsLinkUser] = useState(false);
+  const [identifierInputs, setIdentifierInputs] = useState<
+    Array<{ type: string; value: string }>
+  >([{ type: '', value: '' }]);
+  const [missingIdentifiersSummary, setMissingIdentifiersSummary] = useState<
+    string | null
+  >(null);
+  const [submitIdentifiersSummary, setSubmitIdentifiersSummary] = useState<
+    string | null
+  >(null);
+  const [crsCarfDeclarationStatus, setCrsCarfDeclarationStatus] = useState<
+    string | null
+  >(null);
 
   const [customerId, setCustomerId] = useState<string | null>(null);
 
@@ -331,24 +372,11 @@ export default function CryptoOnrampFlow() {
   }, [verifyIdentity, withReauth, authorize, linkAuthIntentId]);
 
   const handleAttachKycInfo = useCallback(async () => {
-    const kycInfo = {
-      firstName: userInfo.firstName,
-      lastName: userInfo.lastName,
-      idNumber: '000000000',
-      dateOfBirth: {
-        day: 1,
-        month: 1,
-        year: 1990,
-      },
-      address: {
-        line1: '123 Main St',
-        line2: 'Apt 4B',
-        city: 'San Francisco',
-        state: 'CA',
-        postalCode: '94111',
-        country: 'US',
-      },
-    };
+    const kycInfo = buildKycInfoInput(kycInfoInput);
+
+    if (kycInfo === null) {
+      return;
+    }
 
     const result = await withReauth(
       () => attachKycInfo(kycInfo),
@@ -360,14 +388,130 @@ export default function CryptoOnrampFlow() {
     } else {
       showSuccess('KYC Attached');
     }
+  }, [attachKycInfo, kycInfoInput, withReauth, authorize, linkAuthIntentId]);
+
+  const updateIdentifierType = useCallback((index: number, value: string) => {
+    setIdentifierInputs((current) =>
+      current.map((input, currentIndex) =>
+        currentIndex === index ? { ...input, type: value } : input
+      )
+    );
+  }, []);
+
+  const updateIdentifierValue = useCallback((index: number, value: string) => {
+    setIdentifierInputs((current) =>
+      current.map((input, currentIndex) =>
+        currentIndex === index ? { ...input, value } : input
+      )
+    );
+  }, []);
+
+  const addIdentifierInput = useCallback(() => {
+    setIdentifierInputs((current) => [...current, { type: '', value: '' }]);
+  }, []);
+
+  const removeIdentifierInput = useCallback((index: number) => {
+    setIdentifierInputs((current) => {
+      if (current.length === 1) {
+        return [{ type: '', value: '' }];
+      }
+
+      return current.filter((_, currentIndex) => currentIndex !== index);
+    });
+  }, []);
+
+  const buildIdentifiersRequest = useCallback(() => {
+    const identifiers: Onramp.ComplianceIdentifier[] = [];
+
+    for (const [index, identifierInput] of identifierInputs.entries()) {
+      const type = identifierInput.type.trim();
+      const value = identifierInput.value.trim();
+
+      if (type === '' && value === '') {
+        continue;
+      }
+
+      if (type === '' || value === '') {
+        showError(`Identifier ${index + 1} requires both type and value.`);
+        return null;
+      }
+
+      identifiers.push({ type, value });
+    }
+
+    if (identifiers.length === 0) {
+      showError('Enter at least one identifier.');
+      return null;
+    }
+
+    return identifiers;
+  }, [identifierInputs]);
+
+  const handleRetrieveMissingIdentifiers = useCallback(async () => {
+    const result = await withReauth(
+      () => retrieveMissingIdentifiers(),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result.error) {
+      showError(
+        `Failed to retrieve missing identifiers: ${result.error.message}.`
+      );
+      return;
+    }
+
+    setMissingIdentifiersSummary(formatIdentifierRequirements(result));
+    showSuccess('Missing identifiers retrieved.');
+  }, [retrieveMissingIdentifiers, withReauth, authorize, linkAuthIntentId]);
+
+  const handleSubmitIdentifiers = useCallback(async () => {
+    const identifiers = buildIdentifiersRequest();
+    if (!identifiers) {
+      return;
+    }
+
+    const result = await withReauth(
+      () => submitIdentifiers(identifiers),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result.error) {
+      showError(`Failed to submit identifiers: ${result.error.message}.`);
+      return;
+    }
+
+    setSubmitIdentifiersSummary(formatSubmitIdentifiersResult(result));
+    showSuccess(
+      result.valid
+        ? 'Identifiers submitted successfully.'
+        : 'Identifiers submitted. Review the remaining requirements below.'
+    );
   }, [
-    attachKycInfo,
-    userInfo.firstName,
-    userInfo.lastName,
+    buildIdentifiersRequest,
+    submitIdentifiers,
     withReauth,
     authorize,
     linkAuthIntentId,
   ]);
+
+  const handlePresentCRSCARFDeclaration = useCallback(async () => {
+    const result = await withReauth(
+      () => presentCRSCARFDeclaration(),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result.error) {
+      if (result.error.code === 'Canceled') {
+        showCanceled('CRS/CARF declaration cancelled.');
+      } else {
+        showError(`Failed to attest: ${result.error.message}.`);
+      }
+      return;
+    }
+
+    setCrsCarfDeclarationStatus(result.status);
+    showSuccess('CRS/CARF declaration confirmed.');
+  }, [presentCRSCARFDeclaration, withReauth, authorize, linkAuthIntentId]);
 
   const handlePresentKycVerification = useCallback(
     async (updatedAddress: Address | null) => {
@@ -666,16 +810,15 @@ export default function CryptoOnrampFlow() {
     } else {
       showSuccess('Logged out successfully!');
       // Reset all state to initial values
-      setUserInfo({
-        email: '',
-        password: '',
-        firstName: '',
-        lastName: '',
-        phoneNumber: '',
-      });
+      setUserInfo(createInitialUserInfo());
+      setKycInfoInput(createInitialKycInfoInput());
       setLinkAuthIntentId('');
       setResponse(null);
       setIsLinkUser(false);
+      setIdentifierInputs([{ type: '', value: '' }]);
+      setMissingIdentifiersSummary(null);
+      setSubmitIdentifiersSummary(null);
+      setCrsCarfDeclarationStatus(null);
       setCustomerId(null);
       setCurrentPaymentDisplayData(null);
       setCryptoPaymentToken(null);
@@ -887,8 +1030,8 @@ export default function CryptoOnrampFlow() {
             />
           </View>
           <AttachKycInfoSection
-            userInfo={userInfo}
-            setUserInfo={setUserInfo}
+            kycInfo={kycInfoInput}
+            setKycInfo={setKycInfoInput}
             handleAttachKycInfo={handleAttachKycInfo}
           />
           <KycRefreshSection
@@ -897,7 +1040,22 @@ export default function CryptoOnrampFlow() {
             setUpdatedAddress={setKycUpdatedAddress}
             onVerifyKyc={(addr) => handlePresentKycVerification(addr)}
           />
-          <VerifyIdentitySection handleVerifyIdentity={handleVerifyIdentity} />
+          <ComplianceIdentifiersSection
+            identifierInputs={identifierInputs}
+            missingIdentifiersSummary={missingIdentifiersSummary}
+            submitIdentifiersSummary={submitIdentifiersSummary}
+            onIdentifierTypeChange={updateIdentifierType}
+            onIdentifierValueChange={updateIdentifierValue}
+            onAddIdentifier={addIdentifierInput}
+            onRemoveIdentifier={removeIdentifierInput}
+            handleRetrieveMissingIdentifiers={handleRetrieveMissingIdentifiers}
+            handleSubmitIdentifiers={handleSubmitIdentifiers}
+          />
+          <VerifyIdentitySection
+            handleVerifyIdentity={handleVerifyIdentity}
+            handlePresentCRSCARFDeclaration={handlePresentCRSCARFDeclaration}
+            crsCarfDeclarationStatus={crsCarfDeclarationStatus}
+          />
           <PaymentCollectionSection
             isPlatformPaySupported={isPlatformPayAvailable}
             handleCollectPlatformPayPayment={
@@ -973,6 +1131,139 @@ export default function CryptoOnrampFlow() {
       <View style={{ height: 32 }} />
     </ScrollView>
   );
+}
+
+function buildKycInfoInput(kycInfoInput: KycInfoInput): Onramp.KycInfo | null {
+  const day = normalizeOptionalString(kycInfoInput.dateOfBirthDay);
+  const month = normalizeOptionalString(kycInfoInput.dateOfBirthMonth);
+  const year = normalizeOptionalString(kycInfoInput.dateOfBirthYear);
+  const hasAnyDateOfBirthValue = !!(day || month || year);
+
+  if (hasAnyDateOfBirthValue && (!day || !month || !year)) {
+    showError('Date of birth requires day, month, and year.');
+    return null;
+  }
+
+  const result: Onramp.KycInfo = {};
+
+  const firstName = normalizeOptionalString(kycInfoInput.firstName);
+  if (firstName) {
+    result.firstName = firstName;
+  }
+
+  const lastName = normalizeOptionalString(kycInfoInput.lastName);
+  if (lastName) {
+    result.lastName = lastName;
+  }
+
+  const idNumber = normalizeOptionalString(kycInfoInput.idNumber);
+  if (idNumber) {
+    result.idNumber = idNumber;
+  }
+
+  if (hasAnyDateOfBirthValue) {
+    const parsedDay = Number(day);
+    const parsedMonth = Number(month);
+    const parsedYear = Number(year);
+
+    if (
+      !Number.isInteger(parsedDay) ||
+      !Number.isInteger(parsedMonth) ||
+      !Number.isInteger(parsedYear)
+    ) {
+      showError('Date of birth values must be whole numbers.');
+      return null;
+    }
+
+    if (
+      parsedDay < 1 ||
+      parsedDay > 31 ||
+      parsedMonth < 1 ||
+      parsedMonth > 12 ||
+      parsedYear < 1
+    ) {
+      showError('Date of birth values are out of range.');
+      return null;
+    }
+
+    result.dateOfBirth = {
+      day: parsedDay,
+      month: parsedMonth,
+      year: parsedYear,
+    };
+  }
+
+  const address: Address = {};
+
+  const addressLine1 = normalizeOptionalString(kycInfoInput.addressLine1);
+  if (addressLine1) {
+    address.line1 = addressLine1;
+  }
+
+  const addressLine2 = normalizeOptionalString(kycInfoInput.addressLine2);
+  if (addressLine2) {
+    address.line2 = addressLine2;
+  }
+
+  const addressCity = normalizeOptionalString(kycInfoInput.addressCity);
+  if (addressCity) {
+    address.city = addressCity;
+  }
+
+  const addressState = normalizeOptionalString(kycInfoInput.addressState);
+  if (addressState) {
+    address.state = addressState;
+  }
+
+  const addressPostalCode = normalizeOptionalString(
+    kycInfoInput.addressPostalCode
+  );
+  if (addressPostalCode) {
+    address.postalCode = addressPostalCode;
+  }
+
+  const addressCountry = normalizeCountryCode(kycInfoInput.addressCountry);
+  if (addressCountry) {
+    address.country = addressCountry;
+  }
+
+  if (Object.keys(address).length > 0) {
+    result.address = address;
+  }
+
+  const birthCountry = normalizeCountryCode(kycInfoInput.birthCountry);
+  if (birthCountry) {
+    result.birthCountry = birthCountry;
+  }
+
+  const birthCity = normalizeOptionalString(kycInfoInput.birthCity);
+  if (birthCity) {
+    result.birthCity = birthCity;
+  }
+
+  const nationalities = normalizeCountryCodeList(kycInfoInput.nationalities);
+  if (nationalities.length > 0) {
+    result.nationalities = nationalities;
+  }
+
+  return result;
+}
+
+function normalizeOptionalString(value: string): string | undefined {
+  const normalized = value.trim();
+  return normalized === '' ? undefined : normalized;
+}
+
+function normalizeCountryCode(value: string): string | undefined {
+  const normalized = normalizeOptionalString(value);
+  return normalized?.toUpperCase();
+}
+
+function normalizeCountryCodeList(value: string): string[] {
+  return value
+    .split(',')
+    .map((entry) => entry.trim().toUpperCase())
+    .filter((entry) => entry.length > 0);
 }
 
 function formatKycInfoForAlert(kycInfo: Onramp.KycInfo): string {

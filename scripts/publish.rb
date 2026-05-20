@@ -1,66 +1,12 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'open3'
-require 'json'
+require_relative 'helpers'
 
 @is_dry_run = false
-@release_type = nil
 @step_index = 1
 
 VALID_RELEASE_TYPES = %w[patch minor major].freeze
-
-def rputs(string)
-  puts "\e[31m#{string}\e[0m"
-end
-
-def execute(command)
-  puts "Executing: #{command}"
-  system(command)
-end
-
-def execute_or_fail(command)
-  puts "Executing: #{command}"
-  system(command) or raise "Failed to execute: #{command}"
-end
-
-def git_status
-  stdout, _, _ = Open3.capture3("git status")
-  stdout
-end
-
-def ensure_on_master
-  status = git_status
-  unless status.include?("On branch master")
-    if @is_dry_run
-      rputs "Warning: Not on master branch (continuing for dry run)"
-    else
-      abort "Error! Must be on master branch to publish"
-    end
-  end
-end
-
-def ensure_up_to_date
-  status = git_status
-  unless status.include?("Your branch is up to date with 'origin/master'.")
-    if @is_dry_run
-      rputs "Warning: Not up to date with origin/master (continuing for dry run)"
-    else
-      abort "Error! Must be up to date with origin/master to publish"
-    end
-  end
-end
-
-def ensure_clean_repo
-  status = git_status
-  unless status.include?("working tree clean")
-    if @is_dry_run
-      rputs "Warning: Working tree is dirty (continuing for dry run)"
-    else
-      abort "Error! Cannot publish with dirty working tree"
-    end
-  end
-end
 
 def ensure_node_version
   version_file = File.join(Dir.pwd, ".node-version")
@@ -100,12 +46,7 @@ def ensure_nodenv_yarn_install
   end
 end
 
-def preflight_checks
-  puts "Fetching git remotes"
-  execute_or_fail("git fetch")
-  ensure_on_master
-  ensure_up_to_date
-  ensure_clean_repo
+def pre_release_checks
   ensure_nodenv_yarn_install
   ensure_node_version
   ensure_npm_logged_in
@@ -122,40 +63,34 @@ def run_tests
   execute_or_fail("yarn run test")
 end
 
-def bump_version
-  @branch_name = "release-branch-#{rand(10000..99999)}"
-  execute_or_fail("git checkout -b #{@branch_name}")
-
-  puts "Bumping package.json #{@release_type} version and tagging commit"
-  execute_or_fail("yarn version --#{@release_type}")
-end
-
-def current_branch
-  @branch_name || `git rev-parse --abbrev-ref HEAD`.strip
+def create_git_tag
+  version = current_version
+  tag = "v#{version}"
+  puts "Creating git tag: #{tag}"
+  execute_or_fail("git tag #{tag}")
 end
 
 def publish_to_npm
+  version = current_version
+
   if @is_dry_run
     puts ""
     puts "[dry-run] Would publish to npm with: npm publish --ignore-scripts --access=public"
-    puts "[dry-run] Would push branch '#{current_branch}' with tags to origin"
+    puts "[dry-run] Would push tag v#{version} to origin"
     puts "[dry-run] Would create a GitHub release"
     puts ""
     puts "Dry run complete. Cleaning up..."
-    version = JSON.parse(File.read("package.json"))["version"]
     execute("git tag -d v#{version}")
-    execute("git checkout master")
-    execute("git branch -D #{current_branch}")
   else
     puts "Publishing release"
     execute_or_fail("npm publish --ignore-scripts --access=public")
     puts "Published to npm!"
 
-    puts "Pushing git commit and tag"
-    execute_or_fail("git push -u origin #{current_branch} --follow-tags")
+    puts "Pushing git tag"
+    execute_or_fail("git push origin v#{version}")
 
     puts ""
-    puts "Tag pushed! Please open a PR for your version bump: https://github.com/stripe/stripe-react-native/pulls"
+    puts "Published v#{version}!"
     puts ""
   end
 end
@@ -188,8 +123,6 @@ def create_github_release
     rputs "Warning: Could not parse version from CHANGELOG.md, skipping GitHub release"
     return
   end
-
-  current_version = version_and_date.split(" -").first.strip
 
   release_notes = <<~NOTES
     #{version_and_date}
@@ -234,10 +167,10 @@ end
 OptionParser.new do |opts|
   opts.banner = <<~BANNER
     USAGE:
-        ./scripts/publish [OPTIONS] <release_type>
+        ./scripts/publish.rb [OPTIONS]
 
-    ARGS:
-        <release_type>    A Semantic Versioning release type: "patch", "minor", or "major".
+    Publishes the current version from package.json to npm, creates a git tag,
+    and creates a GitHub release. Run this after the proposal PR has been merged.
 
     OPTIONS:
   BANNER
@@ -256,23 +189,16 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-@release_type = ARGV.shift
-
-if @release_type.nil?
-  abort "Error! Missing release type argument. Must be one of: #{VALID_RELEASE_TYPES.join(', ')}"
-end
-
-unless VALID_RELEASE_TYPES.include?(@release_type)
-  abort "Error! Invalid release type '#{@release_type}'. Must be one of: #{VALID_RELEASE_TYPES.join(', ')}"
-end
-
 Dir.chdir(`git rev-parse --show-toplevel`.strip)
 
+puts "Publishing v#{current_version}"
+
 steps = [
-  { name: "Preflight checks", action: method(:preflight_checks) },
+  { name: "Preflight checks", action: -> { preflight_checks(is_dry_run: @is_dry_run) } },
+  { name: "Prerelease checks", action: method(:pre_release_checks) },
   { name: "Install dependencies", action: method(:install_dependencies) },
   { name: "Run tests", action: method(:run_tests) },
-  { name: "Bump version", action: method(:bump_version) },
+  { name: "Create git tag", action: method(:create_git_tag) },
   { name: "Publish to npm", action: method(:publish_to_npm) },
   { name: "Create GitHub release", action: method(:create_github_release) },
 ]

@@ -335,7 +335,11 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void checkoutRefresh(String sessionKey, Promise promise);
+  public abstract void checkoutRunServerUpdateStart(String sessionKey, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void checkoutRunServerUpdateComplete(String sessionKey, @Nullable String error, Promise promise);
 
   @ReactMethod
   @DoNotStrip

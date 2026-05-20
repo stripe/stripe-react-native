@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, ScrollView, View } from 'react-native';
+import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import {
   AddressSheet,
   AddressSheetError,
@@ -29,7 +29,6 @@ import {
   toCheckoutAddress,
 } from './CheckoutPlaygroundCartUtils';
 import {
-  formatCurrencyAmount,
   supportsAdvancedCollection,
   type CheckoutPlaygroundConfig,
 } from './types';
@@ -191,8 +190,8 @@ export function CheckoutPlaygroundCartView({
     [session?.billingAddress]
   );
   const orderSummaryRows = useMemo(
-    () => buildOrderSummaryRows(session?.totals),
-    [session?.totals]
+    () => buildOrderSummaryRows(session?.total),
+    [session?.total]
   );
   const flowControllerActionLabel = selectedPaymentOption
     ? 'Change payment method'
@@ -299,17 +298,6 @@ export function CheckoutPlaygroundCartView({
     [initialiseFlowController, isFlowControllerIntegration]
   );
 
-  const handleRefresh = useCallback(() => {
-    runCheckoutAction('Refresh', async () => {
-      await checkout.refresh();
-      setFeedback({
-        tone: 'info',
-        title: 'Checkout refreshed',
-        message: 'Fetched the latest checkout session from Stripe.',
-      });
-    });
-  }, [checkout, runCheckoutAction]);
-
   const handleUpdateQuantity = useCallback(
     (lineItemId: string, quantity: number) => {
       runCheckoutAction('Quantity update', () =>
@@ -358,6 +346,20 @@ export function CheckoutPlaygroundCartView({
         tone: 'info',
         title: 'Promotion code removed',
         message: 'The checkout session no longer has an applied discount.',
+      });
+    });
+  }, [checkout, runCheckoutAction]);
+
+  const handleRunServerUpdate = useCallback(async () => {
+    await runCheckoutAction('Server update', async () => {
+      await checkout.runServerUpdate(async () => {
+        // Simulate a server call with a short delay
+        await new Promise<void>((resolve) => setTimeout(resolve, 2000));
+      });
+      setFeedback({
+        tone: 'success',
+        title: 'Server update complete',
+        message: 'The session was refreshed after the simulated server call.',
       });
     });
   }, [checkout, runCheckoutAction]);
@@ -602,11 +604,28 @@ export function CheckoutPlaygroundCartView({
           />
         ) : null}
 
-        <SessionSection
-          config={config}
-          onRefresh={handleRefresh}
-          session={session}
-        />
+        <SessionSection config={config} session={session} />
+
+        <TouchableOpacity
+          disabled={disableActions}
+          onPress={handleRunServerUpdate}
+          style={{
+            marginBottom: 16,
+            padding: 12,
+            borderRadius: 8,
+            backgroundColor: disableActions ? '#E5E7EB' : '#EEF2FF',
+            alignItems: 'center',
+          }}
+        >
+          <Text
+            style={{
+              color: disableActions ? '#9CA3AF' : '#4338CA',
+              fontWeight: '600',
+            }}
+          >
+            Test runServerUpdate (2s simulated server call)
+          </Text>
+        </TouchableOpacity>
 
         {shouldShowLineItemSection ? (
           <ItemsSection
@@ -659,9 +678,8 @@ export function CheckoutPlaygroundCartView({
 
         {shouldShowPromotionSection ? (
           <PromotionSection
-            currency={session.currency}
             disableActions={disableActions}
-            discounts={session.discounts}
+            discountAmounts={session.discountAmounts}
             onApplyPromotionCode={() => {
               handleApplyPromotionCode();
             }}
@@ -683,10 +701,7 @@ export function CheckoutPlaygroundCartView({
         ) : null}
 
         {orderSummaryRows.length > 0 ? (
-          <OrderSummarySection
-            currency={session.currency}
-            rows={orderSummaryRows}
-          />
+          <OrderSummarySection rows={orderSummaryRows} />
         ) : null}
 
         {isFlowControllerIntegration ? (
@@ -759,10 +774,7 @@ export function CheckoutPlaygroundCartView({
         primaryLabel={
           config.mode === 'setup'
             ? 'Set up payment method'
-            : `Pay ${formatCurrencyAmount(
-                session.totals?.total ?? 0,
-                session.currency
-              )}`
+            : `Pay ${session.total?.total.amount ?? '--'}`
         }
         primaryDisabled={
           state?.status !== 'loaded' ||
@@ -799,8 +811,7 @@ export function CheckoutPlaygroundCartView({
           <CheckoutPlaygroundEmbeddedView
             checkout={checkout}
             mode={config.mode}
-            currency={session.currency}
-            total={session.totals?.total}
+            totalLabel={session.total?.total.amount}
             onClose={() => setEmbeddedModalVisible(false)}
             onSuccessfulPayment={() => {
               setEmbeddedModalVisible(false);

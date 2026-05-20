@@ -5,6 +5,8 @@ import {
   Text,
   StyleSheet,
   TextInputProps,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import { colors } from '../../colors';
 
@@ -15,6 +17,9 @@ interface FormFieldProps {
   placeholder?: string;
   secureTextEntry?: boolean;
   autoCapitalize?: TextInputProps['autoCapitalize'];
+  keyboardType?: TextInputProps['keyboardType'];
+  autoCorrect?: boolean;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
@@ -24,8 +29,11 @@ export const FormField: React.FC<FormFieldProps> = ({
   placeholder,
   secureTextEntry = false,
   autoCapitalize,
+  keyboardType,
+  autoCorrect,
+  containerStyle,
 }) => (
-  <View style={styles.container}>
+  <View style={[styles.container, containerStyle]}>
     <Text style={styles.label}>{label}</Text>
     <TextInput
       style={styles.input}
@@ -34,6 +42,8 @@ export const FormField: React.FC<FormFieldProps> = ({
       placeholder={placeholder}
       secureTextEntry={secureTextEntry}
       autoCapitalize={autoCapitalize}
+      keyboardType={keyboardType}
+      autoCorrect={autoCorrect}
     />
   </View>
 );

@@ -3,7 +3,7 @@ import type { Checkout } from '@stripe/stripe-react-native/src/types/Checkout';
 
 export type OrderSummaryRow = {
   label: string;
-  value: number;
+  value: string;
   emphasized?: boolean;
 };
 
@@ -20,22 +20,22 @@ const DEFAULT_ADDRESS_SHEET_VALUES: AddressDetails = {
 };
 
 export const toAddressSheetDefaultValues = (
-  addressUpdate?: Checkout.AddressUpdate
+  contactAddress?: Checkout.ContactAddress
 ): AddressDetails => {
-  if (!addressUpdate) {
+  if (!contactAddress) {
     return DEFAULT_ADDRESS_SHEET_VALUES;
   }
 
   return {
-    name: addressUpdate.name,
-    phone: addressUpdate.phone,
+    name: contactAddress.name,
+    phone: contactAddress.phone,
     address: {
-      country: addressUpdate.address.country,
-      line1: addressUpdate.address.line1,
-      line2: addressUpdate.address.line2,
-      city: addressUpdate.address.city,
-      state: addressUpdate.address.state,
-      postalCode: addressUpdate.address.postalCode,
+      country: contactAddress.address.country,
+      line1: contactAddress.address.line1,
+      line2: contactAddress.address.line2,
+      city: contactAddress.address.city,
+      state: contactAddress.address.state,
+      postalCode: contactAddress.address.postalCode,
     },
   };
 };
@@ -52,55 +52,56 @@ export const toCheckoutAddress = (
 });
 
 export const getAddressLines = (
-  addressUpdate?: Checkout.AddressUpdate
+  contactAddress?: Checkout.ContactAddress
 ): string[] => {
-  if (!addressUpdate) {
+  if (!contactAddress) {
     return [];
   }
 
   return [
-    addressUpdate.name,
-    addressUpdate.phone,
-    addressUpdate.address.line1,
-    addressUpdate.address.line2,
+    contactAddress.name,
+    contactAddress.phone,
+    contactAddress.address.line1,
+    contactAddress.address.line2,
     [
-      addressUpdate.address.city,
-      addressUpdate.address.state,
-      addressUpdate.address.postalCode,
+      contactAddress.address.city,
+      contactAddress.address.state,
+      contactAddress.address.postalCode,
     ]
       .filter(Boolean)
       .join(', '),
-    addressUpdate.address.country,
+    contactAddress.address.country,
   ].filter(Boolean) as string[];
 };
 
 export const buildOrderSummaryRows = (
-  totals?: Checkout.Totals
+  total?: Checkout.Total
 ): OrderSummaryRow[] => {
-  if (!totals) {
+  if (!total) {
     return [];
   }
 
   return [
-    { label: 'Subtotal', value: totals.subtotal },
-    totals.shipping > 0 ? { label: 'Shipping', value: totals.shipping } : null,
-    totals.tax > 0 ? { label: 'Tax', value: totals.tax } : null,
-    totals.discount > 0 ? { label: 'Discount', value: totals.discount } : null,
-    { label: 'Due today', value: totals.due, emphasized: true },
-    { label: 'Total', value: totals.total, emphasized: true },
+    { label: 'Subtotal', value: total.subtotal.amount },
+    total.shippingRate.minorUnitsAmount > 0
+      ? { label: 'Shipping', value: total.shippingRate.amount }
+      : null,
+    total.taxExclusive.minorUnitsAmount > 0
+      ? { label: 'Tax', value: total.taxExclusive.amount }
+      : null,
+    total.discount.minorUnitsAmount > 0
+      ? { label: 'Discount', value: total.discount.amount }
+      : null,
+    { label: 'Total', value: total.total.amount, emphasized: true },
   ].filter(Boolean) as OrderSummaryRow[];
 };
 
 export const deriveSelectedShippingOptionId = (
   session?: Checkout.Session
 ): string | null => {
-  if (!session?.shippingOptions.length || !session.totals) {
+  if (!session?.shipping) {
     return null;
   }
 
-  const matchingOptions = session.shippingOptions.filter(
-    (option) => option.amount === session.totals?.shipping
-  );
-
-  return matchingOptions.length === 1 ? matchingOptions[0].id : null;
+  return session.shipping.shippingOption.id;
 };

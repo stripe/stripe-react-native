@@ -1039,6 +1039,36 @@ type CollectPaymentMethodResult = {
 };
 
 // @public
+type ComplianceIdentifier = {
+    type: ComplianceIdentifierType;
+    value: string;
+};
+
+// @public
+type ComplianceIdentifierAlternativeGroup = {
+    originalMissingIdentifiers: ComplianceIdentifierType[];
+    alternativeMissingIdentifiers: ComplianceIdentifierType[];
+};
+
+// @public
+type ComplianceIdentifierRequirement = {
+    type: ComplianceIdentifierType;
+    regulation: ComplianceRegulation;
+};
+
+// @public
+type ComplianceIdentifierRequirements = {
+    identifiers: ComplianceIdentifierRequirement[];
+    alternatives: ComplianceIdentifierAlternativeGroup[];
+};
+
+// @public
+type ComplianceIdentifierType = string;
+
+// @public
+type ComplianceRegulation = 'eu_carf' | 'eu_mica';
+
+// @public
 type Configuration = {
     merchantDisplayName: string;
     appearance: LinkAppearance;
@@ -1363,6 +1393,15 @@ export type CreateTokenResult = {
 } | {
     token?: undefined;
     error: StripeError<CreateTokenError>;
+};
+
+// @public
+type CRSCARFDeclarationResult = {
+    status: 'Confirmed';
+    error?: undefined;
+} | {
+    status?: undefined;
+    error: StripeError<OnrampError>;
 };
 
 // @public
@@ -2249,6 +2288,9 @@ type KycInfo = {
     idNumber?: string;
     dateOfBirth?: DateOfBirth;
     address?: Address;
+    birthCountry?: string;
+    birthCity?: string;
+    nationalities?: string[];
 };
 
 // @public (undocumented)
@@ -2529,6 +2571,15 @@ declare namespace Onramp {
         CryptoNetwork,
         DateOfBirth,
         KycInfo,
+        ComplianceIdentifierType,
+        ComplianceRegulation,
+        ComplianceIdentifier,
+        ComplianceIdentifierRequirement,
+        ComplianceIdentifierAlternativeGroup,
+        ComplianceIdentifierRequirements,
+        RetrieveMissingIdentifiersResult,
+        SubmitIdentifiersResult,
+        CRSCARFDeclarationResult,
         VerifyKycResult,
         VoidResult,
         AuthorizeResult,
@@ -2731,7 +2782,7 @@ export enum PaymentMethodLayout {
 }
 
 // @public
-export const PaymentMethodMessagingElement: React_2.ForwardRefExoticComponent<PaymentMethodMessagingElementProps & React_2.RefAttributes<any>>;
+export const PaymentMethodMessagingElement: (input: PaymentMethodMessagingElementProps) => React_2.JSX.Element;
 
 // @public (undocumented)
 export interface PaymentMethodMessagingElementAppearance {
@@ -3296,6 +3347,15 @@ interface Result_5 {
     used: boolean;
 }
 
+// @public
+type RetrieveMissingIdentifiersResult = (ComplianceIdentifierRequirements & {
+    error?: undefined;
+}) | {
+    identifiers?: undefined;
+    alternatives?: undefined;
+    error: StripeError<OnrampError>;
+};
+
 // @public (undocumented)
 export const retrievePaymentIntent: (clientSecret: string) => Promise<RetrievePaymentIntentResult>;
 
@@ -3704,6 +3764,21 @@ interface Styles_3 {
 type Subcategory = 'checking' | 'creditCard' | 'lineOfCredit' | 'mortgage' | 'other' | 'savings';
 
 // @public
+type SubmitIdentifiersResult = {
+    valid: boolean;
+    identifiers: ComplianceIdentifierRequirement[];
+    alternatives: ComplianceIdentifierAlternativeGroup[];
+    invalidIdentifiers: ComplianceIdentifierType[];
+    error?: undefined;
+} | {
+    valid?: undefined;
+    identifiers?: undefined;
+    alternatives?: undefined;
+    invalidIdentifiers?: undefined;
+    error: StripeError<OnrampError>;
+};
+
+// @public
 export enum TermsDisplay {
     AUTOMATIC = "automatic",
     NEVER = "never"
@@ -3907,6 +3982,9 @@ export function useOnramp(): {
     attachKycInfo: (kycInfo: Onramp.KycInfo) => Promise<{
         error?: StripeError<OnrampError>;
     }>;
+    retrieveMissingIdentifiers: () => Promise<Onramp.RetrieveMissingIdentifiersResult>;
+    submitIdentifiers: (identifiers: Onramp.ComplianceIdentifier[]) => Promise<Onramp.SubmitIdentifiersResult>;
+    presentCRSCARFDeclaration: () => Promise<Onramp.CRSCARFDeclarationResult>;
     presentKycInfoVerification: (updatedAddress: Address | null) => Promise<Onramp.VerifyKycResult>;
     updatePhoneNumber: (phone: string) => Promise<{
         error?: StripeError<OnrampError>;

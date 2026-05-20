@@ -11,16 +11,6 @@
     <ID>CyclomaticComplexMethod:Mappers.kt:internal fun mapToPaymentMethodType: PaymentMethod.Type?</ID>
     <ID>CyclomaticComplexMethod:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$@Throws(PaymentMethodCreateParamsException::class) fun createPaymentMethodParams: PaymentMethodCreateParams</ID>
     <ID>CyclomaticComplexMethod:PaymentSheetAppearance.kt:@SuppressLint("RestrictedApi") @Throws(PaymentSheetAppearanceException::class) private fun buildEmbeddedAppearance: PaymentSheet.Appearance.Embedded</ID>
-    <ID>EmptyFunctionBlock:CardFieldView.kt:CardFieldView.&lt;no name provided>${ }</ID>
-    <ID>EmptyFunctionBlock:CardFieldView.kt:CardFieldView.&lt;no name provided>${}</ID>
-    <ID>EmptyFunctionBlock:CustomerSheetManager.kt:CustomerSheetManager.&lt;no name provided>${ }</ID>
-    <ID>EmptyFunctionBlock:CustomerSheetManager.kt:CustomerSheetManager.&lt;no name provided>${}</ID>
-    <ID>EmptyFunctionBlock:DrawableLoadingTest.kt:DrawableLoadingTest.MockAsyncDrawable${}</ID>
-    <ID>EmptyFunctionBlock:PaymentSheetManager.kt:&lt;no name provided>${}</ID>
-    <ID>EmptyFunctionBlock:PaymentSheetManager.kt:PaymentSheetManager.&lt;no name provided>${ }</ID>
-    <ID>EmptyFunctionBlock:PaymentSheetManager.kt:PaymentSheetManager.&lt;no name provided>${}</ID>
-    <ID>EmptyFunctionBlock:StripeAbstractComposeView.kt:StripeAbstractComposeView.CompatView${ }</ID>
-    <ID>EmptyFunctionBlock:StripeSdkModule.kt:StripeSdkModule.&lt;no name provided>${}</ID>
     <ID>ForbiddenComment:Mappers.kt:// TODO: Can't access, private</ID>
     <ID>ForbiddenComment:PaymentSheetAppearance.kt:// TODO: The theme is so crazy long, why does each Color thing has the same redundant Theme...</ID>
     <ID>ForbiddenComment:PaymentSheetAppearance.kt:// TODO: Why is background a string but successBackgroundColor a "dynamic" color?</ID>

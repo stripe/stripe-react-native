@@ -165,8 +165,24 @@ export function useCheckout(
       ),
     [withLoading]
   );
-  const refresh = useCallback<Checkout['refresh']>(
-    () => withLoading((key) => NativeStripeSdk.checkoutRefresh(key)),
+  const runServerUpdate = useCallback<Checkout['runServerUpdate']>(
+    (serverUpdate) =>
+      withLoading(async (key) => {
+        const startPromise = NativeStripeSdk.checkoutRunServerUpdateStart(key);
+
+        try {
+          await serverUpdate();
+          await NativeStripeSdk.checkoutRunServerUpdateComplete(key, null);
+        } catch (e: any) {
+          await NativeStripeSdk.checkoutRunServerUpdateComplete(
+            key,
+            e.message ?? 'Server update failed'
+          );
+          throw e;
+        }
+
+        return await startPromise;
+      }),
     [withLoading]
   );
 
@@ -189,7 +205,7 @@ export function useCheckout(
       updateLineItemQuantity,
       selectShippingOption,
       updateTaxId,
-      refresh,
+      runServerUpdate,
     }),
     [
       updateShippingAddress,
@@ -199,7 +215,7 @@ export function useCheckout(
       updateLineItemQuantity,
       selectShippingOption,
       updateTaxId,
-      refresh,
+      runServerUpdate,
     ]
   );
 

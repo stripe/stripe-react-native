@@ -19,6 +19,11 @@ export interface Spec extends TurboModule {
   attachKycInfo(
     kycInfo: UnsafeObject<Onramp.KycInfo>
   ): Promise<Onramp.VoidResult>;
+  retrieveMissingIdentifiers(): Promise<Onramp.RetrieveMissingIdentifiersResult>;
+  submitIdentifiers(
+    identifiers: ReadonlyArray<UnsafeObject<Onramp.ComplianceIdentifier>>
+  ): Promise<Onramp.SubmitIdentifiersResult>;
+  presentCRSCARFDeclaration(): Promise<Onramp.CRSCARFDeclarationResult>;
   presentKycInfoVerification: (
     updatedAddress: UnsafeObject<Address> | null
   ) => Promise<Onramp.VerifyKycResult>;

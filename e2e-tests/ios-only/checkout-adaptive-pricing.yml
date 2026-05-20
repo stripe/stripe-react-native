@@ -32,7 +32,7 @@ appId: ${APP_ID}
 
 - extendedWaitUntil:
     visible:
-      text: "Pay EUR .*"
+      text: "Pay €.*"
     timeout: 150000
 
 - scrollUntilVisible:
@@ -46,7 +46,7 @@ appId: ${APP_ID}
 
 - extendedWaitUntil:
     visible:
-      text: "Pay USD .*"
+      text: "Pay \\$.*"
     timeout: 60000
 
 - scrollUntilVisible:
@@ -66,15 +66,15 @@ appId: ${APP_ID}
 
 - extendedWaitUntil:
     visible:
-      text: "Pay USD .*"
+      text: "Pay \\$.*"
     timeout: 60000
 - scrollUntilVisible:
     element:
-      text: "Pay USD .*"
+      text: "Pay \\$.*"
     direction: DOWN
     timeout: 30000
 - tapOn:
-    text: "Pay USD .*"
+    text: "Pay \\$.*"
 
 - extendedWaitUntil:
     visible: "TEST"
@@ -87,7 +87,7 @@ appId: ${APP_ID}
     optional: true
 
 - tapOn:
-    text: "Card number"
+    text: "Card number. Supported cards include.*"
 - inputText: "4242424242424242"
 - tapOn:
     text: "MM / YY"

@@ -1,7 +1,6 @@
 package com.reactnativestripesdk.customersheet
 
 import android.app.Activity
-import android.app.Application
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
@@ -20,6 +19,7 @@ import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.convertDrawableToBase64
 import com.reactnativestripesdk.mapToCardBrandAcceptance
 import com.reactnativestripesdk.utils.CreateTokenErrorType
+import com.reactnativestripesdk.utils.DefaultActivityLifecycleCallbacks
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
@@ -224,26 +224,12 @@ class CustomerSheetManager(
   private fun presentWithTimeout(timeout: Long) {
     var activities: MutableList<Activity> = mutableListOf()
     val activityLifecycleCallbacks =
-      object : Application.ActivityLifecycleCallbacks {
+      object : DefaultActivityLifecycleCallbacks() {
         override fun onActivityCreated(
           activity: Activity,
           savedInstanceState: Bundle?,
         ) {
           activities.add(activity)
-        }
-
-        override fun onActivityStarted(activity: Activity) {}
-
-        override fun onActivityResumed(activity: Activity) {}
-
-        override fun onActivityPaused(activity: Activity) {}
-
-        override fun onActivityStopped(activity: Activity) {}
-
-        override fun onActivitySaveInstanceState(
-          activity: Activity,
-          outState: Bundle,
-        ) {
         }
 
         override fun onActivityDestroyed(activity: Activity) {

@@ -6,7 +6,6 @@ import { GroupedCard, SectionHeader } from './components';
 import { cartStyles as styles } from './CheckoutPlaygroundCartStyles';
 import { type OrderSummaryRow } from './CheckoutPlaygroundCartUtils';
 import {
-  formatCurrencyAmount,
   getIntegrationTypeLabel,
   shouldShowAutomaticTax,
   type CheckoutPlaygroundConfig,
@@ -62,11 +61,9 @@ function CopyableDetailRow({
 export function SessionSection({
   session,
   config,
-  onRefresh,
 }: {
   session: Checkout.Session;
   config: CheckoutPlaygroundConfig;
-  onRefresh(): void;
 }) {
   return (
     <>
@@ -83,8 +80,11 @@ export function SessionSection({
             value={getIntegrationTypeLabel(config.integrationType)}
           />
           <DetailRow label="Mode" value={config.mode} />
-          <DetailRow label="Status" value={session.status ?? 'unknown'} />
-          <DetailRow label="Payment status" value={session.paymentStatus} />
+          <DetailRow label="Status" value={session.status?.type ?? 'unknown'} />
+          <DetailRow
+            label="Payment status"
+            value={session.status?.paymentStatus ?? 'unknown'}
+          />
           <DetailRow
             label="Environment"
             value={session.livemode ? 'live' : 'test'}
@@ -98,12 +98,9 @@ export function SessionSection({
                 : 'disabled'
             }
           />
-          {session.customerEmail ? (
-            <DetailRow label="Customer email" value={session.customerEmail} />
+          {session.email ? (
+            <DetailRow label="Email" value={session.email} />
           ) : null}
-          <TouchableOpacity onPress={onRefresh} style={styles.inlineAction}>
-            <Text style={styles.inlineActionText}>Refresh session</Text>
-          </TouchableOpacity>
         </View>
       </GroupedCard>
     </>
@@ -136,22 +133,24 @@ export function ItemsSection({
                   {item.name}
                 </Text>
                 <Text style={styles.itemTotal}>
-                  {formatCurrencyAmount(
-                    item.unitAmount * item.quantity,
-                    item.currency
-                  )}
+                  {item.total?.amount ?? '--'}
                 </Text>
               </View>
               <Text style={styles.itemMeta}>
-                {formatCurrencyAmount(item.unitAmount, item.currency)} each
+                {item.unitAmount?.amount ?? '--'} each
               </Text>
               <View style={styles.quantityControls}>
                 <TouchableOpacity
-                  disabled={disableActions || item.quantity <= 1}
+                  disabled={
+                    disableActions ||
+                    item.quantity <= (item.adjustableQuantity?.minimum ?? 1)
+                  }
                   onPress={() => onUpdateQuantity(item.id, item.quantity - 1)}
                   style={[
                     styles.quantityButton,
-                    (disableActions || item.quantity <= 1) &&
+                    (disableActions ||
+                      item.quantity <=
+                        (item.adjustableQuantity?.minimum ?? 1)) &&
                       styles.quantityButtonDisabled,
                   ]}
                 >
@@ -159,11 +158,18 @@ export function ItemsSection({
                 </TouchableOpacity>
                 <Text style={styles.quantityValue}>{item.quantity}</Text>
                 <TouchableOpacity
-                  disabled={disableActions}
+                  disabled={
+                    disableActions ||
+                    item.quantity >=
+                      (item.adjustableQuantity?.maximum ?? Infinity)
+                  }
                   onPress={() => onUpdateQuantity(item.id, item.quantity + 1)}
                   style={[
                     styles.quantityButton,
-                    disableActions && styles.quantityButtonDisabled,
+                    (disableActions ||
+                      item.quantity >=
+                        (item.adjustableQuantity?.maximum ?? Infinity)) &&
+                      styles.quantityButtonDisabled,
                   ]}
                 >
                   <Text style={styles.quantityButtonText}>+</Text>
@@ -208,13 +214,10 @@ export function ShippingOptionsSection({
               >
                 <View style={styles.shippingOptionText}>
                   <Text style={styles.shippingOptionTitle}>
-                    {option.displayName}
+                    {option.displayName ?? option.id}
                   </Text>
                   <Text style={styles.shippingOptionSubtitle}>
-                    {formatCurrencyAmount(option.amount, option.currency)}
-                    {option.deliveryEstimate
-                      ? ` · ${option.deliveryEstimate}`
-                      : ''}
+                    {option.amount.amount}
                   </Text>
                 </View>
                 <Text
@@ -282,16 +285,14 @@ export function PromotionSection({
   onApplyPromotionCode,
   onRemovePromotionCode,
   disableActions,
-  discounts,
-  currency,
+  discountAmounts,
 }: {
   promotionCode: string;
   onChangePromotionCode(value: string): void;
   onApplyPromotionCode(): void;
   onRemovePromotionCode(): void;
   disableActions: boolean;
-  discounts: Checkout.Discount[];
-  currency?: string;
+  discountAmounts: Checkout.DiscountAmount[];
 }) {
   return (
     <>
@@ -323,21 +324,19 @@ export function PromotionSection({
             </TouchableOpacity>
           </View>
 
-          {discounts.length > 0 ? (
+          {discountAmounts.length > 0 ? (
             <View style={styles.appliedDiscountsContainer}>
-              {discounts.map((discount) => (
+              {discountAmounts.map((discount, index) => (
                 <View
-                  key={discount.coupon.id}
+                  key={`${discount.displayName}-${index}`}
                   style={styles.appliedDiscountRow}
                 >
                   <View style={styles.appliedDiscountRowTop}>
                     <Text style={styles.appliedDiscountLabel}>
-                      {discount.promotionCode ||
-                        discount.coupon.name ||
-                        discount.coupon.id}
+                      {discount.promotionCode ?? discount.displayName}
                     </Text>
                     <Text style={styles.appliedDiscountValue}>
-                      {formatCurrencyAmount(discount.amount, currency)}
+                      {discount.amount.amount}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -357,13 +356,7 @@ export function PromotionSection({
   );
 }
 
-export function OrderSummarySection({
-  rows,
-  currency,
-}: {
-  rows: OrderSummaryRow[];
-  currency?: string;
-}) {
+export function OrderSummarySection({ rows }: { rows: OrderSummaryRow[] }) {
   return (
     <>
       <SectionHeader badge="O" title="Order summary" />
@@ -373,7 +366,7 @@ export function OrderSummarySection({
             <DetailRow
               key={row.label}
               label={row.label}
-              value={formatCurrencyAmount(row.value, currency)}
+              value={row.value}
               isEmphasized={row.emphasized}
             />
           ))}

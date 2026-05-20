@@ -7,10 +7,12 @@ import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.SavedStateHandle
+import com.stripe.android.core.model.CountryCode
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
@@ -23,6 +25,7 @@ import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
+import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
@@ -37,10 +40,13 @@ import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
 import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentMethodResult
 import com.stripe.android.crypto.onramp.model.OnrampConfigurationResult
 import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
+import com.stripe.android.crypto.onramp.model.OnrampCrsCarfDeclarationResult
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
 import com.stripe.android.crypto.onramp.model.OnrampLogOutResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
+import com.stripe.android.crypto.onramp.model.OnrampRetrieveMissingIdentifiersResult
+import com.stripe.android.crypto.onramp.model.OnrampSubmitIdentifiersResult
 import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
@@ -78,6 +84,7 @@ class OnrampSdkModule(
   private var authorizePromise: Promise? = null
   private var checkoutPromise: Promise? = null
   private var verifyKycPromise: Promise? = null
+  private var crsCarfDeclarationPromise: Promise? = null
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
   private val rnScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -141,6 +148,10 @@ class OnrampSdkModule(
           handleOnrampCheckoutResult(result, checkoutPromise!!)
         }.verifyKycCallback { result ->
           handleOnrampKycVerificationResult(result, verifyKycPromise!!)
+        }.crsCarfDeclarationCallback { result ->
+          crsCarfDeclarationPromise?.let {
+            handleOnrampCrsCarfDeclarationResult(result, it)
+          }
         }.onrampSessionClientSecretProvider { sessionId ->
           checkoutClientSecretDeferred = CompletableDeferred()
 
@@ -311,10 +322,16 @@ class OnrampSdkModule(
           )
         } else {
           null
-        }
+      }
 
       val addressMap = kycInfo.getMap("address")
       val addressObj = mapToPaymentSheetAddress(addressMap)
+      val birthCountry = kycInfo.getString("birthCountry")?.let(CountryCode::create)
+      val birthCity = kycInfo.getString("birthCity")
+      val nationalities =
+        kycInfo.getStringList("nationalities")
+          ?.map(CountryCode::create)
+          ?.takeIf { it.isNotEmpty() }
 
       val kycInfoObj =
         KycInfo(
@@ -323,6 +340,9 @@ class OnrampSdkModule(
           idNumber = idNumber,
           dateOfBirth = dob,
           address = addressObj,
+          birthCountry = birthCountry,
+          birthCity = birthCity,
+          nationalities = nationalities,
         )
 
       when (val result = coordinator.attachKycInfo(kycInfoObj)) {
@@ -334,6 +354,75 @@ class OnrampSdkModule(
         }
       }
     }
+  }
+
+  @ReactMethod
+  override fun retrieveMissingIdentifiers(promise: Promise) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    CoroutineScope(Dispatchers.IO).launch {
+      when (val result = coordinator.retrieveMissingIdentifiers()) {
+        is OnrampRetrieveMissingIdentifiersResult.Completed -> {
+          promise.resolve(mapFromComplianceIdentifierRequirements(result.requirements))
+        }
+        is OnrampRetrieveMissingIdentifiersResult.Failed -> {
+          promise.resolve(createFailedError(result.error))
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun submitIdentifiers(
+    identifiers: ReadableArray,
+    promise: Promise,
+  ) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    val complianceIdentifiers =
+      try {
+        mapToComplianceIdentifiers(identifiers)
+      } catch (error: IllegalArgumentException) {
+        val errorType =
+          if (error is ComplianceIdentifierFieldException) {
+            ErrorType.Unknown
+          } else {
+            ErrorType.Failed
+          }
+        promise.resolve(createError(errorType.toString(), error.message ?: "Invalid identifiers"))
+        return
+      }
+
+    CoroutineScope(Dispatchers.IO).launch {
+      when (val result = coordinator.submitIdentifiers(complianceIdentifiers)) {
+        is OnrampSubmitIdentifiersResult.Completed -> {
+          promise.resolve(mapFromSubmitIdentifiersResult(result.result))
+        }
+        is OnrampSubmitIdentifiersResult.Failed -> {
+          promise.resolve(createFailedError(result.error))
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun presentCRSCARFDeclaration(promise: Promise) {
+    val presenter =
+      onrampPresenter ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    crsCarfDeclarationPromise = promise
+    presenter.presentCrsCarfDeclaration()
   }
 
   @ReactMethod
@@ -684,6 +773,25 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("KYC verification was cancelled"))
       }
       is OnrampVerifyKycInfoResult.Failed -> {
+        promise.resolve(createFailedError(result.error))
+      }
+    }
+  }
+
+  private fun handleOnrampCrsCarfDeclarationResult(
+    result: OnrampCrsCarfDeclarationResult,
+    promise: Promise,
+  ) {
+    when (result) {
+      is OnrampCrsCarfDeclarationResult.Confirmed -> {
+        promise.resolve(
+          WritableNativeMap().apply { putString("status", "Confirmed") },
+        )
+      }
+      is OnrampCrsCarfDeclarationResult.Cancelled -> {
+        promise.resolve(createCanceledError("CRS/CARF declaration was cancelled"))
+      }
+      is OnrampCrsCarfDeclarationResult.Failed -> {
         promise.resolve(createFailedError(result.error))
       }
     }
