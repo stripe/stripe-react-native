@@ -6,8 +6,6 @@ require_relative 'helpers'
 @is_dry_run = false
 @step_index = 1
 
-VALID_RELEASE_TYPES = %w[patch minor major].freeze
-
 def ensure_node_version
   version_file = File.join(Dir.pwd, ".node-version")
   abort "Error! .node-version file not found" unless File.exist?(version_file)
