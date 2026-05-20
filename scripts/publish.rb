@@ -21,6 +21,7 @@ def ensure_node_version
     execute_or_fail("nodenv rehash")
   end
 
+  execute_or_fail("nodenv local #{required_version}")
   puts "Using node #{required_version}"
 end
 
