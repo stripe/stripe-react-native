@@ -2055,12 +2055,11 @@ class StripeSdkModule(
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
+      val activity = reactApplicationContext.currentActivity ?: return@runOnUiThread
       composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(
-        context = reactApplicationContext
+        context = activity
       ).also {
-        reactApplicationContext.currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
-          it,
-        )
+        activity.findViewById<ViewGroup>(android.R.id.content)?.addView(it)
       }
     }
   }
