@@ -23,7 +23,7 @@ pipelines:
     workflows:
       js-tests: {}
       unit-test-ios: {}
-      build-ios-xcode-16: {}
+      build-ios-xcode-26: {}
       unit-test-android: {}
       e2e-build-ios-old-arch: {}
       e2e-tests-ios-old-arch:
@@ -116,13 +116,13 @@ workflows:
           inputs:
             - notify_user_groups: none
 
-  build-ios-xcode-16:
+  build-ios-xcode-26:
     before_run:
       - _prepare_ios
       - _install_pods
     steps:
       - xcode-build-for-test@2:
-          title: Build iOS (Xcode 16)
+          title: Build iOS (Xcode 26)
           inputs:
             - project_path: example/ios/example.xcworkspace
             - scheme: stripe-react-native-Unit-Tests
@@ -132,7 +132,7 @@ workflows:
             - notify_user_groups: none
     meta:
       bitrise.io:
-        stack: osx-xcode-16.1.x
+        stack: osx-xcode-26.4.x
         machine_type_id: g2.mac.large
 
   unit-test-android:
@@ -290,8 +290,7 @@ workflows:
             - content: ./scripts/test-project --version "$RN_VERSION"
     meta:
       bitrise.io:
-        # 0.76 requires Xcode 16.4
-        stack: osx-xcode-16.4.x
+        stack: osx-xcode-26.4.x
         machine_type_id: g2.mac.4large
 
   rn-078:
@@ -646,5 +645,5 @@ workflows:
 
 meta:
   bitrise.io:
-    stack: osx-xcode-26.0.x
+    stack: osx-xcode-26.4.x
     machine_type_id: g2.mac.4large
