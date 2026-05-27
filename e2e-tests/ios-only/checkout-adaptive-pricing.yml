@@ -42,7 +42,7 @@ appId: ${APP_ID}
     centerElement: true
     timeout: 30000
 - tapOn:
-    text: ".*\\$.*"
+    id: "currency_option_usd"
 
 - extendedWaitUntil:
     visible:
