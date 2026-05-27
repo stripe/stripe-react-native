@@ -57,10 +57,17 @@ def ensure_clean_repo(is_dry_run: false)
   end
 end
 
+def ensure_hub_installed
+  unless system("which hub > /dev/null 2>&1")
+    abort "Error! `hub` is not installed. Please run `brew install hub` and try again."
+  end
+end
+
 def preflight_checks(is_dry_run: false)
   puts "Fetching git remotes"
   execute_or_fail("git fetch")
   ensure_on_master(is_dry_run: is_dry_run)
   ensure_up_to_date(is_dry_run: is_dry_run)
   ensure_clean_repo(is_dry_run: is_dry_run)
+  ensure_hub_installed
 end
