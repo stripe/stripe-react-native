@@ -57,10 +57,25 @@ def ensure_clean_repo(is_dry_run: false)
   end
 end
 
+def ensure_gh_installed
+  unless system("which gh > /dev/null 2>&1")
+    abort "Error! `gh` is not installed. Please run `brew install gh` and try again."
+  end
+end
+
+def ensure_gh_authenticated
+  _, _, status = Open3.capture3({"GH_HOST" => "github.com"}, "gh auth status")
+  unless status.success?
+    abort "Error! Not authenticated with gh for github.com. Please run `GH_HOST=github.com gh auth login` and try again."
+  end
+end
+
 def preflight_checks(is_dry_run: false)
   puts "Fetching git remotes"
   execute_or_fail("git fetch")
   ensure_on_master(is_dry_run: is_dry_run)
   ensure_up_to_date(is_dry_run: is_dry_run)
   ensure_clean_repo(is_dry_run: is_dry_run)
+  ensure_gh_installed
+  ensure_gh_authenticated
 end
