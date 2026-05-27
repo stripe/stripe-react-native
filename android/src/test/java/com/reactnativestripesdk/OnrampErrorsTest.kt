@@ -2,13 +2,13 @@ package com.reactnativestripesdk
 
 import com.stripe.android.core.StripeError
 import com.stripe.android.core.exception.APIException
+import com.stripe.android.crypto.onramp.exception.APIErrorContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.Lazy
 
 @RunWith(RobolectricTestRunner::class)
 class OnrampErrorsTest {
@@ -114,39 +114,33 @@ class OnrampErrorsTest {
         docUrl = docUrl,
       )
     val cause = APIException(stripeError = stripeError, requestId = requestId)
+    val context =
+      APIErrorContext(
+        reason = reason,
+        operation = operation,
+        appPackageName = appPackageName,
+        mode = mode,
+        sdkVersion = sdkVersion,
+        apiErrorCode = apiErrorCode,
+        apiErrorType = apiErrorType,
+        apiErrorMessage = apiErrorMessage,
+        apiUserMessage = apiUserMessage,
+        docUrl = docUrl,
+        underlyingError = cause,
+      )
     val constructor =
       Class
         .forName(className)
         .getDeclaredConstructor(
+          APIErrorContext::class.java,
           String::class.java,
-          String::class.java,
-          String::class.java,
-          String::class.java,
-          String::class.java,
-          String::class.java,
-          String::class.java,
-          String::class.java,
-          String::class.java,
-          String::class.java,
-          Lazy::class.java,
-          Throwable::class.java,
         ).apply {
           isAccessible = true
         }
 
     return constructor.newInstance(
-      reason,
-      operation,
-      appPackageName,
-      mode,
-      sdkVersion,
-      apiErrorCode,
-      apiErrorType,
-      apiErrorMessage,
-      apiUserMessage,
-      docUrl,
-      lazy { "Fallback user message" },
-      cause,
+      context,
+      "Fallback user message",
     ) as Exception
   }
 }
