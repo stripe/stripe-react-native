@@ -20,10 +20,8 @@ import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createCanceledError
 import com.reactnativestripesdk.utils.createEmptyResult
 import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.createFailedError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
-import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.getValOr
@@ -206,7 +204,7 @@ class OnrampSdkModule(
       onrampPresenter = onrampCoordinator!!.createPresenter(activity)
       promise.resolveVoid()
     } catch (e: Exception) {
-      promise.resolve(createFailedError(e))
+      promise.resolve(createOnrampFailedError(e))
     }
   }
 
@@ -226,7 +224,7 @@ class OnrampSdkModule(
           promise.resolveBoolean("hasLinkAccount", result.hasLinkAccount)
         }
         is OnrampHasLinkAccountResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -257,7 +255,7 @@ class OnrampSdkModule(
           promise.resolveString("customerId", result.customerId)
         }
         is OnrampRegisterLinkUserResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -286,7 +284,7 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampRegisterWalletAddressResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -350,7 +348,7 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampAttachKycInfoResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -370,7 +368,7 @@ class OnrampSdkModule(
           promise.resolve(mapFromComplianceIdentifierRequirements(result.requirements))
         }
         is OnrampRetrieveMissingIdentifiersResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -407,7 +405,7 @@ class OnrampSdkModule(
           promise.resolve(mapFromSubmitIdentifiersResult(result.result))
         }
         is OnrampSubmitIdentifiersResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -441,7 +439,7 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampUpdatePhoneNumberResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -499,7 +497,7 @@ class OnrampSdkModule(
             platformPayParams.getMap("googlePay")
               ?: run {
                 promise.resolve(
-                  createFailedError(
+                  createOnrampFailedError(
                     IllegalArgumentException("Missing googlePay params in platformPayParams"),
                   ),
                 )
@@ -520,7 +518,7 @@ class OnrampSdkModule(
         }
         else -> {
           promise.resolve(
-            createFailedError(
+            createOnrampFailedError(
               IllegalArgumentException("Unsupported payment method: $paymentMethod"),
             ),
           )
@@ -648,7 +646,7 @@ class OnrampSdkModule(
 
     if (paymentDetails == null) {
       promise.resolve(
-        createFailedError(
+        createOnrampFailedError(
           IllegalArgumentException("Unsupported payment method"),
         ),
       )
@@ -749,7 +747,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Identity verification was cancelled"))
       }
       is OnrampVerifyIdentityResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -773,7 +771,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("KYC verification was cancelled"))
       }
       is OnrampVerifyKycInfoResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -792,7 +790,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("CRS/CARF declaration was cancelled"))
       }
       is OnrampCrsCarfDeclarationResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -843,7 +841,7 @@ class OnrampSdkModule(
       }
 
       is OnrampCollectPaymentMethodResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -872,7 +870,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Authorization was cancelled"))
       }
       is OnrampAuthorizeResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -889,7 +887,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Checkout was cancelled"))
       }
       is OnrampCheckoutResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -903,7 +901,7 @@ class OnrampSdkModule(
         promise.resolveString("cryptoPaymentToken", result.cryptoPaymentToken)
       }
       is OnrampCreateCryptoPaymentTokenResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -917,7 +915,7 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampLogOutResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -931,7 +929,7 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampTokenAuthenticationResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
