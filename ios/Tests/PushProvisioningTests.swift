@@ -6,7 +6,7 @@
 //  Copyright © 2022 Facebook. All rights reserved.
 //
 
-@testable import stripe_react_native
+@testable import StripeReactNativeCore
 import XCTest
 
 class PushProvisioningTests: XCTestCase {

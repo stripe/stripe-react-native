@@ -4,7 +4,7 @@ This patch fixes the codegen issue that occurs when using `@stripe/stripe-react-
 
 ## The Problem
 
-When using React Native 0.74+ with the old architecture, you may encounter this error during pod install:
+When using React Native 0.74+ with the old architecture, you may encounter this error during iOS native dependency setup:
 
 ```
 UnsupportedModulePropertyParserError: Module NativeStripeSdkModule: TypeScript interfaces extending TurboModule must only contain 'FunctionTypeAnnotation's. Property 'onConfirmHandlerCallback' refers to a 'TSTypeReference'.

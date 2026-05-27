@@ -89,7 +89,7 @@ workflows:
       - NEW_ARCH_ENABLED: true
     before_run:
       - _prepare_ios
-      - _install_pods
+      - _setup_ios_spm
     steps:
       - script@1:
           title: Check iOS Code Formatting
@@ -100,17 +100,18 @@ workflows:
       - xcode-test@4:
           title: Xcode Test for iOS
           inputs:
-            - project_path: example/ios/example.xcworkspace
+            - project_path: example/ios/example.xcodeproj
             - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
             - scheme: stripe-react-native-Unit-Tests
             - log_formatter: xcbeautify
       - save-cache@1:
-          title: Save Pods Cache
+          title: Save SwiftPM Cache
           is_always_run: true
           inputs:
-            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - key: spm-{{ .Arch }}-{{ checksum "Package.swift" }}-{{ checksum "example/package.json" }}
             - paths: |
-                example/ios/Pods
+                ~/Library/Caches/org.swift.swiftpm
+                ~/Library/Developer/Xcode/DerivedData
       - deploy-to-bitrise-io@2:
           inputs:
             - notify_user_groups: none
@@ -355,7 +356,7 @@ workflows:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@8: {}
       - yarn@0:
-          title: Install Dependencies (No Pods)
+          title: Install JS Dependencies
           inputs:
             - command: bootstrap-no-pods
   _prepare_ios:
@@ -368,9 +369,9 @@ workflows:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@8: {}
       # - restore-cache@2:
-      #     title: Restore Pods Cache
+      #     title: Restore SwiftPM Cache
       #     inputs:
-      #       - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+      #       - key: spm-{{ .Arch }}-{{ checksum "Package.swift" }}-{{ checksum "example/package.json" }}
       - activate-build-cache-for-xcode: {}
       - yarn@0:
           title: Bootstrap Project
@@ -384,29 +385,16 @@ workflows:
           inputs:
             - content: yarn example build:ios
 
-  _install_pods:
+  _setup_ios_spm:
     steps:
       - script@1:
-          title: Install Pods
+          title: Set Up iOS Swift Packages
           inputs:
             - content: |
                 if [ -n "$OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH" ]; then
                   echo "Overriding Stripe iOS SDK to use branch: $OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH"
-
-                  # Extract pod names from update-pods script (includes transitive deps)
-                  STRIPE_PODS=$(grep '"update-pods"' package.json | sed 's/.*pod update //' | sed 's/",$//')
-
-                  PODFILE="example/ios/Podfile"
-                  echo "" >> "$PODFILE"
-                  echo "# Override Stripe iOS SDK pods to use git branch" >> "$PODFILE"
-                  echo "$STRIPE_PODS" | tr ' ' '\n' | while read pod; do
-                    [ -n "$pod" ] && echo "pod '$pod', :git => 'https://github.com/stripe/stripe-ios.git', :branch => '$OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH'" >> "$PODFILE"
-                  done
-
-                  yarn update-pods
-                else
-                  yarn pods
                 fi
+                yarn spm
 
   _prepare_android:
     before_run:
@@ -419,7 +407,7 @@ workflows:
       - git-clone@8: {}
       - restore-gradle-cache@2: {}
       - yarn@0:
-          title: Install Dependencies (No Pods)
+          title: Install JS Dependencies
           inputs:
             - command: bootstrap-no-pods
       - set-java-version@1:
@@ -511,7 +499,7 @@ workflows:
     before_run:
       - _prepare_ios
       - _build_js_bundle
-      - _install_pods
+      - _setup_ios_spm
     steps:
       - script@1:
           title: Build iOS App (Release, Simulator)
@@ -526,7 +514,7 @@ workflows:
 
                 DERIVED_DATA_PATH="$BITRISE_SOURCE_DIR/DerivedData"
                 build_ios() {
-                  xcodebuild -workspace example.xcworkspace \
+                  xcodebuild -project example.xcodeproj \
                     -scheme example \
                     -configuration Release \
                     -sdk iphonesimulator \
@@ -541,12 +529,13 @@ workflows:
                 mkdir -p "$(dirname "$ZIP_OUT")"
                 ( cd "$APP_ROOT" && zip -qr "$ZIP_OUT" "$(basename "$APP_DIR")" )
       - save-cache@1:
-          title: Save Pods Cache
+          title: Save SwiftPM Cache
           is_always_run: true
           inputs:
-            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - key: spm-{{ .Arch }}-{{ checksum "Package.swift" }}-{{ checksum "example/package.json" }}
             - paths: |
-                example/ios/Pods
+                ~/Library/Caches/org.swift.swiftpm
+                ~/Library/Developer/Xcode/DerivedData
       - deploy-to-bitrise-io@2:
           inputs:
             - pipeline_intermediate_files: '$BITRISE_SOURCE_DIR/app-release.app.zip:IOS_APP_ZIP'

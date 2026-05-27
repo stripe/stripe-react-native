@@ -5,8 +5,8 @@
 //  Created by Charles Cruzan on 10/13/22.
 //
 
-@testable import stripe_react_native
 import StripePaymentSheet
+@testable import StripeReactNativeCore
 import XCTest
 
 class AddressSheetUtilsTests: XCTestCase {

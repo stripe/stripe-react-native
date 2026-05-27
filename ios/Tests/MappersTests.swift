@@ -1,6 +1,6 @@
 import Stripe
-@testable import stripe_react_native
 import StripePaymentSheet
+@testable import StripeReactNativeCore
 import XCTest
 
 class MappersTests: XCTestCase {

@@ -5,8 +5,8 @@
 //  Created by Nick Porter on 4/29/26.
 //
 
-@testable import stripe_react_native
 @_spi(STP) @_spi(ReactNativeSDK) import StripePaymentSheet
+@testable import StripeReactNativeCore
 import XCTest
 
 class CheckoutBridgeTests: XCTestCase {

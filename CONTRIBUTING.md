@@ -21,10 +21,6 @@
 ### iOS
 
 - **Xcode** with iOS simulator runtimes installed
-- **CocoaPods**:
-  ```sh
-  brew install cocoapods
-  ```
 - **SwiftLint** (required for pre-commit hooks):
   ```sh
   brew install swiftlint
@@ -52,12 +48,7 @@ yarn bootstrap
 `yarn bootstrap` runs three steps:
 1. `yarn example` — installs JS dependencies for the example app
 2. `yarn` — installs JS dependencies for the SDK itself (and runs `prepare`, which builds the TypeScript)
-3. `yarn pods` — runs `pod install` for the iOS example app
-
-If `pod install` fails with a CDN error, retry — CocoaPods CDN can be flaky:
-```sh
-cd example/ios && pod install --repo-update
-```
+3. `yarn spm:init` — initializes React Native's Swift Package Manager iOS setup for the example app
 
 ### 2. Run the example app
 
@@ -72,7 +63,7 @@ yarn example start
 yarn example ios
 ```
 
-Or open `example/ios/example.xcworkspace` in Xcode and run the `ReactTestApp` scheme.
+Or run `yarn spm` and open `example/ios/example.xcodeproj` in Xcode.
 
 **Android:**
 ```sh
@@ -87,7 +78,7 @@ Or open `example/android` in Android Studio and run the app from there.
 
 ### Editing native code
 
-- **iOS**: Open `example/ios/example.xcworkspace` in Xcode. Find SDK source files at `Pods > Development Pods > stripe-react-native`.
+- **iOS**: Open `example/ios/example.xcodeproj` in Xcode after running `yarn spm`. Find SDK source files through the local `StripeReactNative` Swift package.
 - **Android**: Open `example/android` in Android Studio. Find SDK source files under `reactnativestripesdk`.
 - **TypeScript**: Edit files in `src/` and `example/` with your editor of choice. Metro picks up JS/TS changes from `src/` directly, but type definitions are served from `lib/`. If you change the SDK's public API and your editor shows stale types, run `yarn` at the repo root to rebuild `lib/`.
 
@@ -172,7 +163,7 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 
 The React Native SDK depends on underlying native [iOS](https://github.com/stripe/stripe-ios) and [Android](https://github.com/stripe/stripe-android) SDKs. To update:
 
-**iOS:** Update `stripe_version` in `stripe-react-native.podspec`, then run `yarn update-pods`.
+**iOS:** Update `stripeVersion` in `Package.swift`, then run `yarn spm:clean && yarn spm:init`.
 
 **Android:** Update `StripeSdk_stripeVersion` in `android/gradle.properties`.
 
@@ -273,7 +264,7 @@ The patch needs to be updated when:
 
 | Script | Description |
 |--------|-------------|
-| `yarn bootstrap` | Install all dependencies and pods |
+| `yarn bootstrap` | Install all dependencies and initialize iOS Swift packages |
 | `yarn test` | Run TypeScript unit tests (Jest) |
 | `yarn test:unit:ios` | Run iOS native unit tests (xcodebuild) |
 | `yarn test:unit:android` | Run Android native unit tests (Gradle) |
@@ -283,6 +274,9 @@ The patch needs to be updated when:
 | `yarn lint` | Lint with ESLint |
 | `yarn example start` | Start Metro bundler |
 | `yarn example ios` | Run example app on iOS simulator |
+| `yarn spm` | Refresh React Native's iOS Swift Package Manager setup |
+| `yarn spm:init` | Initialize React Native's iOS Swift Package Manager setup |
+| `yarn spm:clean` | Reset React Native's generated iOS Swift Package Manager state |
 | `yarn example android` | Run example app on Android emulator |
 | `yarn run-example-ios` | Build and run iOS example (iPhone 16 Pro Max) |
 | `yarn run-example-android` | Build and run Android example |

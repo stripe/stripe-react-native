@@ -1,5 +1,5 @@
-@testable import stripe_react_native
 @_spi(PaymentMethodMessagingElementPreview) @_spi(STP) import StripePaymentSheet
+@testable import StripeReactNativeCore
 import XCTest
 
 class PaymentMethodMessagingElementConfigTests: XCTestCase {

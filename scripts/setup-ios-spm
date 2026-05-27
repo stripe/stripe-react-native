@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+EXAMPLE_DIR="$ROOT_DIR/example"
+
+if [ -f "$EXAMPLE_DIR/node_modules/react-native/scripts/setup-ios-spm.js" ]; then
+  RN_SPM_SCRIPT="$EXAMPLE_DIR/node_modules/react-native/scripts/setup-ios-spm.js"
+elif [ -f "$ROOT_DIR/node_modules/react-native/scripts/setup-ios-spm.js" ]; then
+  RN_SPM_SCRIPT="$ROOT_DIR/node_modules/react-native/scripts/setup-ios-spm.js"
+else
+  cat >&2 <<'EOF'
+React Native's setup-ios-spm.js was not found.
+
+This SDK is now configured for the React Native SPM iOS flow. Install a
+React Native version or prototype branch that includes scripts/setup-ios-spm.js,
+then rerun this command.
+EOF
+  exit 1
+fi
+
+cd "$EXAMPLE_DIR"
+node "$RN_SPM_SCRIPT" "$@"

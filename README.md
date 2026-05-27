@@ -105,7 +105,7 @@ The Stripe React Native SDK supports all [Apple supported Xcode versions](https:
 The SDK uses TypeScript features available in Babel version `7.9.0` and above.
 Alternatively use the `plugin-transform-typescript` plugin in your project.
 
-You'll need to run `pod install` in your `ios` directory to install the native dependencies.
+The iOS SDK is distributed through Swift Package Manager. Use React Native's SPM iOS setup flow to resolve native dependencies.
 
 ## Usage example
 

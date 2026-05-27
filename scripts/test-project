@@ -167,7 +167,7 @@ trap cleanup EXIT
 echo "Creating React Native project ($PROJECT_NAME) with version $RN_VERSION" in "$TMP_DIR"
 
 cd "$TMP_DIR"
-npx @react-native-community/cli@latest init "$PROJECT_NAME" --version "$RN_VERSION" --skip-git-init --install-pods false
+npx @react-native-community/cli@latest init "$PROJECT_NAME" --version "$RN_VERSION" --skip-git-init
 
 echo "Adding local stripe-react-native tarball to the new project"
 cd "$PROJECT_DIR"
@@ -190,16 +190,16 @@ fi
 
 if [[ $RUN_IOS -eq 1 ]]; then
   echo "Building iOS project"
-  bundle install
   (
-    cd ios
-    if [[ $ARCHITECTURE_SPECIFIED -eq 1 ]]; then
-      RCT_NEW_ARCH_ENABLED="$IS_NEW_ARCH" pod install
+    if [[ -f node_modules/react-native/scripts/setup-ios-spm.js ]]; then
+      node node_modules/react-native/scripts/setup-ios-spm.js --init
     else
-      pod install
+      echo "React Native $RN_VERSION does not include scripts/setup-ios-spm.js" >&2
+      exit 1
     fi
+    cd ios
     xcodebuild \
-      -workspace "$PROJECT_NAME.xcworkspace" \
+      -project "$PROJECT_NAME.xcodeproj" \
       -configuration Release \
       -scheme "$PROJECT_NAME" \
       -destination 'generic/platform=iOS Simulator' \

@@ -3,8 +3,8 @@
 //  stripe-react-native-Unit-Tests
 //
 
-@testable import stripe_react_native
 @_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
+@testable import StripeReactNativeCore
 import XCTest
 
 class CustomerSheetUtilsTests: XCTestCase {

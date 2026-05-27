@@ -1,5 +1,5 @@
-@testable import stripe_react_native
 @_spi(ReactNativeSDK) import StripeCore
+@testable import StripeReactNativeCore
 import XCTest
 
 class ReactNativeAnalyticsTests: XCTestCase {

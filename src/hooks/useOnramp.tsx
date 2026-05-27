@@ -10,11 +10,11 @@ export function requireOnrampModule() {
   if (NativeOnrampSdk == null) {
     throw new Error(
       Platform.select({
-        ios: "Onramp module is not available. Add 'stripe-react-native/Onramp' to your Podfile.",
+        ios: "Onramp module is not available. Link the 'StripeReactNativeOnramp' Swift Package product.",
         android:
           "Onramp module is not available. Add 'StripeSdk_includeOnramp=true' to gradle.properties.",
         default:
-          "Onramp module is not available. Enable the Onramp pod on iOS and set 'StripeSdk_includeOnramp=true' on Android.",
+          "Onramp module is not available. Link 'StripeReactNativeOnramp' on iOS and set 'StripeSdk_includeOnramp=true' on Android.",
       }) ?? 'Onramp module is not available.'
     );
   }

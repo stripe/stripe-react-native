@@ -1,5 +1,5 @@
-@testable import stripe_react_native
 @_spi(CryptoOnrampAlpha) import StripePaymentSheet
+@testable import StripeReactNativeCore
 import UIKit
 import XCTest
 

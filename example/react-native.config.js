@@ -20,6 +20,17 @@ const rntPackageRoot = path.join(__dirname, 'rnt-package');
 
 module.exports = {
   ...(project ? { project } : undefined),
+  spmModules: [
+    {
+      name: 'StripeReactNative',
+      path: '..',
+      packageFile: {
+        name: 'StripeReactNative',
+        path: '../Package.swift',
+      },
+      products: ['StripeReactNative', 'StripeReactNativeOnramp'],
+    },
+  ],
   dependencies: {
     'rnt-package': {
       root: rntPackageRoot,

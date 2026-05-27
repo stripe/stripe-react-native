@@ -1,7 +1,7 @@
-// Import this header instead of stripe_react_native-Swift.h to make sure
+// Import this header instead of the generated Swift header directly to make sure
 // it includes all its dependencies.
 
-// stripe_react_native-Swift.h is missing some type defs.
+// The generated Swift header is missing some type defs.
 @protocol STPAuthenticationContext;
 @protocol STPApplePayContextDelegate;
 @protocol PKPaymentAuthorizationViewControllerDelegate;
@@ -13,13 +13,18 @@
 
 typedef NS_ENUM(NSInteger, STPPaymentStatus);
 
-// stripe_react_native-Swift.h also depends on these headers.
+// The generated Swift header also depends on these headers.
 #import <React/RCTBridgeModule.h>
 #import <React/RCTVersion.h>
 #import <React/RCTViewManager.h>
 
-// When using frameworks the import is different.
-#if __has_include("stripe_react_native/stripe_react_native-Swift.h")
+// Older integrations used the stripe_react_native module name. SwiftPM uses
+// StripeReactNativeCore for the Swift implementation target.
+#if __has_include(<StripeReactNativeCore/StripeReactNativeCore-Swift.h>)
+#import <StripeReactNativeCore/StripeReactNativeCore-Swift.h>
+#elif __has_include("StripeReactNativeCore-Swift.h")
+#import "StripeReactNativeCore-Swift.h"
+#elif __has_include("stripe_react_native/stripe_react_native-Swift.h")
 #import <stripe_react_native/stripe_react_native-Swift.h>
 #elif __has_include(<stripe_react_native-Swift.h>)
 #import <stripe_react_native-Swift.h>

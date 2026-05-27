@@ -7,7 +7,7 @@
 //
 
 import PassKit
-@testable import stripe_react_native
+@testable import StripeReactNativeCore
 import XCTest
 
 @available(iOS 15.0, *)
