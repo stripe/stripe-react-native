@@ -2064,25 +2064,22 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
+  - Stripe (from `/Users/mliberatore/Development/stripe-ios`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
   - "stripe-react-native/Onramp (from `../node_modules/@stripe/stripe-react-native`)"
   - "stripe-react-native/Tests (from `../node_modules/@stripe/stripe-react-native`)"
+  - StripeApplePay (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripeCameraCore (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripeCore (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripeCryptoOnramp (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripeFinancialConnections (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripeIdentity (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripeIssuing (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripePayments (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripePaymentSheet (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripePaymentsUI (from `/Users/mliberatore/Development/stripe-ios`)
+  - StripeUICore (from `/Users/mliberatore/Development/stripe-ios`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
-
-SPEC REPOS:
-  trunk:
-    - Stripe
-    - StripeApplePay
-    - StripeCameraCore
-    - StripeCore
-    - StripeCryptoOnramp
-    - StripeFinancialConnections
-    - StripeIdentity
-    - StripeIssuing
-    - StripePayments
-    - StripePaymentSheet
-    - StripePaymentsUI
-    - StripeUICore
 
 EXTERNAL SOURCES:
   FBLazyVector:
@@ -2232,8 +2229,32 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  Stripe:
+    :path: "/Users/mliberatore/Development/stripe-ios"
   stripe-react-native:
     :path: "../node_modules/@stripe/stripe-react-native"
+  StripeApplePay:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripeCameraCore:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripeCore:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripeCryptoOnramp:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripeFinancialConnections:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripeIdentity:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripeIssuing:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripePayments:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripePaymentSheet:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripePaymentsUI:
+    :path: "/Users/mliberatore/Development/stripe-ios"
+  StripeUICore:
+    :path: "/Users/mliberatore/Development/stripe-ios"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2326,6 +2347,6 @@ SPEC CHECKSUMS:
   StripeUICore: bc7c496206c5195501b53ad40574c11a15fab9b2
   Yoga: 5934998fbeaef7845dbf698f698518695ab4cd1a
 
-PODFILE CHECKSUM: 605f3cad878b7c0eee93ebb4a78a8141d34cd328
+PODFILE CHECKSUM: e1ee470e6895f5b678f2ad60d40879c6f25c345e
 
 COCOAPODS: 1.15.2

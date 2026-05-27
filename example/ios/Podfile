@@ -19,6 +19,20 @@ options = {
 }
 
 use_test_app! options do |target|
+  stripe_ios_path = '/Users/mliberatore/Development/stripe-ios'
+  pod 'Stripe', path: stripe_ios_path
+  pod 'StripeApplePay', path: stripe_ios_path
+  pod 'StripeCameraCore', path: stripe_ios_path
+  pod 'StripeCore', path: stripe_ios_path
+  pod 'StripeCryptoOnramp', path: stripe_ios_path
+  pod 'StripeFinancialConnections', path: stripe_ios_path
+  pod 'StripeIdentity', path: stripe_ios_path
+  pod 'StripeIssuing', path: stripe_ios_path
+  pod 'StripePaymentSheet', path: stripe_ios_path
+  pod 'StripePayments', path: stripe_ios_path
+  pod 'StripePaymentsUI', path: stripe_ios_path
+  pod 'StripeUICore', path: stripe_ios_path
+
   pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native', testspecs: ['Tests']
   pod 'stripe-react-native/Onramp', path: '../node_modules/@stripe/stripe-react-native'
 end
