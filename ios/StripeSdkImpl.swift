@@ -1364,6 +1364,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.authenticateUserWithToken(linkAuthTokenClientSecret)
                 resolve([:])  // Return empty object on success
             } catch {
+                if let onrampError = error as? CryptoOnrampCoordinator.Error,
+                   case let .seamlessSignInTokenInvalid(reason) = onrampError {
+                    let errorResult = Errors.createError(ErrorType.Failed, reason ?? onrampError.localizedDescription)
+                    resolve(["error": errorResult["error"]!])
+                    return
+                }
+
                 let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }

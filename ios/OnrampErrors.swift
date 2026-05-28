@@ -13,7 +13,7 @@ enum OnrampErrors {
 
     /// Creates a React Native error envelope for a failed Crypto Onramp operation.
     ///
-    /// Typed Crypto Onramp coordinator errors include onramp-specific diagnostics in addition to the standard error fields.
+    /// Typed Crypto Onramp errors include onramp-specific diagnostics in addition to the standard error fields.
     static func createFailedError(_ error: Swift.Error) -> NSDictionary {
         return createOnrampError(code: ErrorType.Failed, error: error)
     }
@@ -27,79 +27,72 @@ enum OnrampErrors {
     }
 
     private static func createOnrampError(code: String, error: Swift.Error) -> NSDictionary {
-        guard let onrampError = error as? CryptoOnrampCoordinator.Error else {
-            return Errors.createError(code, error)
+        if let apiError = error as? StripeCryptoOnrampAPIError {
+            return createOnrampAPIErrorMap(
+                code: code,
+                onrampErrorType: onrampErrorType(for: apiError),
+                error: apiError
+            )
         }
 
-        switch onrampError {
-        case .appAttestationFailed(let apiError):
-            return createOnrampAPIErrorMap(
-                code: code,
-                onrampErrorType: "AppAttestationError",
-                error: onrampError,
-                apiError: apiError
-            )
-        case .uncategorizedAPIError(let apiError):
-            return createOnrampAPIErrorMap(
-                code: code,
-                onrampErrorType: "UncategorizedApiError",
-                error: onrampError,
-                apiError: apiError
-            )
-        case .seamlessSignInTokenInvalid(let reason):
+        if let onrampError = error as? StripeCryptoOnrampError {
             return createOnrampErrorMap(
                 code: code,
-                message: reason ?? onrampError.localizedDescription,
+                message: onrampError.userMessage,
                 localizedMessage: onrampError.localizedDescription,
-                additionalFields: commonOnrampFields(error: onrampError)
-            )
-        default:
-            return createOnrampErrorMap(
-                code: code,
-                message: onrampError.localizedDescription,
-                localizedMessage: onrampError.localizedDescription,
+                stripeErrorCode: onrampError.code,
                 additionalFields: commonOnrampFields(error: onrampError)
             )
         }
+
+        return Errors.createError(code, error)
     }
 
     private static func createOnrampAPIErrorMap(
         code: String,
         onrampErrorType: String,
-        error: CryptoOnrampCoordinator.Error,
-        apiError: any APIErrorContextProviding
+        error: StripeCryptoOnrampAPIError
     ) -> NSDictionary {
         return createOnrampErrorMap(
             code: code,
-            message: error.userFacingMessage,
+            message: error.userMessage,
             localizedMessage: error.localizedDescription,
-            type: apiError.apiErrorType,
-            stripeErrorCode: apiError.apiErrorCode,
+            type: error.type,
+            stripeErrorCode: error.code,
             additionalFields: commonOnrampFields(error: error, onrampErrorType: onrampErrorType).merging([
-                "reason": apiError.reason,
-                "operation": apiError.operation,
-                "appPackageName": apiError.appIdentifier,
-                "mode": apiError.mode,
-                "sdkVersion": apiError.sdkVersion,
-                "requestId": apiError.requestID,
-                "apiErrorCode": apiError.apiErrorCode,
-                "apiErrorType": apiError.apiErrorType,
-                "apiErrorMessage": apiError.apiErrorMessage,
-                "apiUserMessage": apiError.apiUserMessage,
-                "docUrl": apiError.docURL,
+                "reason": error.reason,
+                "operation": error.operation,
+                "appPackageName": error.appIdentifier,
+                "mode": error.mode,
+                "sdkVersion": error.sdkVersion,
+                "requestId": error.requestID,
+                "apiErrorCode": error.code,
+                "apiErrorType": error.type,
+                "apiErrorMessage": error.apiMessage,
+                "apiUserMessage": error.apiUserMessage,
+                "docUrl": error.docURL?.absoluteString,
             ]) { _, new in new }
         )
     }
 
     private static func commonOnrampFields(
-        error: CryptoOnrampCoordinator.Error,
+        error: StripeCryptoOnrampError,
         onrampErrorType: String? = nil
     ) -> [String: Any?] {
         return [
             "onrampErrorType": onrampErrorType,
-            "developerMessage": error.developerDescription,
-            "userMessage": error.userFacingMessage,
+            "developerMessage": error.developerMessage,
+            "userMessage": error.userMessage,
         ]
+    }
+
+    private static func onrampErrorType(for error: StripeCryptoOnrampAPIError) -> String {
+        switch error {
+        case is AppAttestationAPIError:
+            return "AppAttestationError"
+        default:
+            return "UncategorizedApiError"
+        }
     }
 
     private static func createOnrampErrorMap(
