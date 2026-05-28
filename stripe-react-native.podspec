@@ -38,7 +38,7 @@ Pod::Spec.new do |s|
 
   s.subspec 'Core' do |core|
     core.source_files = 'ios/**/*.{h,m,mm,swift}'
-    core.exclude_files = [ 'ios/Tests/', 'ios/NewArch/', 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm' ]
+    core.exclude_files = [ 'ios/Tests/', 'ios/NewArch/', 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm', 'ios/OnrampErrors.swift' ]
     # These headers contain c++ code so make sure they are private to avoid
     # being exported to the umbrella header, which is used by swift interop.
     # StripeSwiftInterop.h will cause circular dependency issues.
@@ -53,7 +53,7 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'Onramp' do |onramp|
-    onramp.source_files = [ 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm' ]
+    onramp.source_files = [ 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm', 'ios/OnrampErrors.swift' ]
     onramp.dependency 'stripe-react-native/Core'
     onramp.dependency 'StripeCryptoOnramp', stripe_version
   end

@@ -2333,7 +2333,7 @@ SPEC CHECKSUMS:
   RNCPicker: c8a3584b74133464ee926224463fcc54dfdaebca
   RNScreens: 61c18865ab074f4d995ac8d7cf5060522a649d05
   Stripe: 769819b9df05bc92c5de8f7305faf75bc27f735b
-  stripe-react-native: b334f641531df1b679b8465f8a55cbcf85c347a8
+  stripe-react-native: 14cd6b8abefc43239250a854bc669cd923e5e0df
   StripeApplePay: 753ce201db4d267a1a1b61a32016a1ae7f79d56b
   StripeCameraCore: 94a9d9a578ba2dffbbfe093e6a1c9112d425c40c
   StripeCore: d93a730858adb35f15c84bfe03f7b2a3fcf5c9b6
@@ -2349,4 +2349,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: e1ee470e6895f5b678f2ad60d40879c6f25c345e
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

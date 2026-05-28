@@ -267,7 +267,7 @@ export type ComplianceIdentifierRequirements = {
 };
 
 /**
- * Typed Crypto Onramp error discriminants returned by newer Android SDKs.
+ * Typed Crypto Onramp error discriminants returned by newer native SDKs.
  */
 export type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
 
@@ -304,8 +304,8 @@ export type UncategorizedApiError = OnrampApiError & {
 /**
  * Error returned by Crypto Onramp APIs.
  *
- * Most failures use the generic Stripe error envelope. On Android, newer
- * `stripe-android` versions may instead return typed SDK-owned errors via
+ * Most failures use the generic Stripe error envelope. Newer native SDK
+ * versions may instead return typed SDK-owned errors via
  * `onrampErrorType`.
  */
 export type CryptoOnrampError =
