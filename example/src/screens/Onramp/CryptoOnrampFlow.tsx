@@ -38,7 +38,7 @@ import {
 } from './utils';
 
 import type { StripeError } from '@stripe/stripe-react-native/src/types';
-import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
+import type { OnrampError } from '@stripe/stripe-react-native/src/types/Onramp';
 
 import {
   AttachKycInfoSection,
