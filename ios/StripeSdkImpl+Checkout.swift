@@ -187,13 +187,13 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        performCheckoutMutation(
-            sessionKey: sessionKey,
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout in
-            try await checkout.updateTaxId(type: type, value: value)
-        }
+        // performCheckoutMutation(
+        //     sessionKey: sessionKey,
+        //     resolver: resolve,
+        //     rejecter: reject
+        // ) { checkout in
+        //     try await checkout.updateTaxId(type: type, value: value)
+        // }
     }
 
     @objc(checkoutRunServerUpdateStart:resolver:rejecter:)

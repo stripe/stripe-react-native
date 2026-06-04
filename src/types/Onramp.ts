@@ -264,12 +264,24 @@ export type ComplianceIdentifierRequirements = {
   identifiers: ComplianceIdentifierRequirement[];
   /** Alternative identifier groups that may satisfy one or more requirements. */
   alternatives: ComplianceIdentifierAlternativeGroup[];
+  /** Whether at least one CRS/CARF tax identification number still needs to be collected. */
+  carfTinRequired: boolean;
 };
 
 /**
  * Typed Crypto Onramp error discriminants returned by newer native SDKs.
  */
 export type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+
+/**
+ * A native SDK component and version included in Crypto Onramp diagnostics.
+ */
+export type SDKVersion = {
+  /** The SDK component name. */
+  name: string;
+  /** The SDK component version. */
+  version: string;
+};
 
 export type OnrampApiError = StripeError<OnrampError> & {
   onrampErrorType: string;
@@ -279,7 +291,7 @@ export type OnrampApiError = StripeError<OnrampError> & {
   operation: string;
   appPackageName: string;
   mode?: 'live' | 'test';
-  sdkVersion: string;
+  sdkVersions?: SDKVersion[];
   requestId?: string;
   apiErrorCode?: string;
   apiErrorType?: string;
@@ -325,6 +337,7 @@ export type RetrieveMissingIdentifiersResult =
   | {
       identifiers?: undefined;
       alternatives?: undefined;
+      carfTinRequired?: undefined;
       /** Present if retrieval failed with an error. */
       error: CryptoOnrampError;
     };
@@ -334,20 +347,23 @@ export type RetrieveMissingIdentifiersResult =
  */
 export type SubmitIdentifiersResult =
   | {
-      /** Whether all required identifiers were accepted. */
-      valid: boolean;
+      /** Whether all required MiCA identifiers and CRS/CARF tax identification numbers have been submitted. */
+      completed: boolean;
       /** Any identifiers that still need to be collected. */
       identifiers: ComplianceIdentifierRequirement[];
       /** Alternative identifier groups that may satisfy one or more requirements. */
       alternatives: ComplianceIdentifierAlternativeGroup[];
+      /** Whether at least one CRS/CARF tax identification number still needs to be collected. */
+      carfTinRequired: boolean;
       /** Submitted identifier types whose values were invalid. */
       invalidIdentifiers: ComplianceIdentifierType[];
       error?: undefined;
     }
   | {
-      valid?: undefined;
+      completed?: undefined;
       identifiers?: undefined;
       alternatives?: undefined;
+      carfTinRequired?: undefined;
       invalidIdentifiers?: undefined;
       /** Present if submission failed with an error. */
       error: CryptoOnrampError;

@@ -120,6 +120,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 #if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
     var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Error>?
+
+    private var onrampAdditionalSDKVersions: [SDKVersion] {
+        guard let version = STPAPIClient.shared.appInfo?.version, !version.isEmpty else {
+            return []
+        }
+
+        return [SDKVersion(name: "stripe-react-native", version: version)]
+    }
 #endif
 
     var embeddedInstance: EmbeddedPaymentElement?
@@ -1293,7 +1301,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
         Task {
             do {
-                cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(appearance: appearance, cryptoCustomerID: cryptoCustomerId)
+                cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(
+                    appearance: appearance,
+                    cryptoCustomerID: cryptoCustomerId,
+                    additionalSDKVersions: onrampAdditionalSDKVersions
+                )
                 resolve([:])  // Return empty object on success
             } catch {
                 let errorResult = OnrampErrors.createFailedError(error)

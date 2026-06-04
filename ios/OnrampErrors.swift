@@ -64,7 +64,7 @@ enum OnrampErrors {
                 "operation": error.operation,
                 "appPackageName": error.appIdentifier,
                 "mode": error.mode,
-                "sdkVersion": error.sdkVersion,
+                "sdkVersions": mapSDKVersions(error.sdkVersions),
                 "requestId": error.requestID,
                 "apiErrorCode": error.code,
                 "apiErrorType": error.type,
@@ -84,6 +84,15 @@ enum OnrampErrors {
             "developerMessage": error.developerMessage,
             "userMessage": error.userMessage,
         ]
+    }
+
+    private static func mapSDKVersions(_ sdkVersions: [SDKVersion]) -> [[String: String]] {
+        return sdkVersions.map { sdkVersion in
+            [
+                "name": sdkVersion.name,
+                "version": sdkVersion.version,
+            ]
+        }
     }
 
     private static func onrampErrorType(for error: StripeCryptoOnrampAPIError) -> String {
