@@ -348,19 +348,6 @@ RCT_EXPORT_METHOD(checkoutSelectShippingOption:(nonnull NSString *)sessionKey
                                             rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(checkoutUpdateTaxId:(nonnull NSString *)sessionKey
-                                  type:(nonnull NSString *)type
-                                 value:(nonnull NSString *)value
-                               resolve:(nonnull RCTPromiseResolveBlock)resolve
-                                reject:(nonnull RCTPromiseRejectBlock)reject)
-{
-  [StripeSdkImpl.shared checkoutUpdateTaxId:sessionKey
-                                       type:type
-                                      value:value
-                                   resolver:resolve
-                                   rejecter:reject];
-}
-
 RCT_EXPORT_METHOD(checkoutRunServerUpdateStart:(nonnull NSString *)sessionKey
                                         resolve:(nonnull RCTPromiseResolveBlock)resolve
                                          reject:(nonnull RCTPromiseRejectBlock)reject)

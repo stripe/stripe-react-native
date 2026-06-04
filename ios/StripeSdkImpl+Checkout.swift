@@ -179,23 +179,6 @@ extension StripeSdkImpl {
         }
     }
 
-    @objc(checkoutUpdateTaxId:type:value:resolver:rejecter:)
-    public func checkoutUpdateTaxId(
-        sessionKey: String,
-        type: String,
-        value: String,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) {
-        performCheckoutMutation(
-            sessionKey: sessionKey,
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout in
-            try await checkout.updateTaxId(type: type, value: value)
-        }
-    }
-
     @objc(checkoutRunServerUpdateStart:resolver:rejecter:)
     public func checkoutRunServerUpdateStart(
         sessionKey: String,
