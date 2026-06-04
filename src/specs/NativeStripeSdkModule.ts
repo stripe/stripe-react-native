@@ -256,12 +256,6 @@ export interface Spec extends TurboModule {
     id: string
   ): Promise<UnsafeObject<Checkout.State>>;
 
-  checkoutUpdateTaxId(
-    sessionKey: string,
-    type: string,
-    value: string
-  ): Promise<UnsafeObject<Checkout.State>>;
-
   checkoutRunServerUpdateStart(
     sessionKey: string
   ): Promise<UnsafeObject<Checkout.State>>;

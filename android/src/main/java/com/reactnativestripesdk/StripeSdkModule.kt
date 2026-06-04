@@ -1869,17 +1869,6 @@ class StripeSdkModule(
     }
   }
 
-  override fun checkoutUpdateTaxId(
-    sessionKey: String,
-    type: String,
-    value: String,
-    promise: Promise,
-  ) {
-    performCheckoutMutation(sessionKey, promise) { checkout ->
-      checkout.updateTaxId(type = type, value = value)
-    }
-  }
-
   override fun checkoutRunServerUpdateStart(
     sessionKey: String,
     promise: Promise,
