@@ -2,7 +2,30 @@ require 'json'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
-stripe_version = '~> 25.16.0'
+stripe_version = '25.16.0'
+stripe_pod_version = "~> #{stripe_version}"
+stripe_spm_url = 'https://github.com/stripe/stripe-ios-spm.git'
+stripe_spm_branch = ENV['OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH']
+stripe_spm_requirement = if stripe_spm_branch && !stripe_spm_branch.empty?
+  {
+    kind: 'branch',
+    branch: stripe_spm_branch,
+  }
+else
+  {
+    kind: 'upToNextMinorVersion',
+    minimumVersion: stripe_version,
+  }
+end
+stripe_spm_products = [
+  'Stripe',
+  'StripePaymentSheet',
+  'StripePayments',
+  'StripePaymentsUI',
+  'StripeApplePay',
+  'StripeFinancialConnections',
+  'StripeCryptoOnramp',
+]
 
 fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
 
@@ -16,6 +39,17 @@ Pod::Spec.new do |s|
 
   s.platforms    = { ios: '13.0' }
   s.source       = { git: 'https://github.com/stripe/stripe-react-native.git', tag: s.version.to_s }
+
+  # Older React Native/CocoaPods installs do not define spm_dependency.
+  # Keep resolving Stripe through CocoaPods in those environments.
+  if defined?(spm_dependency)
+    spm_dependency(
+      s,
+      url: stripe_spm_url,
+      requirement: stripe_spm_requirement,
+      products: stripe_spm_products
+    )
+  end
 
   s.header_dir = 'stripe_react_native'
   s.pod_target_xcconfig = {
@@ -44,18 +78,22 @@ Pod::Spec.new do |s|
     # StripeSwiftInterop.h will cause circular dependency issues.
     core.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h' ]
     core.dependency 'React-Core'
-    core.dependency 'Stripe', stripe_version
-    core.dependency 'StripePaymentSheet', stripe_version
-    core.dependency 'StripePayments', stripe_version
-    core.dependency 'StripePaymentsUI', stripe_version
-    core.dependency 'StripeApplePay', stripe_version
-    core.dependency 'StripeFinancialConnections', stripe_version
+    unless defined?(spm_dependency)
+      core.dependency 'Stripe', stripe_pod_version
+      core.dependency 'StripePaymentSheet', stripe_pod_version
+      core.dependency 'StripePayments', stripe_pod_version
+      core.dependency 'StripePaymentsUI', stripe_pod_version
+      core.dependency 'StripeApplePay', stripe_pod_version
+      core.dependency 'StripeFinancialConnections', stripe_pod_version
+    end
   end
 
   s.subspec 'Onramp' do |onramp|
     onramp.source_files = [ 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm' ]
     onramp.dependency 'stripe-react-native/Core'
-    onramp.dependency 'StripeCryptoOnramp', stripe_version
+    unless defined?(spm_dependency)
+      onramp.dependency 'StripeCryptoOnramp', stripe_pod_version
+    end
   end
 
   if fabric_enabled
