@@ -1225,10 +1225,11 @@ class Mappers {
             nil
         }
 
-        let primaryButtonConfiguration: LinkAppearance.PrimaryButtonConfiguration? = if let primaryButton = params["primaryButton"] as? [String: CGFloat] {
+        let primaryButtonConfiguration: LinkAppearance.PrimaryButtonConfiguration? = if let primaryButton = params["primaryButton"] as? [String: CGFloat],
+                                                                                        !primaryButton.isEmpty {
             .init(
-                cornerRadius: primaryButton["cornerRadius"],
-                height: primaryButton["height"]
+                cornerRadius: primaryButton["cornerRadius"] ?? .zero,
+                height: primaryButton["height"] ?? .zero
             )
         } else {
             nil

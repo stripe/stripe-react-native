@@ -30,8 +30,8 @@ class OnrampMappersTests: XCTestCase {
 
         XCTAssertEqual(appearance.style, .alwaysDark)
         XCTAssertTrue(appearance.reduceLinkBranding)
-        XCTAssertEqual(appearance.primaryButton.cornerRadius, CGFloat(12))
-        XCTAssertEqual(appearance.primaryButton.height, CGFloat(48))
+        XCTAssertEqual(appearance.primaryButton?.cornerRadius, CGFloat(12))
+        XCTAssertEqual(appearance.primaryButton?.height, CGFloat(48))
 
         assertColor(
             appearance.colors?.primary,
@@ -75,8 +75,8 @@ class OnrampMappersTests: XCTestCase {
         let appearance = Mappers.mapToLinkAppearance(params)
 
         XCTAssertNil(appearance.colors)
-        XCTAssertEqual(appearance.primaryButton.cornerRadius, CGFloat(12))
-        XCTAssertNil(appearance.primaryButton.height)
+        XCTAssertEqual(appearance.primaryButton?.cornerRadius, CGFloat(12))
+        XCTAssertEqual(appearance.primaryButton?.height, .zero)
         XCTAssertEqual(appearance.style, .automatic)
         XCTAssertTrue(appearance.reduceLinkBranding)
     }
@@ -91,8 +91,8 @@ class OnrampMappersTests: XCTestCase {
         let appearance = Mappers.mapToLinkAppearance(params)
 
         XCTAssertNil(appearance.colors)
-        XCTAssertNil(appearance.primaryButton.cornerRadius)
-        XCTAssertEqual(appearance.primaryButton.height, CGFloat(48))
+        XCTAssertEqual(appearance.primaryButton?.cornerRadius, .zero)
+        XCTAssertEqual(appearance.primaryButton?.height, CGFloat(48))
         XCTAssertEqual(appearance.style, .automatic)
         XCTAssertTrue(appearance.reduceLinkBranding)
     }
@@ -105,8 +105,7 @@ class OnrampMappersTests: XCTestCase {
         let appearance = Mappers.mapToLinkAppearance(params)
 
         XCTAssertNil(appearance.colors)
-        XCTAssertNil(appearance.primaryButton.cornerRadius)
-        XCTAssertNil(appearance.primaryButton.height)
+        XCTAssertNil(appearance.primaryButton)
         XCTAssertEqual(appearance.style, .automatic)
         XCTAssertTrue(appearance.reduceLinkBranding)
     }
@@ -116,8 +115,7 @@ class OnrampMappersTests: XCTestCase {
 
         XCTAssertEqual(appearance.style, .alwaysLight)
         XCTAssertNil(appearance.colors)
-        XCTAssertNil(appearance.primaryButton.cornerRadius)
-        XCTAssertNil(appearance.primaryButton.height)
+        XCTAssertNil(appearance.primaryButton)
         XCTAssertTrue(appearance.reduceLinkBranding)
     }
 
@@ -131,8 +129,7 @@ class OnrampMappersTests: XCTestCase {
         let appearance = Mappers.mapToLinkAppearance([:])
 
         XCTAssertNil(appearance.colors)
-        XCTAssertNil(appearance.primaryButton.cornerRadius)
-        XCTAssertNil(appearance.primaryButton.height)
+        XCTAssertNil(appearance.primaryButton)
         XCTAssertEqual(appearance.style, .automatic)
         XCTAssertTrue(appearance.reduceLinkBranding)
     }

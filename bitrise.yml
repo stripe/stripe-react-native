@@ -531,6 +531,8 @@ workflows:
                     -configuration Release \
                     -sdk iphonesimulator \
                     -derivedDataPath "$DERIVED_DATA_PATH" \
+                    ARCHS=arm64 \
+                    ONLY_ACTIVE_ARCH=YES \
                     build | xcbeautify
                 }
                 build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)
