@@ -102,7 +102,7 @@ workflows:
           inputs:
             - project_path: example/ios/example.xcworkspace
             - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
-            - scheme: stripe-react-native-Unit-Tests
+            - scheme: ReactTestAppTests
             - log_formatter: xcbeautify
       - save-cache@1:
           title: Save Pods Cache

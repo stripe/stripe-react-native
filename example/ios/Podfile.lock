@@ -1911,28 +1911,6 @@ PODS:
     - ReactNativeDependencies
     - stripe-react-native/Core
     - Yoga
-  - stripe-react-native/Tests (0.66.0):
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-Core-prebuilt
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2012,7 +1990,6 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
   - "stripe-react-native/Onramp (from `../node_modules/@stripe/stripe-react-native`)"
-  - "stripe-react-native/Tests (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 EXTERNAL SOURCES:
@@ -2245,6 +2222,6 @@ SPEC CHECKSUMS:
   stripe-react-native: bc29fd87c8ec0edfe77fd0200adb978bed8506c5
   Yoga: 218f04bb8b0ddbc0ac14ab1bc936236e0bf8ca4c
 
-PODFILE CHECKSUM: 3773513025d607dd3f26b36efe6fe69865156224
+PODFILE CHECKSUM: 40540563f94fba4d23983f80c25cf22329f304bf
 
 COCOAPODS: 1.16.2

@@ -3,10 +3,26 @@ ws_dir = ws_dir.parent until
   File.exist?("#{ws_dir}/node_modules/react-native-test-app/test_app.rb") ||
   ws_dir.expand_path.to_s == '/'
 require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
-require 'securerandom'
+require 'fileutils'
 
 workspace 'example.xcworkspace'
 use_frameworks! :linkage => :dynamic
+
+STRIPE_SPM_MODULE_MAP_NAMES = [
+  'Stripe',
+  'Stripe3DS2',
+  'StripeApplePay',
+  'StripeCameraCore',
+  'StripeCore',
+  'StripeCryptoOnramp',
+  'StripeFinancialConnections',
+  'StripeIdentity',
+  'StripeIssuing',
+  'StripePaymentSheet',
+  'StripePayments',
+  'StripePaymentsUI',
+  'StripeUICore',
+].freeze
 
 def build_setting_values(value)
   return [] if value.nil?
@@ -15,7 +31,7 @@ def build_setting_values(value)
   value.split(' ')
 end
 
-def add_spm_build_settings_to_target(target, module_map_names:)
+def add_spm_build_settings_to_target(target, module_map_names:, additional_swift_flags: [])
   search_paths = [
     '${SYMROOT}/${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}/',
     '${SYMROOT}/${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}/PackageFrameworks',
@@ -37,21 +53,24 @@ def add_spm_build_settings_to_target(target, module_map_names:)
       framework_search_paths << framework_search_path unless framework_search_paths.include?(framework_search_path)
       build_settings['FRAMEWORK_SEARCH_PATHS'] = framework_search_paths
 
-      swift_flags = build_setting_values(build_settings['OTHER_SWIFT_FLAGS'])
-      swift_flags << '$(inherited)' if swift_flags.empty?
+      other_swift_flags = build_setting_values(build_settings['OTHER_SWIFT_FLAGS'])
+      other_swift_flags << '$(inherited)' if other_swift_flags.empty?
+      additional_swift_flags.each do |flag|
+        other_swift_flags << flag unless other_swift_flags.include?(flag)
+      end
       module_map_names.each do |name|
         module_map_flag = "-fmodule-map-file=#{module_map_dir}/#{name}.modulemap"
-        next if swift_flags.include?(module_map_flag)
+        next if other_swift_flags.include?(module_map_flag)
 
-        swift_flags << '-Xcc'
-        swift_flags << module_map_flag
+        other_swift_flags << '-Xcc'
+        other_swift_flags << module_map_flag
       end
-      build_settings['OTHER_SWIFT_FLAGS'] = swift_flags
+      build_settings['OTHER_SWIFT_FLAGS'] = other_swift_flags
     end
   end
 end
 
-def add_spm_build_settings_to_xcconfig(path, module_map_names:)
+def add_spm_build_settings_to_xcconfig(path, module_map_names:, swift_flags: [])
   return unless File.exist?(path)
 
   search_paths = [
@@ -60,16 +79,19 @@ def add_spm_build_settings_to_xcconfig(path, module_map_names:)
   ]
   framework_search_path = '${SYMROOT}/${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}/PackageFrameworks'
   module_map_dir = '$(OBJROOT)/GeneratedModuleMaps$(EFFECTIVE_PLATFORM_NAME)'
-  module_map_flags = module_map_names.map do |name|
+  swift_flags = [
+    *swift_flags,
+    *module_map_names.map do |name|
     "-Xcc -fmodule-map-file=#{module_map_dir}/#{name}.modulemap"
-  end
+    end,
+  ]
 
   lines = File.readlines(path, chomp: true)
   setting_values = {
     'SWIFT_INCLUDE_PATHS' => ['$(inherited)', *search_paths],
     'FRAMEWORK_SEARCH_PATHS' => ['$(inherited)', framework_search_path],
   }
-  setting_values['OTHER_SWIFT_FLAGS'] = ['$(inherited)', *module_map_flags] unless module_map_flags.empty?
+  setting_values['OTHER_SWIFT_FLAGS'] = ['$(inherited)', *swift_flags] unless swift_flags.empty?
 
   setting_values.each do |setting, values|
     line_index = lines.index { |line| line.start_with?("#{setting} =") }
@@ -89,10 +111,47 @@ def add_spm_build_settings_to_xcconfig(path, module_map_names:)
   File.write(path, "#{lines.join("\n")}\n")
 end
 
-def add_spm_build_settings_to_target_support_files(installer, target_name:, xcconfig_names:, module_map_names:)
+def add_spm_build_settings_to_target_support_files(installer, target_name:, xcconfig_names:, module_map_names:, swift_flags: [])
   target_support_dir = installer.sandbox.root + "Target Support Files/#{target_name}"
   xcconfig_names.each do |xcconfig_name|
-    add_spm_build_settings_to_xcconfig(target_support_dir + xcconfig_name, module_map_names: module_map_names)
+    add_spm_build_settings_to_xcconfig(
+      target_support_dir + xcconfig_name,
+      module_map_names: module_map_names,
+      swift_flags: swift_flags
+    )
+  end
+end
+
+def set_xcconfig_build_setting(path, setting, value)
+  return unless File.exist?(path)
+
+  lines = File.readlines(path, chomp: true)
+  line_index = lines.index { |line| line.start_with?("#{setting} =") }
+  setting_line = "#{setting} = #{value}"
+  if line_index
+    lines[line_index] = setting_line
+  else
+    lines << setting_line
+  end
+  File.write(path, "#{lines.join("\n")}\n")
+end
+
+def allow_non_modular_includes_for_target(installer, target_name)
+  target = installer.pods_project.targets.find { |project_target| project_target.name == target_name }
+  target&.build_configurations&.each do |config|
+    config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+  end
+
+  target_support_dir = installer.sandbox.root + "Target Support Files/#{target_name}"
+  [
+    "#{target_name}.debug.xcconfig",
+    "#{target_name}.release.xcconfig",
+  ].each do |xcconfig_name|
+    set_xcconfig_build_setting(
+      target_support_dir + xcconfig_name,
+      'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES',
+      'YES'
+    )
   end
 end
 
@@ -127,172 +186,152 @@ def add_framework_link_flags_to_target_support_files(installer, target_name:, fr
   end
 end
 
-def available_project_uuid(project, used_uuids = nil)
-  used_uuids ||= project.objects_by_uuid.keys
-  uuid = SecureRandom.hex(12).upcase
-  uuid = SecureRandom.hex(12).upcase while used_uuids.include?(uuid)
-  uuid
-end
+def add_ios_unit_tests_to_app_target(project_path:, target_name:, tests_path:, module_map_names:, swift_flags:)
+  project = Xcodeproj::Project.open(project_path)
+  target = project.targets.find { |project_target| project_target.name == target_name }
+  app_target = project.targets.find { |project_target| project_target.name == 'ReactTestApp' }
+  return if target.nil?
 
-def restore_project_object_graph(project)
-  visited = {}
-  visit = lambda do |object|
-    return if object.nil? || visited[object.object_id]
-
-    visited[object.object_id] = true
-    project.objects_by_uuid[object.uuid] = object if object.respond_to?(:uuid)
-
-    object.to_one_attributes.each do |attribute|
-      visit.call(attribute.get_value(object))
+  target.build_configurations.each do |config|
+    config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+    if app_target
+      config.build_settings['BUNDLE_LOADER'] = '$(TEST_HOST)'
+      config.build_settings['TEST_HOST'] = '$(BUILT_PRODUCTS_DIR)/ReactTestApp.app/ReactTestApp'
     end
-    object.to_many_attributes.each do |attribute|
-      attribute.get_value(object).each { |value| visit.call(value) }
-    end
+    config.build_settings.delete('ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES')
+  end
+  app_target&.build_configurations&.each do |config|
+    config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+  end
+  target.add_dependency(app_target) if app_target && target.dependency_for_target(app_target).nil?
+  add_spm_build_settings_to_target(target, module_map_names: module_map_names, additional_swift_flags: swift_flags)
+
+  project_dir = Pathname.new(project_path).dirname
+  tests_group = project.main_group['StripeReactNativeTests'] ||
+                project.main_group.new_group('StripeReactNativeTests')
+
+  Dir.glob("#{tests_path}/*.swift").sort.each do |test_file|
+    relative_path = Pathname.new(test_file).relative_path_from(project_dir).to_s
+    file_ref = tests_group.files.find { |file| file.path == relative_path } ||
+               tests_group.new_file(relative_path)
+
+    next if target.source_build_phase.files_references.include?(file_ref)
+
+    target.source_build_phase.add_file_reference(file_ref)
   end
 
-  visit.call(project.root_object)
-end
+  project.save
 
-def normalize_spm_product_dependency_uuids(project)
-  dependency_class = Xcodeproj::Project::Object::XCSwiftPackageProductDependency
-  dependencies = project.targets.select { |target| target.respond_to?(:package_product_dependencies) }
-                       .flat_map(&:package_product_dependencies)
-                       .select do |dependency|
-    dependency.is_a?(dependency_class)
-  end.uniq
-
-  root_uuid = project.root_object.uuid
-  used_uuids = project.objects.map(&:uuid) - dependencies.map(&:uuid)
-  dependencies.each do |dependency|
-    if dependency.uuid != root_uuid && project.objects_by_uuid[dependency.uuid].equal?(dependency)
-      project.objects_by_uuid.delete(dependency.uuid)
-    end
-
-    uuid = available_project_uuid(project, used_uuids)
-
-    dependency.instance_variable_set(:@uuid, uuid)
-    project.objects_by_uuid[uuid] = dependency
-    used_uuids << uuid
+  scheme_dir = File.join(project_path, 'xcshareddata/xcschemes')
+  FileUtils.mkdir_p(scheme_dir)
+  app_build_action_entry = ''
+  app_launch_action_runnable = ''
+  if app_target
+    app_build_action_entry = <<~XML
+               <BuildActionEntry
+                  buildForTesting = "YES"
+                  buildForRunning = "YES"
+                  buildForProfiling = "YES"
+                  buildForArchiving = "YES"
+                  buildForAnalyzing = "YES">
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "#{app_target.uuid}"
+                     BuildableName = "#{app_target.product_reference.path}"
+                     BlueprintName = "#{app_target.name}"
+                     ReferencedContainer = "container:ReactTestApp.xcodeproj">
+                  </BuildableReference>
+               </BuildActionEntry>
+    XML
+    app_launch_action_runnable = <<~XML
+            <BuildableProductRunnable
+               runnableDebuggingMode = "0">
+               <BuildableReference
+                  BuildableIdentifier = "primary"
+                  BlueprintIdentifier = "#{app_target.uuid}"
+                  BuildableName = "#{app_target.product_reference.path}"
+                  BlueprintName = "#{app_target.name}"
+                  ReferencedContainer = "container:ReactTestApp.xcodeproj">
+               </BuildableReference>
+            </BuildableProductRunnable>
+    XML
   end
-
-  restore_project_object_graph(project)
-end
-
-def add_spm_resource_bundle_copy_phase(test_target)
-  phase_name = '[SPM] Copy Stripe Resource Bundles'
-  phase = test_target.shell_script_build_phases.find { |build_phase| build_phase.name == phase_name }
-  unless phase
-    phase = Xcodeproj::Project::Object::PBXShellScriptBuildPhase.new(
-      test_target.project,
-      available_project_uuid(test_target.project)
-    )
-    phase.initialize_defaults
-    phase.name = phase_name
-    test_target.build_phases << phase
-  end
-
-  phase.shell_path = '/bin/sh'
-  phase.show_env_vars_in_log = '0'
-  phase.shell_script = <<~'SCRIPT'
-    set -e
-
-    strip_to_english_localizations() {
-      destination_bundle="$1"
-      for localized_dir in "$destination_bundle"/*.lproj; do
-        [ -d "$localized_dir" ] || continue
-
-        case "$(basename "$localized_dir")" in
-          en.lproj|Base.lproj)
-            ;;
-          *)
-            rm -rf "$localized_dir"
-            ;;
-        esac
-      done
-    }
-
-    frameworks_dirs="${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH} ${BUILT_PRODUCTS_DIR}/PackageFrameworks"
-    for bundle in "${BUILT_PRODUCTS_DIR}"/Stripe_*.bundle; do
-      [ -d "$bundle" ] || continue
-
-      bundle_name="$(basename "$bundle")"
-      module_name="${bundle_name#Stripe_}"
-      module_name="${module_name%.bundle}"
-      copied=false
-
-      for frameworks_dir in $frameworks_dirs; do
-        [ -d "$frameworks_dir" ] || continue
-
-        for framework in "$frameworks_dir/${module_name}.framework" "$frameworks_dir/${module_name}_"*.framework; do
-          [ -d "$framework" ] || continue
-
-          rsync -a --delete "$bundle" "$framework/"
-          strip_to_english_localizations "$framework/$bundle_name"
-          copied=true
-
-          if [ "${CODE_SIGNING_ALLOWED:-}" != "NO" ] && [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ]; then
-            /usr/bin/codesign --force --sign "${EXPANDED_CODE_SIGN_IDENTITY}" --preserve-metadata=identifier,entitlements "$framework"
-          fi
-        done
-      done
-
-      if [ "$copied" = false ]; then
-        rsync -a --delete "$bundle" "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/"
-        strip_to_english_localizations "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/$bundle_name"
-      fi
-    done
-  SCRIPT
-end
-
-def add_spm_dependencies_to_test_target(installer, source_target_name:, test_target_name:, module_map_names:)
-  project = installer.pods_project
-  source_target = project.targets.find { |target| target.name == source_target_name }
-  test_target = project.targets.find { |target| target.name == test_target_name }
-
-  return if source_target.nil? || test_target.nil?
-  return unless source_target.respond_to?(:package_product_dependencies) &&
-                test_target.respond_to?(:package_product_dependencies)
-
-  source_dependencies = source_target.package_product_dependencies.select do |dependency|
-    dependency.respond_to?(:package) && dependency.package
-  end
-  return if source_dependencies.empty?
-
-  source_dependencies.each do |dependency|
-    existing_dependency = test_target.package_product_dependencies.find do |test_dependency|
-      test_dependency.package == dependency.package &&
-        test_dependency.product_name == dependency.product_name
-    end
-    next unless existing_dependency.nil?
-
-    test_target.package_product_dependencies << dependency
-  end
-
-  add_spm_build_settings_to_target(source_target, module_map_names: [])
-  add_spm_build_settings_to_target(test_target, module_map_names: module_map_names)
-  add_spm_build_settings_to_target_support_files(
-    installer,
-    target_name: source_target_name,
-    xcconfig_names: [
-      "#{source_target_name}.debug.xcconfig",
-      "#{source_target_name}.release.xcconfig",
-    ],
-    module_map_names: []
+  File.write(
+    File.join(scheme_dir, "#{target_name}.xcscheme"),
+    <<~XML
+      <?xml version="1.0" encoding="UTF-8"?>
+      <Scheme
+         LastUpgradeVersion = "1340"
+         version = "1.3">
+         <BuildAction
+            parallelizeBuildables = "YES"
+            buildImplicitDependencies = "YES">
+            <BuildActionEntries>
+      #{app_build_action_entry.rstrip}
+               <BuildActionEntry
+                  buildForTesting = "YES"
+                  buildForRunning = "NO"
+                  buildForProfiling = "NO"
+                  buildForArchiving = "NO"
+                  buildForAnalyzing = "YES">
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "#{target.uuid}"
+                     BuildableName = "#{target.product_reference.path}"
+                     BlueprintName = "#{target.name}"
+                     ReferencedContainer = "container:ReactTestApp.xcodeproj">
+                  </BuildableReference>
+               </BuildActionEntry>
+            </BuildActionEntries>
+         </BuildAction>
+         <TestAction
+            buildConfiguration = "Debug"
+            selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+            selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+            shouldUseLaunchSchemeArgsEnv = "YES">
+            <Testables>
+               <TestableReference
+                  skipped = "NO">
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "#{target.uuid}"
+                     BuildableName = "#{target.product_reference.path}"
+                     BlueprintName = "#{target.name}"
+                     ReferencedContainer = "container:ReactTestApp.xcodeproj">
+                  </BuildableReference>
+               </TestableReference>
+            </Testables>
+         </TestAction>
+         <LaunchAction
+            buildConfiguration = "Debug"
+            selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+            selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+            launchStyle = "0"
+            useCustomWorkingDirectory = "NO"
+            ignoresPersistentStateOnLaunch = "NO"
+            debugDocumentVersioning = "YES"
+            debugServiceExtension = "internal"
+            allowLocationSimulation = "YES">
+      #{app_launch_action_runnable.rstrip}
+         </LaunchAction>
+         <ProfileAction
+            buildConfiguration = "Release"
+            shouldUseLaunchSchemeArgsEnv = "YES"
+            savedToolIdentifier = ""
+            useCustomWorkingDirectory = "NO"
+            debugDocumentVersioning = "YES">
+      #{app_launch_action_runnable.rstrip}
+         </ProfileAction>
+         <AnalyzeAction
+            buildConfiguration = "Debug">
+         </AnalyzeAction>
+         <ArchiveAction
+            buildConfiguration = "Release"
+            revealArchiveInOrganizer = "YES">
+         </ArchiveAction>
+      </Scheme>
+    XML
   )
-  add_spm_build_settings_to_target_support_files(
-    installer,
-    target_name: source_target_name,
-    xcconfig_names: [
-      "#{source_target_name}.unit-tests.debug.xcconfig",
-      "#{source_target_name}.unit-tests.release.xcconfig",
-    ],
-    module_map_names: module_map_names
-  )
-
-  add_spm_resource_bundle_copy_phase(test_target)
-  normalize_spm_product_dependency_uuids(project)
-
-  Pod::UI.puts "[SPM] Added #{source_dependencies.map(&:product_name).join(', ')} to #{test_target_name}"
 end
 
 # Use prebuilt RN.
@@ -306,25 +345,27 @@ options = {
   :fabric_enabled =>  new_arch_enabled,
   :hermes_enabled => true,
   :post_install => lambda do |installer|
-    add_spm_dependencies_to_test_target(
+    allow_non_modular_includes_for_target(installer, 'ReactNativeHost')
+    stripe_react_native_target = installer.pods_project.targets.find { |target| target.name == 'stripe-react-native' }
+    add_spm_build_settings_to_target(stripe_react_native_target, module_map_names: []) unless stripe_react_native_target.nil?
+    add_spm_build_settings_to_target_support_files(
       installer,
-      source_target_name: 'stripe-react-native',
-      test_target_name: 'stripe-react-native-Unit-Tests',
-      module_map_names: [
-        'Stripe',
-        'Stripe3DS2',
-        'StripeApplePay',
-        'StripeCameraCore',
-        'StripeCore',
-        'StripeCryptoOnramp',
-        'StripeFinancialConnections',
-        'StripeIdentity',
-        'StripeIssuing',
-        'StripePaymentSheet',
-        'StripePayments',
-        'StripePaymentsUI',
-        'StripeUICore',
-      ]
+      target_name: 'stripe-react-native',
+      xcconfig_names: [
+        'stripe-react-native.debug.xcconfig',
+        'stripe-react-native.release.xcconfig',
+      ],
+      module_map_names: []
+    )
+    add_spm_build_settings_to_target_support_files(
+      installer,
+      target_name: 'Pods-ReactTestApp-ReactTestAppTests',
+      xcconfig_names: [
+        'Pods-ReactTestApp-ReactTestAppTests.debug.xcconfig',
+        'Pods-ReactTestApp-ReactTestAppTests.release.xcconfig',
+      ],
+      module_map_names: STRIPE_SPM_MODULE_MAP_NAMES,
+      swift_flags: new_arch_enabled ? ['-DRCT_NEW_ARCH_ENABLED'] : []
     )
     add_framework_link_flags_to_target_support_files(
       installer,
@@ -353,6 +394,18 @@ options = {
 }
 
 use_test_app! options do |target|
-  pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native', testspecs: ['Tests']
+  pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native'
   pod 'stripe-react-native/Onramp', path: '../node_modules/@stripe/stripe-react-native'
+
+  target.tests
+end
+
+post_integrate do |_installer|
+  add_ios_unit_tests_to_app_target(
+    project_path: File.join(ws_dir, 'node_modules/.generated/ios/ReactTestApp.xcodeproj'),
+    target_name: 'ReactTestAppTests',
+    tests_path: File.join(ws_dir.parent, 'ios/Tests'),
+    module_map_names: STRIPE_SPM_MODULE_MAP_NAMES,
+    swift_flags: new_arch_enabled ? ['-DRCT_NEW_ARCH_ENABLED'] : []
+  )
 end
