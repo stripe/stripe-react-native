@@ -2,9 +2,11 @@ require 'json'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
-stripe_version = '25.15.0'
+stripe_version = '25.16.0'
 stripe_pod_version = "~> #{stripe_version}"
 stripe_spm_url = 'https://github.com/stripe/stripe-ios-spm.git'
+# SPM is resolved from source in CI, so keep it pinned to a known-good major/minor line.
+stripe_spm_version = '25.15.0'
 stripe_spm_branch = ENV['OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH']
 stripe_spm_requirement = if stripe_spm_branch && !stripe_spm_branch.empty?
   {
@@ -14,7 +16,7 @@ stripe_spm_requirement = if stripe_spm_branch && !stripe_spm_branch.empty?
 else
   {
     kind: 'upToNextMinorVersion',
-    minimumVersion: stripe_version,
+    minimumVersion: stripe_spm_version,
   }
 end
 stripe_spm_products = [
