@@ -54,8 +54,6 @@ def create_proposal_pr(version)
 
   pr_message_file = File.join(Dir.tmpdir, "propose-#{version}-pr-body.md")
   File.write(pr_message_file, <<~BODY)
-    Propose #{version}
-
     - [x] Ensure the CHANGELOG is up to date with all relevant commits since the last release
     - [x] Add the version number for this release & the date to the CHANGELOG, underneath "## Unreleased"
       - e.g. "## 1.2.3 - 2022-02-14"
@@ -63,14 +61,14 @@ def create_proposal_pr(version)
   BODY
 
   puts ""
-  pr_url = `hub pull-request --base master --head #{branch} -F #{pr_message_file.shellescape}`.strip
+  pr_url = `GH_HOST=github.com gh pr create --repo stripe/stripe-react-native --base master --head #{branch} --title "Propose #{version}" --body-file #{pr_message_file.shellescape}`.strip
   File.delete(pr_message_file) if File.exist?(pr_message_file)
 
   if $?.success?
     puts "Proposal PR created: #{pr_url}"
     system("open", pr_url)
   else
-    rputs "Could not create PR via hub. Create it manually:"
+    rputs "Could not create PR via gh. Create it manually:"
     url = "https://github.com/stripe/stripe-react-native/compare/#{branch}?expand=1"
     puts "  #{url}"
     system("open", url)

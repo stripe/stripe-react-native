@@ -331,10 +331,6 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void checkoutUpdateTaxId(String sessionKey, String type, String value, Promise promise);
-
-  @ReactMethod
-  @DoNotStrip
   public abstract void checkoutRunServerUpdateStart(String sessionKey, Promise promise);
 
   @ReactMethod

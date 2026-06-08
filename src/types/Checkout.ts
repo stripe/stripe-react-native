@@ -558,15 +558,6 @@ export interface Checkout {
   selectShippingOption(id: string): Promise<void>;
 
   /**
-   * Sets the customer's tax ID on the session.
-   * @param type - The tax ID type (e.g. `"eu_vat"`).
-   * @param value - The tax ID value (e.g. `"DE123456789"`).
-   * - Throws: `CheckoutError` if updating the tax ID fails.
-   * @internal
-   */
-  updateTaxId(type: string, value: string): Promise<void>;
-
-  /**
    * Runs an async operation that updates the Checkout Session on your server,
    * then automatically refreshes the local session state.
    *

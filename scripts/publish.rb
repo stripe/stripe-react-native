@@ -125,11 +125,11 @@ def create_github_release
     Please [see the changelog](https://github.com/stripe/stripe-react-native/blob/master/CHANGELOG.md) for additional details.
   NOTES
 
-  if system("which hub > /dev/null 2>&1")
+  if system("which gh > /dev/null 2>&1")
     puts "Creating GitHub release for tag: v#{current_version}"
     puts ""
     print "    "
-    execute_or_fail("hub release create -m #{release_notes.shellescape} \"v#{current_version}\"")
+    execute_or_fail("GH_HOST=github.com gh release create \"v#{current_version}\" --repo stripe/stripe-react-native --title #{version_and_date.shellescape} --notes #{changelog.strip.shellescape}")
   else
     puts ""
     puts "Remember to create a release on GitHub at https://github.com/stripe/stripe-react-native/releases/new"

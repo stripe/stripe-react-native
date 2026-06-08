@@ -158,13 +158,6 @@ export function useCheckout(
       ),
     [withLoading]
   );
-  const updateTaxId = useCallback<Checkout['updateTaxId']>(
-    (type, value) =>
-      withLoading((key) =>
-        NativeStripeSdk.checkoutUpdateTaxId(key, type, value)
-      ),
-    [withLoading]
-  );
   const runServerUpdate = useCallback<Checkout['runServerUpdate']>(
     (serverUpdate) =>
       withLoading(async (key) => {
@@ -204,7 +197,6 @@ export function useCheckout(
       removePromotionCode,
       updateLineItemQuantity,
       selectShippingOption,
-      updateTaxId,
       runServerUpdate,
     }),
     [
@@ -214,7 +206,6 @@ export function useCheckout(
       removePromotionCode,
       updateLineItemQuantity,
       selectShippingOption,
-      updateTaxId,
       runServerUpdate,
     ]
   );
