@@ -28,6 +28,27 @@ stripe_spm_products = [
   'StripeFinancialConnections',
   'StripeCryptoOnramp',
 ]
+stripe_spm_module_maps = [
+  'Stripe',
+  'Stripe3DS2',
+  'StripeApplePay',
+  'StripeCameraCore',
+  'StripeCore',
+  'StripeCryptoOnramp',
+  'StripeFinancialConnections',
+  'StripeIdentity',
+  'StripeIssuing',
+  'StripePaymentSheet',
+  'StripePayments',
+  'StripePaymentsUI',
+  'StripeUICore',
+]
+stripe_spm_swift_flags = stripe_spm_module_maps.flat_map do |module_name|
+  [
+    '-Xcc',
+    "-fmodule-map-file=$(OBJROOT)/GeneratedModuleMaps$(EFFECTIVE_PLATFORM_NAME)/#{module_name}.modulemap",
+  ]
+end
 
 fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
 
@@ -60,6 +81,11 @@ Pod::Spec.new do |s|
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
     'SWIFT_COMPILATION_MODE' => 'wholemodule',
   }
+  if defined?(spm_dependency)
+    s.user_target_xcconfig = {
+      'OTHER_SWIFT_FLAGS' => "$(inherited) #{stripe_spm_swift_flags.join(' ')}",
+    }
+  end
 
   s.test_spec 'Tests' do |test_spec|
     test_spec.platforms    = { ios: '15.1' }
