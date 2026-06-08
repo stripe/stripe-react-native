@@ -1,6 +1,12 @@
 # CHANGELOG
 
 ## X.Y.Z - changes pending release
+**Changes**
+* [Changed] Updated Crypto Onramp `submitIdentifiers` results to return `completed` and `carfTinRequired`, and removed the `valid` field.
+
+**Features**
+* [Added] Added typed Crypto Onramp API errors for app attestation and uncategorized API failures, including developer diagnostics and structured SDK version metadata.
+
 **Fixes**
 * Updated Stripe iOS SDK from 25.15.0 to 25.16.0.
 * [Fixed] Matched iOS Onramp `LinkAppearance.PrimaryButtonConfiguration` mapping to Android so unspecified custom height and corner radius values use Link defaults.
