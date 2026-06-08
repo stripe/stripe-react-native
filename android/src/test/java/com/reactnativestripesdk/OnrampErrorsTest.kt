@@ -1,8 +1,12 @@
+@file:OptIn(ExperimentalCryptoOnramp::class)
+
 package com.reactnativestripesdk
 
 import com.stripe.android.core.StripeError
 import com.stripe.android.core.exception.APIException
+import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.exception.APIErrorContext
+import com.stripe.android.crypto.onramp.exception.SDKVersion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -21,7 +25,12 @@ class OnrampErrorsTest {
         operation = "configure",
         appPackageName = "com.example.app",
         mode = "test",
-        sdkVersion = "23.9.1",
+        sdkVersions =
+          listOf(
+            SDKVersion(name = "stripe-android", version = "23.9.1"),
+            SDKVersion(name = "stripe-react-native", version = "0.66.0"),
+          ),
+        userMessage = "App attestation failed.",
         apiErrorCode = "link_failed_to_attest_request",
         apiErrorType = "api_error",
         apiErrorMessage = "Attestation request could not be verified.",
@@ -46,7 +55,14 @@ class OnrampErrorsTest {
     assertEquals("configure", details.getString("operation"))
     assertEquals("com.example.app", details.getString("appPackageName"))
     assertEquals("test", details.getString("mode"))
-    assertEquals("23.9.1", details.getString("sdkVersion"))
+    val sdkVersions = details.getArray("sdkVersions")
+    assertNotNull(sdkVersions)
+    val stripeAndroidVersion = sdkVersions!!.getMap(0)
+    assertEquals("stripe-android", stripeAndroidVersion!!.getString("name"))
+    assertEquals("23.9.1", stripeAndroidVersion.getString("version"))
+    val reactNativeVersion = sdkVersions.getMap(1)
+    assertEquals("stripe-react-native", reactNativeVersion!!.getString("name"))
+    assertEquals("0.66.0", reactNativeVersion.getString("version"))
     assertEquals("req_attestation", details.getString("requestId"))
     assertEquals(
       "Attestation request could not be verified.",
@@ -70,7 +86,8 @@ class OnrampErrorsTest {
         operation = "authorize",
         appPackageName = "com.example.app",
         mode = "live",
-        sdkVersion = "23.9.1",
+        sdkVersions = listOf(SDKVersion(name = "stripe-android", version = "23.9.1")),
+        userMessage = "Session expired. Please sign in again.",
         apiErrorCode = "consumer_session_expired",
         apiErrorType = "authentication_error",
         apiErrorMessage = "The consumer session has expired.",
@@ -89,7 +106,7 @@ class OnrampErrorsTest {
     assertEquals("Session expired. Please sign in again.", details.getString("userMessage"))
     assertEquals("authorize", details.getString("operation"))
     assertEquals("req_auth", details.getString("requestId"))
-    assertTrue(details.getString("developerMessage")!!.contains("code: consumer_session_expired"))
+    assertTrue(details.getString("developerMessage")!!.contains("Code: consumer_session_expired"))
   }
 
   private fun createOnrampException(
@@ -98,7 +115,8 @@ class OnrampErrorsTest {
     operation: String,
     appPackageName: String,
     mode: String,
-    sdkVersion: String,
+    sdkVersions: List<SDKVersion>,
+    userMessage: String,
     apiErrorCode: String,
     apiErrorType: String,
     apiErrorMessage: String,
@@ -120,7 +138,6 @@ class OnrampErrorsTest {
         operation = operation,
         appPackageName = appPackageName,
         mode = mode,
-        sdkVersion = sdkVersion,
         apiErrorCode = apiErrorCode,
         apiErrorType = apiErrorType,
         apiErrorMessage = apiErrorMessage,
@@ -133,6 +150,7 @@ class OnrampErrorsTest {
         .forName(className)
         .getDeclaredConstructor(
           APIErrorContext::class.java,
+          List::class.java,
           String::class.java,
         ).apply {
           isAccessible = true
@@ -140,7 +158,8 @@ class OnrampErrorsTest {
 
     return constructor.newInstance(
       context,
-      "Fallback user message",
+      sdkVersions,
+      userMessage,
     ) as Exception
   }
 }

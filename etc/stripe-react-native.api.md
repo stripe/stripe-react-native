@@ -1060,10 +1060,17 @@ type ComplianceIdentifierRequirement = {
 type ComplianceIdentifierRequirements = {
     identifiers: ComplianceIdentifierRequirement[];
     alternatives: ComplianceIdentifierAlternativeGroup[];
+    carfTinRequired: boolean;
 };
 
 // @public
 type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+
+// @public
+type SDKVersion = {
+    name: string;
+    version: string;
+};
 
 // @public
 type OnrampApiError = StripeError<OnrampError> & {
@@ -1074,7 +1081,7 @@ type OnrampApiError = StripeError<OnrampError> & {
     operation: string;
     appPackageName: string;
     mode?: 'live' | 'test';
-    sdkVersion: string;
+    sdkVersions?: SDKVersion[];
     requestId?: string;
     apiErrorCode?: string;
     apiErrorType?: string;
@@ -3395,6 +3402,7 @@ type RetrieveMissingIdentifiersResult = (ComplianceIdentifierRequirements & {
 }) | {
     identifiers?: undefined;
     alternatives?: undefined;
+    carfTinRequired?: undefined;
     error: CryptoOnrampError;
 };
 
@@ -3807,15 +3815,17 @@ type Subcategory = 'checking' | 'creditCard' | 'lineOfCredit' | 'mortgage' | 'ot
 
 // @public
 type SubmitIdentifiersResult = {
-    valid: boolean;
+    completed: boolean;
     identifiers: ComplianceIdentifierRequirement[];
     alternatives: ComplianceIdentifierAlternativeGroup[];
+    carfTinRequired: boolean;
     invalidIdentifiers: ComplianceIdentifierType[];
     error?: undefined;
 } | {
-    valid?: undefined;
+    completed?: undefined;
     identifiers?: undefined;
     alternatives?: undefined;
+    carfTinRequired?: undefined;
     invalidIdentifiers?: undefined;
     error: CryptoOnrampError;
 };

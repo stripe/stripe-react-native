@@ -3,12 +3,15 @@
 package com.reactnativestripesdk
 
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.ErrorType
 import com.stripe.android.core.exception.StripeException
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.exception.AppAttestationException
-import com.stripe.android.crypto.onramp.exception.CryptoOnrampException
+import com.stripe.android.crypto.onramp.exception.CryptoOnrampApiException
+import com.stripe.android.crypto.onramp.exception.SDKVersion
+import com.stripe.android.crypto.onramp.exception.StripeCryptoOnrampError
 import com.stripe.android.crypto.onramp.exception.UncategorizedApiErrorException
 
 internal fun createOnrampFailedError(error: Throwable): WritableMap =
@@ -24,46 +27,59 @@ private fun createOnrampError(
   code: String,
   error: Throwable,
 ): WritableMap {
-  val exception =
-    error as? CryptoOnrampException
-      ?: return createGenericError(code, error)
-  val stripeError = exception.stripeError
+  val apiException =
+    error as? CryptoOnrampApiException
+      ?: return createNonApiOnrampError(code, error)
 
-  var onrampErrorType: String? = null
-  val apiErrorContext =
-    when (exception) {
-      is AppAttestationException -> {
-        onrampErrorType = "AppAttestationError"
-        exception.context
-      }
-      is UncategorizedApiErrorException -> {
-        onrampErrorType = "UncategorizedApiError"
-        exception.context
-      }
+  val stripeError = apiException.stripeError
+  val onrampErrorType =
+    when (apiException) {
+      is AppAttestationException -> "AppAttestationError"
+      is UncategorizedApiErrorException -> "UncategorizedApiError"
       else -> null
     }
 
   return createOnrampErrorMap(
     code = code,
-    message = exception.userMessage,
+    message = apiException.userMessage,
+    localizedMessage = apiException.localizedMessage,
     declineCode = stripeError?.declineCode,
-    type = apiErrorContext?.apiErrorType ?: stripeError?.type,
-    stripeErrorCode = apiErrorContext?.apiErrorCode ?: stripeError?.code,
+    type = apiException.context.apiErrorType ?: stripeError?.type,
+    stripeErrorCode = apiException.code,
   ) {
     putString("onrampErrorType", onrampErrorType)
-    putString("developerMessage", exception.developerMessage)
-    putString("userMessage", exception.userMessage)
-    putString("reason", apiErrorContext?.reason)
-    putString("operation", apiErrorContext?.operation)
-    putString("appPackageName", apiErrorContext?.appPackageName)
-    putString("mode", apiErrorContext?.mode)
-    putString("sdkVersion", apiErrorContext?.sdkVersion)
-    putString("requestId", exception.requestId)
-    putString("apiErrorCode", apiErrorContext?.apiErrorCode)
-    putString("apiErrorType", apiErrorContext?.apiErrorType)
-    putString("apiErrorMessage", apiErrorContext?.apiErrorMessage)
-    putString("apiUserMessage", apiErrorContext?.apiUserMessage)
-    putString("docUrl", apiErrorContext?.docUrl)
+    putString("developerMessage", apiException.developerMessage)
+    putString("userMessage", apiException.userMessage)
+    putString("reason", apiException.context.reason)
+    putString("operation", apiException.context.operation)
+    putString("appPackageName", apiException.context.appPackageName)
+    putString("mode", apiException.context.mode)
+    putArray("sdkVersions", mapFromSdkVersions(apiException.sdkVersions))
+    putString("requestId", apiException.context.requestId)
+    putString("apiErrorCode", apiException.context.apiErrorCode)
+    putString("apiErrorType", apiException.context.apiErrorType)
+    putString("apiErrorMessage", apiException.context.apiErrorMessage)
+    putString("apiUserMessage", apiException.context.apiUserMessage)
+    putString("docUrl", apiException.context.docUrl)
+  }
+}
+
+private fun createNonApiOnrampError(
+  code: String,
+  error: Throwable,
+): WritableMap {
+  val onrampError =
+    error as? StripeCryptoOnrampError
+      ?: return createGenericError(code, error)
+
+  return createOnrampErrorMap(
+    code = code,
+    message = onrampError.userMessage,
+    localizedMessage = error.localizedMessage,
+    stripeErrorCode = onrampError.code,
+  ) {
+    putString("developerMessage", onrampError.developerMessage)
+    putString("userMessage", onrampError.userMessage)
   }
 }
 
@@ -112,3 +128,17 @@ private fun createOnrampErrorMap(
   map.putMap("error", details)
   return map
 }
+
+private fun mapFromSdkVersions(
+  sdkVersions: List<SDKVersion>,
+): WritableArray =
+  Arguments.createArray().apply {
+    sdkVersions.forEach { sdkVersion ->
+      pushMap(
+        Arguments.createMap().apply {
+          putString("name", sdkVersion.name)
+          putString("version", sdkVersion.version)
+        },
+      )
+    }
+  }

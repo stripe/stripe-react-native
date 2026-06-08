@@ -28,6 +28,7 @@ import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.OnrampCoordinator
+import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.LinkUserInfo
@@ -70,6 +71,7 @@ class OnrampSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeOnrampSdkModuleSpec(reactContext) {
   private val eventEmitterCompat = EventEmitterCompat(reactContext)
+  private var reactNativeSdkVersion: String? = null
   private lateinit var publishableKey: String
   private var stripeAccountId: String? = null
 
@@ -94,6 +96,10 @@ class OnrampSdkModule(
   ) {
     // Note: This method depends on `StripeSdkModule#initialise()` being called as well.
     val publishableKey = getValOr(params, "publishableKey", null) as String
+    reactNativeSdkVersion =
+      params.getMap("appInfo")
+        ?.getString("version")
+        ?.takeIf { it.isNotBlank() }
     this.stripeAccountId = getValOr(params, "stripeAccountId", null)
     this.publishableKey = publishableKey
 
@@ -168,7 +174,7 @@ class OnrampSdkModule(
         .also { this.onrampCoordinator = it }
 
     CoroutineScope(Dispatchers.IO).launch {
-      val configuration = mapConfig(config, publishableKey)
+      val configuration = mapConfig(config, publishableKey, onrampAdditionalSdkVersions())
       val configureResult = coordinator.configure(configuration)
 
       CoroutineScope(Dispatchers.Main).launch {
@@ -951,4 +957,14 @@ class OnrampSdkModule(
   ) {
     resolve(WritableNativeMap().apply { putBoolean(key, value) })
   }
+
+  private fun onrampAdditionalSdkVersions(): List<SDKVersion> =
+    reactNativeSdkVersion?.let {
+      listOf(
+        SDKVersion(
+          name = "stripe-react-native",
+          version = it,
+        ),
+      )
+    } ?: emptyList()
 }
