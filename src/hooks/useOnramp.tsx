@@ -278,7 +278,7 @@ export function useOnramp() {
      * Requires an authenticated Link user.
      *
      * @param identifiers The compliance identifiers to submit
-     * @returns Promise that resolves to whether the submission was valid, any remaining requirements, invalid identifiers, or error
+     * @returns Promise that resolves to whether collection is complete, any remaining requirements, CARF TIN state, invalid identifiers, or error
      */
     submitIdentifiers: _submitIdentifiers,
 

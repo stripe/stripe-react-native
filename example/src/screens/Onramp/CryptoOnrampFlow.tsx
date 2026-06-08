@@ -482,7 +482,7 @@ export default function CryptoOnrampFlow() {
 
     setSubmitIdentifiersSummary(formatSubmitIdentifiersResult(result));
     showSuccess(
-      result.valid
+      result.completed
         ? 'Identifiers submitted successfully.'
         : 'Identifiers submitted. Review the remaining requirements below.'
     );
