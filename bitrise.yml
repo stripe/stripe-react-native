@@ -102,7 +102,8 @@ workflows:
           inputs:
             - project_path: example/ios/example.xcworkspace
             - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
-            - scheme: stripe-react-native-Unit-Tests
+            - scheme: ReactTestApp
+            - xcodebuild_options: -only-testing:ReactTestAppTests
             - log_formatter: xcbeautify
       - save-cache@1:
           title: Save Pods Cache
@@ -531,6 +532,8 @@ workflows:
                     -configuration Release \
                     -sdk iphonesimulator \
                     -derivedDataPath "$DERIVED_DATA_PATH" \
+                    ARCHS=arm64 \
+                    ONLY_ACTIVE_ARCH=YES \
                     build | xcbeautify
                 }
                 build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)

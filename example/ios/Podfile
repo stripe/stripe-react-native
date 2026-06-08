@@ -5,6 +5,7 @@ ws_dir = ws_dir.parent until
 require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
+use_frameworks! :linkage => :dynamic
 
 # Use prebuilt RN.
 ENV['RCT_USE_RN_DEP'] = '1'
@@ -16,9 +17,67 @@ options = {
   :bridgeless_enabled => new_arch_enabled,
   :fabric_enabled =>  new_arch_enabled,
   :hermes_enabled => true,
+  :post_install => lambda do |installer|
+    Dir.glob("#{installer.sandbox.root}/Target Support Files/ReactTestApp-DevSupport/*.xcconfig").each do |path|
+      lines = File.readlines(path, chomp: true)
+      index = lines.index { |line| line.start_with?('OTHER_LDFLAGS =') }
+      values = index ? lines[index].split(' = ', 2).last.split(' ') : ['$(inherited)']
+      ['React', 'ReactNativeDependencies', 'hermes'].each do |framework|
+        quoted_framework = "\"#{framework}\""
+        next if values.include?(quoted_framework)
+
+        values << '-framework'
+        values << quoted_framework
+      end
+      line = "OTHER_LDFLAGS = #{values.join(' ')}"
+      index ? lines[index] = line : lines << line
+      File.write(path, "#{lines.join("\n")}\n")
+    end
+  end,
 }
 
-use_test_app! options do |target|
-  pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native', testspecs: ['Tests']
+use_test_app! options do |_target|
+  pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native'
   pod 'stripe-react-native/Onramp', path: '../node_modules/@stripe/stripe-react-native'
+
+  _target.tests
+end
+
+post_integrate do |_installer|
+  project_path = "#{ws_dir}/node_modules/.generated/ios/ReactTestApp.xcodeproj"
+  project = Xcodeproj::Project.open(project_path)
+  test_target = project.targets.find { |target| target.name == 'ReactTestAppTests' }
+  app_target = project.targets.find { |target| target.name == 'ReactTestApp' }
+
+  [app_target, test_target].compact.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+    end
+  end
+  app_target&.build_configurations&.each do |config|
+    flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).flat_map { |flag| flag.to_s.split(' ') }
+    flags.delete('-DENABLE_SINGLE_APP_MODE')
+    config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+  end
+
+  tests_group = project.main_group.find_subpath('StripeReactNativeTests', true)
+  tests_group.path = '../../../../ios/Tests'
+  tests_group.source_tree = 'SOURCE_ROOT'
+
+  Dir.glob("#{ws_dir.parent}/ios/Tests/*.{m,swift}").sort.each do |path|
+    name = File.basename(path)
+    file_ref = tests_group.files.find { |file| file.path == name } || tests_group.new_file(name)
+    next if test_target.source_build_phase.files_references.include?(file_ref)
+
+    test_target.add_file_references([file_ref])
+  end
+  test_target.build_configurations.each do |config|
+    flags = Array(config.build_settings['OTHER_SWIFT_FLAGS'] || '$(inherited)')
+    flags = flags.flat_map { |flag| flag.to_s.split(' ') }
+    flags << '$(inherited)' unless flags.include?('$(inherited)')
+    flags << '-DRCT_NEW_ARCH_ENABLED' if new_arch_enabled && !flags.include?('-DRCT_NEW_ARCH_ENABLED')
+    config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+  end
+
+  project.save
 end
