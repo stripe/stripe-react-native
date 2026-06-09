@@ -3,6 +3,7 @@
 ## X.Y.Z - changes pending release
 **Changes**
 * Updated Stripe iOS SDK from 25.16.0 to 25.17.0.
+* Updated Stripe Android SDK from 23.9.+ to 23.10.+.
 * [Changed] Renamed the React Native Crypto Onramp wrapper API from `presentCRSCARFDeclaration` to `presentUserAttestation`.
 * [Changed] Updated Crypto Onramp `submitIdentifiers` results to return `completed` and `carfTinRequired`, and removed the `valid` field.
 
