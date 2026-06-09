@@ -145,6 +145,9 @@ class OnrampErrorsTest {
         docUrl = docUrl,
         underlyingError = cause,
       )
+
+    // The exception classes in the `com.stripe.android.crypto.onramp.exception` package
+    // don't have public constructors, so we use reflection to create instances for testing.
     val constructor =
       Class
         .forName(className)

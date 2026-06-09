@@ -12,7 +12,6 @@ import com.stripe.android.crypto.onramp.exception.AppAttestationException
 import com.stripe.android.crypto.onramp.exception.CryptoOnrampApiException
 import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.exception.StripeCryptoOnrampError
-import com.stripe.android.crypto.onramp.exception.UncategorizedApiErrorException
 
 internal fun createOnrampFailedError(error: Throwable): WritableMap =
   createOnrampError(ErrorType.Failed.toString(), error)
@@ -32,12 +31,7 @@ private fun createOnrampError(
       ?: return createNonApiOnrampError(code, error)
 
   val stripeError = apiException.stripeError
-  val onrampErrorType =
-    when (apiException) {
-      is AppAttestationException -> "AppAttestationError"
-      is UncategorizedApiErrorException -> "UncategorizedApiError"
-      else -> null
-    }
+  val onrampErrorType = apiException.toOnrampErrorType()
 
   return createOnrampErrorMap(
     code = code,
@@ -88,6 +82,13 @@ private fun createOnrampMessageError(
   message: String?,
 ): WritableMap =
   createOnrampErrorMap(code = code, message = message)
+
+private fun CryptoOnrampApiException.toOnrampErrorType(): String =
+  if (this is AppAttestationException) {
+    "AppAttestationError"
+  } else {
+    "UncategorizedApiError"
+  }
 
 private fun createGenericError(
   code: String,

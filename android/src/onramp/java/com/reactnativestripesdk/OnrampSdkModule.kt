@@ -183,7 +183,7 @@ class OnrampSdkModule(
             createOnrampPresenter(promise)
           }
           is OnrampConfigurationResult.Failed -> {
-            promise.resolve(createError(ErrorType.Failed.toString(), configureResult.error))
+            promise.resolve(createOnrampFailedError(configureResult.error))
           }
         }
       }
