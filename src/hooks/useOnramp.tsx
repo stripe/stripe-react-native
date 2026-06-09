@@ -81,7 +81,7 @@ function mapLegacyConfigureAppAttestationError(result: {
       '',
       `Code: ${cryptoOnrampAppAttestationUnavailableCode}`,
       '',
-      'Next step: confirm app attestation is enabled for this Stripe account and that the app identifier is registered as trusted, then retry the Onramp flow.',
+      'Next step: confirm app attestation is enabled for this Stripe account and that the app identifier is registered as trusted, then call configure again.',
       `SDK: stripe-react-native@${pjson.version}`,
     ].join('\n'),
     userMessage,
