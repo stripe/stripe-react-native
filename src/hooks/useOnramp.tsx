@@ -26,9 +26,17 @@ export function requireOnrampModule() {
 let onCheckoutClientSecretRequestedSubscription: EventSubscription | null =
   null;
 
-const legacyMissingAppAttestationMessage =
-  'App attestation is missing or device cannot use native Link.';
+const legacyAppAttestationUnavailableMessages = [
+  'App attestation is missing or device cannot use native Link.',
+  'Native Link is not available',
+];
 const cryptoOnrampAppAttestationUnavailableCode = 'app_attestation_unavailable';
+
+function isLegacyAppAttestationUnavailableMessage(message?: string): boolean {
+  return (
+    message != null && legacyAppAttestationUnavailableMessages.includes(message)
+  );
+}
 
 function publishableKeyMode(): 'live' | 'test' | undefined {
   const publishableKey = getCurrentPublishableKey();
@@ -52,8 +60,8 @@ function mapLegacyConfigureAppAttestationError(result: {
   if (
     error == null ||
     error.onrampErrorType != null ||
-    (error.message !== legacyMissingAppAttestationMessage &&
-      error.localizedMessage !== legacyMissingAppAttestationMessage)
+    (!isLegacyAppAttestationUnavailableMessage(error.message) &&
+      !isLegacyAppAttestationUnavailableMessage(error.localizedMessage))
   ) {
     return result;
   }
