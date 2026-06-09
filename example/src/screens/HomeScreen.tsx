@@ -93,7 +93,10 @@ export default function HomeScreen() {
     configure(config)
       .then((result) => {
         if (result?.error) {
-          console.error('Error configuring Onramp:', result.error.message);
+          console.error(
+            'Error configuring Onramp:',
+            result.error.developerMessage ?? result.error.message
+          );
           Alert.alert('Onramp Configuration Error', result.error.message);
         } else {
           console.log('Onramp configured successfully.');
