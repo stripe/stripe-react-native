@@ -89,7 +89,7 @@ export default function CryptoOnrampFlow() {
     attachKycInfo,
     retrieveMissingIdentifiers,
     submitIdentifiers,
-    presentCRSCARFDeclaration,
+    presentUserAttestation,
     presentKycInfoVerification,
     updatePhoneNumber,
     collectPaymentMethod,
@@ -127,7 +127,7 @@ export default function CryptoOnrampFlow() {
   const [submitIdentifiersSummary, setSubmitIdentifiersSummary] = useState<
     string | null
   >(null);
-  const [crsCarfDeclarationStatus, setCrsCarfDeclarationStatus] = useState<
+  const [userAttestationStatus, setUserAttestationStatus] = useState<
     string | null
   >(null);
 
@@ -494,24 +494,24 @@ export default function CryptoOnrampFlow() {
     linkAuthIntentId,
   ]);
 
-  const handlePresentCRSCARFDeclaration = useCallback(async () => {
+  const handlePresentUserAttestation = useCallback(async () => {
     const result = await withReauth(
-      () => presentCRSCARFDeclaration(),
+      () => presentUserAttestation(),
       () => authorize(linkAuthIntentId)
     );
 
     if (result.error) {
       if (result.error.code === 'Canceled') {
-        showCanceled('CRS/CARF declaration cancelled.');
+        showCanceled('User attestation canceled.');
       } else {
         showError(`Failed to attest: ${result.error.message}.`);
       }
       return;
     }
 
-    setCrsCarfDeclarationStatus(result.status);
-    showSuccess('CRS/CARF declaration confirmed.');
-  }, [presentCRSCARFDeclaration, withReauth, authorize, linkAuthIntentId]);
+    setUserAttestationStatus(result.status);
+    showSuccess('User attestation confirmed.');
+  }, [presentUserAttestation, withReauth, authorize, linkAuthIntentId]);
 
   const handlePresentKycVerification = useCallback(
     async (updatedAddress: Address | null) => {
@@ -818,7 +818,7 @@ export default function CryptoOnrampFlow() {
       setIdentifierInputs([{ type: '', value: '' }]);
       setMissingIdentifiersSummary(null);
       setSubmitIdentifiersSummary(null);
-      setCrsCarfDeclarationStatus(null);
+      setUserAttestationStatus(null);
       setCustomerId(null);
       setCurrentPaymentDisplayData(null);
       setCryptoPaymentToken(null);
@@ -1053,8 +1053,8 @@ export default function CryptoOnrampFlow() {
           />
           <VerifyIdentitySection
             handleVerifyIdentity={handleVerifyIdentity}
-            handlePresentCRSCARFDeclaration={handlePresentCRSCARFDeclaration}
-            crsCarfDeclarationStatus={crsCarfDeclarationStatus}
+            handlePresentUserAttestation={handlePresentUserAttestation}
+            userAttestationStatus={userAttestationStatus}
           />
           <PaymentCollectionSection
             isPlatformPaySupported={isPlatformPayAvailable}

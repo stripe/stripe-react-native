@@ -69,7 +69,7 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void presentCRSCARFDeclaration(Promise promise);
+  public abstract void presentUserAttestation(Promise promise);
 
   @ReactMethod
   @DoNotStrip

@@ -84,7 +84,7 @@ class OnrampSdkModule(
   private var authorizePromise: Promise? = null
   private var checkoutPromise: Promise? = null
   private var verifyKycPromise: Promise? = null
-  private var crsCarfDeclarationPromise: Promise? = null
+  private var userAttestationPromise: Promise? = null
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
   private val rnScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -153,8 +153,8 @@ class OnrampSdkModule(
         }.verifyKycCallback { result ->
           handleOnrampKycVerificationResult(result, verifyKycPromise!!)
         }.crsCarfDeclarationCallback { result ->
-          crsCarfDeclarationPromise?.let {
-            handleOnrampCrsCarfDeclarationResult(result, it)
+          userAttestationPromise?.let {
+            handleUserAttestationResult(result, it)
           }
         }.onrampSessionClientSecretProvider { sessionId ->
           checkoutClientSecretDeferred = CompletableDeferred()
@@ -418,14 +418,14 @@ class OnrampSdkModule(
   }
 
   @ReactMethod
-  override fun presentCRSCARFDeclaration(promise: Promise) {
+  override fun presentUserAttestation(promise: Promise) {
     val presenter =
       onrampPresenter ?: run {
         promise.resolve(createOnrampNotConfiguredError())
         return
       }
 
-    crsCarfDeclarationPromise = promise
+    userAttestationPromise = promise
     presenter.presentCrsCarfDeclaration()
   }
 
@@ -782,7 +782,7 @@ class OnrampSdkModule(
     }
   }
 
-  private fun handleOnrampCrsCarfDeclarationResult(
+  private fun handleUserAttestationResult(
     result: OnrampCrsCarfDeclarationResult,
     promise: Promise,
   ) {
@@ -793,7 +793,7 @@ class OnrampSdkModule(
         )
       }
       is OnrampCrsCarfDeclarationResult.Cancelled -> {
-        promise.resolve(createCanceledError("CRS/CARF declaration was cancelled"))
+        promise.resolve(createCanceledError("User attestation was canceled"))
       }
       is OnrampCrsCarfDeclarationResult.Failed -> {
         promise.resolve(createOnrampFailedError(result.error))

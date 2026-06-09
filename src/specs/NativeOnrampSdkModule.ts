@@ -23,7 +23,7 @@ export interface Spec extends TurboModule {
   submitIdentifiers(
     identifiers: ReadonlyArray<UnsafeObject<Onramp.ComplianceIdentifier>>
   ): Promise<Onramp.SubmitIdentifiersResult>;
-  presentCRSCARFDeclaration(): Promise<Onramp.CRSCARFDeclarationResult>;
+  presentUserAttestation(): Promise<Onramp.UserAttestationResult>;
   presentKycInfoVerification: (
     updatedAddress: UnsafeObject<Address> | null
   ) => Promise<Onramp.VerifyKycResult>;

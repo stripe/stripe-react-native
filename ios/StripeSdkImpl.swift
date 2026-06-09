@@ -1504,8 +1504,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
-    @objc(presentCRSCARFDeclaration:rejecter:)
-    public func presentCRSCARFDeclaration(
+    @objc(presentUserAttestation:rejecter:)
+    public func presentUserAttestation(
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -1523,7 +1523,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case .confirmed:
                     resolve(["status": "Confirmed"])
                 case .canceled:
-                    let errorResult = Errors.createError(ErrorType.Canceled, "CRS/CARF declaration was cancelled")
+                    let errorResult = Errors.createError(ErrorType.Canceled, "User attestation was canceled")
                     resolve(["error": errorResult["error"]!])
                 }
             } catch {

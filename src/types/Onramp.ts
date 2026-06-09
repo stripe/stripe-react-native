@@ -370,17 +370,17 @@ export type SubmitIdentifiersResult =
     };
 
 /**
- * Result of presenting the CRS/CARF declaration.
+ * Result of presenting user attestation.
  */
-export type CRSCARFDeclarationResult =
+export type UserAttestationResult =
   | {
-      /** The customer accepted the declaration. */
+      /** The customer accepted the attestation. */
       status: 'Confirmed';
       error?: undefined;
     }
   | {
       status?: undefined;
-      /** Present if the declaration failed or was cancelled. */
+      /** Present if attestation failed or was cancelled. */
       error: CryptoOnrampError;
     };
 

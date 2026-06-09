@@ -89,9 +89,9 @@ export function useOnramp() {
     []
   );
 
-  const _presentCRSCARFDeclaration =
-    useCallback(async (): Promise<Onramp.CRSCARFDeclarationResult> => {
-      return requireOnrampModule().presentCRSCARFDeclaration();
+  const _presentUserAttestation =
+    useCallback(async (): Promise<Onramp.UserAttestationResult> => {
+      return requireOnrampModule().presentUserAttestation();
     }, []);
 
   const _presentKycInfoVerification = useCallback(
@@ -283,12 +283,12 @@ export function useOnramp() {
     submitIdentifiers: _submitIdentifiers,
 
     /**
-     * Presents UI for the current Link user to accept the CRS/CARF declaration.
+     * Presents UI for the current Link user to accept user attestation.
      * Requires an authenticated Link user.
      *
      * @returns Promise that resolves to `Confirmed` when accepted, or error
      */
-    presentCRSCARFDeclaration: _presentCRSCARFDeclaration,
+    presentUserAttestation: _presentUserAttestation,
 
     /**
      * Presents UI to verify KYC information for the current Link user.

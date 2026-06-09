@@ -211,6 +211,11 @@ interface AndroidProps {
     accentColor?: string;
 }
 
+// @public
+type AppAttestationError = OnrampApiError & {
+    onrampErrorType: 'AppAttestationError';
+};
+
 // Warning: (ae-forgotten-export) The symbol "RecursivePartial" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -1064,48 +1069,6 @@ type ComplianceIdentifierRequirements = {
 };
 
 // @public
-type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
-
-// @public
-type SDKVersion = {
-    name: string;
-    version: string;
-};
-
-// @public
-type OnrampApiError = StripeError<OnrampError> & {
-    onrampErrorType: string;
-    developerMessage: string;
-    userMessage: string;
-    reason?: string;
-    operation: string;
-    appPackageName: string;
-    mode?: 'live' | 'test';
-    sdkVersions?: SDKVersion[];
-    requestId?: string;
-    apiErrorCode?: string;
-    apiErrorType?: string;
-    apiErrorMessage?: string;
-    apiUserMessage?: string;
-    docUrl?: string;
-};
-
-// @public
-type AppAttestationError = OnrampApiError & {
-    onrampErrorType: 'AppAttestationError';
-};
-
-// @public
-type UncategorizedApiError = OnrampApiError & {
-    onrampErrorType: 'UncategorizedApiError';
-};
-
-// @public
-type CryptoOnrampError = (StripeError<OnrampError> & {
-    onrampErrorType?: undefined;
-}) | AppAttestationError | UncategorizedApiError;
-
-// @public
 type ComplianceIdentifierType = string;
 
 // @public
@@ -1439,15 +1402,6 @@ export type CreateTokenResult = {
 };
 
 // @public
-type CRSCARFDeclarationResult = {
-    status: 'Confirmed';
-    error?: undefined;
-} | {
-    status?: undefined;
-    error: CryptoOnrampError;
-};
-
-// @public
 enum CryptoNetwork {
     // (undocumented)
     aptos = "aptos",
@@ -1474,6 +1428,11 @@ enum CryptoNetwork {
     // (undocumented)
     xrpl = "xrpl"
 }
+
+// @public
+type CryptoOnrampError = (StripeError<OnrampError> & {
+    onrampErrorType?: undefined;
+}) | AppAttestationError | UncategorizedApiError;
 
 // @public
 type CryptoPaymentToken = {
@@ -2601,6 +2560,7 @@ type OnFormCompleteEvent = NativeSyntheticEvent<{
 
 declare namespace Onramp {
     export {
+        OnrampError,
         Configuration,
         GooglePayConfig,
         GooglePayBillingAddressConfig,
@@ -2620,15 +2580,15 @@ declare namespace Onramp {
         ComplianceIdentifierRequirement,
         ComplianceIdentifierAlternativeGroup,
         ComplianceIdentifierRequirements,
-        OnrampError,
         OnrampErrorType,
+        SDKVersion,
         OnrampApiError,
         AppAttestationError,
         UncategorizedApiError,
         CryptoOnrampError,
         RetrieveMissingIdentifiersResult,
         SubmitIdentifiersResult,
-        CRSCARFDeclarationResult,
+        UserAttestationResult,
         VerifyKycResult,
         VoidResult,
         AuthorizeResult,
@@ -2644,7 +2604,25 @@ declare namespace Onramp {
 export { Onramp }
 
 // @public (undocumented)
-export enum OnrampError {
+type OnrampApiError = StripeError<OnrampError> & {
+    onrampErrorType: string;
+    developerMessage: string;
+    userMessage: string;
+    reason?: string;
+    operation: string;
+    appPackageName: string;
+    mode?: 'live' | 'test';
+    sdkVersions?: SDKVersion[];
+    requestId?: string;
+    apiErrorCode?: string;
+    apiErrorType?: string;
+    apiErrorMessage?: string;
+    apiUserMessage?: string;
+    docUrl?: string;
+};
+
+// @public
+enum OnrampError {
     // (undocumented)
     Canceled = "Canceled",
     // (undocumented)
@@ -2652,6 +2630,9 @@ export enum OnrampError {
     // (undocumented)
     Unknown = "Unknown"
 }
+
+// @public
+type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
 
 // @public
 type OnrampGooglePayParams = {
@@ -2875,7 +2856,7 @@ export type PaymentMethodMessagingElementState = {
     status: 'no_content';
 } | {
     status: 'failed';
-    error: CryptoOnrampError;
+    error: Error;
 };
 
 // @public
@@ -3468,6 +3449,12 @@ export enum RowStyle {
     FloatingButton = "floatingButton"
 }
 
+// @public
+type SDKVersion = {
+    name: string;
+    version: string;
+};
+
 // @public (undocumented)
 interface SepaDebitResult {
     // (undocumented)
@@ -3927,6 +3914,11 @@ type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx'
 type Type_2 = 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii';
 
 // @public
+type UncategorizedApiError = OnrampApiError & {
+    onrampErrorType: 'UncategorizedApiError';
+};
+
+// @public
 export const updatePlatformPaySheet: (params: {
     applePay: {
         cartItems: Array<PlatformPay.CartSummaryItem>;
@@ -4036,7 +4028,7 @@ export function useOnramp(): {
     }>;
     retrieveMissingIdentifiers: () => Promise<Onramp.RetrieveMissingIdentifiersResult>;
     submitIdentifiers: (identifiers: Onramp.ComplianceIdentifier[]) => Promise<Onramp.SubmitIdentifiersResult>;
-    presentCRSCARFDeclaration: () => Promise<Onramp.CRSCARFDeclarationResult>;
+    presentUserAttestation: () => Promise<Onramp.UserAttestationResult>;
     presentKycInfoVerification: (updatedAddress: Address | null) => Promise<Onramp.VerifyKycResult>;
     updatePhoneNumber: (phone: string) => Promise<{
         error?: Onramp.CryptoOnrampError;
@@ -4094,6 +4086,15 @@ export function usePlatformPay(): {
     }>;
     canAddCardToWallet: (params: CanAddCardToWalletParams) => Promise<CanAddCardToWalletResult>;
     openPlatformPaySetup: () => Promise<void>;
+};
+
+// @public
+type UserAttestationResult = {
+    status: 'Confirmed';
+    error?: undefined;
+} | {
+    status?: undefined;
+    error: CryptoOnrampError;
 };
 
 // @public
