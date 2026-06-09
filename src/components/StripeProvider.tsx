@@ -6,6 +6,7 @@ import { isAndroid, shouldAttributeExpo } from '../helpers';
 import type { AppInfo, InitStripeParams, InitialiseParams } from '../types';
 import pjson from '../../package.json';
 import { AppRegistry, Platform } from 'react-native';
+import { setCurrentPublishableKey } from '../internal/stripeConfig';
 
 const EXPO_PARTNER_ID = 'pp_partner_JBN7LkABco2yUu';
 
@@ -50,6 +51,7 @@ export const initStripe = async (params: InitStripeParams): Promise<void> => {
 
   const extendedParams: InitialiseParams = { ...params, appInfo };
   await NativeStripeSdk.initialise(extendedParams);
+  setCurrentPublishableKey(params.publishableKey);
 
   if (Platform.OS === 'android') {
     await NativeOnrampSdk?.initialise(extendedParams);
