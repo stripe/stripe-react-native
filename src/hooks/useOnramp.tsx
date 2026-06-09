@@ -41,6 +41,10 @@ function publishableKeyMode(): 'live' | 'test' | undefined {
   return undefined;
 }
 
+// Temporary React Native shim: iOS/Android currently surface this configure/create
+// failure as a legacy SDK-level message instead of a typed rich error. This can be
+// removed once the native SDKs map it themselves, though keeping it is harmless as
+// a compatibility fallback for older native SDK versions.
 function mapLegacyConfigureAppAttestationError(result: {
   error?: Onramp.CryptoOnrampError;
 }): { error?: Onramp.CryptoOnrampError } {
@@ -58,9 +62,6 @@ function mapLegacyConfigureAppAttestationError(result: {
     "This app couldn't be verified. Contact the app developer for help.";
   const mode = publishableKeyMode();
 
-  // Temporary React Native shim: this configure/create failure can come from the native SDK
-  // before Crypto Onramp wraps it in an AppAttestation rich error. Remove
-  // this once iOS/Android return a typed rich error for coordinator configure/create.
   const context = [
     'Context:',
     '  operation: configure',
