@@ -95,7 +95,9 @@ export default function HomeScreen() {
         if (result?.error) {
           console.error(
             'Error configuring Onramp:',
-            result.error.developerMessage ?? result.error.message
+            'developerMessage' in result.error && result.error.developerMessage
+              ? result.error.developerMessage
+              : result.error.message
           );
           Alert.alert('Onramp Configuration Error', result.error.message);
         } else {
