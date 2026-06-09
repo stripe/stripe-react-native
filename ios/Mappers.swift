@@ -1371,14 +1371,16 @@ class Mappers {
         [
             "identifiers": requirements.identifiers.map(mapFromComplianceIdentifierRequirement),
             "alternatives": requirements.alternatives.map(mapFromComplianceIdentifierAlternativeGroup),
+            "carfTinRequired": requirements.carfTinRequired,
         ]
     }
 
     class func mapFromSubmitIdentifiersResult(_ result: SubmitIdentifiersResult) -> [String: Any] {
         [
-            "valid": result.valid,
+            "completed": result.completed,
             "identifiers": result.identifiers.map(mapFromComplianceIdentifierRequirement),
             "alternatives": result.alternatives.map(mapFromComplianceIdentifierAlternativeGroup),
+            "carfTinRequired": result.carfTinRequired,
             "invalidIdentifiers": result.invalidIdentifiers.map(\.rawValue),
         ]
     }

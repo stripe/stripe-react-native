@@ -1,6 +1,6 @@
 import { EventSubscription, Platform } from 'react-native';
 import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
-import { Onramp, OnrampError, StripeError } from '../types';
+import { Onramp } from '../types';
 import type { Address } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
@@ -31,7 +31,7 @@ export function useOnramp() {
   const _configure = useCallback(
     async (
       config: Onramp.Configuration
-    ): Promise<{ error?: StripeError<OnrampError> }> => {
+    ): Promise<{ error?: Onramp.CryptoOnrampError }> => {
       return requireOnrampModule().configureOnramp(config);
     },
     []
@@ -57,7 +57,7 @@ export function useOnramp() {
     async (
       walletAddress: string,
       network: Onramp.CryptoNetwork
-    ): Promise<{ error?: StripeError<OnrampError> }> => {
+    ): Promise<{ error?: Onramp.CryptoOnrampError }> => {
       return requireOnrampModule().registerWalletAddress(
         walletAddress,
         network
@@ -69,7 +69,7 @@ export function useOnramp() {
   const _attachKycInfo = useCallback(
     async (
       kycInfo: Onramp.KycInfo
-    ): Promise<{ error?: StripeError<OnrampError> }> => {
+    ): Promise<{ error?: Onramp.CryptoOnrampError }> => {
       return requireOnrampModule().attachKycInfo(kycInfo);
     },
     []
@@ -89,9 +89,9 @@ export function useOnramp() {
     []
   );
 
-  const _presentCRSCARFDeclaration =
-    useCallback(async (): Promise<Onramp.CRSCARFDeclarationResult> => {
-      return requireOnrampModule().presentCRSCARFDeclaration();
+  const _presentUserAttestation =
+    useCallback(async (): Promise<Onramp.UserAttestationResult> => {
+      return requireOnrampModule().presentUserAttestation();
     }, []);
 
   const _presentKycInfoVerification = useCallback(
@@ -104,7 +104,7 @@ export function useOnramp() {
   const _authenticateUserWithToken = useCallback(
     async (
       linkAuthTokenClientSecret: string
-    ): Promise<{ error?: StripeError<OnrampError> }> => {
+    ): Promise<{ error?: Onramp.CryptoOnrampError }> => {
       return requireOnrampModule().authenticateUserWithToken(
         linkAuthTokenClientSecret
       );
@@ -113,14 +113,14 @@ export function useOnramp() {
   );
 
   const _updatePhoneNumber = useCallback(
-    async (phone: string): Promise<{ error?: StripeError<OnrampError> }> => {
+    async (phone: string): Promise<{ error?: Onramp.CryptoOnrampError }> => {
       return requireOnrampModule().updatePhoneNumber(phone);
     },
     []
   );
 
   const _verifyIdentity = useCallback(async (): Promise<{
-    error?: StripeError<OnrampError>;
+    error?: Onramp.CryptoOnrampError;
   }> => {
     return requireOnrampModule().verifyIdentity();
   }, []);
@@ -168,7 +168,7 @@ export function useOnramp() {
     async (
       onrampSessionId: string,
       provideCheckoutClientSecret: () => Promise<string | null>
-    ): Promise<{ error?: StripeError<OnrampError> }> => {
+    ): Promise<{ error?: Onramp.CryptoOnrampError }> => {
       onCheckoutClientSecretRequestedSubscription?.remove();
       onCheckoutClientSecretRequestedSubscription = addOnrampListener(
         'onCheckoutClientSecretRequested',
@@ -203,13 +203,15 @@ export function useOnramp() {
   );
 
   const _logOut = useCallback(async (): Promise<{
-    error?: StripeError<OnrampError>;
+    error?: Onramp.CryptoOnrampError;
   }> => {
     return requireOnrampModule().logout();
   }, []);
 
-  const _isAuthError = (error?: StripeError<OnrampError>): boolean => {
-    const stripeErrorCode = error?.stripeErrorCode;
+  const _isAuthError = (error?: Onramp.CryptoOnrampError): boolean => {
+    const stripeErrorCode =
+      error?.stripeErrorCode ??
+      (error?.onrampErrorType ? error.apiErrorCode : undefined);
     if (stripeErrorCode == null) {
       return false;
     }
@@ -276,17 +278,17 @@ export function useOnramp() {
      * Requires an authenticated Link user.
      *
      * @param identifiers The compliance identifiers to submit
-     * @returns Promise that resolves to whether the submission was valid, any remaining requirements, invalid identifiers, or error
+     * @returns Promise that resolves to whether collection is complete, any remaining requirements, CARF TIN state, invalid identifiers, or error
      */
     submitIdentifiers: _submitIdentifiers,
 
     /**
-     * Presents UI for the current Link user to accept the CRS/CARF declaration.
+     * Presents UI for the current Link user to accept user attestation.
      * Requires an authenticated Link user.
      *
      * @returns Promise that resolves to `Confirmed` when accepted, or error
      */
-    presentCRSCARFDeclaration: _presentCRSCARFDeclaration,
+    presentUserAttestation: _presentUserAttestation,
 
     /**
      * Presents UI to verify KYC information for the current Link user.

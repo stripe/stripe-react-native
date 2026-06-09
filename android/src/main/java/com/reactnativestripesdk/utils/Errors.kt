@@ -208,9 +208,3 @@ internal fun createMissingInitError(): WritableMap =
     "Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component " +
       "or the initStripe method.",
   )
-
-internal fun createOnrampNotConfiguredError(): WritableMap =
-  createError(
-    ErrorType.Failed.toString(),
-    "Onramp is not configured.",
-  )

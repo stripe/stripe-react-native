@@ -20,16 +20,15 @@ import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createCanceledError
 import com.reactnativestripesdk.utils.createEmptyResult
 import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.createFailedError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
-import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.OnrampCoordinator
+import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.LinkUserInfo
@@ -72,6 +71,7 @@ class OnrampSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeOnrampSdkModuleSpec(reactContext) {
   private val eventEmitterCompat = EventEmitterCompat(reactContext)
+  private var reactNativeSdkVersion: String? = null
   private lateinit var publishableKey: String
   private var stripeAccountId: String? = null
 
@@ -84,7 +84,7 @@ class OnrampSdkModule(
   private var authorizePromise: Promise? = null
   private var checkoutPromise: Promise? = null
   private var verifyKycPromise: Promise? = null
-  private var crsCarfDeclarationPromise: Promise? = null
+  private var userAttestationPromise: Promise? = null
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
   private val rnScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -96,6 +96,10 @@ class OnrampSdkModule(
   ) {
     // Note: This method depends on `StripeSdkModule#initialise()` being called as well.
     val publishableKey = getValOr(params, "publishableKey", null) as String
+    reactNativeSdkVersion =
+      params.getMap("appInfo")
+        ?.getString("version")
+        ?.takeIf { it.isNotBlank() }
     this.stripeAccountId = getValOr(params, "stripeAccountId", null)
     this.publishableKey = publishableKey
 
@@ -149,8 +153,8 @@ class OnrampSdkModule(
         }.verifyKycCallback { result ->
           handleOnrampKycVerificationResult(result, verifyKycPromise!!)
         }.crsCarfDeclarationCallback { result ->
-          crsCarfDeclarationPromise?.let {
-            handleOnrampCrsCarfDeclarationResult(result, it)
+          userAttestationPromise?.let {
+            handleUserAttestationResult(result, it)
           }
         }.onrampSessionClientSecretProvider { sessionId ->
           checkoutClientSecretDeferred = CompletableDeferred()
@@ -170,7 +174,7 @@ class OnrampSdkModule(
         .also { this.onrampCoordinator = it }
 
     CoroutineScope(Dispatchers.IO).launch {
-      val configuration = mapConfig(config, publishableKey)
+      val configuration = mapConfig(config, publishableKey, onrampAdditionalSdkVersions())
       val configureResult = coordinator.configure(configuration)
 
       CoroutineScope(Dispatchers.Main).launch {
@@ -179,7 +183,7 @@ class OnrampSdkModule(
             createOnrampPresenter(promise)
           }
           is OnrampConfigurationResult.Failed -> {
-            promise.resolve(createError(ErrorType.Failed.toString(), configureResult.error))
+            promise.resolve(createOnrampFailedError(configureResult.error))
           }
         }
       }
@@ -206,7 +210,7 @@ class OnrampSdkModule(
       onrampPresenter = onrampCoordinator!!.createPresenter(activity)
       promise.resolveVoid()
     } catch (e: Exception) {
-      promise.resolve(createFailedError(e))
+      promise.resolve(createOnrampFailedError(e))
     }
   }
 
@@ -226,7 +230,7 @@ class OnrampSdkModule(
           promise.resolveBoolean("hasLinkAccount", result.hasLinkAccount)
         }
         is OnrampHasLinkAccountResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -257,7 +261,7 @@ class OnrampSdkModule(
           promise.resolveString("customerId", result.customerId)
         }
         is OnrampRegisterLinkUserResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -286,7 +290,7 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampRegisterWalletAddressResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -350,7 +354,7 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampAttachKycInfoResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -370,7 +374,7 @@ class OnrampSdkModule(
           promise.resolve(mapFromComplianceIdentifierRequirements(result.requirements))
         }
         is OnrampRetrieveMissingIdentifiersResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -407,21 +411,21 @@ class OnrampSdkModule(
           promise.resolve(mapFromSubmitIdentifiersResult(result.result))
         }
         is OnrampSubmitIdentifiersResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
   }
 
   @ReactMethod
-  override fun presentCRSCARFDeclaration(promise: Promise) {
+  override fun presentUserAttestation(promise: Promise) {
     val presenter =
       onrampPresenter ?: run {
         promise.resolve(createOnrampNotConfiguredError())
         return
       }
 
-    crsCarfDeclarationPromise = promise
+    userAttestationPromise = promise
     presenter.presentCrsCarfDeclaration()
   }
 
@@ -441,7 +445,7 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampUpdatePhoneNumberResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -499,7 +503,7 @@ class OnrampSdkModule(
             platformPayParams.getMap("googlePay")
               ?: run {
                 promise.resolve(
-                  createFailedError(
+                  createOnrampFailedError(
                     IllegalArgumentException("Missing googlePay params in platformPayParams"),
                   ),
                 )
@@ -520,7 +524,7 @@ class OnrampSdkModule(
         }
         else -> {
           promise.resolve(
-            createFailedError(
+            createOnrampFailedError(
               IllegalArgumentException("Unsupported payment method: $paymentMethod"),
             ),
           )
@@ -648,7 +652,7 @@ class OnrampSdkModule(
 
     if (paymentDetails == null) {
       promise.resolve(
-        createFailedError(
+        createOnrampFailedError(
           IllegalArgumentException("Unsupported payment method"),
         ),
       )
@@ -749,7 +753,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Identity verification was cancelled"))
       }
       is OnrampVerifyIdentityResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -773,12 +777,12 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("KYC verification was cancelled"))
       }
       is OnrampVerifyKycInfoResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
 
-  private fun handleOnrampCrsCarfDeclarationResult(
+  private fun handleUserAttestationResult(
     result: OnrampCrsCarfDeclarationResult,
     promise: Promise,
   ) {
@@ -789,10 +793,10 @@ class OnrampSdkModule(
         )
       }
       is OnrampCrsCarfDeclarationResult.Cancelled -> {
-        promise.resolve(createCanceledError("CRS/CARF declaration was cancelled"))
+        promise.resolve(createCanceledError("User attestation was canceled"))
       }
       is OnrampCrsCarfDeclarationResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -843,7 +847,7 @@ class OnrampSdkModule(
       }
 
       is OnrampCollectPaymentMethodResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -872,7 +876,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Authorization was cancelled"))
       }
       is OnrampAuthorizeResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -889,7 +893,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Checkout was cancelled"))
       }
       is OnrampCheckoutResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -903,7 +907,7 @@ class OnrampSdkModule(
         promise.resolveString("cryptoPaymentToken", result.cryptoPaymentToken)
       }
       is OnrampCreateCryptoPaymentTokenResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -917,7 +921,7 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampLogOutResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -931,7 +935,7 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampTokenAuthenticationResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -953,4 +957,14 @@ class OnrampSdkModule(
   ) {
     resolve(WritableNativeMap().apply { putBoolean(key, value) })
   }
+
+  private fun onrampAdditionalSdkVersions(): List<SDKVersion> =
+    reactNativeSdkVersion?.let {
+      listOf(
+        SDKVersion(
+          name = "stripe-react-native",
+          version = it,
+        ),
+      )
+    } ?: emptyList()
 }

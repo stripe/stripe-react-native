@@ -78,10 +78,10 @@ RCT_EXPORT_METHOD(submitIdentifiers:(nonnull NSArray *)identifiers
   [StripeSdkImpl.shared submitIdentifiers:identifiers resolver:resolve rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(presentCRSCARFDeclaration:(nonnull RCTPromiseResolveBlock)resolve
-                                     reject:(nonnull RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(presentUserAttestation:(nonnull RCTPromiseResolveBlock)resolve
+                                  reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared presentCRSCARFDeclaration:resolve rejecter:reject];
+  [StripeSdkImpl.shared presentUserAttestation:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(presentKycInfoVerification:(NSDictionary *)updatedAddress

@@ -10,6 +10,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
+import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
@@ -32,6 +33,7 @@ import com.stripe.android.paymentsheet.PaymentSheet
 internal fun mapConfig(
   configMap: ReadableMap,
   publishableKey: String,
+  additionalSdkVersions: List<SDKVersion> = emptyList(),
 ): OnrampConfiguration {
   val appearanceMap = configMap.getMap("appearance")
   val appearance =
@@ -52,6 +54,11 @@ internal fun mapConfig(
     .appearance(appearance)
     .cryptoCustomerId(cryptoCustomerId)
     .apply { googlePayConfig?.let { googlePayConfig(it) } }
+    .apply {
+      if (additionalSdkVersions.isNotEmpty()) {
+        this.additionalSdkVersions(additionalSdkVersions)
+      }
+    }
 }
 
 @SuppressLint("RestrictedApi")
@@ -222,14 +229,16 @@ internal fun mapFromComplianceIdentifierRequirements(
 ) = Arguments.createMap().apply {
   putArray("identifiers", mapFromComplianceIdentifierRequirementsList(requirements.identifiers))
   putArray("alternatives", mapFromComplianceIdentifierAlternativeGroups(requirements.alternatives))
+  putBoolean("carfTinRequired", requirements.carfTinRequired)
 }
 
 internal fun mapFromSubmitIdentifiersResult(
   result: SubmitIdentifiersResult,
 ) = Arguments.createMap().apply {
-  putBoolean("valid", result.valid)
+  putBoolean("completed", result.completed)
   putArray("identifiers", mapFromComplianceIdentifierRequirementsList(result.identifiers))
   putArray("alternatives", mapFromComplianceIdentifierAlternativeGroups(result.alternatives))
+  putBoolean("carfTinRequired", result.carfTinRequired)
   putArray("invalidIdentifiers", mapFromComplianceIdentifierTypes(result.invalidIdentifiers))
 }
 

@@ -66,10 +66,11 @@ export function getDestinationParamsForNetwork(network: Onramp.CryptoNetwork): {
 type IdentifierRequirementsSummary = {
   identifiers: Onramp.ComplianceIdentifierRequirement[];
   alternatives: Onramp.ComplianceIdentifierAlternativeGroup[];
+  carfTinRequired: boolean;
 };
 
 type SubmitIdentifiersSummary = IdentifierRequirementsSummary & {
-  valid: boolean;
+  completed: boolean;
   invalidIdentifiers: Onramp.ComplianceIdentifierType[];
 };
 
@@ -79,6 +80,7 @@ export function formatIdentifierRequirements(
   return [
     `Identifiers: ${formatIdentifierRequirementList(requirements.identifiers)}`,
     `Alternatives: ${formatIdentifierAlternativeGroups(requirements.alternatives)}`,
+    `CARF TIN required: ${String(requirements.carfTinRequired)}`,
   ].join('\n');
 }
 
@@ -86,9 +88,10 @@ export function formatSubmitIdentifiersResult(
   result: SubmitIdentifiersSummary
 ): string {
   return [
-    `Valid: ${String(result.valid)}`,
+    `Completed: ${String(result.completed)}`,
     `Identifiers: ${formatIdentifierRequirementList(result.identifiers)}`,
     `Alternatives: ${formatIdentifierAlternativeGroups(result.alternatives)}`,
+    `CARF TIN required: ${String(result.carfTinRequired)}`,
     `Invalid identifiers: ${formatIdentifierTypeList(result.invalidIdentifiers)}`,
   ].join('\n');
 }

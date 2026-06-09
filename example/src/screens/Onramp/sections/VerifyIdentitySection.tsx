@@ -6,14 +6,14 @@ import { colors } from '../../../colors';
 
 interface VerifyIdentitySectionProps {
   handleVerifyIdentity: () => void;
-  handlePresentCRSCARFDeclaration: () => void;
-  crsCarfDeclarationStatus: string | null;
+  handlePresentUserAttestation: () => void;
+  userAttestationStatus: string | null;
 }
 
 export function VerifyIdentitySection({
   handleVerifyIdentity,
-  handlePresentCRSCARFDeclaration,
-  crsCarfDeclarationStatus,
+  handlePresentUserAttestation,
+  userAttestationStatus,
 }: VerifyIdentitySectionProps) {
   return (
     <Collapse title="Verification" initialExpanded={false}>
@@ -23,13 +23,13 @@ export function VerifyIdentitySection({
         variant="primary"
       />
       <Button
-        title="Present CRS/CARF Declaration"
-        onPress={handlePresentCRSCARFDeclaration}
+        title="Present User Attestation"
+        onPress={handlePresentUserAttestation}
         variant="primary"
       />
-      {crsCarfDeclarationStatus ? (
+      {userAttestationStatus ? (
         <Text style={styles.statusText}>
-          {`CRS/CARF declaration status: ${crsCarfDeclarationStatus}`}
+          {`User attestation status: ${userAttestationStatus}`}
         </Text>
       ) : null}
     </Collapse>

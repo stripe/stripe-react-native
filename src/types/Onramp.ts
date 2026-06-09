@@ -1,9 +1,18 @@
 import type { Address } from './Common';
-import type { OnrampError, StripeError } from './Errors';
+import type { StripeError } from './Errors';
 import type {
   ApplePayBaseParams,
   ApplePayPaymentMethodParams,
 } from './PlatformPay';
+
+/**
+ * Generic error codes returned by Crypto Onramp APIs.
+ */
+export enum OnrampError {
+  Failed = 'Failed',
+  Canceled = 'Canceled',
+  Unknown = 'Unknown',
+}
 
 /**
  * Configuration used to initialize and customize the crypto onramp experience.
@@ -255,7 +264,68 @@ export type ComplianceIdentifierRequirements = {
   identifiers: ComplianceIdentifierRequirement[];
   /** Alternative identifier groups that may satisfy one or more requirements. */
   alternatives: ComplianceIdentifierAlternativeGroup[];
+  /** Whether at least one CRS/CARF tax identification number still needs to be collected. */
+  carfTinRequired: boolean;
 };
+
+/**
+ * Typed Crypto Onramp error discriminants returned by newer native SDKs.
+ */
+export type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+
+/**
+ * A native SDK component and version included in Crypto Onramp diagnostics.
+ */
+export type SDKVersion = {
+  /** The SDK component name. */
+  name: string;
+  /** The SDK component version. */
+  version: string;
+};
+
+export type OnrampApiError = StripeError<OnrampError> & {
+  onrampErrorType: string;
+  developerMessage: string;
+  userMessage: string;
+  reason?: string;
+  operation: string;
+  appPackageName: string;
+  mode?: 'live' | 'test';
+  sdkVersions?: SDKVersion[];
+  requestId?: string;
+  apiErrorCode?: string;
+  apiErrorType?: string;
+  apiErrorMessage?: string;
+  apiUserMessage?: string;
+  docUrl?: string;
+};
+/**
+ * A typed Crypto Onramp app attestation failure.
+ */
+export type AppAttestationError = OnrampApiError & {
+  onrampErrorType: 'AppAttestationError';
+};
+
+/**
+ * A typed Crypto Onramp API error that did not map to a narrower category.
+ */
+export type UncategorizedApiError = OnrampApiError & {
+  onrampErrorType: 'UncategorizedApiError';
+};
+
+/**
+ * Error returned by Crypto Onramp APIs.
+ *
+ * Most failures use the generic Stripe error envelope. Newer native SDK
+ * versions may instead return typed SDK-owned errors via
+ * `onrampErrorType`.
+ */
+export type CryptoOnrampError =
+  | (StripeError<OnrampError> & {
+      onrampErrorType?: undefined;
+    })
+  | AppAttestationError
+  | UncategorizedApiError;
 
 /**
  * Result of retrieving missing compliance identifiers.
@@ -267,8 +337,9 @@ export type RetrieveMissingIdentifiersResult =
   | {
       identifiers?: undefined;
       alternatives?: undefined;
+      carfTinRequired?: undefined;
       /** Present if retrieval failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -276,38 +347,41 @@ export type RetrieveMissingIdentifiersResult =
  */
 export type SubmitIdentifiersResult =
   | {
-      /** Whether all required identifiers were accepted. */
-      valid: boolean;
+      /** Whether all required MiCA identifiers and CRS/CARF tax identification numbers have been submitted. */
+      completed: boolean;
       /** Any identifiers that still need to be collected. */
       identifiers: ComplianceIdentifierRequirement[];
       /** Alternative identifier groups that may satisfy one or more requirements. */
       alternatives: ComplianceIdentifierAlternativeGroup[];
+      /** Whether at least one CRS/CARF tax identification number still needs to be collected. */
+      carfTinRequired: boolean;
       /** Submitted identifier types whose values were invalid. */
       invalidIdentifiers: ComplianceIdentifierType[];
       error?: undefined;
     }
   | {
-      valid?: undefined;
+      completed?: undefined;
       identifiers?: undefined;
       alternatives?: undefined;
+      carfTinRequired?: undefined;
       invalidIdentifiers?: undefined;
       /** Present if submission failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
- * Result of presenting the CRS/CARF declaration.
+ * Result of presenting user attestation.
  */
-export type CRSCARFDeclarationResult =
+export type UserAttestationResult =
   | {
-      /** The customer accepted the declaration. */
+      /** The customer accepted the attestation. */
       status: 'Confirmed';
       error?: undefined;
     }
   | {
       status?: undefined;
-      /** Present if the declaration failed or was cancelled. */
-      error: StripeError<OnrampError>;
+      /** Present if attestation failed or was cancelled. */
+      error: CryptoOnrampError;
     };
 
 /**
@@ -327,7 +401,7 @@ export type VerifyKycResult =
   | {
       status?: undefined;
       /** Present if the verification failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -335,7 +409,7 @@ export type VerifyKycResult =
  */
 export type VoidResult = {
   /** Present if the operation failed. */
-  error?: StripeError<OnrampError>;
+  error?: CryptoOnrampError;
 };
 
 /**
@@ -363,7 +437,7 @@ export type AuthorizeResult =
       status?: undefined;
       customerId?: undefined;
       /** Present if the authorization failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -378,7 +452,7 @@ export type HasLinkAccountResult =
   | {
       hasLinkAccount?: undefined;
       /** Present if the lookup failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -393,7 +467,7 @@ export type RegisterLinkUserResult =
   | {
       customerId?: undefined;
       /** Present if registration failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -428,7 +502,7 @@ export type CollectPaymentMethodResult =
       displayData?: undefined;
       kycInfo?: undefined;
       /** Present if collection/selection failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -443,7 +517,7 @@ export type CreateCryptoPaymentTokenResult =
   | {
       cryptoPaymentToken?: undefined;
       /** Present if token creation failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -484,5 +558,5 @@ export type PaymentDisplayDataResult =
   | {
       displayData?: undefined;
       /** Present if collection/selection failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };

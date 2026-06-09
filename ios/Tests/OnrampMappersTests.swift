@@ -522,7 +522,8 @@ class OnrampMappersTests: XCTestCase {
                         originalMissingIdentifiers: [.mtNIC],
                         alternativeMissingIdentifiers: [.mtPP]
                     ),
-                ]
+                ],
+                carfTinRequired: true
             )
         )
 
@@ -537,6 +538,7 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertEqual(alternatives?.count, 1)
         XCTAssertEqual(alternatives?[0]["originalMissingIdentifiers"], ["mt_nic"])
         XCTAssertEqual(alternatives?[0]["alternativeMissingIdentifiers"], ["mt_pp"])
+        XCTAssertEqual(result["carfTinRequired"] as? Bool, true)
     }
 
     func test_mapFromSubmitIdentifiersResult_mapsValidationResult() throws {
@@ -546,7 +548,7 @@ class OnrampMappersTests: XCTestCase {
         let data = Data(
             """
             {
-              "valid": false,
+              "completed": false,
               "identifiers": [
                 {
                   "type": "ee_ik",
@@ -559,6 +561,7 @@ class OnrampMappersTests: XCTestCase {
                   "alternative_missing_identifiers": ["mt_pp"]
                 }
               ],
+              "carf_tin_required": true,
               "invalid_identifiers": ["gr_afm"]
             }
             """.utf8
@@ -567,7 +570,8 @@ class OnrampMappersTests: XCTestCase {
 
         let result = Mappers.mapFromSubmitIdentifiersResult(submitResult)
 
-        XCTAssertEqual(result["valid"] as? Bool, false)
+        XCTAssertEqual(result["completed"] as? Bool, false)
+        XCTAssertEqual(result["carfTinRequired"] as? Bool, true)
         XCTAssertEqual(result["invalidIdentifiers"] as? [String], ["gr_afm"])
 
         let identifiers = result["identifiers"] as? [[String: String]]
