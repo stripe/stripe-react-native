@@ -239,6 +239,16 @@ class PaymentSheetManager(
       return
     }
 
+    if (checkoutSessionKey != null) {
+      promise.resolve(
+        createError(
+          ErrorType.Failed.toString(),
+          "PaymentSheet with checkout is not supported. Use FlowController instead.",
+        ),
+      )
+      return
+    }
+
     lastConfigureWasCustomFlow = false
     if (paymentSheet == null) {
       initPaymentSheet(args, promise)
