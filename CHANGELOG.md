@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+**Fixes**
+* [Fixed] Manual bank-account entry in ConnectAccountOnboarding now creates an external account on iOS/Android by collecting a bank-account token instead of only Financial Connections accounts.
+
 ## 0.67.0 - 2026-06-09
 **Changes**
 * Updated Stripe iOS SDK from 25.16.0 to 25.17.0.

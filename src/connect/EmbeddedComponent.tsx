@@ -26,6 +26,7 @@ import type {
   StripeConnectInitParams,
 } from './connectTypes';
 import type { FinancialConnections } from '../types';
+import { FinancialConnectionsSheetError } from '../types/FinancialConnections';
 import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
 
 const DEVELOPMENT_MODE = false;
@@ -457,7 +458,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     id: string,
     result: {
       session?: FinancialConnections.Session;
-      token?: FinancialConnections.BankAccountToken;
+      token?: ReturnType<typeof toStripeJsBankAccountToken> | null;
       error?: {
         code: string;
         message: string;
@@ -580,14 +581,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
-        // Call native Financial Connections
-        NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret, {
+        NativeStripeSdk.collectBankAccountToken(clientSecret, {
           connectedAccountId,
         })
-          .then(({ session, error }) => {
+          .then(({ session, token, error }) => {
             cleanup();
 
             if (error) {
+              if (error.code === FinancialConnectionsSheetError.Canceled) {
+                handleFinancialConnectionsResult(id, {
+                  session: undefined,
+                  token: undefined,
+                  error: undefined,
+                });
+                return;
+              }
               handleFinancialConnectionsResult(id, {
                 session: undefined,
                 token: undefined,
@@ -598,21 +606,18 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                   type: error.type,
                 },
               });
-            } else if (session) {
-              // Note: collectFinancialConnectionsAccounts doesn't return a token
-              // Only collectBankAccountToken returns both session and token
+            } else if (token || session) {
               handleFinancialConnectionsResult(id, {
                 session,
-                token: undefined,
+                token: token ? toStripeJsBankAccountToken(token) : null,
                 error: undefined,
               });
             } else {
-              // Defensive: should never happen
               handleFinancialConnectionsResult(id, {
                 error: {
                   code: 'UnexpectedError',
                   message:
-                    'No session or error returned from Financial Connections',
+                    'No session, token, or error returned from Financial Connections',
                 },
               });
             }
@@ -815,6 +820,38 @@ function withDefaultFontFamily(appearance: any) {
       ...appearance?.variables,
       fontFamily: DEFAULT_FONT,
     },
+  };
+}
+
+// connect-js expects the Stripe.js API-shaped (snake_case) token, matching what the
+// native iOS/Android Connect SDKs send. RN's FinancialConnections token is camelCase.
+/** @internal Exported for testing only. */
+export function toStripeJsBankAccountToken(
+  token: FinancialConnections.BankAccountToken
+) {
+  const ba = token.bankAccount;
+  return {
+    id: token.id,
+    object: 'token' as const,
+    type: 'bank_account' as const,
+    used: token.used,
+    livemode: token.livemode,
+    created: token.created,
+    bank_account: ba
+      ? {
+          id: ba.id,
+          object: 'bank_account' as const,
+          account_holder_name: ba.accountHolderName,
+          account_holder_type: ba.accountHolderType,
+          bank_name: ba.bankName,
+          country: ba.country,
+          currency: ba.currency,
+          fingerprint: ba.fingerprint,
+          last4: ba.last4,
+          routing_number: ba.routingNumber,
+          status: ba.status,
+        }
+      : null,
   };
 }
 
