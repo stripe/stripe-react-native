@@ -363,8 +363,6 @@ export function CheckoutPlaygroundCartView({
     });
   }, [checkout, runCheckoutAction]);
 
-
-
   const handleChoosePaymentMethod = useCallback(async () => {
     if (state?.status !== 'loaded') {
       return;
