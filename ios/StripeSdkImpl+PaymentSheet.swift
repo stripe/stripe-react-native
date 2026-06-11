@@ -196,7 +196,7 @@ extension StripeSdkImpl {
                     handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
                 }
             } else {
-                resolve(Errors.createError(ErrorType.Failed, "PaymentSheet with checkout is not supported. Use FlowController instead."))
+                resolve(Errors.createError(ErrorType.Failed, "PaymentSheet with checkout is not supported. Use customFlow: true instead."))
             }
         } else if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
             if !Errors.isPIClientSecretValid(clientSecret: paymentIntentClientSecret) {

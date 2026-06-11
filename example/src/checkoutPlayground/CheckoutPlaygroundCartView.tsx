@@ -115,7 +115,7 @@ export function CheckoutPlaygroundCartView({
     useStripe();
   const [promotionCode, setPromotionCode] = useState('');
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
-  const [presentingPaymentSheet, setPresentingPaymentSheet] = useState(false);
+
   const [flowControllerStatus, setFlowControllerStatus] =
     useState<FlowControllerStatus>('idle');
   const [presentingFlowController, setPresentingFlowController] =
@@ -154,7 +154,6 @@ export function CheckoutPlaygroundCartView({
   const isFlowControllerInitializing = flowControllerStatus === 'initializing';
   const isFlowControllerReady = flowControllerStatus === 'ready';
   const isProcessingPaymentUi =
-    presentingPaymentSheet ||
     isFlowControllerInitializing ||
     presentingFlowController ||
     confirmingFlowController;
@@ -364,60 +363,7 @@ export function CheckoutPlaygroundCartView({
     });
   }, [checkout, runCheckoutAction]);
 
-  const handlePresentPaymentSheet = useCallback(async () => {
-    if (state?.status !== 'loaded') {
-      return;
-    }
 
-    setFeedback(null);
-    setPresentingPaymentSheet(true);
-    let shouldNavigateBack = false;
-
-    try {
-      const initResult = await initPaymentSheet(paymentSheetSetupParams);
-
-      if (initResult.error) {
-        throw initResult.error;
-      }
-
-      const presentResult = await presentPaymentSheet();
-      if (presentResult.error) {
-        throw presentResult.error;
-      }
-
-      if (presentResult.didCancel) {
-        setFeedback({
-          tone: 'info',
-          title: 'PaymentSheet canceled',
-          message: 'The customer dismissed the sheet before paying.',
-        });
-      } else {
-        shouldNavigateBack = true;
-      }
-    } catch (paymentSheetError: unknown) {
-      setFeedback(
-        getPaymentSheetFeedback({
-          error: paymentSheetError,
-          fallbackTitle: 'PaymentSheet failed',
-          fallbackMessage: 'PaymentSheet failed.',
-          canceledTitle: 'PaymentSheet canceled',
-          canceledMessage: 'The customer canceled PaymentSheet.',
-        })
-      );
-    } finally {
-      setPresentingPaymentSheet(false);
-    }
-
-    if (shouldNavigateBack) {
-      onSuccessfulPayment();
-    }
-  }, [
-    initPaymentSheet,
-    onSuccessfulPayment,
-    paymentSheetSetupParams,
-    presentPaymentSheet,
-    state?.status,
-  ]);
 
   const handleChoosePaymentMethod = useCallback(async () => {
     if (state?.status !== 'loaded') {
@@ -781,7 +727,7 @@ export function CheckoutPlaygroundCartView({
           disableActions ||
           (isFlowControllerIntegration && !selectedPaymentOption)
         }
-        primaryLoading={presentingPaymentSheet || confirmingFlowController}
+        primaryLoading={confirmingFlowController}
         secondaryLabel={
           isFlowControllerIntegration ? flowControllerActionLabel : undefined
         }
@@ -793,10 +739,8 @@ export function CheckoutPlaygroundCartView({
           if (isEmbeddedIntegration) {
             setFeedback(null);
             setEmbeddedModalVisible(true);
-          } else if (isFlowControllerIntegration) {
-            handleConfirmFlowControllerPayment();
           } else {
-            handlePresentPaymentSheet();
+            handleConfirmFlowControllerPayment();
           }
         }}
       />

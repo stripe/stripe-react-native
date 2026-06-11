@@ -243,7 +243,7 @@ class PaymentSheetManager(
       promise.resolve(
         createError(
           ErrorType.Failed.toString(),
-          "PaymentSheet with checkout is not supported. Use FlowController instead.",
+          "PaymentSheet with checkout is not supported. Use customFlow: true instead.",
         ),
       )
       return

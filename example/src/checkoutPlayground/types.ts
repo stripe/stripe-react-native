@@ -23,7 +23,6 @@ export type AdaptivePricingCountry =
   | 'br';
 
 export type CheckoutPlaygroundIntegrationType =
-  | 'paymentSheet'
   | 'paymentSheetFlowController'
   | 'embedded';
 
@@ -79,7 +78,6 @@ export const customerTypeOptions: SelectionOption<CheckoutPlaygroundCustomerType
 
 export const integrationTypeOptions: SelectionOption<CheckoutPlaygroundIntegrationType>[] =
   [
-    { label: 'PaymentSheet', value: 'paymentSheet' },
     {
       label: 'PaymentSheet.FlowController',
       value: 'paymentSheetFlowController',
@@ -110,7 +108,7 @@ export const defaultCheckoutPlaygroundConfig: CheckoutPlaygroundConfig = {
   mode: 'payment',
   currency: 'usd',
   customerType: 'guest',
-  integrationType: 'paymentSheet',
+  integrationType: 'paymentSheetFlowController',
   enableShipping: true,
   allowPromotionCodes: true,
   phoneNumberCollection: false,
