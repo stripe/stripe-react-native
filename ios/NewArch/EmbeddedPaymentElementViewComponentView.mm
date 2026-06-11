@@ -68,10 +68,6 @@ using namespace facebook::react;
 {
 }
 
-- (void)updateWithCheckout:(NSString *)sessionKey
-{
-}
-
 #pragma mark - RCTComponentViewProtocol
 
 + (ComponentDescriptorProvider)componentDescriptorProvider

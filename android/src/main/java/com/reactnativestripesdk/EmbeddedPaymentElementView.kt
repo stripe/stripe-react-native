@@ -64,10 +64,6 @@ class EmbeddedPaymentElementView(
       val intentConfiguration: PaymentSheet.IntentConfiguration,
     ) : Event
 
-    data class UpdateWithCheckout(
-      val checkout: Checkout,
-    ) : Event
-
     data object Confirm : Event
 
     data object ClearPaymentOption : Event
@@ -347,20 +343,6 @@ class EmbeddedPaymentElementView(
             latestIntentConfig = ev.intentConfiguration
           }
 
-          is Event.UpdateWithCheckout -> {
-            val elemConfig = latestElementConfig ?: return@collect emitUpdateMissingConfiguration()
-
-            val result =
-              embedded.configure(
-                checkout = ev.checkout,
-                configuration = elemConfig,
-              )
-
-            handleUpdateResult(result)
-
-            latestCheckout = ev.checkout
-          }
-
           is Event.Confirm -> {
             embedded.confirm()
           }
@@ -504,10 +486,6 @@ class EmbeddedPaymentElementView(
 
   fun update(intentConfig: PaymentSheet.IntentConfiguration) {
     events.trySend(Event.Update(intentConfig))
-  }
-
-  fun updateWithCheckout(checkout: Checkout) {
-    events.trySend(Event.UpdateWithCheckout(checkout))
   }
 
   fun confirm() {

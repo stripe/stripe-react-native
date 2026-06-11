@@ -4000,10 +4000,7 @@ export interface UseEmbeddedPaymentElementResult {
     // (undocumented)
     loadingError: Error | null;
     paymentOption: PaymentOptionDisplayData | null;
-    update: {
-        (intentConfig: PaymentSheet.IntentConfiguration): void;
-        (checkout: Checkout): void;
-    };
+    update: (intentConfig: PaymentSheet.IntentConfiguration) => void;
 }
 
 // @public

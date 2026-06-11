@@ -1444,15 +1444,6 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  override fun updateEmbeddedPaymentElementWithCheckout(
-    sessionKey: String,
-    promise: Promise,
-  ) {
-    // No-op on Android. JS dispatches Checkout updates through the view command instead.
-    promise.resolve(null)
-  }
-
-  @ReactMethod
   override fun clearEmbeddedPaymentOption(
     viewTag: Double,
     promise: Promise,
