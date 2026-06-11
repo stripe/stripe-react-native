@@ -437,10 +437,7 @@ class PaymentSheetManager(
   override fun onPresent() {
     keepJsAwake = KeepJsAwakeTask(context).apply { start() }
     if (lastConfigureWasCustomFlow == false) {
-      val checkout = getCheckoutInstanceOrResolveError(promise)
-      if (checkout != null) {
-        paymentSheet?.presentWithCheckout(checkout, paymentSheetConfiguration)
-      } else if (!paymentIntentClientSecret.isNullOrEmpty()) {
+      if (!paymentIntentClientSecret.isNullOrEmpty()) {
         paymentSheet?.presentWithPaymentIntent(
           paymentIntentClientSecret!!,
           paymentSheetConfiguration,
