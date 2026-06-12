@@ -23,7 +23,10 @@ jest.mock('../../specs/NativeStripeSdkModule', () =>
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
 import { Platform, AppState } from 'react-native';
-import { EmbeddedComponent } from '../EmbeddedComponent';
+import {
+  EmbeddedComponent,
+  toStripeJsBankAccountToken,
+} from '../EmbeddedComponent';
 import {
   loadConnectAndInitialize,
   ConnectComponentsProvider,
@@ -336,6 +339,105 @@ describe('EmbeddedComponent', () => {
 
       // Custom font should be in context
       expect(contextValue.appearance.variables.fontFamily).toBe('CustomFont');
+    });
+  });
+
+  describe('toStripeJsBankAccountToken', () => {
+    it('maps camelCase token to snake_case Stripe.js shape', () => {
+      const result = toStripeJsBankAccountToken({
+        id: 'tok_123',
+        livemode: false,
+        used: false,
+        type: 'BankAccount',
+        created: 1000000,
+        bankAccount: {
+          id: 'ba_123',
+          bankName: 'Test Bank',
+          accountHolderName: 'John Doe',
+          accountHolderType: 'Individual',
+          currency: 'usd',
+          country: 'US',
+          routingNumber: '110000000',
+          status: 'New',
+          fingerprint: 'fp_123',
+          last4: '6789',
+        },
+      });
+
+      expect(result).toEqual({
+        id: 'tok_123',
+        object: 'token',
+        type: 'bank_account',
+        used: false,
+        livemode: false,
+        created: 1000000,
+        bank_account: {
+          id: 'ba_123',
+          object: 'bank_account',
+          account_holder_name: 'John Doe',
+          account_holder_type: 'Individual',
+          bank_name: 'Test Bank',
+          country: 'US',
+          currency: 'usd',
+          fingerprint: 'fp_123',
+          last4: '6789',
+          routing_number: '110000000',
+          status: 'New',
+        },
+      });
+    });
+
+    it('returns null bank_account when bankAccount is null', () => {
+      const result = toStripeJsBankAccountToken({
+        id: 'tok_456',
+        livemode: true,
+        used: true,
+        type: 'BankAccount',
+        created: 2000000,
+        bankAccount: null,
+      });
+
+      expect(result.id).toBe('tok_456');
+      expect(result.object).toBe('token');
+      expect(result.type).toBe('bank_account');
+      expect(result.livemode).toBe(true);
+      expect(result.bank_account).toBeNull();
+    });
+
+    it('preserves null fields in bank_account', () => {
+      const result = toStripeJsBankAccountToken({
+        id: 'tok_789',
+        livemode: false,
+        used: false,
+        type: 'BankAccount',
+        created: null,
+        bankAccount: {
+          id: 'ba_789',
+          bankName: null,
+          accountHolderName: null,
+          accountHolderType: null,
+          currency: null,
+          country: null,
+          routingNumber: null,
+          status: null,
+          fingerprint: null,
+          last4: null,
+        },
+      });
+
+      expect(result.bank_account).toEqual({
+        id: 'ba_789',
+        object: 'bank_account',
+        account_holder_name: null,
+        account_holder_type: null,
+        bank_name: null,
+        country: null,
+        currency: null,
+        fingerprint: null,
+        last4: null,
+        routing_number: null,
+        status: null,
+      });
     });
   });
 });

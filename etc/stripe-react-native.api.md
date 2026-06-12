@@ -1013,6 +1013,7 @@ export const collectBankAccountToken: (clientSecret: string, params?: CollectBan
 type CollectBankAccountTokenParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
+    connectedAccountId?: string;
 };
 
 // @public
