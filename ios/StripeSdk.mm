@@ -578,13 +578,6 @@ RCT_EXPORT_METHOD(updateEmbeddedPaymentElement:(NSDictionary *)intentConfig
   [StripeSdkImpl.shared updateEmbeddedPaymentElement:intentConfig resolve:resolve reject:reject];
 }
 
-RCT_EXPORT_METHOD(updateEmbeddedPaymentElementWithCheckout:(nonnull NSString *)sessionKey
-                                                   resolve:(nonnull RCTPromiseResolveBlock)resolve
-                                                    reject:(nonnull RCTPromiseRejectBlock)reject)
-{
-  [StripeSdkImpl.shared updateEmbeddedPaymentElementWithCheckout:sessionKey resolve:resolve reject:reject];
-}
-
 RCT_EXPORT_METHOD(clearEmbeddedPaymentOption:(NSInteger)viewTag
                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
                                       reject:(nonnull RCTPromiseRejectBlock)reject)

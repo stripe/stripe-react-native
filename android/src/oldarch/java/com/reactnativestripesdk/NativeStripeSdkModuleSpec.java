@@ -267,10 +267,6 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void updateEmbeddedPaymentElementWithCheckout(String sessionKey, Promise promise);
-
-  @ReactMethod
-  @DoNotStrip
   public abstract void clearEmbeddedPaymentOption(double viewTag, Promise promise);
 
   @ReactMethod
