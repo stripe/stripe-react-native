@@ -66,15 +66,15 @@ appId: ${APP_ID}
 
 - extendedWaitUntil:
     visible:
-      text: "Pay \\$.*"
+      text: "Choose payment method"
     timeout: 60000
 - scrollUntilVisible:
     element:
-      text: "Pay \\$.*"
+      text: "Choose payment method"
     direction: DOWN
     timeout: 30000
 - tapOn:
-    text: "Pay \\$.*"
+    text: "Choose payment method"
 
 - extendedWaitUntil:
     visible: "TEST"
@@ -104,14 +104,26 @@ appId: ${APP_ID}
     optional: true
 - scrollUntilVisible:
     element:
-      text: "Pay \\$.*" # iOS
+      text: "Continue" # iOS
     optional: true
 - tapOn:
     id: primary_button # Android
     optional: true
 - tapOn:
-    text: "Pay \\$.*" # iOS
+    text: "Continue" # iOS
     optional: true
+
+- extendedWaitUntil:
+    visible:
+      text: "Pay \\$.*"
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      text: "Pay \\$.*"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: "Pay \\$.*"
 
 - assertVisible:
     text: "Payment successful"

@@ -87,7 +87,7 @@ export function CheckoutPlaygroundConfigView({
         <GroupedCard>
           <PickerRow
             title="Integration"
-            description="PaymentSheet, PaymentSheet.FlowController, or Embedded."
+            description="PaymentSheet.FlowController or Embedded."
             selectedValue={config.integrationType}
             options={integrationTypeOptions}
             onValueChange={(integrationType) =>
