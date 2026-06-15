@@ -112,6 +112,7 @@ export interface AddToWalletButtonProps extends AccessibilityProps {
     };
     ephemeralKey: object;
     iOSButtonStyle?: 'onDarkBackground' | 'onLightBackground';
+    isBounceProvisioned?: boolean;
     onComplete(result: {
         error: StripeError<CardActionError> | null;
     }): void;
@@ -619,6 +620,7 @@ export const canAddCardToWallet: (params: CanAddCardToWalletParams) => Promise<C
 export type CanAddCardToWalletParams = {
     primaryAccountIdentifier: string | null;
     cardLastFour: string;
+    cardBrand: string;
     testEnv?: boolean;
     hasPairedAppleWatch?: boolean;
     supportsTapToPay?: boolean;

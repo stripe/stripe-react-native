@@ -83,6 +83,14 @@ class AddToWalletButtonManager :
     // noop, iOS only.
   }
 
+  @ReactProp(name = "isBounceProvisioned")
+  override fun setIsBounceProvisioned(
+    view: AddToWalletButtonView,
+    value: Boolean,
+  ) {
+    view.setIsBounceProvisioned(value)
+  }
+
   @ReactProp(name = "testEnv")
   override fun setTestEnv(
     view: AddToWalletButtonView,

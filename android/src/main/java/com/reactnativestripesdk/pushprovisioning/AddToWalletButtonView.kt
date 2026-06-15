@@ -33,6 +33,7 @@ class AddToWalletButtonView(
   private var ephemeralKey: String? = null
   private var sourceMap: ReadableMap? = null
   private var token: ReadableMap? = null
+  private var isBounceProvisioned: Boolean = false
 
   private var loadedSource: String? = null
   private var currentDataSource: DataSource<CloseableReference<CloseableImage>>? = null
@@ -54,6 +55,7 @@ class AddToWalletButtonView(
           cardDescription,
           ephemeralKey,
           token,
+          isBounceProvisioned,
         )
       }
         ?: run {
@@ -187,6 +189,10 @@ class AddToWalletButtonView(
 
   fun setToken(map: ReadableMap?) {
     token = map
+  }
+
+  fun setIsBounceProvisioned(value: Boolean) {
+    isBounceProvisioned = value
   }
 
   fun dispatchEvent(error: WritableMap?) {
