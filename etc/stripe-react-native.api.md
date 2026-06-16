@@ -1435,9 +1435,7 @@ type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
     onrampErrorType?: never;
     developerMessage?: never;
     userMessage?: never;
-}) | (OnrampSdkError & {
-    onrampErrorType?: undefined;
-}) | AppAttestationError | UncategorizedApiError;
+}) | AppAttestationError | UncategorizedApiError | UncategorizedSdkError | LegacyConfigureAppAttestationError;
 
 // @public
 type CryptoPaymentToken = {
@@ -2318,6 +2316,11 @@ type LastPaymentError = StripeError<string> & {
 };
 
 // @public
+type LegacyConfigureAppAttestationError = OnrampSdkError & {
+    onrampErrorType: 'LegacyConfigureAppAttestationError';
+};
+
+// @public
 type LinkAppearance = {
     lightColors?: LinkColors;
     darkColors?: LinkColors;
@@ -2585,12 +2588,15 @@ declare namespace Onramp {
         ComplianceIdentifierRequirement,
         ComplianceIdentifierAlternativeGroup,
         ComplianceIdentifierRequirements,
+        OnrampApiErrorType,
         OnrampErrorType,
         SDKVersion,
         OnrampSdkError,
         OnrampApiError,
         AppAttestationError,
         UncategorizedApiError,
+        UncategorizedSdkError,
+        LegacyConfigureAppAttestationError,
         CryptoOnrampError,
         RetrieveMissingIdentifiersResult,
         SubmitIdentifiersResult,
@@ -2611,7 +2617,7 @@ export { Onramp }
 
 // @public
 type OnrampApiError = OnrampSdkError & {
-    onrampErrorType: OnrampErrorType;
+    onrampErrorType: OnrampApiErrorType;
     reason?: string;
     operation: string;
     appPackageName?: string;
@@ -2624,6 +2630,9 @@ type OnrampApiError = OnrampSdkError & {
 };
 
 // @public
+type OnrampApiErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+
+// @public
 enum OnrampErrorStatus {
     // (undocumented)
     Canceled = "Canceled",
@@ -2634,7 +2643,7 @@ enum OnrampErrorStatus {
 }
 
 // @public
-type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+type OnrampErrorType = OnrampApiErrorType | 'UncategorizedSdkError' | 'LegacyConfigureAppAttestationError';
 
 // @public
 type OnrampGooglePayParams = {
@@ -2652,6 +2661,7 @@ type OnrampPlatformPayParams = {
 
 // @public
 type OnrampSdkError = StripeError<OnrampErrorStatus> & {
+    onrampErrorType: OnrampErrorType;
     developerMessage: string;
     userMessage: string;
     docUrl?: string;
@@ -3926,6 +3936,11 @@ type Type_2 = 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii
 // @public
 type UncategorizedApiError = OnrampApiError & {
     onrampErrorType: 'UncategorizedApiError';
+};
+
+// @public
+type UncategorizedSdkError = OnrampSdkError & {
+    onrampErrorType: 'UncategorizedSdkError';
 };
 
 // @public

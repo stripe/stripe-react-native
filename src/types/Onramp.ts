@@ -269,9 +269,19 @@ export type ComplianceIdentifierRequirements = {
 };
 
 /**
+ * Typed Crypto Onramp API error discriminants.
+ */
+export type OnrampApiErrorType =
+  | 'AppAttestationError'
+  | 'UncategorizedApiError';
+
+/**
  * Typed Crypto Onramp error discriminants returned by newer native SDKs.
  */
-export type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+export type OnrampErrorType =
+  | OnrampApiErrorType
+  | 'UncategorizedSdkError'
+  | 'LegacyConfigureAppAttestationError';
 
 /**
  * A native SDK component and version included in Crypto Onramp diagnostics.
@@ -287,6 +297,7 @@ export type SDKVersion = {
  * Base rich error shape returned by native Crypto Onramp SDK errors.
  */
 export type OnrampSdkError = StripeError<OnrampErrorStatus> & {
+  onrampErrorType: OnrampErrorType;
   developerMessage: string;
   userMessage: string;
   docUrl?: string;
@@ -297,7 +308,7 @@ export type OnrampSdkError = StripeError<OnrampErrorStatus> & {
  * API-context fields returned for Crypto Onramp API errors.
  */
 export type OnrampApiError = OnrampSdkError & {
-  onrampErrorType: OnrampErrorType;
+  onrampErrorType: OnrampApiErrorType;
   reason?: string;
   operation: string;
   appPackageName?: string;
@@ -324,6 +335,21 @@ export type UncategorizedApiError = OnrampApiError & {
 };
 
 /**
+ * A typed Crypto Onramp SDK error that did not map to a narrower category.
+ */
+export type UncategorizedSdkError = OnrampSdkError & {
+  onrampErrorType: 'UncategorizedSdkError';
+};
+
+/**
+ * A compatibility error for older native SDKs that returned app attestation setup
+ * failures as legacy configure errors.
+ */
+export type LegacyConfigureAppAttestationError = OnrampSdkError & {
+  onrampErrorType: 'LegacyConfigureAppAttestationError';
+};
+
+/**
  * Error returned by Crypto Onramp APIs.
  *
  * Most failures use the generic Stripe error envelope. Newer native SDK
@@ -336,11 +362,10 @@ export type CryptoOnrampError =
       developerMessage?: never;
       userMessage?: never;
     })
-  | (OnrampSdkError & {
-      onrampErrorType?: undefined;
-    })
   | AppAttestationError
-  | UncategorizedApiError;
+  | UncategorizedApiError
+  | UncategorizedSdkError
+  | LegacyConfigureAppAttestationError;
 
 /**
  * Result of retrieving missing compliance identifiers.

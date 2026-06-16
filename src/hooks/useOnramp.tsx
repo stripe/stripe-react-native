@@ -75,8 +75,9 @@ function mapLegacyConfigureAppAttestationError(result: {
     '  operation: configure',
     mode != null ? `  mode: ${mode}` : undefined,
   ].filter((line): line is string => line != null);
-  const appAttestationError: Onramp.OnrampSdkError = {
+  const appAttestationError: Onramp.LegacyConfigureAppAttestationError = {
     ...error,
+    onrampErrorType: 'LegacyConfigureAppAttestationError',
     message: userMessage,
     localizedMessage: userMessage,
     stripeErrorCode: cryptoOnrampAppAttestationUnavailableCode,
@@ -290,7 +291,9 @@ export function useOnramp() {
   const _isAuthError = (error?: Onramp.CryptoOnrampError): boolean => {
     const stripeErrorCode =
       error?.stripeErrorCode ??
-      (error?.onrampErrorType ? error.apiErrorCode : undefined);
+      (error != null && 'apiErrorCode' in error
+        ? error.apiErrorCode
+        : undefined);
     if (stripeErrorCode == null) {
       return false;
     }

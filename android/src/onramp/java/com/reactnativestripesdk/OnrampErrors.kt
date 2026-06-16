@@ -68,7 +68,7 @@ private fun createNonApiOnrampError(
     localizedMessage = error.localizedMessage,
     stripeErrorCode = onrampError.code,
   ) {
-    putCommonOnrampFields(onrampError)
+    putCommonOnrampFields(onrampError, "UncategorizedSdkError")
   }
 }
 

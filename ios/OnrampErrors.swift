@@ -41,7 +41,7 @@ enum OnrampErrors {
                 message: onrampError.userMessage,
                 localizedMessage: onrampError.localizedDescription,
                 stripeErrorCode: onrampError.code,
-                additionalFields: commonOnrampFields(error: onrampError)
+                additionalFields: commonOnrampFields(error: onrampError, onrampErrorType: "UncategorizedSdkError")
             )
         }
 

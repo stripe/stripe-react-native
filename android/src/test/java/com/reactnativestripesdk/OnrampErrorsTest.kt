@@ -10,7 +10,6 @@ import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.exception.StripeCryptoOnrampError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -132,7 +131,7 @@ class OnrampErrorsTest {
     assertEquals("Failed", details!!.getString("code"))
     assertEquals("Something went wrong.", details.getString("message"))
     assertEquals("Something went wrong.", details.getString("localizedMessage"))
-    assertNull(details.getString("onrampErrorType"))
+    assertEquals("UncategorizedSdkError", details.getString("onrampErrorType"))
     assertEquals("Developer message.", details.getString("developerMessage"))
     assertEquals("Something went wrong.", details.getString("userMessage"))
     assertEquals("sdk_error", details.getString("stripeErrorCode"))
