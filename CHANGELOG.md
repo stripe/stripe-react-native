@@ -1,6 +1,13 @@
 # CHANGELOG
 
 ## Unreleased
+**Changes**
+* Updated Stripe Issuing Android Push Provisioning SDK from 1.1.0+ to 1.3.0+.
+* Updated Google Wallet Android Push Provisioning to the Unified Push Provisioning flow. This enables issued cards to be provisioned onto wearable devices via a mobile phone. `canAddCardToWallet` now requires `cardBrand`, and now checks if the card can be provisioned onto the mobile device or any connected wearable devices. See [documentation](https://docs.stripe.com/issuing/cards/digital-wallets?platform=react-native#push-provisioning) for integration guide.
+
+**Features**
+* [Added] Added Issuing support for Google Wallet Bounce Provisioning via the `isBounceProvisioned` parameter on `AddToWalletButton`. See [documentation](https://docs.stripe.com/issuing/cards/digital-wallets?platform=react-native#push-provisioning) for integration guide.
+
 **Fixes**
 * [Fixed] Manual bank-account entry in ConnectAccountOnboarding now creates an external account on iOS/Android by collecting a bank-account token instead of only Financial Connections accounts.
 
