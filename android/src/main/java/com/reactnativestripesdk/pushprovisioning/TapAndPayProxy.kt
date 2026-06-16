@@ -12,7 +12,7 @@ import com.reactnativestripesdk.utils.getIntOr
 typealias TokenCheckHandler =
   (isCardInWallet: Boolean, token: WritableMap?, error: WritableMap?) -> Unit
 
-typealias EligibilityCheckHandler = (canAdd: Boolean, error: WritableMap?) -> Unit
+typealias EligibilityCheckHandler = (canAdd: Boolean, token: WritableMap?, error: WritableMap?) -> Unit
 
 object TapAndPayProxy {
   private const val TAG = "StripeTapAndPay"
@@ -111,53 +111,34 @@ object TapAndPayProxy {
       task.addOnCompleteListener { completedTask ->
         if (completedTask.isSuccessful) {
           val hasTarget = completedTask.result
-          callback(hasTarget, null)
+          findExistingToken(activity, cardLastFour) { _, token, _ ->
+            callback(hasTarget, token, null)
+          }
         } else {
           Log.w(
             TAG,
-            "hasEligibleTokenizationTarget failed, falling back to isTokenized: " + completedTask.exception,
+            "hasEligibleTokenizationTarget failed, falling back to listTokens: " + completedTask.exception,
           )
-          fallbackToIsTokenized(client, cardLastFour, network, tokenServiceProvider, callback)
+          fallbackToListTokens(activity, cardLastFour, callback)
         }
       }
     } catch (e: Exception) {
       Log.e(TAG, "There was a problem calling hasEligibleTokenizationTarget with Google TapAndPay: " + e.message)
-      callback(false, createError("Failed", "hasEligibleTokenizationTarget not available: " + e.message))
+      fallbackToListTokens(activity, cardLastFour, callback)
     }
   }
 
-  private fun fallbackToIsTokenized(
-    client: Any,
+  private fun fallbackToListTokens(
+    activity: Activity,
     cardLastFour: String,
-    network: Int,
-    tokenServiceProvider: Int,
     callback: EligibilityCheckHandler,
   ) {
-    try {
-      val builderClass = Class.forName("com.google.android.gms.tapandpay.issuer.IsTokenizedRequest\$Builder")
-      val builder = builderClass.getDeclaredConstructor().newInstance()
-      builderClass.getMethod("setIdentifier", String::class.java).invoke(builder, cardLastFour)
-      builderClass.getMethod("setNetwork", Int::class.java).invoke(builder, network)
-      builderClass.getMethod("setTokenServiceProvider", Int::class.java).invoke(builder, tokenServiceProvider)
-      val request = builderClass.getMethod("build").invoke(builder)
-
-      val requestClass = Class.forName("com.google.android.gms.tapandpay.issuer.IsTokenizedRequest")
-      val tapAndPayClientClass = Class.forName("com.google.android.gms.tapandpay.TapAndPayClient")
-      val method = tapAndPayClientClass.getMethod("isTokenized", requestClass)
-
-      @Suppress("UNCHECKED_CAST")
-      val task = method.invoke(client, request) as Task<Boolean>
-      task.addOnCompleteListener { completedTask ->
-        if (completedTask.isSuccessful) {
-          val isTokenized = completedTask.result
-          callback(!isTokenized, null)
-        } else {
-          callback(false, createError("Failed", "isTokenized failed: " + completedTask.exception?.message))
-        }
+    findExistingToken(activity, cardLastFour) { isInWallet, token, error ->
+      if (error != null) {
+        callback(false, null, error)
+      } else {
+        callback(!isInWallet, token, null)
       }
-    } catch (e: Exception) {
-      Log.e(TAG, "There was a problem calling isTokenized with Google TapAndPay: " + e.message)
-      callback(false, createError("Failed", "TapAndPay isTokenized not available: " + e.message))
     }
   }
 

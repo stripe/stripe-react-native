@@ -972,13 +972,13 @@ class StripeSdkModule(
     }
 
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
-      TapAndPayProxy.checkEligibility(activity, last4, cardBrand) { canAdd, error ->
+      TapAndPayProxy.checkEligibility(activity, last4, cardBrand) { canAdd, token, error ->
         val result =
           error?.let {
             createCanAddCardResult(false, "MISSING_CONFIGURATION")
           } ?: run {
             val status = if (!canAdd) "CARD_ALREADY_EXISTS" else null
-            createCanAddCardResult(canAdd, status)
+            createCanAddCardResult(canAdd, status, token)
           }
         promise.resolve(result)
       }
