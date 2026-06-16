@@ -41,6 +41,6 @@ repositories {
 
 dependencies {
   implementation 'com.facebook.react:react-native:+'
-  implementation 'com.stripe:stripe-android-issuing-push-provisioning:1.1.0'
+  implementation 'com.stripe:stripe-android-issuing-push-provisioning:1.3.0'
   implementation 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:6.7.0'
 }
