@@ -332,9 +332,9 @@ export type UncategorizedApiError = OnrampApiError & {
  */
 export type CryptoOnrampError =
   | (StripeError<OnrampErrorStatus> & {
-      onrampErrorType?: undefined;
-      developerMessage?: undefined;
-      userMessage?: undefined;
+      onrampErrorType?: never;
+      developerMessage?: never;
+      userMessage?: never;
     })
   | (OnrampSdkError & {
       onrampErrorType?: undefined;
