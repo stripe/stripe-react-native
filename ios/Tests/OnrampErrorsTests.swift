@@ -130,7 +130,6 @@ class OnrampErrorsTests: XCTestCase {
         XCTAssertEqual(details["code"] as? String, "Failed")
         XCTAssertEqual(details["message"] as? String, error.userMessage)
         XCTAssertEqual(details["localizedMessage"] as? String, error.localizedDescription)
-        XCTAssertEqual(details["onrampErrorType"] as? String, "UncategorizedSdkError")
         XCTAssertEqual(details["developerMessage"] as? String, error.developerMessage)
         XCTAssertEqual(details["userMessage"] as? String, error.userMessage)
         XCTAssertEqual(details["stripeErrorCode"] as? String, error.code)

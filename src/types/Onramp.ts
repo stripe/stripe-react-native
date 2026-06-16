@@ -280,7 +280,6 @@ export type OnrampApiErrorType =
  */
 export type OnrampErrorType =
   | OnrampApiErrorType
-  | 'UncategorizedSdkError'
   | 'LegacyConfigureAppAttestationError';
 
 /**
@@ -335,13 +334,6 @@ export type UncategorizedApiError = OnrampApiError & {
 };
 
 /**
- * A typed Crypto Onramp SDK error that did not map to a narrower category.
- */
-export type UncategorizedSdkError = OnrampSdkError & {
-  onrampErrorType: 'UncategorizedSdkError';
-};
-
-/**
  * A compatibility error for older native SDKs that returned app attestation setup
  * failures as legacy configure errors.
  */
@@ -364,7 +356,6 @@ export type CryptoOnrampError =
     })
   | AppAttestationError
   | UncategorizedApiError
-  | UncategorizedSdkError
   | LegacyConfigureAppAttestationError;
 
 /**

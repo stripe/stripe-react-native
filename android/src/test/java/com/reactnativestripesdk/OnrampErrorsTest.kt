@@ -131,7 +131,6 @@ class OnrampErrorsTest {
     assertEquals("Failed", details!!.getString("code"))
     assertEquals("Something went wrong.", details.getString("message"))
     assertEquals("Something went wrong.", details.getString("localizedMessage"))
-    assertEquals("UncategorizedSdkError", details.getString("onrampErrorType"))
     assertEquals("Developer message.", details.getString("developerMessage"))
     assertEquals("Something went wrong.", details.getString("userMessage"))
     assertEquals("sdk_error", details.getString("stripeErrorCode"))

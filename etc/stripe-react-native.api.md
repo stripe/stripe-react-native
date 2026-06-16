@@ -1435,7 +1435,7 @@ type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
     onrampErrorType?: never;
     developerMessage?: never;
     userMessage?: never;
-}) | AppAttestationError | UncategorizedApiError | UncategorizedSdkError | LegacyConfigureAppAttestationError;
+}) | AppAttestationError | UncategorizedApiError | LegacyConfigureAppAttestationError;
 
 // @public
 type CryptoPaymentToken = {
@@ -2595,7 +2595,6 @@ declare namespace Onramp {
         OnrampApiError,
         AppAttestationError,
         UncategorizedApiError,
-        UncategorizedSdkError,
         LegacyConfigureAppAttestationError,
         CryptoOnrampError,
         RetrieveMissingIdentifiersResult,
@@ -2643,7 +2642,7 @@ enum OnrampErrorStatus {
 }
 
 // @public
-type OnrampErrorType = OnrampApiErrorType | 'UncategorizedSdkError' | 'LegacyConfigureAppAttestationError';
+type OnrampErrorType = OnrampApiErrorType | 'LegacyConfigureAppAttestationError';
 
 // @public
 type OnrampGooglePayParams = {
@@ -3936,11 +3935,6 @@ type Type_2 = 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii
 // @public
 type UncategorizedApiError = OnrampApiError & {
     onrampErrorType: 'UncategorizedApiError';
-};
-
-// @public
-type UncategorizedSdkError = OnrampSdkError & {
-    onrampErrorType: 'UncategorizedSdkError';
 };
 
 // @public
