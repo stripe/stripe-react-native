@@ -139,7 +139,7 @@ class DefaultPushProvisioningProxy {
     provider: EphemeralKeyProvider,
     isBounceProvisioned: Boolean,
   ) {
-    val args = PushProvisioningActivityStarter.Args(description, provider, false)
+    val args = PushProvisioningActivityStarter.Args(description, provider, true)
     args.setIsBounceProvisioned(isBounceProvisioned)
     PushProvisioningActivityStarter(activity, args).startForResult()
   }

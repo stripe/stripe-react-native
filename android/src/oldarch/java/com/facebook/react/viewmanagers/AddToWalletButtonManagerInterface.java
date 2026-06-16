@@ -18,6 +18,7 @@ public interface AddToWalletButtonManagerInterface<T extends View>  {
   void setIOSButtonStyle(T view, @Nullable String value);
   void setAndroidAssetSource(T view, @Nullable ReadableMap value);
   void setTestEnv(T view, boolean value);
+  void setIsBounceProvisioned(T view, boolean value);
   void setCardDetails(T view, Dynamic value);
   void setToken(T view, Dynamic value);
   void setEphemeralKey(T view, Dynamic value);

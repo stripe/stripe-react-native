@@ -5,3 +5,7 @@
 -keepclassmembers class com.stripe.android.pushProvisioning.** {
   public *;
 }
+
+# play-services-tapandpay is a private Google SDK that must be provided by the app.
+# Suppress R8 warnings when it is absent (e.g. in the example app build).
+-dontwarn com.google.android.gms.tapandpay.**
