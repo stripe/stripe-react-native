@@ -37,8 +37,7 @@ import {
   showCanceled,
 } from './utils';
 
-import type { StripeError } from '@stripe/stripe-react-native/src/types';
-import type { OnrampError } from '@stripe/stripe-react-native/src/types/Onramp';
+import type { CryptoOnrampError } from '@stripe/stripe-react-native/src/types/Onramp';
 
 import {
   AttachKycInfoSection,
@@ -184,9 +183,9 @@ export default function CryptoOnrampFlow() {
 
   // Helper function to handle authentication errors with automatic retry
   const withReauth = useCallback(
-    async <T extends { error?: StripeError<OnrampError> }>(
+    async <T extends { error?: CryptoOnrampError }>(
       f: () => Promise<T>,
-      reauth: () => Promise<{ error?: StripeError<OnrampError> }>
+      reauth: () => Promise<{ error?: CryptoOnrampError }>
     ): Promise<T> => {
       const result = await f();
       if (isAuthError(result.error)) {

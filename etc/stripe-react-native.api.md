@@ -1430,7 +1430,11 @@ enum CryptoNetwork {
 }
 
 // @public
-type CryptoOnrampError = (StripeError<OnrampError> & {
+type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
+    onrampErrorType?: undefined;
+    developerMessage?: undefined;
+    userMessage?: undefined;
+}) | (OnrampSdkError & {
     onrampErrorType?: undefined;
 }) | AppAttestationError | UncategorizedApiError;
 
@@ -2560,7 +2564,7 @@ type OnFormCompleteEvent = NativeSyntheticEvent<{
 
 declare namespace Onramp {
     export {
-        OnrampError,
+        OnrampErrorStatus,
         Configuration,
         GooglePayConfig,
         GooglePayBillingAddressConfig,
@@ -2582,6 +2586,7 @@ declare namespace Onramp {
         ComplianceIdentifierRequirements,
         OnrampErrorType,
         SDKVersion,
+        OnrampSdkError,
         OnrampApiError,
         AppAttestationError,
         UncategorizedApiError,
@@ -2603,26 +2608,22 @@ declare namespace Onramp {
 }
 export { Onramp }
 
-// @public (undocumented)
-type OnrampApiError = StripeError<OnrampError> & {
-    onrampErrorType: string;
-    developerMessage: string;
-    userMessage: string;
+// @public
+type OnrampApiError = OnrampSdkError & {
+    onrampErrorType: OnrampErrorType;
     reason?: string;
     operation: string;
-    appPackageName: string;
+    appPackageName?: string;
     mode?: 'live' | 'test';
-    sdkVersions?: SDKVersion[];
     requestId?: string;
     apiErrorCode?: string;
     apiErrorType?: string;
     apiErrorMessage?: string;
     apiUserMessage?: string;
-    docUrl?: string;
 };
 
 // @public
-enum OnrampError {
+enum OnrampErrorStatus {
     // (undocumented)
     Canceled = "Canceled",
     // (undocumented)
@@ -2646,6 +2647,14 @@ type OnrampGooglePayParams = {
 type OnrampPlatformPayParams = {
     googlePay?: OnrampGooglePayParams;
     applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
+};
+
+// @public
+type OnrampSdkError = StripeError<OnrampErrorStatus> & {
+    developerMessage: string;
+    userMessage: string;
+    docUrl?: string;
+    sdkVersions?: SDKVersion[];
 };
 
 // @public (undocumented)

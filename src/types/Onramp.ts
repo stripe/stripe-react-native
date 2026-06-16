@@ -6,9 +6,9 @@ import type {
 } from './PlatformPay';
 
 /**
- * Generic error codes returned by Crypto Onramp APIs.
+ * Generic error statuses returned by Crypto Onramp APIs.
  */
-export enum OnrampError {
+export enum OnrampErrorStatus {
   Failed = 'Failed',
   Canceled = 'Canceled',
   Unknown = 'Unknown',
@@ -283,22 +283,32 @@ export type SDKVersion = {
   version: string;
 };
 
-export type OnrampApiError = StripeError<OnrampError> & {
-  onrampErrorType: string;
+/**
+ * Base rich error shape returned by native Crypto Onramp SDK errors.
+ */
+export type OnrampSdkError = StripeError<OnrampErrorStatus> & {
   developerMessage: string;
   userMessage: string;
+  docUrl?: string;
+  sdkVersions?: SDKVersion[];
+};
+
+/**
+ * API-context fields returned for Crypto Onramp API errors.
+ */
+export type OnrampApiError = OnrampSdkError & {
+  onrampErrorType: OnrampErrorType;
   reason?: string;
   operation: string;
-  appPackageName: string;
+  appPackageName?: string;
   mode?: 'live' | 'test';
-  sdkVersions?: SDKVersion[];
   requestId?: string;
   apiErrorCode?: string;
   apiErrorType?: string;
   apiErrorMessage?: string;
   apiUserMessage?: string;
-  docUrl?: string;
 };
+
 /**
  * A typed Crypto Onramp app attestation failure.
  */
@@ -321,7 +331,12 @@ export type UncategorizedApiError = OnrampApiError & {
  * `onrampErrorType`.
  */
 export type CryptoOnrampError =
-  | (StripeError<OnrampError> & {
+  | (StripeError<OnrampErrorStatus> & {
+      onrampErrorType?: undefined;
+      developerMessage?: undefined;
+      userMessage?: undefined;
+    })
+  | (OnrampSdkError & {
       onrampErrorType?: undefined;
     })
   | AppAttestationError

@@ -75,7 +75,7 @@ function mapLegacyConfigureAppAttestationError(result: {
     '  operation: configure',
     mode != null ? `  mode: ${mode}` : undefined,
   ].filter((line): line is string => line != null);
-  const appAttestationError = {
+  const appAttestationError: Onramp.OnrampSdkError = {
     ...error,
     message: userMessage,
     localizedMessage: userMessage,
@@ -93,9 +93,7 @@ function mapLegacyConfigureAppAttestationError(result: {
       `SDK: stripe-react-native@${pjson.version}`,
     ].join('\n'),
     userMessage,
-    operation: 'configure',
-    mode,
-  } as unknown as Onramp.CryptoOnrampError;
+  };
 
   return {
     ...result,

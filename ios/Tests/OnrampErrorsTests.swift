@@ -113,6 +113,33 @@ class OnrampErrorsTests: XCTestCase {
         XCTAssertNil(details["userMessage"])
     }
 
+    func test_createFailedError_withBaseOnrampError_preservesBaseDiagnostics() throws {
+        let error = TestStripeCryptoOnrampError(
+            code: "sdk_error",
+            userMessage: "Something went wrong.",
+            developerMessage: "Developer message.",
+            docURL: URL(string: "https://docs.stripe.com/errors/sdk-error"),
+            sdkVersions: [
+                SDKVersion(name: "stripe-ios", version: "25.17.0"),
+                SDKVersion(name: "stripe-react-native", version: "0.67.0"),
+            ]
+        )
+
+        let details = try errorDetails(from: OnrampErrors.createFailedError(error))
+
+        XCTAssertEqual(details["code"] as? String, "Failed")
+        XCTAssertEqual(details["message"] as? String, error.userMessage)
+        XCTAssertEqual(details["localizedMessage"] as? String, error.localizedDescription)
+        XCTAssertEqual(details["developerMessage"] as? String, error.developerMessage)
+        XCTAssertEqual(details["userMessage"] as? String, error.userMessage)
+        XCTAssertEqual(details["stripeErrorCode"] as? String, error.code)
+        XCTAssertEqual(details["docUrl"] as? String, error.docURL?.absoluteString)
+        XCTAssertEqual(details["sdkVersions"] as? [[String: String]], [
+            ["name": "stripe-ios", "version": "25.17.0"],
+            ["name": "stripe-react-native", "version": "0.67.0"],
+        ])
+    }
+
     func test_createNotConfiguredError_usesFailedErrorShape() throws {
         let details = try errorDetails(from: OnrampErrors.createNotConfiguredError())
 
@@ -179,6 +206,23 @@ class OnrampErrorsTests: XCTestCase {
         apiError.requestID = requestID
 
         return StripeError.apiError(apiError)
+    }
+
+    private struct TestStripeCryptoOnrampError: StripeCryptoOnrampError {
+        let code: String
+        let userMessage: String
+        let developerMessage: String
+        let docURL: URL?
+        let sdkVersions: [SDKVersion]
+        let underlyingError: Error? = nil
+
+        var errorDescription: String? {
+            return userMessage
+        }
+
+        var debugDescription: String {
+            return developerMessage
+        }
     }
 }
 #endif
