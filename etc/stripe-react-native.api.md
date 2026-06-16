@@ -1013,6 +1013,7 @@ export const collectBankAccountToken: (clientSecret: string, params?: CollectBan
 type CollectBankAccountTokenParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
+    connectedAccountId?: string;
 };
 
 // @public
@@ -4009,10 +4010,7 @@ export interface UseEmbeddedPaymentElementResult {
     // (undocumented)
     loadingError: Error | null;
     paymentOption: PaymentOptionDisplayData | null;
-    update: {
-        (intentConfig: PaymentSheet.IntentConfiguration): void;
-        (checkout: Checkout): void;
-    };
+    update: (intentConfig: PaymentSheet.IntentConfiguration) => void;
 }
 
 // @public

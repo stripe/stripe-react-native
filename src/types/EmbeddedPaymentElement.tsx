@@ -251,12 +251,6 @@ class EmbeddedPaymentElement {
     );
   }
 
-  async updateCheckout(checkout: Checkout): Promise<unknown> {
-    return await NativeStripeSdkModule.updateEmbeddedPaymentElementWithCheckout(
-      checkout.sessionKey
-    );
-  }
-
   /**
    * Confirm the payment or setup intent.
    * Waits for any in-progress `update()` call to finish before proceeding.
@@ -438,16 +432,7 @@ export interface UseEmbeddedPaymentElementResult {
    * @note Upon completion, `paymentOption` may become null if it's no longer available.
    * @note If you call `update` while a previous call to `update` is still in progress, the previous call is canceled.
    */
-  update: {
-    (intentConfig: PaymentSheetTypes.IntentConfiguration): void;
-    /**
-     * Call this method when the Checkout Session values you used to initialize
-     * `EmbeddedPaymentElement` change.
-     * @checkoutSessionsPreview
-     * @internal
-     */
-    (checkout: Checkout): void;
-  };
+  update: (intentConfig: PaymentSheetTypes.IntentConfiguration) => void;
   // Sets the currently selected payment option to null
   clearPaymentOption: () => void;
   // Any error encountered during creation/update, or null
@@ -642,9 +627,7 @@ export function useEmbeddedPaymentElement(
     return getElementOrThrow(elementRef).confirm();
   }, [isAndroid]);
   const update = useCallback(
-    (
-      updateSource: PaymentSheetTypes.IntentConfiguration | Checkout
-    ): Promise<unknown> => {
+    (updateSource: PaymentSheetTypes.IntentConfiguration): Promise<unknown> => {
       if (isAndroid) {
         const currentRef = viewRef.current;
         if (currentRef) {
@@ -656,11 +639,7 @@ export function useEmbeddedPaymentElement(
                 resolve(result);
               }
             );
-            if (isCheckoutSession(updateSource)) {
-              Commands.updateWithCheckout(currentRef, updateSource.sessionKey);
-            } else {
-              Commands.update(currentRef, JSON.stringify(updateSource));
-            }
+            Commands.update(currentRef, JSON.stringify(updateSource));
           });
         }
         return Promise.reject(
@@ -670,9 +649,7 @@ export function useEmbeddedPaymentElement(
 
       // iOS: use native module directly
       const embeddedElement = getElementOrThrow(elementRef);
-      return isCheckoutSession(updateSource)
-        ? embeddedElement.updateCheckout(updateSource)
-        : embeddedElement.updateIntent(updateSource);
+      return embeddedElement.updateIntent(updateSource);
     },
     [isAndroid]
   );

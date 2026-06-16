@@ -244,28 +244,6 @@ class EmbeddedPaymentElementViewManager :
     }
   }
 
-  override fun updateWithCheckout(
-    view: EmbeddedPaymentElementView,
-    sessionKey: String?,
-  ) {
-    if (sessionKey == null) return
-
-    val stripeSdkModule =
-      (view.context as ThemedReactContext).getNativeModule(StripeSdkModule::class.java)
-    val checkout = stripeSdkModule?.checkoutInstances?.get(sessionKey)
-    if (checkout == null) {
-      val payload =
-        Arguments.createMap().apply {
-          putString("message", "Checkout session not found.")
-        }
-      stripeSdkModule?.eventEmitter?.emitEmbeddedPaymentElementLoadingFailed(payload)
-      stripeSdkModule?.eventEmitter?.emitEmbeddedPaymentElementUpdateComplete(null)
-      return
-    }
-
-    view.updateWithCheckout(checkout)
-  }
-
   private fun jsonToWritableMap(json: JSONObject): WritableMap {
     val map = Arguments.createMap()
     val keys = json.keys()

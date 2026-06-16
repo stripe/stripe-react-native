@@ -304,4 +304,6 @@ export type CollectBankAccountTokenParams = {
   style?: UserInterfaceStyle;
   /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
   onEvent?: (event: FinancialConnectionsEvent) => void;
+  /** Optional connected account ID. Used for Stripe Connect embedded components. */
+  connectedAccountId?: string;
 };

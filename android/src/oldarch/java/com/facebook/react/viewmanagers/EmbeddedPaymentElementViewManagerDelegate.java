@@ -50,9 +50,6 @@ public class EmbeddedPaymentElementViewManagerDelegate<T extends View, U extends
       case "update":
         mViewManager.update(view, args != null ? args.getString(0) : null);
         break;
-      case "updateWithCheckout":
-        mViewManager.updateWithCheckout(view, args != null ? args.getString(0) : null);
-        break;
     }
   }
 }

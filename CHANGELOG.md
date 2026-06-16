@@ -1,9 +1,12 @@
 # CHANGELOG
 
-## X.Y.Z - changes pending release
+## Unreleased
 **Changes**
 * [Changed] Renamed the Crypto Onramp error status enum from `OnrampError` to `OnrampErrorStatus`. Existing generic Onramp errors now use `StripeError<OnrampErrorStatus>`.
 * [Changed] Split rich Crypto Onramp errors into `OnrampSdkError` for SDK-level diagnostics and `OnrampApiError` for API-specific context. `OnrampApiError` now extends `OnrampSdkError`, and `onrampErrorType` is typed as `OnrampErrorType`.
+
+**Fixes**
+* [Fixed] Manual bank-account entry in ConnectAccountOnboarding now creates an external account on iOS/Android by collecting a bank-account token instead of only Financial Connections accounts.
 
 ## 0.67.0 - 2026-06-09
 **Changes**
