@@ -1431,9 +1431,11 @@ enum CryptoNetwork {
 }
 
 // @public
-type CryptoOnrampError = (StripeError<OnrampError> & {
-    onrampErrorType?: undefined;
-}) | AppAttestationError | UncategorizedApiError;
+type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
+    onrampErrorType?: never;
+    developerMessage?: never;
+    userMessage?: never;
+}) | AppAttestationError | UncategorizedApiError | LegacyConfigureAppAttestationError;
 
 // @public
 type CryptoPaymentToken = {
@@ -2314,6 +2316,11 @@ type LastPaymentError = StripeError<string> & {
 };
 
 // @public
+type LegacyConfigureAppAttestationError = OnrampSdkError & {
+    onrampErrorType: 'LegacyConfigureAppAttestationError';
+};
+
+// @public
 type LinkAppearance = {
     lightColors?: LinkColors;
     darkColors?: LinkColors;
@@ -2561,7 +2568,7 @@ type OnFormCompleteEvent = NativeSyntheticEvent<{
 
 declare namespace Onramp {
     export {
-        OnrampError,
+        OnrampErrorStatus,
         Configuration,
         GooglePayConfig,
         GooglePayBillingAddressConfig,
@@ -2581,11 +2588,14 @@ declare namespace Onramp {
         ComplianceIdentifierRequirement,
         ComplianceIdentifierAlternativeGroup,
         ComplianceIdentifierRequirements,
+        OnrampApiErrorType,
         OnrampErrorType,
         SDKVersion,
+        OnrampSdkError,
         OnrampApiError,
         AppAttestationError,
         UncategorizedApiError,
+        LegacyConfigureAppAttestationError,
         CryptoOnrampError,
         RetrieveMissingIdentifiersResult,
         SubmitIdentifiersResult,
@@ -2604,26 +2614,25 @@ declare namespace Onramp {
 }
 export { Onramp }
 
-// @public (undocumented)
-type OnrampApiError = StripeError<OnrampError> & {
-    onrampErrorType: string;
-    developerMessage: string;
-    userMessage: string;
+// @public
+type OnrampApiError = OnrampSdkError & {
+    onrampErrorType: OnrampApiErrorType;
     reason?: string;
     operation: string;
-    appPackageName: string;
+    appPackageName?: string;
     mode?: 'live' | 'test';
-    sdkVersions?: SDKVersion[];
     requestId?: string;
     apiErrorCode?: string;
     apiErrorType?: string;
     apiErrorMessage?: string;
     apiUserMessage?: string;
-    docUrl?: string;
 };
 
 // @public
-enum OnrampError {
+type OnrampApiErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+
+// @public
+enum OnrampErrorStatus {
     // (undocumented)
     Canceled = "Canceled",
     // (undocumented)
@@ -2633,7 +2642,7 @@ enum OnrampError {
 }
 
 // @public
-type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+type OnrampErrorType = OnrampApiErrorType | 'LegacyConfigureAppAttestationError';
 
 // @public
 type OnrampGooglePayParams = {
@@ -2647,6 +2656,15 @@ type OnrampGooglePayParams = {
 type OnrampPlatformPayParams = {
     googlePay?: OnrampGooglePayParams;
     applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
+};
+
+// @public
+type OnrampSdkError = StripeError<OnrampErrorStatus> & {
+    onrampErrorType: OnrampErrorType;
+    developerMessage: string;
+    userMessage: string;
+    docUrl?: string;
+    sdkVersions?: SDKVersion[];
 };
 
 // @public (undocumented)
