@@ -23,6 +23,14 @@ buildscript {
 }
 
 allprojects {
+    // Google's TapAndPay SDK is private. Download version 18.8.0 from https://developers.google.com/pay/issuers/apis/push-provisioning/android/releases and place it in privateMavenRepository.
+    def tapAndPayAar = file("$rootDir/privateMavenRepository/com/google/android/gms/play-services-tapandpay/18.8.0/play-services-tapandpay-18.8.0.aar")
+    if (!tapAndPayAar.exists()) {
+        configurations.all {
+            exclude group: 'com.google.android.gms', module: 'play-services-tapandpay'
+        }
+    }
+
     repositories {
         {
             def searchDir = rootDir.toPath()

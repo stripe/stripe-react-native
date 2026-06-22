@@ -27,6 +27,7 @@ import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
+import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
 import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.DefaultActivityLifecycleCallbacks
@@ -955,6 +956,12 @@ class StripeSdkModule(
         return
       }
 
+    val cardBrand =
+      getValOr(params, "cardBrand", null) ?: run {
+        promise.resolve(createError("Failed", "You must provide cardBrand"))
+        return
+      }
+
     if (params.getBooleanOr("supportsTapToPay", true) &&
       !PushProvisioningProxy.isNFCEnabled(
         reactApplicationContext,
@@ -964,14 +971,14 @@ class StripeSdkModule(
       return
     }
 
-    getCurrentActivityOrResolveWithError(promise)?.let {
-      PushProvisioningProxy.isCardInWallet(it, last4) { isCardInWallet, token, error ->
+    getCurrentActivityOrResolveWithError(promise)?.let { activity ->
+      TapAndPayProxy.checkEligibility(activity, last4, cardBrand) { canAdd, token, error ->
         val result =
           error?.let {
-            createCanAddCardResult(false, "MISSING_CONFIGURATION", null)
+            createCanAddCardResult(false, "MISSING_CONFIGURATION")
           } ?: run {
-            val status = if (isCardInWallet) "CARD_ALREADY_EXISTS" else null
-            createCanAddCardResult(!isCardInWallet, status, token)
+            val status = if (!canAdd) "CARD_ALREADY_EXISTS" else null
+            createCanAddCardResult(canAdd, status, token)
           }
         promise.resolve(result)
       }
