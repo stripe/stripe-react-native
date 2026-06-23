@@ -2,8 +2,8 @@
 
 ## Unreleased
 **Changes**
-* Updated Stripe Issuing Android Push Provisioning SDK from 1.1.0+ to 1.3.0+.
-* Updated Google Wallet Android Push Provisioning to the Unified Push Provisioning flow. This enables issued cards to be provisioned onto wearable devices via a mobile phone. `canAddCardToWallet` now requires `cardBrand`, and now checks if the card can be provisioned onto the mobile device or any connected wearable devices. See [documentation](https://docs.stripe.com/issuing/cards/digital-wallets?platform=react-native#push-provisioning) for integration guide.
+* [Breaking] Updated Stripe Issuing Android Push Provisioning SDK from 1.1.0+ to 1.3.0+.
+* [Breaking] Updated Google Wallet Android Push Provisioning to the Unified Push Provisioning flow. This enables issued cards to be provisioned onto wearable devices via a mobile phone. `canAddCardToWallet` now requires `cardBrand`, and now checks if the card can be provisioned onto the mobile device or any connected wearable devices. See [documentation](https://docs.stripe.com/issuing/cards/digital-wallets?platform=react-native#push-provisioning) for integration guide.
 
 **Features**
 * [Added] Added Issuing support for Google Wallet Bounce Provisioning via the `isBounceProvisioned` parameter on `AddToWalletButton`. See [documentation](https://docs.stripe.com/issuing/cards/digital-wallets?platform=react-native#push-provisioning) for integration guide.
@@ -156,11 +156,11 @@
 **Changes**
 - [Added] CustomerSession is now generally available. The `customerSessionClientSecret` parameter is no longer experimental.
 - [Added] ConfirmationTokens are now generally available. The `confirmationTokenConfirmHandler` parameter and `ConfirmationToken.Result` type are no longer experimental.
-- [Added] Added support for `CustomerSession` to CustomerSheet. The CustomerSession object grants the SDK temporary access to the Customer and provides additional configuration options. These configuration options allow you to customize the behavior of CustomerSheet. A complete list of features exposed on the CustomerSession are [in our API docs](https://docs.corp.stripe.com/api/customer_sessions/create#create_customer_session-components-customer_sheet).
+- [Added] Added support for `CustomerSession` to CustomerSheet. The CustomerSession object grants the SDK temporary access to the Customer and provides additional configuration options. These configuration options allow you to customize the behavior of CustomerSheet. A complete list of features exposed on the CustomerSession are [in our API docs](https://docs.corp.stripe.com/api/customer_sessions/create#create_customer_session-components-customer_sheet). 
 * [Added] Added support for `onBehalfOf` to CustomerSheet.IntentConfiguration. This parameter makes CustomerSheet use a connected account to determine the payment method that users see and whether CardBrandChoice is enabled. For more information, see the [SetupIntent docs](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-on_behalf_of).
 
 **Fixes**
-- Fixed Android crash `IllegalStateException: State must be at least CREATED to move to DESTROYED` when removing payment methods in EmbeddedPaymentElement. The crash occurred when views were destroyed before completing the lifecycle initialization.
+- Fixed Android crash `IllegalStateException: State must be at least CREATED to move to DESTROYED` when removing payment methods in EmbeddedPaymentElement. The crash occurred when views were destroyed before completing the lifecycle initialization. 
 
 ## 0.55.1 - 2025-10-23
 
