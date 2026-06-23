@@ -13,7 +13,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Use a PAT so the resulting PR triggers pull_request CI workflows.
           # GITHUB_TOKEN-created PRs intentionally don't trigger other workflows.
