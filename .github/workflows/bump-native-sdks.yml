@@ -123,7 +123,7 @@ jobs:
 
           BODY="$(IFS=$'\n'; echo "${BODY_LINES[*]}")
 
-_Automated by [\`bump-native-sdks\`](.github/workflows/bump-native-sdks.yml)_"
+          _Automated by [\`bump-native-sdks\`](.github/workflows/bump-native-sdks.yml)_"
 
           git commit -m "$TITLE"
           git push origin "$BRANCH"
