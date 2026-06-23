@@ -6,6 +6,7 @@
 * [Breaking] Updated Google Wallet Android Push Provisioning to the Unified Push Provisioning flow. This enables issued cards to be provisioned onto wearable devices via a mobile phone. `canAddCardToWallet` now requires `cardBrand`, and now checks if the card can be provisioned onto the mobile device or any connected wearable devices. See [documentation](https://docs.stripe.com/issuing/cards/digital-wallets?platform=react-native#push-provisioning) for integration guide.
 
 **Features**
+* [GA] Connect embedded components — `ConnectAccountOnboarding`, `ConnectPayments`, and `ConnectPayouts` — are now generally available. No API changes; existing integrations continue to work without modification.
 * [Added] Added Issuing support for Google Wallet Bounce Provisioning via the `isBounceProvisioned` parameter on `AddToWalletButton`. See [documentation](https://docs.stripe.com/issuing/cards/digital-wallets?platform=react-native#push-provisioning) for integration guide.
 
 **Fixes**
