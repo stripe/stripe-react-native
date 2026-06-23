@@ -39,7 +39,7 @@ import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
 import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentMethodResult
 import com.stripe.android.crypto.onramp.model.OnrampConfigurationResult
 import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
-import com.stripe.android.crypto.onramp.model.OnrampCrsCarfDeclarationResult
+import com.stripe.android.crypto.onramp.model.OnrampUserAttestationResult
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
 import com.stripe.android.crypto.onramp.model.OnrampLogOutResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
@@ -152,7 +152,7 @@ class OnrampSdkModule(
           handleOnrampCheckoutResult(result, checkoutPromise!!)
         }.verifyKycCallback { result ->
           handleOnrampKycVerificationResult(result, verifyKycPromise!!)
-        }.crsCarfDeclarationCallback { result ->
+        }.userAttestationCallback { result ->
           userAttestationPromise?.let {
             handleUserAttestationResult(result, it)
           }
@@ -426,7 +426,7 @@ class OnrampSdkModule(
       }
 
     userAttestationPromise = promise
-    presenter.presentCrsCarfDeclaration()
+    presenter.presentUserAttestation()
   }
 
   @ReactMethod
@@ -783,19 +783,19 @@ class OnrampSdkModule(
   }
 
   private fun handleUserAttestationResult(
-    result: OnrampCrsCarfDeclarationResult,
+    result: OnrampUserAttestationResult,
     promise: Promise,
   ) {
     when (result) {
-      is OnrampCrsCarfDeclarationResult.Confirmed -> {
+      is OnrampUserAttestationResult.Confirmed -> {
         promise.resolve(
           WritableNativeMap().apply { putString("status", "Confirmed") },
         )
       }
-      is OnrampCrsCarfDeclarationResult.Cancelled -> {
+      is OnrampUserAttestationResult.Cancelled -> {
         promise.resolve(createCanceledError("User attestation was canceled"))
       }
-      is OnrampCrsCarfDeclarationResult.Failed -> {
+      is OnrampUserAttestationResult.Failed -> {
         promise.resolve(createOnrampFailedError(result.error))
       }
     }
