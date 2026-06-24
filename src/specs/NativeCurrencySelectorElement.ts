@@ -5,7 +5,7 @@ import type {
   Double,
   WithDefault,
 } from 'react-native/Libraries/Types/CodegenTypes';
-import type { CurrencySelectorAppearance } from '../types/PaymentSheet';
+import type { CurrencySelectorAppearance } from '../components/CurrencySelectorElement';
 import type { UnsafeMixed } from './utils';
 
 export interface HeightChangeEvent {

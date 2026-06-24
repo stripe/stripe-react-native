@@ -1,7 +1,7 @@
 import {
   CurrencySelectorLabelContent,
   type CurrencySelectorAppearance,
-} from '@stripe/stripe-react-native';
+} from '@stripe/stripe-react-native/src/components/CurrencySelectorElement';
 import type { SelectionOption } from './types';
 
 export type CurrencySelectorTheme = 'default' | 'dark' | 'warm';

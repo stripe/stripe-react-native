@@ -1,4 +1,4 @@
-import { CurrencySelectorLabelContent } from '@stripe/stripe-react-native';
+import { CurrencySelectorLabelContent } from '@stripe/stripe-react-native/src/components/CurrencySelectorElement';
 import type {
   CurrencySelectorShape,
   CurrencySelectorTheme,
