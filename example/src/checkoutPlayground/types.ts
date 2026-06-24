@@ -1,3 +1,9 @@
+import { CurrencySelectorLabelContent } from '@stripe/stripe-react-native';
+import type {
+  CurrencySelectorShape,
+  CurrencySelectorTheme,
+} from './CurrencySelectorAppearanceConfig';
+
 export const hostedCheckoutEndpoint =
   'https://stp-mobile-playground-backend-v7.stripedemos.com/checkout_session';
 
@@ -46,6 +52,9 @@ export type CheckoutPlaygroundConfig = {
   checkoutSessionPaymentMethodSave: boolean;
   checkoutSessionPaymentMethodRemove: boolean;
   adaptivePricingCountry: AdaptivePricingCountry;
+  currencySelectorTheme: CurrencySelectorTheme;
+  currencySelectorLabelContent: CurrencySelectorLabelContent;
+  currencySelectorShape: CurrencySelectorShape;
   paymentMethodTypes: string[];
 };
 
@@ -119,6 +128,9 @@ export const defaultCheckoutPlaygroundConfig: CheckoutPlaygroundConfig = {
   checkoutSessionPaymentMethodSave: true,
   checkoutSessionPaymentMethodRemove: true,
   adaptivePricingCountry: 'none',
+  currencySelectorTheme: 'default',
+  currencySelectorLabelContent: CurrencySelectorLabelContent.Automatic,
+  currencySelectorShape: 'capsule',
   paymentMethodTypes: ['card'],
 };
 

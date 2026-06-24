@@ -3,8 +3,10 @@ import {
   AccessibilityProps,
   LayoutAnimation,
   NativeSyntheticEvent,
+  StyleSheet,
 } from 'react-native';
 import type { Checkout } from '../types/Checkout';
+import type { CurrencySelectorAppearance } from '../types/PaymentSheet';
 import NativeCurrencySelectorElement, {
   type HeightChangeEvent,
 } from '../specs/NativeCurrencySelectorElement';
@@ -33,6 +35,13 @@ export interface CurrencySelectorElementProps extends AccessibilityProps {
    * @default false
    */
   disabled?: boolean;
+
+  /**
+   * Appearance overrides for the selector.
+   *
+   * @default platform-appropriate defaults that adapt to light/dark mode
+   */
+  appearance?: CurrencySelectorAppearance;
 }
 
 /**
@@ -71,6 +80,7 @@ export interface CurrencySelectorElementProps extends AccessibilityProps {
 export function CurrencySelectorElement({
   checkout,
   disabled = false,
+  appearance,
   ...a11yProps
 }: CurrencySelectorElementProps) {
   const [height, setHeight] = useState<number>(0);
@@ -87,9 +97,16 @@ export function CurrencySelectorElement({
     <NativeCurrencySelectorElement
       sessionKey={checkout.sessionKey}
       disabled={disabled}
-      style={{ width: '100%', height }}
+      appearance={appearance}
+      style={[styles.container, { height }]}
       onHeightChange={handleHeightChange}
       {...a11yProps}
     />
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+  },
+});
