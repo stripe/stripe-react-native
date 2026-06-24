@@ -1451,29 +1451,6 @@ type CryptoPaymentToken = {
     };
 };
 
-// @public
-export interface CurrencySelectorAppearance {
-    background?: ThemedColor;
-    borderColor?: ThemedColor;
-    borderWidth?: number;
-    contentVerticalPadding?: number;
-    cornerRadius?: number;
-    dangerColor?: ThemedColor;
-    font?: Partial<FontConfig>;
-    labelContent?: CurrencySelectorLabelContent;
-    selectedBackground?: ThemedColor;
-    selectedTextColor?: ThemedColor;
-    textColor?: ThemedColor;
-    textSecondaryColor?: ThemedColor;
-}
-
-// @public
-export enum CurrencySelectorLabelContent {
-    Amount = "amount",
-    Automatic = "automatic",
-    CurrencyCode = "currencyCode"
-}
-
 // @public (undocumented)
 export interface CustomerAdapter {
     attachPaymentMethod?(paymentMethodId: string): Promise<object>;
@@ -2983,8 +2960,6 @@ declare namespace PaymentSheet {
         PrimaryButtonConfig,
         PrimaryButtonColorConfig,
         ThemedColor,
-        CurrencySelectorLabelContent,
-        CurrencySelectorAppearance,
         EdgeInsetsConfig,
         RowStyle,
         RadioConfig,
