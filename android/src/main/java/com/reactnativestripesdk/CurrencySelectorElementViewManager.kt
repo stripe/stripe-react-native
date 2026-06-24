@@ -1,5 +1,7 @@
 package com.reactnativestripesdk
 
+import com.facebook.react.bridge.Dynamic
+import com.facebook.react.bridge.ReadableType
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
@@ -55,5 +57,14 @@ class CurrencySelectorElementViewManager :
     value: Boolean,
   ) {
     view.setDisabled(value)
+  }
+
+  @ReactProp(name = "appearance")
+  override fun setAppearance(
+    view: CurrencySelectorElementView,
+    value: Dynamic?,
+  ) {
+    val appearanceParams = if (value?.type == ReadableType.Map) value.asMap() else null
+    view.setAppearance(buildCurrencySelectorAppearance(appearanceParams, view.context))
   }
 }

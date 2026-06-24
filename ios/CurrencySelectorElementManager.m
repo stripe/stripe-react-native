@@ -12,5 +12,6 @@
 @interface RCT_EXTERN_MODULE(StripeCurrencySelectorElementManager, RCTViewManager)
 RCT_EXPORT_VIEW_PROPERTY(sessionKey, NSString)
 RCT_EXPORT_VIEW_PROPERTY(disabled, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(appearance, NSDictionary)
 RCT_EXPORT_VIEW_PROPERTY(onHeightChange, RCTDirectEventBlock)
 @end

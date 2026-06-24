@@ -28,6 +28,7 @@ import {
   toAddressSheetDefaultValues,
   toCheckoutAddress,
 } from './CheckoutPlaygroundCartUtils';
+import { buildCurrencySelectorAppearance } from './CurrencySelectorAppearanceConfig';
 import {
   supportsAdvancedCollection,
   type CheckoutPlaygroundConfig,
@@ -191,6 +192,19 @@ export function CheckoutPlaygroundCartView({
   const orderSummaryRows = useMemo(
     () => buildOrderSummaryRows(session?.total),
     [session?.total]
+  );
+  const currencySelectorAppearance = useMemo(
+    () =>
+      buildCurrencySelectorAppearance({
+        labelContent: config.currencySelectorLabelContent,
+        shape: config.currencySelectorShape,
+        theme: config.currencySelectorTheme,
+      }),
+    [
+      config.currencySelectorLabelContent,
+      config.currencySelectorShape,
+      config.currencySelectorTheme,
+    ]
   );
   const flowControllerActionLabel = selectedPaymentOption
     ? 'Change payment method'
@@ -638,6 +652,7 @@ export function CheckoutPlaygroundCartView({
         {config.adaptivePricing ? (
           <View style={{ marginBottom: 16 }} testID="currency_selector_element">
             <CurrencySelectorElement
+              appearance={currencySelectorAppearance}
               checkout={checkout}
               disabled={isUpdating}
             />

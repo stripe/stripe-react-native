@@ -5,6 +5,8 @@ import type {
   Double,
   WithDefault,
 } from 'react-native/Libraries/Types/CodegenTypes';
+import type { CurrencySelectorAppearance } from '../components/CurrencySelectorElement';
+import type { UnsafeMixed } from './utils';
 
 export interface HeightChangeEvent {
   height: Double;
@@ -22,6 +24,9 @@ export interface NativeProps extends ViewProps {
 
   /** When true, the toggle is visible but ignores user interaction. */
   disabled?: WithDefault<boolean, false>;
+
+  /** Appearance overrides for the selector. */
+  appearance?: UnsafeMixed<CurrencySelectorAppearance>;
 
   /**
    * Fired whenever the element's intrinsic height changes so the RN

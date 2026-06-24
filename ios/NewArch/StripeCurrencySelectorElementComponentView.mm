@@ -64,6 +64,7 @@ using namespace facebook::react;
 
   _view.sessionKey = RCTNSStringFromStringNilIfEmpty(newViewProps.sessionKey);
   _view.disabled = newViewProps.disabled;
+  _view.appearance = stripe::react::convertFollyDynamicToNSDictionaryOrNil(newViewProps.appearance);
 
   [super updateProps:props oldProps:oldProps];
 }
