@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
@@ -141,6 +142,25 @@ class StripeSdkModule(
 
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
 
+  private val mLifecycleEventListener =
+    object : LifecycleEventListener {
+      override fun onHostResume() {
+        UiThreadUtil.runOnUiThread {
+          ensureComposeCompatViewAttached()
+        }
+      }
+
+      override fun onHostPause() {
+        // No-op
+      }
+
+      override fun onHostDestroy() {
+        UiThreadUtil.runOnUiThread {
+          tearDownComposeCompatView()
+        }
+      }
+    }
+
   private val mActivityEventListener =
     object : BaseActivityEventListener() {
       override fun onActivityResult(
@@ -170,6 +190,7 @@ class StripeSdkModule(
 
   init {
     reactContext.addActivityEventListener(mActivityEventListener)
+    reactContext.addLifecycleEventListener(mLifecycleEventListener)
   }
 
   override fun invalidate() {
@@ -284,7 +305,6 @@ class StripeSdkModule(
         "${get("major")}.${get("minor")}.${get("patch")}"
       }
     preventActivityRecreation()
-    setupComposeCompatView()
 
     promise.resolve(null)
   }
@@ -2040,16 +2060,24 @@ class StripeSdkModule(
     reactApplicationContext.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
-  private fun setupComposeCompatView() {
-    UiThreadUtil.runOnUiThread {
-      composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(
-        context = reactApplicationContext
-      ).also {
-        reactApplicationContext.currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
-          it,
-        )
-      }
+  private fun ensureComposeCompatViewAttached() {
+    val activity = reactApplicationContext.currentActivity ?: return
+    val content = activity.findViewById<ViewGroup>(android.R.id.content) ?: return
+    val composeView = StripeAbstractComposeView.CompatView(context = activity)
+
+    content.addView(composeView)
+
+    composeCompatView = composeView
+  }
+
+  private fun tearDownComposeCompatView() {
+    composeCompatView?.let { composeView ->
+      val activity = reactApplicationContext.currentActivity ?: return
+      val content = activity.findViewById<ViewGroup>(android.R.id.content) ?: return
+      content.removeView(composeView)
     }
+
+    composeCompatView = null
   }
 
   companion object {
