@@ -33,7 +33,6 @@ export default function HomeScreen() {
       },
       {
         title: 'Payouts',
-        badge: 'Beta',
         description: 'Show payouts and allow your users to perform payouts.',
         onPress: () => {
           if (viewControllerSettings.embedInTabBar) {
@@ -45,7 +44,6 @@ export default function HomeScreen() {
       },
       {
         title: 'Payments',
-        badge: 'Beta',
         description:
           'Show payments and allow your users to view payment details and manage disputes.',
         onPress: () => {
