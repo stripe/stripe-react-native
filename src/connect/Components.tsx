@@ -68,6 +68,7 @@ export function ConnectAccountOnboarding({
   onLoaderStart,
   onLoadError,
   onPageDidLoad,
+  kycRecipientAccountId,
 }: {
   title?: string;
   onExit: () => void;
@@ -76,6 +77,8 @@ export function ConnectAccountOnboarding({
   fullTermsOfServiceUrl?: string;
   privacyPolicyUrl?: string;
   collectionOptions?: CollectionOptions;
+  /** @internal */
+  kycRecipientAccountId?: string;
 } & Omit<CommonComponentProps, 'style'>) {
   const [visible, setVisible] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -96,12 +99,14 @@ export function ConnectAccountOnboarding({
       setRecipientTermsOfServiceUrl: recipientTermsOfServiceUrl,
       setPrivacyPolicyUrl: privacyPolicyUrl,
       setCollectionOptions: collectionOptions,
+      setKycRecipientAccountId: kycRecipientAccountId,
     };
   }, [
     fullTermsOfServiceUrl,
     recipientTermsOfServiceUrl,
     privacyPolicyUrl,
     collectionOptions,
+    kycRecipientAccountId,
   ]);
 
   const onExitCallback = useCallback(() => {
