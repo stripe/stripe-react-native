@@ -1,0 +1,39 @@
+name: CHANGELOG Check
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'CHANGELOG.md'
+
+jobs:
+  changelog-check:
+    name: Validate CHANGELOG header
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check CHANGELOG.md has valid first section header
+        run: |
+          header=$(sed -n '/^# CHANGELOG/,/^## /{/^## /p;}' CHANGELOG.md | head -1)
+
+          if [ -z "$header" ]; then
+            echo "✗ No ## header found after '# CHANGELOG'" >&2
+            exit 1
+          fi
+
+          if echo "$header" | grep -qE '^## Unreleased$'; then
+            echo "✓ $header"
+          elif echo "$header" | grep -qE '^## [0-9]+\.[0-9]+\.[0-9]+ - [0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+            echo "✓ $header"
+          else
+            echo "✗ First header after '# CHANGELOG' must be either:" >&2
+            echo "    ## Unreleased" >&2
+            echo "    ## X.Y.Z - YYYY-MM-DD" >&2
+            echo "" >&2
+            echo "  Found: '$header'" >&2
+            exit 1
+          fi
