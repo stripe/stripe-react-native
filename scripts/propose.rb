@@ -30,11 +30,11 @@ def update_changelog(version)
   changelog = File.read("CHANGELOG.md")
   header = "## #{version} - #{Date.today}"
 
-  unless changelog.include?("## X.Y.Z - changes pending release")
-    abort "Error! CHANGELOG.md is missing an '## X.Y.Z - changes pending release' section"
+  unless changelog.include?("## Unreleased")
+    abort "Error! CHANGELOG.md is missing an '## Unreleased' section"
   end
 
-  File.write("CHANGELOG.md", changelog.sub("## X.Y.Z - changes pending release", header))
+  File.write("CHANGELOG.md", changelog.sub("## Unreleased", header))
 end
 
 def bump_version(version)
@@ -55,7 +55,7 @@ def create_proposal_pr(version)
   pr_message_file = File.join(Dir.tmpdir, "propose-#{version}-pr-body.md")
   File.write(pr_message_file, <<~BODY)
     - [x] Ensure the CHANGELOG is up to date with all relevant commits since the last release
-    - [x] Add the version number for this release & the date to the CHANGELOG, underneath "## X.Y.Z - changes pending release"
+    - [x] Add the version number for this release & the date to the CHANGELOG, underneath "## Unreleased"
       - e.g. "## 1.2.3 - 2022-02-14"
     - [x] Update the README if necessary (this is only required when there are breaking changes in the release, such as dropping support for an iOS || Android version)
   BODY
@@ -80,7 +80,7 @@ OptionParser.new do |opts|
     USAGE:
         ./scripts/propose.rb <release_type>
 
-    Creates a proposal PR for the next release. Replaces the '## X.Y.Z - changes pending release'
+    Creates a proposal PR for the next release. Replaces the '## Unreleased'
     header in CHANGELOG.md with the new version and today's date, then opens a PR.
 
     ARGS:
