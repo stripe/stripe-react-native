@@ -138,6 +138,32 @@ class ApplePayUtils {
         return request
     }
 
+    @available(iOS 16.4, *)
+    internal class func buildDeferredPaymentRequest(params: NSDictionary) throws -> PKDeferredPaymentRequest {
+        guard let description = params["paymentDescription"] as? String else {
+            throw ApplePayUtilsError.missingParameter(nil, "paymentDescription")
+        }
+        guard let urlString = params["managementUrl"] as? String else {
+            throw ApplePayUtilsError.missingParameter(nil, "managementUrl")
+        }
+        guard let url = URL(string: urlString) else {
+            throw ApplePayUtilsError.invalidUrl(urlString)
+        }
+        let deferredBilling = try ApplePayUtils.createDeferredPaymentSummaryItem(item: params["deferredBilling"] as? [String: Any] ?? [:])
+        let request = PKDeferredPaymentRequest(paymentDescription: description, deferredBilling: deferredBilling, managementURL: url)
+        request.billingAgreement = params["billingAgreement"] as? String
+        if let tokenNotificationURL = params["tokenNotificationURL"] as? String {
+            request.tokenNotificationURL = URL(string: tokenNotificationURL)
+        }
+        if let freeCancellationTimestamp = params["freeCancellationDate"] as? Double {
+            request.freeCancellationDate = Date(timeIntervalSince1970: freeCancellationTimestamp)
+            if let tzIdentifier = params["freeCancellationDateTimeZone"] as? String {
+                request.freeCancellationDateTimeZone = TimeZone(identifier: tzIdentifier)
+            }
+        }
+        return request
+    }
+
     @available(iOS 16.0, *)
     internal class func buildPaymentTokenContexts(items: [[String: Any]]) -> [PKPaymentTokenContext] {
         var result: [PKPaymentTokenContext] = []
@@ -437,6 +463,12 @@ extension PKPaymentRequest {
                     self.automaticReloadPaymentRequest = try ApplePayUtils.buildAutomaticReloadPaymentRequest(params: requestParams)
                 case "MultiMerchant":
                     self.multiTokenContexts = ApplePayUtils.buildPaymentTokenContexts(items: requestParams["merchants"] as? [[String: Any]] ?? [])
+                case "Deferred":
+                    if #available(iOS 16.4, *) {
+                        self.deferredPaymentRequest = try ApplePayUtils.buildDeferredPaymentRequest(params: requestParams)
+                    } else {
+                        throw ApplePayUtilsError.invalidRequestType("Deferred (requires iOS 16.4+)")
+                    }
                 default:
                     throw ApplePayUtilsError.invalidRequestType(String(describing: requestParams["type"]))
                 }
