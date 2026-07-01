@@ -7,6 +7,7 @@ import com.stripe.android.core.exception.APIException
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.exception.APIErrorContext
 import com.stripe.android.crypto.onramp.exception.SDKVersion
+import com.stripe.android.crypto.onramp.exception.StripeCryptoOnrampError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -109,6 +110,41 @@ class OnrampErrorsTest {
     assertTrue(details.getString("developerMessage")!!.contains("Code: consumer_session_expired"))
   }
 
+  @Test
+  fun createOnrampFailedError_withBaseOnrampError_preservesBaseDiagnostics() {
+    val error =
+      TestStripeCryptoOnrampError(
+        code = "sdk_error",
+        userMessage = "Something went wrong.",
+        developerMessage = "Developer message.",
+        docUrl = "https://docs.stripe.com/errors/sdk-error",
+        sdkVersions =
+          listOf(
+            SDKVersion(name = "stripe-android", version = "23.10.0"),
+            SDKVersion(name = "stripe-react-native", version = "0.67.0"),
+          ),
+      )
+
+    val details = createOnrampFailedError(error).getMap("error")
+
+    assertNotNull(details)
+    assertEquals("Failed", details!!.getString("code"))
+    assertEquals("Something went wrong.", details.getString("message"))
+    assertEquals("Something went wrong.", details.getString("localizedMessage"))
+    assertEquals("Developer message.", details.getString("developerMessage"))
+    assertEquals("Something went wrong.", details.getString("userMessage"))
+    assertEquals("sdk_error", details.getString("stripeErrorCode"))
+    assertEquals("https://docs.stripe.com/errors/sdk-error", details.getString("docUrl"))
+    val sdkVersions = details.getArray("sdkVersions")
+    assertNotNull(sdkVersions)
+    val stripeAndroidVersion = sdkVersions!!.getMap(0)
+    assertEquals("stripe-android", stripeAndroidVersion!!.getString("name"))
+    assertEquals("23.10.0", stripeAndroidVersion.getString("version"))
+    val reactNativeVersion = sdkVersions.getMap(1)
+    assertEquals("stripe-react-native", reactNativeVersion!!.getString("name"))
+    assertEquals("0.67.0", reactNativeVersion.getString("version"))
+  }
+
   private fun createOnrampException(
     className: String,
     reason: String,
@@ -165,4 +201,14 @@ class OnrampErrorsTest {
       userMessage,
     ) as Exception
   }
+
+  private class TestStripeCryptoOnrampError(
+    override val code: String,
+    override val userMessage: String,
+    override val developerMessage: String,
+    override val docUrl: String?,
+    override val sdkVersions: List<SDKVersion>,
+    override val underlyingError: Throwable? = null,
+  ) : Exception(userMessage),
+    StripeCryptoOnrampError
 }

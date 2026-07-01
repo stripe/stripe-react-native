@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+**Changes**
+* [Changed] Renamed the Crypto Onramp error status enum from `OnrampError` to `OnrampErrorStatus`. Existing generic Onramp errors now use `StripeError<OnrampErrorStatus>`.
+* [Changed] Split rich Crypto Onramp errors into `OnrampSdkError` for SDK-level diagnostics and `OnrampApiError` for API-specific context. `OnrampSdkError` now includes an `onrampErrorType` discriminator typed as `OnrampErrorType`, and `OnrampApiError` narrows it to `OnrampApiErrorType`.
+* [Added] Added `LegacyConfigureAppAttestationError` for React Native compatibility app attestation errors.
+
 ## 0.68.0 - 2026-06-29
 **Changes**
 * Updated Stripe iOS SDK from 25.17.0 to 26.0.0.

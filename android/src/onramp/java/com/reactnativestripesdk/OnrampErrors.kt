@@ -41,20 +41,16 @@ private fun createOnrampError(
     type = apiException.context.apiErrorType ?: stripeError?.type,
     stripeErrorCode = apiException.code,
   ) {
-    putString("onrampErrorType", onrampErrorType)
-    putString("developerMessage", apiException.developerMessage)
-    putString("userMessage", apiException.userMessage)
+    putCommonOnrampFields(apiException, onrampErrorType)
     putString("reason", apiException.context.reason)
     putString("operation", apiException.context.operation)
     putString("appPackageName", apiException.context.appPackageName)
     putString("mode", apiException.context.mode)
-    putArray("sdkVersions", mapFromSdkVersions(apiException.sdkVersions))
     putString("requestId", apiException.context.requestId)
     putString("apiErrorCode", apiException.context.apiErrorCode)
     putString("apiErrorType", apiException.context.apiErrorType)
     putString("apiErrorMessage", apiException.context.apiErrorMessage)
     putString("apiUserMessage", apiException.context.apiUserMessage)
-    putString("docUrl", apiException.context.docUrl)
   }
 }
 
@@ -72,9 +68,19 @@ private fun createNonApiOnrampError(
     localizedMessage = error.localizedMessage,
     stripeErrorCode = onrampError.code,
   ) {
-    putString("developerMessage", onrampError.developerMessage)
-    putString("userMessage", onrampError.userMessage)
+    putCommonOnrampFields(onrampError)
   }
+}
+
+private fun WritableMap.putCommonOnrampFields(
+  error: StripeCryptoOnrampError,
+  onrampErrorType: String? = null,
+) {
+  putString("onrampErrorType", onrampErrorType)
+  putString("developerMessage", error.developerMessage)
+  putString("userMessage", error.userMessage)
+  putString("docUrl", error.docUrl)
+  putArray("sdkVersions", mapFromSdkVersions(error.sdkVersions))
 }
 
 private fun createOnrampMessageError(

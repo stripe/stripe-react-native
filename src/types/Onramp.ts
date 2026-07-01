@@ -6,9 +6,9 @@ import type {
 } from './PlatformPay';
 
 /**
- * Generic error codes returned by Crypto Onramp APIs.
+ * Generic error statuses returned by Crypto Onramp APIs.
  */
-export enum OnrampError {
+export enum OnrampErrorStatus {
   Failed = 'Failed',
   Canceled = 'Canceled',
   Unknown = 'Unknown',
@@ -269,9 +269,18 @@ export type ComplianceIdentifierRequirements = {
 };
 
 /**
+ * Typed Crypto Onramp API error discriminants.
+ */
+export type OnrampApiErrorType =
+  | 'AppAttestationError'
+  | 'UncategorizedApiError';
+
+/**
  * Typed Crypto Onramp error discriminants returned by newer native SDKs.
  */
-export type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+export type OnrampErrorType =
+  | OnrampApiErrorType
+  | 'LegacyConfigureAppAttestationError';
 
 /**
  * A native SDK component and version included in Crypto Onramp diagnostics.
@@ -283,22 +292,33 @@ export type SDKVersion = {
   version: string;
 };
 
-export type OnrampApiError = StripeError<OnrampError> & {
-  onrampErrorType: string;
+/**
+ * Base rich error shape returned by native Crypto Onramp SDK errors.
+ */
+export type OnrampSdkError = StripeError<OnrampErrorStatus> & {
+  onrampErrorType: OnrampErrorType;
   developerMessage: string;
   userMessage: string;
+  docUrl?: string;
+  sdkVersions?: SDKVersion[];
+};
+
+/**
+ * API-context fields returned for Crypto Onramp API errors.
+ */
+export type OnrampApiError = OnrampSdkError & {
+  onrampErrorType: OnrampApiErrorType;
   reason?: string;
   operation: string;
-  appPackageName: string;
+  appPackageName?: string;
   mode?: 'live' | 'test';
-  sdkVersions?: SDKVersion[];
   requestId?: string;
   apiErrorCode?: string;
   apiErrorType?: string;
   apiErrorMessage?: string;
   apiUserMessage?: string;
-  docUrl?: string;
 };
+
 /**
  * A typed Crypto Onramp app attestation failure.
  */
@@ -314,6 +334,14 @@ export type UncategorizedApiError = OnrampApiError & {
 };
 
 /**
+ * A compatibility error for older native SDKs that returned app attestation setup
+ * failures as legacy configure errors.
+ */
+export type LegacyConfigureAppAttestationError = OnrampSdkError & {
+  onrampErrorType: 'LegacyConfigureAppAttestationError';
+};
+
+/**
  * Error returned by Crypto Onramp APIs.
  *
  * Most failures use the generic Stripe error envelope. Newer native SDK
@@ -321,11 +349,14 @@ export type UncategorizedApiError = OnrampApiError & {
  * `onrampErrorType`.
  */
 export type CryptoOnrampError =
-  | (StripeError<OnrampError> & {
-      onrampErrorType?: undefined;
+  | (StripeError<OnrampErrorStatus> & {
+      onrampErrorType?: never;
+      developerMessage?: never;
+      userMessage?: never;
     })
   | AppAttestationError
-  | UncategorizedApiError;
+  | UncategorizedApiError
+  | LegacyConfigureAppAttestationError;
 
 /**
  * Result of retrieving missing compliance identifiers.

@@ -64,13 +64,11 @@ enum OnrampErrors {
                 "operation": error.operation,
                 "appPackageName": error.appIdentifier,
                 "mode": error.mode,
-                "sdkVersions": mapSDKVersions(error.sdkVersions),
                 "requestId": error.requestID,
                 "apiErrorCode": error.code,
                 "apiErrorType": error.type,
                 "apiErrorMessage": error.apiMessage,
                 "apiUserMessage": error.apiUserMessage,
-                "docUrl": error.docURL?.absoluteString,
             ]) { _, new in new }
         )
     }
@@ -83,6 +81,8 @@ enum OnrampErrors {
             "onrampErrorType": onrampErrorType,
             "developerMessage": error.developerMessage,
             "userMessage": error.userMessage,
+            "docUrl": error.docURL?.absoluteString,
+            "sdkVersions": mapSDKVersions(error.sdkVersions),
         ]
     }
 
