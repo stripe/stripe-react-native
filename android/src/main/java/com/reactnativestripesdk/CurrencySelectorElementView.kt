@@ -20,6 +20,7 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.UIManagerHelper
+import com.stripe.android.checkout.Checkout
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 
 @OptIn(CheckoutSessionPreview::class)
@@ -31,6 +32,7 @@ class CurrencySelectorElementView(
   // Backing state for props. mutableStateOf so Compose recomposes on changes.
   private var sessionKeyState = mutableStateOf<String?>(null)
   private var disabledState = mutableStateOf(false)
+  private var appearanceState = mutableStateOf(Checkout.CurrencySelectorContentAppearance())
 
   fun setSessionKey(value: String?) {
     sessionKeyState.value = value?.takeIf { it.isNotEmpty() }
@@ -40,11 +42,16 @@ class CurrencySelectorElementView(
     disabledState.value = value
   }
 
+  fun setAppearance(value: Checkout.CurrencySelectorContentAppearance) {
+    appearanceState.value = value
+  }
+
   @SuppressLint("RestrictedApi")
   @Composable
   override fun Content() {
     val sessionKey by remember { sessionKeyState }
     val disabled by remember { disabledState }
+    val appearance by remember { appearanceState }
 
     val checkout = remember(sessionKey) {
       sessionKey?.let { key ->
@@ -63,7 +70,7 @@ class CurrencySelectorElementView(
         reportHeightChange = { reportHeightChange(it) },
       ) {
         Box {
-          checkout.CurrencySelectorContent()
+          checkout.CurrencySelectorContent(appearance = appearance)
           if (disabled) {
             // The Stripe Android composable doesn't yet expose an `isEnabled`
             // parameter, so swallow taps with a transparent pointer-input

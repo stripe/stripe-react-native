@@ -1,0 +1,135 @@
+name: Bump native SDK versions
+
+on:
+  schedule:
+    - cron: '0 9 * * 1-5'  # 9am UTC, Mon–Fri
+  workflow_dispatch:        # allow manual runs from the Actions UI
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Use a PAT so the resulting PR triggers pull_request CI workflows.
+          # GITHUB_TOKEN-created PRs intentionally don't trigger other workflows.
+          token: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+
+      # ── Fetch latest release versions ─────────────────────────────────────
+
+      - name: Fetch latest stripe-ios release
+        id: ios_latest
+        env:
+          GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+        run: |
+          VERSION=$(gh api repos/stripe/stripe-ios/releases/latest --jq '.tag_name' | sed 's/^v//')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Fetch latest stripe-android release
+        id: android_latest
+        env:
+          GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+        run: |
+          VERSION=$(gh api repos/stripe/stripe-android/releases/latest --jq '.tag_name' | sed 's/^v//')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # ── Read current pinned versions ───────────────────────────────────────
+
+      - name: Read current pinned versions
+        id: current
+        run: |
+          IOS=$(grep "stripe_version = " stripe-react-native.podspec \
+            | sed "s/.*'\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)'.*/\1/")
+
+          ANDROID=$(grep "^StripeSdk_stripeVersion=" android/gradle.properties \
+            | sed 's/StripeSdk_stripeVersion=//')
+
+          echo "ios=$IOS"         >> $GITHUB_OUTPUT
+          echo "android=$ANDROID" >> $GITHUB_OUTPUT
+
+      # ── Diff ───────────────────────────────────────────────────────────────
+
+      - name: Determine what needs updating
+        id: diff
+        run: |
+          IOS_NEW="${{ steps.ios_latest.outputs.version }}"
+          ANDROID_NEW="${{ steps.android_latest.outputs.version }}"
+
+          IOS_CHANGED=false
+          ANDROID_CHANGED=false
+
+          [ "$IOS_NEW"     != "${{ steps.current.outputs.ios }}"     ] && IOS_CHANGED=true
+          [ "$ANDROID_NEW" != "${{ steps.current.outputs.android }}" ] && ANDROID_CHANGED=true
+
+          echo "ios_changed=$IOS_CHANGED"         >> $GITHUB_OUTPUT
+          echo "android_changed=$ANDROID_CHANGED" >> $GITHUB_OUTPUT
+          echo "ios_new=$IOS_NEW"                 >> $GITHUB_OUTPUT
+          echo "android_new=$ANDROID_NEW"         >> $GITHUB_OUTPUT
+
+      # ── Open PR if anything changed ────────────────────────────────────────
+
+      - name: Update files and open PR
+        if: steps.diff.outputs.ios_changed == 'true' || steps.diff.outputs.android_changed == 'true'
+        env:
+          GH_TOKEN:        ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+          IOS_NEW:         ${{ steps.diff.outputs.ios_new }}
+          ANDROID_NEW:     ${{ steps.diff.outputs.android_new }}
+          IOS_CHANGED:     ${{ steps.diff.outputs.ios_changed }}
+          ANDROID_CHANGED: ${{ steps.diff.outputs.android_changed }}
+        run: |
+          # Build a deterministic branch name from the new version(s) so the
+          # workflow is idempotent — re-running when a PR is already open for
+          # the same versions is a no-op.
+          BRANCH="chore/bump-native-sdks"
+          [ "$IOS_CHANGED"     = "true" ] && BRANCH="${BRANCH}-ios-${IOS_NEW}"
+          [ "$ANDROID_CHANGED" = "true" ] && BRANCH="${BRANCH}-android-${ANDROID_NEW}"
+
+          if gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number' \
+              2>/dev/null | grep -q '[0-9]'; then
+            echo "PR already open for $BRANCH — nothing to do."
+            exit 0
+          fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+
+          TITLE_PARTS=()
+          BODY_LINES=()
+
+          if [ "$IOS_CHANGED" = "true" ]; then
+            sed -i \
+              "s/stripe_version = '[^']*'/stripe_version = '${IOS_NEW}'/" \
+              stripe-react-native.podspec
+            git add stripe-react-native.podspec
+            TITLE_PARTS+=("stripe-ios ${IOS_NEW}")
+            BODY_LINES+=("- \`stripe-react-native.podspec\`: \`stripe_version\` → \`${IOS_NEW}\` ([release notes](https://github.com/stripe/stripe-ios/releases/tag/${IOS_NEW}))")
+          fi
+
+          if [ "$ANDROID_CHANGED" = "true" ]; then
+            sed -i \
+              "s/^StripeSdk_stripeVersion=.*/StripeSdk_stripeVersion=${ANDROID_NEW}/" \
+              android/gradle.properties
+            git add android/gradle.properties
+            TITLE_PARTS+=("stripe-android ${ANDROID_NEW}")
+            BODY_LINES+=("- \`android/gradle.properties\`: \`StripeSdk_stripeVersion\` → \`${ANDROID_NEW}\` ([release notes](https://github.com/stripe/stripe-android/releases/tag/v${ANDROID_NEW}))")
+          fi
+
+          TITLE="chore: bump $(IFS=', '; echo "${TITLE_PARTS[*]}")"
+
+          BODY="$(IFS=$'\n'; echo "${BODY_LINES[*]}")
+
+          _Automated by [\`bump-native-sdks\`](.github/workflows/bump-native-sdks.yml)_"
+
+          git commit -m "$TITLE"
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "$TITLE" \
+            --body  "$BODY"  \
+            --base  master   \
+            --head  "$BRANCH"

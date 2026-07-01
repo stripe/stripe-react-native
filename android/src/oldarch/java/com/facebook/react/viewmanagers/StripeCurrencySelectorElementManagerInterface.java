@@ -11,8 +11,10 @@ package com.facebook.react.viewmanagers;
 
 import android.view.View;
 import androidx.annotation.Nullable;
+import com.facebook.react.bridge.Dynamic;
 
 public interface StripeCurrencySelectorElementManagerInterface<T extends View>  {
   void setSessionKey(T view, @Nullable String value);
   void setDisabled(T view, boolean value);
+  void setAppearance(T view, Dynamic value);
 }

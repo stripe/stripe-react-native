@@ -1,0 +1,66 @@
+name: Update Podfile.lock
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'stripe-react-native.podspec'  # fired when bump-native-sdks merges an iOS bump
+  release:
+    types: [published]                 # fired when a new stripe-react-native version ships
+  workflow_dispatch:                   # allow manual runs from the Actions UI
+
+jobs:
+  update-podfile-lock:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Always run against master. For release events the tag is already
+          # cut, so updating master keeps it current for the next release.
+          ref: master
+          token: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+
+      - name: Run yarn bootstrap
+        run: yarn bootstrap
+
+      - name: Open PR with updated Podfile.lock
+        env:
+          GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet example/ios/Podfile.lock; then
+            echo "Podfile.lock is already up to date — nothing to do."
+            exit 0
+          fi
+
+          BRANCH="chore/update-podfile-lock"
+
+          git checkout -b "$BRANCH"
+          git add example/ios/Podfile.lock
+          git commit -m "chore: update Podfile.lock"
+          git push --force origin "$BRANCH"
+
+          # If a PR is already open for this branch, the force-push above has
+          # updated it — no need to create another one.
+          if gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number' \
+              2>/dev/null | grep -q '[0-9]'; then
+            echo "PR already open for $BRANCH — updated via force-push."
+            exit 0
+          fi
+
+          gh pr create \
+            --title "chore: update Podfile.lock" \
+            --body  "_Automated by [\`update-podfile-lock\`](.github/workflows/update-podfile-lock.yml)_" \
+            --base  master \
+            --head  "$BRANCH"

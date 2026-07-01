@@ -41,6 +41,8 @@ export interface Props extends AccessibilityProps {
   };
   // Optional, only for Android and only for cards that are in the "yellow path" (as defined by Google- https://developers.google.com/pay/issuers/apis/push-provisioning/android/wallet-operations#resolving_yellow_path). Obtain this value via the `isCardInWallet` method.
   token?: GooglePayCardToken | null;
+  /** Android only. Set to true if the card is bounce-provisioned. Defaults to false. */
+  isBounceProvisioned?: boolean;
   /** Used by stripe to securely obtain card info of the card being provisioned. */
   ephemeralKey: object;
   /** Called when the flow completes. If the `error` field is `null`, then the card was successfully added to the user's native wallet. */

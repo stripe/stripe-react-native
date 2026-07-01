@@ -11,6 +11,7 @@ package com.facebook.react.viewmanagers;
 
 import android.view.View;
 import androidx.annotation.Nullable;
+import com.facebook.react.bridge.DynamicFromObject;
 import com.facebook.react.uimanager.BaseViewManager;
 import com.facebook.react.uimanager.BaseViewManagerDelegate;
 import com.facebook.react.uimanager.LayoutShadowNode;
@@ -27,6 +28,9 @@ public class StripeCurrencySelectorElementManagerDelegate<T extends View, U exte
         break;
       case "disabled":
         mViewManager.setDisabled(view, value == null ? false : (boolean) value);
+        break;
+      case "appearance":
+        mViewManager.setAppearance(view, new DynamicFromObject(value));
         break;
       default:
         super.setProperty(view, propName, value);

@@ -57,6 +57,7 @@ export default function GooglePayScreen() {
     const { canAddCard, details, error } = await canAddCardToWallet({
       primaryAccountIdentifier: card?.wallet?.primary_account_identifier,
       cardLastFour: card.last4,
+      cardBrand: card.brand,
     });
 
     if (error) {

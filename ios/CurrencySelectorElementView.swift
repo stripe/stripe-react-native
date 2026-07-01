@@ -39,6 +39,15 @@ public class StripeCurrencySelectorElementContainerView: UIView {
         }
     }
 
+    @objc public var appearance: NSDictionary? {
+        didSet {
+            selectorAppearance = CurrencySelectorAppearance.buildAppearanceFromParams(params: appearance)
+            if let checkout = attachedCheckout {
+                installSelectorView(for: checkout)
+            }
+        }
+    }
+
     /// Fired whenever the inner selector's intrinsic height changes so RN
     /// can match it. Session-state changes flow through the central
     /// `checkoutSessionDidChangeState` event on `StripeSdk` (see
@@ -50,6 +59,8 @@ public class StripeCurrencySelectorElementContainerView: UIView {
     private var selectorView: Checkout.CurrencySelectorView?
     private var sessionCancellable: AnyCancellable?
     private var lastReportedHeight: CGFloat = -1
+    private var attachedCheckout: Checkout?
+    private var selectorAppearance = Checkout.CurrencySelectorView.Appearance()
 
     // MARK: - Init
 
@@ -88,6 +99,7 @@ public class StripeCurrencySelectorElementContainerView: UIView {
                 return
             }
 
+            self.attachedCheckout = checkout
             self.installSelectorView(for: checkout)
             self.subscribeForLayoutUpdates(on: checkout)
         }
@@ -110,7 +122,9 @@ public class StripeCurrencySelectorElementContainerView: UIView {
     }
 
     private func installSelectorView(for checkout: Checkout) {
-        let view = Checkout.CurrencySelectorView(checkout: checkout)
+        selectorView?.removeFromSuperview()
+
+        let view = Checkout.CurrencySelectorView(checkout: checkout, appearance: selectorAppearance)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.isEnabled = !disabled
         addSubview(view)
@@ -135,6 +149,7 @@ public class StripeCurrencySelectorElementContainerView: UIView {
         sessionCancellable = nil
         selectorView?.removeFromSuperview()
         selectorView = nil
+        attachedCheckout = nil
         lastReportedHeight = -1
     }
 

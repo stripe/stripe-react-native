@@ -42,6 +42,7 @@ object PushProvisioningProxy {
     cardDescription: String,
     ephemeralKey: String,
     token: ReadableMap?,
+    isBounceProvisioned: Boolean,
   ) {
     try {
       Class.forName("com.stripe.android.pushProvisioning.PushProvisioningActivityStarter")
@@ -50,7 +51,7 @@ object PushProvisioningProxy {
       createActivityEventListener(context, view)
       context.currentActivity?.let {
         DefaultPushProvisioningProxy()
-          .beginPushProvisioning(it, description, EphemeralKeyProvider(ephemeralKey))
+          .beginPushProvisioning(it, description, EphemeralKeyProvider(ephemeralKey), isBounceProvisioned)
       }
         ?: run {
           view.dispatchEvent(
@@ -136,10 +137,10 @@ class DefaultPushProvisioningProxy {
     activity: Activity,
     description: String,
     provider: EphemeralKeyProvider,
+    isBounceProvisioned: Boolean,
   ) {
-    PushProvisioningActivityStarter(
-      activity,
-      PushProvisioningActivityStarter.Args(description, provider, false),
-    ).startForResult()
+    val args = PushProvisioningActivityStarter.Args(description, provider, true)
+    args.setIsBounceProvisioned(isBounceProvisioned)
+    PushProvisioningActivityStarter(activity, args).startForResult()
   }
 }

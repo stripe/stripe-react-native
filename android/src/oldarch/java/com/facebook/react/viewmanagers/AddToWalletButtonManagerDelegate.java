@@ -33,6 +33,9 @@ public class AddToWalletButtonManagerDelegate<T extends View, U extends BaseView
       case "testEnv":
         mViewManager.setTestEnv(view, value == null ? false : (boolean) value);
         break;
+      case "isBounceProvisioned":
+        mViewManager.setIsBounceProvisioned(view, value == null ? false : (boolean) value);
+        break;
       case "cardDetails":
         mViewManager.setCardDetails(view, new DynamicFromObject(value));
         break;

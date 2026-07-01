@@ -19,6 +19,11 @@ import {
 } from './components';
 import { colors } from '../colors';
 import {
+  currencySelectorLabelOptions,
+  currencySelectorShapeOptions,
+  currencySelectorThemeOptions,
+} from './CurrencySelectorAppearanceConfig';
+import {
   adaptivePricingCountryOptions,
   availablePaymentMethods,
   currencyOptions,
@@ -230,6 +235,48 @@ export function CheckoutPlaygroundConfigView({
                   }
                 />
               ) : null}
+              {config.adaptivePricing ? (
+                <View style={styles.currencySelectorOptions}>
+                  <Text style={styles.rowTitle}>Currency selector</Text>
+                  <Text style={styles.rowDescription}>
+                    Appearance used by the Adaptive Pricing selector on the cart
+                    screen.
+                  </Text>
+                  <PickerRow
+                    title="Theme"
+                    selectedValue={config.currencySelectorTheme}
+                    options={currencySelectorThemeOptions}
+                    onValueChange={(currencySelectorTheme) =>
+                      updateConfig({
+                        currencySelectorTheme:
+                          currencySelectorTheme as CheckoutPlaygroundConfig['currencySelectorTheme'],
+                      })
+                    }
+                  />
+                  <PickerRow
+                    title="Label"
+                    selectedValue={config.currencySelectorLabelContent}
+                    options={currencySelectorLabelOptions}
+                    onValueChange={(currencySelectorLabelContent) =>
+                      updateConfig({
+                        currencySelectorLabelContent:
+                          currencySelectorLabelContent as CheckoutPlaygroundConfig['currencySelectorLabelContent'],
+                      })
+                    }
+                  />
+                  <PickerRow
+                    title="Shape"
+                    selectedValue={config.currencySelectorShape}
+                    options={currencySelectorShapeOptions}
+                    onValueChange={(currencySelectorShape) =>
+                      updateConfig({
+                        currencySelectorShape:
+                          currencySelectorShape as CheckoutPlaygroundConfig['currencySelectorShape'],
+                      })
+                    }
+                  />
+                </View>
+              ) : null}
             </>
           ) : (
             <View style={styles.setupHint}>
@@ -325,6 +372,18 @@ const styles = StyleSheet.create({
     color: colors.slate,
     fontSize: 16,
     fontWeight: '600',
+  },
+  rowDescription: {
+    color: colors.dark_gray,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  currencySelectorOptions: {
+    borderTopColor: '#E4ECF5',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 16,
+    paddingHorizontal: 16,
   },
   editButton: {
     paddingVertical: 6,
