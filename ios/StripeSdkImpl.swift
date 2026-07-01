@@ -1518,7 +1518,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let presentingViewController = await MainActor.run {
                     findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
-                let result = try await coordinator.presentCRSCARFDeclaration(from: presentingViewController)
+                let result = try await coordinator.presentUserAttestation(from: presentingViewController)
                 switch result {
                 case .confirmed:
                     resolve(["status": "Confirmed"])
