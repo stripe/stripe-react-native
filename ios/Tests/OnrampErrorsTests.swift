@@ -7,30 +7,22 @@
 
 #if canImport(StripeCryptoOnramp)
 @testable import stripe_react_native
-@_spi(STP) import StripeCore
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
 import XCTest
 
 class OnrampErrorsTests: XCTestCase {
 
-    func test_createFailedError_withAppAttestationError_preservesOnrampDiagnostics() throws {
-        let error = AppAttestationAPIError(
-            context: try makeAPIErrorContext(
-                reason: "ios_app_id_mismatch",
-                operation: "configure",
-                appIdentifier: "com.example.app",
-                mode: "test",
-                sdkVersions: [
-                    SDKVersion(name: "stripe-ios", version: "25.16.0"),
-                    SDKVersion(name: "stripe-react-native", version: "0.66.0"),
-                ],
-                apiErrorCode: "link_failed_to_attest_request",
-                apiErrorType: "api_error",
-                apiErrorMessage: "Attestation request could not be verified.",
-                apiUserMessage: "App attestation failed.",
-                docURL: "https://docs.stripe.com/errors/app-attestation",
-                requestID: "req_123"
-            )
+    func test_createFailedError_withAppAttestationError_preservesAPIFields() throws {
+        let error = TestStripeCryptoOnrampAPIError(
+            code: "link_failed_to_attest_request",
+            userMessage: "App attestation failed.",
+            developerMessage: "Developer message with operation diagnostics.",
+            docURL: URL(string: "https://docs.stripe.com/errors/app-attestation"),
+            reason: "ios_app_id_mismatch",
+            type: "api_error",
+            requestID: "req_123",
+            apiMessage: "Attestation request could not be verified.",
+            apiUserMessage: "App attestation failed."
         )
 
         let details = try errorDetails(from: OnrampErrors.createFailedError(error))
@@ -46,36 +38,23 @@ class OnrampErrorsTests: XCTestCase {
         XCTAssertEqual(details["type"] as? String, error.type)
         XCTAssertEqual(details["apiErrorType"] as? String, error.type)
         XCTAssertEqual(details["reason"] as? String, error.reason)
-        XCTAssertEqual(details["operation"] as? String, error.operation)
-        XCTAssertEqual(details["appPackageName"] as? String, error.appIdentifier)
-        XCTAssertEqual(details["mode"] as? String, error.mode)
-        let sdkVersions = try XCTUnwrap(details["sdkVersions"] as? [[String: String]])
-        XCTAssertEqual(sdkVersions, [
-            ["name": "stripe-ios", "version": "25.16.0"],
-            ["name": "stripe-react-native", "version": "0.66.0"],
-        ])
         XCTAssertEqual(details["requestId"] as? String, error.requestID)
         XCTAssertEqual(details["apiErrorMessage"] as? String, error.apiMessage)
         XCTAssertEqual(details["apiUserMessage"] as? String, error.apiUserMessage)
         XCTAssertEqual(details["docUrl"] as? String, error.docURL?.absoluteString)
     }
 
-    func test_createFailedError_withUncategorizedAPIError_preservesStripeCodes() throws {
-        let error = UncategorizedAPIError(
-            context: try makeAPIErrorContext(
-                reason: "consumer_session_expired",
-                operation: "authorize",
-                appIdentifier: "com.example.app",
-                mode: "live",
-                sdkVersions: [
-                    SDKVersion(name: "stripe-ios", version: "25.16.0"),
-                ],
-                apiErrorCode: "consumer_session_expired",
-                apiErrorType: "authentication_error",
-                apiErrorMessage: "The consumer session has expired.",
-                apiUserMessage: "Session expired. Please sign in again.",
-                docURL: "https://docs.stripe.com/error-codes/consumer-session-expired"
-            )
+    func test_createFailedError_withUncategorizedAPIError_preservesAPIFields() throws {
+        let error = TestStripeCryptoOnrampAPIError(
+            code: "consumer_session_expired",
+            userMessage: "Session expired. Please sign in again.",
+            developerMessage: "Developer message.",
+            docURL: URL(string: "https://docs.stripe.com/error-codes/consumer-session-expired"),
+            reason: "consumer_session_expired",
+            type: "authentication_error",
+            requestID: nil,
+            apiMessage: "The consumer session has expired.",
+            apiUserMessage: "Session expired. Please sign in again."
         )
 
         let details = try errorDetails(from: OnrampErrors.createFailedError(error))
@@ -91,13 +70,30 @@ class OnrampErrorsTests: XCTestCase {
         XCTAssertEqual(details["type"] as? String, error.type)
         XCTAssertEqual(details["apiErrorType"] as? String, error.type)
         XCTAssertEqual(details["reason"] as? String, error.reason)
-        XCTAssertEqual(details["operation"] as? String, error.operation)
-        XCTAssertEqual(details["appPackageName"] as? String, error.appIdentifier)
-        XCTAssertEqual(details["mode"] as? String, error.mode)
         XCTAssertTrue(details["requestId"] is NSNull)
         XCTAssertEqual(details["apiErrorMessage"] as? String, error.apiMessage)
         XCTAssertEqual(details["apiUserMessage"] as? String, error.apiUserMessage)
         XCTAssertEqual(details["docUrl"] as? String, error.docURL?.absoluteString)
+    }
+
+    func test_createFailedError_withAppAttestationUnavailableError_preservesSdkErrorFields() throws {
+        let error = TestStripeCryptoOnrampError(
+            code: "app_attestation_unavailable",
+            userMessage: "This app couldn't be verified. Contact the app developer for help.",
+            developerMessage: "App attestation unavailable.\n\nRequest Context:\n  operation: configure",
+            docURL: nil
+        )
+
+        let details = try errorDetails(from: OnrampErrors.createFailedError(error))
+
+        XCTAssertEqual(details["code"] as? String, "Failed")
+        XCTAssertEqual(details["message"] as? String, error.userMessage)
+        XCTAssertEqual(details["localizedMessage"] as? String, error.localizedDescription)
+        XCTAssertEqual(details["onrampErrorType"] as? String, "AppAttestationUnavailableError")
+        XCTAssertEqual(details["developerMessage"] as? String, error.developerMessage)
+        XCTAssertEqual(details["userMessage"] as? String, error.userMessage)
+        XCTAssertEqual(details["stripeErrorCode"] as? String, error.code)
+        XCTAssertTrue(details["docUrl"] is NSNull)
     }
 
     func test_createFailedError_withLegacyOnrampError_usesGenericErrorShape() throws {
@@ -113,16 +109,12 @@ class OnrampErrorsTests: XCTestCase {
         XCTAssertNil(details["userMessage"])
     }
 
-    func test_createFailedError_withBaseOnrampError_preservesBaseDiagnostics() throws {
+    func test_createFailedError_withUnknownRichOnrampError_preservesBaseFields() throws {
         let error = TestStripeCryptoOnrampError(
             code: "sdk_error",
             userMessage: "Something went wrong.",
             developerMessage: "Developer message.",
-            docURL: URL(string: "https://docs.stripe.com/errors/sdk-error"),
-            sdkVersions: [
-                SDKVersion(name: "stripe-ios", version: "25.17.0"),
-                SDKVersion(name: "stripe-react-native", version: "0.67.0"),
-            ]
+            docURL: URL(string: "https://docs.stripe.com/errors/sdk-error")
         )
 
         let details = try errorDetails(from: OnrampErrors.createFailedError(error))
@@ -134,10 +126,7 @@ class OnrampErrorsTests: XCTestCase {
         XCTAssertEqual(details["userMessage"] as? String, error.userMessage)
         XCTAssertEqual(details["stripeErrorCode"] as? String, error.code)
         XCTAssertEqual(details["docUrl"] as? String, error.docURL?.absoluteString)
-        XCTAssertEqual(details["sdkVersions"] as? [[String: String]], [
-            ["name": "stripe-ios", "version": "25.17.0"],
-            ["name": "stripe-react-native", "version": "0.67.0"],
-        ])
+        XCTAssertNil(details["onrampErrorType"])
     }
 
     func test_createNotConfiguredError_usesFailedErrorShape() throws {
@@ -155,57 +144,25 @@ class OnrampErrorsTests: XCTestCase {
         return try XCTUnwrap(errorEnvelope["error"] as? NSDictionary)
     }
 
-    private func makeAPIErrorContext(
-        reason: String?,
-        operation: String,
-        appIdentifier: String?,
-        mode: String?,
-        sdkVersions: [SDKVersion],
-        apiErrorCode: String?,
-        apiErrorType: String?,
-        apiErrorMessage: String?,
-        apiUserMessage: String?,
-        docURL: String?,
-        requestID: String? = nil
-    ) throws -> APIErrorContext {
-        return APIErrorContext(
-            reason: reason,
-            operation: operation,
-            appIdentifier: appIdentifier,
-            mode: mode,
-            apiErrorCode: apiErrorCode,
-            apiErrorType: apiErrorType,
-            apiErrorMessage: apiErrorMessage,
-            apiUserMessage: apiUserMessage,
-            docURL: docURL.flatMap(URL.init(string:)),
-            underlyingError: try makeStripeError(
-                apiErrorCode: apiErrorCode,
-                apiErrorMessage: apiErrorMessage,
-                requestID: requestID
-            ),
-            sdkVersions: sdkVersions
-        )
-    }
+    private struct TestStripeCryptoOnrampAPIError: StripeCryptoOnrampAPIError {
+        let code: String
+        let userMessage: String
+        let developerMessage: String
+        let docURL: URL?
+        let reason: String?
+        let type: String?
+        let requestID: String?
+        let apiMessage: String?
+        let apiUserMessage: String?
+        let underlyingError: Swift.Error? = nil
 
-    /// Creates a Stripe API error so tests cover fields that Onramp derives from the underlying Stripe error.
-    private func makeStripeError(
-        apiErrorCode: String?,
-        apiErrorMessage: String?,
-        requestID: String?
-    ) throws -> StripeError {
-        var errorFields: [String: Any] = [
-            "type": "api_error",
-        ]
+        var errorDescription: String? {
+            return userMessage
+        }
 
-        errorFields["code"] = apiErrorCode
-        errorFields["message"] = apiErrorMessage
-
-        let data = try JSONSerialization.data(withJSONObject: ["error": errorFields])
-        let response = try JSONDecoder().decode(StripeAPIErrorResponse.self, from: data)
-        var apiError = try XCTUnwrap(response.error)
-        apiError.requestID = requestID
-
-        return StripeError.apiError(apiError)
+        var debugDescription: String {
+            return developerMessage
+        }
     }
 
     private struct TestStripeCryptoOnrampError: StripeCryptoOnrampError {
@@ -213,8 +170,7 @@ class OnrampErrorsTests: XCTestCase {
         let userMessage: String
         let developerMessage: String
         let docURL: URL?
-        let sdkVersions: [SDKVersion]
-        let underlyingError: Error? = nil
+        let underlyingError: Swift.Error? = nil
 
         var errorDescription: String? {
             return userMessage
