@@ -3,8 +3,8 @@
 ## Unreleased
 **Changes**
 * [Changed] Renamed the Crypto Onramp error status enum from `OnrampError` to `OnrampErrorStatus`. Existing generic Onramp errors now use `StripeError<OnrampErrorStatus>`.
-* [Changed] Split rich Crypto Onramp errors into `OnrampSdkError` for SDK-level diagnostics and `OnrampApiError` for API-specific context. `OnrampSdkError` now includes an `onrampErrorType` discriminator typed as `OnrampErrorType`, and `OnrampApiError` narrows it to `OnrampApiErrorType`.
-* [Added] Added `LegacyConfigureAppAttestationError` for React Native compatibility app attestation errors.
+* [Changed] Split rich Crypto Onramp errors into `OnrampSdkError` for SDK-owned diagnostics and `OnrampApiError` for API response context. Rich SDK errors use an `onrampErrorType` discriminator typed as `OnrampErrorType`, while API errors narrow it to `OnrampApiErrorType` and add fields such as `reason`, `requestId`, and API message/code details.
+* [Added] Added `AppAttestationUnavailableError` for local SDK app attestation availability/setup failures.
 
 ## 0.68.0 - 2026-06-29
 **Changes**
