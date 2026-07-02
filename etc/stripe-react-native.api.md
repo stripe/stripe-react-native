@@ -217,6 +217,11 @@ type AppAttestationError = OnrampApiError & {
     onrampErrorType: 'AppAttestationError';
 };
 
+// @public
+type AppAttestationUnavailableError = OnrampSdkError & {
+    onrampErrorType: 'AppAttestationUnavailableError';
+};
+
 // Warning: (ae-forgotten-export) The symbol "RecursivePartial" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -1437,7 +1442,7 @@ type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
     onrampErrorType?: never;
     developerMessage?: never;
     userMessage?: never;
-}) | AppAttestationError | UncategorizedApiError | LegacyConfigureAppAttestationError;
+}) | AppAttestationError | UncategorizedApiError | AppAttestationUnavailableError;
 
 // @public
 type CryptoPaymentToken = {
@@ -2318,11 +2323,6 @@ type LastPaymentError = StripeError<string> & {
 };
 
 // @public
-type LegacyConfigureAppAttestationError = OnrampSdkError & {
-    onrampErrorType: 'LegacyConfigureAppAttestationError';
-};
-
-// @public
 type LinkAppearance = {
     lightColors?: LinkColors;
     darkColors?: LinkColors;
@@ -2592,12 +2592,11 @@ declare namespace Onramp {
         ComplianceIdentifierRequirements,
         OnrampApiErrorType,
         OnrampErrorType,
-        SDKVersion,
         OnrampSdkError,
         OnrampApiError,
         AppAttestationError,
+        AppAttestationUnavailableError,
         UncategorizedApiError,
-        LegacyConfigureAppAttestationError,
         CryptoOnrampError,
         RetrieveMissingIdentifiersResult,
         SubmitIdentifiersResult,
@@ -2620,9 +2619,6 @@ export { Onramp }
 type OnrampApiError = OnrampSdkError & {
     onrampErrorType: OnrampApiErrorType;
     reason?: string;
-    operation: string;
-    appPackageName?: string;
-    mode?: 'live' | 'test';
     requestId?: string;
     apiErrorCode?: string;
     apiErrorType?: string;
@@ -2644,7 +2640,7 @@ enum OnrampErrorStatus {
 }
 
 // @public
-type OnrampErrorType = OnrampApiErrorType | 'LegacyConfigureAppAttestationError';
+type OnrampErrorType = OnrampApiErrorType | 'AppAttestationUnavailableError';
 
 // @public
 type OnrampGooglePayParams = {
@@ -2666,7 +2662,6 @@ type OnrampSdkError = StripeError<OnrampErrorStatus> & {
     developerMessage: string;
     userMessage: string;
     docUrl?: string;
-    sdkVersions?: SDKVersion[];
 };
 
 // @public (undocumented)
@@ -3469,12 +3464,6 @@ export enum RowStyle {
     FlatWithRadio = "flatWithRadio",
     FloatingButton = "floatingButton"
 }
-
-// @public
-type SDKVersion = {
-    name: string;
-    version: string;
-};
 
 // @public (undocumented)
 interface SepaDebitResult {

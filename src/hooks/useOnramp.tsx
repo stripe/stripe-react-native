@@ -5,8 +5,6 @@ import type { Address } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
 import { CryptoPaymentToken } from '../types/Onramp';
-import { getCurrentPublishableKey } from '../internal/stripeConfig';
-import pjson from '../../package.json';
 
 export function requireOnrampModule() {
   if (NativeOnrampSdk == null) {
@@ -26,82 +24,6 @@ export function requireOnrampModule() {
 let onCheckoutClientSecretRequestedSubscription: EventSubscription | null =
   null;
 
-const legacyAppAttestationUnavailableMessages = [
-  'App attestation is missing or device cannot use native Link.',
-  'Native Link is not available',
-];
-const cryptoOnrampAppAttestationUnavailableCode = 'app_attestation_unavailable';
-
-function isLegacyAppAttestationUnavailableMessage(message?: string): boolean {
-  return (
-    message != null && legacyAppAttestationUnavailableMessages.includes(message)
-  );
-}
-
-function publishableKeyMode(): 'live' | 'test' | undefined {
-  const publishableKey = getCurrentPublishableKey();
-  if (publishableKey?.startsWith('pk_live_')) {
-    return 'live';
-  }
-  if (publishableKey?.startsWith('pk_test_')) {
-    return 'test';
-  }
-  return undefined;
-}
-
-// Temporary React Native shim: iOS/Android currently surface this configure/create
-// failure as a legacy SDK-level message instead of a typed rich error. This can be
-// removed once the native SDKs map it themselves, though keeping it is harmless as
-// a compatibility fallback for older native SDK versions.
-function mapLegacyConfigureAppAttestationError(result: {
-  error?: Onramp.CryptoOnrampError;
-}): { error?: Onramp.CryptoOnrampError } {
-  const error = result.error;
-  if (
-    error == null ||
-    error.onrampErrorType != null ||
-    (!isLegacyAppAttestationUnavailableMessage(error.message) &&
-      !isLegacyAppAttestationUnavailableMessage(error.localizedMessage))
-  ) {
-    return result;
-  }
-
-  const userMessage =
-    "This app couldn't be verified. Contact the app developer for help.";
-  const mode = publishableKeyMode();
-
-  const context = [
-    'Context:',
-    '  operation: configure',
-    mode != null ? `  mode: ${mode}` : undefined,
-  ].filter((line): line is string => line != null);
-  const appAttestationError: Onramp.LegacyConfigureAppAttestationError = {
-    ...error,
-    onrampErrorType: 'LegacyConfigureAppAttestationError',
-    message: userMessage,
-    localizedMessage: userMessage,
-    stripeErrorCode: cryptoOnrampAppAttestationUnavailableCode,
-    developerMessage: [
-      "App attestation unavailable: this app isn't configured to use Stripe Crypto Onramp.",
-      '',
-      "This usually means app attestation isn't enabled for this Stripe account, or this app isn't registered as a trusted application. Use your iOS bundle ID or Android package name and contact Stripe to enable app attestation or register the app for this account.",
-      '',
-      ...context,
-      '',
-      `Code: ${cryptoOnrampAppAttestationUnavailableCode}`,
-      '',
-      'Next step: confirm app attestation is enabled for this Stripe account and that the app identifier is registered as trusted, then call configure again.',
-      `SDK: stripe-react-native@${pjson.version}`,
-    ].join('\n'),
-    userMessage,
-  };
-
-  return {
-    ...result,
-    error: appAttestationError,
-  };
-}
-
 /**
  * useOnramp hook
  */
@@ -110,9 +32,7 @@ export function useOnramp() {
     async (
       config: Onramp.Configuration
     ): Promise<{ error?: Onramp.CryptoOnrampError }> => {
-      return mapLegacyConfigureAppAttestationError(
-        await requireOnrampModule().configureOnramp(config)
-      );
+      return requireOnrampModule().configureOnramp(config);
     },
     []
   );

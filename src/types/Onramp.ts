@@ -280,17 +280,7 @@ export type OnrampApiErrorType =
  */
 export type OnrampErrorType =
   | OnrampApiErrorType
-  | 'LegacyConfigureAppAttestationError';
-
-/**
- * A native SDK component and version included in Crypto Onramp diagnostics.
- */
-export type SDKVersion = {
-  /** The SDK component name. */
-  name: string;
-  /** The SDK component version. */
-  version: string;
-};
+  | 'AppAttestationUnavailableError';
 
 /**
  * Base rich error shape returned by native Crypto Onramp SDK errors.
@@ -300,7 +290,6 @@ export type OnrampSdkError = StripeError<OnrampErrorStatus> & {
   developerMessage: string;
   userMessage: string;
   docUrl?: string;
-  sdkVersions?: SDKVersion[];
 };
 
 /**
@@ -309,9 +298,6 @@ export type OnrampSdkError = StripeError<OnrampErrorStatus> & {
 export type OnrampApiError = OnrampSdkError & {
   onrampErrorType: OnrampApiErrorType;
   reason?: string;
-  operation: string;
-  appPackageName?: string;
-  mode?: 'live' | 'test';
   requestId?: string;
   apiErrorCode?: string;
   apiErrorType?: string;
@@ -334,11 +320,10 @@ export type UncategorizedApiError = OnrampApiError & {
 };
 
 /**
- * A compatibility error for older native SDKs that returned app attestation setup
- * failures as legacy configure errors.
+ * A typed Crypto Onramp local SDK error for app attestation setup failures.
  */
-export type LegacyConfigureAppAttestationError = OnrampSdkError & {
-  onrampErrorType: 'LegacyConfigureAppAttestationError';
+export type AppAttestationUnavailableError = OnrampSdkError & {
+  onrampErrorType: 'AppAttestationUnavailableError';
 };
 
 /**
@@ -356,7 +341,7 @@ export type CryptoOnrampError =
     })
   | AppAttestationError
   | UncategorizedApiError
-  | LegacyConfigureAppAttestationError;
+  | AppAttestationUnavailableError;
 
 /**
  * Result of retrieving missing compliance identifiers.
