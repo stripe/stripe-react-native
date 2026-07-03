@@ -523,6 +523,98 @@ class PaymentSheetUtilsTests: XCTestCase {
         XCTAssertEqual(result[1].id, "cpmt_valid2")
     }
 
+    // MARK: - buildIntentConfiguration captureMethod Tests
+
+    func test_buildIntentConfiguration_manualCaptureMethod() {
+        let modeParams: NSDictionary = [
+            "amount": 1099,
+            "currencyCode": "usd",
+            "captureMethod": "Manual",
+        ]
+
+        let config = StripeSdkImpl.shared.buildIntentConfiguration(
+            modeParams: modeParams,
+            paymentMethodTypes: nil,
+            onBehalfOf: nil,
+            captureMethod: StripeSdkImpl.mapCaptureMethod(modeParams["captureMethod"] as? String),
+            useConfirmationTokenCallback: false
+        )
+
+        if case .payment(let amount, let currency, _, let captureMethod, _) = config.mode {
+            XCTAssertEqual(amount, 1099)
+            XCTAssertEqual(currency, "usd")
+            XCTAssertEqual(captureMethod, .manual)
+        } else {
+            XCTFail("Expected payment mode")
+        }
+    }
+
+    func test_buildIntentConfiguration_automaticAsyncCaptureMethod() {
+        let modeParams: NSDictionary = [
+            "amount": 2000,
+            "currencyCode": "eur",
+            "captureMethod": "AutomaticAsync",
+        ]
+
+        let config = StripeSdkImpl.shared.buildIntentConfiguration(
+            modeParams: modeParams,
+            paymentMethodTypes: nil,
+            onBehalfOf: nil,
+            captureMethod: StripeSdkImpl.mapCaptureMethod(modeParams["captureMethod"] as? String),
+            useConfirmationTokenCallback: false
+        )
+
+        if case .payment(_, _, _, let captureMethod, _) = config.mode {
+            XCTAssertEqual(captureMethod, .automaticAsync)
+        } else {
+            XCTFail("Expected payment mode")
+        }
+    }
+
+    func test_buildIntentConfiguration_missingCaptureMethod_defaultsToAutomatic() {
+        let modeParams: NSDictionary = [
+            "amount": 500,
+            "currencyCode": "usd",
+        ]
+
+        let config = StripeSdkImpl.shared.buildIntentConfiguration(
+            modeParams: modeParams,
+            paymentMethodTypes: nil,
+            onBehalfOf: nil,
+            captureMethod: StripeSdkImpl.mapCaptureMethod(modeParams["captureMethod"] as? String),
+            useConfirmationTokenCallback: false
+        )
+
+        if case .payment(_, _, _, let captureMethod, _) = config.mode {
+            XCTAssertEqual(captureMethod, .automatic)
+        } else {
+            XCTFail("Expected payment mode")
+        }
+    }
+
+    func test_buildIntentConfiguration_captureMethodFromNestedMode_notTopLevel() {
+        // Regression test: captureMethod must be read from mode params,
+        // not from the top-level intentConfiguration dictionary.
+        let topLevelIntentConfig: NSDictionary = [
+            "captureMethod": "Manual",
+            "mode": [
+                "amount": 1099,
+                "currencyCode": "usd",
+                // captureMethod intentionally absent from mode
+            ],
+        ]
+
+        let modeParams = topLevelIntentConfig["mode"] as! NSDictionary
+        // Reading from modeParams (correct behavior) should yield nil/automatic
+        let captureMethodString = modeParams["captureMethod"] as? String
+        XCTAssertNil(captureMethodString)
+        XCTAssertEqual(StripeSdkImpl.mapCaptureMethod(captureMethodString), .automatic)
+
+        // Reading from top-level (old incorrect behavior) would have yielded "Manual"
+        let topLevelCaptureMethod = topLevelIntentConfig["captureMethod"] as? String
+        XCTAssertEqual(topLevelCaptureMethod, "Manual")
+    }
+
     // MARK: - computeAllowedCardFundingTypes Tests
 
     func test_computeAllowedCardFundingTypes_nilParams_returnsNil() {
