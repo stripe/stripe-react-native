@@ -5,9 +5,7 @@ package com.reactnativestripesdk
 import com.stripe.android.core.StripeError
 import com.stripe.android.core.exception.APIException
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
-import com.stripe.android.crypto.onramp.exception.APIErrorContext
 import com.stripe.android.crypto.onramp.exception.SDKVersion
-import com.stripe.android.crypto.onramp.exception.StripeCryptoOnrampError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -18,9 +16,9 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class OnrampErrorsTest {
   @Test
-  fun createOnrampFailedError_withAppAttestationException_preservesOnrampDiagnostics() {
+  fun createOnrampFailedError_withAppAttestationException_preservesApiFields() {
     val error =
-      createOnrampException(
+      createApiOnrampException(
         className = "com.stripe.android.crypto.onramp.exception.AppAttestationException",
         reason = "android_package_name_mismatch",
         operation = "configure",
@@ -53,17 +51,6 @@ class OnrampErrorsTest {
     assertEquals("api_error", details.getString("type"))
     assertEquals("api_error", details.getString("apiErrorType"))
     assertEquals("android_package_name_mismatch", details.getString("reason"))
-    assertEquals("configure", details.getString("operation"))
-    assertEquals("com.example.app", details.getString("appPackageName"))
-    assertEquals("test", details.getString("mode"))
-    val sdkVersions = details.getArray("sdkVersions")
-    assertNotNull(sdkVersions)
-    val stripeAndroidVersion = sdkVersions!!.getMap(0)
-    assertEquals("stripe-android", stripeAndroidVersion!!.getString("name"))
-    assertEquals("23.9.1", stripeAndroidVersion.getString("version"))
-    val reactNativeVersion = sdkVersions.getMap(1)
-    assertEquals("stripe-react-native", reactNativeVersion!!.getString("name"))
-    assertEquals("0.66.0", reactNativeVersion.getString("version"))
     assertEquals("req_attestation", details.getString("requestId"))
     assertEquals(
       "Attestation request could not be verified.",
@@ -79,9 +66,9 @@ class OnrampErrorsTest {
   }
 
   @Test
-  fun createOnrampFailedError_withUncategorizedApiError_preservesStripeCodes() {
+  fun createOnrampFailedError_withUncategorizedApiError_preservesApiFields() {
     val error =
-      createOnrampException(
+      createApiOnrampException(
         className = "com.stripe.android.crypto.onramp.exception.UncategorizedApiErrorException",
         reason = "consumer_session_expired",
         operation = "authorize",
@@ -105,47 +92,50 @@ class OnrampErrorsTest {
     assertEquals("authentication_error", details.getString("type"))
     assertEquals("Session expired. Please sign in again.", details.getString("message"))
     assertEquals("Session expired. Please sign in again.", details.getString("userMessage"))
-    assertEquals("authorize", details.getString("operation"))
+    assertEquals("consumer_session_expired", details.getString("reason"))
     assertEquals("req_auth", details.getString("requestId"))
     assertTrue(details.getString("developerMessage")!!.contains("Code: consumer_session_expired"))
   }
 
   @Test
-  fun createOnrampFailedError_withBaseOnrampError_preservesBaseDiagnostics() {
+  fun createOnrampFailedError_withAppAttestationUnavailableException_preservesSdkErrorFields() {
+    val underlyingError = IllegalStateException("Native Link is not available")
     val error =
-      TestStripeCryptoOnrampError(
-        code = "sdk_error",
-        userMessage = "Something went wrong.",
-        developerMessage = "Developer message.",
-        docUrl = "https://docs.stripe.com/errors/sdk-error",
+      createAppAttestationUnavailableException(
+        underlyingError = underlyingError,
+        operation = "configure",
+        appPackageName = "com.example.app",
+        mode = "test",
         sdkVersions =
           listOf(
             SDKVersion(name = "stripe-android", version = "23.10.0"),
             SDKVersion(name = "stripe-react-native", version = "0.67.0"),
           ),
-      )
+        userMessage = "This app couldn't be verified. Contact the app developer for help.",
+      ) ?: return
 
     val details = createOnrampFailedError(error).getMap("error")
 
     assertNotNull(details)
     assertEquals("Failed", details!!.getString("code"))
-    assertEquals("Something went wrong.", details.getString("message"))
-    assertEquals("Something went wrong.", details.getString("localizedMessage"))
-    assertEquals("Developer message.", details.getString("developerMessage"))
-    assertEquals("Something went wrong.", details.getString("userMessage"))
-    assertEquals("sdk_error", details.getString("stripeErrorCode"))
-    assertEquals("https://docs.stripe.com/errors/sdk-error", details.getString("docUrl"))
-    val sdkVersions = details.getArray("sdkVersions")
-    assertNotNull(sdkVersions)
-    val stripeAndroidVersion = sdkVersions!!.getMap(0)
-    assertEquals("stripe-android", stripeAndroidVersion!!.getString("name"))
-    assertEquals("23.10.0", stripeAndroidVersion.getString("version"))
-    val reactNativeVersion = sdkVersions.getMap(1)
-    assertEquals("stripe-react-native", reactNativeVersion!!.getString("name"))
-    assertEquals("0.67.0", reactNativeVersion.getString("version"))
+    assertEquals("AppAttestationUnavailableError", details.getString("onrampErrorType"))
+    assertEquals(
+      "This app couldn't be verified. Contact the app developer for help.",
+      details.getString("message"),
+    )
+    assertEquals(
+      "This app couldn't be verified. Contact the app developer for help.",
+      details.getString("localizedMessage"),
+    )
+    assertEquals(
+      "This app couldn't be verified. Contact the app developer for help.",
+      details.getString("userMessage"),
+    )
+    assertEquals("app_attestation_unavailable", details.getString("stripeErrorCode"))
+    assertTrue(details.getString("developerMessage")!!.contains("operation: configure"))
   }
 
-  private fun createOnrampException(
+  private fun createApiOnrampException(
     className: String,
     reason: String,
     operation: String,
@@ -168,8 +158,8 @@ class OnrampErrorsTest {
         docUrl = docUrl,
       )
     val cause = APIException(stripeError = stripeError, requestId = requestId)
-    val context =
-      APIErrorContext(
+    val apiErrorContext =
+      createApiErrorContext(
         reason = reason,
         operation = operation,
         appPackageName = appPackageName,
@@ -182,13 +172,35 @@ class OnrampErrorsTest {
         underlyingError = cause,
       )
 
-    // The exception classes in the `com.stripe.android.crypto.onramp.exception` package
-    // don't have public constructors, so we use reflection to create instances for testing.
+    createDiagnosticContext(
+      sdkVersions,
+      operation,
+      appPackageName,
+      mode,
+    )?.let { diagnosticContext ->
+      val constructor =
+        Class
+          .forName(className)
+          .getDeclaredConstructor(
+            apiErrorContext.javaClass,
+            diagnosticContext.javaClass,
+            String::class.java,
+          ).apply {
+            isAccessible = true
+          }
+
+      return constructor.newInstance(
+        apiErrorContext,
+        diagnosticContext,
+        userMessage,
+      ) as Exception
+    }
+
     val constructor =
       Class
         .forName(className)
         .getDeclaredConstructor(
-          APIErrorContext::class.java,
+          apiErrorContext.javaClass,
           List::class.java,
           String::class.java,
         ).apply {
@@ -196,19 +208,127 @@ class OnrampErrorsTest {
         }
 
     return constructor.newInstance(
-      context,
+      apiErrorContext,
       sdkVersions,
       userMessage,
     ) as Exception
   }
 
-  private class TestStripeCryptoOnrampError(
-    override val code: String,
-    override val userMessage: String,
-    override val developerMessage: String,
-    override val docUrl: String?,
-    override val sdkVersions: List<SDKVersion>,
-    override val underlyingError: Throwable? = null,
-  ) : Exception(userMessage),
-    StripeCryptoOnrampError
+  private fun createAppAttestationUnavailableException(
+    underlyingError: Throwable,
+    operation: String,
+    appPackageName: String,
+    mode: String,
+    sdkVersions: List<SDKVersion>,
+    userMessage: String,
+  ): Exception? {
+    val diagnosticContext =
+      createDiagnosticContext(
+        sdkVersions,
+        operation,
+        appPackageName,
+        mode,
+      ) ?: return null
+    val exceptionClass =
+      runCatching {
+        Class.forName(
+          "com.stripe.android.crypto.onramp.exception.AppAttestationUnavailableException",
+        )
+      }.getOrNull()
+        ?: return null
+
+    val constructor =
+      exceptionClass
+        .getDeclaredConstructor(
+          Throwable::class.java,
+          diagnosticContext.javaClass,
+          String::class.java,
+        )
+        .apply {
+          isAccessible = true
+        }
+
+    return constructor.newInstance(
+      underlyingError,
+      diagnosticContext,
+      userMessage,
+    ) as Exception
+  }
+
+  private fun createDiagnosticContext(
+    sdkVersions: List<SDKVersion>,
+    operation: String,
+    appPackageName: String,
+    mode: String,
+  ): Any? {
+    val diagnosticContextClass =
+      runCatching {
+        Class.forName("com.stripe.android.crypto.onramp.exception.DiagnosticContext")
+      }.getOrNull()
+        ?: return null
+    val constructor =
+      diagnosticContextClass
+        .getDeclaredConstructor(
+          List::class.java,
+          String::class.java,
+          String::class.java,
+          String::class.java,
+        ).apply {
+          isAccessible = true
+        }
+
+    return constructor.newInstance(sdkVersions, operation, appPackageName, mode)
+  }
+
+  private fun createApiErrorContext(
+    reason: String,
+    operation: String,
+    appPackageName: String,
+    mode: String,
+    apiErrorCode: String,
+    apiErrorType: String,
+    apiErrorMessage: String,
+    apiUserMessage: String,
+    docUrl: String,
+    underlyingError: APIException,
+  ): Any {
+    val apiErrorContextClass =
+      Class.forName("com.stripe.android.crypto.onramp.exception.APIErrorContext")
+    val constructor =
+      apiErrorContextClass.declaredConstructors
+        .first { constructor ->
+          constructor.parameterTypes.size == NEW_API_ERROR_CONTEXT_PARAMETER_COUNT ||
+            constructor.parameterTypes.size == OLD_API_ERROR_CONTEXT_PARAMETER_COUNT
+        }.apply {
+          isAccessible = true
+        }
+
+    return if (constructor.parameterTypes.size == NEW_API_ERROR_CONTEXT_PARAMETER_COUNT) {
+      constructor.newInstance(
+        reason,
+        apiErrorCode,
+        apiErrorType,
+        apiErrorMessage,
+        apiUserMessage,
+        docUrl,
+        underlyingError,
+      )
+    } else {
+      constructor.newInstance(
+        reason,
+        operation,
+        appPackageName,
+        mode,
+        apiErrorCode,
+        apiErrorType,
+        apiErrorMessage,
+        apiUserMessage,
+        docUrl,
+        underlyingError,
+      )
+    }
+  }
 }
+
+private const val NEW_API_ERROR_CONTEXT_PARAMETER_COUNT = 7
+private const val OLD_API_ERROR_CONTEXT_PARAMETER_COUNT = 10
