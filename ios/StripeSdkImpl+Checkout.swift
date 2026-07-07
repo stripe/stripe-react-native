@@ -10,7 +10,6 @@ import Foundation
 @_spi(ReactNativeSDK) import StripePaymentSheet
 
 extension StripeSdkImpl {
-    @MainActor
     internal func currentCheckoutStateResult(checkout: Checkout) -> NSDictionary {
         Mappers.mapFromCheckoutState(isLoading: checkout.isLoading, session: checkout.session)
     }
@@ -37,7 +36,8 @@ extension StripeSdkImpl {
                 )
                 let sessionKey = UUID().uuidString
 
-                let cancellable = Publishers.CombineLatest(checkout.$isLoading, checkout.$session)
+                let cancellable = checkout.$isLoading
+                    .combineLatest(checkout.$session)
                     .dropFirst()
                     .sink { [weak self] isLoading, session in
                         self?.emitter?.emitCheckoutSessionDidChangeState([
