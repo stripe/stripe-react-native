@@ -85,32 +85,6 @@ extension StripeSdkImpl {
         }
     }
 
-    @objc(checkoutUpdateBillingAddress:address:name:phone:resolver:rejecter:)
-    public func checkoutUpdateBillingAddress(
-        sessionKey: String,
-        address: NSDictionary,
-        name: String?,
-        phone: String?,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) {
-        performCheckoutAddressMutation(
-            sessionKey: sessionKey,
-            address: address,
-            name: name,
-            phone: phone,
-            missingCountryMessage: "A billing address country is required.",
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout, addressUpdate in
-            try await checkout.updateBillingAddress(
-                name: addressUpdate.name,
-                phone: addressUpdate.phone,
-                address: addressUpdate.address
-            )
-        }
-    }
-
     @objc(checkoutApplyPromotionCode:code:resolver:rejecter:)
     public func checkoutApplyPromotionCode(
         sessionKey: String,
