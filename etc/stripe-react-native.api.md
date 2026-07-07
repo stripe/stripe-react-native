@@ -2584,7 +2584,6 @@ declare namespace Onramp {
         ComplianceIdentifierAlternativeGroup,
         ComplianceIdentifierRequirements,
         OnrampErrorType,
-        SDKVersion,
         OnrampApiError,
         AppAttestationError,
         UncategorizedApiError,
@@ -2612,10 +2611,6 @@ type OnrampApiError = StripeError<OnrampError> & {
     developerMessage: string;
     userMessage: string;
     reason?: string;
-    operation: string;
-    appPackageName: string;
-    mode?: 'live' | 'test';
-    sdkVersions?: SDKVersion[];
     requestId?: string;
     apiErrorCode?: string;
     apiErrorType?: string;
@@ -3451,12 +3446,6 @@ export enum RowStyle {
     FlatWithRadio = "flatWithRadio",
     FloatingButton = "floatingButton"
 }
-
-// @public
-type SDKVersion = {
-    name: string;
-    version: string;
-};
 
 // @public (undocumented)
 interface SepaDebitResult {
