@@ -68,6 +68,7 @@ export function ConnectAccountOnboarding({
   onLoaderStart,
   onLoadError,
   onPageDidLoad,
+  ...rest
 }: {
   title?: string;
   onExit: () => void;
@@ -77,6 +78,13 @@ export function ConnectAccountOnboarding({
   privacyPolicyUrl?: string;
   collectionOptions?: CollectionOptions;
 } & Omit<CommonComponentProps, 'style'>) {
+  // kycRecipientAccountId is intentionally omitted from the public prop types to
+  // discourage use by external integrators. This is API hygiene only — it is not
+  // a security boundary. Real authorization is enforced server-side.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const kycRecipientAccountId = (rest as any).kycRecipientAccountId as
+    | string
+    | undefined;
   const [visible, setVisible] = useState(true);
   const [loading, setLoading] = useState(true);
   const { appearance } = useConnectComponents();
@@ -96,12 +104,14 @@ export function ConnectAccountOnboarding({
       setRecipientTermsOfServiceUrl: recipientTermsOfServiceUrl,
       setPrivacyPolicyUrl: privacyPolicyUrl,
       setCollectionOptions: collectionOptions,
+      setKycRecipientAccountId: kycRecipientAccountId,
     };
   }, [
     fullTermsOfServiceUrl,
     recipientTermsOfServiceUrl,
     privacyPolicyUrl,
     collectionOptions,
+    kycRecipientAccountId,
   ]);
 
   const onExitCallback = useCallback(() => {
