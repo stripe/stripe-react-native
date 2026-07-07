@@ -12,10 +12,10 @@ extension Mappers {
 
     // MARK: - State & Session
 
-    class func mapFromCheckoutState(_ state: Checkout.State) -> NSDictionary {
+    class func mapFromCheckoutState(isLoading: Bool, session: Checkout.Session) -> NSDictionary {
         [
-            "status": state.isLoading ? "loading" : "loaded",
-            "session": mapFromCheckoutSession(state.session),
+            "status": isLoading ? "loading" : "loaded",
+            "session": mapFromCheckoutSession(session),
         ]
     }
 

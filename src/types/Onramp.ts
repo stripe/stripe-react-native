@@ -273,25 +273,11 @@ export type ComplianceIdentifierRequirements = {
  */
 export type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
 
-/**
- * A native SDK component and version included in Crypto Onramp diagnostics.
- */
-export type SDKVersion = {
-  /** The SDK component name. */
-  name: string;
-  /** The SDK component version. */
-  version: string;
-};
-
 export type OnrampApiError = StripeError<OnrampError> & {
   onrampErrorType: string;
   developerMessage: string;
   userMessage: string;
   reason?: string;
-  operation: string;
-  appPackageName: string;
-  mode?: 'live' | 'test';
-  sdkVersions?: SDKVersion[];
   requestId?: string;
   apiErrorCode?: string;
   apiErrorType?: string;

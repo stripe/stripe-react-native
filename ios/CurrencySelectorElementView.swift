@@ -110,7 +110,7 @@ public class StripeCurrencySelectorElementContainerView: UIView {
     /// so the caption-text changes after a currency selection are reflected
     /// in our reported height back to RN.
     private func subscribeForLayoutUpdates(on checkout: Checkout) {
-        sessionCancellable = checkout.$state
+        sessionCancellable = checkout.$session
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in

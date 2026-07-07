@@ -11,7 +11,7 @@ import Foundation
 
 extension StripeSdkImpl {
     internal func currentCheckoutStateResult(checkout: Checkout) -> NSDictionary {
-        Mappers.mapFromCheckoutState(checkout.state)
+        Mappers.mapFromCheckoutState(isLoading: checkout.isLoading, session: checkout.session)
     }
 
     @objc(initCheckoutSession:configuration:resolver:rejecter:)
@@ -36,12 +36,13 @@ extension StripeSdkImpl {
                 )
                 let sessionKey = UUID().uuidString
 
-                let cancellable = checkout.$state
+                let cancellable = checkout.$isLoading
+                    .combineLatest(checkout.$session)
                     .dropFirst()
-                    .sink { [weak self] state in
+                    .sink { [weak self] isLoading, session in
                         self?.emitter?.emitCheckoutSessionDidChangeState([
                             "sessionKey": sessionKey,
-                            "state": Mappers.mapFromCheckoutState(state),
+                            "state": Mappers.mapFromCheckoutState(isLoading: isLoading, session: session),
                         ])
                     }
 
@@ -329,8 +330,6 @@ extension StripeSdkImpl {
             switch checkoutError {
             case .invalidClientSecret:
                 return "InvalidClientSecret"
-            case .sessionNotOpen:
-                return "SessionNotOpen"
             case .sheetCurrentlyPresented:
                 return "SheetCurrentlyPresented"
             default:
