@@ -128,7 +128,6 @@ export function CheckoutPlaygroundCartView({
   const [embeddedModalVisible, setEmbeddedModalVisible] = useState(false);
   const [showShippingAddressSheet, setShowShippingAddressSheet] =
     useState(false);
-  const [showBillingAddressSheet, setShowBillingAddressSheet] = useState(false);
   const [selectedShippingOptionId, setSelectedShippingOptionId] = useState<
     string | null
   >(null);
@@ -165,9 +164,6 @@ export function CheckoutPlaygroundCartView({
   const shouldShowShippingAddressSection = Boolean(
     session && (config.shippingAddressCollection || session.shippingAddress)
   );
-  const shouldShowBillingAddressSection = Boolean(
-    session && (config.billingAddressCollection || session.billingAddress)
-  );
 
   const displayedSelectedShippingOptionId = useMemo(() => {
     if (
@@ -184,10 +180,6 @@ export function CheckoutPlaygroundCartView({
   const shippingAddressLines = useMemo(
     () => getAddressLines(session?.shippingAddress),
     [session?.shippingAddress]
-  );
-  const billingAddressLines = useMemo(
-    () => getAddressLines(session?.billingAddress),
-    [session?.billingAddress]
   );
   const orderSummaryRows = useMemo(
     () => buildOrderSummaryRows(session?.total),
@@ -618,22 +610,6 @@ export function CheckoutPlaygroundCartView({
           />
         ) : null}
 
-        {shouldShowBillingAddressSection ? (
-          <AddressSection
-            actionLabel={
-              session.billingAddress
-                ? 'Edit billing address'
-                : 'Add billing address'
-            }
-            badge="B"
-            disabled={disableActions}
-            emptyMessage="No billing address has been collected yet."
-            lines={billingAddressLines}
-            onPress={() => setShowBillingAddressSheet(true)}
-            title="Billing address"
-          />
-        ) : null}
-
         {shouldShowPromotionSection ? (
           <PromotionSection
             disableActions={disableActions}
@@ -694,36 +670,6 @@ export function CheckoutPlaygroundCartView({
               message:
                 addressError.localizedMessage ||
                 'Unable to collect the shipping address.',
-            });
-          }
-        }}
-      />
-
-      <AddressSheet
-        visible={showBillingAddressSheet}
-        sheetTitle="Billing address"
-        primaryButtonTitle="Use billing address"
-        additionalFields={{ phoneNumber: 'optional' }}
-        defaultValues={toAddressSheetDefaultValues(session.billingAddress)}
-        onSubmit={async (result) => {
-          setShowBillingAddressSheet(false);
-          await runCheckoutAction('Billing address', async () => {
-            await checkout.updateBillingAddress(
-              toCheckoutAddress(result.address),
-              result.name,
-              result.phone
-            );
-          });
-        }}
-        onError={(addressError) => {
-          setShowBillingAddressSheet(false);
-          if (addressError.code === AddressSheetError.Failed) {
-            setFeedback({
-              tone: 'error',
-              title: 'Address collection failed',
-              message:
-                addressError.localizedMessage ||
-                'Unable to collect the billing address.',
             });
           }
         }}
