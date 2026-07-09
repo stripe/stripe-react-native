@@ -236,6 +236,16 @@ jobs:
       models: read          # enables GITHUB_TOKEN for GitHub Models inference
 
     steps:
+      - name: Fetch scripts from workflow source commit
+        env:
+          GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+          GH_HOST:  github.com
+        run: |
+          for script in scripts/sdk-fix-prompt-template.txt scripts/apply-ai-sdk-fixes.py; do
+            gh api "repos/$GITHUB_REPOSITORY/contents/${script}?ref=$GITHUB_SHA" \
+              --jq '.content' | base64 -d > "/tmp/$(basename "$script")"
+          done
+
       - uses: actions/checkout@v4
         with:
           ref:         ${{ needs.bump.outputs.branch }}
@@ -357,7 +367,7 @@ jobs:
               done
             } > /tmp/source_context.txt
 
-            cp scripts/sdk-fix-prompt-template.txt /tmp/prompt.txt
+            cp /tmp/sdk-fix-prompt-template.txt /tmp/prompt.txt
 
             cat /tmp/bump_diff.txt      >> /tmp/prompt.txt
             echo ""                     >> /tmp/prompt.txt
@@ -392,7 +402,7 @@ jobs:
             jq -r '.choices[0].message.content' /tmp/ai_response.json > /tmp/ai_fix.txt
 
             # ── Apply fixes (NO_CHANGES detection is handled inside the script) ─
-            python3 scripts/apply-ai-sdk-fixes.py
+            python3 /tmp/apply-ai-sdk-fixes.py
 
             # ── Commit ────────────────────────────────────────────────────────
             git restore -- \
