@@ -352,34 +352,7 @@ jobs:
               done
             } > /tmp/source_context.txt
 
-            cat > /tmp/prompt.txt << 'PROMPT_EOF'
-            You are an expert React Native / native SDK developer maintaining stripe-react-native.
-
-            An automated workflow bumped stripe-ios and/or stripe-android to a new version.
-            CI is now failing. Your job: determine if the failures are caused by breaking API
-            changes in the new SDK. If so, fix the stripe-react-native source code.
-
-            ## Rules
-            - DO NOT modify stripe-react-native.podspec or android/gradle.properties
-            - DO NOT modify example/ios/Podfile.lock
-            - Only change code that broke because of SDK API changes
-            - If the failures look like infrastructure flakes (network timeouts, unrelated test
-              failures, runner issues), output exactly:
-                NO_CHANGES: <brief reason>
-              and nothing else
-
-            ## Output format
-            For every file that needs to change, output it in full using this format:
-
-            FILE: path/to/file.ext
-            ```
-            <complete new file content>
-            ```
-
-            Repeat for each changed file. Do not output partial diffs or snippets.
-
-            ## Version bump diff
-            PROMPT_EOF
+            cp scripts/sdk-fix-prompt-template.txt /tmp/prompt.txt
 
             cat /tmp/bump_diff.txt      >> /tmp/prompt.txt
             echo ""                     >> /tmp/prompt.txt
