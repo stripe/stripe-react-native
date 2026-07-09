@@ -7,7 +7,7 @@ on:
 
 jobs:
   bump:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     permissions:
       contents: write
       pull-requests: write
@@ -72,6 +72,13 @@ jobs:
 
       # ── Open PR if anything changed ────────────────────────────────────────
 
+      - name: Set up Node.js
+        if: steps.diff.outputs.ios_changed == 'true' || steps.diff.outputs.android_changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: yarn
+
       - name: Update files and open PR
         if: steps.diff.outputs.ios_changed == 'true' || steps.diff.outputs.android_changed == 'true'
         env:
@@ -102,7 +109,7 @@ jobs:
           BODY_LINES=()
 
           if [ "$IOS_CHANGED" = "true" ]; then
-            sed -i \
+            sed -i '' \
               "s/stripe_version = '[^']*'/stripe_version = '${IOS_NEW}'/" \
               stripe-react-native.podspec
             git add stripe-react-native.podspec
@@ -111,7 +118,7 @@ jobs:
           fi
 
           if [ "$ANDROID_CHANGED" = "true" ]; then
-            sed -i \
+            sed -i '' \
               "s/^StripeSdk_stripeVersion=.*/StripeSdk_stripeVersion=${ANDROID_NEW}/" \
               android/gradle.properties
             git add android/gradle.properties
@@ -124,6 +131,14 @@ jobs:
           BODY="$(IFS=$'\n'; echo "${BODY_LINES[*]}")
 
           _Automated by [\`bump-native-sdks\`](.github/workflows/bump-native-sdks.yml)_"
+
+          # Update Podfile.lock so CI runs against the new stripe-ios version
+          if [ "$IOS_CHANGED" = "true" ]; then
+            yarn install
+            yarn --cwd example
+            cd example/ios && pod install --repo-update && cd ../..
+            git add example/ios/Podfile.lock
+          fi
 
           git commit -m "$TITLE"
           git push origin "$BRANCH"
