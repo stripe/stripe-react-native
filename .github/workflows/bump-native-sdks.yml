@@ -14,7 +14,7 @@ jobs:
       pull-requests: write
     outputs:
       ios_changed: ${{ steps.diff.outputs.ios_changed }}
-      branch:      ${{ steps.branch.outputs.branch }}
+      branch:      ${{ steps.open_pr.outputs.branch || steps.branch.outputs.branch }}
       pr_opened:   ${{ steps.open_pr.outputs.pr_opened }}
       pr_number:   ${{ steps.open_pr.outputs.pr_number }}
 
@@ -108,10 +108,23 @@ jobs:
           # If a PR is already open for this exact version, this run is a no-op.
           # Record pr_opened=false so downstream jobs know to skip.
           EXISTING=$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null)
+
+          # Fallback for pull_request trigger: the merge commit may have a partial
+          # version applied, making the computed branch name differ from the actual
+          # bump PR's branch. Search by prefix instead.
+          if ! echo "$EXISTING" | grep -q '[0-9]'; then
+            EXISTING=$(gh pr list --state open \
+              --json number,headRefName \
+              --jq '[.[] | select(.headRefName | startswith("chore/bump-native-sdks"))] | .[0].number' \
+              2>/dev/null)
+          fi
+
           if echo "$EXISTING" | grep -q '[0-9]'; then
-            echo "PR already open for $BRANCH (#${EXISTING}) — skipping file edits, running wait-and-fix."
-            echo "pr_opened=true"         >> "$GITHUB_OUTPUT"
-            echo "pr_number=$EXISTING"    >> "$GITHUB_OUTPUT"
+            ACTUAL_BRANCH=$(gh pr view "$EXISTING" --json headRefName --jq '.headRefName')
+            echo "PR already open (#${EXISTING}, branch: ${ACTUAL_BRANCH}) — skipping file edits, running wait-and-fix."
+            echo "pr_opened=true"        >> "$GITHUB_OUTPUT"
+            echo "pr_number=$EXISTING"   >> "$GITHUB_OUTPUT"
+            echo "branch=$ACTUAL_BRANCH" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
