@@ -14,7 +14,7 @@ jobs:
       pull-requests: write
     outputs:
       ios_changed: ${{ steps.diff.outputs.ios_changed }}
-      branch:      ${{ steps.open_pr.outputs.branch || steps.branch.outputs.branch }}
+      branch:      ${{ steps.branch.outputs.branch }}
       pr_opened:   ${{ steps.open_pr.outputs.pr_opened }}
       pr_number:   ${{ steps.open_pr.outputs.pr_number }}
 
@@ -97,35 +97,21 @@ jobs:
         id: open_pr
         if: steps.diff.outputs.ios_changed == 'true' || steps.diff.outputs.android_changed == 'true'
         env:
-          GH_TOKEN:        ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
-          GH_HOST:         github.com
-          IOS_NEW:         ${{ steps.diff.outputs.ios_new }}
-          ANDROID_NEW:     ${{ steps.diff.outputs.android_new }}
-          IOS_CHANGED:     ${{ steps.diff.outputs.ios_changed }}
-          ANDROID_CHANGED: ${{ steps.diff.outputs.android_changed }}
-          BRANCH:          ${{ steps.branch.outputs.branch }}
+          GH_TOKEN:          ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+          GH_HOST:           github.com
+          IOS_NEW:           ${{ steps.diff.outputs.ios_new }}
+          ANDROID_NEW:       ${{ steps.diff.outputs.android_new }}
+          IOS_CHANGED:       ${{ steps.diff.outputs.ios_changed }}
+          ANDROID_CHANGED:   ${{ steps.diff.outputs.android_changed }}
+          BRANCH:            ${{ steps.branch.outputs.branch }}
         run: |
           # If a PR is already open for this exact version, this run is a no-op.
           # Record pr_opened=false so downstream jobs know to skip.
           EXISTING=$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null)
-
-          # Fallback: if the computed branch name doesn't match exactly (e.g. when the
-          # pull_request trigger causes checkout of the merge commit, making iOS appear
-          # already bumped), find any open bump PR by branch prefix.
-          # TEMPORARY: remove this block along with the pull_request: trigger after testing.
-          if ! echo "$EXISTING" | grep -q '[0-9]'; then
-            EXISTING=$(gh pr list --state open \
-              --json number,headRefName \
-              --jq '[.[] | select(.headRefName | startswith("chore/bump-native-sdks"))] | .[0].number' \
-              2>/dev/null)
-          fi
-
           if echo "$EXISTING" | grep -q '[0-9]'; then
-            ACTUAL_BRANCH=$(gh pr view "$EXISTING" --json headRefName --jq '.headRefName')
-            echo "PR already open (#${EXISTING}, branch: ${ACTUAL_BRANCH}) — reusing for test."
-            echo "pr_opened=true"              >> "$GITHUB_OUTPUT"
-            echo "pr_number=$EXISTING"         >> "$GITHUB_OUTPUT"
-            echo "branch=$ACTUAL_BRANCH"       >> "$GITHUB_OUTPUT"
+            echo "PR already open for $BRANCH (#${EXISTING}) — skipping file edits, running wait-and-fix."
+            echo "pr_opened=true"         >> "$GITHUB_OUTPUT"
+            echo "pr_number=$EXISTING"    >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -270,8 +256,10 @@ jobs:
               fi
 
               local checks
+              # Exclude this workflow's own jobs so we don't wait on ourselves
+              # (relevant when pull_request trigger is used for testing).
               checks=$(gh pr view "$PR_NUMBER" --json statusCheckRollup \
-                --jq '.statusCheckRollup' 2>/dev/null)
+                --jq '[.statusCheckRollup[] | select(.name != "bump" and .name != "update-podfile-lock" and .name != "wait-and-fix")]' 2>/dev/null)
 
               if [ -z "$checks" ] || [ "$(echo "$checks" | jq 'length')" = "0" ]; then
                 echo "Waiting for CI to start (${elapsed}s)..." >&2
@@ -280,7 +268,10 @@ jobs:
               fi
 
               local pending
-              pending=$(echo "$checks" | jq '[.[] | select(.status != "COMPLETED")] | length')
+              pending=$(echo "$checks" | jq '[.[] | select(
+                (.__typename == "CheckRun" and .status != "COMPLETED") or
+                (.__typename == "StatusContext" and (.state == "PENDING" or .state == "EXPECTED"))
+              )] | length')
               if [ "$pending" -gt 0 ]; then
                 echo "$pending check(s) in progress (${elapsed}s)..." >&2
                 sleep 60
@@ -288,8 +279,10 @@ jobs:
               fi
 
               local failed
-              failed=$(echo "$checks" | \
-                jq '[.[] | select(.conclusion == "FAILURE" or .conclusion == "TIMED_OUT")] | length')
+              failed=$(echo "$checks" | jq '[.[] | select(
+                (.__typename == "CheckRun" and (.conclusion == "FAILURE" or .conclusion == "TIMED_OUT")) or
+                (.__typename == "StatusContext" and (.state == "FAILURE" or .state == "ERROR"))
+              )] | length')
 
               if [ "$failed" = "0" ]; then
                 echo success
