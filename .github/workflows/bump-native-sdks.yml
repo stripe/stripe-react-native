@@ -106,8 +106,9 @@ jobs:
           # Record pr_opened=false so downstream jobs know to skip.
           EXISTING=$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null)
           if echo "$EXISTING" | grep -q '[0-9]'; then
-            echo "PR already open for $BRANCH (#${EXISTING}) — nothing to do."
-            echo "pr_opened=false"        >> "$GITHUB_OUTPUT"
+            # TEMPORARY: reuse existing PR so wait-and-fix runs for testing
+            echo "PR already open for $BRANCH (#${EXISTING}) — reusing for test."
+            echo "pr_opened=true"         >> "$GITHUB_OUTPUT"
             echo "pr_number=$EXISTING"    >> "$GITHUB_OUTPUT"
             exit 0
           fi
