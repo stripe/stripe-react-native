@@ -4,6 +4,7 @@ on:
   schedule:
     - cron: '0 9 * * 1-5'  # 9am UTC, Mon–Fri
   workflow_dispatch:        # allow manual runs from the Actions UI
+  pull_request:             # temporary: remove after testing wait-and-fix
 
 jobs:
   bump:
