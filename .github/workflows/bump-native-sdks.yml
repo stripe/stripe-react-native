@@ -11,9 +11,14 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      ios_changed: ${{ steps.diff.outputs.ios_changed }}
+      branch:      ${{ steps.branch.outputs.branch }}
+      pr_opened:   ${{ steps.open_pr.outputs.pr_opened }}
+      pr_number:   ${{ steps.open_pr.outputs.pr_number }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           # Use a PAT so the resulting PR triggers pull_request CI workflows.
           # GITHUB_TOKEN-created PRs intentionally don't trigger other workflows.
@@ -27,7 +32,7 @@ jobs:
           GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
         run: |
           VERSION=$(gh api repos/stripe/stripe-ios/releases/latest --jq '.tag_name' | sed 's/^v//')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Fetch latest stripe-android release
         id: android_latest
@@ -35,7 +40,7 @@ jobs:
           GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
         run: |
           VERSION=$(gh api repos/stripe/stripe-android/releases/latest --jq '.tag_name' | sed 's/^v//')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       # ── Read current pinned versions ───────────────────────────────────────
 
@@ -48,8 +53,8 @@ jobs:
           ANDROID=$(grep "^StripeSdk_stripeVersion=" android/gradle.properties \
             | sed 's/StripeSdk_stripeVersion=//')
 
-          echo "ios=$IOS"         >> $GITHUB_OUTPUT
-          echo "android=$ANDROID" >> $GITHUB_OUTPUT
+          echo "ios=$IOS"         >> "$GITHUB_OUTPUT"
+          echo "android=$ANDROID" >> "$GITHUB_OUTPUT"
 
       # ── Diff ───────────────────────────────────────────────────────────────
 
@@ -65,14 +70,28 @@ jobs:
           [ "$IOS_NEW"     != "${{ steps.current.outputs.ios }}"     ] && IOS_CHANGED=true
           [ "$ANDROID_NEW" != "${{ steps.current.outputs.android }}" ] && ANDROID_CHANGED=true
 
-          echo "ios_changed=$IOS_CHANGED"         >> $GITHUB_OUTPUT
-          echo "android_changed=$ANDROID_CHANGED" >> $GITHUB_OUTPUT
-          echo "ios_new=$IOS_NEW"                 >> $GITHUB_OUTPUT
-          echo "android_new=$ANDROID_NEW"         >> $GITHUB_OUTPUT
+          echo "ios_changed=$IOS_CHANGED"         >> "$GITHUB_OUTPUT"
+          echo "android_changed=$ANDROID_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "ios_new=$IOS_NEW"                 >> "$GITHUB_OUTPUT"
+          echo "android_new=$ANDROID_NEW"         >> "$GITHUB_OUTPUT"
+
+      # ── Compute branch name ────────────────────────────────────────────────
+      # Extracted into its own step so the name is available as a job output
+      # for the downstream jobs.
+
+      - name: Compute branch name
+        id: branch
+        if: steps.diff.outputs.ios_changed == 'true' || steps.diff.outputs.android_changed == 'true'
+        run: |
+          BRANCH="chore/bump-native-sdks"
+          [ "${{ steps.diff.outputs.ios_changed }}"     = "true" ] && BRANCH="${BRANCH}-ios-${{ steps.diff.outputs.ios_new }}"
+          [ "${{ steps.diff.outputs.android_changed }}" = "true" ] && BRANCH="${BRANCH}-android-${{ steps.diff.outputs.android_new }}"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
       # ── Open PR if anything changed ────────────────────────────────────────
 
       - name: Update files and open PR
+        id: open_pr
         if: steps.diff.outputs.ios_changed == 'true' || steps.diff.outputs.android_changed == 'true'
         env:
           GH_TOKEN:        ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
@@ -80,17 +99,15 @@ jobs:
           ANDROID_NEW:     ${{ steps.diff.outputs.android_new }}
           IOS_CHANGED:     ${{ steps.diff.outputs.ios_changed }}
           ANDROID_CHANGED: ${{ steps.diff.outputs.android_changed }}
+          BRANCH:          ${{ steps.branch.outputs.branch }}
         run: |
-          # Build a deterministic branch name from the new version(s) so the
-          # workflow is idempotent — re-running when a PR is already open for
-          # the same versions is a no-op.
-          BRANCH="chore/bump-native-sdks"
-          [ "$IOS_CHANGED"     = "true" ] && BRANCH="${BRANCH}-ios-${IOS_NEW}"
-          [ "$ANDROID_CHANGED" = "true" ] && BRANCH="${BRANCH}-android-${ANDROID_NEW}"
-
-          if gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number' \
-              2>/dev/null | grep -q '[0-9]'; then
-            echo "PR already open for $BRANCH — nothing to do."
+          # If a PR is already open for this exact version, this run is a no-op.
+          # Record pr_opened=false so downstream jobs know to skip.
+          EXISTING=$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null)
+          if echo "$EXISTING" | grep -q '[0-9]'; then
+            echo "PR already open for $BRANCH (#${EXISTING}) — nothing to do."
+            echo "pr_opened=false"        >> "$GITHUB_OUTPUT"
+            echo "pr_number=$EXISTING"    >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -128,8 +145,318 @@ jobs:
           git commit -m "$TITLE"
           git push origin "$BRANCH"
 
-          gh pr create \
+          PR_URL=$(gh pr create \
             --title "$TITLE" \
             --body  "$BODY"  \
             --base  master   \
-            --head  "$BRANCH"
+            --head  "$BRANCH")
+
+          PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+          echo "pr_opened=true"        >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER"  >> "$GITHUB_OUTPUT"
+
+  # ── Run pod install and commit Podfile.lock to the bump branch ─────────────
+  # Required so CI on the PR tests against the new stripe-ios version rather
+  # than whatever version the old Podfile.lock pins.
+
+  update-podfile-lock:
+    needs: bump
+    if: |
+      needs.bump.outputs.ios_changed == 'true' &&
+      needs.bump.outputs.pr_opened   == 'true' &&
+      needs.bump.outputs.branch      != ''
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref:   ${{ needs.bump.outputs.branch }}
+          token: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+
+      - name: Run yarn bootstrap
+        run: yarn bootstrap
+
+      - name: Commit updated Podfile.lock
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet example/ios/Podfile.lock; then
+            echo "Podfile.lock is already up to date — nothing to do."
+            exit 0
+          fi
+
+          git add example/ios/Podfile.lock
+          git commit -m "chore: update Podfile.lock for stripe-ios bump"
+          git push origin "${{ needs.bump.outputs.branch }}"
+
+  # ── Poll CI, then fix any breaking changes via GitHub Models ─────────────
+  # Only runs when this workflow run opened a *new* PR.
+  # Waits up to 2h for all CI runs on the branch HEAD to complete,
+  # then calls GitHub Models (zero extra secrets — uses built-in GITHUB_TOKEN)
+  # to triage failures and write back complete fixed files.
+
+  wait-and-fix:
+    needs: [bump, update-podfile-lock]
+    if: |
+      always() &&
+      needs.bump.result    == 'success' &&
+      needs.bump.outputs.pr_opened == 'true' &&
+      (needs.update-podfile-lock.result == 'success' ||
+       needs.update-podfile-lock.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      pull-requests: write
+      models: read          # enables GITHUB_TOKEN for GitHub Models inference
+
+    steps:
+      # Fetch the branch HEAD SHA *after* all commits (podspec + Podfile.lock).
+      # Filtering CI runs by SHA ensures we only react to runs triggered by
+      # our own commits, not stale runs from a previous workflow invocation.
+      - name: Get branch HEAD SHA
+        id: head
+        env:
+          GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+        run: |
+          BRANCH="${{ needs.bump.outputs.branch }}"
+          SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/${BRANCH}" \
+            --jq '.object.sha')
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA"       >> "$GITHUB_OUTPUT"
+
+      - name: Wait for CI and collect any failure logs
+        id: ci
+        env:
+          GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+        run: |
+          BRANCH="${{ steps.head.outputs.branch }}"
+          HEAD_SHA="${{ steps.head.outputs.sha }}"
+          TIMEOUT=7200
+          START=$(date +%s)
+
+          while true; do
+            ELAPSED=$(( $(date +%s) - START ))
+
+            if [ "$ELAPSED" -gt "$TIMEOUT" ]; then
+              echo "Timed out waiting for CI after 2h."
+              echo "outcome=timeout" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            RUNS=$(gh run list \
+              --branch "$BRANCH" \
+              --limit 20 \
+              --json headSha,databaseId,status,conclusion | \
+              jq --arg sha "$HEAD_SHA" '[.[] | select(.headSha == $sha)]')
+
+            if [ "$(echo "$RUNS" | jq 'length')" = "0" ]; then
+              echo "Waiting for CI to start (${ELAPSED}s elapsed)..."
+              sleep 30
+              continue
+            fi
+
+            PENDING=$(echo "$RUNS" | jq '[.[] | select(.status != "completed")] | length')
+            if [ "$PENDING" -gt 0 ]; then
+              echo "$PENDING run(s) still in progress (${ELAPSED}s elapsed)..."
+              sleep 60
+              continue
+            fi
+
+            FAIL_IDS=$(echo "$RUNS" | \
+              jq -r '[.[] | select(.conclusion == "failure")] | .[].databaseId')
+
+            if [ -z "$FAIL_IDS" ]; then
+              echo "CI passed — no fixes needed."
+              echo "outcome=success" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            echo "CI failed. Collecting logs..."
+            echo "outcome=failure" >> "$GITHUB_OUTPUT"
+            {
+              echo "=== CI FAILURE LOGS ==="
+              while IFS= read -r RUN_ID; do
+                echo ""
+                echo "--- Run $RUN_ID ---"
+                gh run view "$RUN_ID" --log-failed 2>&1 | head -n 300
+              done <<< "$FAIL_IDS"
+            } > /tmp/ci_logs.txt
+            break
+          done
+
+      # ── Only proceed from here if CI actually failed ───────────────────────
+
+      - uses: actions/checkout@v4
+        if: steps.ci.outputs.outcome == 'failure'
+        with:
+          ref:         ${{ needs.bump.outputs.branch }}
+          token:       ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+          fetch-depth: 0
+
+      - name: Build prompt with source context
+        if: steps.ci.outputs.outcome == 'failure'
+        run: |
+          git diff origin/master..HEAD -- \
+            stripe-react-native.podspec \
+            android/gradle.properties \
+            > /tmp/bump_diff.txt
+
+          {
+            for f in \
+              src/index.ts \
+              src/types.ts \
+              android/src/main/java/com/reactnativestripe/StripeSdkModule.kt \
+              android/src/main/java/com/reactnativestripe/StripeSdkPackage.kt \
+              ios/StripeSdk.swift \
+              ios/StripeSdk.m; do
+              [ -f "$f" ] || continue
+              echo ""
+              echo "<file path=\"$f\">"
+              cat "$f"
+              echo "</file>"
+            done
+          } > /tmp/source_context.txt
+
+          cat > /tmp/prompt.txt << 'EOF'
+          You are an expert React Native / native SDK developer maintaining stripe-react-native.
+
+          An automated workflow bumped stripe-ios and/or stripe-android to a new version.
+          CI is now failing. Your job: determine if the failures are caused by breaking API
+          changes in the new SDK. If so, fix the stripe-react-native source code.
+
+          ## Rules
+          - DO NOT modify stripe-react-native.podspec or android/gradle.properties
+          - DO NOT modify example/ios/Podfile.lock
+          - Only change code that broke because of SDK API changes
+          - If the failures look like infrastructure flakes (network timeouts, unrelated test
+            failures, runner issues), output exactly:
+              NO_CHANGES: <brief reason>
+            and nothing else
+
+          ## Output format
+          For every file that needs to change, output it in full using this format:
+
+          FILE: path/to/file.ext
+          ```
+          <complete new file content>
+          ```
+
+          Repeat for each changed file. Do not output partial diffs or snippets.
+
+          ## Version bump diff
+          EOF
+
+          cat /tmp/bump_diff.txt       >> /tmp/prompt.txt
+          echo ""                      >> /tmp/prompt.txt
+          echo "## CI failure logs"    >> /tmp/prompt.txt
+          cat /tmp/ci_logs.txt         >> /tmp/prompt.txt
+          echo ""                      >> /tmp/prompt.txt
+          echo "## Source files"       >> /tmp/prompt.txt
+          cat /tmp/source_context.txt  >> /tmp/prompt.txt
+
+      - name: Call GitHub Models for fixes
+        if: steps.ci.outputs.outcome == 'failure'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          jq -n \
+            --rawfile prompt /tmp/prompt.txt \
+            '{
+              model: "openai/gpt-4.1",
+              messages: [{ role: "user", content: $prompt }],
+              max_tokens: 16384
+            }' > /tmp/request.json
+
+          curl -s -X POST \
+            "https://models.github.ai/inference/chat/completions" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d @/tmp/request.json \
+            > /tmp/ai_response.json
+
+          if jq -e '.error' /tmp/ai_response.json > /dev/null 2>&1; then
+            echo "GitHub Models API error:"
+            jq '.error' /tmp/ai_response.json
+            exit 1
+          fi
+
+          jq -r '.choices[0].message.content' /tmp/ai_response.json > /tmp/ai_fix.txt
+          echo "Model response written to /tmp/ai_fix.txt"
+
+      - name: Apply AI-suggested fixes
+        if: steps.ci.outputs.outcome == 'failure'
+        run: |
+          if grep -q '^NO_CHANGES:' /tmp/ai_fix.txt; then
+            echo "Model flagged no code changes needed:"
+            grep '^NO_CHANGES:' /tmp/ai_fix.txt
+            exit 0
+          fi
+
+          python3 << 'PYEOF'
+          import re, os, sys
+
+          protected = {
+              "stripe-react-native.podspec",
+              "android/gradle.properties",
+              "example/ios/Podfile.lock",
+          }
+
+          with open("/tmp/ai_fix.txt") as f:
+              response = f.read()
+
+          pattern = re.compile(
+              r'^FILE:\s*(.+?)\s*\n```[^\n]*\n(.*?)```',
+              re.MULTILINE | re.DOTALL,
+          )
+
+          matches = pattern.findall(response)
+          if not matches:
+              print("No FILE: blocks found — nothing to apply.")
+              sys.exit(0)
+
+          for path, content in matches:
+              path = path.strip()
+              if path in protected or any(path.endswith(p) for p in protected):
+                  print(f"Skipping protected file: {path}")
+                  continue
+              os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+              with open(path, "w") as f:
+                  f.write(content)
+              print(f"Wrote {path}")
+          PYEOF
+
+      - name: Commit and push any fixes
+        if: steps.ci.outputs.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Defense-in-depth: revert protected files even if something slipped through
+          git restore -- \
+            stripe-react-native.podspec \
+            android/gradle.properties \
+            example/ios/Podfile.lock \
+            2>/dev/null || true
+
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "fix: address breaking changes from native SDK bump [automated]"
+          git push origin "${{ needs.bump.outputs.branch }}"
+
+          gh pr comment "${{ needs.bump.outputs.pr_number }}" \
+            --body "_Automated fix applied by [\`bump-native-sdks\`](.github/workflows/bump-native-sdks.yml). CI will re-run._"
