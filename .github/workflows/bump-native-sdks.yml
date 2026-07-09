@@ -312,9 +312,45 @@ jobs:
                 return
               fi
 
-              # Collect logs from failed workflow runs on this branch
+              # Collect logs from all failed check runs (covers Bitrise + GitHub Actions)
               {
                 echo "=== CI FAILURE LOGS ==="
+
+                local head_sha
+                head_sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" \
+                  --jq '.head.sha' 2>/dev/null)
+
+                if [ -n "$head_sha" ]; then
+                  # Paginate through all check runs for this commit
+                  local page=1
+                  while true; do
+                    local batch
+                    batch=$(gh api \
+                      "repos/$GITHUB_REPOSITORY/commits/$head_sha/check-runs?per_page=100&page=$page" \
+                      2>/dev/null)
+                    local count
+                    count=$(echo "$batch" | jq '.check_runs | length')
+                    [ "$count" = "0" ] && break
+
+                    # Print output from each failed check run
+                    echo "$batch" | jq -c '.check_runs[] | select(.conclusion == "failure")' | \
+                    while IFS= read -r check; do
+                      local name summary text
+                      name=$(echo "$check"    | jq -r '.name')
+                      summary=$(echo "$check" | jq -r '.output.summary // ""')
+                      text=$(echo "$check"    | jq -r '.output.text    // ""')
+                      echo ""
+                      echo "--- Check: $name ---"
+                      [ -n "$summary" ] && echo "$summary"
+                      [ -n "$text"    ] && echo "$text"
+                    done
+
+                    [ "$count" -lt 100 ] && break
+                    page=$((page + 1))
+                  done
+                fi
+
+                # Also collect GitHub Actions log lines (complements check run output)
                 local fail_ids
                 fail_ids=$(gh run list --repo "$GITHUB_REPOSITORY" \
                   --branch "$BRANCH" --limit 20 \
@@ -323,7 +359,7 @@ jobs:
                 while IFS= read -r rid; do
                   [ -z "$rid" ] && continue
                   echo ""
-                  echo "--- Run $rid ---"
+                  echo "--- Actions Run $rid ---"
                   gh run view "$rid" --log-failed 2>&1 | head -n 300
                 done <<< "$fail_ids"
               } > /tmp/ci_logs.txt
@@ -356,10 +392,13 @@ jobs:
               for f in \
                 src/index.ts \
                 src/types.ts \
-                android/src/main/java/com/reactnativestripe/StripeSdkModule.kt \
-                android/src/main/java/com/reactnativestripe/StripeSdkPackage.kt \
+                android/src/main/java/com/reactnativestripesdk/StripeSdkModule.kt \
+                android/src/main/java/com/reactnativestripesdk/StripeSdkPackage.kt \
+                android/src/main/java/com/reactnativestripesdk/PaymentMethodCreateParamsFactory.kt \
+                android/src/main/java/com/reactnativestripesdk/PaymentSheetManager.kt \
                 ios/StripeSdk.swift \
-                ios/StripeSdk.m; do
+                ios/StripeSdk.m \
+                ios/Mappers.swift; do
                 [ -f "$f" ] || continue
                 echo "<file path=\"$f\">"
                 cat "$f"
@@ -367,15 +406,47 @@ jobs:
               done
             } > /tmp/source_context.txt
 
+            # Parse bumped SDK versions for changelog lookup
+            IOS_NEW=$(grep '^\+.*StripePaymentSheet.*"[0-9]' /tmp/bump_diff.txt \
+              | grep -o '"[0-9][^"]*"' | tail -1 | tr -d '"' || true)
+            ANDROID_NEW=$(grep '^\+stripeAndroidVersion=' /tmp/bump_diff.txt \
+              | cut -d= -f2 | tr -d '[:space:]' || true)
+
+            {
+              echo "## SDK release notes"
+              if [ -n "$IOS_NEW" ]; then
+                echo "### stripe-ios $IOS_NEW"
+                GH_HOST=github.com gh api "repos/stripe/stripe-ios/releases/tags/$IOS_NEW" \
+                  --jq '.body' 2>/dev/null || echo "(release notes not available)"
+                echo ""
+              fi
+              if [ -n "$ANDROID_NEW" ]; then
+                echo "### stripe-android $ANDROID_NEW"
+                GH_HOST=github.com gh api "repos/stripe/stripe-android/releases/tags/$ANDROID_NEW" \
+                  --jq '.body' 2>/dev/null || \
+                GH_HOST=github.com gh api "repos/stripe/stripe-android/releases/tags/v$ANDROID_NEW" \
+                  --jq '.body' 2>/dev/null || echo "(release notes not available)"
+                echo ""
+              fi
+            } > /tmp/sdk_changelogs.txt
+
             cp /tmp/sdk-fix-prompt-template.txt /tmp/prompt.txt
 
-            cat /tmp/bump_diff.txt      >> /tmp/prompt.txt
-            echo ""                     >> /tmp/prompt.txt
-            echo "## CI failure logs"   >> /tmp/prompt.txt
-            cat /tmp/ci_logs.txt        >> /tmp/prompt.txt
-            echo ""                     >> /tmp/prompt.txt
-            echo "## Source files"      >> /tmp/prompt.txt
-            cat /tmp/source_context.txt >> /tmp/prompt.txt
+            cat /tmp/bump_diff.txt         >> /tmp/prompt.txt
+            echo ""                        >> /tmp/prompt.txt
+            echo "## SDK release notes"    >> /tmp/prompt.txt
+            cat /tmp/sdk_changelogs.txt    >> /tmp/prompt.txt
+            echo ""                        >> /tmp/prompt.txt
+            echo "## CI failure logs"      >> /tmp/prompt.txt
+            cat /tmp/ci_logs.txt           >> /tmp/prompt.txt
+            echo ""                        >> /tmp/prompt.txt
+            echo "## Source files"         >> /tmp/prompt.txt
+            cat /tmp/source_context.txt    >> /tmp/prompt.txt
+
+            echo "=== CI logs collected ($(wc -c < /tmp/ci_logs.txt) bytes) ==="
+            head -n 80 /tmp/ci_logs.txt || true
+            echo "=== SDK changelogs ($(wc -c < /tmp/sdk_changelogs.txt) bytes) ==="
+            cat /tmp/sdk_changelogs.txt | head -n 40 || true
 
             # ── Call GitHub Models ────────────────────────────────────────────
             jq -n \
