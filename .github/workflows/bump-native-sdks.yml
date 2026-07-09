@@ -14,7 +14,7 @@ jobs:
       pull-requests: write
     outputs:
       ios_changed: ${{ steps.diff.outputs.ios_changed }}
-      branch:      ${{ steps.branch.outputs.branch }}
+      branch:      ${{ steps.open_pr.outputs.branch || steps.branch.outputs.branch }}
       pr_opened:   ${{ steps.open_pr.outputs.pr_opened }}
       pr_number:   ${{ steps.open_pr.outputs.pr_number }}
 
@@ -110,9 +110,11 @@ jobs:
           EXISTING=$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null)
           if echo "$EXISTING" | grep -q '[0-9]'; then
             # TEMPORARY: reuse existing PR so wait-and-fix runs for testing
-            echo "PR already open for $BRANCH (#${EXISTING}) — reusing for test."
-            echo "pr_opened=true"         >> "$GITHUB_OUTPUT"
-            echo "pr_number=$EXISTING"    >> "$GITHUB_OUTPUT"
+            ACTUAL_BRANCH=$(gh pr view "$EXISTING" --json headRefName --jq '.headRefName')
+            echo "PR already open (#${EXISTING}, branch: ${ACTUAL_BRANCH}) — reusing for test."
+            echo "pr_opened=true"              >> "$GITHUB_OUTPUT"
+            echo "pr_number=$EXISTING"         >> "$GITHUB_OUTPUT"
+            echo "branch=$ACTUAL_BRANCH"       >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -224,21 +226,6 @@ jobs:
       models: read          # enables GITHUB_TOKEN for GitHub Models inference
 
     steps:
-      # Fetch the branch HEAD SHA *after* all commits (podspec + Podfile.lock).
-      # Filtering CI runs by SHA ensures we only react to runs triggered by
-      # our own commits, not stale runs from a previous workflow invocation.
-      - name: Get branch HEAD SHA
-        id: head
-        env:
-          GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
-          GH_HOST:  github.com
-        run: |
-          BRANCH="${{ needs.bump.outputs.branch }}"
-          SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/${BRANCH}" \
-            --jq '.object.sha')
-          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
-          echo "sha=$SHA"       >> "$GITHUB_OUTPUT"
-
       - uses: actions/checkout@v4
         with:
           ref:         ${{ needs.bump.outputs.branch }}
@@ -253,17 +240,15 @@ jobs:
         run: |
           BRANCH="${{ needs.bump.outputs.branch }}"
           PR_NUMBER="${{ needs.bump.outputs.pr_number }}"
-          HEAD_SHA="${{ steps.head.outputs.sha }}"
           MAX_ATTEMPTS=3
 
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Waits for all CI runs on SHA $1 to complete (max 2h).
+          # Polls gh pr checks until all checks on the PR complete (max 2h).
           # On failure: writes logs to /tmp/ci_logs.txt.
           # Echoes: success | failure | timeout
           wait_for_ci() {
-            local sha="$1"
             local start elapsed
             start=$(date +%s)
             while true; do
@@ -273,54 +258,57 @@ jobs:
                 return
               fi
 
-              local runs
-              runs=$(gh run list --repo "$GITHUB_REPOSITORY" \
-                --branch "$BRANCH" --limit 20 \
-                --json headSha,databaseId,status,conclusion)
+              local checks
+              checks=$(gh pr view "$PR_NUMBER" --json statusCheckRollup \
+                --jq '.statusCheckRollup' 2>/dev/null)
 
-              local count
-              count=$(echo "$runs" | jq --arg s "$sha" '[.[] | select(.headSha == $s)] | length')
-
-              if [ "$count" -eq 0 ]; then
+              if [ -z "$checks" ] || [ "$(echo "$checks" | jq 'length')" = "0" ]; then
                 echo "Waiting for CI to start (${elapsed}s)..." >&2
                 sleep 30
                 continue
               fi
 
               local pending
-              pending=$(echo "$runs" | jq --arg s "$sha" \
-                '[.[] | select(.headSha == $s and .status != "completed")] | length')
+              pending=$(echo "$checks" | jq '[.[] | select(.status != "COMPLETED")] | length')
               if [ "$pending" -gt 0 ]; then
-                echo "$pending run(s) in progress (${elapsed}s)..." >&2
+                echo "$pending check(s) in progress (${elapsed}s)..." >&2
                 sleep 60
                 continue
               fi
 
-              local fail_ids
-              fail_ids=$(echo "$runs" | jq -r --arg s "$sha" \
-                '[.[] | select(.headSha == $s and .conclusion == "failure")] | .[].databaseId')
+              local failed
+              failed=$(echo "$checks" | \
+                jq '[.[] | select(.conclusion == "FAILURE" or .conclusion == "TIMED_OUT")] | length')
 
-              if [ -z "$fail_ids" ]; then
+              if [ "$failed" = "0" ]; then
                 echo success
                 return
               fi
 
+              # Collect logs from failed workflow runs on this branch
               {
                 echo "=== CI FAILURE LOGS ==="
+                local fail_ids
+                fail_ids=$(gh run list --repo "$GITHUB_REPOSITORY" \
+                  --branch "$BRANCH" --limit 20 \
+                  --json databaseId,status,conclusion | \
+                  jq -r '[.[] | select(.status == "completed" and .conclusion == "failure")] | .[].databaseId')
                 while IFS= read -r rid; do
+                  [ -z "$rid" ] && continue
                   echo ""
                   echo "--- Run $rid ---"
                   gh run view "$rid" --log-failed 2>&1 | head -n 300
                 done <<< "$fail_ids"
               } > /tmp/ci_logs.txt
               echo failure
+              return
             done
           }
 
           for ATTEMPT in $(seq 1 $MAX_ATTEMPTS); do
-            echo "=== Attempt $ATTEMPT/$MAX_ATTEMPTS (SHA: $HEAD_SHA) ==="
+            echo "=== Attempt $ATTEMPT/$MAX_ATTEMPTS ==="
 
-            OUTCOME=$(wait_for_ci "$HEAD_SHA")
+            OUTCOME=$(wait_for_ci)
             echo "CI outcome: $OUTCOME"
 
             if [ "$OUTCOME" = "success" ]; then
@@ -404,9 +392,8 @@ jobs:
             git add -A
             git commit -m "fix: attempt $ATTEMPT — address SDK breaking changes [automated]"
             git push origin "$BRANCH"
-
-            HEAD_SHA=$(git rev-parse HEAD)
-            echo "Pushed fix. New SHA: $HEAD_SHA"
+            echo "Pushed fix. Waiting for CI to pick up new commit..."
+            sleep 30  # give GitHub a moment to register the push before polling
 
             gh pr comment "$PR_NUMBER" \
               --body "_Automated fix attempt $ATTEMPT pushed by \`bump-native-sdks\`. CI will re-run._"
