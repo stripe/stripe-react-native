@@ -108,8 +108,19 @@ jobs:
           # If a PR is already open for this exact version, this run is a no-op.
           # Record pr_opened=false so downstream jobs know to skip.
           EXISTING=$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null)
+
+          # Fallback: if the computed branch name doesn't match exactly (e.g. when the
+          # pull_request trigger causes checkout of the merge commit, making iOS appear
+          # already bumped), find any open bump PR by branch prefix.
+          # TEMPORARY: remove this block along with the pull_request: trigger after testing.
+          if ! echo "$EXISTING" | grep -q '[0-9]'; then
+            EXISTING=$(gh pr list --state open \
+              --json number,headRefName \
+              --jq '[.[] | select(.headRefName | startswith("chore/bump-native-sdks"))] | .[0].number' \
+              2>/dev/null)
+          fi
+
           if echo "$EXISTING" | grep -q '[0-9]'; then
-            # TEMPORARY: reuse existing PR so wait-and-fix runs for testing
             ACTUAL_BRANCH=$(gh pr view "$EXISTING" --json headRefName --jq '.headRefName')
             echo "PR already open (#${EXISTING}, branch: ${ACTUAL_BRANCH}) — reusing for test."
             echo "pr_opened=true"              >> "$GITHUB_OUTPUT"
