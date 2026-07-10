@@ -164,6 +164,7 @@ jobs:
                 spec: {
                   source_specs: [
                     {
+                      org: "stripe",
                       repo: "stripe-react-native"
                     }
                   ],
