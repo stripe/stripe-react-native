@@ -165,7 +165,9 @@ jobs:
                   source_specs: [
                     {
                       org: "stripe",
-                      repo: "stripe-react-native"
+                      repo: "stripe-react-native",
+                      git_ref: "",
+                      new_branch: true
                     }
                   ],
                   agent_task: {
