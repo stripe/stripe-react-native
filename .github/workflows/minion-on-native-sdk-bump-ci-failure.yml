@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_HOST: github.com
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
       REPO: stripe/stripe-react-native
       TARGET_PR_NUMBER: ${{ inputs.pr_number || '' }}
       BUMP_BRANCH_PREFIX: chore/bump-native-sdks
