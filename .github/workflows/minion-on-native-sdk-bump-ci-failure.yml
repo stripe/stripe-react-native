@@ -185,8 +185,14 @@ jobs:
               printf '%s\n' "$failed_check_summary"
             } > "$comment_file"
 
-            gh pr comment "$pr_number" --repo "$REPO" --body-file "$comment_file"
-            rm -f "$comment_file"
+            comment_payload="$(mktemp)"
+            jq -Rs '{body: .}' < "$comment_file" > "$comment_payload"
+            gh api \
+              --method POST \
+              "repos/${REPO}/issues/${pr_number}/comments" \
+              --input "$comment_payload" \
+              >/dev/null
+            rm -f "$comment_file" "$comment_payload"
 
             echo "Posted Minion task link on PR #$pr_number for $head_sha."
           done < <(printf '%s' "$prs_json" | jq -c '.[]')
