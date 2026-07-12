@@ -66,6 +66,17 @@ type Events = {
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementConfigureResult: EventEmitter<UnsafeObject<any>>;
+  /**
+   * Fired by native every time a `Checkout` instance's state transitions —
+   * regardless of whether the mutation was JS-driven (e.g. `applyPromotionCode`
+   * via `useCheckout`) or native-driven (e.g. `CurrencySelectorElement`).
+   * `useCheckout` mirrors this into its `state` so the entire React tree
+   * stays in sync with the underlying native session.
+   */
+  checkoutSessionDidChangeState: EventEmitter<{
+    sessionKey: string;
+    state: UnsafeObject<any>;
+  }>;
 };
 
 export function addListener<EventT extends keyof Events>(
@@ -76,22 +87,25 @@ export function addListener<EventT extends keyof Events>(
 }
 
 const compatOnrampEventEmitter =
-  // On new arch we use native module events. On old arch this doesn't exist
-  // so use NativeEventEmitter on iOS and DeviceEventEmitter on Android.
-  NativeOnrampSdkModule.onCheckoutClientSecretRequested == null
-    ? Platform.OS === 'ios'
+  NativeOnrampSdkModule == null
+    ? null
+    : Platform.OS === 'ios'
       ? new NativeEventEmitter(NativeOnrampSdkModule as any)
-      : DeviceEventEmitter
-    : null;
+      : DeviceEventEmitter;
 
-type OnrampEvents = 'onCheckoutClientSecretRequested';
+type OnrampEventMap = {
+  onCheckoutClientSecretRequested: void;
+};
+
+type OnrampEvents = keyof OnrampEventMap;
 
 export function addOnrampListener<EventT extends OnrampEvents>(
   event: EventT,
-  handler: Parameters<(typeof NativeOnrampSdkModule)[EventT]>[0]
+  handler: (params: OnrampEventMap[EventT]) => void
 ): EventSubscription {
-  if (compatOnrampEventEmitter != null) {
-    return compatOnrampEventEmitter.addListener(event, handler);
+  if (compatOnrampEventEmitter == null) {
+    // Return a no-op subscription when module is not available
+    return { remove: () => {} } as EventSubscription;
   }
-  return NativeOnrampSdkModule[event](handler as any);
+  return compatOnrampEventEmitter.addListener(event, handler);
 }

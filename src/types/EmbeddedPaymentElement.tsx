@@ -13,6 +13,7 @@ import type {
   CardBrand,
 } from './Common';
 import type { PaymentMethod } from '.';
+import type { Checkout } from './Checkout';
 import type * as ConfirmationToken from './ConfirmationToken';
 import * as PaymentSheetTypes from './PaymentSheet';
 import NativeStripeSdkModule from '../specs/NativeStripeSdkModule';
@@ -222,21 +223,32 @@ export interface EmbeddedPaymentElementConfiguration {
   opensCardScannerAutomatically?: boolean;
 }
 
+// Narrows a value to `Checkout` vs. `IntentConfiguration`.
+const isCheckoutSession = (
+  value: PaymentSheetTypes.IntentConfiguration | Checkout
+): value is Checkout =>
+  typeof value === 'object' &&
+  value !== null &&
+  'sessionKey' in value &&
+  !('mode' in value);
+
 // -----------------------------------------------------------------------------
 // Embedded API
 // -----------------------------------------------------------------------------
 
 class EmbeddedPaymentElement {
   /**
-   * Call this when the intent configuration changes (e.g., amount or currency).
+   * Call this when the intent configuration or Checkout Session changes.
    * Cancels any in-progress update. Ensures the correct payment methods are shown and fields are collected.
    * If the selected payment option becomes invalid, it may be cleared.
    * Returns the final result of the update; earlier in-flight updates will return `{ status: 'canceled' }`.
    */
-  async update(intentConfig: PaymentSheetTypes.IntentConfiguration) {
-    const result =
-      await NativeStripeSdkModule.updateEmbeddedPaymentElement(intentConfig);
-    return result;
+  async updateIntent(
+    intentConfig: PaymentSheetTypes.IntentConfiguration
+  ): Promise<unknown> {
+    return await NativeStripeSdkModule.updateEmbeddedPaymentElement(
+      intentConfig
+    );
   }
 
   /**
@@ -268,21 +280,28 @@ let customPaymentMethodConfirmCallback: EventSubscription | null = null;
 let rowSelectionCallback: EventSubscription | null = null;
 
 async function createEmbeddedPaymentElement(
-  intentConfig: PaymentSheetTypes.IntentConfiguration,
+  intent: PaymentSheetTypes.IntentConfiguration | Checkout,
   configuration: EmbeddedPaymentElementConfiguration
 ): Promise<EmbeddedPaymentElement> {
-  setupConfirmAndSelectionHandlers(intentConfig, configuration);
+  setupConfigurationHandlers(configuration);
 
-  await NativeStripeSdkModule.createEmbeddedPaymentElement(
-    intentConfig,
-    configuration
-  );
+  if (isCheckoutSession(intent)) {
+    await NativeStripeSdkModule.createEmbeddedPaymentElementWithCheckout(
+      intent.sessionKey,
+      configuration
+    );
+  } else {
+    setupIntentConfirmHandlers(intent);
+    await NativeStripeSdkModule.createEmbeddedPaymentElement(
+      intent,
+      configuration
+    );
+  }
   return new EmbeddedPaymentElement();
 }
 
-function setupConfirmAndSelectionHandlers(
-  intentConfig: PaymentSheetTypes.IntentConfiguration,
-  configuration: EmbeddedPaymentElementConfiguration
+function setupIntentConfirmHandlers(
+  intentConfig: PaymentSheetTypes.IntentConfiguration
 ) {
   const confirmHandler = intentConfig.confirmHandler;
   if (confirmHandler) {
@@ -323,7 +342,11 @@ function setupConfirmAndSelectionHandlers(
       }
     );
   }
+}
 
+function setupConfigurationHandlers(
+  configuration: EmbeddedPaymentElementConfiguration
+) {
   if (configuration.formSheetAction?.type === 'confirm') {
     const confirmFormSheetHandler =
       configuration.formSheetAction.onFormSheetConfirmComplete;
@@ -429,6 +452,38 @@ export interface UseEmbeddedPaymentElementResult {
 export function useEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
+): UseEmbeddedPaymentElementResult;
+/**
+ * Initializes an `EmbeddedPaymentElement` from a Stripe Checkout Session.
+ *
+ * Pass a loaded handle from `useCheckout`. Render the consumer in a child
+ * component so the hook only runs once `state.status === 'loaded'`.
+ *
+ * @example
+ * function Cart() {
+ *   const { checkout, state } = useCheckout(clientSecret);
+ *   if (state?.status !== 'loaded') return null;
+ *   return <EmbeddedCheckout checkout={checkout} />;
+ * }
+ *
+ * function EmbeddedCheckout({ checkout }: { checkout: Checkout }) {
+ *   const { embeddedPaymentElementView } =
+ *     useEmbeddedPaymentElement(checkout, configuration);
+ *   return embeddedPaymentElementView;
+ * }
+ *
+ * @param checkout - A loaded `Checkout` handle from `useCheckout`.
+ * @param configuration - Configuration for the embedded element.
+ * @checkoutSessionsPreview
+ * @internal
+ */
+export function useEmbeddedPaymentElement(
+  checkout: Checkout,
+  configuration: EmbeddedPaymentElementConfiguration
+): UseEmbeddedPaymentElementResult;
+export function useEmbeddedPaymentElement(
+  intent: PaymentSheetTypes.IntentConfiguration | Checkout,
+  configuration: EmbeddedPaymentElementConfiguration
 ): UseEmbeddedPaymentElementResult {
   const isAndroid = Platform.OS === 'android';
   const elementRef = useRef<EmbeddedPaymentElement | null>(null);
@@ -454,12 +509,18 @@ export function useEmbeddedPaymentElement(
     return ref.current;
   }
 
+  // Re-key on the session key (Checkout) or intent object so we only
+  // recreate the element when the source actually changes.
+  const intentKey = isCheckoutSession(intent) ? intent.sessionKey : intent;
+  const intentRef = useRef(intent);
+  intentRef.current = intent;
+
   // Create embedded payment element
   useEffect(() => {
     let active = true;
     (async () => {
       const el = await createEmbeddedPaymentElement(
-        intentConfig,
+        intentRef.current,
         configuration
       );
       if (!active) return;
@@ -471,7 +532,7 @@ export function useEmbeddedPaymentElement(
       elementRef.current = null;
       setElement(null);
     };
-  }, [intentConfig, configuration, viewRef, isAndroid]);
+  }, [intentKey, configuration, viewRef, isAndroid]);
 
   useEffect(() => {
     const sub = addListener(
@@ -509,13 +570,19 @@ export function useEmbeddedPaymentElement(
 
   // Render the embedded view
   const embeddedPaymentElementView = useMemo(() => {
-    if (isAndroid && configuration && intentConfig) {
+    // `intentKey` is the session key string for Checkout, the IntentConfiguration object otherwise.
+    const intentProps =
+      typeof intentKey === 'string'
+        ? { checkout: { sessionKey: intentKey } }
+        : { intentConfiguration: intentKey };
+
+    if (isAndroid && configuration && intentKey) {
       return (
         <NativeEmbeddedPaymentElement
           ref={viewRef}
           style={[{ width: '100%', height: height }]}
           configuration={configuration}
-          intentConfiguration={intentConfig}
+          {...intentProps}
         />
       );
     }
@@ -525,10 +592,10 @@ export function useEmbeddedPaymentElement(
         ref={viewRef}
         style={{ width: '100%', height }}
         configuration={configuration}
-        intentConfiguration={intentConfig}
+        {...intentProps}
       />
     );
-  }, [configuration, element, height, intentConfig, isAndroid]);
+  }, [configuration, element, height, intentKey, isAndroid]);
 
   // Other APIs
   const confirm = useCallback((): Promise<EmbeddedPaymentElementResult> => {
@@ -560,19 +627,19 @@ export function useEmbeddedPaymentElement(
     return getElementOrThrow(elementRef).confirm();
   }, [isAndroid]);
   const update = useCallback(
-    (cfg: PaymentSheetTypes.IntentConfiguration) => {
+    (updateSource: PaymentSheetTypes.IntentConfiguration): Promise<unknown> => {
       if (isAndroid) {
         const currentRef = viewRef.current;
         if (currentRef) {
-          return new Promise<{ status: string } | null>((resolve) => {
+          return new Promise((resolve) => {
             const sub = addListener(
               'embeddedPaymentElementUpdateComplete',
-              (result: { status: string } | null) => {
+              (result) => {
                 sub.remove();
                 resolve(result);
               }
             );
-            Commands.update(currentRef, JSON.stringify(cfg));
+            Commands.update(currentRef, JSON.stringify(updateSource));
           });
         }
         return Promise.reject(
@@ -581,7 +648,8 @@ export function useEmbeddedPaymentElement(
       }
 
       // iOS: use native module directly
-      return getElementOrThrow(elementRef).update(cfg);
+      const embeddedElement = getElementOrThrow(elementRef);
+      return embeddedElement.updateIntent(updateSource);
     },
     [isAndroid]
   );

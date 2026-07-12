@@ -6,8 +6,8 @@ This is an Expo application demonstrating Stripe Connect embedded components usi
 
 ### Stripe Connect Embedded Components
 - **Account Onboarding** - Localized onboarding form with data validation and configurable collection options
-- **Payouts (Beta)** - View and perform payouts with embedded component
-- **Payments (Beta)** - View payment details, manage disputes, and filter payments by amount, date, status, and payment method
+- **Payouts** - View and perform payouts with embedded component
+- **Payments** - View payment details, manage disputes, and filter payments by amount, date, status, and payment method
 
 ### Configuration & Customization
 - **Demo Account Management** - Switch between multiple pre-configured accounts or use custom account IDs
@@ -52,7 +52,7 @@ example-stripe-connect/
 │   ├── index.tsx                  # Home screen
 │   ├── account-onboarding.tsx     # Account onboarding component
 │   ├── payments.tsx               # Payments component
-│   ├── payouts.tsx                # Payouts component (Beta)
+│   ├── payouts.tsx                # Payouts component
 │   ├── configure-appearance.tsx   # Appearance selector
 │   ├── (tabs)/                    # Tab-based layout group
 │   │   ├── _layout.tsx            # Native tabs configuration
@@ -110,8 +110,8 @@ example-stripe-connect/
 
 The home screen displays three main Connect components:
 - **Account onboarding** - "Show a localized onboarding form that validates data."
-- **Payouts Beta** - "Show payouts and allow your users to perform payouts."
-- **Payments Beta** - "Show payments and allow your users to view payment details and manage disputes."
+- **Payouts** - "Show payouts and allow your users to perform payouts."
+- **Payments** - "Show payments and allow your users to view payment details and manage disputes."
 
 Tap any item to view the embedded component. The navigation bar includes:
 - **Settings icon (⚙️)** - Opens settings modal (left)
@@ -249,7 +249,7 @@ Wrapper around each Connect component that:
 #### Connect Components
 - **ConnectAccountOnboarding** - Full onboarding flow with configurable collection options
 - **ConnectPayments** - Payment management with advanced filtering
-- **ConnectPayouts** - Payout management (Beta)
+- **ConnectPayouts** - Payout management
 
 ## Development
 

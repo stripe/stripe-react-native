@@ -63,6 +63,72 @@ export function getDestinationParamsForNetwork(network: Onramp.CryptoNetwork): {
   }
 }
 
+type IdentifierRequirementsSummary = {
+  identifiers: Onramp.ComplianceIdentifierRequirement[];
+  alternatives: Onramp.ComplianceIdentifierAlternativeGroup[];
+  carfTinRequired: boolean;
+};
+
+type SubmitIdentifiersSummary = IdentifierRequirementsSummary & {
+  completed: boolean;
+  invalidIdentifiers: Onramp.ComplianceIdentifierType[];
+};
+
+export function formatIdentifierRequirements(
+  requirements: IdentifierRequirementsSummary
+): string {
+  return [
+    `Identifiers: ${formatIdentifierRequirementList(requirements.identifiers)}`,
+    `Alternatives: ${formatIdentifierAlternativeGroups(requirements.alternatives)}`,
+    `CARF TIN required: ${String(requirements.carfTinRequired)}`,
+  ].join('\n');
+}
+
+export function formatSubmitIdentifiersResult(
+  result: SubmitIdentifiersSummary
+): string {
+  return [
+    `Completed: ${String(result.completed)}`,
+    `Identifiers: ${formatIdentifierRequirementList(result.identifiers)}`,
+    `Alternatives: ${formatIdentifierAlternativeGroups(result.alternatives)}`,
+    `CARF TIN required: ${String(result.carfTinRequired)}`,
+    `Invalid identifiers: ${formatIdentifierTypeList(result.invalidIdentifiers)}`,
+  ].join('\n');
+}
+
+function formatIdentifierRequirementList(
+  identifiers: Onramp.ComplianceIdentifierRequirement[]
+): string {
+  if (identifiers.length === 0) {
+    return 'None';
+  }
+
+  return identifiers
+    .map((identifier) => `${identifier.regulation}: ${identifier.type}`)
+    .join('\n');
+}
+
+function formatIdentifierAlternativeGroups(
+  alternatives: Onramp.ComplianceIdentifierAlternativeGroup[]
+): string {
+  if (alternatives.length === 0) {
+    return 'None';
+  }
+
+  return alternatives
+    .map(
+      (alternative) =>
+        `${formatIdentifierTypeList(alternative.originalMissingIdentifiers)} -> ${formatIdentifierTypeList(alternative.alternativeMissingIdentifiers)}`
+    )
+    .join('\n');
+}
+
+function formatIdentifierTypeList(
+  identifiers: Onramp.ComplianceIdentifierType[]
+): string {
+  return identifiers.length > 0 ? identifiers.join(', ') : 'None';
+}
+
 const showAlert = (title: string, message: string) => {
   Alert.alert(title, message);
 };

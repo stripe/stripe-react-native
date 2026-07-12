@@ -30,9 +30,3 @@ appId: ${APP_ID}
 - tapOn: OK
 - assertVisible: 'The payment has been canceled'
 - tapOn: OK
-
-# Add to G Pay
-- tapOn:
-    id: 'add-to-g-pay'
-- assertVisible: 'TAP_AND_PAY_UNAVAILABLE'
-- tapOn: OK

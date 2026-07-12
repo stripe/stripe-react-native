@@ -11,7 +11,7 @@ trigger_map:
 
 app:
   envs:
-    - NODE_VERSION: '22'
+    - NODE_VERSION: '22' # Keep in sync with .node-version
     - JAVA_VERSION: '17'
     - ANDROID_API_LEVEL: '33'
     - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
@@ -23,7 +23,6 @@ pipelines:
     workflows:
       js-tests: {}
       unit-test-ios: {}
-      build-ios-xcode-16: {}
       unit-test-android: {}
       e2e-build-ios-old-arch: {}
       e2e-tests-ios-old-arch:
@@ -70,6 +69,10 @@ workflows:
           inputs:
             - content: yarn test
       - script@1:
+          title: Validate Package Types
+          inputs:
+            - content: yarn test:package-types
+      - script@1:
           title: Run Example TypeScript Checks
           inputs:
             - content: cd example && yarn typescript
@@ -111,25 +114,6 @@ workflows:
       - deploy-to-bitrise-io@2:
           inputs:
             - notify_user_groups: none
-
-  build-ios-xcode-16:
-    before_run:
-      - _prepare_ios
-      - _install_pods
-    steps:
-      - xcode-build-for-test@2:
-          title: Build iOS (Xcode 16)
-          inputs:
-            - project_path: example/ios/example.xcworkspace
-            - scheme: stripe-react-native-Unit-Tests
-            - destination: generic/platform=iOS Simulator
-      - deploy-to-bitrise-io@2:
-          inputs:
-            - notify_user_groups: none
-    meta:
-      bitrise.io:
-        stack: osx-xcode-16.1.x
-        machine_type_id: g2.mac.large
 
   unit-test-android:
     before_run:
@@ -286,8 +270,7 @@ workflows:
             - content: ./scripts/test-project --version "$RN_VERSION"
     meta:
       bitrise.io:
-        # 0.76 requires Xcode 16.4
-        stack: osx-xcode-16.4.x
+        stack: osx-xcode-26.4.x
         machine_type_id: g2.mac.4large
 
   rn-078:
@@ -474,7 +457,9 @@ workflows:
             - content: |
                 cd example/android
                 yarn build:android
-                ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan
+                ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan || \
+                  (echo "Gradle build failed, retrying in 30s..." && sleep 30 && \
+                   ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan)
       - save-gradle-cache@1:
           is_always_run: true
       - deploy-to-bitrise-io@2:
@@ -483,6 +468,7 @@ workflows:
 
   _e2e_tests_android:
     before_run:
+      - _prepare_js_env
       - _start_android_emulator
     after_run:
       # TODO: Reenable this once we have the webhook urls on bitrise.
@@ -539,12 +525,15 @@ workflows:
                 mkdir -p "$OUT_DIR"
 
                 DERIVED_DATA_PATH="$BITRISE_SOURCE_DIR/DerivedData"
-                xcodebuild -workspace example.xcworkspace \
-                  -scheme example \
-                  -configuration Release \
-                  -sdk iphonesimulator \
-                  -derivedDataPath "$DERIVED_DATA_PATH" \
-                  build | xcbeautify
+                build_ios() {
+                  xcodebuild -workspace example.xcworkspace \
+                    -scheme example \
+                    -configuration Release \
+                    -sdk iphonesimulator \
+                    -derivedDataPath "$DERIVED_DATA_PATH" \
+                    build | xcbeautify
+                }
+                build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)
 
                 APP_ROOT="$DERIVED_DATA_PATH/Build/Products/Release-iphonesimulator"
                 APP_DIR="$APP_ROOT/ReactTestApp.app"
@@ -636,5 +625,5 @@ workflows:
 
 meta:
   bitrise.io:
-    stack: osx-xcode-26.0.x
+    stack: osx-xcode-26.4.x
     machine_type_id: g2.mac.4large

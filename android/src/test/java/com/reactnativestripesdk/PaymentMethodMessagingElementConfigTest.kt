@@ -404,7 +404,7 @@ class PaymentMethodMessagingElementConfigTest {
       readableMapOf(
         "font" to
           readableMapOf(
-            "scale" to 1.5,
+            "size" to 20,
           ),
       )
 
@@ -416,7 +416,7 @@ class PaymentMethodMessagingElementConfigTest {
           PaymentMethodMessagingElement.Appearance
             .Font()
             .fontFamily(null)
-            .fontSizeSp((16 * 1.5).toFloat())
+            .fontSizeSp((20).toFloat())
         font(font)
         colors(PaymentMethodMessagingElement.Appearance.Colors())
       }
@@ -433,7 +433,7 @@ class PaymentMethodMessagingElementConfigTest {
         "linkTextColor" to "#00FFFF",
         "font" to
           readableMapOf(
-            "scale" to 1.2,
+            "size" to 20,
           ),
       )
 

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCryptoOnramp::class)
+
 package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
@@ -5,10 +7,12 @@ import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.SavedStateHandle
+import com.stripe.android.core.model.CountryCode
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
@@ -16,14 +20,15 @@ import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createCanceledError
 import com.reactnativestripesdk.utils.createEmptyResult
 import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.createFailedError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
-import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
+import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
+import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.OnrampCoordinator
+import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.LinkUserInfo
@@ -34,10 +39,13 @@ import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
 import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentMethodResult
 import com.stripe.android.crypto.onramp.model.OnrampConfigurationResult
 import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
+import com.stripe.android.crypto.onramp.model.OnrampUserAttestationResult
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
 import com.stripe.android.crypto.onramp.model.OnrampLogOutResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
+import com.stripe.android.crypto.onramp.model.OnrampRetrieveMissingIdentifiersResult
+import com.stripe.android.crypto.onramp.model.OnrampSubmitIdentifiersResult
 import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
@@ -57,10 +65,13 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 @SuppressLint("RestrictedApi")
+@OptIn(ExperimentalCryptoOnramp::class)
 @ReactModule(name = NativeOnrampSdkModuleSpec.NAME)
 class OnrampSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeOnrampSdkModuleSpec(reactContext) {
+  private val eventEmitterCompat = EventEmitterCompat(reactContext)
+  private var reactNativeSdkVersion: String? = null
   private lateinit var publishableKey: String
   private var stripeAccountId: String? = null
 
@@ -73,6 +84,7 @@ class OnrampSdkModule(
   private var authorizePromise: Promise? = null
   private var checkoutPromise: Promise? = null
   private var verifyKycPromise: Promise? = null
+  private var userAttestationPromise: Promise? = null
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
   private val rnScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -84,6 +96,10 @@ class OnrampSdkModule(
   ) {
     // Note: This method depends on `StripeSdkModule#initialise()` being called as well.
     val publishableKey = getValOr(params, "publishableKey", null) as String
+    reactNativeSdkVersion =
+      params.getMap("appInfo")
+        ?.getString("version")
+        ?.takeIf { it.isNotBlank() }
     this.stripeAccountId = getValOr(params, "stripeAccountId", null)
     this.publishableKey = publishableKey
 
@@ -136,13 +152,17 @@ class OnrampSdkModule(
           handleOnrampCheckoutResult(result, checkoutPromise!!)
         }.verifyKycCallback { result ->
           handleOnrampKycVerificationResult(result, verifyKycPromise!!)
+        }.userAttestationCallback { result ->
+          userAttestationPromise?.let {
+            handleUserAttestationResult(result, it)
+          }
         }.onrampSessionClientSecretProvider { sessionId ->
           checkoutClientSecretDeferred = CompletableDeferred()
 
           val params = Arguments.createMap()
           params.putString("onrampSessionId", sessionId)
 
-          emitOnCheckoutClientSecretRequested(params)
+          eventEmitterCompat.emitOnCheckoutClientSecretRequested(params)
 
           checkoutClientSecretDeferred!!.await()
         }
@@ -154,7 +174,7 @@ class OnrampSdkModule(
         .also { this.onrampCoordinator = it }
 
     CoroutineScope(Dispatchers.IO).launch {
-      val configuration = mapConfig(config, publishableKey)
+      val configuration = mapConfig(config, publishableKey, onrampAdditionalSdkVersions())
       val configureResult = coordinator.configure(configuration)
 
       CoroutineScope(Dispatchers.Main).launch {
@@ -163,7 +183,7 @@ class OnrampSdkModule(
             createOnrampPresenter(promise)
           }
           is OnrampConfigurationResult.Failed -> {
-            promise.resolve(createError(ErrorType.Failed.toString(), configureResult.error))
+            promise.resolve(createOnrampFailedError(configureResult.error))
           }
         }
       }
@@ -190,7 +210,7 @@ class OnrampSdkModule(
       onrampPresenter = onrampCoordinator!!.createPresenter(activity)
       promise.resolveVoid()
     } catch (e: Exception) {
-      promise.resolve(createFailedError(e))
+      promise.resolve(createOnrampFailedError(e))
     }
   }
 
@@ -210,7 +230,7 @@ class OnrampSdkModule(
           promise.resolveBoolean("hasLinkAccount", result.hasLinkAccount)
         }
         is OnrampHasLinkAccountResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -241,7 +261,7 @@ class OnrampSdkModule(
           promise.resolveString("customerId", result.customerId)
         }
         is OnrampRegisterLinkUserResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -270,7 +290,7 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampRegisterWalletAddressResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -306,10 +326,16 @@ class OnrampSdkModule(
           )
         } else {
           null
-        }
+      }
 
       val addressMap = kycInfo.getMap("address")
       val addressObj = mapToPaymentSheetAddress(addressMap)
+      val birthCountry = kycInfo.getString("birthCountry")?.let(CountryCode::create)
+      val birthCity = kycInfo.getString("birthCity")
+      val nationalities =
+        kycInfo.getStringList("nationalities")
+          ?.map(CountryCode::create)
+          ?.takeIf { it.isNotEmpty() }
 
       val kycInfoObj =
         KycInfo(
@@ -318,6 +344,9 @@ class OnrampSdkModule(
           idNumber = idNumber,
           dateOfBirth = dob,
           address = addressObj,
+          birthCountry = birthCountry,
+          birthCity = birthCity,
+          nationalities = nationalities,
         )
 
       when (val result = coordinator.attachKycInfo(kycInfoObj)) {
@@ -325,10 +354,79 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampAttachKycInfoResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
+  }
+
+  @ReactMethod
+  override fun retrieveMissingIdentifiers(promise: Promise) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    CoroutineScope(Dispatchers.IO).launch {
+      when (val result = coordinator.retrieveMissingIdentifiers()) {
+        is OnrampRetrieveMissingIdentifiersResult.Completed -> {
+          promise.resolve(mapFromComplianceIdentifierRequirements(result.requirements))
+        }
+        is OnrampRetrieveMissingIdentifiersResult.Failed -> {
+          promise.resolve(createOnrampFailedError(result.error))
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun submitIdentifiers(
+    identifiers: ReadableArray,
+    promise: Promise,
+  ) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    val complianceIdentifiers =
+      try {
+        mapToComplianceIdentifiers(identifiers)
+      } catch (error: IllegalArgumentException) {
+        val errorType =
+          if (error is ComplianceIdentifierFieldException) {
+            ErrorType.Unknown
+          } else {
+            ErrorType.Failed
+          }
+        promise.resolve(createError(errorType.toString(), error.message ?: "Invalid identifiers"))
+        return
+      }
+
+    CoroutineScope(Dispatchers.IO).launch {
+      when (val result = coordinator.submitIdentifiers(complianceIdentifiers)) {
+        is OnrampSubmitIdentifiersResult.Completed -> {
+          promise.resolve(mapFromSubmitIdentifiersResult(result.result))
+        }
+        is OnrampSubmitIdentifiersResult.Failed -> {
+          promise.resolve(createOnrampFailedError(result.error))
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun presentUserAttestation(promise: Promise) {
+    val presenter =
+      onrampPresenter ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    userAttestationPromise = promise
+    presenter.presentUserAttestation()
   }
 
   @ReactMethod
@@ -347,7 +445,7 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampUpdatePhoneNumberResult.Failed -> {
-          promise.resolve(createFailedError(result.error))
+          promise.resolve(createOnrampFailedError(result.error))
         }
       }
     }
@@ -405,7 +503,7 @@ class OnrampSdkModule(
             platformPayParams.getMap("googlePay")
               ?: run {
                 promise.resolve(
-                  createFailedError(
+                  createOnrampFailedError(
                     IllegalArgumentException("Missing googlePay params in platformPayParams"),
                   ),
                 )
@@ -413,6 +511,7 @@ class OnrampSdkModule(
               }
           val currencyCode = googlePayParams.getString("currencyCode") ?: ""
           val amount = googlePayParams.getDouble("amount").toLong()
+
           val transactionId = googlePayParams.getString("transactionId")
           val label = googlePayParams.getString("label")
 
@@ -425,7 +524,7 @@ class OnrampSdkModule(
         }
         else -> {
           promise.resolve(
-            createFailedError(
+            createOnrampFailedError(
               IllegalArgumentException("Unsupported payment method: $paymentMethod"),
             ),
           )
@@ -553,7 +652,7 @@ class OnrampSdkModule(
 
     if (paymentDetails == null) {
       promise.resolve(
-        createFailedError(
+        createOnrampFailedError(
           IllegalArgumentException("Unsupported payment method"),
         ),
       )
@@ -632,6 +731,16 @@ class OnrampSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun addListener(eventType: String?) {
+    // noop, iOS only
+  }
+
+  @ReactMethod
+  override fun removeListeners(count: Double) {
+    // noop, iOS only
+  }
+
   private fun handleOnrampIdentityVerificationResult(
     result: OnrampVerifyIdentityResult,
     promise: Promise,
@@ -644,7 +753,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Identity verification was cancelled"))
       }
       is OnrampVerifyIdentityResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -668,7 +777,26 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("KYC verification was cancelled"))
       }
       is OnrampVerifyKycInfoResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
+      }
+    }
+  }
+
+  private fun handleUserAttestationResult(
+    result: OnrampUserAttestationResult,
+    promise: Promise,
+  ) {
+    when (result) {
+      is OnrampUserAttestationResult.Confirmed -> {
+        promise.resolve(
+          WritableNativeMap().apply { putString("status", "Confirmed") },
+        )
+      }
+      is OnrampUserAttestationResult.Cancelled -> {
+        promise.resolve(createCanceledError("User attestation was canceled"))
+      }
+      is OnrampUserAttestationResult.Failed -> {
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -707,7 +835,10 @@ class OnrampSdkModule(
           result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
           displayData.putString("type", mapPaymentDetailsType(result.displayData.type))
 
-          promise.resolve(createResult("displayData", displayData))
+          val map = Arguments.createMap()
+          map.putMap("displayData", displayData)
+          result.kycInfo?.let { map.putMap("kycInfo", mapFromKycInfo(it)) }
+          promise.resolve(map)
         }
       }
 
@@ -716,7 +847,7 @@ class OnrampSdkModule(
       }
 
       is OnrampCollectPaymentMethodResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -745,7 +876,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Authorization was cancelled"))
       }
       is OnrampAuthorizeResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -762,7 +893,7 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Checkout was cancelled"))
       }
       is OnrampCheckoutResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -776,7 +907,7 @@ class OnrampSdkModule(
         promise.resolveString("cryptoPaymentToken", result.cryptoPaymentToken)
       }
       is OnrampCreateCryptoPaymentTokenResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -790,7 +921,7 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampLogOutResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -804,7 +935,7 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampTokenAuthenticationResult.Failed -> {
-        promise.resolve(createFailedError(result.error))
+        promise.resolve(createOnrampFailedError(result.error))
       }
     }
   }
@@ -826,4 +957,14 @@ class OnrampSdkModule(
   ) {
     resolve(WritableNativeMap().apply { putBoolean(key, value) })
   }
+
+  private fun onrampAdditionalSdkVersions(): List<SDKVersion> =
+    reactNativeSdkVersion?.let {
+      listOf(
+        SDKVersion(
+          name = "stripe-react-native",
+          version = it,
+        ),
+      )
+    } ?: emptyList()
 }

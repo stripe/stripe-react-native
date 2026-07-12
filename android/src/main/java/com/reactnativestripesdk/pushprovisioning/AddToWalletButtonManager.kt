@@ -30,7 +30,8 @@ class AddToWalletButtonManager :
     view.onAfterUpdateTransaction()
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView = AddToWalletButtonView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView =
+    AddToWalletButtonView(reactContext)
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(
@@ -80,6 +81,14 @@ class AddToWalletButtonManager :
     value: String?,
   ) {
     // noop, iOS only.
+  }
+
+  @ReactProp(name = "isBounceProvisioned")
+  override fun setIsBounceProvisioned(
+    view: AddToWalletButtonView,
+    value: Boolean,
+  ) {
+    view.setIsBounceProvisioned(value)
   }
 
   @ReactProp(name = "testEnv")

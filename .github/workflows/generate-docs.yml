@@ -3,11 +3,14 @@ name: Generate docs
 on:
   push:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   generate-docs:
     name: generate-docs
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -27,7 +30,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: '.node-version'
 
       - name: Install Dependencies
         run: |

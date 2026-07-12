@@ -15,7 +15,7 @@ buildscript {
     classpath "com.android.tools.build:gradle:7.2.2"
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-    classpath "com.diffplug.spotless:spotless-plugin-gradle:6.25.0"
+    classpath "dev.detekt:detekt-gradle-plugin:2.0.0-alpha.2"
     // only use this old compose-compiler plugin when Kotlin >= 2.0
     if (kotlinMajor >= 2) {
       classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlinVersion"
@@ -24,7 +24,7 @@ buildscript {
 }
 
 if (project == rootProject) {
-  apply from: "spotless.gradle"
+  apply from: "detekt/detekt.gradle"
   return
 }
 
@@ -164,11 +164,11 @@ dependencies {
   implementation("com.stripe:stripe-android:$stripeVersion")
   implementation("com.stripe:financial-connections:$stripeVersion")
   implementation("com.stripe:payment-method-messaging:$stripeVersion")
-  
+
   if (isOnrampIncluded()) {
     implementation("com.stripe:crypto-onramp:$stripeVersion")
   }
-  
+
   implementation "com.google.android.material:material:1.3.0"
   implementation "androidx.appcompat:appcompat:1.4.1"
   implementation "androidx.legacy:legacy-support-v4:1.0.0"
@@ -179,7 +179,7 @@ dependencies {
   compileOnly "com.google.android.gms:play-services-wallet:19.3.0"
 
   // Users need to declare this dependency on their own, otherwise all methods are a no-op
-  compileOnly "com.stripe:stripe-android-issuing-push-provisioning:1.1.0"
+  compileOnly "com.stripe:stripe-android-issuing-push-provisioning:1.3.0"
 
   testImplementation "junit:junit:4.13"
   testImplementation "org.mockito:mockito-core:3.+"

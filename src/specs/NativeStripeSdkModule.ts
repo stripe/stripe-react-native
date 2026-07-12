@@ -36,6 +36,7 @@ import type {
   VerifyMicrodepositsParams,
   CreateRadarSessionResult,
 } from '../types';
+import type { Checkout } from '../types/Checkout';
 import type {
   EmbeddedPaymentElementConfiguration,
   EmbeddedPaymentElementResult,
@@ -63,7 +64,7 @@ export interface Spec extends TurboModule {
   ): Promise<HandleNextActionForSetupResult>;
   confirmPayment(
     paymentIntentClientSecret: string,
-    params?: UnsafeObject<PaymentIntent.ConfirmParams>,
+    params: UnsafeObject<PaymentIntent.ConfirmParams> | null,
     options?: UnsafeObject<PaymentIntent.ConfirmOptions>
   ): Promise<ConfirmPaymentResult>;
   confirmSetupIntent(
@@ -117,6 +118,8 @@ export interface Spec extends TurboModule {
       deviceType: string;
       appName: string;
       appVersion: string;
+      isNewArchitecture: boolean;
+      reactNativeVersion: string;
     };
   };
   canAddCardToWallet(
@@ -196,14 +199,61 @@ export interface Spec extends TurboModule {
     intentConfig: UnsafeObject<IntentConfiguration>,
     configuration: UnsafeObject<EmbeddedPaymentElementConfiguration>
   ): Promise<void>;
+  createEmbeddedPaymentElementWithCheckout(
+    sessionKey: string,
+    configuration: UnsafeObject<EmbeddedPaymentElementConfiguration>
+  ): Promise<void>;
   confirmEmbeddedPaymentElement(
     viewTag: Int32
   ): Promise<EmbeddedPaymentElementResult>;
   updateEmbeddedPaymentElement(
     intentConfig: UnsafeObject<IntentConfiguration>
-  ): Promise<void>;
+  ): Promise<UnsafeObject<any> | null>;
   clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
   createRadarSession(): Promise<CreateRadarSessionResult>;
+
+  // Checkout Session
+
+  initCheckoutSession(
+    clientSecret: string,
+    configuration: UnsafeObject<Checkout.Configuration>
+  ): Promise<UnsafeObject<{ sessionKey: string; state: Checkout.State }>>;
+
+  checkoutUpdateShippingAddress(
+    sessionKey: string,
+    address: UnsafeObject<Checkout.Address>,
+    name: string | null,
+    phone: string | null
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutApplyPromotionCode(
+    sessionKey: string,
+    code: string
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutRemovePromotionCode(
+    sessionKey: string
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutUpdateLineItemQuantity(
+    sessionKey: string,
+    lineItemId: string,
+    quantity: number
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutSelectShippingOption(
+    sessionKey: string,
+    id: string
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutRunServerUpdateStart(
+    sessionKey: string
+  ): Promise<UnsafeObject<Checkout.State>>;
+
+  checkoutRunServerUpdateComplete(
+    sessionKey: string,
+    error: string | null
+  ): Promise<void>;
 
   setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;
 

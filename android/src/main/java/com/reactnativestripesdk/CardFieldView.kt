@@ -169,7 +169,7 @@ class CardFieldView(
       }
     }
 
-    mCardWidget.setPadding(20, 0, 20, 0)
+    mCardWidget.setPadding(CARD_WIDGET_HORIZONTAL_PADDING, 0, CARD_WIDGET_HORIZONTAL_PADDING, 0)
     mCardWidget.background =
       MaterialShapeDrawable(
         ShapeAppearanceModel()
@@ -367,32 +367,10 @@ class CardFieldView(
       }
     }
 
-    mCardWidget.setCardInputListener(
-      object : CardInputListener {
-        override fun onCardComplete() {}
-
-        override fun onExpirationComplete() {}
-
-        override fun onCvcComplete() {}
-
-        override fun onPostalCodeComplete() {}
-
-        override fun onFocusChange(focusField: CardInputListener.FocusField) {}
-      },
-    )
+    mCardWidget.setCardInputListener(DefaultCardInputListener())
 
     mCardWidget.setExpiryDateTextWatcher(
-      object : TextWatcher {
-        override fun beforeTextChanged(
-          p0: CharSequence?,
-          p1: Int,
-          p2: Int,
-          p3: Int,
-        ) {
-        }
-
-        override fun afterTextChanged(p0: Editable?) {}
-
+      object : DefaultTextWatcher() {
         override fun onTextChanged(
           var1: CharSequence?,
           var2: Int,
@@ -410,17 +388,7 @@ class CardFieldView(
     )
 
     mCardWidget.setPostalCodeTextWatcher(
-      object : TextWatcher {
-        override fun beforeTextChanged(
-          p0: CharSequence?,
-          p1: Int,
-          p2: Int,
-          p3: Int,
-        ) {
-        }
-
-        override fun afterTextChanged(p0: Editable?) {}
-
+      object : DefaultTextWatcher() {
         override fun onTextChanged(
           var1: CharSequence?,
           var2: Int,
@@ -433,17 +401,7 @@ class CardFieldView(
     )
 
     mCardWidget.setCardNumberTextWatcher(
-      object : TextWatcher {
-        override fun beforeTextChanged(
-          p0: CharSequence?,
-          p1: Int,
-          p2: Int,
-          p3: Int,
-        ) {
-        }
-
-        override fun afterTextChanged(p0: Editable?) {}
-
+      object : DefaultTextWatcher() {
         override fun onTextChanged(
           var1: CharSequence?,
           var2: Int,
@@ -458,17 +416,7 @@ class CardFieldView(
     )
 
     mCardWidget.setCvcNumberTextWatcher(
-      object : TextWatcher {
-        override fun beforeTextChanged(
-          p0: CharSequence?,
-          p1: Int,
-          p2: Int,
-          p3: Int,
-        ) {
-        }
-
-        override fun afterTextChanged(p0: Editable?) {}
-
+      object : DefaultTextWatcher() {
         override fun onTextChanged(
           var1: CharSequence?,
           var2: Int,
@@ -530,4 +478,54 @@ class CardFieldView(
       )
       layout(left, top, right, bottom)
     }
+
+  private companion object {
+    const val CARD_WIDGET_HORIZONTAL_PADDING = 20
+  }
+
+  private open class DefaultTextWatcher : TextWatcher {
+    override fun beforeTextChanged(
+      p0: CharSequence?,
+      p1: Int,
+      p2: Int,
+      p3: Int,
+    ) {
+      // NO-OP
+    }
+
+    override fun afterTextChanged(p0: Editable?) {
+      // NO-OP
+    }
+
+    override fun onTextChanged(
+      var1: CharSequence?,
+      var2: Int,
+      var3: Int,
+      var4: Int,
+    ) {
+      // NO-OP
+    }
+  }
+
+  private open class DefaultCardInputListener : CardInputListener {
+    override fun onCardComplete() {
+      // NO-OP
+    }
+
+    override fun onExpirationComplete() {
+      // NO-OP
+    }
+
+    override fun onCvcComplete() {
+      // NO-OP
+    }
+
+    override fun onPostalCodeComplete() {
+      // NO-OP
+    }
+
+    override fun onFocusChange(focusField: CardInputListener.FocusField) {
+      // NO-OP
+    }
+  }
 }

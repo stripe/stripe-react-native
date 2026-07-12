@@ -7,7 +7,8 @@ import type { UnsafeMixed } from './utils';
 
 export interface NativeProps extends ViewProps {
   configuration: UnsafeMixed<EmbeddedPaymentElementConfiguration>;
-  intentConfiguration: UnsafeMixed<IntentConfiguration>;
+  intentConfiguration?: UnsafeMixed<IntentConfiguration>;
+  checkout?: UnsafeMixed<{ sessionKey: string }>;
 }
 
 export interface NativeCommands {

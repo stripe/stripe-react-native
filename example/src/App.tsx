@@ -18,6 +18,7 @@ import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
 import BilliePaymentScreen from './screens/BilliePaymentScreen';
 import CashAppScreen from './screens/CashAppScreen';
+import CheckoutScreen from './screens/CheckoutScreen';
 import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 import ConnectAccountOnboardingScreen from './screens/ConnectAccountOnboardingScreen';
 import ConnectPaymentsListScreen from './screens/ConnectPaymentsListScreen';
@@ -36,6 +37,7 @@ import HomeScreen from './screens/HomeScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
 import KlarnaPaymentScreen from './screens/KlarnaPaymentScreen';
+import MultibancoPaymentScreen from './screens/MultibancoPaymentScreen';
 import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
 import NoWebhookSetupScreen from './screens/NoWebhookSetupScreen';
@@ -56,6 +58,7 @@ import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
 import RegisterCryptoUserScreen from './screens/Onramp/RegisterCryptoUserScreen';
+import PaymentMethodMessagingElementScreen from './screens/PaymentMethodMessagingElementScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -88,6 +91,7 @@ export type RootStackParamList = {
   AuBECSDebitPaymentScreen: undefined;
   AfterpayClearpayPaymentScreen: undefined;
   KlarnaPaymentScreen: undefined;
+  MultibancoPaymentScreen: undefined;
   AuBECSDebitSetupPaymentScreen: undefined;
   MultilineWebhookPaymentScreen: undefined;
   GooglePayScreen: undefined;
@@ -95,6 +99,7 @@ export type RootStackParamList = {
   ACHSetupScreen: undefined;
   PayPalScreen: undefined;
   CashAppScreen: undefined;
+  CheckoutScreen: undefined;
   AffirmScreen: undefined;
   CollectBankAccountScreen: undefined;
   PaymentSheetDeferredIntentScreen: undefined;
@@ -113,6 +118,7 @@ export type RootStackParamList = {
   ConnectPayoutsListScreen: undefined;
   CryptoOnrampFlow: undefined;
   RegisterCryptoUserScreen: undefined;
+  PaymentMethodMessagingElementScreen: undefined;
 };
 
 declare global {
@@ -267,6 +273,10 @@ export default function App() {
             component={OxxoPaymentScreen}
           />
           <Stack.Screen
+            name="MultibancoPaymentScreen"
+            component={MultibancoPaymentScreen}
+          />
+          <Stack.Screen
             name="AfterpayClearpayPaymentScreen"
             component={AfterpayClearpayPaymentScreen}
           />
@@ -279,6 +289,11 @@ export default function App() {
           <Stack.Screen name="ACHSetupScreen" component={ACHSetupScreen} />
           <Stack.Screen name="PayPalScreen" component={PayPalScreen} />
           <Stack.Screen name="CashAppScreen" component={CashAppScreen} />
+          <Stack.Screen
+            name="CheckoutScreen"
+            component={CheckoutScreen}
+            options={{ title: 'Checkout Playground' }}
+          />
           <Stack.Screen name="AffirmScreen" component={AffirmScreen} />
           <Stack.Screen
             name="CollectBankAccountScreen"
@@ -317,6 +332,10 @@ export default function App() {
           <Stack.Screen
             name="ConnectPayoutsListScreen"
             component={ConnectPayoutsListScreen}
+          />
+          <Stack.Screen
+            name="PaymentMethodMessagingElementScreen"
+            component={PaymentMethodMessagingElementScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

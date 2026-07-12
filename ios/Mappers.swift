@@ -3,7 +3,7 @@ import Stripe
 @_spi(ConfirmationTokensPublicPreview) import StripePayments
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
-@_spi(STP) import StripePaymentSheet
+@_spi(CryptoOnrampAlpha) import StripePaymentSheet
 #else
 import StripePaymentSheet
 #endif
@@ -295,8 +295,8 @@ class Mappers {
         case STPPaymentMethodType.EPS: return "Eps"
         case STPPaymentMethodType.bancontact: return "Bancontact"
         case STPPaymentMethodType.billie: return "Billie"
+        case STPPaymentMethodType.multibanco: return "Multibanco"
         case STPPaymentMethodType.OXXO: return "Oxxo"
-        case STPPaymentMethodType.UPI: return "Upi"
         case STPPaymentMethodType.afterpayClearpay: return "AfterpayClearpay"
         case STPPaymentMethodType.klarna: return "Klarna"
         case STPPaymentMethodType.USBankAccount: return "USBankAccount"
@@ -327,8 +327,8 @@ class Mappers {
             case "Eps": return STPPaymentMethodType.EPS
             case "Bancontact": return STPPaymentMethodType.bancontact
             case "Billie": return STPPaymentMethodType.billie
+            case "Multibanco": return STPPaymentMethodType.multibanco
             case "Oxxo": return STPPaymentMethodType.OXXO
-            case "Upi": return STPPaymentMethodType.UPI
             case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
             case "Klarna": return STPPaymentMethodType.klarna
             case "WeChatPay": return STPPaymentMethodType.weChatPay
@@ -474,6 +474,14 @@ class Mappers {
                 return [
                     "type": "konbiniVoucher",
                     "voucherURL": it.konbiniDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
+                ]
+            case .multibancoDisplayDetails:
+                return [
+                    "type": "multibanco",
+                    "entity": it.multibancoDisplayDetails?.entity ?? NSNull(),
+                    "reference": it.multibancoDisplayDetails?.reference ?? NSNull(),
+                    "expiresAt": it.multibancoDisplayDetails?.expiresAt.timeIntervalSince1970 ?? NSNull(),
+                    "voucherURL": it.multibancoDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
                 ]
             default: // .useStripeSDK, .BLIKAuthorize, .unknown
                 return nil
@@ -691,9 +699,6 @@ class Mappers {
             "SepaDebit": sepaDebit,
             "BacsDebit": bacsDebit,
             "AuBecsDebit": auBECSDebit,
-            "Upi": [
-                "vpa": paymentMethod.upi?.vpa
-            ],
             "USBankAccount": USBankAccount,
         ]
         return method
@@ -1178,12 +1183,17 @@ class Mappers {
         let lightPrimaryHex = lightColors?["primary"] as? String
         let darkSelectedBorderHex = darkColors?["borderSelected"] as? String
         let lightSelectedBorderHex = lightColors?["borderSelected"] as? String
+        let darkContentOnPrimaryHex = darkColors?["contentOnPrimary"] as? String
+        let lightContentOnPrimaryHex = lightColors?["contentOnPrimary"] as? String
 
         let darkPrimary = darkPrimaryHex.flatMap { UIColor(hexString: $0) }
         let lightPrimary = lightPrimaryHex.flatMap { UIColor(hexString: $0) }
 
         let darkSelectedBorder = darkSelectedBorderHex.flatMap { UIColor(hexString: $0) }
         let lightSelectedBorder = lightSelectedBorderHex.flatMap { UIColor(hexString: $0) }
+
+        let darkContentOnPrimary = darkContentOnPrimaryHex.flatMap { UIColor(hexString: $0) }
+        let lightContentOnPrimary = lightContentOnPrimaryHex.flatMap { UIColor(hexString: $0) }
 
         let primary: UIColor? = if let darkPrimary, let lightPrimary {
             UIColor { trait in
@@ -1201,17 +1211,25 @@ class Mappers {
             darkSelectedBorder ?? lightSelectedBorder
         }
 
-        let colors: LinkAppearance.Colors? = if primary != nil || selectedBorder != nil {
-            .init(primary: primary, selectedBorder: selectedBorder)
+        let contentOnPrimary: UIColor? = if let darkContentOnPrimary, let lightContentOnPrimary {
+            UIColor { trait in
+                trait.userInterfaceStyle == .dark ? darkContentOnPrimary : lightContentOnPrimary
+            }
+        } else {
+            darkContentOnPrimary ?? lightContentOnPrimary
+        }
+
+        let colors: LinkAppearance.Colors? = if primary != nil || selectedBorder != nil || contentOnPrimary != nil {
+            .init(primary: primary, contentOnPrimary: contentOnPrimary, selectedBorder: selectedBorder)
         } else {
             nil
         }
 
-        let primaryButtonConfiguration: LinkAppearance.PrimaryButtonConfiguration? =
-            if let primaryButton = params["primaryButton"] as? [String: CGFloat],
-                let cornerRadius = primaryButton["cornerRadius"],
-                let height = primaryButton["height"] {
-                    .init(cornerRadius: cornerRadius, height: height)
+        let primaryButtonConfiguration: LinkAppearance.PrimaryButtonConfiguration? = if let primaryButton = params["primaryButton"] as? [String: CGFloat] {
+            .init(
+                cornerRadius: primaryButton["cornerRadius"],
+                height: primaryButton["height"]
+            )
         } else {
             nil
         }
@@ -1244,14 +1262,141 @@ class Mappers {
     class func mapToKycInfo(_ params: [String: Any]) throws -> KycInfo {
         let address = try mapOptionalKycAddress(params["address"])
         let dateOfBirth = try mapOptionalDateOfBirth(params["dateOfBirth"])
+        let nationalities = try mapOptionalNormalizedStringArray(
+            params["nationalities"],
+            field: "nationalities"
+        )
 
         return KycInfo(
             firstName: normalizedString(params["firstName"]),
             lastName: normalizedString(params["lastName"]),
             idNumber: normalizedString(params["idNumber"]),
             address: address,
-            dateOfBirth: dateOfBirth
+            dateOfBirth: dateOfBirth,
+            birthCountry: normalizedString(params["birthCountry"]),
+            birthCity: normalizedString(params["birthCity"]),
+            nationalities: nationalities
         )
+    }
+
+    class func mapFromKycInfo(_ kycInfo: KycInfo) -> [String: Any] {
+        var result: [String: Any] = [:]
+
+        if let firstName = kycInfo.firstName {
+            result["firstName"] = firstName
+        }
+
+        if let lastName = kycInfo.lastName {
+            result["lastName"] = lastName
+        }
+
+        if let idNumber = kycInfo.idNumber {
+            result["idNumber"] = idNumber
+        }
+
+        if let address = kycInfo.address {
+            result["address"] = mapFromKycAddress(address)
+        }
+
+        if let dateOfBirth = kycInfo.dateOfBirth {
+            result["dateOfBirth"] = mapFromDateOfBirth(dateOfBirth)
+        }
+
+        if let birthCountry = kycInfo.birthCountry {
+            result["birthCountry"] = birthCountry
+        }
+
+        if let birthCity = kycInfo.birthCity {
+            result["birthCity"] = birthCity
+        }
+
+        if let nationalities = kycInfo.nationalities {
+            result["nationalities"] = nationalities
+        }
+
+        return result
+    }
+
+    class func mapFromKycAddress(_ address: Address) -> [String: Any] {
+        var result: [String: Any] = [:]
+
+        if let city = address.city {
+            result["city"] = city
+        }
+
+        if let country = address.country {
+            result["country"] = country
+        }
+
+        if let line1 = address.line1 {
+            result["line1"] = line1
+        }
+
+        if let line2 = address.line2 {
+            result["line2"] = line2
+        }
+
+        if let postalCode = address.postalCode {
+            result["postalCode"] = postalCode
+        }
+
+        if let state = address.state {
+            result["state"] = state
+        }
+
+        return result
+    }
+
+    class func mapFromDateOfBirth(_ dateOfBirth: KycInfo.DateOfBirth) -> [String: Int] {
+        [
+            "day": dateOfBirth.day,
+            "month": dateOfBirth.month,
+            "year": dateOfBirth.year,
+        ]
+    }
+
+    class func mapToComplianceIdentifier(_ params: [String: Any]) throws -> ComplianceIdentifier {
+        guard let type = normalizedString(params["type"]) else {
+            throw ComplianceIdentifierError.invalidField("type")
+        }
+
+        guard let value = normalizedString(params["value"]) else {
+            throw ComplianceIdentifierError.invalidField("value")
+        }
+
+        return ComplianceIdentifier(type: ComplianceIdentifierType(rawValue: type), value: value)
+    }
+
+    class func mapFromComplianceIdentifierRequirements(_ requirements: ComplianceIdentifierRequirements) -> [String: Any] {
+        [
+            "identifiers": requirements.identifiers.map(mapFromComplianceIdentifierRequirement),
+            "alternatives": requirements.alternatives.map(mapFromComplianceIdentifierAlternativeGroup),
+            "carfTinRequired": requirements.carfTinRequired,
+        ]
+    }
+
+    class func mapFromSubmitIdentifiersResult(_ result: SubmitIdentifiersResult) -> [String: Any] {
+        [
+            "completed": result.completed,
+            "identifiers": result.identifiers.map(mapFromComplianceIdentifierRequirement),
+            "alternatives": result.alternatives.map(mapFromComplianceIdentifierAlternativeGroup),
+            "carfTinRequired": result.carfTinRequired,
+            "invalidIdentifiers": result.invalidIdentifiers.map(\.rawValue),
+        ]
+    }
+
+    private class func mapFromComplianceIdentifierRequirement(_ requirement: ComplianceIdentifierRequirement) -> [String: String] {
+        [
+            "type": requirement.type.rawValue,
+            "regulation": requirement.regulation.rawValue,
+        ]
+    }
+
+    private class func mapFromComplianceIdentifierAlternativeGroup(_ group: ComplianceIdentifierAlternativeGroup) -> [String: [String]] {
+        [
+            "originalMissingIdentifiers": group.originalMissingIdentifiers.map(\.rawValue),
+            "alternativeMissingIdentifiers": group.alternativeMissingIdentifiers.map(\.rawValue),
+        ]
     }
 
     private class func mapOptionalKycAddress(_ value: Any?) throws -> Address? {
@@ -1298,6 +1443,29 @@ class Mappers {
         return nil
     }
 
+    private class func mapOptionalNormalizedStringArray(
+        _ value: Any?,
+        field: String
+    ) throws -> [String]? {
+        guard let value else {
+            return nil
+        }
+
+        guard let values = value as? [Any] else {
+            throw KycInfoError.invalidField(field)
+        }
+
+        let normalizedValues = try values.map { value in
+            guard let normalizedValue = normalizedString(value) else {
+                throw KycInfoError.invalidField(field)
+            }
+
+            return normalizedValue
+        }
+
+        return normalizedValues.isEmpty ? nil : normalizedValues
+    }
+
     private class func normalizedString(_ value: Any?) -> String? {
         guard let stringValue = value as? String else {
             return nil
@@ -1331,6 +1499,10 @@ class Mappers {
     }
 
     enum KycInfoError: Swift.Error {
+        case invalidField(String)
+    }
+
+    enum ComplianceIdentifierError: Swift.Error {
         case invalidField(String)
     }
 #endif

@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:CardFieldView.kt:CardFieldView$fun setCardStyle</ID>
+    <ID>CyclomaticComplexMethod:CardFormView.kt:CardFormView$@SuppressLint("RestrictedApi", "VisibleForTests") fun setCardStyle</ID>
+    <ID>CyclomaticComplexMethod:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$@SuppressLint("RestrictedApi") @Composable override fun Content</ID>
+    <ID>CyclomaticComplexMethod:Mappers.kt:@SuppressLint("RestrictedApi") internal fun mapNextAction: WritableMap?</ID>
+    <ID>CyclomaticComplexMethod:Mappers.kt:fun mapToUICustomization: PaymentAuthConfig.Stripe3ds2UiCustomization</ID>
+    <ID>CyclomaticComplexMethod:Mappers.kt:internal fun mapPaymentMethodType: String</ID>
+    <ID>CyclomaticComplexMethod:Mappers.kt:internal fun mapToPaymentMethodType: PaymentMethod.Type?</ID>
+    <ID>CyclomaticComplexMethod:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$@Throws(PaymentMethodCreateParamsException::class) fun createPaymentMethodParams: PaymentMethodCreateParams</ID>
+    <ID>CyclomaticComplexMethod:PaymentSheetAppearance.kt:@SuppressLint("RestrictedApi") @Throws(PaymentSheetAppearanceException::class) private fun buildEmbeddedAppearance: PaymentSheet.Appearance.Embedded</ID>
+    <ID>ForbiddenComment:Mappers.kt:// TODO: Can't access, private</ID>
+    <ID>ForbiddenComment:PaymentSheetAppearance.kt:// TODO: The theme is so crazy long, why does each Color thing has the same redundant Theme...</ID>
+    <ID>ForbiddenComment:PaymentSheetAppearance.kt:// TODO: Why is background a string but successBackgroundColor a "dynamic" color?</ID>
+    <ID>ForbiddenComment:StripeSdkModule.kt:StripeSdkModule$// TODO:</ID>
+    <ID>ForbiddenComment:StripeSdkModule.kt:StripeSdkModule$// TODO: Uncomment when WeChat is re-enabled in stripe-ios</ID>
+    <ID>LargeClass:PaymentElementConfigTest.kt:PaymentElementConfigTest</ID>
+    <ID>LargeClass:PaymentSheetAppearanceTest.kt:PaymentSheetAppearanceTest</ID>
+    <ID>LargeClass:StripeSdkModule.kt:StripeSdkModule : NativeStripeSdkModuleSpec</ID>
+    <ID>LongMethod:CardFieldView.kt:CardFieldView$fun setCardStyle</ID>
+    <ID>LongMethod:CardFieldView.kt:CardFieldView$private fun setListeners</ID>
+    <ID>LongMethod:CardFormView.kt:CardFormView$@SuppressLint("RestrictedApi", "VisibleForTests") fun setCardStyle</ID>
+    <ID>LongMethod:CardFormView.kt:CardFormView$private fun setListeners</ID>
+    <ID>LongMethod:CustomerSheetManager.kt:CustomerSheetManager$override fun onCreate</ID>
+    <ID>LongMethod:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$@SuppressLint("RestrictedApi") @Composable override fun Content</ID>
+    <ID>LongMethod:EmbeddedPaymentElementViewManager.kt:EmbeddedPaymentElementViewManager$@SuppressLint("RestrictedApi") @OptIn( ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, CardFundingFilteringPrivatePreview::class, ) private fun parseElementConfiguration: EmbeddedPaymentElement.Configuration</ID>
+    <ID>LongMethod:Mappers.kt:@SuppressLint("RestrictedApi") internal fun mapNextAction: WritableMap?</ID>
+    <ID>LongMethod:Mappers.kt:fun mapToUICustomization: PaymentAuthConfig.Stripe3ds2UiCustomization</ID>
+    <ID>LongMethod:Mappers.kt:internal fun mapFromPaymentMethod: WritableMap</ID>
+    <ID>LongMethod:PaymentOptionDisplayDataMapper.kt:fun AnnotatedString.toHtmlString: String</ID>
+    <ID>LongMethod:PaymentSheetAppearance.kt:@SuppressLint("RestrictedApi") @Throws(PaymentSheetAppearanceException::class) private fun buildEmbeddedAppearance: PaymentSheet.Appearance.Embedded</ID>
+    <ID>LongMethod:PaymentSheetAppearanceTest.kt:PaymentSheetAppearanceTest$@Test fun testFullAppearanceConfiguration</ID>
+    <ID>LongMethod:PaymentSheetAppearanceTest.kt:PaymentSheetAppearanceTest$@Test fun testFullEmbeddedAppearance_FlatWithRadio</ID>
+    <ID>LongMethod:PaymentSheetAppearanceTest.kt:PaymentSheetAppearanceTest$@Test fun testPartialAppearanceConfiguration</ID>
+    <ID>LongMethod:PaymentSheetManager.kt:PaymentSheetManager$fun configure</ID>
+    <ID>LongMethod:StripeSdkModule.kt:StripeSdkModule$@ReactMethod override fun confirmPlatformPay</ID>
+    <ID>RethrowCaughtException:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$throw error</ID>
+    <ID>SwallowedException:StripeSdkModule.kt:StripeSdkModule$e: Exception</ID>
+    <ID>ThrowsCount:PaymentSheetAppearance.kt:@Throws(PaymentSheetAppearanceException::class) internal fun getFontResId: Int?</ID>
+    <ID>TooGenericExceptionCaught:CardFieldView.kt:CardFieldView$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CustomerSheetManager.kt:CustomerSheetManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EmbeddedPaymentElementViewManager.kt:EmbeddedPaymentElementViewManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PaymentSheetManager.kt:PaymentSheetManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PaymentSheetManager.kt:e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PushProvisioningProxy.kt:PushProvisioningProxy$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:StripeConnectDeepLinkInterceptorActivity.kt:StripeConnectDeepLinkInterceptorActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:StripeSdkModule.kt:StripeSdkModule$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TapAndPayProxy.kt:TapAndPayProxy$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:EmbeddedPaymentElementViewManager.kt:EmbeddedPaymentElementViewManager$throw Error()</ID>
+    <ID>TooGenericExceptionThrown:PaymentLauncherManager.kt:PaymentLauncherManager$throw Exception( "Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client " + "secret and setup params (if necessary).", )</ID>
+    <ID>TooGenericExceptionThrown:PaymentLauncherManager.kt:PaymentLauncherManager$throw Exception("Failed to create Payment Launcher. No client secret provided.")</ID>
+    <ID>TooGenericExceptionThrown:PaymentMethodCreateParamsFactory.kt:PaymentMethodCreateParamsFactory$throw Exception("This paymentMethodType is not supported yet")</ID>
+    <ID>TooManyFunctions:AddToWalletButtonManager.kt:AddToWalletButtonManager : SimpleViewManagerAddToWalletButtonManagerInterface</ID>
+    <ID>TooManyFunctions:AddressSheetViewManager.kt:AddressSheetViewManager : SimpleViewManagerAddressSheetViewManagerInterface</ID>
+    <ID>TooManyFunctions:CardFieldView.kt:CardFieldView : FrameLayout</ID>
+    <ID>TooManyFunctions:CardFieldViewManager.kt:CardFieldViewManager : SimpleViewManagerCardFieldManagerInterface</ID>
+    <ID>TooManyFunctions:CardFormViewManager.kt:CardFormViewManager : SimpleViewManagerCardFormManagerInterface</ID>
+    <ID>TooManyFunctions:EventEmitterCompat.kt:EventEmitterCompat</ID>
+    <ID>TooManyFunctions:Extensions.kt:com.reactnativestripesdk.utils.Extensions.kt</ID>
+    <ID>TooManyFunctions:Mappers.kt:com.reactnativestripesdk.utils.Mappers.kt</ID>
+    <ID>TooManyFunctions:PaymentElementConfig.kt:com.reactnativestripesdk.PaymentElementConfig.kt</ID>
+    <ID>TooManyFunctions:StripeSdkModule.kt:StripeSdkModule : NativeStripeSdkModuleSpec</ID>
+    <ID>UtilityClassWithPublicConstructor:GooglePayRequestHelper.kt:GooglePayRequestHelper</ID>
+    <ID>UtilityClassWithPublicConstructor:PaymentSheetAppearance.kt:PaymentSheetAppearanceKeys</ID>
+    <ID>UtilityClassWithPublicConstructor:PostalCodeUtilities.kt:PostalCodeUtilities</ID>
+    <ID>UtilityClassWithPublicConstructor:ShadowArguments.kt:ShadowArguments</ID>
+  </CurrentIssues>
+</SmellBaseline>

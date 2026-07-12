@@ -21,6 +21,9 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     private var appearanceConfig: PaymentMethodMessagingElement.Appearance?
     private var lastConfig: NSDictionary?
 
+    // Used to track height updates
+    private var previousHeight: CGFloat?
+
     @objc var appearance: NSDictionary? {
         didSet {
             if let appearance = appearance {
@@ -67,6 +70,19 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         }
     }
 
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // Calculate our natural height
+        let desiredHeight = systemLayoutSizeFitting(CGSize(width: frame.width, height: UIView.layoutFittingCompressedSize.height)).height
+
+        // Notify if changed
+        if desiredHeight != previousHeight {
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": desiredHeight])
+            self.previousHeight = desiredHeight
+        }
+    }
+
     private func attachPaymentElementIfAvailable() {
         removePaymentMethodMessagingElement()
         guard let messagingElement = messagingInstance else {
@@ -76,7 +92,10 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         let messagingElementView = messagingElement.view
         addSubview(messagingElementView)
         messagingElementView.translatesAutoresizingMaskIntoConstraints = false
+        let height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: self.messagingInstance?.view.bounds.width ?? 0, height: UIView.layoutFittingCompressedSize.height)).height
+        self.previousHeight = height ?? 0
 
+        StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
         NSLayoutConstraint.activate([
             messagingElementView.topAnchor.constraint(equalTo: topAnchor),
             messagingElementView.leadingAnchor.constraint(equalTo: leadingAnchor),

@@ -77,14 +77,13 @@ private fun parseFont(
       "family",
       context,
     )
-  val scaleFactor = map.getDoubleOrNull("scale") ?: 1.0
-  val textSize: Double = 16 * scaleFactor
+  val size = map.getDoubleOrNull("size") ?: DEFAULT_FONT_SIZE
 
   val font =
     PaymentMethodMessagingElement.Appearance
       .Font()
       .fontFamily(fontFamily)
-      .fontSizeSp(textSize.toFloat())
+      .fontSizeSp(size.toFloat())
 
   return font
 }
@@ -137,7 +136,7 @@ private fun dynamicColorFromParams(
 @Throws(PaymentMethodMessagingElementAppearanceException::class)
 private fun colorFromHex(hexString: String?): Int? =
   hexString?.trim()?.replace("#", "")?.let {
-    if (it.length == 6 || it.length == 8) {
+    if (it.length == HEX_COLOR_LENGTH_RGB || it.length == HEX_COLOR_LENGTH_ARGB) {
       "#$it".toColorInt()
     } else {
       throw PaymentMethodMessagingElementAppearanceException(
@@ -145,3 +144,7 @@ private fun colorFromHex(hexString: String?): Int? =
       )
     }
   }
+
+private const val DEFAULT_FONT_SIZE = 16.0
+private const val HEX_COLOR_LENGTH_RGB = 6
+private const val HEX_COLOR_LENGTH_ARGB = 8

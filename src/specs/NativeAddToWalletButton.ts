@@ -29,6 +29,7 @@ export interface NativeProps extends ViewProps {
   testEnv?: boolean;
   cardDetails: UnsafeMixed<CardDetails>;
   token?: UnsafeMixed<GooglePayCardToken> | null;
+  isBounceProvisioned?: boolean;
   ephemeralKey: UnsafeMixed<object>;
   onCompleteAction?: DirectEventHandler<AddToWalletButtonCompleteEvent>;
 }

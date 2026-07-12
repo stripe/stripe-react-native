@@ -1,22 +1,18 @@
 import AuthenticationServices
+import Combine
 import Foundation
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
-@_spi(STP) import StripeCore
+@_spi(STP) @_spi(ReactNativeSDK) import StripeCore
 import StripeFinancialConnections
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
 import StripePaymentsUI
 import UIKit
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
-
-@_spi(STP)
-@_spi(EmbeddedPaymentElementPrivateBeta)
-@_spi(CustomerSessionBetaAccess)
-@_spi(AppearanceAPIAdditionsPreview)
-import StripePaymentSheet
+@_spi(CryptoOnrampAlpha) @_spi(ReactNativeSDK) @_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
 #else
-@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 #endif
 
 @available(iOS 13.0, *)
@@ -42,6 +38,22 @@ private func getDeviceType() -> String {
 public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc public static let shared = StripeSdkImpl()
 
+    static var isNewArchitecture: Bool {
+        #if RCT_NEW_ARCH_ENABLED
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    static var reactNativeVersion: String {
+        let version = RCTGetReactNativeVersion()
+        let major = version?["major"] ?? 0
+        let minor = version?["minor"] ?? 0
+        let patch = version?["patch"] ?? 0
+        return "\(major).\(minor).\(patch)"
+    }
+
     @objc public weak var emitter: StripeSdkEmitter?
     @objc public weak var onrampEmitter: StripeOnrampSdkEmitter?
     weak var cardFieldView: CardFieldView?
@@ -51,6 +63,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
+    internal var checkoutInstances: [String: Checkout] = [:]
+    internal var checkoutStateCancellables: [String: AnyCancellable] = [:]
+    internal var serverUpdateContinuations: [String: CheckedContinuation<Void, Error>] = [:]
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 
@@ -105,6 +120,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 #if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
     var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Error>?
+
+    private var onrampAdditionalSDKVersions: [SDKVersion] {
+        guard let version = STPAPIClient.shared.appInfo?.version, !version.isEmpty else {
+            return []
+        }
+
+        return [SDKVersion(name: "stripe-react-native", version: version)]
+    }
 #endif
 
     var embeddedInstance: EmbeddedPaymentElement?
@@ -125,6 +148,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 "deviceType": getDeviceType(),
                 "appName": Bundle.stp_applicationName() ?? "",
                 "appVersion": Bundle.stp_applicationVersion() ?? "",
+                "isNewArchitecture": Self.isNewArchitecture,
+                "reactNativeVersion": Self.reactNativeVersion,
             ],
         ]
     }
@@ -158,6 +183,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         let url = appInfo["url"] as? String ?? ""
 
         STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
+        ReactNativeAnalytics.isNewArchitecture = Self.isNewArchitecture
+        ReactNativeAnalytics.reactNativeVersion = Self.reactNativeVersion
         self.merchantIdentifier = merchantIdentifier
         resolve(NSNull())
     }
@@ -880,7 +907,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc(confirmPayment:data:options:resolver:rejecter:)
     public func confirmPayment(
         paymentIntentClientSecret: String,
-        params: NSDictionary,
+        params: NSDictionary?,
         options: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -888,10 +915,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         self.confirmPaymentResolver = resolve
         self.confirmPaymentClientSecret = paymentIntentClientSecret
 
-        // Handle React Native null values - when null is passed from JS, it becomes NSNull
-        let actualParams = (params == NSNull()) ? nil : params
-        let paymentMethodData = actualParams?["paymentMethodData"] as? NSDictionary
-        let (missingPaymentMethodError, paymentMethodType) = getPaymentMethodType(params: actualParams)
+        let paymentMethodData = params?["paymentMethodData"] as? NSDictionary
+        let (missingPaymentMethodError, paymentMethodType) = getPaymentMethodType(params: params)
         if missingPaymentMethodError != nil {
             resolve(missingPaymentMethodError)
             return
@@ -1276,10 +1301,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
         Task {
             do {
-                cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(appearance: appearance, cryptoCustomerID: cryptoCustomerId)
+                cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(
+                    appearance: appearance,
+                    cryptoCustomerID: cryptoCustomerId,
+                    additionalSDKVersions: onrampAdditionalSDKVersions
+                )
                 resolve([:])  // Return empty object on success
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1300,7 +1329,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let hasLinkAccount = try await coordinator.hasLinkAccount(with: email)
                 resolve(["hasLinkAccount": hasLinkAccount])
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1326,7 +1355,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let customerId = try await coordinator.registerLinkUser(email: email, fullName: fullName, phone: phone, country: country)
                 resolve(["customerId": customerId])
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1354,7 +1383,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     return
                 }
 
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1382,7 +1411,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.registerWalletAddress(walletAddress: address, network: cryptoNetwork)
                 resolve([:])  // Return empty object on success
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1414,9 +1443,92 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     let errorResult = Errors.createError(ErrorType.Unknown, "Invalid format for field: \(field)")
                     resolve(["error": errorResult["error"]!])
                 } else {
-                    let errorResult = Errors.createError(ErrorType.Failed, error)
+                    let errorResult = OnrampErrors.createFailedError(error)
                     resolve(["error": errorResult["error"]!])
                 }
+            }
+        }
+    }
+
+    @objc(retrieveMissingIdentifiers:rejecter:)
+    public func retrieveMissingIdentifiers(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let requirements = try await coordinator.retrieveMissingIdentifiers()
+                resolve(Mappers.mapFromComplianceIdentifierRequirements(requirements))
+            } catch {
+                let errorResult = OnrampErrors.createFailedError(error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(submitIdentifiers:resolver:rejecter:)
+    public func submitIdentifiers(
+        identifiers: NSArray,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        guard let identifierDictionaries = identifiers as? [[String: Any]] else {
+            let errorResult = Errors.createError(ErrorType.Failed, "Unexpected format of identifiers array. Expected dictionaries with String keys.")
+            resolve(["error": errorResult["error"]!])
+            return
+        }
+
+        Task {
+            do {
+                let complianceIdentifiers = try identifierDictionaries.map(Mappers.mapToComplianceIdentifier)
+                let result = try await coordinator.submitIdentifiers(complianceIdentifiers)
+                resolve(Mappers.mapFromSubmitIdentifiersResult(result))
+            } catch {
+                if let identifierError = error as? Mappers.ComplianceIdentifierError,
+                   case let .invalidField(field) = identifierError {
+                    let errorResult = Errors.createError(ErrorType.Unknown, "Invalid format for field: \(field)")
+                    resolve(["error": errorResult["error"]!])
+                } else {
+                    let errorResult = OnrampErrors.createFailedError(error)
+                    resolve(["error": errorResult["error"]!])
+                }
+            }
+        }
+    }
+
+    @objc(presentUserAttestation:rejecter:)
+    public func presentUserAttestation(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
+                }
+                let result = try await coordinator.presentUserAttestation(from: presentingViewController)
+                switch result {
+                case .confirmed:
+                    resolve(["status": "Confirmed"])
+                case .canceled:
+                    let errorResult = Errors.createError(ErrorType.Canceled, "User attestation was canceled")
+                    resolve(["error": errorResult["error"]!])
+                }
+            } catch {
+                let errorResult = OnrampErrors.createFailedError(error)
+                resolve(["error": errorResult["error"]!])
             }
         }
     }
@@ -1460,7 +1572,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     resolve(["error": errorResult["error"]!])
                 }
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1481,7 +1593,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.updatePhoneNumber(to: phone)
                 resolve([:]) // Return empty object on success
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1501,7 +1613,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.logOut()
                 resolve([:]) // Return empty object on success
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1529,7 +1641,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     resolve(["error": Errors.createError(ErrorType.Canceled, "Identity verification was cancelled")["error"]!])
                 }
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1582,15 +1694,25 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let presentingViewController = await MainActor.run {
                     findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
-                if let result = try await coordinator.collectPaymentMethod(type: paymentMethodType, from: presentingViewController) {
-                    let displayData = Mappers.paymentMethodDisplayDataToMap(result)
-                    resolve(["displayData": displayData])
-                } else {
+                let result = try await coordinator.collectPaymentMethod(type: paymentMethodType, from: presentingViewController)
+                switch result {
+                case .canceled:
                     let errorResult = Errors.createError(ErrorType.Canceled, "Payment collection was cancelled")
+                    resolve(["error": errorResult["error"]!])
+                case .completed(let displayData, let kycInfo):
+                    var response: [String: Any] = ["displayData": Mappers.paymentMethodDisplayDataToMap(displayData)]
+
+                    if let kycInfo {
+                        response["kycInfo"] = Mappers.mapFromKycInfo(kycInfo)
+                    }
+
+                    resolve(response)
+                @unknown default:
+                    let errorResult = Errors.createError(ErrorType.Failed, "Received an unexpected payment collection result")
                     resolve(["error": errorResult["error"]!])
                 }
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1610,7 +1732,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let token = try await coordinator.createCryptoPaymentToken()
                 resolve(["cryptoPaymentToken": token])
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1645,7 +1767,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     resolve(["error": errorResult["error"]!])
                 }
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1692,7 +1814,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     resolve(["error": errorResult["error"]!])
                 }
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
+                let errorResult = OnrampErrors.createFailedError(error)
                 resolve(["error": errorResult["error"]!])
             }
         }
@@ -1758,104 +1880,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     /// - Returns: The shared `CryptoOnrampCoordinator`, nor `nil` if CryptoOnramp has not yet been configured.
     private func requireOnrampCoordinator(_ resolve: @escaping RCTPromiseResolveBlock) -> CryptoOnrampCoordinator? {
         guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
+            let errorResult = OnrampErrors.createNotConfiguredError()
             resolve(["error": errorResult["error"]!])
             return nil
         }
 
         return coordinator
-    }
-#else
-    @objc(configureOnramp:resolver:rejecter:)
-    public func configureOnramp(config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(hasLinkAccount:resolver:rejecter:)
-    public func hasLinkAccount(email: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(registerLinkUser:resolver:rejecter:)
-    public func registerLinkUser(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(authenticateUserWithToken:resolver:rejecter:)
-    public func authenticateUserWithToken(
-        _ linkAuthTokenClientSecret: String,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(registerWalletAddress:network:resolver:rejecter:)
-    public func registerWalletAddress(address: String, network: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(attachKycInfo:resolver:rejecter:)
-    public func attachKycInfo(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(presentKycInfoVerification:resolver:rejecter:)
-    public func presentKycInfoVerification(
-        updatedAddressDictionary: NSDictionary?,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(updatePhoneNumber:resolver:rejecter:)
-    public func updatePhoneNumber(phone: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(logout:rejecter:)
-    public func logout(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(verifyIdentity:rejecter:)
-    public func verifyIdentity(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(collectPaymentMethod:platformPayParams:resolver:rejecter:)
-    public func collectPaymentMethod(paymentMethod: String, platformPayParams: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(createCryptoPaymentToken:rejecter:)
-    public func createCryptoPaymentToken(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(performCheckout:resolver:rejecter:)
-    public func performCheckout(onrampSessionId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(provideCheckoutClientSecret:)
-    public func provideCheckoutClientSecret(clientSecret: String?) {
-        // no-op when Onramp is unavailable
-    }
-
-    @objc(onrampAuthorize:resolver:rejecter:)
-    public func onrampAuthorize(linkAuthIntentId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    @objc(getCryptoTokenDisplayData:resolver:rejecter:)
-    public func getCryptoTokenDisplayData(token: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
-    private func resolveWithCryptoOnrampNotAvailableError(_ resolver: @escaping RCTPromiseResolveBlock) {
-        resolver(Errors.createError(ErrorType.Failed, "StripeCryptoOnramp is not available. To enable, add the 'stripe-react-native/Onramp' subspec to your Podfile."))
     }
 #endif
 

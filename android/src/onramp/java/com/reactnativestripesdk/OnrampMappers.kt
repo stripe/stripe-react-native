@@ -1,21 +1,39 @@
+@file:OptIn(ExperimentalCryptoOnramp::class)
+
 package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.Color
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableArray
+import com.stripe.android.core.model.CountryCode
+import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
+import com.stripe.android.crypto.onramp.exception.SDKVersion
+import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifier
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierAlternativeGroup
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierRequirement
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierRequirements
+import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierType
+import com.stripe.android.crypto.onramp.model.compliance.SubmitIdentifiersResult
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
 import com.stripe.android.link.LinkAppearance.PrimaryButton
 import com.stripe.android.link.LinkAppearance.Style
+import com.stripe.android.model.DateOfBirth
+import com.stripe.android.paymentsheet.PaymentSheet
 
 @SuppressLint("RestrictedApi")
 internal fun mapConfig(
   configMap: ReadableMap,
   publishableKey: String,
+  additionalSdkVersions: List<SDKVersion> = emptyList(),
 ): OnrampConfiguration {
   val appearanceMap = configMap.getMap("appearance")
   val appearance =
@@ -36,6 +54,11 @@ internal fun mapConfig(
     .appearance(appearance)
     .cryptoCustomerId(cryptoCustomerId)
     .apply { googlePayConfig?.let { googlePayConfig(it) } }
+    .apply {
+      if (additionalSdkVersions.isNotEmpty()) {
+        this.additionalSdkVersions(additionalSdkVersions)
+      }
+    }
 }
 
 @SuppressLint("RestrictedApi")
@@ -47,6 +70,8 @@ internal fun mapGooglePayConfig(params: ReadableMap?): GooglePayPaymentMethodLau
   val merchantName = params.getString("merchantName") ?: return null
   val existingPaymentMethodRequired =
     params.hasKey("existingPaymentMethodRequired") && params.getBoolean("existingPaymentMethodRequired")
+  val isEmailRequired = if (params.hasKey("isEmailRequired")) params.getBoolean("isEmailRequired") else false
+  val allowCreditCards = if (params.hasKey("allowCreditCards")) params.getBoolean("allowCreditCards") else true
 
   val billingAddressConfig =
     mapGooglePayBillingAddressConfig(params.getMap("billingAddressConfig"))
@@ -55,6 +80,8 @@ internal fun mapGooglePayConfig(params: ReadableMap?): GooglePayPaymentMethodLau
     environment = if (testEnv) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
     merchantCountryCode = merchantCountryCode,
     merchantName = merchantName,
+    isEmailRequired = isEmailRequired,
+    allowCreditCards = allowCreditCards,
     billingAddressConfig = billingAddressConfig,
     existingPaymentMethodRequired = existingPaymentMethodRequired,
   )
@@ -148,6 +175,7 @@ internal fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     .primaryButton(primaryButton)
 }
 
+@OptIn(ExperimentalCryptoOnramp::class)
 @SuppressLint("RestrictedApi")
 internal fun mapPaymentDetailsType(type: PaymentMethodDisplayData.Type): String =
   when (type) {
@@ -155,3 +183,147 @@ internal fun mapPaymentDetailsType(type: PaymentMethodDisplayData.Type): String 
     PaymentMethodDisplayData.Type.BankAccount -> "BankAccount"
     PaymentMethodDisplayData.Type.GooglePay -> "GooglePay"
   }
+
+@OptIn(ExperimentalCryptoOnramp::class)
+@SuppressLint("RestrictedApi")
+internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
+  val result = Arguments.createMap()
+
+  kycInfo.firstName?.let { result.putString("firstName", it) }
+  kycInfo.lastName?.let { result.putString("lastName", it) }
+  kycInfo.idNumber?.let { result.putString("idNumber", it) }
+  kycInfo.address?.let { result.putMap("address", mapFromKycAddress(it)) }
+  kycInfo.dateOfBirth?.let { result.putMap("dateOfBirth", mapFromDateOfBirth(it)) }
+  kycInfo.birthCountry?.let { result.putString("birthCountry", it.value) }
+  kycInfo.birthCity?.let { result.putString("birthCity", it) }
+  kycInfo.nationalities?.let {
+    result.putArray("nationalities", mapFromCountryCodes(it))
+  }
+
+  return result
+}
+
+internal fun mapToComplianceIdentifiers(identifiers: ReadableArray): List<ComplianceIdentifier> {
+  val complianceIdentifiers = mutableListOf<ComplianceIdentifier>()
+
+  for (index in 0 until identifiers.size()) {
+    val identifierMap =
+      runCatching { identifiers.getMap(index) }
+        .getOrNull()
+        ?: throw InvalidIdentifiersArrayException()
+    val type = identifierMap.getRequiredNormalizedString("type")
+    val value = identifierMap.getRequiredNormalizedString("value")
+
+    complianceIdentifiers.add(
+      ComplianceIdentifier()
+        .type(ComplianceIdentifierType(type))
+        .value(value),
+    )
+  }
+
+  return complianceIdentifiers
+}
+
+internal fun mapFromComplianceIdentifierRequirements(
+  requirements: ComplianceIdentifierRequirements,
+) = Arguments.createMap().apply {
+  putArray("identifiers", mapFromComplianceIdentifierRequirementsList(requirements.identifiers))
+  putArray("alternatives", mapFromComplianceIdentifierAlternativeGroups(requirements.alternatives))
+  putBoolean("carfTinRequired", requirements.carfTinRequired)
+}
+
+internal fun mapFromSubmitIdentifiersResult(
+  result: SubmitIdentifiersResult,
+) = Arguments.createMap().apply {
+  putBoolean("completed", result.completed)
+  putArray("identifiers", mapFromComplianceIdentifierRequirementsList(result.identifiers))
+  putArray("alternatives", mapFromComplianceIdentifierAlternativeGroups(result.alternatives))
+  putBoolean("carfTinRequired", result.carfTinRequired)
+  putArray("invalidIdentifiers", mapFromComplianceIdentifierTypes(result.invalidIdentifiers))
+}
+
+private fun mapFromComplianceIdentifierRequirementsList(
+  requirements: List<ComplianceIdentifierRequirement>,
+): WritableArray =
+  Arguments.createArray().apply {
+    requirements.forEach { requirement ->
+      pushMap(
+        Arguments.createMap().apply {
+          putString("type", requirement.type.value)
+          putString("regulation", requirement.regulation.value)
+        },
+      )
+    }
+  }
+
+private fun mapFromComplianceIdentifierAlternativeGroups(
+  groups: List<ComplianceIdentifierAlternativeGroup>,
+): WritableArray =
+  Arguments.createArray().apply {
+    groups.forEach { group ->
+      pushMap(
+        Arguments.createMap().apply {
+          putArray(
+            "originalMissingIdentifiers",
+            mapFromComplianceIdentifierTypes(group.originalMissingIdentifiers),
+          )
+          putArray(
+            "alternativeMissingIdentifiers",
+            mapFromComplianceIdentifierTypes(group.alternativeMissingIdentifiers),
+          )
+        },
+      )
+    }
+  }
+
+private fun mapFromComplianceIdentifierTypes(
+  identifierTypes: List<ComplianceIdentifierType>,
+): WritableArray =
+  Arguments.createArray().apply {
+    identifierTypes.forEach { identifierType ->
+      pushString(identifierType.value)
+    }
+  }
+
+private fun mapFromCountryCodes(
+  countryCodes: List<CountryCode>,
+): WritableArray =
+  Arguments.createArray().apply {
+    countryCodes.forEach { countryCode ->
+      pushString(countryCode.value)
+    }
+  }
+
+private fun ReadableMap.getRequiredNormalizedString(key: String): String =
+  getString(key)
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw ComplianceIdentifierFieldException(key)
+
+private fun mapFromKycAddress(address: PaymentSheet.Address): ReadableMap {
+  val result = Arguments.createMap()
+
+  address.city?.let { result.putString("city", it) }
+  address.country?.let { result.putString("country", it) }
+  address.line1?.let { result.putString("line1", it) }
+  address.line2?.let { result.putString("line2", it) }
+  address.postalCode?.let { result.putString("postalCode", it) }
+  address.state?.let { result.putString("state", it) }
+
+  return result
+}
+
+private fun mapFromDateOfBirth(dateOfBirth: DateOfBirth): ReadableMap {
+  val result = Arguments.createMap()
+  result.putInt("day", dateOfBirth.day)
+  result.putInt("month", dateOfBirth.month)
+  result.putInt("year", dateOfBirth.year)
+  return result
+}
+
+internal class ComplianceIdentifierFieldException(
+  field: String,
+) : IllegalArgumentException("Invalid format for field: $field")
+
+internal class InvalidIdentifiersArrayException :
+  IllegalArgumentException("Unexpected format of identifiers array. Expected dictionaries with String keys.")

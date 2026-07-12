@@ -79,6 +79,29 @@ class AddressSheetUtils {
         }
     }
 
+    internal class func buildConfiguration(
+        appearance: NSDictionary?,
+        defaultValues: NSDictionary?,
+        additionalFields: NSDictionary?,
+        allowedCountries: [String],
+        autocompleteCountries: [String],
+        buttonTitle: String?,
+        sheetTitle: String?
+    ) throws -> AddressViewController.Configuration {
+        let appearanceConfiguration = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearance)
+
+        var config = AddressViewController.Configuration(
+            defaultValues: buildDefaultValues(params: defaultValues),
+            additionalFields: buildAdditionalFieldsConfiguration(params: additionalFields),
+            allowedCountries: allowedCountries,
+            appearance: appearanceConfiguration,
+            buttonTitle: buttonTitle,
+            title: sheetTitle
+        )
+        config.autocompleteCountries = autocompleteCountries
+        return config
+    }
+
     internal class func buildResult(address: AddressViewController.AddressDetails) -> [AnyHashable: Any] {
         return [
             "result": [

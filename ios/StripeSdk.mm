@@ -92,7 +92,7 @@ RCT_EXPORT_METHOD(configureOrderTracking:(nonnull NSString *)orderTypeIdentifier
 }
 
 RCT_EXPORT_METHOD(confirmPayment:(nonnull NSString *)paymentIntentClientSecret
-                          params:(nonnull NSDictionary *)params
+                          params:(nullable NSDictionary *)params
                          options:(nonnull NSDictionary *)options
                          resolve:(nonnull RCTPromiseResolveBlock)resolve
                           reject:(nonnull RCTPromiseRejectBlock)reject)
@@ -261,6 +261,96 @@ RCT_EXPORT_METHOD(handleURLCallback:(nonnull NSString *)url
                              reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared handleURLCallback:url resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(initCheckoutSession:(nonnull NSString *)clientSecret
+                         configuration:(nonnull NSDictionary *)configuration
+                               resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared initCheckoutSession:clientSecret
+                              configuration:configuration
+                                   resolver:resolve
+                                   rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(checkoutUpdateShippingAddress:(nonnull NSString *)sessionKey
+                                        address:(nonnull NSDictionary *)address
+                                           name:(NSString *_Nullable)name
+                                          phone:(NSString *_Nullable)phone
+                                        resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                         reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared checkoutUpdateShippingAddress:sessionKey
+                                              address:address
+                                                 name:name
+                                                phone:phone
+                                             resolver:resolve
+                                             rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(checkoutApplyPromotionCode:(nonnull NSString *)sessionKey
+                                        code:(nonnull NSString *)code
+                                     resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                      reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared checkoutApplyPromotionCode:sessionKey
+                                              code:code
+                                          resolver:resolve
+                                          rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(checkoutRemovePromotionCode:(nonnull NSString *)sessionKey
+                                        resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                         reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared checkoutRemovePromotionCode:sessionKey
+                                           resolver:resolve
+                                           rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(checkoutUpdateLineItemQuantity:(nonnull NSString *)sessionKey
+                                      lineItemId:(nonnull NSString *)lineItemId
+                                        quantity:(double)quantity
+                                         resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                          reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared checkoutUpdateLineItemQuantity:sessionKey
+                                             lineItemId:lineItemId
+                                               quantity:quantity
+                                               resolver:resolve
+                                               rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(checkoutSelectShippingOption:(nonnull NSString *)sessionKey
+                                            id:(nonnull NSString *)identifier
+                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                        reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared checkoutSelectShippingOption:sessionKey
+                                                  id:identifier
+                                            resolver:resolve
+                                            rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(checkoutRunServerUpdateStart:(nonnull NSString *)sessionKey
+                                        resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                         reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared checkoutRunServerUpdateStart:sessionKey
+                                            resolver:resolve
+                                            rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(checkoutRunServerUpdateComplete:(nonnull NSString *)sessionKey
+                                            error:(NSString *)error
+                                          resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                           reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared checkoutRunServerUpdateComplete:sessionKey
+                                                  error:error
+                                               resolver:resolve
+                                               rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(initCustomerSheet:(nonnull NSDictionary *)params
@@ -446,6 +536,17 @@ RCT_EXPORT_METHOD(createEmbeddedPaymentElement:(nonnull NSDictionary *)intentCon
                                        configuration:configuration
                                              resolve:resolve
                                               reject:reject];
+}
+
+RCT_EXPORT_METHOD(createEmbeddedPaymentElementWithCheckout:(nonnull NSString *)sessionKey
+                                             configuration:(nonnull NSDictionary *)configuration
+                                                   resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                    reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared createEmbeddedPaymentElementWithCheckout:sessionKey
+                                                   configuration:configuration
+                                                         resolve:resolve
+                                                          reject:reject];
 }
 
 RCT_EXPORT_METHOD(confirmEmbeddedPaymentElement:(NSInteger)viewTag

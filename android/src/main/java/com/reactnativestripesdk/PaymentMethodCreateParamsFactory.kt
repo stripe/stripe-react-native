@@ -42,6 +42,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Bancontact -> createBancontactParams()
         PaymentMethod.Type.Billie -> createBillieParams()
         PaymentMethod.Type.SepaDebit -> createSepaParams()
+        PaymentMethod.Type.Multibanco -> createMultibancoParams()
         PaymentMethod.Type.Oxxo -> createOXXOParams()
         PaymentMethod.Type.Eps -> createEPSParams()
         PaymentMethod.Type.GrabPay -> createGrabPayParams()
@@ -132,6 +133,26 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
+  private fun createMultibancoParams(): PaymentMethodCreateParams {
+    billingDetailsParams?.let {
+      if (it.email.isNullOrBlank()) {
+        throw PaymentMethodCreateParamsException(
+          "When creating a Multibanco payment method, you must provide the following billing details: email",
+        )
+      }
+
+      return PaymentMethodCreateParams.createMultibanco(
+        billingDetails = it,
+        metadata = metadataParams,
+      )
+    }
+
+    throw PaymentMethodCreateParamsException(
+      "When creating a Multibanco payment method, you must provide the following billing details: email",
+    )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
   private fun createEPSParams(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
       return PaymentMethodCreateParams.createEps(billingDetails = it, metadata = metadataParams)
@@ -213,7 +234,8 @@ class PaymentMethodCreateParamsFactory(
     )
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createPayPalParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
+  private fun createPayPalParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAffirmParams(): PaymentMethodCreateParams =
@@ -255,6 +277,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Bancontact,
         PaymentMethod.Type.Billie,
         PaymentMethod.Type.SepaDebit,
+        PaymentMethod.Type.Multibanco,
         PaymentMethod.Type.Oxxo,
         PaymentMethod.Type.Eps,
         PaymentMethod.Type.GrabPay,

@@ -1,0 +1,130 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Accept a payment"
+- tapOn: "Checkout Playground"
+
+- scrollUntilVisible:
+    element:
+      id: "adaptive_pricing_toggle"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: "adaptive_pricing_toggle"
+
+- scrollUntilVisible:
+    element:
+      id: "adaptive_pricing_country_picker"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: "adaptive_pricing_country_picker"
+- tapOn:
+    text: "DE.*"
+
+- scrollUntilVisible:
+    element:
+      text: "Create checkout session"
+    direction: DOWN
+    timeout: 30000
+- tapOn: "Create checkout session"
+
+- extendedWaitUntil:
+    visible:
+      text: "Pay €.*"
+    timeout: 150000
+
+- scrollUntilVisible:
+    element:
+      id: "currency_selector_element"
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn:
+    id: "currency_option_usd"
+
+- extendedWaitUntil:
+    visible:
+      text: "Pay \\$.*"
+    timeout: 60000
+
+- scrollUntilVisible:
+    element:
+      text: "Add shipping address.*"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: "Add shipping address.*"
+- extendedWaitUntil:
+    visible: "Shipping address"
+    timeout: 30000
+- tapOn:
+    text: "Full name"
+- inputText: "Jenny Rosen"
+- tapOn: "Use shipping address"
+
+- extendedWaitUntil:
+    visible:
+      text: "Choose payment method"
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      text: "Choose payment method"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: "Choose payment method"
+
+- extendedWaitUntil:
+    visible: "TEST"
+    timeout: 150000
+- tapOn:
+    text: "Card"
+    optional: true
+- tapOn:
+    text: "New card"
+    optional: true
+
+- tapOn:
+    text: "Card number. Supported cards include.*"
+- inputText: "4242424242424242"
+- tapOn:
+    text: "MM / YY"
+    optional: true
+- inputText: "0145"
+- inputText: "123"
+- tapOn:
+    text: "ZIP.*"
+- inputText: "12345"
+
+- scrollUntilVisible:
+    element:
+      id: primary_button # Android
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Continue" # iOS
+    optional: true
+- tapOn:
+    id: primary_button # Android
+    optional: true
+- tapOn:
+    text: "Continue" # iOS
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      text: "Pay \\$.*"
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      text: "Pay \\$.*"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: "Pay \\$.*"
+
+- assertVisible:
+    text: "Payment successful"
+- tapOn: "OK"

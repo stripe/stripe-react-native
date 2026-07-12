@@ -16,7 +16,7 @@ appId: ${APP_ID}
     text: "Card"
     optional: true
 - tapOn:
-    text: "Card number"
+    text: "Card number. Supported cards include.*"
 - inputText: "4242424242424242"
 - tapOn:
     text: "MM / YY"

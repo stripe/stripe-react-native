@@ -33,6 +33,7 @@ export type ConfirmParams =
   | CardParams
   | IdealParams
   | OxxoParams
+  | MultibancoParams
   | P24Params
   | AlipayParams
   | AlmaParams
@@ -152,6 +153,15 @@ export interface OxxoParams {
   paymentMethodType: 'Oxxo';
   paymentMethodData: {
     billingDetails: BillingDetails;
+    mandateData?: MandateData;
+    metadata?: MetaData;
+  };
+}
+
+export interface MultibancoParams {
+  paymentMethodType: 'Multibanco';
+  paymentMethodData: {
+    billingDetails: BillingDetails & { email: string };
     mandateData?: MandateData;
     metadata?: MetaData;
   };

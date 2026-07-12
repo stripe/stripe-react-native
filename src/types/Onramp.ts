@@ -1,5 +1,18 @@
 import type { Address } from './Common';
-import type { OnrampError, StripeError } from './Errors';
+import type { StripeError } from './Errors';
+import type {
+  ApplePayBaseParams,
+  ApplePayPaymentMethodParams,
+} from './PlatformPay';
+
+/**
+ * Generic error codes returned by Crypto Onramp APIs.
+ */
+export enum OnrampError {
+  Failed = 'Failed',
+  Canceled = 'Canceled',
+  Unknown = 'Unknown',
+}
 
 /**
  * Configuration used to initialize and customize the crypto onramp experience.
@@ -28,7 +41,11 @@ export type GooglePayConfig = {
   merchantCountryCode: string;
   /** Merchant name displayed in the Google Pay sheet. */
   merchantName: string;
-  /** Whether an existing payment method is required. Defaults to false. */
+  /** Set to true to request an email address. Defaults to false. */
+  isEmailRequired?: boolean;
+  /** Set to false if you don't support credit cards. Defaults to true. */
+  allowCreditCards?: boolean;
+  /** Whether an existing payment method is required. Defaults to true. */
   existingPaymentMethodRequired?: boolean;
   /** Billing address collection configuration. */
   billingAddressConfig?: GooglePayBillingAddressConfig;
@@ -44,6 +61,39 @@ export type GooglePayBillingAddressConfig = {
   format?: 'Min' | 'Full';
   /** Whether a phone number is required. Defaults to false. */
   isPhoneNumberRequired?: boolean;
+};
+
+/**
+ * Google Pay parameters for the onramp collectPaymentMethod call.
+ * Only includes the fields passed to GooglePayPaymentMethodLauncher.present().
+ * Google Pay config (merchantCountryCode, testEnv, etc.) belongs in GooglePayConfig
+ * provided to configure().
+ */
+export type OnrampGooglePayParams = {
+  /** ISO 4217 alphabetic currency code (e.g. "USD"). */
+  currencyCode: string;
+  /** Amount in the currency's smallest unit. */
+  amount: number;
+  /** An optional label to display with the amount. */
+  label?: string;
+  /** A unique ID that identifies a transaction attempt. Required when sending callbacks to the Google Transaction Events API. */
+  transactionId?: string;
+};
+
+/**
+ * Platform Pay parameters for the onramp collectPaymentMethod call.
+ */
+export type OnrampPlatformPayParams = {
+  /**
+   * Google Pay parameters. Android only.
+   */
+  googlePay?: OnrampGooglePayParams;
+  /**
+   * Apple Pay parameters. iOS only.
+   * To receive `kycInfo` back from `collectPaymentMethod`, request Apple Pay billing
+   * `.name` and/or `.postalAddress` via `requiredBillingContactFields`.
+   */
+  applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
 };
 
 /**
@@ -158,7 +208,167 @@ export type KycInfo = {
   dateOfBirth?: DateOfBirth;
   /** Customer’s address, if collected. */
   address?: Address;
+  /** Two-letter ISO 3166-1 alpha-2 code for the country where the customer was born. */
+  birthCountry?: string;
+  /** City where the customer was born. */
+  birthCity?: string;
+  /** Two-letter ISO 3166-1 alpha-2 codes for the customer's nationalities. */
+  nationalities?: string[];
 };
+
+/**
+ * The type of compliance identifier required or submitted for regulatory compliance.
+ */
+export type ComplianceIdentifierType = string;
+
+/**
+ * The regulation requiring a compliance identifier.
+ */
+export type ComplianceRegulation = 'eu_carf' | 'eu_mica';
+
+/**
+ * A compliance identifier collected for MiCA or CRS/CARF compliance.
+ */
+export type ComplianceIdentifier = {
+  /** The type of identifier provided. */
+  type: ComplianceIdentifierType;
+  /** The identifier value. */
+  value: string;
+};
+
+/**
+ * A compliance identifier the customer still needs to provide.
+ */
+export type ComplianceIdentifierRequirement = {
+  /** The type of identifier required. */
+  type: ComplianceIdentifierType;
+  /** The regulation requiring this identifier. */
+  regulation: ComplianceRegulation;
+};
+
+/**
+ * A group describing alternative identifier types that may satisfy a requirement.
+ */
+export type ComplianceIdentifierAlternativeGroup = {
+  /** The original identifier types required. */
+  originalMissingIdentifiers: ComplianceIdentifierType[];
+  /** Alternative identifier types that may satisfy the original requirement. */
+  alternativeMissingIdentifiers: ComplianceIdentifierType[];
+};
+
+/**
+ * The compliance identifiers a customer still needs to provide.
+ */
+export type ComplianceIdentifierRequirements = {
+  /** Required identifier types and the regulations requiring them. */
+  identifiers: ComplianceIdentifierRequirement[];
+  /** Alternative identifier groups that may satisfy one or more requirements. */
+  alternatives: ComplianceIdentifierAlternativeGroup[];
+  /** Whether at least one CRS/CARF tax identification number still needs to be collected. */
+  carfTinRequired: boolean;
+};
+
+/**
+ * Typed Crypto Onramp error discriminants returned by newer native SDKs.
+ */
+export type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+
+export type OnrampApiError = StripeError<OnrampError> & {
+  onrampErrorType: string;
+  developerMessage: string;
+  userMessage: string;
+  reason?: string;
+  requestId?: string;
+  apiErrorCode?: string;
+  apiErrorType?: string;
+  apiErrorMessage?: string;
+  apiUserMessage?: string;
+  docUrl?: string;
+};
+/**
+ * A typed Crypto Onramp app attestation failure.
+ */
+export type AppAttestationError = OnrampApiError & {
+  onrampErrorType: 'AppAttestationError';
+};
+
+/**
+ * A typed Crypto Onramp API error that did not map to a narrower category.
+ */
+export type UncategorizedApiError = OnrampApiError & {
+  onrampErrorType: 'UncategorizedApiError';
+};
+
+/**
+ * Error returned by Crypto Onramp APIs.
+ *
+ * Most failures use the generic Stripe error envelope. Newer native SDK
+ * versions may instead return typed SDK-owned errors via
+ * `onrampErrorType`.
+ */
+export type CryptoOnrampError =
+  | (StripeError<OnrampError> & {
+      onrampErrorType?: undefined;
+    })
+  | AppAttestationError
+  | UncategorizedApiError;
+
+/**
+ * Result of retrieving missing compliance identifiers.
+ */
+export type RetrieveMissingIdentifiersResult =
+  | (ComplianceIdentifierRequirements & {
+      error?: undefined;
+    })
+  | {
+      identifiers?: undefined;
+      alternatives?: undefined;
+      carfTinRequired?: undefined;
+      /** Present if retrieval failed with an error. */
+      error: CryptoOnrampError;
+    };
+
+/**
+ * Result of submitting compliance identifiers for MiCA and CRS/CARF compliance.
+ */
+export type SubmitIdentifiersResult =
+  | {
+      /** Whether all required MiCA identifiers and CRS/CARF tax identification numbers have been submitted. */
+      completed: boolean;
+      /** Any identifiers that still need to be collected. */
+      identifiers: ComplianceIdentifierRequirement[];
+      /** Alternative identifier groups that may satisfy one or more requirements. */
+      alternatives: ComplianceIdentifierAlternativeGroup[];
+      /** Whether at least one CRS/CARF tax identification number still needs to be collected. */
+      carfTinRequired: boolean;
+      /** Submitted identifier types whose values were invalid. */
+      invalidIdentifiers: ComplianceIdentifierType[];
+      error?: undefined;
+    }
+  | {
+      completed?: undefined;
+      identifiers?: undefined;
+      alternatives?: undefined;
+      carfTinRequired?: undefined;
+      invalidIdentifiers?: undefined;
+      /** Present if submission failed with an error. */
+      error: CryptoOnrampError;
+    };
+
+/**
+ * Result of presenting user attestation.
+ */
+export type UserAttestationResult =
+  | {
+      /** The customer accepted the attestation. */
+      status: 'Confirmed';
+      error?: undefined;
+    }
+  | {
+      status?: undefined;
+      /** Present if attestation failed or was cancelled. */
+      error: CryptoOnrampError;
+    };
 
 /**
  * Result of KYC verification.
@@ -177,7 +387,7 @@ export type VerifyKycResult =
   | {
       status?: undefined;
       /** Present if the verification failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -185,7 +395,7 @@ export type VerifyKycResult =
  */
 export type VoidResult = {
   /** Present if the operation failed. */
-  error?: StripeError<OnrampError>;
+  error?: CryptoOnrampError;
 };
 
 /**
@@ -213,7 +423,7 @@ export type AuthorizeResult =
       status?: undefined;
       customerId?: undefined;
       /** Present if the authorization failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -228,7 +438,7 @@ export type HasLinkAccountResult =
   | {
       hasLinkAccount?: undefined;
       /** Present if the lookup failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -243,7 +453,7 @@ export type RegisterLinkUserResult =
   | {
       customerId?: undefined;
       /** Present if registration failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -270,12 +480,15 @@ export type CollectPaymentMethodResult =
   | {
       /** Display data for the selected payment method. */
       displayData: PaymentMethodDisplayData;
+      /** Partial KYC data returned from Platform Pay billing details, when requested. */
+      kycInfo?: KycInfo;
       error?: undefined;
     }
   | {
       displayData?: undefined;
+      kycInfo?: undefined;
       /** Present if collection/selection failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -290,7 +503,7 @@ export type CreateCryptoPaymentTokenResult =
   | {
       cryptoPaymentToken?: undefined;
       /** Present if token creation failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };
 
 /**
@@ -331,5 +544,5 @@ export type PaymentDisplayDataResult =
   | {
       displayData?: undefined;
       /** Present if collection/selection failed with an error. */
-      error: StripeError<OnrampError>;
+      error: CryptoOnrampError;
     };

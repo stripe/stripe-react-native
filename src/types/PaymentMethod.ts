@@ -20,7 +20,6 @@ export interface Result {
   Fpx: FpxResult;
   Ideal: IdealResult;
   SepaDebit: SepaDebitResult;
-  Upi: UpiResult;
   USBankAccount: USBankAccountResult;
 }
 
@@ -28,6 +27,7 @@ export type CreateParams =
   | CardParams
   | IdealParams
   | OxxoParams
+  | MultibancoParams
   | P24Params
   | AlipayParams
   | SepaParams
@@ -92,6 +92,13 @@ export interface OxxoParams {
   paymentMethodType: 'Oxxo';
   paymentMethodData: {
     billingDetails: BillingDetails;
+  };
+}
+
+export interface MultibancoParams {
+  paymentMethodType: 'Multibanco';
+  paymentMethodData: {
+    billingDetails: BillingDetails & { email: string };
   };
 }
 
@@ -246,10 +253,6 @@ export interface SepaDebitResult {
   last4?: string;
 }
 
-export interface UpiResult {
-  vpa?: string;
-}
-
 export type USBankAccountResult = {
   routingNumber?: string;
   accountHolderType?: BankAcccountHolderType;
@@ -276,8 +279,8 @@ export type Type =
   | 'P24'
   | 'Eps'
   | 'Bancontact'
+  | 'Multibanco'
   | 'Oxxo'
-  | 'Upi'
   | 'USBankAccount'
   | 'PayPal'
   | 'Unknown';
@@ -301,4 +304,6 @@ export type CollectBankAccountTokenParams = {
   style?: UserInterfaceStyle;
   /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
   onEvent?: (event: FinancialConnectionsEvent) => void;
+  /** Optional connected account ID. Used for Stripe Connect embedded components. */
+  connectedAccountId?: string;
 };

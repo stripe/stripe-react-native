@@ -5,6 +5,7 @@ import {
   useStripe,
   useOnramp,
 } from '@stripe/stripe-react-native';
+import { requireOnrampModule } from '@stripe/stripe-react-native/src/hooks/useOnramp';
 import {
   Linking,
   StyleSheet,
@@ -79,6 +80,8 @@ export default function HomeScreen() {
         merchantCountryCode: 'US',
         merchantName: 'Onramp Example',
         existingPaymentMethodRequired: false,
+        isEmailRequired: false,
+        allowCreditCards: true,
         billingAddressConfig: {
           isRequired: true,
           format: 'Full',
@@ -87,16 +90,43 @@ export default function HomeScreen() {
       },
     };
 
-    configure(config).then((result) => {
-      if (result?.error) {
-        console.error('Error configuring Onramp:', result.error.message);
-        Alert.alert('Onramp Configuration Error', result.error.message);
-      } else {
-        console.log('Onramp configured successfully.');
-        Alert.alert('Success', 'Onramp configured successfully.');
-      }
-    });
+    configure(config)
+      .then((result) => {
+        if (result?.error) {
+          console.error(
+            'Error configuring Onramp:',
+            'developerMessage' in result.error && result.error.developerMessage
+              ? result.error.developerMessage
+              : result.error.message
+          );
+          Alert.alert('Onramp Configuration Error', result.error.message);
+        } else {
+          console.log('Onramp configured successfully.');
+          Alert.alert('Success', 'Onramp configured successfully.');
+        }
+      })
+      .catch((error) => {
+        console.error('Error configuring Onramp:', error.message);
+        Alert.alert('Onramp Configuration Error', error.message);
+      });
   }, [configure]);
+
+  const handleNavigateToOnramp = useCallback(
+    (route: 'CryptoOnrampFlow' | 'RegisterCryptoUserScreen') => {
+      try {
+        requireOnrampModule();
+      } catch (error: any) {
+        Alert.alert(
+          'Onramp Module Unavailable',
+          error?.message ?? 'Onramp module is not available.'
+        );
+        return;
+      }
+
+      navigation.navigate(route);
+    },
+    [navigation]
+  );
 
   return (
     <ScrollView accessibilityLabel="app-root" style={styles.container}>
@@ -131,6 +161,14 @@ export default function HomeScreen() {
               title="Prebuilt UI (deferred intent)"
               onPress={() => {
                 navigation.navigate('PaymentSheetDeferredIntentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Checkout Playground"
+              onPress={() => {
+                navigation.navigate('CheckoutScreen');
               }}
             />
           </View>
@@ -416,6 +454,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Multibanco"
+              onPress={() => {
+                navigation.navigate('MultibancoPaymentScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 
@@ -551,7 +597,7 @@ export default function HomeScreen() {
               <Button
                 title="Crypto Onramp Flow"
                 onPress={() => {
-                  navigation.navigate('CryptoOnrampFlow');
+                  handleNavigateToOnramp('CryptoOnrampFlow');
                 }}
               />
             </View>
@@ -559,7 +605,19 @@ export default function HomeScreen() {
               <Button
                 title="Register Crypto Link User"
                 onPress={() => {
-                  navigation.navigate('RegisterCryptoUserScreen');
+                  handleNavigateToOnramp('RegisterCryptoUserScreen');
+                }}
+              />
+            </View>
+          </>
+        </Collapse>
+        <Collapse title="Payment Method Messaging Element">
+          <>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="PMME"
+                onPress={() => {
+                  navigation.navigate('PaymentMethodMessagingElementScreen');
                 }}
               />
             </View>

@@ -60,7 +60,15 @@ public class AddressSheetView: UIView {
         }
         var config: AddressViewController.Configuration
         do {
-            config = try buildAddressSheetConfiguration()
+            config = try AddressSheetUtils.buildConfiguration(
+                appearance: appearance,
+                defaultValues: defaultValues,
+                additionalFields: additionalFields,
+                allowedCountries: allowedCountries,
+                autocompleteCountries: autocompleteCountries,
+                buttonTitle: primaryButtonTitle,
+                sheetTitle: sheetTitle
+            )
         } catch {
             onErrorAction!(
                 Errors.createError(ErrorType.Failed, error.localizedDescription) as? [AnyHashable: Any]
@@ -78,19 +86,6 @@ public class AddressSheetView: UIView {
         navigationController.modalTransitionStyle = getModalTransitionStyle()
         let vc = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
         vc.present(navigationController, animated: true)
-    }
-
-    private func buildAddressSheetConfiguration() throws -> AddressViewController.Configuration {
-        let appearanceConfiguration = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearance)
-
-        return AddressViewController.Configuration(
-            defaultValues: AddressSheetUtils.buildDefaultValues(params: defaultValues),
-            additionalFields: AddressSheetUtils.buildAdditionalFieldsConfiguration(params: additionalFields),
-            allowedCountries: allowedCountries,
-            appearance: appearanceConfiguration,
-            buttonTitle: primaryButtonTitle,
-            title: sheetTitle
-        )
     }
 
     private func getModalPresentationStyle() -> UIModalPresentationStyle {

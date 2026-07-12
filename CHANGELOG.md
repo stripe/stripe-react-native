@@ -1,5 +1,101 @@
 # CHANGELOG
 
+## Unreleased
+**Changes**
+* Updated Stripe iOS SDK from 26.0.0 to 26.1.0.
+* [Changed] Connect embedded components — `ConnectAccountOnboarding`, `ConnectPayments`, and `ConnectPayouts` — are now generally available. No API changes; existing integrations continue to work without modification.
+
+## 0.68.0 - 2026-06-29
+**Changes**
+* Updated Stripe iOS SDK from 25.17.0 to 26.0.0.
+* Updated Stripe Android SDK from 23.10.1 to 23.11.0.
+* [Breaking] Updated Stripe Issuing Android Push Provisioning SDK from 1.1.0+ to 1.3.0+.
+* [Breaking] Updated Google Wallet Android Push Provisioning to the Unified Push Provisioning flow. This enables issued cards to be provisioned onto wearable devices via a mobile phone. `canAddCardToWallet` now requires `cardBrand`, and now checks if the card can be provisioned onto the mobile device or any connected wearable devices. See [documentation](https://docs.stripe.com/issuing/cards/digital-wallets?platform=react-native#push-provisioning) for integration guide.
+
+**Features**
+* [Added] Added Issuing support for Google Wallet Bounce Provisioning via the `isBounceProvisioned` parameter on `AddToWalletButton`. See [documentation](https://docs.stripe.com/issuing/cards/digital-wallets?platform=react-native#push-provisioning) for integration guide.
+
+**Fixes**
+* [Fixed] Manual bank-account entry in ConnectAccountOnboarding now creates an external account on iOS/Android by collecting a bank-account token instead of only Financial Connections accounts.
+
+## 0.67.0 - 2026-06-09
+**Changes**
+* Updated Stripe iOS SDK from 25.16.0 to 25.17.0.
+* Updated Stripe Android SDK from 23.9.+ to 23.10.+.
+* [Changed] Renamed the React Native Crypto Onramp wrapper API from `presentCRSCARFDeclaration` to `presentUserAttestation`.
+* [Changed] Updated Crypto Onramp `submitIdentifiers` results to return `completed` and `carfTinRequired`, and removed the `valid` field.
+
+**Features**
+* [Added] Added typed Crypto Onramp API errors for app attestation and uncategorized API failures, including developer diagnostics and structured SDK version metadata.
+
+**Fixes**
+* Updated Stripe iOS SDK from 25.15.0 to 25.16.0.
+* [Fixed] Matched iOS Onramp `LinkAppearance.PrimaryButtonConfiguration` mapping to Android so unspecified custom height and corner radius values use Link defaults.
+
+## 0.66.0 - 2026-05-20
+**Changes**
+* Updated Stripe iOS SDK from 25.14.0 to 25.15.0.
+* Updated Stripe Android SDK from 23.8.+ to 23.9.+.
+
+**Features**
+* [Added] Added EU support to Onramp. This includes three new APIs, `retrieveMissingIdentifiers`, `submitIdentifiers`, and `presentCRSCARFDeclaration`, EU-specific additions to `KycInfo` including `birthCountry`, `birthCity`, and `nationalities`, as well as associated helper model types in `Onramp.ts`.
+
+## 0.65.1 - 2026-05-11
+**Fixes**
+* [Fixed] Fixed bug preventing PaymentSheet from dismissing when presenting with timeout. ([#2451](https://github.com/stripe/stripe-react-native/pull/2451))
+* [Fixed] Fixed spurious `onExit` events firing when using `ASWebAuthenticationSession`. ([#2447](https://github.com/stripe/stripe-react-native/pull/2447))
+
+## 0.65.0 - 2026-04-29
+**Changes**
+* Updated Stripe iOS SDK from 25.11.0 to 25.12.+.
+* Updated Stripe Android SDK from 23.4.+ to 23.6.+.
+* [Removed] Removed UPI support.
+
+**Features**
+* [Added] Added PaymentMethodMessagingElement support in public preview. See [documentation](https://docs.stripe.com/payments/mobile/payment-method-messaging-element) for integration guide. ([#2351](https://github.com/stripe/stripe-react-native/pull/2351))
+
+**Fixes**
+* [Fixed] Fixes a crash when `retrievePaymentIntent` or `retrieveSetupIntent` is called with no network connectivity on Android. ([#2409](https://github.com/stripe/stripe-react-native/pull/2409))
+
+## 0.64.0 - 2026-04-16
+**Changes**
+* [Breaking] `platformPayParams` has changed from `PlatformPay.PaymentMethodParams` to `Onramp.OnrampPlatformPayParams` to better match expectations for GooglePay. ([#2390] (https://github.com/stripe/stripe-react-native/pull/2390))
+* [Added] `CollectPaymentMethodResult` has changed to include an optional `kycInfo` field that includes billing contact information (name and address), if requested as part of  `platformPayParams`. If not already collected, this information can be used by the client app to attach KYC information using `attachKYCInfo` or pre-fill KYC collection fields in client UI.
+* [Added] Now accepts `isEmailRequired` and `allowCreditCards` as part of `GooglePayConfig`. ([#2390] (https://github.com/stripe/stripe-react-native/pull/2390))
+* Updated Stripe iOS SDK from 25.10.+ to 25.11.+.
+* Updated Stripe Android SDK from 23.3.+ to 23.4.+.
+
+**Fixes**
+* [Fixed] `autocompleteCountries` prop on `AddressSheet` was silently ignored on iOS.
+* [Fixed] Calling `confirmPayment` without `params` no longer crashes in iOS builds. ([#2331](https://github.com/stripe/stripe-react-native/issues/2331))
+
+**Features**
+* [Added] Added Multibanco support on iOS and Android. ([#2352](https://github.com/stripe/stripe-react-native/issues/2352))
+
+## 0.63.0 - 2026-04-06
+**Changes**
+- Updated Stripe iOS SDK from 25.9.+ to 25.10.+.
+- Updated Stripe Android SDK from 23.2.+ to 23.3.+.
+
+**Features**
+* [Added] Added types for new theming tokens for Connect Embedded Components ([#2372](https://github.com/stripe/stripe-react-native/pull/2372))
+
+## 0.62.0 - 2026-03-31
+**Changes**
+- Updated Stripe Android SDK from 23.1.+ to 23.2.+
+
+**Fixes**
+* [Fixed] Allow usage of PaymentSheet with customFlow and non customFlow configurations in same session. ([#2361](https://github.com/stripe/stripe-react-native/pull/2361))
+* [Fixed] Downgrade Kotlin version from 2.3.10 to 2.2.21 to prevent build errors with Expo. ([#2374](https://github.com/stripe/stripe-react-native/pull/2374))
+
+## 0.61.0 - 2026-03-25
+**Changes**
+- Updated Stripe iOS SDK from 25.7.+ to 25.9.+.
+- Updated Stripe Android SDK from 23.0.+ to 23.1.+.
+
+**Fixes**
+* [Fixed] Enum type mismatch that caused iOS build failures on Xcode 26+. ([#2357](https://github.com/stripe/stripe-react-native/issues/2357))
+
 ## 0.60.0 - 2026-03-23
 **Changes**
 - Updated Stripe Android SDK from 22.8.+ to 23.0.+. See our [migration guide](https://github.com/stripe/stripe-android/blob/master/MIGRATING.md#migrating-from-versions--2300) for more information.
@@ -485,7 +581,7 @@
 
 **Breaking changes**
 
-- The Apple Pay and Google Pay APIs, which are deprecated and were replaced with the [Platform Pay API](https://github.com/stripe/stripe-react-native/blob/master/docs/Platform-Pay-Migration.md) last year, have been removed. [#1424](https://github.com/stripe/stripe-react-native/pull/1424)
+- The Apple Pay and Google Pay APIs, which are deprecated and were replaced with the [Platform Pay API](./MIGRATING.md#migrating-from-versions--0290) last year, have been removed. [#1424](https://github.com/stripe/stripe-react-native/pull/1424)
 
 **Features**
 
@@ -634,7 +730,7 @@
 **Features**
 
 - Added the `hasPairedAppleWatch` option to `canAddCardToWallet`. [#1219](https://github.com/stripe/stripe-react-native/pull/1219)
-- Added new functions and a new component to streamline integrating with Apple and Google Pay and add more feature support. See the [Migrating to Platform Pay guide](https://github.com/stripe/stripe-react-native/blob/master/docs/Platform-Pay-Migration.md) for more details. The old Apple and Google Pay APIs are marked as `deprecated` and will be removed in a future release, but are still supported in this version.
+- Added new functions and a new component to streamline integrating with Apple and Google Pay and add more feature support. See the [Migrating to Platform Pay guide](./MIGRATING.md#migrating-from-versions--0290) for more details. The old Apple and Google Pay APIs are marked as `deprecated` and will be removed in a future release, but are still supported in this version.
 
 **Fixes**
 
@@ -886,7 +982,7 @@
 - **Breaking: This version requires you use `react-native@0.64.0` or above**
 - [#902](https://github.com/stripe/stripe-react-native/pull/902) fix: create custom babel plugin for package.json imports in src/
 - [#889](https://github.com/stripe/stripe-react-native/pull/889) Feat: add support for push provisioning (adding cards to native wallets)
-- [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`. Please read [this migration guide](./docs/upgrading-from-v0.7.0.md) for details.
+- [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`. Please read [this migration guide](./MIGRATING.md#migrating-from-versions--080) for details.
   - Renamed `type` field to `paymentMethodType` on `PaymentMethod.Result`, `PaymentIntent.Result`, and `SetupIntent.Result` (result of `createPaymentMethod`, `retrieveSetupIntent`, `confirmSetupIntent`, `confirmPayment`, `collectBankAccountForPayment`, `collectBankAccountForSetup`, `verifyMicrodepositsForPayment`, and `verifyMicrodepositsForSetup`).
 - [#849](https://github.com/stripe/stripe-react-native/pull/849) BREAKING CHANGE: Renamed `placeholder` prop on `<CardField />` and `<CardForm />` to `placeholders`.
 - [#849](https://github.com/stripe/stripe-react-native/pull/849) Feat: Added customized styling options to `<CardForm />` on Android.
