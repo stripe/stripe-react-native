@@ -1,7 +1,11 @@
 # Stripe React Native SDK
 
-[![npm version](https://img.shields.io/npm/v/@stripe/stripe-react-native.svg?style=flat-square)](https://www.npmjs.com/package/@stripe/stripe-react-native)
-[![License](https://img.shields.io/github/license/stripe/stripe-react-native)](https://github.com/stripe/stripe-react-native/blob/master/LICENSE)
+<p align="center">
+  <img src="https://img.shields.io/npm/v/@stripe/stripe-react-native.svg" />
+  <img src="https://img.shields.io/npm/dm/@stripe/stripe-react-native.svg" />
+  <img src="https://img.shields.io/badge/Platform-iOS%20%7C%20Android-blue.svg" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" />
+</p>
 
 The Stripe React Native SDK allows you to build delightful payment experiences in your native Android and iOS apps using React Native. We provide powerful and customizable UI screens and elements that can be used out-of-the-box to collect your users' payment details.
 
