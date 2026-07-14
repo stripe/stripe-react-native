@@ -31,6 +31,8 @@ internal class LinkControllerManager(
     private val stripeAccountId: String?,
 ) {
     private var linkController: LinkController? = null
+    private var linkPresenter: LinkController.Presenter? = null
+    private var presentPromise: Promise? = null
 
     fun configure(params: ReadableMap, promise: Promise) {
         val email = params.getString("email")
@@ -51,16 +53,7 @@ internal class LinkControllerManager(
         val allowLogout = if (params.hasKey("allowLogout")) params.getBoolean("allowLogout") else true
         val setupIntentClientSecret = params.getString("setupIntentClientSecret")
 
-        val supportedTypes: List<LinkController.PaymentMethodType>? =
-            params.getArray("supportedPaymentMethodTypes")?.let { arr ->
-                (0 until arr.size()).mapNotNull { i ->
-                    when (arr.getString(i)) {
-                        "card" -> LinkController.PaymentMethodType.Card
-                        "bankAccount" -> LinkController.PaymentMethodType.BankAccount
-                        else -> null
-                    }
-                }.ifEmpty { null }
-            }
+        val supportedTypes = parseSupportedPaymentMethodTypes(params)
 
         val config = LinkController.Configuration(
             publishableKey = publishableKey,
@@ -88,6 +81,13 @@ internal class LinkControllerManager(
         CoroutineScope(Dispatchers.Main).launch {
             val result = controller.configure(config)
             if (result.isSuccess) {
+                // Create once: presenter may register ActivityResultLaunchers, which must happen before onStart().
+                if (linkPresenter == null) {
+                    linkPresenter = controller.createPresenter(
+                        activity = activity,
+                        presentCallback = { presentResult -> handlePresentResult(presentResult) }
+                    )
+                }
                 promise.resolve(Arguments.createMap())
             } else {
                 promise.resolve(
@@ -101,63 +101,75 @@ internal class LinkControllerManager(
     }
 
     fun present(promise: Promise) {
-        val activity = context.currentActivity as? ComponentActivity
-        if (activity == null) {
-            promise.resolve(createError(ErrorType.Failed.toString(), "Activity is not available. Retry this method."))
-            return
-        }
-
-        val controller = linkController
-        if (controller == null) {
+        val presenter = linkPresenter
+        if (presenter == null) {
             promise.resolve(createError(ErrorType.Failed.toString(), LINK_CONTROLLER_NOT_INITIALIZED_ERROR))
             return
         }
 
-        val presenter = controller.createPresenter(
-            activity = activity,
-            presentCallback = { result ->
-                when (result) {
-                    is LinkController.PresentResult.Completed -> {
-                        val response = Arguments.createMap()
-                        response.putMap("paymentMethod", mapFromPaymentMethod(result.paymentMethod))
+        presentPromise = promise
+        presenter.present()
+    }
 
-                        val preview = controller.paymentMethodPreview.value
-                        if (preview != null) {
-                            CoroutineScope(Dispatchers.Main).launch {
-                                val iconBase64 = withContext(Dispatchers.IO) {
-                                    try {
-                                        convertDrawableToBase64(preview.icon)
-                                    } catch (_: Exception) {
-                                        null
-                                    }
-                                }
-                                val previewMap = Arguments.createMap()
-                                previewMap.putString("label", preview.label)
-                                preview.sublabel?.let { previewMap.putString("sublabel", it) }
-                                if (iconBase64 != null) {
-                                    previewMap.putString("icon", "data:image/png;base64,$iconBase64")
-                                }
-                                response.putMap("paymentMethodPreview", previewMap)
-                                promise.resolve(response)
+    fun destroy() {
+        linkController = null
+        linkPresenter = null
+        presentPromise = null
+    }
+
+    private fun parseSupportedPaymentMethodTypes(params: ReadableMap): List<LinkController.PaymentMethodType>? =
+        params.getArray("supportedPaymentMethodTypes")?.let { arr ->
+            (0 until arr.size()).mapNotNull { i ->
+                when (arr.getString(i)) {
+                    "card" -> LinkController.PaymentMethodType.Card
+                    "bankAccount" -> LinkController.PaymentMethodType.BankAccount
+                    else -> null
+                }
+            }.ifEmpty { null }
+        }
+
+    private fun handlePresentResult(result: LinkController.PresentResult) {
+        val promise = presentPromise ?: return
+        val controller = linkController ?: return
+        when (result) {
+            is LinkController.PresentResult.Completed -> {
+                val response = Arguments.createMap()
+                response.putMap("paymentMethod", mapFromPaymentMethod(result.paymentMethod))
+
+                val preview = controller.paymentMethodPreview.value
+                if (preview != null) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val iconBase64 = withContext(Dispatchers.IO) {
+                            try {
+                                convertDrawableToBase64(preview.icon)
+                            } catch (_: Exception) {
+                                null
                             }
-                        } else {
-                            promise.resolve(response)
                         }
+                        val previewMap = Arguments.createMap()
+                        previewMap.putString("label", preview.label)
+                        preview.sublabel?.let { previewMap.putString("sublabel", it) }
+                        if (iconBase64 != null) {
+                            previewMap.putString("icon", "data:image/png;base64,$iconBase64")
+                        }
+                        response.putMap("paymentMethodPreview", previewMap)
+                        promise.resolve(response)
                     }
-                    is LinkController.PresentResult.Canceled -> {
-                        promise.resolve(
-                            createError(
-                                ErrorType.Canceled.toString(),
-                                "The customer canceled the Link flow."
-                            )
-                        )
-                    }
-                    is LinkController.PresentResult.Failed -> {
-                        promise.resolve(createError(ErrorType.Failed.toString(), result.error))
-                    }
+                } else {
+                    promise.resolve(response)
                 }
             }
-        )
-        presenter.present()
+            is LinkController.PresentResult.Canceled -> {
+                promise.resolve(
+                    createError(
+                        ErrorType.Canceled.toString(),
+                        "The customer canceled the Link flow."
+                    )
+                )
+            }
+            is LinkController.PresentResult.Failed -> {
+                promise.resolve(createError(ErrorType.Failed.toString(), result.error))
+            }
+        }
     }
 }
