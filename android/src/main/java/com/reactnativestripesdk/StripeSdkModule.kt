@@ -181,6 +181,8 @@ class StripeSdkModule(
     checkoutStateObservers.values.forEach { it.cancel() }
     checkoutStateObservers.clear()
     checkoutInstances.clear()
+    linkControllerManager?.destroy()
+    linkControllerManager = null
   }
 
   private fun registerStripeUIManager(uiManager: StripeUIManager) {
