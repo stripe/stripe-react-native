@@ -10,9 +10,9 @@ import StripePaymentsUI
 import UIKit
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
-@_spi(CryptoOnrampAlpha) @_spi(ReactNativeSDK) @_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
+@_spi(LinkControllerPreview) @_spi(CryptoOnrampAlpha) @_spi(ReactNativeSDK) @_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
 #else
-@_spi(ReactNativeSDK) import StripePaymentSheet
+@_spi(LinkControllerPreview) @_spi(ReactNativeSDK) import StripePaymentSheet
 #endif
 
 @available(iOS 13.0, *)

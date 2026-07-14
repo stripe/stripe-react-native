@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(STP) @_spi(LinkControllerPreview) import StripePaymentSheet
+@_spi(LinkControllerPreview) import StripePaymentSheet
 
 extension StripeSdkImpl {
     @objc(initLinkController:resolver:rejecter:)

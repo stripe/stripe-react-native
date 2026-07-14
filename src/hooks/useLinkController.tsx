@@ -10,7 +10,6 @@ import type { LinkController } from '../types';
  * then `presentLinkController` when the customer taps your Link button.
  *
  * @PrivatePreview This API is in private preview and may change without notice.
- * It will have no effect unless your Stripe account is enrolled in the private preview.
  */
 export function useLinkController() {
   const [loading, setLoading] = useState(false);
