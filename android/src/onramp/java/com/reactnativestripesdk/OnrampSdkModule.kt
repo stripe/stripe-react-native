@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCryptoOnramp::class)
+@file:OptIn(ExperimentalCryptoOnramp::class, LinkControllerPreview::class)
 
 package com.reactnativestripesdk
 
@@ -52,6 +52,7 @@ import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyKycInfoResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodSelection
 import com.stripe.android.link.LinkController.PaymentMethodPreview
+import com.stripe.android.link.LinkControllerPreview
 import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.model.CardBrand
 import com.stripe.android.model.DateOfBirth
@@ -65,7 +66,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 @SuppressLint("RestrictedApi")
-@OptIn(ExperimentalCryptoOnramp::class)
+@OptIn(ExperimentalCryptoOnramp::class, LinkControllerPreview::class)
 @ReactModule(name = NativeOnrampSdkModuleSpec.NAME)
 class OnrampSdkModule(
   reactContext: ReactApplicationContext,
