@@ -2,6 +2,7 @@ package com.reactnativestripesdk
 
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -11,7 +12,6 @@ import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.stripe.android.link.LinkController
 import com.stripe.android.link.LinkControllerPreview
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -78,7 +78,7 @@ internal class LinkControllerManager(
 
         val controller = linkController!!
 
-        CoroutineScope(Dispatchers.Main).launch {
+        activity.lifecycleScope.launch {
             val result = controller.configure(config)
             if (result.isSuccess) {
                 // Create once: presenter may register ActivityResultLaunchers, which must happen before onStart().
@@ -137,8 +137,9 @@ internal class LinkControllerManager(
                 response.putMap("paymentMethod", mapFromPaymentMethod(result.paymentMethod))
 
                 val preview = controller.paymentMethodPreview.value
-                if (preview != null) {
-                    CoroutineScope(Dispatchers.Main).launch {
+                val currentScope = (context.currentActivity as? ComponentActivity)?.lifecycleScope
+                if (preview != null && currentScope != null) {
+                    currentScope.launch {
                         val iconBase64 = withContext(Dispatchers.IO) {
                             try {
                                 convertDrawableToBase64(preview.icon)
