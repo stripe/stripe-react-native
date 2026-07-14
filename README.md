@@ -3,7 +3,6 @@
 <p align="center">
   <img src="https://img.shields.io/npm/v/@stripe/stripe-react-native.svg" />
   <img src="https://img.shields.io/npm/dm/@stripe/stripe-react-native.svg" />
-  <img src="https://img.shields.io/badge/Platform-iOS%20%7C%20Android-blue.svg" />
   <img src="https://img.shields.io/badge/License-MIT-green.svg" />
 </p>
 
