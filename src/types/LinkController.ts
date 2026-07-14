@@ -40,9 +40,9 @@ export type PaymentMethodPreview = {
    * Suitable for rendering directly in a React Native `<Image source={{ uri: icon }}>` component.
    */
   icon: string;
-  /** A human-readable label for the payment method (e.g., "Visa Credit •••• 4242"). */
+  /** The Link label to render in your screen. */
   label: string;
-  /** Additional descriptive text (e.g., "Expires 12/25"). */
+  /** Details about the selected Link payment method. This will typically render the display name of the payment method followed by the last four digits, e.g. `Visa Credit •••• 4242`. */
   sublabel?: string;
 };
 
