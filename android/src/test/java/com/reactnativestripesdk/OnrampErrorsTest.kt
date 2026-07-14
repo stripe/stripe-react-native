@@ -52,17 +52,6 @@ class OnrampErrorsTest {
     assertEquals("api_error", details.getString("type"))
     assertEquals("api_error", details.getString("apiErrorType"))
     assertEquals("android_package_name_mismatch", details.getString("reason"))
-    assertEquals("configure", details.getString("operation"))
-    assertEquals("com.example.app", details.getString("appPackageName"))
-    assertEquals("test", details.getString("mode"))
-    val sdkVersions = details.getArray("sdkVersions")
-    assertNotNull(sdkVersions)
-    val stripeAndroidVersion = sdkVersions!!.getMap(0)
-    assertEquals("stripe-android", stripeAndroidVersion!!.getString("name"))
-    assertEquals("23.9.1", stripeAndroidVersion.getString("version"))
-    val reactNativeVersion = sdkVersions.getMap(1)
-    assertEquals("stripe-react-native", reactNativeVersion!!.getString("name"))
-    assertEquals("0.66.0", reactNativeVersion.getString("version"))
     assertEquals("req_attestation", details.getString("requestId"))
     assertEquals(
       "Attestation request could not be verified.",
@@ -81,7 +70,7 @@ class OnrampErrorsTest {
   fun createOnrampFailedError_withUncategorizedApiError_preservesStripeCodes() {
     val error =
       createOnrampException(
-        className = "com.stripe.android.crypto.onramp.exception.UncategorizedApiErrorException",
+        className = "com.stripe.android.crypto.onramp.exception.UncategorizedException",
         reason = "consumer_session_expired",
         operation = "authorize",
         appPackageName = "com.example.app",
@@ -104,7 +93,6 @@ class OnrampErrorsTest {
     assertEquals("authentication_error", details.getString("type"))
     assertEquals("Session expired. Please sign in again.", details.getString("message"))
     assertEquals("Session expired. Please sign in again.", details.getString("userMessage"))
-    assertEquals("authorize", details.getString("operation"))
     assertEquals("req_auth", details.getString("requestId"))
     assertTrue(details.getString("developerMessage")!!.contains("Code: consumer_session_expired"))
   }
@@ -135,9 +123,6 @@ class OnrampErrorsTest {
     val context =
       APIErrorContext(
         reason = reason,
-        operation = operation,
-        appPackageName = appPackageName,
-        mode = mode,
         apiErrorCode = apiErrorCode,
         apiErrorType = apiErrorType,
         apiErrorMessage = apiErrorMessage,
@@ -145,6 +130,23 @@ class OnrampErrorsTest {
         docUrl = docUrl,
         underlyingError = cause,
       )
+    val diagnosticContextClass =
+      Class.forName("com.stripe.android.crypto.onramp.exception.DiagnosticContext")
+    val diagnosticContext =
+      diagnosticContextClass
+        .getDeclaredConstructor(
+          List::class.java,
+          String::class.java,
+          String::class.java,
+          String::class.java,
+        ).apply {
+          isAccessible = true
+        }.newInstance(
+          sdkVersions,
+          operation,
+          appPackageName,
+          mode,
+        )
 
     // The exception classes in the `com.stripe.android.crypto.onramp.exception` package
     // don't have public constructors, so we use reflection to create instances for testing.
@@ -153,7 +155,7 @@ class OnrampErrorsTest {
         .forName(className)
         .getDeclaredConstructor(
           APIErrorContext::class.java,
-          List::class.java,
+          diagnosticContextClass,
           String::class.java,
         ).apply {
           isAccessible = true
@@ -161,7 +163,7 @@ class OnrampErrorsTest {
 
     return constructor.newInstance(
       context,
-      sdkVersions,
+      diagnosticContext,
       userMessage,
     ) as Exception
   }
