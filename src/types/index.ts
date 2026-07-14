@@ -28,6 +28,7 @@ import * as FinancialConnections from './FinancialConnections';
 import * as PlatformPay from './PlatformPay';
 import * as Onramp from './Onramp';
 import * as ConfirmationToken from './ConfirmationToken';
+import * as LinkController from './LinkController';
 
 export {
   ApplePay,
@@ -44,6 +45,7 @@ export {
   PlatformPay,
   Onramp,
   ConfirmationToken,
+  LinkController,
 };
 
 export * from './PushProvisioning';

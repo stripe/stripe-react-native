@@ -106,3 +106,12 @@ export enum RadarError {
   Failed = 'Failed',
   Unknown = 'Unknown',
 }
+
+/**
+ * @PrivatePreview
+ */
+export enum LinkControllerError {
+  Failed = 'Failed',
+  Canceled = 'Canceled',
+  Unknown = 'Unknown',
+}

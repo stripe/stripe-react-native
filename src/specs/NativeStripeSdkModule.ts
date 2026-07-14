@@ -22,6 +22,7 @@ import type {
   InitialiseParams,
   InitPaymentSheetResult,
   IsCardInWalletResult,
+  LinkController,
   OpenApplePaySetupResult,
   PaymentIntent,
   PaymentMethod,
@@ -270,6 +271,16 @@ export interface Spec extends TurboModule {
 
   storeStripeConnectDeepLink(url: string): Promise<void>;
   pollAndClearPendingStripeConnectUrls(): Promise<string[]>;
+
+  // LinkController - Private Preview
+
+  /** @PrivatePreview */
+  initLinkController(
+    params: UnsafeObject<LinkController.Configuration>
+  ): Promise<UnsafeObject<LinkController.InitResult>>;
+
+  /** @PrivatePreview */
+  presentLinkController(): Promise<UnsafeObject<LinkController.PresentResult>>;
 
   // Events
   addListener: (eventType: string) => void;
