@@ -59,6 +59,7 @@ import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
 import RegisterCryptoUserScreen from './screens/Onramp/RegisterCryptoUserScreen';
 import PaymentMethodMessagingElementScreen from './screens/PaymentMethodMessagingElementScreen';
+import LinkControllerScreen from './screens/LinkControllerScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -119,6 +120,7 @@ export type RootStackParamList = {
   CryptoOnrampFlow: undefined;
   RegisterCryptoUserScreen: undefined;
   PaymentMethodMessagingElementScreen: undefined;
+  LinkControllerScreen: undefined;
 };
 
 declare global {
@@ -336,6 +338,10 @@ export default function App() {
           <Stack.Screen
             name="PaymentMethodMessagingElementScreen"
             component={PaymentMethodMessagingElementScreen}
+          />
+          <Stack.Screen
+            name="LinkControllerScreen"
+            component={LinkControllerScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
