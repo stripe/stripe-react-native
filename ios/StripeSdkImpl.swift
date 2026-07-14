@@ -104,7 +104,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var applePayCouponCodeErrors: [Error]?
 
     // LinkController - Private Preview
-    @_spi(LinkControllerPreview) var linkController: LinkController?
+    var linkController: LinkController?
     var linkControllerEmail: String?
     var linkControllerPhone: String?
 
