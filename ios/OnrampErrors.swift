@@ -84,7 +84,7 @@ enum OnrampErrors {
 
     private static func onrampErrorType(for error: StripeCryptoOnrampAPIError) -> String {
         switch error {
-        case is AppAttestationAPIError:
+        case is AppAttestationError:
             return "AppAttestationError"
         default:
             return "UncategorizedApiError"
