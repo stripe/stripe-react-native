@@ -2025,7 +2025,9 @@ class StripeSdkModule(
       promise.resolve(createError(ErrorType.Failed.toString(), LINK_CONTROLLER_NOT_INITIALIZED_ERROR))
       return
     }
-    manager.present(promise)
+    UiThreadUtil.runOnUiThread {
+      manager.present(promise)
+    }
   }
 
   /**
