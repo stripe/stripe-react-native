@@ -127,6 +127,7 @@ class StripeSdkModule(
   private val checkoutStateObservers = mutableMapOf<String, Job>()
 
   private var customerSheetManager: CustomerSheetManager? = null
+  private var linkControllerManager: LinkControllerManager? = null
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
   internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
@@ -1999,6 +2000,33 @@ class StripeSdkModule(
         }
       }
     }
+
+  // LinkController - Private Preview
+
+  @ReactMethod
+  override fun initLinkController(
+    params: ReadableMap,
+    promise: Promise,
+  ) {
+    if (linkControllerManager == null) {
+      linkControllerManager = LinkControllerManager(
+        context = reactApplicationContext,
+        publishableKey = publishableKey,
+        stripeAccountId = stripeAccountId,
+      )
+    }
+    linkControllerManager?.configure(params, promise)
+  }
+
+  @ReactMethod
+  override fun presentLinkController(promise: Promise) {
+    val manager = linkControllerManager
+    if (manager == null) {
+      promise.resolve(createError(ErrorType.Failed.toString(), LINK_CONTROLLER_NOT_INITIALIZED_ERROR))
+      return
+    }
+    manager.present(promise)
+  }
 
   /**
    * React native apps do not properly handle activity re-creation so make

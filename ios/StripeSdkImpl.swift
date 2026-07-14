@@ -103,6 +103,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var applePayShippingAddressErrors: [Error]?
     var applePayCouponCodeErrors: [Error]?
 
+    // LinkController - Private Preview
+    @_spi(LinkControllerPreview) var linkController: LinkController?
+    var linkControllerEmail: String?
+    var linkControllerPhone: String?
+
     var customerSheetConfiguration = CustomerSheet.Configuration()
     var customerSheet: CustomerSheet?
     var customerAdapter: StripeCustomerAdapter?
