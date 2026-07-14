@@ -114,18 +114,6 @@ export function useCheckout(
       ),
     [withLoading]
   );
-  const updateBillingAddress = useCallback<Checkout['updateBillingAddress']>(
-    (address, name, phone) =>
-      withLoading((key) =>
-        NativeStripeSdk.checkoutUpdateBillingAddress(
-          key,
-          address,
-          name ?? null,
-          phone ?? null
-        )
-      ),
-    [withLoading]
-  );
   const applyPromotionCode = useCallback<Checkout['applyPromotionCode']>(
     (code) =>
       withLoading((key) =>
@@ -192,7 +180,6 @@ export function useCheckout(
         return sessionKeyRef.current;
       },
       updateShippingAddress,
-      updateBillingAddress,
       applyPromotionCode,
       removePromotionCode,
       updateLineItemQuantity,
@@ -201,7 +188,6 @@ export function useCheckout(
     }),
     [
       updateShippingAddress,
-      updateBillingAddress,
       applyPromotionCode,
       removePromotionCode,
       updateLineItemQuantity,

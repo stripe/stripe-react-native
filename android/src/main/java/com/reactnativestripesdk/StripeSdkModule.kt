@@ -1798,30 +1798,6 @@ class StripeSdkModule(
     }
   }
 
-  override fun checkoutUpdateBillingAddress(
-    sessionKey: String,
-    address: ReadableMap,
-    name: String?,
-    phone: String?,
-    promise: Promise,
-  ) {
-    val addressUpdate = buildCheckoutAddressUpdate(name, phone, address) ?: run {
-      promise.reject(ErrorType.Failed.toString(), "A billing address country is required.")
-      return
-    }
-
-    performCheckoutMutation(
-      sessionKey = sessionKey,
-      promise = promise,
-    ) { checkout ->
-      checkout.updateBillingAddress(
-        name = addressUpdate.name,
-        phoneNumber = addressUpdate.phone,
-        address = addressUpdate.toCheckoutAddress(),
-      )
-    }
-  }
-
   override fun checkoutApplyPromotionCode(
     sessionKey: String,
     code: String,

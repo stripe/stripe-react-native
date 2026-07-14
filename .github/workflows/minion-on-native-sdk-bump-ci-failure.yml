@@ -1,0 +1,238 @@
+name: Minion on native SDK bump CI failure
+
+'on':
+  check_suite:
+    types: [completed]
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Optional PR number to scan'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+  checks: read
+  statuses: read
+
+concurrency:
+  group: minion-native-sdk-bump-ci-failure
+  cancel-in-progress: false
+
+jobs:
+  prepare-minion-task:
+    name: Prepare Minion task link
+    runs-on: ubuntu-latest
+    env:
+      GH_HOST: github.com
+      GH_TOKEN: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+      REPO: stripe/stripe-react-native
+      TARGET_PR_NUMBER: ${{ inputs.pr_number || '' }}
+      BUMP_BRANCH_PREFIX: chore/bump-native-sdks
+      MINION_SOURCE_REFERENCE: stripe-react-native-native-sdk-bump-ci-fixer
+      MINION_URL_PREFIX: 'https://devboxproxy.qa.corp.stripe.com/new-agent#'
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
+
+    steps:
+      - name: Find failing native SDK bump PRs and comment with Minion link
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "$TARGET_PR_NUMBER" ] && ! [[ "$TARGET_PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "pr_number must be numeric when provided: $TARGET_PR_NUMBER" >&2
+            exit 1
+          fi
+
+          prs_json="$(gh pr list \
+            --repo "$REPO" \
+            --state open \
+            --base master \
+            --limit 200 \
+            --json number,title,url,headRefName,headRefOid)"
+
+          prs_json="$(printf '%s' "$prs_json" | jq --arg prefix "$BUMP_BRANCH_PREFIX" '
+            [.[] | select(.headRefName | startswith($prefix))]
+          ')"
+
+          if [ -n "$TARGET_PR_NUMBER" ]; then
+            prs_json="$(printf '%s' "$prs_json" | jq --argjson pr "$TARGET_PR_NUMBER" '
+              [.[] | select(.number == $pr)]
+            ')"
+          fi
+
+          pr_count="$(printf '%s' "$prs_json" | jq 'length')"
+          if [ "$pr_count" -eq 0 ]; then
+            echo "No open native SDK bump PRs to inspect."
+            exit 0
+          fi
+
+          while IFS= read -r pr; do
+            pr_number="$(printf '%s' "$pr" | jq -r '.number')"
+            pr_title="$(printf '%s' "$pr" | jq -r '.title')"
+            pr_url="$(printf '%s' "$pr" | jq -r '.url')"
+            branch="$(printf '%s' "$pr" | jq -r '.headRefName')"
+            head_sha="$(printf '%s' "$pr" | jq -r '.headRefOid')"
+
+            echo "Inspecting PR #$pr_number ($branch at $head_sha)."
+
+            checks_json="$(gh pr checks "$pr_number" \
+              --repo "$REPO" \
+              --json name,state,bucket,link,workflow \
+              2>/tmp/pr-checks-error.txt || true)"
+
+            if [ -z "$checks_json" ] || ! printf '%s' "$checks_json" | jq empty >/dev/null 2>&1; then
+              echo "Could not read checks for PR #$pr_number; skipping."
+              if [ -s /tmp/pr-checks-error.txt ]; then
+                cat /tmp/pr-checks-error.txt >&2
+              fi
+              continue
+            fi
+
+            failed_checks="$(printf '%s' "$checks_json" | jq -c '
+              [
+                .[]
+                | select(
+                    ((.bucket // "" | ascii_downcase) == "fail")
+                    or
+                    (((.state // "" | ascii_upcase) as $state | ["FAILURE", "ERROR", "TIMED_OUT"] | index($state)) != null)
+                  )
+              ]
+            ')"
+
+            failed_count="$(printf '%s' "$failed_checks" | jq 'length')"
+            if [ "$failed_count" -eq 0 ]; then
+              echo "PR #$pr_number has no actionable failed checks."
+              continue
+            fi
+
+            marker="<!-- minion-ci-fix:${head_sha} -->"
+            comments_json="$(gh api --paginate --slurp "repos/${REPO}/issues/${pr_number}/comments")"
+            existing_marker_count="$(printf '%s' "$comments_json" | jq --arg marker "$marker" '
+              [.[][] | select((.body // "") | contains($marker))] | length
+            ')"
+
+            if [ "$existing_marker_count" -gt 0 ]; then
+              echo "PR #$pr_number already has a Minion task comment for $head_sha."
+              continue
+            fi
+
+            failed_check_summary="$(printf '%s' "$failed_checks" | jq -r '
+              .[]
+              | "- \(.name): \((.state // .bucket // "unknown") | tostring)"
+                + (if ((.workflow // "") | tostring) != "" then " (" + ((.workflow // "") | tostring) + ")" else "" end)
+                + (if ((.link // "") | tostring) != "" then " " + ((.link // "") | tostring) else "" end)
+            ')"
+
+            prompt="$(cat <<PROMPT
+          Investigate and fix failing CI for this automated native SDK version bump PR in stripe/stripe-react-native.
+
+          PR: ${pr_url}
+          PR number: #${pr_number}
+          Branch: ${branch}
+          Head SHA: ${head_sha}
+          Title: ${pr_title}
+
+          Failed checks:
+          ${failed_check_summary}
+
+          Instructions:
+          - Read CLAUDE.md first.
+          - For every gh command, set GH_HOST=github.com because this repo is on public GitHub.
+          - Inspect the GitHub PR checks and linked Bitrise builds before changing code.
+          - Use the Bitrise MCP/API to fetch failed build logs and artifacts from failed Bitrise check links.
+          - Determine whether the bump is for stripe-ios, stripe-android, or both.
+          - Make the smallest fix needed on the PR branch.
+          - Likely areas include stripe-react-native.podspec, android/gradle.properties, example/ios/Podfile.lock, native compatibility code, tests, or snapshots.
+          - Do not revert the SDK version bump unless the upstream SDK release is clearly broken and you explain why.
+          - Run relevant checks from package.json and bitrise.yml before pushing. Common checks include yarn test, yarn typescript, yarn lint, yarn test:unit:ios, and yarn test:unit:android.
+          - Push the fix to the existing PR branch.
+          - Leave a concise PR comment summarizing root cause, files changed, and verification run.
+          PROMPT
+          )"
+
+            minion_config="$(jq -cn \
+              --arg name "fix-rn-sdk-bump-ci-pr-${pr_number}" \
+              --arg source_reference "$MINION_SOURCE_REFERENCE" \
+              --arg prompt "$prompt" \
+              '{
+                name: $name,
+                source_reference: $source_reference,
+                spec: {
+                  source_specs: [
+                    {
+                      org: "stripe",
+                      repo: "stripe-react-native",
+                      git_ref: "",
+                      new_branch: true
+                    }
+                  ],
+                  agent_task: {
+                    repo: "stripe-react-native",
+                    prompt: $prompt
+                  }
+                }
+              }')"
+
+            minion_url="${MINION_URL_PREFIX}$(printf '%s' "$minion_config" | jq -sRr @uri)"
+
+            comment_file="$(mktemp)"
+            {
+              printf '%s\n\n' "$marker"
+              printf '%s\n\n' "CI is failing on this automated native SDK bump PR, so I prepared a Minion task to investigate and fix it."
+              printf '[Create Minion task](%s)\n\n' "$minion_url"
+              printf '%s\n\n' "Failed checks:"
+              printf '%s\n' "$failed_check_summary"
+            } > "$comment_file"
+
+            comment_payload="$(mktemp)"
+            jq -Rs '{body: .}' < "$comment_file" > "$comment_payload"
+            gh api \
+              --method POST \
+              "repos/${REPO}/issues/${pr_number}/comments" \
+              --input "$comment_payload" \
+              >/dev/null
+            rm -f "$comment_file" "$comment_payload"
+
+            echo "Posted Minion task link on PR #$pr_number for $head_sha."
+
+            if [ -n "$SLACK_WEBHOOK_URL" ]; then
+              slack_payload="$(mktemp)"
+              jq -n \
+                --arg pr_number "$pr_number" \
+                --arg pr_title "$pr_title" \
+                --arg pr_url "$pr_url" \
+                --arg branch "$branch" \
+                --arg head_sha "$head_sha" \
+                --arg minion_url "$minion_url" \
+                --arg failed_check_summary "$failed_check_summary" \
+                '{
+                  text: (
+                    ":warning: CI is failing on automated native SDK bump PR <" + $pr_url + "|#" + $pr_number + ">.\n" +
+                    "Branch: `" + $branch + "`\n" +
+                    "Head SHA: `" + $head_sha + "`\n" +
+                    "Title: " + $pr_title + "\n\n" +
+                    "Failed checks:\n" + $failed_check_summary + "\n\n" +
+                    "<" + $minion_url + "|Create Minion task>"
+                  )
+                }' > "$slack_payload"
+
+              if curl -fsS \
+                -X POST \
+                -H 'Content-type: application/json' \
+                --data @"$slack_payload" \
+                "$SLACK_WEBHOOK_URL" \
+                >/dev/null; then
+                echo "Posted Minion task link to Slack."
+              else
+                echo "Failed to post Minion task link to Slack." >&2
+              fi
+              rm -f "$slack_payload"
+            else
+              echo "SLACK_RUN_CHANNEL_WEBHOOK_URL is not configured; skipping Slack notification."
+            fi
+          done < <(printf '%s' "$prs_json" | jq -c '.[]')

@@ -103,7 +103,7 @@ export namespace Checkout {
     tax: Tax;
     /** Tax and discount details for the computed total amount. */
     total?: Total;
-    /** The billing address set via `updateBillingAddress`, if any. */
+    /** The billing address for this session, if any. */
     billingAddress?: ContactAddress;
   }
 
@@ -502,24 +502,6 @@ export interface Checkout {
    * @param phone - The recipient's phone number.
    */
   updateShippingAddress(
-    address: Checkout.Address,
-    name?: string,
-    phone?: string
-  ): Promise<void>;
-
-  /**
-   * Sets the billing address for this checkout.
-   *
-   * The address is stored locally and merged into PaymentSheet configuration
-   * when presenting payment UI. If automatic tax is enabled and the tax
-   * address source is "billing", the address is also sent to the server to
-   * compute updated tax amounts.
-   *
-   * @param address - The billing address to set.
-   * @param name - The customer's name.
-   * @param phone - The customer's phone number.
-   */
-  updateBillingAddress(
     address: Checkout.Address,
     name?: string,
     phone?: string

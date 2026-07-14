@@ -289,21 +289,6 @@ RCT_EXPORT_METHOD(checkoutUpdateShippingAddress:(nonnull NSString *)sessionKey
                                              rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(checkoutUpdateBillingAddress:(nonnull NSString *)sessionKey
-                                       address:(nonnull NSDictionary *)address
-                                          name:(NSString *_Nullable)name
-                                         phone:(NSString *_Nullable)phone
-                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
-                                        reject:(nonnull RCTPromiseRejectBlock)reject)
-{
-  [StripeSdkImpl.shared checkoutUpdateBillingAddress:sessionKey
-                                             address:address
-                                                name:name
-                                               phone:phone
-                                            resolver:resolve
-                                            rejecter:reject];
-}
-
 RCT_EXPORT_METHOD(checkoutApplyPromotionCode:(nonnull NSString *)sessionKey
                                         code:(nonnull NSString *)code
                                      resolve:(nonnull RCTPromiseResolveBlock)resolve

@@ -5,6 +5,7 @@ package com.reactnativestripesdk
 import com.stripe.android.core.StripeError
 import com.stripe.android.core.exception.APIException
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
+import com.stripe.android.crypto.onramp.exception.APIErrorContext
 import com.stripe.android.crypto.onramp.exception.SDKVersion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -69,7 +70,7 @@ class OnrampErrorsTest {
   fun createOnrampFailedError_withUncategorizedApiError_preservesApiFields() {
     val error =
       createApiOnrampException(
-        className = "com.stripe.android.crypto.onramp.exception.UncategorizedApiErrorException",
+        className = "com.stripe.android.crypto.onramp.exception.UncategorizedException",
         reason = "consumer_session_expired",
         operation = "authorize",
         appPackageName = "com.example.app",
@@ -112,7 +113,7 @@ class OnrampErrorsTest {
             SDKVersion(name = "stripe-react-native", version = "0.67.0"),
           ),
         userMessage = "This app couldn't be verified. Contact the app developer for help.",
-      ) ?: return
+      )
 
     val details = createOnrampFailedError(error).getMap("error")
 
@@ -159,11 +160,8 @@ class OnrampErrorsTest {
       )
     val cause = APIException(stripeError = stripeError, requestId = requestId)
     val apiErrorContext =
-      createApiErrorContext(
+      APIErrorContext(
         reason = reason,
-        operation = operation,
-        appPackageName = appPackageName,
-        mode = mode,
         apiErrorCode = apiErrorCode,
         apiErrorType = apiErrorType,
         apiErrorMessage = apiErrorMessage,
@@ -171,37 +169,15 @@ class OnrampErrorsTest {
         docUrl = docUrl,
         underlyingError = cause,
       )
-
-    createDiagnosticContext(
-      sdkVersions,
-      operation,
-      appPackageName,
-      mode,
-    )?.let { diagnosticContext ->
-      val constructor =
-        Class
-          .forName(className)
-          .getDeclaredConstructor(
-            apiErrorContext.javaClass,
-            diagnosticContext.javaClass,
-            String::class.java,
-          ).apply {
-            isAccessible = true
-          }
-
-      return constructor.newInstance(
-        apiErrorContext,
-        diagnosticContext,
-        userMessage,
-      ) as Exception
-    }
+    val diagnosticContext =
+      createDiagnosticContext(sdkVersions, operation, appPackageName, mode)
 
     val constructor =
       Class
         .forName(className)
         .getDeclaredConstructor(
-          apiErrorContext.javaClass,
-          List::class.java,
+          APIErrorContext::class.java,
+          diagnosticContext.javaClass,
           String::class.java,
         ).apply {
           isAccessible = true
@@ -209,7 +185,7 @@ class OnrampErrorsTest {
 
     return constructor.newInstance(
       apiErrorContext,
-      sdkVersions,
+      diagnosticContext,
       userMessage,
     ) as Exception
   }
@@ -221,21 +197,13 @@ class OnrampErrorsTest {
     mode: String,
     sdkVersions: List<SDKVersion>,
     userMessage: String,
-  ): Exception? {
+  ): Exception {
     val diagnosticContext =
-      createDiagnosticContext(
-        sdkVersions,
-        operation,
-        appPackageName,
-        mode,
-      ) ?: return null
+      createDiagnosticContext(sdkVersions, operation, appPackageName, mode)
     val exceptionClass =
-      runCatching {
-        Class.forName(
-          "com.stripe.android.crypto.onramp.exception.AppAttestationUnavailableException",
-        )
-      }.getOrNull()
-        ?: return null
+      Class.forName(
+        "com.stripe.android.crypto.onramp.exception.AppAttestationUnavailableException",
+      )
 
     val constructor =
       exceptionClass
@@ -260,12 +228,9 @@ class OnrampErrorsTest {
     operation: String,
     appPackageName: String,
     mode: String,
-  ): Any? {
+  ): Any {
     val diagnosticContextClass =
-      runCatching {
-        Class.forName("com.stripe.android.crypto.onramp.exception.DiagnosticContext")
-      }.getOrNull()
-        ?: return null
+      Class.forName("com.stripe.android.crypto.onramp.exception.DiagnosticContext")
     val constructor =
       diagnosticContextClass
         .getDeclaredConstructor(
@@ -279,56 +244,4 @@ class OnrampErrorsTest {
 
     return constructor.newInstance(sdkVersions, operation, appPackageName, mode)
   }
-
-  private fun createApiErrorContext(
-    reason: String,
-    operation: String,
-    appPackageName: String,
-    mode: String,
-    apiErrorCode: String,
-    apiErrorType: String,
-    apiErrorMessage: String,
-    apiUserMessage: String,
-    docUrl: String,
-    underlyingError: APIException,
-  ): Any {
-    val apiErrorContextClass =
-      Class.forName("com.stripe.android.crypto.onramp.exception.APIErrorContext")
-    val constructor =
-      apiErrorContextClass.declaredConstructors
-        .first { constructor ->
-          constructor.parameterTypes.size == NEW_API_ERROR_CONTEXT_PARAMETER_COUNT ||
-            constructor.parameterTypes.size == OLD_API_ERROR_CONTEXT_PARAMETER_COUNT
-        }.apply {
-          isAccessible = true
-        }
-
-    return if (constructor.parameterTypes.size == NEW_API_ERROR_CONTEXT_PARAMETER_COUNT) {
-      constructor.newInstance(
-        reason,
-        apiErrorCode,
-        apiErrorType,
-        apiErrorMessage,
-        apiUserMessage,
-        docUrl,
-        underlyingError,
-      )
-    } else {
-      constructor.newInstance(
-        reason,
-        operation,
-        appPackageName,
-        mode,
-        apiErrorCode,
-        apiErrorType,
-        apiErrorMessage,
-        apiUserMessage,
-        docUrl,
-        underlyingError,
-      )
-    }
-  }
 }
-
-private const val NEW_API_ERROR_CONTEXT_PARAMETER_COUNT = 7
-private const val OLD_API_ERROR_CONTEXT_PARAMETER_COUNT = 10
