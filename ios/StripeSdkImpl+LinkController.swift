@@ -10,7 +10,7 @@ import Foundation
 
 extension StripeSdkImpl {
     @objc(initLinkController:resolver:rejecter:)
-    func initLinkController(
+    public func initLinkController(
         _ params: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -56,7 +56,7 @@ extension StripeSdkImpl {
     }
 
     @objc(presentLinkController:rejecter:)
-    func presentLinkController(
+    public func presentLinkController(
         _ resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
