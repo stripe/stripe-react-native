@@ -64,10 +64,6 @@ extension StripeSdkImpl {
             resolve(Errors.createError(ErrorType.Failed, "LinkController has not been initialized. Call initLinkController first."))
             return
         }
-        guard let email = linkControllerEmail else {
-            resolve(Errors.createError(ErrorType.Failed, "Email is required. Provide email in the initLinkController configuration."))
-            return
-        }
 
         Task { @MainActor in
             let presentingViewController = findViewControllerPresenter(
@@ -75,7 +71,7 @@ extension StripeSdkImpl {
             )
 
             controller.present(
-                email: email,
+                email: linkControllerEmail,
                 phoneNumber: linkControllerPhone,
                 from: presentingViewController
             ) { result in

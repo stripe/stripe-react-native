@@ -14,7 +14,7 @@ export enum LinkPaymentMethodType {
  */
 export type Configuration = {
   /** The customer's email address used for Link consumer lookup. */
-  email: string;
+  email?: string;
   /** Your customer-facing business name, displayed in Link UI. */
   merchantDisplayName: string;
   /** Payment method types to support in the Link sheet. If omitted, all available types are shown. */

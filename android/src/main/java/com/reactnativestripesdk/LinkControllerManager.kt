@@ -37,9 +37,8 @@ internal class LinkControllerManager(
     fun configure(params: ReadableMap, promise: Promise) {
         val email = params.getString("email")
         val merchantDisplayName = params.getString("merchantDisplayName")
-
-        if (email == null || merchantDisplayName == null) {
-            promise.resolve(createError(ErrorType.Failed.toString(), "email and merchantDisplayName are required."))
+        if (merchantDisplayName == null) {
+            promise.resolve(createError(ErrorType.Failed.toString(), "merchantDisplayName is required."))
             return
         }
 
@@ -56,11 +55,11 @@ internal class LinkControllerManager(
         val supportedTypes = parseSupportedPaymentMethodTypes(params)
 
         val config = LinkController.Configuration(
-            publishableKey = publishableKey,
             merchantDisplayName = merchantDisplayName,
-            email = email,
+            publishableKey = publishableKey,
             stripeAccountId = stripeAccountId
         )
+            .also { if (email != null) it.email(email) }
             .phoneNumber(phoneNumber)
             .supportedPaymentMethodTypes(supportedTypes)
             .allowLogout(allowLogout)
