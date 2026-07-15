@@ -217,6 +217,11 @@ type AppAttestationError = OnrampApiError & {
     onrampErrorType: 'AppAttestationError';
 };
 
+// @public
+type AppAttestationUnavailableError = OnrampSdkError & {
+    onrampErrorType: 'AppAttestationUnavailableError';
+};
+
 // Warning: (ae-forgotten-export) The symbol "RecursivePartial" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -1443,9 +1448,11 @@ enum CryptoNetwork {
 }
 
 // @public
-type CryptoOnrampError = (StripeError<OnrampError> & {
-    onrampErrorType?: undefined;
-}) | AppAttestationError | UncategorizedApiError;
+type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
+    onrampErrorType?: never;
+    developerMessage?: never;
+    userMessage?: never;
+}) | AppAttestationError | UncategorizedApiError | AppAttestationUnavailableError;
 
 // @public
 type CryptoPaymentToken = {
@@ -2612,7 +2619,7 @@ type OnFormCompleteEvent = NativeSyntheticEvent<{
 
 declare namespace Onramp {
     export {
-        OnrampError,
+        OnrampErrorStatus,
         Configuration,
         GooglePayConfig,
         GooglePayBillingAddressConfig,
@@ -2632,10 +2639,13 @@ declare namespace Onramp {
         ComplianceIdentifierRequirement,
         ComplianceIdentifierAlternativeGroup,
         ComplianceIdentifierRequirements,
+        OnrampApiErrorType,
         OnrampErrorType,
+        OnrampSdkError,
         OnrampApiError,
         AppAttestationError,
         UncategorizedApiError,
+        AppAttestationUnavailableError,
         CryptoOnrampError,
         RetrieveMissingIdentifiersResult,
         SubmitIdentifiersResult,
@@ -2654,22 +2664,22 @@ declare namespace Onramp {
 }
 export { Onramp }
 
-// @public (undocumented)
-type OnrampApiError = StripeError<OnrampError> & {
-    onrampErrorType: string;
-    developerMessage: string;
-    userMessage: string;
+// @public
+type OnrampApiError = OnrampSdkError & {
+    onrampErrorType: OnrampApiErrorType;
     reason?: string;
     requestId?: string;
     apiErrorCode?: string;
     apiErrorType?: string;
     apiErrorMessage?: string;
     apiUserMessage?: string;
-    docUrl?: string;
 };
 
 // @public
-enum OnrampError {
+type OnrampApiErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+
+// @public
+enum OnrampErrorStatus {
     // (undocumented)
     Canceled = "Canceled",
     // (undocumented)
@@ -2679,7 +2689,7 @@ enum OnrampError {
 }
 
 // @public
-type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+type OnrampErrorType = OnrampApiErrorType | 'AppAttestationUnavailableError';
 
 // @public
 type OnrampGooglePayParams = {
@@ -2693,6 +2703,14 @@ type OnrampGooglePayParams = {
 type OnrampPlatformPayParams = {
     googlePay?: OnrampGooglePayParams;
     applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
+};
+
+// @public
+type OnrampSdkError = StripeError<OnrampErrorStatus> & {
+    onrampErrorType: OnrampErrorType;
+    developerMessage: string;
+    userMessage: string;
+    docUrl?: string;
 };
 
 // @public (undocumented)

@@ -17,9 +17,9 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class OnrampErrorsTest {
   @Test
-  fun createOnrampFailedError_withAppAttestationException_preservesOnrampDiagnostics() {
+  fun createOnrampFailedError_withAppAttestationException_preservesApiFields() {
     val error =
-      createOnrampException(
+      createApiOnrampException(
         className = "com.stripe.android.crypto.onramp.exception.AppAttestationException",
         reason = "android_package_name_mismatch",
         operation = "configure",
@@ -67,9 +67,9 @@ class OnrampErrorsTest {
   }
 
   @Test
-  fun createOnrampFailedError_withUncategorizedApiError_preservesStripeCodes() {
+  fun createOnrampFailedError_withUncategorizedApiError_preservesApiFields() {
     val error =
-      createOnrampException(
+      createApiOnrampException(
         className = "com.stripe.android.crypto.onramp.exception.UncategorizedException",
         reason = "consumer_session_expired",
         operation = "authorize",
@@ -93,11 +93,50 @@ class OnrampErrorsTest {
     assertEquals("authentication_error", details.getString("type"))
     assertEquals("Session expired. Please sign in again.", details.getString("message"))
     assertEquals("Session expired. Please sign in again.", details.getString("userMessage"))
+    assertEquals("consumer_session_expired", details.getString("reason"))
     assertEquals("req_auth", details.getString("requestId"))
     assertTrue(details.getString("developerMessage")!!.contains("Code: consumer_session_expired"))
   }
 
-  private fun createOnrampException(
+  @Test
+  fun createOnrampFailedError_withAppAttestationUnavailableException_preservesSdkErrorFields() {
+    val underlyingError = IllegalStateException("Native Link is not available")
+    val error =
+      createAppAttestationUnavailableException(
+        underlyingError = underlyingError,
+        operation = "configure",
+        appPackageName = "com.example.app",
+        mode = "test",
+        sdkVersions =
+          listOf(
+            SDKVersion(name = "stripe-android", version = "23.10.0"),
+            SDKVersion(name = "stripe-react-native", version = "0.67.0"),
+          ),
+        userMessage = "This app couldn't be verified. Contact the app developer for help.",
+      )
+
+    val details = createOnrampFailedError(error).getMap("error")
+
+    assertNotNull(details)
+    assertEquals("Failed", details!!.getString("code"))
+    assertEquals("AppAttestationUnavailableError", details.getString("onrampErrorType"))
+    assertEquals(
+      "This app couldn't be verified. Contact the app developer for help.",
+      details.getString("message"),
+    )
+    assertEquals(
+      "This app couldn't be verified. Contact the app developer for help.",
+      details.getString("localizedMessage"),
+    )
+    assertEquals(
+      "This app couldn't be verified. Contact the app developer for help.",
+      details.getString("userMessage"),
+    )
+    assertEquals("app_attestation_unavailable", details.getString("stripeErrorCode"))
+    assertTrue(details.getString("developerMessage")!!.contains("operation: configure"))
+  }
+
+  private fun createApiOnrampException(
     className: String,
     reason: String,
     operation: String,
@@ -120,7 +159,7 @@ class OnrampErrorsTest {
         docUrl = docUrl,
       )
     val cause = APIException(stripeError = stripeError, requestId = requestId)
-    val context =
+    val apiErrorContext =
       APIErrorContext(
         reason = reason,
         apiErrorCode = apiErrorCode,
@@ -130,9 +169,69 @@ class OnrampErrorsTest {
         docUrl = docUrl,
         underlyingError = cause,
       )
+    val diagnosticContext =
+      createDiagnosticContext(sdkVersions, operation, appPackageName, mode)
+
+    val constructor =
+      Class
+        .forName(className)
+        .getDeclaredConstructor(
+          APIErrorContext::class.java,
+          diagnosticContext.javaClass,
+          String::class.java,
+        ).apply {
+          isAccessible = true
+        }
+
+    return constructor.newInstance(
+      apiErrorContext,
+      diagnosticContext,
+      userMessage,
+    ) as Exception
+  }
+
+  private fun createAppAttestationUnavailableException(
+    underlyingError: Throwable,
+    operation: String,
+    appPackageName: String,
+    mode: String,
+    sdkVersions: List<SDKVersion>,
+    userMessage: String,
+  ): Exception {
+    val diagnosticContext =
+      createDiagnosticContext(sdkVersions, operation, appPackageName, mode)
+    val exceptionClass =
+      Class.forName(
+        "com.stripe.android.crypto.onramp.exception.AppAttestationUnavailableException",
+      )
+
+    val constructor =
+      exceptionClass
+        .getDeclaredConstructor(
+          Throwable::class.java,
+          diagnosticContext.javaClass,
+          String::class.java,
+        )
+        .apply {
+          isAccessible = true
+        }
+
+    return constructor.newInstance(
+      underlyingError,
+      diagnosticContext,
+      userMessage,
+    ) as Exception
+  }
+
+  private fun createDiagnosticContext(
+    sdkVersions: List<SDKVersion>,
+    operation: String,
+    appPackageName: String,
+    mode: String,
+  ): Any {
     val diagnosticContextClass =
       Class.forName("com.stripe.android.crypto.onramp.exception.DiagnosticContext")
-    val diagnosticContext =
+    val constructor =
       diagnosticContextClass
         .getDeclaredConstructor(
           List::class.java,
@@ -141,30 +240,8 @@ class OnrampErrorsTest {
           String::class.java,
         ).apply {
           isAccessible = true
-        }.newInstance(
-          sdkVersions,
-          operation,
-          appPackageName,
-          mode,
-        )
-
-    // The exception classes in the `com.stripe.android.crypto.onramp.exception` package
-    // don't have public constructors, so we use reflection to create instances for testing.
-    val constructor =
-      Class
-        .forName(className)
-        .getDeclaredConstructor(
-          APIErrorContext::class.java,
-          diagnosticContextClass,
-          String::class.java,
-        ).apply {
-          isAccessible = true
         }
 
-    return constructor.newInstance(
-      context,
-      diagnosticContext,
-      userMessage,
-    ) as Exception
+    return constructor.newInstance(sdkVersions, operation, appPackageName, mode)
   }
 }

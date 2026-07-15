@@ -41,7 +41,10 @@ enum OnrampErrors {
                 message: onrampError.userMessage,
                 localizedMessage: onrampError.localizedDescription,
                 stripeErrorCode: onrampError.code,
-                additionalFields: commonOnrampFields(error: onrampError)
+                additionalFields: commonOnrampFields(
+                    error: onrampError,
+                    onrampErrorType: onrampErrorType(for: onrampError)
+                )
             )
         }
 
@@ -66,7 +69,6 @@ enum OnrampErrors {
                 "apiErrorType": error.type,
                 "apiErrorMessage": error.apiMessage,
                 "apiUserMessage": error.apiUserMessage,
-                "docUrl": error.docURL?.absoluteString,
             ]) { _, new in new }
         )
     }
@@ -75,20 +77,33 @@ enum OnrampErrors {
         error: StripeCryptoOnrampError,
         onrampErrorType: String? = nil
     ) -> [String: Any?] {
-        return [
-            "onrampErrorType": onrampErrorType,
+        var fields: [String: Any?] = [
             "developerMessage": error.developerMessage,
             "userMessage": error.userMessage,
+            "docUrl": error.docURL?.absoluteString,
         ]
+
+        if let onrampErrorType {
+            fields["onrampErrorType"] = onrampErrorType
+        }
+
+        return fields
     }
 
     private static func onrampErrorType(for error: StripeCryptoOnrampAPIError) -> String {
-        switch error {
-        case is AppAttestationError:
+        if error.code == "link_failed_to_attest_request" {
             return "AppAttestationError"
-        default:
-            return "UncategorizedApiError"
         }
+
+        return "UncategorizedApiError"
+    }
+
+    private static func onrampErrorType(for error: StripeCryptoOnrampError) -> String? {
+        if error.code == "app_attestation_unavailable" {
+            return "AppAttestationUnavailableError"
+        }
+
+        return nil
     }
 
     private static func createOnrampErrorMap(
