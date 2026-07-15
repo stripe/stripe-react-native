@@ -8,6 +8,7 @@
 
 **Features**
 * [Added] Added Crypto Onramp wallet ownership verification APIs, `getWalletOwnershipChallenge` and `submitWalletOwnershipSignature`, for EU Travel Rule compliance.
+* [Added] Added Arbitrum network support to Crypto Onramp.
 
 ## 0.68.0 - 2026-06-29
 **Changes**
