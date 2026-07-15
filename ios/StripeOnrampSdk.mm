@@ -58,6 +58,22 @@ RCT_EXPORT_METHOD(registerWalletAddress:(nonnull NSString *)address
   [StripeSdkImpl.shared registerWalletAddress:address network:network resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(getWalletOwnershipChallenge:(nonnull NSString *)walletAddress
+                                      network:(nonnull NSString *)network
+                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                       reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared getWalletOwnershipChallenge:walletAddress network:network resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(submitWalletOwnershipSignature:(nonnull NSString *)challengeId
+                                         signature:(nonnull NSString *)signature
+                                           resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                            reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared submitWalletOwnershipSignature:challengeId signature:signature resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(attachKycInfo:(nonnull NSDictionary *)info
                         resolve:(nonnull RCTPromiseResolveBlock)resolve
                          reject:(nonnull RCTPromiseRejectBlock)reject)

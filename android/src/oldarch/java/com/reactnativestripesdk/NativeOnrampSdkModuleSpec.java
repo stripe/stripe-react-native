@@ -57,6 +57,14 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void getWalletOwnershipChallenge(String walletAddress, String network, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void submitWalletOwnershipSignature(String challengeId, String signature, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void attachKycInfo(ReadableMap kycInfo, Promise promise);
 
   @ReactMethod

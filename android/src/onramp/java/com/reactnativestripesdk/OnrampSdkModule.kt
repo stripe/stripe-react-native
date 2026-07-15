@@ -39,6 +39,7 @@ import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
 import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentMethodResult
 import com.stripe.android.crypto.onramp.model.OnrampConfigurationResult
 import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
+import com.stripe.android.crypto.onramp.model.OnrampGetWalletOwnershipChallengeResult
 import com.stripe.android.crypto.onramp.model.OnrampUserAttestationResult
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
 import com.stripe.android.crypto.onramp.model.OnrampLogOutResult
@@ -46,6 +47,7 @@ import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
 import com.stripe.android.crypto.onramp.model.OnrampRetrieveMissingIdentifiersResult
 import com.stripe.android.crypto.onramp.model.OnrampSubmitIdentifiersResult
+import com.stripe.android.crypto.onramp.model.OnrampSubmitWalletOwnershipSignatureResult
 import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
@@ -291,6 +293,66 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampRegisterWalletAddressResult.Failed -> {
+          promise.resolve(createOnrampFailedError(result.error))
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun getWalletOwnershipChallenge(
+    walletAddress: String,
+    network: String,
+    promise: Promise,
+  ) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+    CoroutineScope(Dispatchers.IO).launch {
+      val cryptoNetwork = enumValues<CryptoNetwork>().firstOrNull { it.value == network }
+      if (cryptoNetwork == null) {
+        promise.resolve(createError(ErrorType.Unknown.toString(), "Invalid network: $network"))
+        return@launch
+      }
+
+      when (val result = coordinator.getWalletOwnershipChallenge(walletAddress, cryptoNetwork)) {
+        is OnrampGetWalletOwnershipChallengeResult.Completed -> {
+          promise.resolve(
+            WritableNativeMap().apply {
+              putMap("challenge", mapFromWalletOwnershipChallenge(result.challenge))
+            },
+          )
+        }
+        is OnrampGetWalletOwnershipChallengeResult.Failed -> {
+          promise.resolve(createOnrampFailedError(result.error))
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun submitWalletOwnershipSignature(
+    challengeId: String,
+    signature: String,
+    promise: Promise,
+  ) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+    CoroutineScope(Dispatchers.IO).launch {
+      when (val result = coordinator.submitWalletOwnershipSignature(challengeId, signature)) {
+        is OnrampSubmitWalletOwnershipSignatureResult.Completed -> {
+          promise.resolve(
+            WritableNativeMap().apply {
+              putMap("consumerWallet", mapFromCryptoConsumerWallet(result.consumerWallet))
+            },
+          )
+        }
+        is OnrampSubmitWalletOwnershipSignatureResult.Failed -> {
           promise.resolve(createOnrampFailedError(result.error))
         }
       }

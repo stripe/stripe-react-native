@@ -6,6 +6,9 @@
 * Updated Stripe Android SDK from 23.11.0 to 23.12.0.
 * [Changed] Connect embedded components — `ConnectAccountOnboarding`, `ConnectPayments`, and `ConnectPayouts` — are now generally available. No API changes; existing integrations continue to work without modification.
 
+**Features**
+* [Added] Added Crypto Onramp wallet ownership verification APIs, `getWalletOwnershipChallenge` and `submitWalletOwnershipSignature`, for EU Travel Rule compliance.
+
 ## 0.68.0 - 2026-06-29
 **Changes**
 * Updated Stripe iOS SDK from 25.17.0 to 26.0.0.
