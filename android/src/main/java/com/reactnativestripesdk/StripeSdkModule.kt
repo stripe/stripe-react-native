@@ -2010,13 +2010,12 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    if (linkControllerManager == null) {
-      linkControllerManager = LinkControllerManager(
-        context = reactApplicationContext,
-        publishableKey = publishableKey,
-        stripeAccountId = stripeAccountId,
-      )
-    }
+    linkControllerManager?.destroy()
+    linkControllerManager = LinkControllerManager(
+      context = reactApplicationContext,
+      publishableKey = publishableKey,
+      stripeAccountId = stripeAccountId,
+    )
     linkControllerManager?.configure(params, promise)
   }
 
