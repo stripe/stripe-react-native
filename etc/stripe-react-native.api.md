@@ -1085,6 +1085,16 @@ type Configuration = {
     googlePay?: GooglePayConfig;
 };
 
+// @public
+type Configuration_2 = {
+    email?: string;
+    merchantDisplayName: string;
+    supportedPaymentMethodTypes?: LinkPaymentMethodType[];
+    phoneNumber?: string;
+    allowLogout?: boolean;
+    setupIntentClientSecret?: string;
+};
+
 // @public (undocumented)
 interface ConfigurationParams extends Props_2 {
     // (undocumented)
@@ -2120,6 +2130,9 @@ export interface InitialiseParams extends InitStripeParams {
     appInfo: AppInfo;
 }
 
+// @public
+export const initLinkController: (params: LinkController.Configuration) => Promise<LinkController.InitResult>;
+
 // @public (undocumented)
 export const initPaymentSheet: (params: PaymentSheet.SetupParams) => Promise<InitPaymentSheetResult>;
 
@@ -2130,6 +2143,13 @@ export type InitPaymentSheetResult = {
 } | {
     paymentOption?: undefined;
     error: StripeError<PaymentSheetError>;
+};
+
+// @public
+type InitResult = {
+    error?: undefined;
+} | {
+    error: StripeError<LinkControllerError>;
 };
 
 // @public (undocumented)
@@ -2330,6 +2350,27 @@ type LinkColors = {
     borderSelected: string;
 };
 
+declare namespace LinkController {
+    export {
+        LinkPaymentMethodType,
+        Configuration_2 as Configuration,
+        PaymentMethodPreview_2 as PaymentMethodPreview,
+        InitResult,
+        PresentResult
+    }
+}
+export { LinkController }
+
+// @public (undocumented)
+export enum LinkControllerError {
+    // (undocumented)
+    Canceled = "Canceled",
+    // (undocumented)
+    Failed = "Failed",
+    // (undocumented)
+    Unknown = "Unknown"
+}
+
 // @public
 export enum LinkDisplay {
     AUTOMATIC = "automatic",
@@ -2340,6 +2381,14 @@ export enum LinkDisplay {
 export type LinkParams = {
     display?: LinkDisplay;
 };
+
+// @public
+enum LinkPaymentMethodType {
+    // (undocumented)
+    BankAccount = "bankAccount",
+    // (undocumented)
+    Card = "card"
+}
 
 // @public
 type LinkPrimaryButton = {
@@ -2886,6 +2935,13 @@ export interface PaymentMethodPreview {
     type: Type;
 }
 
+// @public
+type PaymentMethodPreview_2 = {
+    icon: string;
+    label: string;
+    sublabel?: string;
+};
+
 // @public (undocumented)
 type PaymentMethodResult = {
     paymentMethod: Result_3;
@@ -3139,6 +3195,9 @@ export enum PlatformPayError {
     Unknown = "Unknown"
 }
 
+// @public
+export const presentLinkController: () => Promise<LinkController.PresentResult>;
+
 // @public (undocumented)
 export type PresentOptions = {
     timeout?: number;
@@ -3152,6 +3211,17 @@ export type PresentPaymentSheetResult = {
     paymentOption?: PaymentSheet.PaymentOption | undefined;
     didCancel?: boolean;
     error?: StripeError<PaymentSheetError> | undefined;
+};
+
+// @public
+type PresentResult = {
+    paymentMethod: Result_3;
+    paymentMethodPreview?: PaymentMethodPreview_2;
+    error?: undefined;
+} | {
+    paymentMethod?: undefined;
+    paymentMethodPreview?: undefined;
+    error: StripeError<LinkControllerError>;
 };
 
 // @public (undocumented)
@@ -4000,6 +4070,13 @@ export function useFinancialConnectionsSheet(): {
     collectBankAccountToken: (clientSecret: string, params?: CollectBankAccountTokenParams) => Promise<TokenResult>;
     collectFinancialConnectionsAccounts: (clientSecret: string, params?: CollectFinancialConnectionsAccountsParams) => Promise<SessionResult>;
     loading: boolean;
+};
+
+// @public
+export function useLinkController(): {
+    loading: boolean;
+    initLinkController: (params: LinkController.Configuration) => Promise<LinkController.InitResult>;
+    presentLinkController: () => Promise<LinkController.PresentResult>;
 };
 
 // @public

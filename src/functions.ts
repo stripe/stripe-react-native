@@ -14,6 +14,7 @@ import type {
   HandleNextActionResult,
   HandleNextActionForSetupResult,
   InitPaymentSheetResult,
+  LinkController,
   PaymentMethod,
   PaymentSheet,
   PresentPaymentSheetResult,
@@ -959,3 +960,50 @@ export const setFinancialConnectionsForceNativeFlow = async (
     // no-op
   }
 };
+
+/**
+ * Initializes the LinkController with the provided configuration.
+ * Must be called before `presentLinkController`.
+ *
+ * @PrivatePreview This API is in private preview and may change without notice.
+ * It will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export const initLinkController = async (
+  params: LinkController.Configuration
+): Promise<LinkController.InitResult> => {
+  try {
+    const { error } = await NativeStripeSdk.initLinkController(params);
+    if (error) {
+      return { error };
+    }
+    return {};
+  } catch (error: any) {
+    return { error };
+  }
+};
+
+/**
+ * Presents the Link flow. Must be called after `initLinkController`.
+ *
+ * Handles the full end-to-end flow: consumer lookup, authentication or signup,
+ * wallet display, and payment method creation.
+ *
+ * @PrivatePreview This API is in private preview and may change without notice.
+ * It will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export const presentLinkController =
+  async (): Promise<LinkController.PresentResult> => {
+    try {
+      const { paymentMethod, paymentMethodPreview, error } =
+        await NativeStripeSdk.presentLinkController();
+      if (error) {
+        return { error };
+      }
+      return {
+        paymentMethod: paymentMethod!,
+        paymentMethodPreview,
+      };
+    } catch (error: any) {
+      return { error };
+    }
+  };
