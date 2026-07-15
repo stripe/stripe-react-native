@@ -1,10 +1,13 @@
 # CHANGELOG
 
-## Unreleased
+## 0.69.0 - 2026-07-15
 **Changes**
 * Updated Stripe iOS SDK from 26.0.0 to 26.3.0.
 * Updated Stripe Android SDK from 23.11.0 to 23.12.0.
 * [Changed] Connect embedded components — `ConnectAccountOnboarding`, `ConnectPayments`, and `ConnectPayouts` — are now generally available. No API changes; existing integrations continue to work without modification.
+
+**Features**
+* [Added] Added standalone Link wallet APIs in private preview via `useLinkController`.
 
 ## 0.68.0 - 2026-06-29
 **Changes**
