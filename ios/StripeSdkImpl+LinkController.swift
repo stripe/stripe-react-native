@@ -71,7 +71,7 @@ extension StripeSdkImpl {
             )
 
             controller.present(
-                email: linkControllerEmail,
+                email: linkControllerEmail ?? "",
                 phoneNumber: linkControllerPhone,
                 from: presentingViewController
             ) { result in
