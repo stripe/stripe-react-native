@@ -202,6 +202,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Link Controller (Private Preview)"
+              onPress={() => {
+                navigation.navigate('LinkControllerScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Customer Sheet"
               onPress={() => {
                 navigation.navigate('CustomerSheetScreen');
