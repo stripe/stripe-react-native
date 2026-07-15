@@ -589,9 +589,9 @@ class OnrampMappersTests: XCTestCase {
         let data = Data(
             """
             {
-              "challenge_id": "woch_123",
+              "challenge_id": "cwoc_123",
               "wallet_address": "0x1234",
-              "network": "arbitrum",
+              "network": "solana",
               "message": "Sign this exact message",
               "expires_at": "2026-07-15T16:00:00Z"
             }
@@ -601,9 +601,9 @@ class OnrampMappersTests: XCTestCase {
 
         let result = Mappers.mapFromWalletOwnershipChallenge(challenge)
 
-        XCTAssertEqual(result["challengeId"] as? String, "woch_123")
+        XCTAssertEqual(result["challengeId"] as? String, "cwoc_123")
         XCTAssertEqual(result["walletAddress"] as? String, "0x1234")
-        XCTAssertEqual(result["network"] as? String, "arbitrum")
+        XCTAssertEqual(result["network"] as? String, "solana")
         XCTAssertEqual(result["message"] as? String, "Sign this exact message")
         XCTAssertEqual(result["expiresAt"] as? String, "2026-07-15T16:00:00Z")
     }

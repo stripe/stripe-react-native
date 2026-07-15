@@ -603,17 +603,17 @@ class OnrampMappersTest {
     val result =
       mapFromWalletOwnershipChallenge(
         WalletOwnershipChallenge(
-          challengeId = "woch_123",
+          challengeId = "cwoc_123",
           walletAddress = "0x1234",
-          network = CryptoNetwork.Arbitrum,
+          network = CryptoNetwork.Solana,
           message = "Sign this exact message",
           expiresAt = "2026-07-15T16:00:00Z",
         ),
       )
 
-    assertEquals("woch_123", result.getString("challengeId"))
+    assertEquals("cwoc_123", result.getString("challengeId"))
     assertEquals("0x1234", result.getString("walletAddress"))
-    assertEquals("arbitrum", result.getString("network"))
+    assertEquals("solana", result.getString("network"))
     assertEquals("Sign this exact message", result.getString("message"))
     assertEquals("2026-07-15T16:00:00Z", result.getString("expiresAt"))
   }
