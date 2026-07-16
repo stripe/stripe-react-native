@@ -206,20 +206,48 @@ internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
 }
 
 internal fun mapFromWalletOwnershipChallenge(challenge: WalletOwnershipChallenge) =
+  mapFromWalletOwnershipChallenge(
+    challengeId = challenge.challengeId,
+    walletAddress = challenge.walletAddress,
+    network = challenge.network,
+    message = challenge.message,
+    expiresAt = challenge.expiresAt,
+  )
+
+internal fun mapFromWalletOwnershipChallenge(
+  challengeId: String,
+  walletAddress: String,
+  network: CryptoNetwork,
+  message: String,
+  expiresAt: String,
+) =
   Arguments.createMap().apply {
-    putString("challengeId", challenge.challengeId)
-    putString("walletAddress", challenge.walletAddress)
-    putString("network", challenge.network.value)
-    putString("message", challenge.message)
-    putString("expiresAt", challenge.expiresAt)
+    putString("challengeId", challengeId)
+    putString("walletAddress", walletAddress)
+    putString("network", network.value)
+    putString("message", message)
+    putString("expiresAt", expiresAt)
   }
 
 internal fun mapFromCryptoConsumerWallet(wallet: CryptoConsumerWallet) =
+  mapFromCryptoConsumerWallet(
+    id = wallet.id,
+    network = wallet.network,
+    walletAddress = wallet.walletAddress,
+    verifiedOwnership = wallet.verifiedOwnership,
+  )
+
+internal fun mapFromCryptoConsumerWallet(
+  id: String,
+  network: CryptoNetwork,
+  walletAddress: String,
+  verifiedOwnership: Boolean,
+) =
   Arguments.createMap().apply {
-    putString("id", wallet.id)
-    putString("walletAddress", wallet.walletAddress)
-    putString("network", wallet.network.value)
-    putBoolean("verifiedOwnership", wallet.verifiedOwnership)
+    putString("id", id)
+    putString("walletAddress", walletAddress)
+    putString("network", network.value)
+    putBoolean("verifiedOwnership", verifiedOwnership)
   }
 
 internal fun mapToComplianceIdentifiers(identifiers: ReadableArray): List<ComplianceIdentifier> {

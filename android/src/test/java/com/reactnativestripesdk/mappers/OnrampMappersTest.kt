@@ -18,11 +18,9 @@ import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
-import com.stripe.android.crypto.onramp.model.CryptoConsumerWallet
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
-import com.stripe.android.crypto.onramp.model.WalletOwnershipChallenge
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance.Style
@@ -602,13 +600,11 @@ class OnrampMappersTest {
   fun mapFromWalletOwnershipChallenge_MapsAllFields() {
     val result =
       mapFromWalletOwnershipChallenge(
-        WalletOwnershipChallenge(
-          challengeId = "cwoc_123",
-          walletAddress = "0x1234",
-          network = CryptoNetwork.Solana,
-          message = "Sign this exact message",
-          expiresAt = "2026-07-15T16:00:00Z",
-        ),
+        challengeId = "cwoc_123",
+        walletAddress = "0x1234",
+        network = CryptoNetwork.Solana,
+        message = "Sign this exact message",
+        expiresAt = "2026-07-15T16:00:00Z",
       )
 
     assertEquals("cwoc_123", result.getString("challengeId"))
@@ -622,12 +618,10 @@ class OnrampMappersTest {
   fun mapFromCryptoConsumerWallet_MapsAllFields() {
     val result =
       mapFromCryptoConsumerWallet(
-        CryptoConsumerWallet(
-          id = "ccw_123",
-          network = CryptoNetwork.Ethereum,
-          walletAddress = "0xabcd",
-          verifiedOwnership = true,
-        ),
+        id = "ccw_123",
+        network = CryptoNetwork.Ethereum,
+        walletAddress = "0xabcd",
+        verifiedOwnership = true,
       )
 
     assertEquals("ccw_123", result.getString("id"))
