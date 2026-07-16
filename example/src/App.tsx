@@ -52,6 +52,7 @@ import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
 import PayPalScreen from './screens/PayPalScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
+import PayByBankScreen from './screens/PayByBankScreen';
 import SepaPaymentScreen from './screens/SepaPaymentScreen';
 import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
@@ -113,6 +114,7 @@ export type RootStackParamList = {
   CustomerSheetScreen: undefined;
   CustomerSheetScreenCustomerSession: undefined;
   RevolutPayScreen: undefined;
+  PayByBankScreen: undefined;
   PaymentSheetWithPmoSfuScreen: undefined;
   ConnectAccountOnboardingScreen: undefined;
   ConnectPaymentsListScreen: undefined;
@@ -310,6 +312,7 @@ export default function App() {
             component={CustomerSheetScreenCustomerSession}
           />
           <Stack.Screen name="RevolutPayScreen" component={RevolutPayScreen} />
+          <Stack.Screen name="PayByBankScreen" component={PayByBankScreen} />
           <Stack.Screen
             name="PaymentSheetWithPmoSfuScreen"
             component={PaymentSheetWithPmoSfuScreen}

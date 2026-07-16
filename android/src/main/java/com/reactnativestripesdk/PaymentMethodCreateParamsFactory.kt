@@ -56,6 +56,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Affirm -> createAffirmParams()
         PaymentMethod.Type.CashAppPay -> createCashAppParams()
         PaymentMethod.Type.RevolutPay -> createRevolutPayParams()
+        PaymentMethod.Type.PayByBank -> createPayByBankParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -258,6 +259,12 @@ class PaymentMethodCreateParamsFactory(
       metadata = metadataParams,
     )
 
+  private fun createPayByBankParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createPayByBank(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams,
+    )
+
   @Throws(PaymentMethodCreateParamsException::class)
   fun createParams(
     clientSecret: String,
@@ -289,6 +296,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.PayPal,
         PaymentMethod.Type.CashAppPay,
         PaymentMethod.Type.RevolutPay,
+        PaymentMethod.Type.PayByBank,
         -> {
           val params = createPaymentMethodParams(paymentMethodType)
 
