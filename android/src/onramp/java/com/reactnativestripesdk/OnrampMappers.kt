@@ -11,6 +11,7 @@ import com.facebook.react.bridge.WritableArray
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.CryptoConsumerWallet
+import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
