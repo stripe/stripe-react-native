@@ -7,7 +7,6 @@ import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.ErrorType
 import com.stripe.android.core.exception.StripeException
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
-import com.stripe.android.crypto.onramp.exception.AppAttestationException
 import com.stripe.android.crypto.onramp.exception.CryptoOnrampApiException
 import com.stripe.android.crypto.onramp.exception.StripeCryptoOnrampError
 
@@ -40,16 +39,13 @@ private fun createOnrampError(
     type = apiErrorContext.apiErrorType ?: stripeError?.type,
     stripeErrorCode = apiException.code,
   ) {
-    putString("onrampErrorType", onrampErrorType)
-    putString("developerMessage", apiException.developerMessage)
-    putString("userMessage", apiException.userMessage)
+    putCommonOnrampFields(apiException, onrampErrorType)
     putString("reason", apiErrorContext.reason)
     putString("requestId", apiErrorContext.requestId)
     putString("apiErrorCode", apiErrorContext.apiErrorCode)
     putString("apiErrorType", apiErrorContext.apiErrorType)
     putString("apiErrorMessage", apiErrorContext.apiErrorMessage)
     putString("apiUserMessage", apiErrorContext.apiUserMessage)
-    putString("docUrl", apiErrorContext.docUrl)
   }
 }
 
@@ -67,9 +63,20 @@ private fun createNonApiOnrampError(
     localizedMessage = error.localizedMessage,
     stripeErrorCode = onrampError.code,
   ) {
-    putString("developerMessage", onrampError.developerMessage)
-    putString("userMessage", onrampError.userMessage)
+    putCommonOnrampFields(onrampError, onrampError.toOnrampErrorType())
   }
+}
+
+private fun WritableMap.putCommonOnrampFields(
+  error: StripeCryptoOnrampError,
+  onrampErrorType: String? = null,
+) {
+  onrampErrorType?.let {
+    putString("onrampErrorType", it)
+  }
+  putString("developerMessage", error.developerMessage)
+  putString("userMessage", error.userMessage)
+  putString("docUrl", error.docUrl)
 }
 
 private fun createOnrampMessageError(
@@ -79,10 +86,17 @@ private fun createOnrampMessageError(
   createOnrampErrorMap(code = code, message = message)
 
 private fun CryptoOnrampApiException.toOnrampErrorType(): String =
-  if (this is AppAttestationException) {
+  if (code == "link_failed_to_attest_request") {
     "AppAttestationError"
   } else {
     "UncategorizedApiError"
+  }
+
+private fun StripeCryptoOnrampError.toOnrampErrorType(): String? =
+  if (code == "app_attestation_unavailable") {
+    "AppAttestationUnavailableError"
+  } else {
+    null
   }
 
 private fun createGenericError(

@@ -217,6 +217,11 @@ type AppAttestationError = OnrampApiError & {
     onrampErrorType: 'AppAttestationError';
 };
 
+// @public
+type AppAttestationUnavailableError = OnrampSdkError & {
+    onrampErrorType: 'AppAttestationUnavailableError';
+};
+
 // Warning: (ae-forgotten-export) The symbol "RecursivePartial" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -1085,6 +1090,16 @@ type Configuration = {
     googlePay?: GooglePayConfig;
 };
 
+// @public
+type Configuration_2 = {
+    email?: string;
+    merchantDisplayName: string;
+    supportedPaymentMethodTypes?: LinkPaymentMethodType[];
+    phoneNumber?: string;
+    allowLogout?: boolean;
+    setupIntentClientSecret?: string;
+};
+
 // @public (undocumented)
 interface ConfigurationParams extends Props_2 {
     // (undocumented)
@@ -1443,9 +1458,11 @@ enum CryptoNetwork {
 }
 
 // @public
-type CryptoOnrampError = (StripeError<OnrampError> & {
-    onrampErrorType?: undefined;
-}) | AppAttestationError | UncategorizedApiError;
+type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
+    onrampErrorType?: never;
+    developerMessage?: never;
+    userMessage?: never;
+}) | AppAttestationError | UncategorizedApiError | AppAttestationUnavailableError;
 
 // @public
 type CryptoPaymentToken = {
@@ -2139,6 +2156,9 @@ export interface InitialiseParams extends InitStripeParams {
     appInfo: AppInfo;
 }
 
+// @public
+export const initLinkController: (params: LinkController.Configuration) => Promise<LinkController.InitResult>;
+
 // @public (undocumented)
 export const initPaymentSheet: (params: PaymentSheet.SetupParams) => Promise<InitPaymentSheetResult>;
 
@@ -2149,6 +2169,13 @@ export type InitPaymentSheetResult = {
 } | {
     paymentOption?: undefined;
     error: StripeError<PaymentSheetError>;
+};
+
+// @public
+type InitResult = {
+    error?: undefined;
+} | {
+    error: StripeError<LinkControllerError>;
 };
 
 // @public (undocumented)
@@ -2349,6 +2376,27 @@ type LinkColors = {
     borderSelected: string;
 };
 
+declare namespace LinkController {
+    export {
+        LinkPaymentMethodType,
+        Configuration_2 as Configuration,
+        PaymentMethodPreview_2 as PaymentMethodPreview,
+        InitResult,
+        PresentResult
+    }
+}
+export { LinkController }
+
+// @public (undocumented)
+export enum LinkControllerError {
+    // (undocumented)
+    Canceled = "Canceled",
+    // (undocumented)
+    Failed = "Failed",
+    // (undocumented)
+    Unknown = "Unknown"
+}
+
 // @public
 export enum LinkDisplay {
     AUTOMATIC = "automatic",
@@ -2359,6 +2407,14 @@ export enum LinkDisplay {
 export type LinkParams = {
     display?: LinkDisplay;
 };
+
+// @public
+enum LinkPaymentMethodType {
+    // (undocumented)
+    BankAccount = "bankAccount",
+    // (undocumented)
+    Card = "card"
+}
 
 // @public
 type LinkPrimaryButton = {
@@ -2582,7 +2638,7 @@ type OnFormCompleteEvent = NativeSyntheticEvent<{
 
 declare namespace Onramp {
     export {
-        OnrampError,
+        OnrampErrorStatus,
         Configuration,
         GooglePayConfig,
         GooglePayBillingAddressConfig,
@@ -2604,10 +2660,13 @@ declare namespace Onramp {
         ComplianceIdentifierRequirement,
         ComplianceIdentifierAlternativeGroup,
         ComplianceIdentifierRequirements,
+        OnrampApiErrorType,
         OnrampErrorType,
+        OnrampSdkError,
         OnrampApiError,
         AppAttestationError,
         UncategorizedApiError,
+        AppAttestationUnavailableError,
         CryptoOnrampError,
         RetrieveMissingIdentifiersResult,
         SubmitIdentifiersResult,
@@ -2628,22 +2687,22 @@ declare namespace Onramp {
 }
 export { Onramp }
 
-// @public (undocumented)
-type OnrampApiError = StripeError<OnrampError> & {
-    onrampErrorType: string;
-    developerMessage: string;
-    userMessage: string;
+// @public
+type OnrampApiError = OnrampSdkError & {
+    onrampErrorType: OnrampApiErrorType;
     reason?: string;
     requestId?: string;
     apiErrorCode?: string;
     apiErrorType?: string;
     apiErrorMessage?: string;
     apiUserMessage?: string;
-    docUrl?: string;
 };
 
 // @public
-enum OnrampError {
+type OnrampApiErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+
+// @public
+enum OnrampErrorStatus {
     // (undocumented)
     Canceled = "Canceled",
     // (undocumented)
@@ -2653,7 +2712,7 @@ enum OnrampError {
 }
 
 // @public
-type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+type OnrampErrorType = OnrampApiErrorType | 'AppAttestationUnavailableError';
 
 // @public
 type OnrampGooglePayParams = {
@@ -2667,6 +2726,14 @@ type OnrampGooglePayParams = {
 type OnrampPlatformPayParams = {
     googlePay?: OnrampGooglePayParams;
     applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
+};
+
+// @public
+type OnrampSdkError = StripeError<OnrampErrorStatus> & {
+    onrampErrorType: OnrampErrorType;
+    developerMessage: string;
+    userMessage: string;
+    docUrl?: string;
 };
 
 // @public (undocumented)
@@ -2908,6 +2975,13 @@ export interface PaymentMethodPreview {
     customerId?: string;
     type: Type;
 }
+
+// @public
+type PaymentMethodPreview_2 = {
+    icon: string;
+    label: string;
+    sublabel?: string;
+};
 
 // @public (undocumented)
 type PaymentMethodResult = {
@@ -3162,6 +3236,9 @@ export enum PlatformPayError {
     Unknown = "Unknown"
 }
 
+// @public
+export const presentLinkController: () => Promise<LinkController.PresentResult>;
+
 // @public (undocumented)
 export type PresentOptions = {
     timeout?: number;
@@ -3175,6 +3252,17 @@ export type PresentPaymentSheetResult = {
     paymentOption?: PaymentSheet.PaymentOption | undefined;
     didCancel?: boolean;
     error?: StripeError<PaymentSheetError> | undefined;
+};
+
+// @public
+type PresentResult = {
+    paymentMethod: Result_3;
+    paymentMethodPreview?: PaymentMethodPreview_2;
+    error?: undefined;
+} | {
+    paymentMethod?: undefined;
+    paymentMethodPreview?: undefined;
+    error: StripeError<LinkControllerError>;
 };
 
 // @public (undocumented)
@@ -4032,6 +4120,13 @@ export function useFinancialConnectionsSheet(): {
     collectBankAccountToken: (clientSecret: string, params?: CollectBankAccountTokenParams) => Promise<TokenResult>;
     collectFinancialConnectionsAccounts: (clientSecret: string, params?: CollectFinancialConnectionsAccountsParams) => Promise<SessionResult>;
     loading: boolean;
+};
+
+// @public
+export function useLinkController(): {
+    loading: boolean;
+    initLinkController: (params: LinkController.Configuration) => Promise<LinkController.InitResult>;
+    presentLinkController: () => Promise<LinkController.PresentResult>;
 };
 
 // @public

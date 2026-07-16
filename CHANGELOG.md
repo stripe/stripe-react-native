@@ -2,13 +2,22 @@
 
 ## Unreleased
 **Changes**
+* [Changed] Renamed the Crypto Onramp error status enum from `OnrampError` to `OnrampErrorStatus`. Existing generic Onramp errors now use `StripeError<OnrampErrorStatus>`.
+* [Changed] Split rich Crypto Onramp errors into `OnrampSdkError` for SDK-owned diagnostics and `OnrampApiError` for API response context. Rich SDK errors use an `onrampErrorType` discriminator typed as `OnrampErrorType`, while API errors narrow it to `OnrampApiErrorType` and add fields such as `reason`, `requestId`, and API message/code details.
+
+**Features**
+* [Added] Added `AppAttestationUnavailableError` for local SDK app attestation availability/setup failures.
+* [Added] Added Crypto Onramp wallet ownership verification APIs, `getWalletOwnershipChallenge` and `submitWalletOwnershipSignature`, for EU Travel Rule compliance.
+* [Added] Added Arbitrum network support to Crypto Onramp.
+
+## 0.69.0 - 2026-07-15
+**Changes**
 * Updated Stripe iOS SDK from 26.0.0 to 26.3.0.
 * Updated Stripe Android SDK from 23.11.0 to 23.12.0.
 * [Changed] Connect embedded components — `ConnectAccountOnboarding`, `ConnectPayments`, and `ConnectPayouts` — are now generally available. No API changes; existing integrations continue to work without modification.
 
 **Features**
-* [Added] Added Crypto Onramp wallet ownership verification APIs, `getWalletOwnershipChallenge` and `submitWalletOwnershipSignature`, for EU Travel Rule compliance.
-* [Added] Added Arbitrum network support to Crypto Onramp.
+* [Added] Added standalone Link wallet APIs in private preview via `useLinkController`.
 
 ## 0.68.0 - 2026-06-29
 **Changes**

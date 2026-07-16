@@ -10,9 +10,9 @@ import StripePaymentsUI
 import UIKit
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
-@_spi(CryptoOnrampAlpha) @_spi(ReactNativeSDK) @_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
+@_spi(LinkControllerPreview) @_spi(CryptoOnrampAlpha) @_spi(ReactNativeSDK) @_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
 #else
-@_spi(ReactNativeSDK) import StripePaymentSheet
+@_spi(LinkControllerPreview) @_spi(ReactNativeSDK) import StripePaymentSheet
 #endif
 
 @available(iOS 13.0, *)
@@ -102,6 +102,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var applePayShippingMethods: [PKShippingMethod] = []
     var applePayShippingAddressErrors: [Error]?
     var applePayCouponCodeErrors: [Error]?
+
+    // LinkController - Private Preview
+    var linkController: LinkController?
+    var linkControllerEmail: String?
+    var linkControllerPhone: String?
 
     var customerSheetConfiguration = CustomerSheet.Configuration()
     var customerSheet: CustomerSheet?

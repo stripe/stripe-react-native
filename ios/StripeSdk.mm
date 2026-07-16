@@ -584,6 +584,21 @@ RCT_EXPORT_METHOD(createRadarSession:(nonnull RCTPromiseResolveBlock)resolve
   [StripeSdkImpl.shared createRadarSession:resolve rejecter:reject];
 }
 
+// LinkController - Private Preview
+
+RCT_EXPORT_METHOD(initLinkController:(nonnull NSDictionary *)params
+                            resolve:(nonnull RCTPromiseResolveBlock)resolve
+                             reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared initLinkController:params resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(presentLinkController:(nonnull RCTPromiseResolveBlock)resolve
+                                 reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentLinkController:resolve rejecter:reject];
+}
+
 /* clang-format on */
 
 #ifdef RCT_NEW_ARCH_ENABLED
