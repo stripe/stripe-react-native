@@ -585,6 +585,50 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertEqual(alternatives?[0]["alternativeMissingIdentifiers"], ["mt_pp"])
     }
 
+    func test_mapFromWalletOwnershipChallenge_mapsAllFields() throws {
+        let data = Data(
+            """
+            {
+              "challenge_id": "cwoc_123",
+              "wallet_address": "0x1234",
+              "network": "solana",
+              "message": "Sign this exact message",
+              "expires_at": "2026-07-15T16:00:00Z"
+            }
+            """.utf8
+        )
+        let challenge = try JSONDecoder().decode(WalletOwnershipChallenge.self, from: data)
+
+        let result = Mappers.mapFromWalletOwnershipChallenge(challenge)
+
+        XCTAssertEqual(result["challengeId"] as? String, "cwoc_123")
+        XCTAssertEqual(result["walletAddress"] as? String, "0x1234")
+        XCTAssertEqual(result["network"] as? String, "solana")
+        XCTAssertEqual(result["message"] as? String, "Sign this exact message")
+        XCTAssertEqual(result["expiresAt"] as? String, "2026-07-15T16:00:00Z")
+    }
+
+    func test_mapFromCryptoConsumerWallet_mapsAllFields() throws {
+        let data = Data(
+            """
+            {
+              "id": "ccw_123",
+              "wallet_address": "0xabcd",
+              "network": "ethereum",
+              "verified_ownership": true
+            }
+            """.utf8
+        )
+        let wallet = try JSONDecoder().decode(CryptoConsumerWallet.self, from: data)
+
+        let result = Mappers.mapFromCryptoConsumerWallet(wallet)
+
+        XCTAssertEqual(result["id"] as? String, "ccw_123")
+        XCTAssertEqual(result["walletAddress"] as? String, "0xabcd")
+        XCTAssertEqual(result["network"] as? String, "ethereum")
+        XCTAssertEqual(result["verifiedOwnership"] as? Bool, true)
+    }
+
     func test_paymentMethodDisplayDataToMap_mapsAllSupportedTypes() {
         assertPaymentMethodDisplayDataMap(
             type: .card,

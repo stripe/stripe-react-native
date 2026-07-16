@@ -313,8 +313,8 @@ export class OnrampBackend {
    * @param cryptoCustomerId Customer ID from authentication
    * @param authToken Authorization token
    * @param destinationNetwork Destination network (e.g., "ethereum", "solana", "bitcoin")
-   * @param sourceAmount Source amount in USD
-   * @param sourceCurrency Source currency (e.g., "usd")
+   * @param sourceAmount Amount denominated in the selected source currency
+   * @param sourceCurrency Source currency (e.g., "usd" or "eur")
    * @param destinationCurrency Destination currency (e.g., "eth", "sol", "btc")
    * @param customerIpAddress Customer IP address
    */

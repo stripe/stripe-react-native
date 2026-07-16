@@ -8,7 +8,9 @@ import com.reactnativestripesdk.ComplianceIdentifierFieldException
 import com.reactnativestripesdk.InvalidIdentifiersArrayException
 import com.reactnativestripesdk.mapAppearance
 import com.reactnativestripesdk.mapConfig
+import com.reactnativestripesdk.mapFromCryptoConsumerWallet
 import com.reactnativestripesdk.mapFromKycInfo
+import com.reactnativestripesdk.mapFromWalletOwnershipChallenge
 import com.reactnativestripesdk.mapGooglePayConfig
 import com.reactnativestripesdk.mapPaymentDetailsType
 import com.reactnativestripesdk.mapToComplianceIdentifiers
@@ -16,6 +18,7 @@ import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
+import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
@@ -591,6 +594,40 @@ class OnrampMappersTest {
     assertFalse(address.hasKey("line2"))
     assertFalse(address.hasKey("postalCode"))
     assertFalse(address.hasKey("state"))
+  }
+
+  @Test
+  fun mapFromWalletOwnershipChallenge_MapsAllFields() {
+    val result =
+      mapFromWalletOwnershipChallenge(
+        challengeId = "cwoc_123",
+        walletAddress = "0x1234",
+        network = CryptoNetwork.Solana,
+        message = "Sign this exact message",
+        expiresAt = "2026-07-15T16:00:00Z",
+      )
+
+    assertEquals("cwoc_123", result.getString("challengeId"))
+    assertEquals("0x1234", result.getString("walletAddress"))
+    assertEquals("solana", result.getString("network"))
+    assertEquals("Sign this exact message", result.getString("message"))
+    assertEquals("2026-07-15T16:00:00Z", result.getString("expiresAt"))
+  }
+
+  @Test
+  fun mapFromCryptoConsumerWallet_MapsAllFields() {
+    val result =
+      mapFromCryptoConsumerWallet(
+        id = "ccw_123",
+        network = CryptoNetwork.Ethereum,
+        walletAddress = "0xabcd",
+        verifiedOwnership = true,
+      )
+
+    assertEquals("ccw_123", result.getString("id"))
+    assertEquals("0xabcd", result.getString("walletAddress"))
+    assertEquals("ethereum", result.getString("network"))
+    assertTrue(result.getBoolean("verifiedOwnership"))
   }
 
   @Test

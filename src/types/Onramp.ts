@@ -175,7 +175,38 @@ export enum CryptoNetwork {
   worldchain = 'worldchain',
   xrpl = 'xrpl',
   sui = 'sui',
+  arbitrum = 'arbitrum',
 }
+
+/**
+ * A short-lived server-issued challenge used to prove ownership of a registered wallet.
+ */
+export type WalletOwnershipChallenge = {
+  /** Opaque identifier for this challenge. */
+  challengeId: string;
+  /** The wallet address bound to this challenge. */
+  walletAddress: string;
+  /** The crypto network bound to this challenge. */
+  network: CryptoNetwork;
+  /** The exact opaque message the wallet must sign. */
+  message: string;
+  /** ISO 8601 timestamp indicating when this challenge expires. */
+  expiresAt: string;
+};
+
+/**
+ * A registered crypto consumer wallet.
+ */
+export type CryptoConsumerWallet = {
+  /** The consumer wallet's unique identifier. */
+  id: string;
+  /** The registered wallet address. */
+  walletAddress: string;
+  /** The crypto network for the registered wallet. */
+  network: CryptoNetwork;
+  /** Whether ownership of this wallet has been verified. */
+  verifiedOwnership: boolean;
+};
 
 /**
  * Represents a calendar date using day, month, and year components.
@@ -483,6 +514,36 @@ export type RegisterLinkUserResult =
   | {
       customerId?: undefined;
       /** Present if registration failed with an error. */
+      error: CryptoOnrampError;
+    };
+
+/**
+ * Result of creating a wallet ownership challenge.
+ */
+export type GetWalletOwnershipChallengeResult =
+  | {
+      /** The short-lived challenge whose message must be signed by the wallet. */
+      challenge: WalletOwnershipChallenge;
+      error?: undefined;
+    }
+  | {
+      challenge?: undefined;
+      /** Present if challenge creation failed with an error. */
+      error: CryptoOnrampError;
+    };
+
+/**
+ * Result of submitting a wallet ownership signature.
+ */
+export type SubmitWalletOwnershipSignatureResult =
+  | {
+      /** The registered wallet after ownership verification. */
+      consumerWallet: CryptoConsumerWallet;
+      error?: undefined;
+    }
+  | {
+      consumerWallet?: undefined;
+      /** Present if signature verification failed with an error. */
       error: CryptoOnrampError;
     };
 

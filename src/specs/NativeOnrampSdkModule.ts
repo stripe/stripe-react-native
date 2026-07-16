@@ -16,6 +16,14 @@ export interface Spec extends TurboModule {
     walletAddress: string,
     network: string
   ): Promise<Onramp.VoidResult>;
+  getWalletOwnershipChallenge(
+    walletAddress: string,
+    network: string
+  ): Promise<Onramp.GetWalletOwnershipChallengeResult>;
+  submitWalletOwnershipSignature(
+    challengeId: string,
+    signature: string
+  ): Promise<Onramp.SubmitWalletOwnershipSignatureResult>;
   attachKycInfo(
     kycInfo: UnsafeObject<Onramp.KycInfo>
   ): Promise<Onramp.VoidResult>;

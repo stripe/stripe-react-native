@@ -16,6 +16,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import Button from '../../components/Button';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { FormField } from './FormField';
 import { Collapse } from '../../components/Collapse';
 import {
@@ -51,7 +52,9 @@ import {
   OnrampSessionCreationSection,
   RegisterWalletAddressSection,
   OnrampResponseStatusSection,
+  WalletOwnershipSection,
 } from './sections';
+import type { SourceCurrency } from './sections';
 import type { KycInfoInput } from './sections/AttachKycInfoSection';
 import type { UserInfo } from './sections/PhoneNumberUpdateSection';
 import { colors } from '../../colors';
@@ -88,6 +91,8 @@ export default function CryptoOnrampFlow() {
     attachKycInfo,
     retrieveMissingIdentifiers,
     submitIdentifiers,
+    getWalletOwnershipChallenge,
+    submitWalletOwnershipSignature,
     presentUserAttestation,
     presentKycInfoVerification,
     updatePhoneNumber,
@@ -175,11 +180,25 @@ export default function CryptoOnrampFlow() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [walletNetwork, setWalletNetwork] =
     useState<Onramp.CryptoNetwork | null>(null);
+  const [walletOwnershipChallenge, setWalletOwnershipChallenge] =
+    useState<Onramp.WalletOwnershipChallenge | null>(null);
+  const [walletOwnershipVerified, setWalletOwnershipVerified] = useState<
+    boolean | null
+  >(null);
+  const [
+    isGettingWalletOwnershipChallenge,
+    setIsGettingWalletOwnershipChallenge,
+  ] = useState(false);
+  const [
+    isSubmittingWalletOwnershipSignature,
+    setIsSubmittingWalletOwnershipSignature,
+  ] = useState(false);
 
   // Onramp session data
   const [onrampSessionId, setOnrampSessionId] = useState<string | null>(null);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [sourceCurrency, setSourceCurrency] = useState<SourceCurrency>('usd');
 
   // Helper function to handle authentication errors with automatic retry
   const withReauth = useCallback(
@@ -565,6 +584,104 @@ export default function CryptoOnrampFlow() {
     }
   }, [userInfo.phoneNumber, updatePhoneNumber]);
 
+  const handleGetWalletOwnershipChallenge = useCallback(async () => {
+    const address = walletAddress?.trim();
+    const network = walletNetwork;
+
+    if (!address || !network) {
+      showError('Please register a wallet address first.');
+      return;
+    }
+
+    setIsGettingWalletOwnershipChallenge(true);
+
+    try {
+      const result = await withReauth(
+        () => getWalletOwnershipChallenge(address, network),
+        () => authorize(linkAuthIntentId)
+      );
+
+      if (result.error) {
+        showError(
+          `Failed to get wallet ownership challenge: ${result.error.message}.`
+        );
+        return;
+      }
+
+      setWalletOwnershipChallenge(result.challenge);
+      setWalletOwnershipVerified(null);
+      showSuccess('Wallet ownership challenge created.');
+    } finally {
+      setIsGettingWalletOwnershipChallenge(false);
+    }
+  }, [
+    walletAddress,
+    walletNetwork,
+    withReauth,
+    getWalletOwnershipChallenge,
+    authorize,
+    linkAuthIntentId,
+  ]);
+
+  const handleSubmitWalletOwnershipSignature = useCallback(
+    async (walletOwnershipSignature: string) => {
+      const challengeId = walletOwnershipChallenge?.challengeId;
+      if (!challengeId) {
+        showError('Please get a wallet ownership challenge first.');
+        return;
+      }
+
+      const signature = walletOwnershipSignature.trim();
+      if (!signature) {
+        showError('Please enter a wallet ownership signature.');
+        return;
+      }
+
+      setIsSubmittingWalletOwnershipSignature(true);
+
+      try {
+        const result = await withReauth(
+          () => submitWalletOwnershipSignature(challengeId, signature),
+          () => authorize(linkAuthIntentId)
+        );
+
+        if (result.error) {
+          setWalletOwnershipVerified(false);
+          showError(result.error.message);
+          return;
+        }
+
+        setWalletAddress(result.consumerWallet.walletAddress);
+        setWalletNetwork(result.consumerWallet.network);
+        setWalletOwnershipVerified(result.consumerWallet.verifiedOwnership);
+        showSuccess(
+          `Wallet ownership verification submitted. Verified ownership: ${result.consumerWallet.verifiedOwnership}`
+        );
+      } finally {
+        setIsSubmittingWalletOwnershipSignature(false);
+      }
+    },
+    [
+      walletOwnershipChallenge,
+      withReauth,
+      submitWalletOwnershipSignature,
+      authorize,
+      linkAuthIntentId,
+    ]
+  );
+
+  const handleSourceCurrencyChange = useCallback(
+    (currency: SourceCurrency) => {
+      if (currency === sourceCurrency) {
+        return;
+      }
+
+      setSourceCurrency(currency);
+      setOnrampSessionId(null);
+    },
+    [sourceCurrency]
+  );
+
   type CollectPaymentRequest =
     | { type: 'Card' }
     | { type: 'BankAccount' }
@@ -630,7 +747,7 @@ export default function CryptoOnrampFlow() {
           },
         ],
         merchantCountryCode: 'US',
-        currencyCode: 'USD',
+        currencyCode: sourceCurrency.toUpperCase(),
         // Optional: request these billing fields if you'd like Platform Pay to return customer KYC information.
         requiredBillingContactFields: [
           PlatformPay.ContactField.Name,
@@ -643,12 +760,12 @@ export default function CryptoOnrampFlow() {
       type: 'PlatformPay',
       params: platformPayParams,
     });
-  }, [handleCollectPaymentMethod]);
+  }, [handleCollectPaymentMethod, sourceCurrency]);
 
   const handleCollectGooglePayPayment = useCallback(async () => {
     const googlePayParams: Onramp.OnrampPlatformPayParams = {
       googlePay: {
-        currencyCode: 'USD',
+        currencyCode: sourceCurrency.toUpperCase(),
         amount: 100,
         label: 'Example',
       },
@@ -658,7 +775,7 @@ export default function CryptoOnrampFlow() {
       type: 'PlatformPay',
       params: googlePayParams,
     });
-  }, [handleCollectPaymentMethod]);
+  }, [handleCollectPaymentMethod, sourceCurrency]);
 
   const validateOnrampSessionParams = useCallback((): {
     isValid: boolean;
@@ -730,7 +847,7 @@ export default function CryptoOnrampFlow() {
         authToken!,
         destinationParams.destinationNetwork,
         10.0, // sourceAmount
-        'usd', // sourceCurrency
+        sourceCurrency,
         destinationParams.destinationCurrency,
         '127.0.0.1', // customerIpAddress
         settlementSpeed
@@ -762,6 +879,7 @@ export default function CryptoOnrampFlow() {
     authToken,
     achSettlementSpeed,
     selectedPaymentMethod,
+    sourceCurrency,
   ]);
 
   const handlePerformCheckout = useCallback(async () => {
@@ -826,7 +944,10 @@ export default function CryptoOnrampFlow() {
       setStoredDemoAuth(null);
       setWalletAddress(null);
       setWalletNetwork(null);
+      setWalletOwnershipChallenge(null);
+      setWalletOwnershipVerified(null);
       setOnrampSessionId(null);
+      setSourceCurrency('usd');
       setSelectedPaymentMethod(null);
       setAchSettlementSpeed('instant');
     }
@@ -1057,6 +1178,8 @@ export default function CryptoOnrampFlow() {
           />
           <PaymentCollectionSection
             isPlatformPaySupported={isPlatformPayAvailable}
+            sourceCurrency={sourceCurrency}
+            onSourceCurrencyChange={handleSourceCurrencyChange}
             handleCollectPlatformPayPayment={
               Platform.OS === 'ios'
                 ? handleCollectApplePayPayment
@@ -1072,31 +1195,14 @@ export default function CryptoOnrampFlow() {
           {currentPaymentDisplayData &&
             currentPaymentDisplayData?.type === 'BankAccount' && (
               <Collapse title="ACH Settlement Speed" initialExpanded={true}>
-                <View style={styles.segmentedRow}>
-                  <View style={styles.segment}>
-                    <Button
-                      title="Instant"
-                      variant={
-                        achSettlementSpeed === 'instant' ? 'primary' : 'default'
-                      }
-                      center
-                      onPress={() => setAchSettlementSpeed('instant')}
-                    />
-                  </View>
-                  <View style={{ width: 8 }} />
-                  <View style={styles.segment}>
-                    <Button
-                      title="Standard"
-                      variant={
-                        achSettlementSpeed === 'standard'
-                          ? 'primary'
-                          : 'default'
-                      }
-                      center
-                      onPress={() => setAchSettlementSpeed('standard')}
-                    />
-                  </View>
-                </View>
+                <SegmentedControl<'instant' | 'standard'>
+                  options={[
+                    { value: 'instant', label: 'Instant' },
+                    { value: 'standard', label: 'Standard' },
+                  ]}
+                  value={achSettlementSpeed}
+                  onValueChange={setAchSettlementSpeed}
+                />
               </Collapse>
             )}
           <CryptoOperationsSection
@@ -1108,7 +1214,18 @@ export default function CryptoOnrampFlow() {
             onWalletRegistered={(address, network) => {
               setWalletAddress(address);
               setWalletNetwork(network);
+              setWalletOwnershipChallenge(null);
+              setWalletOwnershipVerified(null);
             }}
+          />
+          <WalletOwnershipSection
+            challenge={walletOwnershipChallenge}
+            verifiedOwnership={walletOwnershipVerified}
+            canGetChallenge={!!walletAddress && !!walletNetwork}
+            isGettingChallenge={isGettingWalletOwnershipChallenge}
+            isSubmittingSignature={isSubmittingWalletOwnershipSignature}
+            onGetChallenge={handleGetWalletOwnershipChallenge}
+            onSubmitSignature={handleSubmitWalletOwnershipSignature}
           />
           <OnrampSessionCreationSection
             isCreatingSession={isCreatingSession}
@@ -1322,12 +1439,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     alignSelf: 'center',
     textAlign: 'center',
-  },
-  segmentedRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  segment: {
-    flex: 1,
   },
 });

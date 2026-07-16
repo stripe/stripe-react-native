@@ -1385,6 +1385,25 @@ class Mappers {
         ]
     }
 
+    class func mapFromWalletOwnershipChallenge(_ challenge: WalletOwnershipChallenge) -> [String: Any] {
+        [
+            "challengeId": challenge.challengeId,
+            "walletAddress": challenge.walletAddress,
+            "network": challenge.network.rawValue,
+            "message": challenge.message,
+            "expiresAt": challenge.expiresAt,
+        ]
+    }
+
+    class func mapFromCryptoConsumerWallet(_ wallet: CryptoConsumerWallet) -> [String: Any] {
+        [
+            "id": wallet.id,
+            "walletAddress": wallet.walletAddress,
+            "network": wallet.network.rawValue,
+            "verifiedOwnership": wallet.verifiedOwnership,
+        ]
+    }
+
     private class func mapFromComplianceIdentifierRequirement(_ requirement: ComplianceIdentifierRequirement) -> [String: String] {
         [
             "type": requirement.type.rawValue,

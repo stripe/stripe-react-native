@@ -1422,6 +1422,62 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(getWalletOwnershipChallenge:network:resolver:rejecter:)
+    public func getWalletOwnershipChallenge(
+        walletAddress: String,
+        network: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        guard let cryptoNetwork = CryptoNetwork(rawValue: network) else {
+            let errorResult = Errors.createError(ErrorType.Unknown, "Invalid network: \(network)")
+            resolve(["error": errorResult["error"]!])
+            return
+        }
+
+        Task {
+            do {
+                let challenge = try await coordinator.getWalletOwnershipChallenge(
+                    walletAddress: walletAddress,
+                    network: cryptoNetwork
+                )
+                resolve(["challenge": Mappers.mapFromWalletOwnershipChallenge(challenge)])
+            } catch {
+                let errorResult = OnrampErrors.createFailedError(error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(submitWalletOwnershipSignature:signature:resolver:rejecter:)
+    public func submitWalletOwnershipSignature(
+        challengeId: String,
+        signature: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let consumerWallet = try await coordinator.submitWalletOwnershipSignature(
+                    challengeId: challengeId,
+                    signature: signature
+                )
+                resolve(["consumerWallet": Mappers.mapFromCryptoConsumerWallet(consumerWallet)])
+            } catch {
+                let errorResult = OnrampErrors.createFailedError(error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
     @objc(attachKycInfo:resolver:rejecter:)
     public func attachKycInfo(
         info: NSDictionary,

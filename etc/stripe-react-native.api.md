@@ -1420,9 +1420,19 @@ export type CreateTokenResult = {
 };
 
 // @public
+type CryptoConsumerWallet = {
+    id: string;
+    walletAddress: string;
+    network: CryptoNetwork;
+    verifiedOwnership: boolean;
+};
+
+// @public
 enum CryptoNetwork {
     // (undocumented)
     aptos = "aptos",
+    // (undocumented)
+    arbitrum = "arbitrum",
     // (undocumented)
     avalanche = "avalanche",
     // (undocumented)
@@ -1909,6 +1919,15 @@ type FutureUsage = 'OffSession' | 'OnSession' | 'None';
 
 // @public (undocumented)
 type FutureUsage_2 = 'Unknown' | 'None' | 'OnSession' | 'OffSession' | 'OneTime';
+
+// @public
+type GetWalletOwnershipChallengeResult = {
+    challenge: WalletOwnershipChallenge;
+    error?: undefined;
+} | {
+    challenge?: undefined;
+    error: CryptoOnrampError;
+};
 
 // @public (undocumented)
 export type GlobalColorConfig = {
@@ -2631,6 +2650,8 @@ declare namespace Onramp {
         LinkPrimaryButton,
         LinkUserInfo,
         CryptoNetwork,
+        WalletOwnershipChallenge,
+        CryptoConsumerWallet,
         DateOfBirth,
         KycInfo,
         ComplianceIdentifierType,
@@ -2655,6 +2676,8 @@ declare namespace Onramp {
         AuthorizeResult,
         HasLinkAccountResult,
         RegisterLinkUserResult,
+        GetWalletOwnershipChallengeResult,
+        SubmitWalletOwnershipSignatureResult,
         PaymentMethodDisplayData,
         CollectPaymentMethodResult,
         CreateCryptoPaymentTokenResult,
@@ -3898,6 +3921,15 @@ type SubmitIdentifiersResult = {
 };
 
 // @public
+type SubmitWalletOwnershipSignatureResult = {
+    consumerWallet: CryptoConsumerWallet;
+    error?: undefined;
+} | {
+    consumerWallet?: undefined;
+    error: CryptoOnrampError;
+};
+
+// @public
 export enum TermsDisplay {
     AUTOMATIC = "automatic",
     NEVER = "never"
@@ -4107,6 +4139,8 @@ export function useOnramp(): {
     registerWalletAddress: (walletAddress: string, network: Onramp.CryptoNetwork) => Promise<{
         error?: Onramp.CryptoOnrampError;
     }>;
+    getWalletOwnershipChallenge: (walletAddress: string, network: Onramp.CryptoNetwork) => Promise<Onramp.GetWalletOwnershipChallengeResult>;
+    submitWalletOwnershipSignature: (challengeId: string, signature: string) => Promise<Onramp.SubmitWalletOwnershipSignatureResult>;
     attachKycInfo: (kycInfo: Onramp.KycInfo) => Promise<{
         error?: Onramp.CryptoOnrampError;
     }>;
@@ -4295,6 +4329,15 @@ export type VerifyMicrodepositsParams = {
 // @public
 type VoidResult = {
     error?: CryptoOnrampError;
+};
+
+// @public
+type WalletOwnershipChallenge = {
+    challengeId: string;
+    walletAddress: string;
+    network: CryptoNetwork;
+    message: string;
+    expiresAt: string;
 };
 
 // @public (undocumented)

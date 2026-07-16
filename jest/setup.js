@@ -12,6 +12,8 @@ jest.mock('../src/specs/NativeOnrampSdkModule', () => ({
     hasLinkAccount: jest.fn(),
     registerLinkUser: jest.fn(),
     registerWalletAddress: jest.fn(),
+    getWalletOwnershipChallenge: jest.fn(),
+    submitWalletOwnershipSignature: jest.fn(),
     attachKycInfo: jest.fn(),
     presentKycInfoVerification: jest.fn(),
     updatePhoneNumber: jest.fn(),

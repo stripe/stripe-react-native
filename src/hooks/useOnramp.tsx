@@ -66,6 +66,32 @@ export function useOnramp() {
     []
   );
 
+  const _getWalletOwnershipChallenge = useCallback(
+    async (
+      walletAddress: string,
+      network: Onramp.CryptoNetwork
+    ): Promise<Onramp.GetWalletOwnershipChallengeResult> => {
+      return requireOnrampModule().getWalletOwnershipChallenge(
+        walletAddress,
+        network
+      );
+    },
+    []
+  );
+
+  const _submitWalletOwnershipSignature = useCallback(
+    async (
+      challengeId: string,
+      signature: string
+    ): Promise<Onramp.SubmitWalletOwnershipSignatureResult> => {
+      return requireOnrampModule().submitWalletOwnershipSignature(
+        challengeId,
+        signature
+      );
+    },
+    []
+  );
+
   const _attachKycInfo = useCallback(
     async (
       kycInfo: Onramp.KycInfo
@@ -258,6 +284,26 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     registerWalletAddress: _registerWalletAddress,
+
+    /**
+     * Creates a short-lived challenge for proving ownership of a registered wallet.
+     * Requires an authenticated Link user.
+     *
+     * @param walletAddress The registered crypto wallet address to verify
+     * @param network The crypto network for the wallet address
+     * @returns Promise that resolves to the challenge whose message must be signed, or an error
+     */
+    getWalletOwnershipChallenge: _getWalletOwnershipChallenge,
+
+    /**
+     * Verifies a signature over a previously issued wallet ownership challenge.
+     * Requires an authenticated Link user.
+     *
+     * @param challengeId The opaque identifier returned by `getWalletOwnershipChallenge`
+     * @param signature The signature produced over the exact challenge message
+     * @returns Promise that resolves to the verified consumer wallet, or an error
+     */
+    submitWalletOwnershipSignature: _submitWalletOwnershipSignature,
 
     /**
      * Attaches the specific KYC info to the current Link user. Requires an authenticated Link user.

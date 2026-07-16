@@ -10,10 +10,13 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
+import com.stripe.android.crypto.onramp.model.CryptoConsumerWallet
+import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
+import com.stripe.android.crypto.onramp.model.WalletOwnershipChallenge
 import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifier
 import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierAlternativeGroup
 import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierRequirement
@@ -202,6 +205,51 @@ internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
 
   return result
 }
+
+internal fun mapFromWalletOwnershipChallenge(challenge: WalletOwnershipChallenge) =
+  mapFromWalletOwnershipChallenge(
+    challengeId = challenge.challengeId,
+    walletAddress = challenge.walletAddress,
+    network = challenge.network,
+    message = challenge.message,
+    expiresAt = challenge.expiresAt,
+  )
+
+internal fun mapFromWalletOwnershipChallenge(
+  challengeId: String,
+  walletAddress: String,
+  network: CryptoNetwork,
+  message: String,
+  expiresAt: String,
+) =
+  Arguments.createMap().apply {
+    putString("challengeId", challengeId)
+    putString("walletAddress", walletAddress)
+    putString("network", network.value)
+    putString("message", message)
+    putString("expiresAt", expiresAt)
+  }
+
+internal fun mapFromCryptoConsumerWallet(wallet: CryptoConsumerWallet) =
+  mapFromCryptoConsumerWallet(
+    id = wallet.id,
+    network = wallet.network,
+    walletAddress = wallet.walletAddress,
+    verifiedOwnership = wallet.verifiedOwnership,
+  )
+
+internal fun mapFromCryptoConsumerWallet(
+  id: String,
+  network: CryptoNetwork,
+  walletAddress: String,
+  verifiedOwnership: Boolean,
+) =
+  Arguments.createMap().apply {
+    putString("id", id)
+    putString("walletAddress", walletAddress)
+    putString("network", network.value)
+    putBoolean("verifiedOwnership", verifiedOwnership)
+  }
 
 internal fun mapToComplianceIdentifiers(identifiers: ReadableArray): List<ComplianceIdentifier> {
   val complianceIdentifiers = mutableListOf<ComplianceIdentifier>()
