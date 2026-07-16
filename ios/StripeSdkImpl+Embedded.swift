@@ -37,7 +37,7 @@ extension StripeSdkImpl {
       resolve(nil)
       return
     }
-    let captureMethodString = intentConfig["captureMethod"] as? String
+    let captureMethodString = modeParams["captureMethod"] as? String
     let intentConfig = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
@@ -191,7 +191,7 @@ extension StripeSdkImpl {
       resolve(Errors.createError(ErrorType.Failed, "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
       return
     }
-    let captureMethodString = intentConfig["captureMethod"] as? String
+    let captureMethodString = modeParams["captureMethod"] as? String
     let intentConfiguration = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
