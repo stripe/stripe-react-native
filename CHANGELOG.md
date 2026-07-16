@@ -4,6 +4,7 @@
 **Changes**
 * [Changed] Renamed the Crypto Onramp error status enum from `OnrampError` to `OnrampErrorStatus`. Existing generic Onramp errors now use `StripeError<OnrampErrorStatus>`.
 * [Changed] Split rich Crypto Onramp errors into `OnrampSdkError` for SDK-owned diagnostics and `OnrampApiError` for API response context. Rich SDK errors use an `onrampErrorType` discriminator typed as `OnrampErrorType`, while API errors narrow it to `OnrampApiErrorType` and add fields such as `reason`, `requestId`, and API message/code details.
+* [Fixed] Android: `PaymentMethod.Card.availableNetworks` and `PaymentMethod.USBankAccount.supportedNetworks` now return the expected array of network strings instead of always returning `null`, matching iOS behavior.
 
 **Features**
 * [Added] Added `AppAttestationUnavailableError` for local SDK app attestation availability/setup failures.
