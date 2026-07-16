@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.70.0 - 2026-07-16
 **Changes**
 * [Changed] Renamed the Crypto Onramp error status enum from `OnrampError` to `OnrampErrorStatus`. Existing generic Onramp errors now use `StripeError<OnrampErrorStatus>`.
 * [Changed] Split rich Crypto Onramp errors into `OnrampSdkError` for SDK-owned diagnostics and `OnrampApiError` for API response context. Rich SDK errors use an `onrampErrorType` discriminator typed as `OnrampErrorType`, while API errors narrow it to `OnrampApiErrorType` and add fields such as `reason`, `requestId`, and API message/code details.
