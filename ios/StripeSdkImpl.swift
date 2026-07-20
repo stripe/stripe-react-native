@@ -105,6 +105,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var linkController: LinkController?
     var linkControllerEmail: String?
     var linkControllerPhone: String?
+    var linkControllerSetupIntentClientSecret: String?
 
     var customerSheetConfiguration = CustomerSheet.Configuration()
     var customerSheet: CustomerSheet?
