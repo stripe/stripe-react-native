@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+**Changes**
+* Updated Stripe iOS SDK from 26.3.0 to 26.4.0.
+* Updated Stripe Android SDK from 23.12.0 to 23.13.0.
+* [Changed] `useLinkController` (private preview): SetupIntent confirmation is now a separate step. The SDK no longer confirms the SetupIntent automatically inside `presentLinkController`; instead, confirmation is triggered explicitly after the payment method is selected.
+
 ## 0.70.0 - 2026-07-16
 **Changes**
 * [Changed] Renamed the Crypto Onramp error status enum from `OnrampError` to `OnrampErrorStatus`. Existing generic Onramp errors now use `StripeError<OnrampErrorStatus>`.
