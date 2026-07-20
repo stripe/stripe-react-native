@@ -19,6 +19,7 @@ extension StripeSdkImpl {
         let phoneNumber = params["phoneNumber"] as? String
         let merchantDisplayName = params["merchantDisplayName"] as? String
         let allowLogout = params["allowLogout"] as? Bool ?? true
+        let setupIntentClientSecret = params["setupIntentClientSecret"] as? String
 
         var supportedPaymentMethodTypes: [LinkPaymentMethodType]?
         if let rawTypes = params["supportedPaymentMethodTypes"] as? [String] {
@@ -67,6 +68,7 @@ extension StripeSdkImpl {
                 self?.linkController = controller
                 self?.linkControllerEmail = email
                 self?.linkControllerPhone = phoneNumber
+                self?.linkControllerSetupIntentClientSecret = setupIntentClientSecret
                 resolve([:])
             case .failure(let error):
                 resolve(Errors.createError(ErrorType.Failed, error))
@@ -93,17 +95,36 @@ extension StripeSdkImpl {
                 email: linkControllerEmail ?? "",
                 phoneNumber: linkControllerPhone,
                 from: presentingViewController
-            ) { result in
+            ) { [weak self] result in
                 switch result {
                 case .success(.completed(let paymentMethod)):
                     var response: [String: Any] = [:]
                     if let paymentMethodDict = Mappers.mapFromPaymentMethod(paymentMethod) {
                         response["paymentMethod"] = paymentMethodDict
                     }
-                    if let preview = controller.paymentMethodPreview {
-                        response["paymentMethodPreview"] = Self.mapLinkPaymentMethodPreview(preview)
+
+                    guard let clientSecret = self?.linkControllerSetupIntentClientSecret else {
+                        if let preview = controller.paymentMethodPreview {
+                            response["paymentMethodPreview"] = Self.mapLinkPaymentMethodPreview(preview)
+                        }
+                        resolve(response)
+                        return
                     }
-                    resolve(response)
+
+                    controller.confirmSetupIntent(
+                        clientSecret: clientSecret,
+                        from: presentingViewController
+                    ) { confirmResult in
+                        switch confirmResult {
+                        case .success:
+                            if let preview = controller.paymentMethodPreview {
+                                response["paymentMethodPreview"] = Self.mapLinkPaymentMethodPreview(preview)
+                            }
+                            resolve(response)
+                        case .failure(let error):
+                            resolve(Errors.createError(ErrorType.Failed, error))
+                        }
+                    }
                 case .success(.canceled):
                     resolve(Errors.createError(ErrorType.Canceled, "The customer canceled the Link flow."))
                 case .failure(let error):
