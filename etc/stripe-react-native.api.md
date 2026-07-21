@@ -1095,9 +1095,9 @@ type Configuration_2 = {
     email?: string;
     merchantDisplayName: string;
     supportedPaymentMethodTypes?: LinkPaymentMethodType[];
+    paymentMethodTypes?: string[];
     phoneNumber?: string;
     allowLogout?: boolean;
-    setupIntentClientSecret?: string;
 };
 
 // @public (undocumented)
@@ -1135,6 +1135,9 @@ export { ConfirmationToken }
 // @public
 export type ConfirmCustomPaymentMethodCallback = (customPaymentMethod: CustomPaymentMethod, billingDetails: BillingDetails | null,
 resultHandler: (result: CustomPaymentMethodResult) => void) => void;
+
+// @public
+export const confirmLinkControllerSetupIntent: (clientSecret: string) => Promise<LinkController.ConfirmSetupIntentResult>;
 
 // @public (undocumented)
 type ConfirmOptions = PaymentMethod.ConfirmOptions;
@@ -1234,6 +1237,13 @@ type ConfirmSetupIntentResult_2 = {
 } | {
     setupIntent?: undefined;
     error: StripeError<PlatformPayError>;
+};
+
+// @public
+type ConfirmSetupIntentResult_3 = {
+    error?: undefined;
+} | {
+    error: StripeError<LinkControllerError>;
 };
 
 // Warning: (ae-forgotten-export) The symbol "CommonComponentProps" needs to be exported by the entry point index.d.ts
@@ -2382,6 +2392,7 @@ declare namespace LinkController {
         Configuration_2 as Configuration,
         PaymentMethodPreview_2 as PaymentMethodPreview,
         InitResult,
+        ConfirmSetupIntentResult_3 as ConfirmSetupIntentResult,
         PresentResult
     }
 }
@@ -4127,6 +4138,7 @@ export function useLinkController(): {
     loading: boolean;
     initLinkController: (params: LinkController.Configuration) => Promise<LinkController.InitResult>;
     presentLinkController: () => Promise<LinkController.PresentResult>;
+    confirmLinkControllerSetupIntent: (clientSecret: string) => Promise<LinkController.ConfirmSetupIntentResult>;
 };
 
 // @public
