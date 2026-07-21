@@ -36,7 +36,6 @@ internal class LinkControllerManager(
     private var linkController: LinkController? = null
     private var linkPresenter: LinkController.Presenter? = null
     private var presentPromise: Promise? = null
-    private var confirmSetupIntentPromise: Promise? = null
 
     @SuppressLint("RestrictedApi", "VisibleForTests")
     fun configure(params: ReadableMap, promise: Promise) {
@@ -111,15 +110,35 @@ internal class LinkControllerManager(
             return
         }
 
-        confirmSetupIntentPromise = promise
-        presenter.confirmSetupIntent(clientSecret)
+        val activity = context.currentActivity as? ComponentActivity
+        val scope = activity?.lifecycleScope
+        if (scope == null) {
+            promise.resolve(createError(ErrorType.Failed.toString(), "Activity is not available. Retry this method."))
+            return
+        }
+
+        scope.launch {
+            val confirmResult = presenter.confirmSetupIntent(clientSecret)
+            when (confirmResult) {
+                is LinkController.ConfirmSetupIntentResult.Completed -> {
+                    promise.resolve(Arguments.createMap())
+                }
+                is LinkController.ConfirmSetupIntentResult.Failed -> {
+                    promise.resolve(
+                        createError(
+                            ErrorType.Failed.toString(),
+                            confirmResult.error ?: "SetupIntent confirmation failed."
+                        )
+                    )
+                }
+            }
+        }
     }
 
     fun destroy() {
         linkController = null
         linkPresenter = null
         presentPromise = null
-        confirmSetupIntentPromise = null
     }
 
     private fun buildLinkConfiguration(
@@ -213,21 +232,7 @@ internal class LinkControllerManager(
             (0 until arr.size()).mapNotNull { i -> arr.getString(i) }.ifEmpty { null }
         }
 
-    private fun handleConfirmSetupIntentResult(result: LinkController.ConfirmSetupIntentResult) {
-        val promise = confirmSetupIntentPromise ?: return
-        confirmSetupIntentPromise = null
-        when (result) {
-            is LinkController.ConfirmSetupIntentResult.Success -> {
-                promise.resolve(Arguments.createMap())
-            }
-            is LinkController.ConfirmSetupIntentResult.Canceled -> {
-                promise.resolve(createError(ErrorType.Canceled.toString(), "SetupIntent confirmation was canceled."))
-            }
-            is LinkController.ConfirmSetupIntentResult.Failed -> {
-                promise.resolve(createError(ErrorType.Failed.toString(), result.error))
-            }
-        }
-    }
+    private fun handleConfirmSetupIntentResult(result: LinkController.ConfirmSetupIntentResult) {}
 
     private fun handlePresentResult(result: LinkController.PresentResult) {
         val promise = presentPromise ?: return
