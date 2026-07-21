@@ -67,6 +67,8 @@ class PaymentMethodFactory {
                 return try createPayByBankPaymentMethodParams()
             //            case STPPaymentMethodType.weChatPay:
             //                return try createWeChatPayPaymentMethodParams()
+            case STPPaymentMethodType.twint:
+                return try createTwintPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -123,6 +125,7 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.revolutPay:
                 return nil
             case STPPaymentMethodType.payByBank:
+            case STPPaymentMethodType.twint:
                 return nil
             default:
                 throw PaymentMethodError.paymentNotSupported
@@ -327,6 +330,14 @@ class PaymentMethodFactory {
         return STPPaymentMethodParams(eps: params, billingDetails: billingDetails, metadata: metadata)
     }
 
+    private func createTwintPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodTwintParams()
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.twintPaymentMissingParams
+        }
+        return STPPaymentMethodParams(twint: params, billingDetails: billingDetails, metadata: metadata)
+    }
+
     private func createBECSDebitPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodAUBECSDebitParams()
 
@@ -424,6 +435,7 @@ class PaymentMethodFactory {
 enum PaymentMethodError: Error {
     case cardPaymentMissingParams
     case epsPaymentMissingParams
+    case twintPaymentMissingParams
     case idealPaymentMissingParams
     case paymentNotSupported
     case cardPaymentOptionsMissingParams
@@ -458,6 +470,8 @@ extension PaymentMethodError: LocalizedError {
         case .multibancoPaymentMissingParams:
             return NSLocalizedString("Multibanco requires that you provide the following billing details: email", comment: "Create payment error")
         case .epsPaymentMissingParams:
+            return NSLocalizedString("You must provide billing details", comment: "Create payment error")
+        case .twintPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .afterpayClearpayPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")

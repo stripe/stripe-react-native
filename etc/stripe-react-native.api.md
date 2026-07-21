@@ -1146,7 +1146,7 @@ type ConfirmOptions_2 = CreateOptions;
 type ConfirmOptions_3 = ConfirmOptions;
 
 // @public (undocumented)
-type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams | PayByBankParams;
+type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams | PayByBankParams | TwintParams;
 
 // @public (undocumented)
 type ConfirmParams_2 = CreateParams;
@@ -2834,6 +2834,7 @@ declare namespace PaymentIntent {
         MultibancoParams,
         GrabPayParams,
         BancontactParams,
+        TwintParams,
         BillieParams,
         SepaParams,
         AfterpayClearpayParams,
@@ -4031,6 +4032,18 @@ type TokenResult_2 = {
 };
 
 // @public (undocumented)
+interface TwintParams {
+    // (undocumented)
+    paymentMethodData: {
+        billingDetails: BillingDetails;
+        mandateData?: MandateData;
+        metadata?: MetaData;
+    };
+    // (undocumented)
+    paymentMethodType: 'Twint';
+}
+
+// @public (undocumented)
 type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx' | 'CardPresent' | 'SepaDebit' | 'AuBecsDebit' | 'BacsDebit' | 'P24' | 'Eps' | 'Bancontact' | 'Multibanco' | 'Oxxo' | 'USBankAccount' | 'PayPal' | 'PayByBank' | 'Unknown';
 
 // @public (undocumented)
@@ -4384,7 +4397,7 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:208:3 - (ae-forgotten-export) The symbol "AppearanceOptions" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
-// src/types/PaymentIntent.ts:270:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
+// src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
 // src/types/PaymentMethod.ts:298:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 // src/types/PaymentSheet.ts:124:3 - (ae-forgotten-export) The symbol "Checkout" needs to be exported by the entry point index.d.ts
 

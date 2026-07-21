@@ -404,6 +404,15 @@ export default function HomeScreen() {
               }}
             />
           </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Twint Payment"
+              onPress={() => {
+                navigation.navigate('TwintPaymentScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 
