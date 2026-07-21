@@ -126,16 +126,15 @@ internal class LinkControllerManager(
         scope.launch {
             val confirmResult = presenter.confirmSetupIntent(clientSecret)
             when (confirmResult) {
-                is LinkController.ConfirmSetupIntentResult.Completed -> {
+                is LinkController.ConfirmSetupIntentResult.Success -> {
                     promise.resolve(Arguments.createMap())
                 }
+                is LinkController.ConfirmSetupIntentResult.Canceled -> {
+                    val error = createError(ErrorType.Canceled.toString(), "SetupIntent confirmation was canceled.")
+                    promise.resolve(error)
+                }
                 is LinkController.ConfirmSetupIntentResult.Failed -> {
-                    promise.resolve(
-                        createError(
-                            ErrorType.Failed.toString(),
-                            confirmResult.error ?: "SetupIntent confirmation failed."
-                        )
-                    )
+                    promise.resolve(createError(ErrorType.Failed.toString(), confirmResult.error))
                 }
             }
         }
