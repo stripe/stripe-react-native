@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+**Features**
+* [Added] Added support for the Pay by Bank payment method (`paymentMethodType: 'PayByBank'`) in `confirmPayment` and `confirmSetupIntent`.
+
 ## 0.70.0 - 2026-07-16
 **Changes**
 * [Changed] Renamed the Crypto Onramp error status enum from `OnrampError` to `OnrampErrorStatus`. Existing generic Onramp errors now use `StripeError<OnrampErrorStatus>`.
