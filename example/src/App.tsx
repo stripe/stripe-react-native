@@ -56,6 +56,7 @@ import SepaPaymentScreen from './screens/SepaPaymentScreen';
 import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import TwintPaymentScreen from './screens/TwintPaymentsScreen';
+import TwintSetupFuturePaymentScreen from './screens/TwintSetupFuturePaymentScreen';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
 import RegisterCryptoUserScreen from './screens/Onramp/RegisterCryptoUserScreen';
@@ -83,6 +84,7 @@ export type RootStackParamList = {
   BancontactPaymentScreen: undefined;
   TwintPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
+  TwintSetupFuturePaymentScreen: undefined;
   BilliePaymentScreen: undefined;
   AlmaPaymentScreen: undefined;
   SepaPaymentScreen: undefined;
@@ -263,6 +265,10 @@ export default function App() {
           <Stack.Screen
             name="BancontactSetupFuturePaymentScreen"
             component={BancontactSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="TwintSetupFuturePaymentScreen"
+            component={TwintSetupFuturePaymentScreen}
           />
           <Stack.Screen
             name="BilliePaymentScreen"
