@@ -15,7 +15,8 @@ export type CheckoutPlaygroundCurrency =
   | 'gbp'
   | 'cad'
   | 'aud'
-  | 'jpy';
+  | 'jpy'
+  | 'chf';
 
 export type CheckoutPlaygroundCustomerType = 'returning' | 'new' | 'guest';
 
@@ -76,6 +77,7 @@ export const currencyOptions: Array<
   { label: 'CAD', value: 'cad', symbol: 'CAD ' },
   { label: 'AUD', value: 'aud', symbol: 'AUD ' },
   { label: 'JPY', value: 'jpy', symbol: 'JPY ', isZeroDecimal: true },
+  { label: 'CHF', value: 'chf', symbol: 'CHF ' },
 ];
 
 export const customerTypeOptions: SelectionOption<CheckoutPlaygroundCustomerType>[] =

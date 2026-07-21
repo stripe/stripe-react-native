@@ -55,6 +55,7 @@ import RevolutPayScreen from './screens/RevolutPayScreen';
 import SepaPaymentScreen from './screens/SepaPaymentScreen';
 import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
+import TwintPaymentScreen from './screens/TwintPaymentsScreen';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
 import RegisterCryptoUserScreen from './screens/Onramp/RegisterCryptoUserScreen';
@@ -80,6 +81,7 @@ export type RootStackParamList = {
   AlipayPaymentScreen: undefined;
   PaymentResultScreen: { url: string };
   BancontactPaymentScreen: undefined;
+  TwintPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
   BilliePaymentScreen: undefined;
   AlmaPaymentScreen: undefined;
@@ -252,6 +254,10 @@ export default function App() {
           <Stack.Screen
             name="BancontactPaymentScreen"
             component={BancontactPaymentScreen}
+          />
+          <Stack.Screen
+            name="TwintPaymentScreen"
+            component={TwintPaymentScreen}
           />
           <Stack.Screen name="EPSPaymentScreen" component={EPSPaymentScreen} />
           <Stack.Screen
