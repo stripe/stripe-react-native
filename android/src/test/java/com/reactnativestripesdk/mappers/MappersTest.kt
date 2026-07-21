@@ -97,6 +97,16 @@ class MappersTest {
   }
 
   @Test
+  fun mapPaymentMethodType_PayByBank_ReturnsString() {
+    assertEquals("PayByBank", mapPaymentMethodType(PaymentMethod.Type.PayByBank))
+  }
+
+  @Test
+  fun mapToPaymentMethodType_PayByBank_ReturnsType() {
+    assertEquals(PaymentMethod.Type.PayByBank, mapToPaymentMethodType("PayByBank"))
+  }
+
+  @Test
   fun mapNextAction_DisplayMultibancoDetails_ReturnsVoucherUrl() {
     val result =
       mapNextAction(
