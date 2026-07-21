@@ -1,6 +1,7 @@
 package com.reactnativestripesdk.utils;
 
 import com.stripe.android.checkout.CheckoutSession;
+import com.stripe.android.checkout.PaymentOptionDisplayData;
 import com.stripe.android.paymentsheet.verticalmode.CurrencySelectorOptions;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +39,7 @@ public final class CheckoutTestFixtures {
             new CheckoutSession.ShippingRate("shr_standard", 500L, "Standard Shipping", null),
             new CheckoutSession.ShippingRate(
                 "shr_express", 1500L, "Express Shipping", "1-2 business days")),
+        (PaymentOptionDisplayData) null,
         (CurrencySelectorOptions) null);
   }
 
@@ -52,6 +54,7 @@ public final class CheckoutTestFixtures {
         null,
         Collections.<CheckoutSession.LineItem>emptyList(),
         Collections.<CheckoutSession.ShippingRate>emptyList(),
+        (PaymentOptionDisplayData) null,
         (CurrencySelectorOptions) null);
   }
 }
