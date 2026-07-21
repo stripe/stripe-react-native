@@ -51,6 +51,18 @@ export default function TwintPaymentScreen() {
         paymentMethodType: 'Twint',
         paymentMethodData: {
           billingDetails,
+          ...(recurring
+            ? {
+                mandateData: {
+                  customerAcceptance: {
+                    online: {
+                      ipAddress: '0.0.0.0',
+                      userAgent: 'React Native Stripe Example',
+                    },
+                  },
+                },
+              }
+            : {}),
         },
       },
       { setupFutureUsage: recurring ? 'OffSession' : undefined }
@@ -69,7 +81,7 @@ export default function TwintPaymentScreen() {
   };
 
   return (
-    <PaymentScreen>
+    <PaymentScreen paymentMethod="twint">
       <TextInput
         placeholder="E-mail"
         autoCapitalize="none"
@@ -84,6 +96,7 @@ export default function TwintPaymentScreen() {
         title="Pay"
         accessibilityLabel="Pay"
         loading={loading}
+        disabled={loading}
       />
       <View style={styles.row}>
         <Switch
