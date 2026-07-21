@@ -599,6 +599,13 @@ RCT_EXPORT_METHOD(presentLinkController:(nonnull RCTPromiseResolveBlock)resolve
   [StripeSdkImpl.shared presentLinkController:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(confirmLinkControllerSetupIntent:(nonnull NSDictionary *)params
+                                           resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                            reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared confirmLinkControllerSetupIntent:params resolver:resolve rejecter:reject];
+}
+
 /* clang-format on */
 
 #ifdef RCT_NEW_ARCH_ENABLED

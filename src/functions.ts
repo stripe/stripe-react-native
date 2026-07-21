@@ -1007,3 +1007,29 @@ export const presentLinkController =
       return { error };
     }
   };
+
+/**
+ * Confirms a SetupIntent using the payment method from the most recent
+ * `presentLinkController` call. Must be called after a successful `presentLinkController`.
+ *
+ * Provide a fresh SetupIntent client secret for each confirmation; reusing a
+ * consumed secret will fail.
+ *
+ * @PrivatePreview This API is in private preview and may change without notice.
+ * It will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export const confirmLinkControllerSetupIntent = async (
+  clientSecret: string
+): Promise<LinkController.ConfirmSetupIntentResult> => {
+  try {
+    const { error } = await NativeStripeSdk.confirmLinkControllerSetupIntent({
+      clientSecret,
+    });
+    if (error) {
+      return { error };
+    }
+    return {};
+  } catch (error: any) {
+    return { error };
+  }
+};

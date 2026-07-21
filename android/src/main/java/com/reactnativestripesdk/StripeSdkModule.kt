@@ -2031,6 +2031,24 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun confirmLinkControllerSetupIntent(
+    params: ReadableMap,
+    promise: Promise,
+  ) {
+    val manager = linkControllerManager
+    if (manager == null) {
+      promise.resolve(createError(ErrorType.Failed.toString(), LINK_CONTROLLER_NOT_INITIALIZED_ERROR))
+      return
+    }
+    val clientSecret = params.getString("clientSecret")
+    if (clientSecret == null) {
+      promise.resolve(createError(ErrorType.Failed.toString(), "clientSecret is required."))
+      return
+    }
+    manager.confirmSetupIntent(clientSecret, promise)
+  }
+
   /**
    * React native apps do not properly handle activity re-creation so make
    * sure to dismiss any stripe ui when that happens to make sure apps stay
