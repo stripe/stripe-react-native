@@ -50,7 +50,6 @@ internal class LinkControllerManager(
 
         val phoneNumber = params.getString("phoneNumber")
         val allowLogout = if (params.hasKey("allowLogout")) params.getBoolean("allowLogout") else true
-        val setupIntentClientSecret = params.getString("setupIntentClientSecret")
 
         val supportedTypes = parseSupportedPaymentMethodTypes(params)
 
@@ -63,7 +62,6 @@ internal class LinkControllerManager(
             .phoneNumber(phoneNumber)
             .supportedPaymentMethodTypes(supportedTypes)
             .allowLogout(allowLogout)
-            .setupIntentClientSecret(setupIntentClientSecret)
 
         // Build a new controller if this is the first call or after a reset.
         // SavedStateHandle() is empty — state will not survive process death, which is
