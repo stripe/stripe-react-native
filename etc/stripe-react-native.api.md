@@ -1146,7 +1146,7 @@ type ConfirmOptions_2 = CreateOptions;
 type ConfirmOptions_3 = ConfirmOptions;
 
 // @public (undocumented)
-type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams;
+type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams | PayByBankParams;
 
 // @public (undocumented)
 type ConfirmParams_2 = CreateParams;
@@ -2795,6 +2795,16 @@ interface P24Params_2 {
     paymentMethodType: 'P24';
 }
 
+// @public (undocumented)
+type PayByBankParams = {
+    paymentMethodType: 'PayByBank';
+    paymentMethodData?: {
+        billingDetails?: BillingDetails;
+        mandateData?: MandateData;
+        metadata?: MetaData;
+    };
+};
+
 // @public
 type PaymentDisplayDataResult = {
     displayData: PaymentMethodDisplayData;
@@ -2837,6 +2847,7 @@ declare namespace PaymentIntent {
         PayPalParams,
         CashAppParams,
         RevolutPayParams,
+        PayByBankParams,
         CollectBankAccountParams_2 as CollectBankAccountParams
     }
 }
@@ -4020,7 +4031,7 @@ type TokenResult_2 = {
 };
 
 // @public (undocumented)
-type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx' | 'CardPresent' | 'SepaDebit' | 'AuBecsDebit' | 'BacsDebit' | 'P24' | 'Eps' | 'Bancontact' | 'Multibanco' | 'Oxxo' | 'USBankAccount' | 'PayPal' | 'Unknown';
+type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx' | 'CardPresent' | 'SepaDebit' | 'AuBecsDebit' | 'BacsDebit' | 'P24' | 'Eps' | 'Bancontact' | 'Multibanco' | 'Oxxo' | 'USBankAccount' | 'PayPal' | 'PayByBank' | 'Unknown';
 
 // @public (undocumented)
 type Type_2 = 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii';
@@ -4373,8 +4384,8 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:208:3 - (ae-forgotten-export) The symbol "AppearanceOptions" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
-// src/types/PaymentIntent.ts:269:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
-// src/types/PaymentMethod.ts:297:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
+// src/types/PaymentIntent.ts:270:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:298:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 // src/types/PaymentSheet.ts:124:3 - (ae-forgotten-export) The symbol "Checkout" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
