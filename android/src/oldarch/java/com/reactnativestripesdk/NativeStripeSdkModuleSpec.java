@@ -339,6 +339,10 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void confirmLinkControllerSetupIntent(ReadableMap params, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void addListener(String eventType);
 
   @ReactMethod

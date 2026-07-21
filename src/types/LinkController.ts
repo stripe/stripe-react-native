@@ -19,15 +19,12 @@ export type Configuration = {
   merchantDisplayName: string;
   /** Payment method types to support in the Link sheet. If omitted, all available types are shown. */
   supportedPaymentMethodTypes?: LinkPaymentMethodType[];
+  /** Payment method type strings to use when creating the SetupIntent. If omitted, types are chosen automatically. */
+  paymentMethodTypes?: string[];
   /** Customer phone number in E.164 format to prefill during signup. */
   phoneNumber?: string;
   /** Whether to allow the user to log out. Defaults to true. */
   allowLogout?: boolean;
-  /**
-   * Optional SetupIntent client secret. When provided, the SDK confirms the SetupIntent
-   * with the selected payment method automatically before returning.
-   */
-  setupIntentClientSecret?: string;
 };
 
 /**
@@ -50,6 +47,13 @@ export type PaymentMethodPreview = {
  * @PrivatePreview Result returned from `initLinkController`.
  */
 export type InitResult =
+  | { error?: undefined }
+  | { error: StripeError<LinkControllerError> };
+
+/**
+ * @PrivatePreview Result returned from `confirmLinkControllerSetupIntent`.
+ */
+export type ConfirmSetupIntentResult =
   | { error?: undefined }
   | { error: StripeError<LinkControllerError> };
 
