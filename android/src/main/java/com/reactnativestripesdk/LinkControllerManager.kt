@@ -33,7 +33,6 @@ internal class LinkControllerManager(
     private var linkController: LinkController? = null
     private var linkPresenter: LinkController.Presenter? = null
     private var presentPromise: Promise? = null
-    private var setupIntentClientSecret: String? = null
 
     fun configure(params: ReadableMap, promise: Promise) {
         val email = params.getString("email")
@@ -51,9 +50,8 @@ internal class LinkControllerManager(
 
         val phoneNumber = params.getString("phoneNumber")
         val allowLogout = if (params.hasKey("allowLogout")) params.getBoolean("allowLogout") else true
-        setupIntentClientSecret = params.getString("setupIntentClientSecret")
-
         val supportedTypes = parseSupportedPaymentMethodTypes(params)
+        val paymentMethodTypes = parsePaymentMethodTypes(params)
 
         val config = LinkController.Configuration(
             merchantDisplayName = merchantDisplayName,
@@ -63,6 +61,7 @@ internal class LinkControllerManager(
             .also { if (email != null) it.email(email) }
             .phoneNumber(phoneNumber)
             .supportedPaymentMethodTypes(supportedTypes)
+            .also { if (paymentMethodTypes != null) it.paymentMethodTypes(paymentMethodTypes) }
             .allowLogout(allowLogout)
 
         // Build a new controller if this is the first call or after a reset.
@@ -110,11 +109,42 @@ internal class LinkControllerManager(
         presenter.present()
     }
 
+    fun confirmSetupIntent(clientSecret: String, promise: Promise) {
+        val presenter = linkPresenter
+        if (presenter == null) {
+            promise.resolve(createError(ErrorType.Failed.toString(), LINK_CONTROLLER_NOT_INITIALIZED_ERROR))
+            return
+        }
+
+        val activity = context.currentActivity as? ComponentActivity
+        val scope = activity?.lifecycleScope
+        if (scope == null) {
+            promise.resolve(createError(ErrorType.Failed.toString(), "Activity is not available. Retry this method."))
+            return
+        }
+
+        scope.launch {
+            val confirmResult = presenter.confirmSetupIntent(clientSecret)
+            when (confirmResult) {
+                is LinkController.ConfirmSetupIntentResult.Completed -> {
+                    promise.resolve(Arguments.createMap())
+                }
+                is LinkController.ConfirmSetupIntentResult.Failed -> {
+                    promise.resolve(
+                        createError(
+                            ErrorType.Failed.toString(),
+                            confirmResult.error ?: "SetupIntent confirmation failed."
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     fun destroy() {
         linkController = null
         linkPresenter = null
         presentPromise = null
-        setupIntentClientSecret = null
     }
 
     private fun parseSupportedPaymentMethodTypes(params: ReadableMap): List<LinkController.PaymentMethodType>? =
@@ -128,15 +158,45 @@ internal class LinkControllerManager(
             }.ifEmpty { null }
         }
 
+    private fun parsePaymentMethodTypes(params: ReadableMap): List<String>? =
+        params.getArray("paymentMethodTypes")?.let { arr ->
+            (0 until arr.size()).mapNotNull { i -> arr.getString(i) }.ifEmpty { null }
+        }
+
     private fun handlePresentResult(result: LinkController.PresentResult) {
         val promise = presentPromise ?: return
         val controller = linkController ?: return
         when (result) {
-            is LinkController.PresentResult.Completed -> handleCompletedResult(
-                result,
-                promise,
-                controller
-            )
+            is LinkController.PresentResult.Completed -> {
+                val response = Arguments.createMap()
+                response.putMap("paymentMethod", mapFromPaymentMethod(result.paymentMethod))
+
+                val currentScope = (context.currentActivity as? ComponentActivity)?.lifecycleScope
+                if (currentScope != null) {
+                    currentScope.launch {
+                        val preview = controller.paymentMethodPreview.value
+                        if (preview != null) {
+                            val iconBase64 = withContext(Dispatchers.IO) {
+                                try {
+                                    convertDrawableToBase64(preview.icon)
+                                } catch (_: Exception) {
+                                    null
+                                }
+                            }
+                            val previewMap = Arguments.createMap()
+                            previewMap.putString("label", preview.label)
+                            preview.sublabel?.let { previewMap.putString("sublabel", it) }
+                            if (iconBase64 != null) {
+                                previewMap.putString("icon", "data:image/png;base64,$iconBase64")
+                            }
+                            response.putMap("paymentMethodPreview", previewMap)
+                        }
+                        promise.resolve(response)
+                    }
+                } else {
+                    promise.resolve(response)
+                }
+            }
             is LinkController.PresentResult.Canceled -> {
                 promise.resolve(
                     createError(
@@ -148,78 +208,6 @@ internal class LinkControllerManager(
             is LinkController.PresentResult.Failed -> {
                 promise.resolve(createError(ErrorType.Failed.toString(), result.error))
             }
-        }
-    }
-
-    private fun handleCompletedResult(
-        result: LinkController.PresentResult.Completed,
-        promise: Promise,
-        controller: LinkController
-    ) {
-        val response = Arguments.createMap()
-        response.putMap("paymentMethod", mapFromPaymentMethod(result.paymentMethod))
-
-        val currentScope = (context.currentActivity as? ComponentActivity)?.lifecycleScope
-            ?: run {
-                promise.resolve(response)
-                return
-            }
-
-        currentScope.launch {
-            if (!confirmSetupIntent(promise)) {
-                return@launch
-            }
-            addPaymentMethodPreview(response, controller)
-            promise.resolve(response)
-        }
-    }
-
-    private suspend fun confirmSetupIntent(promise: Promise): Boolean {
-        val clientSecret = setupIntentClientSecret ?: return true
-        val presenter = linkPresenter ?: run {
-            promise.resolve(
-                createError(
-                    ErrorType.Failed.toString(),
-                    LINK_CONTROLLER_NOT_INITIALIZED_ERROR
-                )
-            )
-            return false
-        }
-
-        val confirmResult = presenter.confirmSetupIntent(clientSecret)
-        if (confirmResult is LinkController.ConfirmSetupIntentResult.Failed) {
-            promise.resolve(
-                createError(
-                    ErrorType.Failed.toString(),
-                    confirmResult.error ?: "SetupIntent confirmation failed."
-                )
-            )
-            return false
-        }
-        return true
-    }
-
-    private suspend fun addPaymentMethodPreview(
-        response: com.facebook.react.bridge.WritableMap,
-        controller: LinkController
-    ) {
-        val preview = controller.paymentMethodPreview.value ?: return
-        val previewMap = Arguments.createMap()
-        previewMap.putString("label", preview.label)
-        preview.sublabel?.let { previewMap.putString("sublabel", it) }
-        encodePaymentMethodPreviewIcon(preview)?.let { iconBase64 ->
-            previewMap.putString("icon", "data:image/png;base64,$iconBase64")
-        }
-        response.putMap("paymentMethodPreview", previewMap)
-    }
-
-    private suspend fun encodePaymentMethodPreviewIcon(
-        preview: LinkController.PaymentMethodPreview
-    ): String? = withContext(Dispatchers.IO) {
-        try {
-            convertDrawableToBase64(preview.icon)
-        } catch (_: Exception) {
-            null
         }
     }
 }
