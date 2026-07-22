@@ -25,6 +25,7 @@ import { render, waitFor, act } from '@testing-library/react-native';
 import { Platform, AppState } from 'react-native';
 import {
   EmbeddedComponent,
+  isAllowedStripeHost,
   toStripeJsBankAccountToken,
 } from '../EmbeddedComponent';
 import {
@@ -438,6 +439,42 @@ describe('EmbeddedComponent', () => {
         routing_number: null,
         status: null,
       });
+    });
+  });
+
+  describe('isAllowedStripeHost', () => {
+    it('allows exact Stripe hosts', () => {
+      expect(
+        isAllowedStripeHost(
+          'https://connect-js.stripe.com/v1.0/react_native_webview.html'
+        )
+      ).toBe(true);
+      expect(isAllowedStripeHost('https://connect.stripe.com/path')).toBe(true);
+      expect(isAllowedStripeHost('https://verify.stripe.com/verify')).toBe(
+        true
+      );
+    });
+
+    it('rejects non-Stripe hosts, including those containing Stripe hostnames in path or query', () => {
+      expect(
+        isAllowedStripeHost(
+          'https://example.com/connect-bridge?next=https%3A%2F%2Fconnect-js.stripe.com'
+        )
+      ).toBe(false);
+      expect(
+        isAllowedStripeHost('https://connect-js.stripe.com.example.com/path')
+      ).toBe(false);
+      expect(
+        isAllowedStripeHost('https://example.com/?redirect=connect.stripe.com')
+      ).toBe(false);
+      expect(
+        isAllowedStripeHost('https://example.com/connect-js.stripe.com/payload')
+      ).toBe(false);
+    });
+
+    it('rejects malformed or empty URLs', () => {
+      expect(isAllowedStripeHost('not-a-url')).toBe(false);
+      expect(isAllowedStripeHost('')).toBe(false);
     });
   });
 });
