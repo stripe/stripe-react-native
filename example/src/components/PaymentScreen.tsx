@@ -25,7 +25,11 @@ const PaymentScreen: React.FC<Props> = ({
           publishableKey,
           merchantIdentifier: 'merchant.com.stripe.react.native',
           urlScheme: 'com.stripe.react.native',
-          setReturnUrlSchemeOnAndroid: true,
+          // For Pay by Bank, leave the Android return URL unset so stripe-android's
+          // DefaultReturnUrl and StripeBrowserProxyReturnActivity can relay the Custom Tab
+          // result back to PaymentLauncher. Setting this routes `urlScheme://safepay`
+          // directly to the React Native activity and bypasses that relay.
+          setReturnUrlSchemeOnAndroid: paymentMethod !== 'pay_by_bank',
         });
         setLoading(false);
         onInit?.();

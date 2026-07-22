@@ -1146,7 +1146,7 @@ type ConfirmOptions_2 = CreateOptions;
 type ConfirmOptions_3 = ConfirmOptions;
 
 // @public (undocumented)
-type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams | TwintParams;
+type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams | PayByBankParams | TwintParams;
 
 // @public (undocumented)
 type ConfirmParams_2 = CreateParams;
@@ -2795,6 +2795,16 @@ interface P24Params_2 {
     paymentMethodType: 'P24';
 }
 
+// @public (undocumented)
+type PayByBankParams = {
+    paymentMethodType: 'PayByBank';
+    paymentMethodData?: {
+        billingDetails?: BillingDetails;
+        mandateData?: MandateData;
+        metadata?: MetaData;
+    };
+};
+
 // @public
 type PaymentDisplayDataResult = {
     displayData: PaymentMethodDisplayData;
@@ -2838,6 +2848,7 @@ declare namespace PaymentIntent {
         PayPalParams,
         CashAppParams,
         RevolutPayParams,
+        PayByBankParams,
         CollectBankAccountParams_2 as CollectBankAccountParams
     }
 }
@@ -4033,7 +4044,7 @@ interface TwintParams {
 }
 
 // @public (undocumented)
-type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx' | 'CardPresent' | 'SepaDebit' | 'AuBecsDebit' | 'BacsDebit' | 'P24' | 'Eps' | 'Bancontact' | 'Multibanco' | 'Oxxo' | 'USBankAccount' | 'PayPal' | 'Unknown';
+type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx' | 'CardPresent' | 'SepaDebit' | 'AuBecsDebit' | 'BacsDebit' | 'P24' | 'Eps' | 'Bancontact' | 'Multibanco' | 'Oxxo' | 'USBankAccount' | 'PayPal' | 'PayByBank' | 'Unknown';
 
 // @public (undocumented)
 type Type_2 = 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii';

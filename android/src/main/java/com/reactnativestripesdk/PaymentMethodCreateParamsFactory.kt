@@ -57,6 +57,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.CashAppPay -> createCashAppParams()
         PaymentMethod.Type.RevolutPay -> createRevolutPayParams()
         PaymentMethod.Type.Twint -> createTwintParams()
+        PaymentMethod.Type.PayByBank -> createPayByBankParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -271,6 +272,12 @@ class PaymentMethodCreateParamsFactory(
       metadata = metadataParams,
     )
 
+  private fun createPayByBankParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createPayByBank(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams,
+    )
+
   @Throws(PaymentMethodCreateParamsException::class)
   fun createParams(
     clientSecret: String,
@@ -303,6 +310,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.CashAppPay,
         PaymentMethod.Type.RevolutPay,
         PaymentMethod.Type.Twint,
+        PaymentMethod.Type.PayByBank,
         -> {
           val params = createPaymentMethodParams(paymentMethodType)
 

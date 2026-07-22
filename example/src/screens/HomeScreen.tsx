@@ -558,6 +558,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Pay by Bank"
+              onPress={() => {
+                navigation.navigate('PayByBankScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="WeChat Pay"
               onPress={() => {
                 // navigation.navigate('WeChatPaymentScreen');

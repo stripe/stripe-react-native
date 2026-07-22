@@ -304,6 +304,7 @@ class Mappers {
         case STPPaymentMethodType.affirm: return "Affirm"
         case STPPaymentMethodType.cashApp: return "CashApp"
         case STPPaymentMethodType.revolutPay: return "RevolutPay"
+        case STPPaymentMethodType.payByBank: return "PayByBank"
         case STPPaymentMethodType.link: return "Link"
         case STPPaymentMethodType.twint: return "Twint"
         case STPPaymentMethodType.unknown: return "Unknown"
@@ -339,6 +340,7 @@ class Mappers {
             case "CashApp": return STPPaymentMethodType.cashApp
             case "RevolutPay": return STPPaymentMethodType.revolutPay
             case "Twint": return STPPaymentMethodType.twint
+            case "PayByBank": return STPPaymentMethodType.payByBank
             case "Link": return STPPaymentMethodType.link
             default: return STPPaymentMethodType.unknown
             }

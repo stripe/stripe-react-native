@@ -358,6 +358,7 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .affirm), "Affirm")
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .cashApp), "CashApp")
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .klarna), "Klarna")
+        XCTAssertEqual(Mappers.mapPaymentMethodType(type: .payByBank), "PayByBank")
     }
 
     func test_mapToPaymentMethodType_allValidStrings_returnsCorrectTypes() {
@@ -371,6 +372,7 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "Affirm"), STPPaymentMethodType.affirm)
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "CashApp"), STPPaymentMethodType.cashApp)
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "Klarna"), STPPaymentMethodType.klarna)
+        XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "PayByBank"), STPPaymentMethodType.payByBank)
     }
 
     func test_mapToPaymentMethodType_invalidString_returnsUnknown() {
