@@ -1146,7 +1146,7 @@ type ConfirmOptions_2 = CreateOptions;
 type ConfirmOptions_3 = ConfirmOptions;
 
 // @public (undocumented)
-type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams | PayByBankParams | TwintParams;
+type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams | TwintParams | PayByBankParams;
 
 // @public (undocumented)
 type ConfirmParams_2 = CreateParams;
@@ -4397,8 +4397,8 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:208:3 - (ae-forgotten-export) The symbol "AppearanceOptions" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
-// src/types/PaymentIntent.ts:279:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
-// src/types/PaymentMethod.ts:297:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
+// src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:298:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 // src/types/PaymentSheet.ts:124:3 - (ae-forgotten-export) The symbol "Checkout" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
