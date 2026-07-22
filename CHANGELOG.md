@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.71.0 - 2026-07-22
 **Features**
 * [Added] Added support for the Pay by Bank payment method (`paymentMethodType: 'PayByBank'`) in `confirmPayment` and `confirmSetupIntent`.
 
