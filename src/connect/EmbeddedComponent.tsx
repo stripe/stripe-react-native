@@ -754,7 +754,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       if (navigationType !== 'click') return true;
 
       // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
-      if (ALLOWED_STRIPE_HOSTS.some((host) => url.includes(host))) {
+      if (isAllowedStripeHost(url)) {
         return true; // Allow in-WebView navigation
       }
 
@@ -865,12 +865,24 @@ function isValidUrl(url: string): boolean {
   }
 }
 
+export function isAllowedStripeHost(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return ALLOWED_STRIPE_HOSTS.some(
+      (host) => parsedUrl.hostname === host || parsedUrl.host === host
+    );
+  } catch {
+    return false;
+  }
+}
+
 // Detects Stripe CSV export URLs
 function isCsvExportUrl(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
     return (
-      parsedUrl.hostname.includes('stripe-data-exports') ||
+      parsedUrl.hostname === 'stripe-data-exports.com' ||
+      parsedUrl.hostname.endsWith('.stripe-data-exports.com') ||
       parsedUrl.pathname.includes('stripe-data-exports')
     );
   } catch {
