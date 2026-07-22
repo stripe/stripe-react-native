@@ -124,8 +124,7 @@ class PaymentMethodFactory {
                 return nil
             case STPPaymentMethodType.revolutPay:
                 return nil
-            case STPPaymentMethodType.payByBank:
-            case STPPaymentMethodType.twint:
+            case STPPaymentMethodType.payByBank, STPPaymentMethodType.twint:
                 return nil
             default:
                 throw PaymentMethodError.paymentNotSupported
