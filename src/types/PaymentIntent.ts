@@ -52,7 +52,7 @@ export type ConfirmParams =
   | AffirmParams
   | CashAppParams
   | RevolutPayParams
-  | TwintParams;
+  | TwintParams
   | PayByBankParams;
 
 export type ConfirmOptions = PaymentMethod.ConfirmOptions;
