@@ -183,21 +183,8 @@ extension StripeSdkImpl {
             }
         }
 
-        if let checkout = params["checkout"] as? NSDictionary,
-          let sessionKey = checkout["sessionKey"] as? String {
-            guard let checkout = checkoutInstances[sessionKey] else {
-                resolve(Errors.createError(ErrorType.Failed, "Checkout session not found"))
-                return
-            }
-
-            if params["customFlow"] as? Bool == true {
-                PaymentSheet.FlowController.create(checkout: checkout,
-                                                   configuration: configuration) { [weak self] result in
-                    handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
-                }
-            } else {
-                resolve(Errors.createError(ErrorType.Failed, "PaymentSheet with checkout is not supported. Use customFlow: true instead."))
-            }
+        if params["checkout"] != nil {
+            resolve(Errors.createError(ErrorType.Failed, StripeSdkImpl.checkoutUnavailableMessage))
         } else if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
             if !Errors.isPIClientSecretValid(clientSecret: paymentIntentClientSecret) {
                 resolve(Errors.createError(ErrorType.Failed, "`secret` format does not match expected client secret formatting."))

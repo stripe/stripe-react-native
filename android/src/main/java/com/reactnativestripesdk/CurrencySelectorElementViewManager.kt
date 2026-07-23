@@ -1,16 +1,13 @@
 package com.reactnativestripesdk
 
 import com.facebook.react.bridge.Dynamic
-import com.facebook.react.bridge.ReadableType
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.StripeCurrencySelectorElementManagerDelegate
 import com.facebook.react.viewmanagers.StripeCurrencySelectorElementManagerInterface
-import com.stripe.android.paymentelement.CheckoutSessionPreview
 
-@OptIn(CheckoutSessionPreview::class)
 @ReactModule(name = CurrencySelectorElementViewManager.NAME)
 class CurrencySelectorElementViewManager :
   ViewGroupManager<CurrencySelectorElementView>(),
@@ -64,7 +61,6 @@ class CurrencySelectorElementViewManager :
     view: CurrencySelectorElementView,
     value: Dynamic?,
   ) {
-    val appearanceParams = if (value?.type == ReadableType.Map) value.asMap() else null
-    view.setAppearance(buildCurrencySelectorAppearance(appearanceParams, view.context))
+    view.setAppearance()
   }
 }
