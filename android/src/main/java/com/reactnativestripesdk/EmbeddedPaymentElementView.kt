@@ -25,9 +25,7 @@ import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
-import com.stripe.android.checkout.Checkout
 import com.stripe.android.model.PaymentMethod
-import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.paymentelement.CustomPaymentMethodResult
 import com.stripe.android.paymentelement.CustomPaymentMethodResultHandler
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
@@ -45,7 +43,6 @@ enum class RowSelectionBehaviorType {
   ImmediateAction,
 }
 
-@OptIn(CheckoutSessionPreview::class)
 class EmbeddedPaymentElementView(
   context: Context,
 ) : StripeAbstractComposeView(context) {
@@ -53,11 +50,6 @@ class EmbeddedPaymentElementView(
     data class Configure(
       val configuration: EmbeddedPaymentElement.Configuration,
       val intentConfiguration: PaymentSheet.IntentConfiguration,
-    ) : Event
-
-    data class ConfigureWithCheckout(
-      val configuration: EmbeddedPaymentElement.Configuration,
-      val checkout: Checkout,
     ) : Event
 
     data class Update(
@@ -71,8 +63,6 @@ class EmbeddedPaymentElementView(
 
   var latestIntentConfig: PaymentSheet.IntentConfiguration? = null
   var latestElementConfig: EmbeddedPaymentElement.Configuration? = null
-  var latestCheckout: Checkout? = null
-
   val rowSelectionBehaviorType = mutableStateOf<RowSelectionBehaviorType?>(null)
   val useConfirmationTokenCallback = mutableStateOf(false)
 
@@ -320,15 +310,6 @@ class EmbeddedPaymentElementView(
             )
           }
 
-          is Event.ConfigureWithCheckout -> {
-            handleConfigureResult(
-              embedded.configure(
-                checkout = ev.checkout,
-                configuration = ev.configuration,
-              ),
-            )
-          }
-
           is Event.Update -> {
             val elemConfig = latestElementConfig ?: return@collect emitUpdateMissingConfiguration()
 
@@ -475,13 +456,6 @@ class EmbeddedPaymentElementView(
     intentConfig: PaymentSheet.IntentConfiguration,
   ) {
     events.trySend(Event.Configure(config, intentConfig))
-  }
-
-  fun configureWithCheckout(
-    config: EmbeddedPaymentElement.Configuration,
-    checkout: Checkout,
-  ) {
-    events.trySend(Event.ConfigureWithCheckout(config, checkout))
   }
 
   fun update(intentConfig: PaymentSheet.IntentConfiguration) {

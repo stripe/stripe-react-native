@@ -39,10 +39,8 @@ import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
-import com.stripe.android.checkout.Checkout
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.model.PaymentMethod
-import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
 import com.stripe.android.paymentelement.CreateIntentWithConfirmationTokenCallback
 import com.stripe.android.paymentelement.CustomPaymentMethodResult
@@ -69,13 +67,11 @@ import kotlin.coroutines.resume
   ReactNativeSdkInternal::class,
   ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
   CardFundingFilteringPrivatePreview::class,
-  CheckoutSessionPreview::class,
 )
 class PaymentSheetManager(
   context: ReactApplicationContext,
   private val arguments: ReadableMap,
   private val initPromise: Promise,
-  private val checkoutInstances: Map<String, Checkout>,
 ) : StripeUIManager(context),
   ConfirmCustomPaymentMethodCallback {
   private var paymentSheet: PaymentSheet? = null
@@ -83,7 +79,6 @@ class PaymentSheetManager(
   private var paymentIntentClientSecret: String? = null
   private var setupIntentClientSecret: String? = null
   private var intentConfiguration: PaymentSheet.IntentConfiguration? = null
-  private var checkoutSessionKey: String? = null
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
   private var confirmPromise: Promise? = null
   private var paymentSheetTimedOut = false
@@ -101,21 +96,22 @@ class PaymentSheetManager(
     super.onDestroy()
     flowController = null
     paymentSheet = null
-    checkoutSessionKey = null
   }
 
   fun configure(
     args: ReadableMap,
     promise: Promise,
   ) {
+    if (args.hasKey("checkout")) {
+      promise.resolve(createCheckoutUnavailableError())
+      return
+    }
+
     val merchantDisplayName = args.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
       promise.resolve(
         createError(ErrorType.Failed.toString(), "merchantDisplayName cannot be empty or null."),
       )
-      return
-    }
-    if (!resolveCheckoutSessionOrReturn(args, promise)) {
       return
     }
 
@@ -189,21 +185,6 @@ class PaymentSheetManager(
     configureMode(args, promise)
   }
 
-  private fun resolveCheckoutSessionOrReturn(
-    args: ReadableMap,
-    promise: Promise,
-  ): Boolean {
-    checkoutSessionKey = args.getMap("checkout")?.getString("sessionKey")
-    val checkoutSessionKey = checkoutSessionKey ?: return true
-    checkoutInstances[checkoutSessionKey] ?: run {
-      promise.resolve(
-        createError(ErrorType.Failed.toString(), "Checkout session not found."),
-      )
-      return false
-    }
-    return true
-  }
-
   private inline fun <T> resolvePaymentSheetValue(
     promise: Promise,
     builder: () -> T,
@@ -236,16 +217,6 @@ class PaymentSheetManager(
         initFlowController(args, promise)
       }
       configureFlowController(promise)
-      return
-    }
-
-    if (checkoutSessionKey != null) {
-      promise.resolve(
-        createError(
-          ErrorType.Failed.toString(),
-          "PaymentSheet with checkout is not supported. Use customFlow: true instead.",
-        ),
-      )
       return
     }
 
@@ -525,14 +496,7 @@ class PaymentSheetManager(
         handleFlowControllerConfigured(success, error, promise, flowController)
       }
 
-    val checkout = getCheckoutInstanceOrResolveError(promise)
-    if (checkout != null) {
-      flowController?.configureWithCheckout(
-        checkout = checkout,
-        configuration = paymentSheetConfiguration,
-        callback = onFlowControllerConfigure,
-      )
-    } else if (!paymentIntentClientSecret.isNullOrEmpty()) {
+    if (!paymentIntentClientSecret.isNullOrEmpty()) {
       flowController?.configureWithPaymentIntent(
         paymentIntentClientSecret = paymentIntentClientSecret!!,
         configuration = paymentSheetConfiguration,
@@ -558,14 +522,6 @@ class PaymentSheetManager(
         ),
       )
       return
-    }
-  }
-
-  private fun getCheckoutInstanceOrResolveError(promise: Promise?): Checkout? {
-    val checkoutSessionKey = checkoutSessionKey ?: return null
-    return checkoutInstances[checkoutSessionKey] ?: run {
-      promise?.resolve(createError(ErrorType.Failed.toString(), "Checkout session not found."))
-      null
     }
   }
 
