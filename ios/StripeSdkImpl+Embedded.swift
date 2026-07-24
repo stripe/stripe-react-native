@@ -71,36 +71,13 @@ extension StripeSdkImpl {
 
   @objc(createEmbeddedPaymentElementWithCheckout:configuration:resolve:reject:)
   public func createEmbeddedPaymentElementWithCheckout(
-    sessionKey: String,
-    configuration: NSDictionary,
+    sessionKey _: String,
+    configuration _: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
-    reject: @escaping RCTPromiseRejectBlock
+    reject _: @escaping RCTPromiseRejectBlock
   ) {
-    guard let checkout = checkoutInstances[sessionKey] else {
-      emitLoadingFailed(message: "Checkout session not found")
-      resolve(nil)
-      return
-    }
-
-    guard let configuration = buildEmbeddedPaymentElementConfiguration(params: configuration).configuration else {
-      emitLoadingFailed(message: "Invalid configuration")
-      resolve(nil)
-      return
-    }
-
-    Task {
-      do {
-        let embeddedPaymentElement = try await EmbeddedPaymentElement.create(
-          checkout: checkout,
-          configuration: configuration
-        )
-        attachEmbedded(embeddedPaymentElement)
-        resolve(nil)
-      } catch {
-        emitLoadingFailed(error: error)
-        resolve(nil)
-      }
-    }
+    emitLoadingFailed(message: StripeSdkImpl.checkoutUnavailableMessage)
+    resolve(nil)
   }
 
   /// Wires up a freshly created element and emits its initial height /
