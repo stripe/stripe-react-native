@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.lifecycleScope
@@ -33,7 +34,9 @@ internal class LinkControllerManager(
     private var linkController: LinkController? = null
     private var linkPresenter: LinkController.Presenter? = null
     private var presentPromise: Promise? = null
+    private var confirmSetupIntentPromise: Promise? = null
 
+    @SuppressLint("RestrictedApi", "VisibleForTests")
     fun configure(params: ReadableMap, promise: Promise) {
         val email = params.getString("email")
         val merchantDisplayName = params.getString("merchantDisplayName")
@@ -83,7 +86,11 @@ internal class LinkControllerManager(
                 if (linkPresenter == null) {
                     linkPresenter = controller.createPresenter(
                         activity = activity,
-                        presentCallback = { presentResult -> handlePresentResult(presentResult) }
+                        presentPaymentMethodsCallback = { },
+                        authenticationCallback = { },
+                        authorizeCallback = { },
+                        presentCallback = { presentResult -> handlePresentResult(presentResult) },
+                        confirmSetupIntentCallback = { result -> handleConfirmSetupIntentResult(result) }
                     )
                 }
                 promise.resolve(Arguments.createMap())
@@ -116,34 +123,15 @@ internal class LinkControllerManager(
             return
         }
 
-        val activity = context.currentActivity as? ComponentActivity
-        val scope = activity?.lifecycleScope
-        if (scope == null) {
-            promise.resolve(createError(ErrorType.Failed.toString(), "Activity is not available. Retry this method."))
-            return
-        }
-
-        scope.launch {
-            val confirmResult = presenter.confirmSetupIntent(clientSecret)
-            when (confirmResult) {
-                is LinkController.ConfirmSetupIntentResult.Success -> {
-                    promise.resolve(Arguments.createMap())
-                }
-                is LinkController.ConfirmSetupIntentResult.Canceled -> {
-                    val error = createError(ErrorType.Canceled.toString(), "SetupIntent confirmation was canceled.")
-                    promise.resolve(error)
-                }
-                is LinkController.ConfirmSetupIntentResult.Failed -> {
-                    promise.resolve(createError(ErrorType.Failed.toString(), confirmResult.error))
-                }
-            }
-        }
+        confirmSetupIntentPromise = promise
+        presenter.confirmSetupIntent(clientSecret)
     }
 
     fun destroy() {
         linkController = null
         linkPresenter = null
         presentPromise = null
+        confirmSetupIntentPromise = null
     }
 
     private fun parseSupportedPaymentMethodTypes(params: ReadableMap): List<LinkController.PaymentMethodType>? =
@@ -161,6 +149,22 @@ internal class LinkControllerManager(
         params.getArray("paymentMethodTypes")?.let { arr ->
             (0 until arr.size()).mapNotNull { i -> arr.getString(i) }.ifEmpty { null }
         }
+
+    private fun handleConfirmSetupIntentResult(result: LinkController.ConfirmSetupIntentResult) {
+        val promise = confirmSetupIntentPromise ?: return
+        confirmSetupIntentPromise = null
+        when (result) {
+            is LinkController.ConfirmSetupIntentResult.Success -> {
+                promise.resolve(Arguments.createMap())
+            }
+            is LinkController.ConfirmSetupIntentResult.Canceled -> {
+                promise.resolve(createError(ErrorType.Canceled.toString(), "SetupIntent confirmation was canceled."))
+            }
+            is LinkController.ConfirmSetupIntentResult.Failed -> {
+                promise.resolve(createError(ErrorType.Failed.toString(), result.error))
+            }
+        }
+    }
 
     private fun handlePresentResult(result: LinkController.PresentResult) {
         val promise = presentPromise ?: return

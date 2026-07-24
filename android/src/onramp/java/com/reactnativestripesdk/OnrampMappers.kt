@@ -333,6 +333,7 @@ private fun mapFromComplianceIdentifierTypes(
     }
   }
 
+@SuppressLint("RestrictedApi")
 private fun mapFromCountryCodes(
   countryCodes: List<CountryCode>,
 ): WritableArray =
