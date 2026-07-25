@@ -17,8 +17,13 @@ interface Props {
 }
 
 const ConnectScreen: React.FC<Props> = ({ children }) => {
-  const { publishableKey, selectedMerchant, backendUrl, appearancePreset } =
-    useSettings();
+  const {
+    publishableKey,
+    selectedMerchant,
+    backendUrl,
+    appearancePreset,
+    locale,
+  } = useSettings();
 
   const customFont = getCustomFont();
 
@@ -50,9 +55,13 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
         variables: appearanceVariables,
       },
       fonts: customFont ? [customFont] : undefined,
+      locale,
     });
 
     setStripeConnectInstance(instance);
+    // `locale` is applied live via the update() effect below, so it is
+    // excluded here to avoid re-initializing (and reloading) the instance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     publishableKey,
     selectedMerchant?.merchant_id,
@@ -72,6 +81,13 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
       });
     }
   }, [stripeConnectInstance, appearancePreset]);
+
+  // Update locale live when the language toggle changes it
+  useEffect(() => {
+    if (stripeConnectInstance) {
+      stripeConnectInstance.update({ locale });
+    }
+  }, [stripeConnectInstance, locale]);
 
   if (!stripeConnectInstance) {
     return (

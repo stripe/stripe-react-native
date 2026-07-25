@@ -220,7 +220,16 @@ export const STORAGE_KEYS = {
   ONBOARDING_SETTINGS: '@stripe_connect_demo:onboarding_settings',
   PAYMENTS_FILTER_SETTINGS: '@stripe_connect_demo:payments_filter_settings',
   VIEW_CONTROLLER_SETTINGS: '@stripe_connect_demo:view_controller_settings',
+  LOCALE: '@stripe_connect_demo:locale',
 };
+
+// Locales available via the in-app language toggle.
+export const DEFAULT_LOCALE = 'en';
+
+export const LOCALE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'en', label: 'EN' },
+  { value: 'ja', label: '日本語' },
+];
 
 // Export appearance preset names as an array
 export const APPEARANCE_PRESET_NAMES = Object.keys(

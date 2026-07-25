@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery } from '@tanstack/react-query';
 import {
   DEFAULT_BACKEND_URL,
+  DEFAULT_LOCALE,
   DEFAULT_ONBOARDING_SETTINGS,
   DEFAULT_PAYMENTS_FILTER_SETTINGS,
   DEFAULT_VIEW_CONTROLLER_SETTINGS,
@@ -28,6 +29,7 @@ interface SettingsContextType {
   selectedMerchant: MerchantInfo | null;
   backendUrl: string;
   appearancePreset: AppearancePreset;
+  locale: string;
   onboardingSettings: OnboardingSettings;
   paymentsFilterSettings: PaymentsFilterSettings;
   viewControllerSettings: ViewControllerSettings;
@@ -37,6 +39,7 @@ interface SettingsContextType {
   setSelectedMerchant: (merchant: MerchantInfo) => Promise<void>;
   setBackendUrl: (url: string) => Promise<void>;
   setAppearancePreset: (preset: AppearancePreset) => Promise<void>;
+  setLocale: (locale: string) => Promise<void>;
   setOnboardingSettings: (settings: OnboardingSettings) => Promise<void>;
   setPaymentsFilterSettings: (
     settings: PaymentsFilterSettings
@@ -65,6 +68,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     useState<string>(DEFAULT_BACKEND_URL);
   const [appearancePreset, setAppearancePresetState] =
     useState<AppearancePreset>('Default');
+  const [locale, setLocaleState] = useState<string>(DEFAULT_LOCALE);
   const [onboardingSettings, setOnboardingSettingsState] =
     useState<OnboardingSettings>(DEFAULT_ONBOARDING_SETTINGS);
   const [paymentsFilterSettings, setPaymentsFilterSettingsState] =
@@ -140,6 +144,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
         storedOnboarding,
         storedPaymentsFilter,
         storedViewController,
+        storedLocale,
       ] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.SELECTED_MERCHANT_ID),
         AsyncStorage.getItem(STORAGE_KEYS.BACKEND_URL),
@@ -147,6 +152,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
         AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING_SETTINGS),
         AsyncStorage.getItem(STORAGE_KEYS.PAYMENTS_FILTER_SETTINGS),
         AsyncStorage.getItem(STORAGE_KEYS.VIEW_CONTROLLER_SETTINGS),
+        AsyncStorage.getItem(STORAGE_KEYS.LOCALE),
       ]);
 
       if (storedMerchantId) {
@@ -166,6 +172,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
       }
       if (storedViewController) {
         setViewControllerSettingsState(JSON.parse(storedViewController));
+      }
+      if (storedLocale) {
+        setLocaleState(storedLocale);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -190,6 +199,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
   const setAppearancePreset = async (preset: AppearancePreset) => {
     setAppearancePresetState(preset);
     await AsyncStorage.setItem(STORAGE_KEYS.APPEARANCE_PRESET, preset);
+  };
+
+  const setLocale = async (newLocale: string) => {
+    setLocaleState(newLocale);
+    await AsyncStorage.setItem(STORAGE_KEYS.LOCALE, newLocale);
   };
 
   const setOnboardingSettings = async (settings: OnboardingSettings) => {
@@ -242,6 +256,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
         selectedMerchant,
         backendUrl,
         appearancePreset,
+        locale,
         onboardingSettings,
         paymentsFilterSettings,
         viewControllerSettings,
@@ -251,6 +266,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
         setSelectedMerchant,
         setBackendUrl,
         setAppearancePreset,
+        setLocale,
         setOnboardingSettings,
         setPaymentsFilterSettings,
         setViewControllerSettings,
