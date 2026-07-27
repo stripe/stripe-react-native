@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.lifecycleScope
@@ -33,7 +34,9 @@ internal class LinkControllerManager(
     private var linkController: LinkController? = null
     private var linkPresenter: LinkController.Presenter? = null
     private var presentPromise: Promise? = null
+    private var confirmSetupIntentPromise: Promise? = null
 
+    @SuppressLint("RestrictedApi", "VisibleForTests")
     fun configure(params: ReadableMap, promise: Promise) {
         val email = params.getString("email")
         val merchantDisplayName = params.getString("merchantDisplayName")
@@ -50,9 +53,8 @@ internal class LinkControllerManager(
 
         val phoneNumber = params.getString("phoneNumber")
         val allowLogout = if (params.hasKey("allowLogout")) params.getBoolean("allowLogout") else true
-        val setupIntentClientSecret = params.getString("setupIntentClientSecret")
-
         val supportedTypes = parseSupportedPaymentMethodTypes(params)
+        val paymentMethodTypes = parsePaymentMethodTypes(params)
 
         val config = LinkController.Configuration(
             merchantDisplayName = merchantDisplayName,
@@ -62,8 +64,8 @@ internal class LinkControllerManager(
             .also { if (email != null) it.email(email) }
             .phoneNumber(phoneNumber)
             .supportedPaymentMethodTypes(supportedTypes)
+            .also { if (paymentMethodTypes != null) it.paymentMethodTypes(paymentMethodTypes) }
             .allowLogout(allowLogout)
-            .setupIntentClientSecret(setupIntentClientSecret)
 
         // Build a new controller if this is the first call or after a reset.
         // SavedStateHandle() is empty — state will not survive process death, which is
@@ -84,7 +86,11 @@ internal class LinkControllerManager(
                 if (linkPresenter == null) {
                     linkPresenter = controller.createPresenter(
                         activity = activity,
-                        presentCallback = { presentResult -> handlePresentResult(presentResult) }
+                        presentPaymentMethodsCallback = { },
+                        authenticationCallback = { },
+                        authorizeCallback = { },
+                        presentCallback = { presentResult -> handlePresentResult(presentResult) },
+                        confirmSetupIntentCallback = { result -> handleConfirmSetupIntentResult(result) }
                     )
                 }
                 promise.resolve(Arguments.createMap())
@@ -110,10 +116,22 @@ internal class LinkControllerManager(
         presenter.present()
     }
 
+    fun confirmSetupIntent(clientSecret: String, promise: Promise) {
+        val presenter = linkPresenter
+        if (presenter == null) {
+            promise.resolve(createError(ErrorType.Failed.toString(), LINK_CONTROLLER_NOT_INITIALIZED_ERROR))
+            return
+        }
+
+        confirmSetupIntentPromise = promise
+        presenter.confirmSetupIntent(clientSecret)
+    }
+
     fun destroy() {
         linkController = null
         linkPresenter = null
         presentPromise = null
+        confirmSetupIntentPromise = null
     }
 
     private fun parseSupportedPaymentMethodTypes(params: ReadableMap): List<LinkController.PaymentMethodType>? =
@@ -127,6 +145,27 @@ internal class LinkControllerManager(
             }.ifEmpty { null }
         }
 
+    private fun parsePaymentMethodTypes(params: ReadableMap): List<String>? =
+        params.getArray("paymentMethodTypes")?.let { arr ->
+            (0 until arr.size()).mapNotNull { i -> arr.getString(i) }.ifEmpty { null }
+        }
+
+    private fun handleConfirmSetupIntentResult(result: LinkController.ConfirmSetupIntentResult) {
+        val promise = confirmSetupIntentPromise ?: return
+        confirmSetupIntentPromise = null
+        when (result) {
+            is LinkController.ConfirmSetupIntentResult.Success -> {
+                promise.resolve(Arguments.createMap())
+            }
+            is LinkController.ConfirmSetupIntentResult.Canceled -> {
+                promise.resolve(createError(ErrorType.Canceled.toString(), "SetupIntent confirmation was canceled."))
+            }
+            is LinkController.ConfirmSetupIntentResult.Failed -> {
+                promise.resolve(createError(ErrorType.Failed.toString(), result.error))
+            }
+        }
+    }
+
     private fun handlePresentResult(result: LinkController.PresentResult) {
         val promise = presentPromise ?: return
         val controller = linkController ?: return
@@ -135,24 +174,26 @@ internal class LinkControllerManager(
                 val response = Arguments.createMap()
                 response.putMap("paymentMethod", mapFromPaymentMethod(result.paymentMethod))
 
-                val preview = controller.paymentMethodPreview.value
                 val currentScope = (context.currentActivity as? ComponentActivity)?.lifecycleScope
-                if (preview != null && currentScope != null) {
+                if (currentScope != null) {
                     currentScope.launch {
-                        val iconBase64 = withContext(Dispatchers.IO) {
-                            try {
-                                convertDrawableToBase64(preview.icon)
-                            } catch (_: Exception) {
-                                null
+                        val preview = controller.paymentMethodPreview.value
+                        if (preview != null) {
+                            val iconBase64 = withContext(Dispatchers.IO) {
+                                try {
+                                    convertDrawableToBase64(preview.icon)
+                                } catch (_: Exception) {
+                                    null
+                                }
                             }
+                            val previewMap = Arguments.createMap()
+                            previewMap.putString("label", preview.label)
+                            preview.sublabel?.let { previewMap.putString("sublabel", it) }
+                            if (iconBase64 != null) {
+                                previewMap.putString("icon", "data:image/png;base64,$iconBase64")
+                            }
+                            response.putMap("paymentMethodPreview", previewMap)
                         }
-                        val previewMap = Arguments.createMap()
-                        previewMap.putString("label", preview.label)
-                        preview.sublabel?.let { previewMap.putString("sublabel", it) }
-                        if (iconBase64 != null) {
-                            previewMap.putString("icon", "data:image/png;base64,$iconBase64")
-                        }
-                        response.putMap("paymentMethodPreview", previewMap)
                         promise.resolve(response)
                     }
                 } else {

@@ -282,6 +282,11 @@ export interface Spec extends TurboModule {
   /** @PrivatePreview */
   presentLinkController(): Promise<UnsafeObject<LinkController.PresentResult>>;
 
+  /** @PrivatePreview */
+  confirmLinkControllerSetupIntent(
+    params: UnsafeObject<{ clientSecret: string }>
+  ): Promise<UnsafeObject<LinkController.ConfirmSetupIntentResult>>;
+
   // Events
   addListener: (eventType: string) => void;
   removeListeners: (count: number) => void;

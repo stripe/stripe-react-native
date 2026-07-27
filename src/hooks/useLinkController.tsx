@@ -1,5 +1,9 @@
 import { useState, useCallback } from 'react';
-import { initLinkController, presentLinkController } from '../functions';
+import {
+  initLinkController,
+  presentLinkController,
+  confirmLinkControllerSetupIntent,
+} from '../functions';
 import type { LinkController } from '../types';
 
 /**
@@ -34,6 +38,18 @@ export function useLinkController() {
       return result;
     }, []);
 
+  const confirmSetupIntent = useCallback(
+    async (
+      clientSecret: string
+    ): Promise<LinkController.ConfirmSetupIntentResult> => {
+      setLoading(true);
+      const result = await confirmLinkControllerSetupIntent(clientSecret);
+      setLoading(false);
+      return result;
+    },
+    []
+  );
+
   return {
     /** Whether an operation is currently in progress. */
     loading,
@@ -50,5 +66,12 @@ export function useLinkController() {
      * @PrivatePreview
      */
     presentLinkController: present,
+    /**
+     * Confirms a SetupIntent using the payment method from the most recent
+     * `presentLinkController` call. Must be called after a successful presentation.
+     *
+     * @PrivatePreview
+     */
+    confirmLinkControllerSetupIntent: confirmSetupIntent,
   };
 }
