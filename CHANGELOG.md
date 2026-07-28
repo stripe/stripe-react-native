@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.72.1 - 2026-07-28
+
 ## 0.72.0 - 2026-07-27
 **Changes**
 * Updated Stripe iOS SDK from 26.3.0 to 26.4.1.
