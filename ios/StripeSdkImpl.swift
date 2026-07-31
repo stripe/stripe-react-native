@@ -139,6 +139,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var authenticationSession: ASWebAuthenticationSession?
     var authenticationContextProvider: Any?
 
+    static let authenticatedWebViewReturnURLScheme = "stripe-connect"
+
     @objc public func getConstants() -> [AnyHashable: Any] {
         return [
             "API_VERSIONS": [
@@ -1979,7 +1981,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             // Create the authentication session with the configured URL scheme
             self.authenticationSession = ASWebAuthenticationSession(
                 url: url,
-                callbackURLScheme: nil
+                callbackURLScheme: StripeSdkImpl.authenticatedWebViewReturnURLScheme
             ) { callbackURL, error in
                 if let error = error {
                     // User canceled or an error occurred
