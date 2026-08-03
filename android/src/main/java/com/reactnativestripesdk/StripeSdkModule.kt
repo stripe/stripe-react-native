@@ -9,6 +9,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.ReactActivity
@@ -1468,15 +1469,6 @@ class StripeSdkModule(
     UiThreadUtil.runOnUiThread {
       try {
         val uri = url.toUri()
-        val builder =
-          androidx.browser.customtabs.CustomTabsIntent
-            .Builder()
-
-        // Set toolbar color for better UX
-        builder.setShowTitle(true)
-        builder.setUrlBarHidingEnabled(true)
-
-        val customTabsIntent = builder.build()
 
         // NOTE: We intentionally do NOT use FLAG_ACTIVITY_NO_HISTORY here.
         // That flag can cause React Native's state restoration to fail when returning from Custom Tabs,
@@ -1486,7 +1478,7 @@ class StripeSdkModule(
         // Note: Custom Tabs doesn't have built-in redirect handling like iOS ASWebAuthenticationSession.
         // The redirect will be handled via deep linking when the auth server redirects to stripe-connect://
         // The React Native Linking module will capture the deep link and pass it back to the JS layer.
-        customTabsIntent.launchUrl(activity, uri)
+        launchCustomTab(activity, uri)
 
         // Fallback: Reset after timeout if JavaScript doesn't call authWebViewDeepLinkHandled
         Handler(Looper.getMainLooper()).postDelayed({
@@ -1501,6 +1493,37 @@ class StripeSdkModule(
         promise.resolve(createError("Failed", e))
       }
     }
+  }
+
+  @ReactMethod
+  override fun presentExternalWebPage(
+    url: String,
+    promise: Promise,
+  ) {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    val uri = url.toUri()
+    if (uri.scheme?.lowercase() !in setOf("http", "https")) {
+      promise.reject(ErrorType.Failed.toString(), "Invalid web URL")
+      return
+    }
+
+    UiThreadUtil.runOnUiThread {
+      try {
+        launchCustomTab(activity, uri)
+        promise.resolve(null)
+      } catch (e: Exception) {
+        promise.reject(ErrorType.Failed.toString(), "Failed to open web URL", e)
+      }
+    }
+  }
+
+  private fun launchCustomTab(activity: Activity, uri: android.net.Uri) {
+    CustomTabsIntent
+      .Builder()
+      .setShowTitle(true)
+      .setUrlBarHidingEnabled(true)
+      .build()
+      .launchUrl(activity, uri)
   }
 
   @ReactMethod

@@ -480,6 +480,13 @@ RCT_EXPORT_METHOD(openAuthenticatedWebView:(nonnull NSString *)id
   [StripeSdkImpl.shared openAuthenticatedWebView:id url:url resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(presentExternalWebPage:(nonnull NSString *)url
+                                 resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                  reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentExternalWebPage:url resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(downloadAndShareFile:(nonnull NSString *)url
                               filename:(nullable NSString *)filename
                                resolve:(nonnull RCTPromiseResolveBlock)resolve
