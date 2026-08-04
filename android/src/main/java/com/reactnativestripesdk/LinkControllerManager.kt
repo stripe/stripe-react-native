@@ -170,10 +170,10 @@ internal class LinkControllerManager(
         }
 
         return LinkAppearance()
-            .lightColors(lightColorsMap?.let { buildLinkColors(it) } ?: LinkAppearance.Colors())
-            .darkColors(darkColorsMap?.let { buildLinkColors(it) } ?: LinkAppearance.Colors())
+            .also { lightColorsMap?.let { m -> it.lightColors(buildLinkColors(m)) } }
+            .also { darkColorsMap?.let { m -> it.darkColors(buildLinkColors(m)) } }
             .style(style)
-            .primaryButton(buildPrimaryButton(primaryButtonMap))
+            .also { primaryButtonMap?.let { m -> it.primaryButton(buildPrimaryButton(m)) } }
             .also {
                 if (appearanceMap.hasKey("reduceLinkBranding")) {
                     it.reduceLinkBranding(appearanceMap.getBoolean("reduceLinkBranding"))
@@ -181,20 +181,19 @@ internal class LinkControllerManager(
             }
     }
 
-    private fun buildPrimaryButton(map: ReadableMap?): LinkAppearance.PrimaryButton {
-        val btn = LinkAppearance.PrimaryButton()
-        if (map == null) return btn
+    private fun buildPrimaryButton(map: ReadableMap): LinkAppearance.PrimaryButton {
         val cornerRadius = if (map.hasKey("cornerRadius")) map.getDouble("cornerRadius").toFloat() else null
         val height = if (map.hasKey("height")) map.getDouble("height").toFloat() else null
-        return btn.cornerRadiusDp(cornerRadius).heightDp(height)
+        return LinkAppearance.PrimaryButton().cornerRadiusDp(cornerRadius).heightDp(height)
     }
+
+    private fun parseHexColor(hex: String) = Color(android.graphics.Color.parseColor(hex))
 
     private fun buildLinkColors(map: ReadableMap): LinkAppearance.Colors {
         val colors = LinkAppearance.Colors()
-        fun parseColor(hex: String) = Color(android.graphics.Color.parseColor(hex))
-        map.getString("primary")?.let { colors.primary(parseColor(it)) }
-        map.getString("contentOnPrimary")?.let { colors.contentOnPrimary(parseColor(it)) }
-        map.getString("borderSelected")?.let { colors.borderSelected(parseColor(it)) }
+        map.getString("primary")?.let { colors.primary(parseHexColor(it)) }
+        map.getString("contentOnPrimary")?.let { colors.contentOnPrimary(parseHexColor(it)) }
+        map.getString("borderSelected")?.let { colors.borderSelected(parseHexColor(it)) }
         return colors
     }
 
