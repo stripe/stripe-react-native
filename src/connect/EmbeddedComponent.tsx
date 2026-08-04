@@ -142,6 +142,7 @@ type EmbeddedComponentProps = CommonComponentProps & {
   sizeToContent?: boolean;
   onContentHeightChange?: (height: number) => void;
   onOpenNotificationBannerForm?: (form: Record<string, unknown>) => void;
+  presentExternalLinksInApp?: boolean;
 };
 
 type StripeConnectInitParamsInternal = StripeConnectInitParams & {
@@ -333,6 +334,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     sizeToContent,
     onContentHeightChange,
     onOpenNotificationBannerForm,
+    presentExternalLinksInApp,
   } = props;
 
   // Initialize component analytics client
@@ -761,13 +763,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const openUrlOutsideComponent = useCallback(
     (url: string) => {
-      const result = isValidUrl(url)
-        ? NativeStripeSdk.presentExternalWebPage(url)
-        : Linking.openURL(url);
+      const result =
+        presentExternalLinksInApp && isValidUrl(url)
+          ? NativeStripeSdk.presentExternalWebPage(url)
+          : Linking.openURL(url);
 
       result.catch(handleUnexpectedError);
     },
-    [handleUnexpectedError]
+    [handleUnexpectedError, presentExternalLinksInApp]
   );
 
   const onOpenWindow = useCallback(
@@ -840,7 +843,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         sizeToContent ? CONTENT_HEIGHT_OBSERVER_SCRIPT : undefined
       }
       onMessage={onMessageCallback}
-      onOpenWindow={onOpenWindow}
+      onOpenWindow={presentExternalLinksInApp ? onOpenWindow : undefined}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
       onLayout={handleLayout}
       // Camera/Media Permissions - matches iOS SDK behavior

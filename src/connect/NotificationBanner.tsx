@@ -23,7 +23,7 @@ import {
 import { NavigationBar } from './NavigationBar';
 import { useConnectComponents } from './ConnectComponentsProvider';
 
-/** The notification banner's one-time initial loading state. @experimental */
+/** The notification banner's current initial loading state. @experimental */
 export type NotificationBannerInitialLoadState =
   | 'loading'
   | 'loaded'
@@ -89,7 +89,7 @@ export const ConnectNotificationBanner = forwardRef<
   const [webViewHeight, setWebViewHeight] = useState(1);
   const [isWebContentVisible, setWebContentVisible] = useState(false);
   const [task, setTask] = useState<Record<string, unknown> | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string>();
+  const [bannerWebViewKey, setBannerWebViewKey] = useState(0);
 
   const initialLoadStateRef = useRef(initialLoadState);
   const didReceiveInitialNotifications = useRef(false);
@@ -98,7 +98,6 @@ export const ConnectNotificationBanner = forwardRef<
   const settleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
-  const refreshSequence = useRef(0);
 
   useImperativeHandle(ref, () => ({ initialLoadState }), [initialLoadState]);
 
@@ -183,16 +182,20 @@ export const ConnectNotificationBanner = forwardRef<
 
   const dismissTask = useCallback(() => {
     setTask(null);
-    refreshSequence.current += 1;
-    setRefreshToken(`${Date.now()}-${refreshSequence.current}`);
-  }, []);
+    didReceiveInitialNotifications.current = false;
+    pendingContentHeight.current = undefined;
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    initialLoadStateRef.current = 'loading';
+    setInitialLoadState('loading');
+    setWebContentVisible(false);
+    setWebViewHeight(1);
+    publishHeight(0);
+    setBannerWebViewKey((key) => key + 1);
+  }, [publishHeight]);
 
   const componentProps = useMemo(
-    () => ({
-      setCollectionOptions: collectionOptions,
-      setMobileNotificationRefreshToken: refreshToken,
-    }),
-    [collectionOptions, refreshToken]
+    () => ({ setCollectionOptions: collectionOptions }),
+    [collectionOptions]
   );
   const callbacks = useMemo(
     () => ({ onNotificationsChange: handleNotificationsChange }),
@@ -213,6 +216,7 @@ export const ConnectNotificationBanner = forwardRef<
         ]}
       >
         <EmbeddedComponent
+          key={bannerWebViewKey}
           component="notification-banner"
           componentProps={componentProps}
           callbacks={callbacks}
@@ -223,6 +227,7 @@ export const ConnectNotificationBanner = forwardRef<
           onOpenNotificationBannerForm={(form) => {
             setTask((currentTask) => currentTask ?? form);
           }}
+          presentExternalLinksInApp
           sizeToContent
           style={[
             styles.inlineWebView,
@@ -296,6 +301,7 @@ function NotificationTaskModal({
             componentProps={componentProps}
             callbacks={callbacks}
             onLoadError={onLoadError}
+            presentExternalLinksInApp
             style={styles.taskWebView}
           />
         ) : null}

@@ -1,7 +1,7 @@
 import {
   ConnectNotificationBanner,
   type NotificationBannerInitialLoadState,
-} from '@stripe/stripe-react-native';
+} from '../../../src/connect/NotificationBanner';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,

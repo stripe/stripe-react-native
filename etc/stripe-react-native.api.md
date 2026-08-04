@@ -1265,29 +1265,6 @@ export function ConnectAccountOnboarding(input: {
 export const ConnectComponentsProvider: (input: ConnectComponentsProviderProps) => JSX.Element;
 
 // @public
-export const ConnectNotificationBanner: React_2.ForwardRefExoticComponent<CommonComponentProps & {
-    collectionOptions?: CollectionOptions;
-    taskTitle?: string;
-    onNotificationsChange?: (change: NotificationBannerChange) => void;
-    onContentHeightChange?: (height: number) => void;
-    onInitialLoadStateChange?: (state: NotificationBannerInitialLoadState) => void;
-} & React_2.RefAttributes<ConnectNotificationBannerRef>>;
-
-// @public
-export type ConnectNotificationBannerProps = CommonComponentProps & {
-    collectionOptions?: CollectionOptions;
-    taskTitle?: string;
-    onNotificationsChange?: (change: NotificationBannerChange) => void;
-    onContentHeightChange?: (height: number) => void;
-    onInitialLoadStateChange?: (state: NotificationBannerInitialLoadState) => void;
-};
-
-// @public
-export type ConnectNotificationBannerRef = {
-    readonly initialLoadState: NotificationBannerInitialLoadState;
-};
-
-// @public
 export function ConnectPaymentDetails(input: {
     payment: string;
     onClose: () => void;
@@ -2649,15 +2626,6 @@ enum NavigationBarStyle_2 {
     // (undocumented)
     default = 0
 }
-
-// @public
-export type NotificationBannerChange = {
-    total: number;
-    actionRequired: number;
-};
-
-// @public
-export type NotificationBannerInitialLoadState = 'loading' | 'loaded' | 'failed';
 
 // @public (undocumented)
 type OnCardChangeEvent = NativeSyntheticEvent<{
@@ -4435,9 +4403,9 @@ interface WeChatPayParams_2 {
 // Warnings were encountered during analysis:
 //
 // src/components/CustomerSheet.tsx:374:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:82:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:86:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:260:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:75:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:79:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:253:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:208:3 - (ae-forgotten-export) The symbol "AppearanceOptions" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts

@@ -23,13 +23,6 @@ import { useConnectComponents } from './ConnectComponentsProvider';
 // Export NavigationBar for external use
 export { NavigationBar } from './NavigationBar';
 export type { NavigationBarProps } from './NavigationBar';
-export {
-  ConnectNotificationBanner,
-  type ConnectNotificationBannerProps,
-  type ConnectNotificationBannerRef,
-  type NotificationBannerChange,
-  type NotificationBannerInitialLoadState,
-} from './NotificationBanner';
 
 /**
  * A full-screen modal component for Connect account onboarding.
