@@ -140,6 +140,7 @@ export enum CryptoNetwork {
   xrpl = 'xrpl',
   sui = 'sui',
   arbitrum = 'arbitrum',
+  tempo = 'tempo',
 }
 
 /**
