@@ -33,15 +33,33 @@ extension StripeSdkImpl {
 
         let paymentMethodTypes = params["paymentMethodTypes"] as? [String]
 
+        var billingConfig: PaymentSheet.BillingDetailsCollectionConfiguration?
+        if let billingParams = params["billingDetailsCollectionConfiguration"] as? [String: Any?] {
+            billingConfig = .init(
+                name: Self.mapToCollectionMode(str: billingParams["name"] as? String),
+                phone: Self.mapToCollectionMode(str: billingParams["phone"] as? String),
+                email: Self.mapToCollectionMode(str: billingParams["email"] as? String),
+                address: Self.mapToAddressCollectionMode(str: billingParams["address"] as? String),
+                attachDefaultsToPaymentMethod: billingParams["attachDefaultsToPaymentMethod"] as? Bool ?? false
+            )
+        }
+
+        var appearance: LinkAppearance?
+        if let appearanceParams = params["appearance"] as? [String: Any?] {
+            appearance = Self.mapToLinkControllerAppearance(appearanceParams)
+        }
+
         let configuration = LinkConfiguration(
             supportedPaymentMethodTypes: supportedPaymentMethodTypes,
             paymentMethodTypes: paymentMethodTypes,
             allowLogout: allowLogout,
-            merchantDisplayName: merchantDisplayName
+            merchantDisplayName: merchantDisplayName,
+            billingDetailsCollectionConfiguration: billingConfig
         )
 
         LinkController.create(
             apiClient: STPAPIClient.shared,
+            appearance: appearance,
             configuration: configuration
         ) { [weak self] result in
             switch result {
@@ -130,6 +148,54 @@ extension StripeSdkImpl {
                 }
             }
         }
+    }
+
+    private static func mapToLinkControllerAppearance(_ params: [String: Any?]) -> LinkAppearance {
+        let lightColorsParams = params["lightColors"] as? [String: Any?]
+        let darkColorsParams = params["darkColors"] as? [String: Any?]
+
+        func parseColor(_ hex: Any??) -> UIColor? {
+            guard let str = hex as? String else { return nil }
+            return UIColor(hexString: str)
+        }
+
+        func traitColor(light: Any??, dark: Any??) -> UIColor? {
+            let l = parseColor(light)
+            let d = parseColor(dark)
+            switch (l, d) {
+            case let (l?, d?): return UIColor { $0.userInterfaceStyle == .dark ? d : l }
+            case (nil, let d?): return d
+            case (let l?, nil): return l
+            default: return nil
+            }
+        }
+
+        let primary = traitColor(light: lightColorsParams?["primary"], dark: darkColorsParams?["primary"])
+        let contentOnPrimary = traitColor(light: lightColorsParams?["contentOnPrimary"], dark: darkColorsParams?["contentOnPrimary"])
+        let selectedBorder = traitColor(light: lightColorsParams?["borderSelected"], dark: darkColorsParams?["borderSelected"])
+
+        var colors: LinkAppearance.Colors?
+        if primary != nil || contentOnPrimary != nil || selectedBorder != nil {
+            colors = LinkAppearance.Colors(primary: primary, contentOnPrimary: contentOnPrimary, selectedBorder: selectedBorder)
+        }
+
+        var primaryButtonConfiguration: LinkAppearance.PrimaryButtonConfiguration?
+        if let pbParams = params["primaryButton"] as? [String: Any] {
+            let cornerRadius = pbParams["cornerRadius"] as? CGFloat
+            let height = pbParams["height"] as? CGFloat
+            primaryButtonConfiguration = LinkAppearance.PrimaryButtonConfiguration(cornerRadius: cornerRadius, height: height)
+        }
+
+        let style: PaymentSheet.UserInterfaceStyle
+        switch params["style"] as? String ?? "" {
+        case "ALWAYS_LIGHT": style = .alwaysLight
+        case "ALWAYS_DARK": style = .alwaysDark
+        default: style = .automatic
+        }
+
+        let reduceLinkBranding = params["reduceLinkBranding"] as? Bool ?? false
+
+        return LinkAppearance(colors: colors, primaryButton: primaryButtonConfiguration, style: style, reduceLinkBranding: reduceLinkBranding)
     }
 
     private static func mapLinkPaymentMethodPreview(_ preview: LinkController.PaymentMethodPreview) -> [String: Any] {
