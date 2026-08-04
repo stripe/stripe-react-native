@@ -103,7 +103,11 @@ class NativeSdkVersions
   end
 
   def get(uri, headers)
-    Net::HTTP.get_response(uri, headers)
+    request = Net::HTTP::Get.new(uri)
+    headers.each { |name, value| request[name] = value }
+    Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+      http.request(request)
+    end
   rescue SocketError, SystemCallError, Timeout::Error => e
     raise Error, "Could not reach GitHub Releases: #{e.message}"
   end
