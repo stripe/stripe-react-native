@@ -1464,6 +1464,8 @@ enum CryptoNetwork {
     // (undocumented)
     sui = "sui",
     // (undocumented)
+    tempo = "tempo",
+    // (undocumented)
     worldchain = "worldchain",
     // (undocumented)
     xrpl = "xrpl"
