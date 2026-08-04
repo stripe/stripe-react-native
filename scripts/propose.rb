@@ -5,6 +5,7 @@ require 'date'
 require 'tmpdir'
 require 'shellwords'
 require_relative 'helpers'
+require_relative 'native_sdk_versions'
 
 @release_type = nil
 
@@ -41,14 +42,29 @@ def bump_version(version)
   execute_or_fail("yarn version --no-git-tag-version --new-version #{version}")
 end
 
-def create_proposal_pr(version)
+def create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
   branch = "release/propose-#{version}"
   execute_or_fail("git checkout -b #{branch}")
 
   bump_version(version)
   update_changelog(version)
+  begin
+    native_sdk_changes = native_sdk_updater.apply(native_sdk_versions)
+  rescue NativeSdkVersions::Error => e
+    abort "Error! #{e.message}"
+  end
+  native_sdk_changes.each do |change|
+    status = change.changed ? "#{change.previous_version} -> #{change.version}" : "already at #{change.version}"
+    puts "#{change.name}: #{status}"
+  end
 
-  execute_or_fail("git add package.json CHANGELOG.md")
+  ios_changed = native_sdk_changes.any? { |change| change.name == 'stripe-ios' && change.changed }
+  execute_or_fail("yarn update-pods") if ios_changed
+
+  files_to_add = ['package.json', 'CHANGELOG.md']
+  files_to_add.concat(native_sdk_changes.select(&:changed).map(&:path))
+  files_to_add << 'example/ios/Podfile.lock' if ios_changed
+  execute_or_fail("git add #{files_to_add.map(&:shellescape).join(' ')}")
   execute_or_fail("git commit -m 'Propose #{version}'")
   execute_or_fail("git push -u origin #{branch}")
 
@@ -57,6 +73,8 @@ def create_proposal_pr(version)
     - [x] Ensure the CHANGELOG is up to date with all relevant commits since the last release
     - [x] Add the version number for this release & the date to the CHANGELOG, underneath "## Unreleased"
       - e.g. "## 1.2.3 - 2022-02-14"
+    - [x] Update stripe-ios to the latest GitHub release (#{native_sdk_versions.fetch(:ios)})
+    - [x] Update stripe-android to the latest GitHub release (#{native_sdk_versions.fetch(:android)})
     - [x] Update the README if necessary (this is only required when there are breaking changes in the release, such as dropping support for an iOS || Android version)
   BODY
 
@@ -81,7 +99,8 @@ OptionParser.new do |opts|
         ./scripts/propose.rb <release_type>
 
     Creates a proposal PR for the next release. Replaces the '## Unreleased'
-    header in CHANGELOG.md with the new version and today's date, then opens a PR.
+    header in CHANGELOG.md with the new version and today's date, updates the
+    native SDK pins to the latest GitHub releases, then opens a PR.
 
     ARGS:
         <release_type>    "patch", "minor", or "major"
@@ -109,4 +128,11 @@ preflight_checks
 
 version = next_version
 puts "Proposing #{version} (currently #{current_version})"
-create_proposal_pr(version)
+native_sdk_updater = NativeSdkVersions.new
+puts "Fetching latest native SDK releases"
+begin
+  native_sdk_versions = native_sdk_updater.latest
+rescue NativeSdkVersions::Error => e
+  abort "Error! #{e.message}"
+end
+create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
