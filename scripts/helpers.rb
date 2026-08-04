@@ -70,12 +70,14 @@ def ensure_gh_authenticated
   end
 end
 
-def preflight_checks(is_dry_run: false)
+def preflight_checks(is_dry_run: false, require_gh: true)
   puts "Fetching git remotes"
   execute_or_fail("git fetch")
   ensure_on_master(is_dry_run: is_dry_run)
   ensure_up_to_date(is_dry_run: is_dry_run)
   ensure_clean_repo(is_dry_run: is_dry_run)
-  ensure_gh_installed
-  ensure_gh_authenticated
+  if require_gh
+    ensure_gh_installed
+    ensure_gh_authenticated
+  end
 end
