@@ -1,5 +1,14 @@
 import type { Result as PaymentMethodResult } from './PaymentMethod';
 import type { LinkControllerError, StripeError } from './Errors';
+import type { BillingDetailsCollectionConfiguration } from './PaymentSheet';
+import type { LinkAppearance } from './LinkAppearance';
+
+export type {
+  LinkAppearance,
+  LinkColors,
+  LinkStyle,
+  LinkPrimaryButton,
+} from './LinkAppearance';
 
 /**
  * @PrivatePreview Payment method types supported by the Link flow.
@@ -25,6 +34,10 @@ export type Configuration = {
   phoneNumber?: string;
   /** Whether to allow the user to log out. Defaults to true. */
   allowLogout?: boolean;
+  /** Controls which billing fields are collected in the Link sheet. */
+  billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
+  /** Customize the appearance of the Link UI. */
+  appearance?: LinkAppearance;
 };
 
 /**

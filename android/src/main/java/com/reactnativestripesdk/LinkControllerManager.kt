@@ -2,6 +2,7 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.Arguments
@@ -11,6 +12,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
+import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkController
 import com.stripe.android.link.LinkControllerPreview
 import kotlinx.coroutines.Dispatchers
@@ -51,21 +53,7 @@ internal class LinkControllerManager(
             return
         }
 
-        val phoneNumber = params.getString("phoneNumber")
-        val allowLogout = if (params.hasKey("allowLogout")) params.getBoolean("allowLogout") else true
-        val supportedTypes = parseSupportedPaymentMethodTypes(params)
-        val paymentMethodTypes = parsePaymentMethodTypes(params)
-
-        val config = LinkController.Configuration(
-            merchantDisplayName = merchantDisplayName,
-            publishableKey = publishableKey,
-            stripeAccountId = stripeAccountId
-        )
-            .also { if (email != null) it.email(email) }
-            .phoneNumber(phoneNumber)
-            .supportedPaymentMethodTypes(supportedTypes)
-            .also { if (paymentMethodTypes != null) it.paymentMethodTypes(paymentMethodTypes) }
-            .allowLogout(allowLogout)
+        val config = buildLinkConfiguration(params, merchantDisplayName, email)
 
         // Build a new controller if this is the first call or after a reset.
         // SavedStateHandle() is empty — state will not survive process death, which is
@@ -132,6 +120,81 @@ internal class LinkControllerManager(
         linkPresenter = null
         presentPromise = null
         confirmSetupIntentPromise = null
+    }
+
+    private fun buildLinkConfiguration(
+        params: ReadableMap,
+        merchantDisplayName: String,
+        email: String?,
+    ): LinkController.Configuration {
+        val phoneNumber = params.getString("phoneNumber")
+        val allowLogout = if (params.hasKey("allowLogout")) params.getBoolean("allowLogout") else true
+        val supportedTypes = parseSupportedPaymentMethodTypes(params)
+        val paymentMethodTypes = parsePaymentMethodTypes(params)
+        return LinkController.Configuration(
+            merchantDisplayName = merchantDisplayName,
+            publishableKey = publishableKey,
+            stripeAccountId = stripeAccountId
+        )
+            .also { if (email != null) it.email(email) }
+            .phoneNumber(phoneNumber)
+            .supportedPaymentMethodTypes(supportedTypes)
+            .also { if (paymentMethodTypes != null) it.paymentMethodTypes(paymentMethodTypes) }
+            .allowLogout(allowLogout)
+            .also {
+                val billingMap = params.getMap("billingDetailsCollectionConfiguration")
+                if (billingMap != null) {
+                    it.billingDetailsCollectionConfiguration(
+                        buildBillingDetailsCollectionConfiguration(billingMap)
+                    )
+                }
+            }
+            .also {
+                val appearanceMap = params.getMap("appearance")
+                if (appearanceMap != null) {
+                    it.appearance(buildLinkAppearance(appearanceMap))
+                }
+            }
+    }
+
+    private fun buildLinkAppearance(appearanceMap: ReadableMap): LinkAppearance {
+        val lightColorsMap = appearanceMap.getMap("lightColors")
+        val darkColorsMap = appearanceMap.getMap("darkColors")
+        val styleStr = appearanceMap.getString("style")
+        val primaryButtonMap = appearanceMap.getMap("primaryButton")
+
+        val style = when (styleStr) {
+            "ALWAYS_LIGHT" -> LinkAppearance.Style.ALWAYS_LIGHT
+            "ALWAYS_DARK" -> LinkAppearance.Style.ALWAYS_DARK
+            else -> LinkAppearance.Style.AUTOMATIC
+        }
+
+        return LinkAppearance()
+            .also { lightColorsMap?.let { m -> it.lightColors(buildLinkColors(m)) } }
+            .also { darkColorsMap?.let { m -> it.darkColors(buildLinkColors(m)) } }
+            .style(style)
+            .also { primaryButtonMap?.let { m -> it.primaryButton(buildPrimaryButton(m)) } }
+            .also {
+                if (appearanceMap.hasKey("reduceLinkBranding")) {
+                    it.reduceLinkBranding(appearanceMap.getBoolean("reduceLinkBranding"))
+                }
+            }
+    }
+
+    private fun buildPrimaryButton(map: ReadableMap): LinkAppearance.PrimaryButton {
+        val cornerRadius = if (map.hasKey("cornerRadius")) map.getDouble("cornerRadius").toFloat() else null
+        val height = if (map.hasKey("height")) map.getDouble("height").toFloat() else null
+        return LinkAppearance.PrimaryButton().cornerRadiusDp(cornerRadius).heightDp(height)
+    }
+
+    private fun parseHexColor(hex: String) = Color(android.graphics.Color.parseColor(hex))
+
+    private fun buildLinkColors(map: ReadableMap): LinkAppearance.Colors {
+        val colors = LinkAppearance.Colors()
+        map.getString("primary")?.let { colors.primary(parseHexColor(it)) }
+        map.getString("contentOnPrimary")?.let { colors.contentOnPrimary(parseHexColor(it)) }
+        map.getString("borderSelected")?.let { colors.borderSelected(parseHexColor(it)) }
+        return colors
     }
 
     private fun parseSupportedPaymentMethodTypes(params: ReadableMap): List<LinkController.PaymentMethodType>? =
