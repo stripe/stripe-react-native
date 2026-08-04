@@ -1098,6 +1098,8 @@ type Configuration_2 = {
     paymentMethodTypes?: string[];
     phoneNumber?: string;
     allowLogout?: boolean;
+    billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
+    appearance?: LinkAppearance;
 };
 
 // @public (undocumented)
@@ -2377,6 +2379,7 @@ type LinkAppearance = {
     darkColors?: LinkColors;
     style?: LinkStyle;
     primaryButton?: LinkPrimaryButton;
+    reduceLinkBranding?: boolean;
 };
 
 // @public
@@ -2388,6 +2391,10 @@ type LinkColors = {
 
 declare namespace LinkController {
     export {
+        LinkAppearance,
+        LinkColors,
+        LinkStyle,
+        LinkPrimaryButton,
         LinkPaymentMethodType,
         Configuration_2 as Configuration,
         PaymentMethodPreview_2 as PaymentMethodPreview,
@@ -2649,16 +2656,16 @@ type OnFormCompleteEvent = NativeSyntheticEvent<{
 
 declare namespace Onramp {
     export {
+        LinkAppearance,
+        LinkColors,
+        LinkStyle,
+        LinkPrimaryButton,
         OnrampErrorStatus,
         Configuration,
         GooglePayConfig,
         GooglePayBillingAddressConfig,
         OnrampGooglePayParams,
         OnrampPlatformPayParams,
-        LinkAppearance,
-        LinkColors,
-        LinkStyle,
-        LinkPrimaryButton,
         LinkUserInfo,
         CryptoNetwork,
         WalletOwnershipChallenge,
