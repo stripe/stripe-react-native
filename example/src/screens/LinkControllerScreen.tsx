@@ -14,6 +14,7 @@ import {
   initStripe,
   LinkController,
   LinkControllerError,
+  PaymentSheet,
   useLinkController,
   type PaymentMethod,
 } from '@stripe/stripe-react-native';
@@ -33,6 +34,8 @@ export default function LinkControllerScreen() {
   const [phone, setPhone] = useState('');
   const [cardEnabled, setCardEnabled] = useState(true);
   const [bankEnabled, setBankEnabled] = useState(true);
+  const [useCustomAppearance, setUseCustomAppearance] = useState(false);
+  const [collectName, setCollectName] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusIsError, setStatusIsError] = useState(false);
   const [preview, setPreview] =
@@ -91,6 +94,25 @@ export default function LinkControllerScreen() {
       merchantDisplayName: 'Example, Inc.',
       phoneNumber: phone || undefined,
       supportedPaymentMethodTypes: supportedTypes,
+      appearance: useCustomAppearance
+        ? {
+            style: 'ALWAYS_DARK',
+            lightColors: {
+              primary: '#7B2FBE',
+              contentOnPrimary: '#FFFFFF',
+              borderSelected: '#7B2FBE',
+            },
+            darkColors: {
+              primary: '#A855F7',
+              contentOnPrimary: '#FFFFFF',
+              borderSelected: '#A855F7',
+            },
+            primaryButton: { cornerRadius: 4 },
+          }
+        : undefined,
+      billingDetailsCollectionConfiguration: collectName
+        ? { name: PaymentSheet.CollectionMode.ALWAYS }
+        : undefined,
     });
 
     if (error) {
@@ -99,7 +121,15 @@ export default function LinkControllerScreen() {
       setInitialized(true);
       showStatus('Initialized successfully.');
     }
-  }, [bankEnabled, cardEnabled, email, phone, initLinkController]);
+  }, [
+    bankEnabled,
+    cardEnabled,
+    collectName,
+    email,
+    initLinkController,
+    phone,
+    useCustomAppearance,
+  ]);
 
   const handlePresent = async () => {
     setStatusMessage(null);
@@ -125,6 +155,8 @@ export default function LinkControllerScreen() {
     setPhone('');
     setCardEnabled(true);
     setBankEnabled(true);
+    setUseCustomAppearance(false);
+    setCollectName(false);
     setPreview(null);
     setPaymentMethod(null);
     setStatusMessage(null);
@@ -161,6 +193,19 @@ export default function LinkControllerScreen() {
       <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>Bank Account</Text>
         <Switch value={bankEnabled} onValueChange={setBankEnabled} />
+      </View>
+
+      <Text style={styles.sectionTitle}>Appearance &amp; Billing</Text>
+      <View style={styles.switchRow}>
+        <Text style={styles.switchLabel}>Use Custom Appearance</Text>
+        <Switch
+          value={useCustomAppearance}
+          onValueChange={setUseCustomAppearance}
+        />
+      </View>
+      <View style={styles.switchRow}>
+        <Text style={styles.switchLabel}>Always Collect Name</Text>
+        <Switch value={collectName} onValueChange={setCollectName} />
       </View>
 
       <Button
