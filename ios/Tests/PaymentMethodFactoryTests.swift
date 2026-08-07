@@ -1,5 +1,5 @@
-@testable import stripe_react_native
 import Stripe
+@testable import stripe_react_native
 import XCTest
 
 class PaymentMethodFactoryTests: XCTestCase {
