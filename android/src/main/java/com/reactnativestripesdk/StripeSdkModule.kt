@@ -394,7 +394,7 @@ class StripeSdkModule(
       }
     val paymentMethodData = data.getMap("paymentMethodData")
     val factory =
-      PaymentMethodCreateParamsFactory(paymentMethodData, options, cardFieldView, cardFormView)
+      PaymentMethodCreateParamsFactory(paymentMethodData, options, cardFieldView, cardFormView, publishableKey)
     try {
       val paymentMethodCreateParams = factory.createPaymentMethodParams(paymentMethodType)
       stripe.createPaymentMethod(
@@ -671,7 +671,7 @@ class StripeSdkModule(
 //    }
 
     val factory =
-      PaymentMethodCreateParamsFactory(paymentMethodData, options, cardFieldView, cardFormView)
+      PaymentMethodCreateParamsFactory(paymentMethodData, options, cardFieldView, cardFormView, publishableKey)
 
     try {
       val confirmParams =
@@ -758,6 +758,7 @@ class StripeSdkModule(
         options,
         cardFieldView,
         cardFormView,
+        publishableKey,
       )
 
     try {

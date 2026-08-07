@@ -8,14 +8,16 @@ class PaymentMethodFactory {
     var cardFieldView: CardFieldView?
     var cardFormView: CardFormView?
     var metadata: [String: String]?
+    var publishableKey: String
 
-    init(paymentMethodData: NSDictionary?, options: NSDictionary, cardFieldView: CardFieldView?, cardFormView: CardFormView?) {
+    init(paymentMethodData: NSDictionary?, options: NSDictionary, cardFieldView: CardFieldView?, cardFormView: CardFormView?, publishableKey: String = "") {
         self.paymentMethodData = paymentMethodData
         self.billingDetailsParams = Mappers.mapToBillingDetails(billingDetails: paymentMethodData?["billingDetails"] as? NSDictionary)
         self.paymentMethodOptions = options
         self.cardFieldView = cardFieldView
         self.cardFormView = cardFormView
         self.metadata = paymentMethodData?["metadata"] as? [String: String]
+        self.publishableKey = publishableKey
     }
 
     func createParams(paymentMethodType: STPPaymentMethodType) throws -> STPPaymentMethodParams? {
@@ -216,12 +218,17 @@ class PaymentMethodFactory {
 
     private func createCardPaymentMethodOptions() -> STPConfirmPaymentMethodOptions? {
         let cvc = paymentMethodData?["cvc"] as? String
-        guard cvc != nil else {
+        let isMoto = publishableKey.hasPrefix("uk_")
+
+        guard cvc != nil || isMoto else {
             return nil
         }
 
         let cardOptions = STPConfirmCardOptions()
         cardOptions.cvc = cvc
+        if isMoto {
+            cardOptions.additionalAPIParameters["moto"] = true
+        }
         let paymentMethodOptions = STPConfirmPaymentMethodOptions()
         paymentMethodOptions.cardOptions = cardOptions
 

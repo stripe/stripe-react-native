@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+**Bug fixes**
+* [Fixed] Android and iOS: `confirmPayment` and `confirmSetupIntent` now correctly set card payment method options when confirming with a saved payment method ID and a user key (`uk_`).
+
 ## 0.73.0 - 2026-08-04
 **Changes**
 * Updated Stripe iOS SDK from 26.4.1 to 26.5.0.
