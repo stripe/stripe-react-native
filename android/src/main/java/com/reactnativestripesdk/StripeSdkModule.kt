@@ -1504,6 +1504,33 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  override fun presentExternalWebPage(
+    url: String,
+    promise: Promise,
+  ) {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    val uri = url.toUri()
+    if (uri.scheme?.lowercase() !in setOf("http", "https")) {
+      promise.reject(ErrorType.Failed.toString(), "Invalid web URL")
+      return
+    }
+
+    UiThreadUtil.runOnUiThread {
+      try {
+        androidx.browser.customtabs.CustomTabsIntent
+          .Builder()
+          .setShowTitle(true)
+          .setUrlBarHidingEnabled(true)
+          .build()
+          .launchUrl(activity, uri)
+        promise.resolve(null)
+      } catch (e: Exception) {
+        promise.reject(ErrorType.Failed.toString(), "Failed to open web URL", e)
+      }
+    }
+  }
+
+  @ReactMethod
   override fun downloadAndShareFile(
     url: String,
     filename: String?,

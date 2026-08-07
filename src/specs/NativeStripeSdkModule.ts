@@ -263,6 +263,8 @@ export interface Spec extends TurboModule {
     url: string
   ): Promise<{ url?: string } | null>;
 
+  presentExternalWebPage(url: string): Promise<void>;
+
   downloadAndShareFile(
     url: string,
     filename?: string | null

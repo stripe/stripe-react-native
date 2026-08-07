@@ -283,6 +283,10 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void presentExternalWebPage(String url, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void downloadAndShareFile(String url, @Nullable String filename, Promise promise);
 
   @ReactMethod

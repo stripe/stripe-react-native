@@ -14,7 +14,10 @@ import {
   ViewStyle,
 } from 'react-native';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
-import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import type {
+  ShouldStartLoadRequest,
+  WebViewOpenWindowEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
@@ -136,6 +139,10 @@ type EmbeddedComponentProps = CommonComponentProps & {
   componentProps?: Record<string, unknown>;
 
   callbacks?: Record<string, ((data: any) => void) | undefined>;
+  sizeToContent?: boolean;
+  onContentHeightChange?: (height: number) => void;
+  onOpenNotificationBannerForm?: (form: Record<string, unknown>) => void;
+  presentExternalLinksInApp?: boolean;
 };
 
 type StripeConnectInitParamsInternal = StripeConnectInitParams & {
@@ -324,6 +331,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     onPageDidLoad,
     callbacks,
     style,
+    sizeToContent,
+    onContentHeightChange,
+    onOpenNotificationBannerForm,
+    presentExternalLinksInApp,
   } = props;
 
   // Initialize component analytics client
@@ -523,8 +534,23 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'componentLoaded') {
         // Connect JS fully initialized
         componentAnalytics.logComponentLoaded();
+      } else if (message.type === 'contentHeightChanged') {
+        const height = (message.data as { height?: unknown })?.height;
+        if (
+          typeof height === 'number' &&
+          Number.isFinite(height) &&
+          height >= 0
+        ) {
+          onContentHeightChange?.(height);
+        }
       } else if (message.type === 'accountSessionClaimed') {
         // message.data is of type {elementTagName: string, merchantId: string}
+      } else if (message.type === 'openNotificationBannerForm') {
+        if (message.data && typeof message.data === 'object') {
+          onOpenNotificationBannerForm?.(
+            message.data as Record<string, unknown>
+          );
+        }
       } else if (message.type === 'openFinancialConnections') {
         const messageData = message.data as {
           clientSecret: string;
@@ -729,8 +755,29 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       handleUnexpectedError,
       onLoadError,
       onLoaderStart,
+      onContentHeightChange,
+      onOpenNotificationBannerForm,
       onPageDidLoad,
     ]
+  );
+
+  const openUrlOutsideComponent = useCallback(
+    (url: string) => {
+      const result =
+        presentExternalLinksInApp && isValidUrl(url)
+          ? NativeStripeSdk.presentExternalWebPage(url)
+          : Linking.openURL(url);
+
+      result.catch(handleUnexpectedError);
+    },
+    [handleUnexpectedError, presentExternalLinksInApp]
+  );
+
+  const onOpenWindow = useCallback(
+    (event: WebViewOpenWindowEvent) => {
+      openUrlOutsideComponent(event.nativeEvent.targetUrl);
+    },
+    [openUrlOutsideComponent]
   );
 
   const onShouldStartLoadWithRequest = useCallback(
@@ -758,14 +805,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         return true; // Allow in-WebView navigation
       }
 
-      // Open external links in system browser
-      Linking.openURL(url).catch((error) => {
-        handleUnexpectedError(error);
-      });
+      openUrlOutsideComponent(url);
 
       return false; // Block in-WebView navigation for external links
     },
-    [handleUnexpectedError]
+    [handleUnexpectedError, openUrlOutsideComponent]
   );
 
   const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
@@ -795,7 +839,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }}
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
+      injectedJavaScript={
+        sizeToContent ? CONTENT_HEIGHT_OBSERVER_SCRIPT : undefined
+      }
       onMessage={onMessageCallback}
+      onOpenWindow={presentExternalLinksInApp ? onOpenWindow : undefined}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
       onLayout={handleLayout}
       // Camera/Media Permissions - matches iOS SDK behavior
@@ -805,6 +853,26 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     />
   );
 }
+
+const CONTENT_HEIGHT_OBSERVER_SCRIPT = `
+  (function() {
+    if (window.__stripeConnectHeightObserver || !document.body) return;
+    window.__stripeConnectHeightObserver = true;
+    var lastHeight = -1;
+    var reportHeight = function() {
+      var height = document.body.getBoundingClientRect().height;
+      if (Math.abs(height - lastHeight) < 0.5) return;
+      lastHeight = height;
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'contentHeightChanged',
+        data: { height: height }
+      }));
+    };
+    new ResizeObserver(reportHeight).observe(document.body);
+    reportHeight();
+  })();
+  true;
+`;
 
 const DEFAULT_FONT =
   "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'";
