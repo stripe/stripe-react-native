@@ -389,11 +389,6 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
                 if let paymentMethodId = paymentMethodData?["paymentMethodId"] as? String {
                     parameters.paymentMethodID = paymentMethodId
-                    do {
-                        parameters.paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
-                    } catch {
-                        err = Errors.createError(ErrorType.Failed, error as NSError?)
-                    }
                 } else {
                     do {
                         parameters.paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)

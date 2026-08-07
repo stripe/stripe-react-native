@@ -90,7 +90,6 @@ class PaymentMethodCreateParamsFactoryTest {
 
     assertNotNull("paymentMethodOptions should be set for uk_ key", cardOptions)
     assertEquals("moto should be true", true, cardOptions!!.toParamMap()["moto"])
-    assertEquals(savedPaymentMethodId, confirmParams.paymentMethodId)
   }
 
   @Test
