@@ -67,6 +67,10 @@ class ApplePayUtils {
             }
         }
 
+        if let supportedNetworks = params["supportedNetworks"] as? [String] {
+            paymentRequest.supportedNetworks = ApplePayUtils.mapToArrayOfPaymentNetworks(arrayOfStrings: supportedNetworks)
+        }
+
         paymentRequest.shippingType = ApplePayUtils.getShippingTypeFrom(string: params["shippingType"] as? String)
         if let supportedCountries = params["supportedCountries"] as? Set<String> {
             paymentRequest.supportedCountries = supportedCountries

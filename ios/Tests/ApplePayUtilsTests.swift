@@ -7,6 +7,7 @@
 //
 
 import PassKit
+import StripePaymentSheet
 @testable import stripe_react_native
 import XCTest
 
@@ -420,6 +421,33 @@ class ApplePayUtilsTests: XCTestCase {
 
         XCTAssertEqual(result.count, 1)
         XCTAssertEqual(result[0].rawValue, "customNetwork")
+    }
+
+    func test_createPaymentRequest_withSupportedNetworks_restrictsNetworks() {
+        let params: NSDictionary = [
+            "merchantCountryCode": TestFixtures.COUNTRY_CODE,
+            "currencyCode": "USD",
+            "cartItems": [TestFixtures.IMMEDIATE_CART_ITEM_DICTIONARY],
+            "supportedNetworks": ["Visa", "MasterCard"],
+        ]
+
+        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: TestFixtures.MERCHANT_ID, params: params)
+
+        XCTAssertNil(error)
+        XCTAssertEqual(paymentRequest?.supportedNetworks, [.visa, .masterCard])
+    }
+
+    func test_createPaymentRequest_withoutSupportedNetworks_keepsDefaultNetworks() {
+        let params: NSDictionary = [
+            "merchantCountryCode": TestFixtures.COUNTRY_CODE,
+            "currencyCode": "USD",
+            "cartItems": [TestFixtures.IMMEDIATE_CART_ITEM_DICTIONARY],
+        ]
+
+        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: TestFixtures.MERCHANT_ID, params: params)
+
+        XCTAssertNil(error)
+        XCTAssertEqual(paymentRequest?.supportedNetworks, StripeAPI.supportedPKPaymentNetworks())
     }
 
     private struct TestFixtures {
