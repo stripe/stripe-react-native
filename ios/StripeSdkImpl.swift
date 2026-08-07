@@ -385,8 +385,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             if paymentMethodType == .USBankAccount && paymentMethodData == nil {
                 return STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret, paymentMethodType: .USBankAccount)
             } else {
-                let factory = PaymentMethodFactory.init(paymentMethodData: paymentMethodData, options: options, cardFieldView: cardFieldView, cardFormView: cardFormView)
+                let factory = PaymentMethodFactory.init(paymentMethodData: paymentMethodData, options: options, cardFieldView: cardFieldView, cardFormView: cardFormView, publishableKey: STPAPIClient.shared.publishableKey ?? "")
                 let parameters = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
+
+                if paymentMethodType == .card && STPAPIClient.shared.publishableKey?.hasPrefix("uk_") == true {
+                    parameters.additionalAPIParameters["payment_method_options"] = ["card": ["moto": true]]
+                }
 
                 if let paymentMethodId = paymentMethodData?["paymentMethodId"] as? String {
                     parameters.paymentMethodID = paymentMethodId
@@ -622,7 +626,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             paymentMethodData: params["paymentMethodData"] as? NSDictionary,
             options: options,
             cardFieldView: cardFieldView,
-            cardFormView: cardFormView
+            cardFormView: cardFormView,
+            publishableKey: STPAPIClient.shared.publishableKey ?? ""
         )
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
@@ -965,7 +970,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 return STPPaymentIntentParams(clientSecret: paymentIntentClientSecret, paymentMethodType: .USBankAccount)
             } else {
                 guard let paymentMethodType = paymentMethodType else { return STPPaymentIntentParams(clientSecret: paymentIntentClientSecret) }
-                let factory = PaymentMethodFactory.init(paymentMethodData: paymentMethodData, options: options, cardFieldView: cardFieldView, cardFormView: cardFormView)
+                let factory = PaymentMethodFactory.init(paymentMethodData: paymentMethodData, options: options, cardFieldView: cardFieldView, cardFormView: cardFormView, publishableKey: STPAPIClient.shared.publishableKey ?? "")
                 let paymentMethodId = paymentMethodData?["paymentMethodId"] as? String
                 let parameters = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
 

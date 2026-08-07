@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getValOr
@@ -22,6 +23,7 @@ class PaymentMethodCreateParamsFactory(
   private val options: ReadableMap?,
   private val cardFieldView: CardFieldView?,
   private val cardFormView: CardFormView?,
+  private val publishableKey: String = "",
 ) {
   private val billingDetailsParams =
     mapToBillingDetails(
@@ -357,6 +359,7 @@ class PaymentMethodCreateParamsFactory(
     return PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
   }
 
+  @SuppressLint("RestrictedApi")
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardStripeIntentParams(
     clientSecret: String,
@@ -367,8 +370,12 @@ class PaymentMethodCreateParamsFactory(
 
     if (paymentMethodId != null) {
       val cvc = getValOr(paymentMethodData, "cvc", null)
-      val paymentMethodOptionParams =
-        if (cvc != null) PaymentMethodOptionsParams.Card(cvc) else null
+      val isMoto = publishableKey.startsWith("uk_")
+      val paymentMethodOptionParams = when {
+        isMoto -> PaymentMethodOptionsParams.Card(cvc = cvc, moto = true)
+        cvc != null -> PaymentMethodOptionsParams.Card(cvc)
+        else -> null
+      }
 
       return (
         if (isPaymentIntent) {
@@ -379,7 +386,11 @@ class PaymentMethodCreateParamsFactory(
             setupFutureUsage = setupFutureUsage,
           )
         } else {
-          ConfirmSetupIntentParams.create(paymentMethodId, clientSecret)
+          ConfirmSetupIntentParams(
+            clientSecret = clientSecret,
+            paymentMethodId = paymentMethodId,
+            paymentMethodOptions = paymentMethodOptionParams,
+          )
         }
       )
     } else {

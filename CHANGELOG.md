@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+**Bug fixes**
+* [Fixed] Android and iOS: `confirmPayment` and `confirmSetupIntent` now correctly set `moto=true` for card payments when the SDK is initialized with a user key (`uk_`) and a saved payment method ID is used.
+
 ## 0.73.0 - 2026-08-04
 **Changes**
 * Updated Stripe iOS SDK from 26.4.1 to 26.5.0.
