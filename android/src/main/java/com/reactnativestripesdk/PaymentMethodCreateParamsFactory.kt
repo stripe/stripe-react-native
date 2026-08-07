@@ -386,7 +386,9 @@ class PaymentMethodCreateParamsFactory(
             setupFutureUsage = setupFutureUsage,
           )
         } else {
-          ConfirmSetupIntentParams.create(paymentMethodId, clientSecret).copy(
+          ConfirmSetupIntentParams(
+            clientSecret = clientSecret,
+            paymentMethodId = paymentMethodId,
             paymentMethodOptions = paymentMethodOptionParams,
           )
         }
