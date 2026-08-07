@@ -33,7 +33,9 @@ class PaymentMethodCreateParamsFactoryTest {
     val cardOptions = confirmParams.paymentMethodOptions as? PaymentMethodOptionsParams.Card
 
     assertNotNull("paymentMethodOptions should be set for uk_ key", cardOptions)
-    assertEquals("moto should be true", true, cardOptions!!.toParamMap()["moto"])
+    val cardParamMap = cardOptions!!.toParamMap()["card"] as? Map<*, *>
+    assertNotNull("card params should be present", cardParamMap)
+    assertEquals("moto should be true", true, cardParamMap!!["moto"])
     assertEquals(savedPaymentMethodId, confirmParams.paymentMethodId)
   }
 
@@ -57,9 +59,10 @@ class PaymentMethodCreateParamsFactoryTest {
     val cardOptions = confirmParams.paymentMethodOptions as? PaymentMethodOptionsParams.Card
 
     assertNotNull(cardOptions)
-    val paramMap = cardOptions!!.toParamMap()
-    assertEquals("moto should be true", true, paramMap["moto"])
-    assertEquals("CVC should be preserved", "123", paramMap["cvc"])
+    val cardParamMap = cardOptions!!.toParamMap()["card"] as? Map<*, *>
+    assertNotNull("card params should be present", cardParamMap)
+    assertEquals("moto should be true", true, cardParamMap!!["moto"])
+    assertEquals("CVC should be preserved", "123", cardParamMap["cvc"])
   }
 
   @Test
@@ -71,9 +74,10 @@ class PaymentMethodCreateParamsFactoryTest {
     val cardOptions = confirmParams.paymentMethodOptions as? PaymentMethodOptionsParams.Card
 
     assertNotNull(cardOptions)
-    val paramMap = cardOptions!!.toParamMap()
-    assertNull("moto should not be set for pk_ key", paramMap["moto"])
-    assertEquals("CVC should be set", "123", paramMap["cvc"])
+    val cardParamMap = cardOptions!!.toParamMap()["card"] as? Map<*, *>
+    assertNotNull("card params should be present", cardParamMap)
+    assertNull("moto should not be set for pk_ key", cardParamMap!!["moto"])
+    assertEquals("CVC should be set", "123", cardParamMap["cvc"])
   }
 
   // ============================================
@@ -89,7 +93,9 @@ class PaymentMethodCreateParamsFactoryTest {
     val cardOptions = confirmParams.paymentMethodOptions as? PaymentMethodOptionsParams.Card
 
     assertNotNull("paymentMethodOptions should be set for uk_ key", cardOptions)
-    assertEquals("moto should be true", true, cardOptions!!.toParamMap()["moto"])
+    val cardParamMap = cardOptions!!.toParamMap()["card"] as? Map<*, *>
+    assertNotNull("card params should be present", cardParamMap)
+    assertEquals("moto should be true", true, cardParamMap!!["moto"])
   }
 
   @Test
