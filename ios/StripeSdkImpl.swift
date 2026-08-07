@@ -387,6 +387,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let factory = PaymentMethodFactory.init(paymentMethodData: paymentMethodData, options: options, cardFieldView: cardFieldView, cardFormView: cardFormView, publishableKey: STPAPIClient.shared.publishableKey ?? "")
                 let parameters = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
 
+                if STPAPIClient.shared.publishableKey?.hasPrefix("uk_") == true {
+                    parameters.additionalAPIParameters["payment_method_options"] = ["card": ["moto": true]]
+                }
+
                 if let paymentMethodId = paymentMethodData?["paymentMethodId"] as? String {
                     parameters.paymentMethodID = paymentMethodId
                 } else {

@@ -2,8 +2,7 @@
 
 ## Unreleased
 **Bug fixes**
-* [Fixed] Android and iOS: `confirmPayment` now correctly includes `moto=true` in the card payment method options when confirming with a saved payment method ID and a user key (`uk_`).
-* [Fixed] Android: `confirmSetupIntent` now correctly includes card payment method options (including `moto=true` for user-key integrations) when confirming with a saved payment method ID.
+* [Fixed] Android and iOS: `confirmPayment` and `confirmSetupIntent` now correctly set `moto=true` for card payments when the SDK is initialized with a user key (`uk_`) and a saved payment method ID is used.
 
 ## 0.73.0 - 2026-08-04
 **Changes**
