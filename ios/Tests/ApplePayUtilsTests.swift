@@ -8,10 +8,16 @@
 
 import PassKit
 @testable import stripe_react_native
+import StripePaymentSheet
 import XCTest
 
 @available(iOS 15.0, *)
 class ApplePayUtilsTests: XCTestCase {
+
+    override func tearDown() {
+        StripeAPI.additionalEnabledApplePayNetworks = []
+        super.tearDown()
+    }
 
     func test_buildPaymentSheetApplePayConfig_FailsWithoutMerchantIdentifier() throws {
         XCTAssertThrowsError(
@@ -420,6 +426,55 @@ class ApplePayUtilsTests: XCTestCase {
 
         XCTAssertEqual(result.count, 1)
         XCTAssertEqual(result[0].rawValue, "customNetwork")
+    }
+
+    // MARK: - createPaymentRequest Tests
+
+    func test_createPaymentRequest_supportedNetworksRestrictsNetworks() {
+        let params: NSDictionary = [
+            "merchantCountryCode": TestFixtures.COUNTRY_CODE,
+            "currencyCode": "USD",
+            "cartItems": TestFixtures.CART_ITEM_DICTIONARY,
+            "supportedNetworks": ["Visa", "MasterCard"],
+        ]
+
+        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(
+            merchantIdentifier: TestFixtures.MERCHANT_ID, params: params)
+
+        XCTAssertNil(error)
+        XCTAssertEqual(paymentRequest?.supportedNetworks, [.visa, .masterCard])
+    }
+
+    func test_createPaymentRequest_withoutSupportedNetworksKeepsDefaults() {
+        let params: NSDictionary = [
+            "merchantCountryCode": TestFixtures.COUNTRY_CODE,
+            "currencyCode": "USD",
+            "cartItems": TestFixtures.CART_ITEM_DICTIONARY,
+        ]
+
+        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(
+            merchantIdentifier: TestFixtures.MERCHANT_ID, params: params)
+
+        XCTAssertNil(error)
+        // Defaults are left untouched, so the SDK's standard networks still apply.
+        XCTAssertTrue(paymentRequest?.supportedNetworks.contains(.amex) ?? false)
+        XCTAssertTrue(paymentRequest?.supportedNetworks.contains(.visa) ?? false)
+    }
+
+    func test_createPaymentRequest_supportedNetworksOverridesAdditionalEnabledNetworks() {
+        let params: NSDictionary = [
+            "merchantCountryCode": TestFixtures.COUNTRY_CODE,
+            "currencyCode": "USD",
+            "cartItems": TestFixtures.CART_ITEM_DICTIONARY,
+            "additionalEnabledNetworks": ["JCB"],
+            "supportedNetworks": ["Visa"],
+        ]
+
+        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(
+            merchantIdentifier: TestFixtures.MERCHANT_ID, params: params)
+
+        XCTAssertNil(error)
+        XCTAssertEqual(paymentRequest?.supportedNetworks, [.visa])
     }
 
     private struct TestFixtures {

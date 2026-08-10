@@ -40,6 +40,10 @@ class ApplePayUtils {
 
         let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: countryCode, currency: currencyCode)
 
+        if let supportedNetworks = params["supportedNetworks"] as? [String] {
+            paymentRequest.supportedNetworks = ApplePayUtils.mapToArrayOfPaymentNetworks(arrayOfStrings: supportedNetworks)
+        }
+
         let requiredShippingAddressFields = params["requiredShippingAddressFields"] as? NSArray ?? NSArray()
         let requiredBillingContactFields = params["requiredBillingContactFields"] as? NSArray ?? NSArray()
         let shippingMethods = params["shippingMethods"] as? NSArray ?? NSArray()

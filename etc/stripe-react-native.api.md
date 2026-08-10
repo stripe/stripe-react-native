@@ -271,6 +271,7 @@ type ApplePayBaseParams = {
     merchantCountryCode: string;
     currencyCode: string;
     additionalEnabledNetworks?: Array<string>;
+    supportedNetworks?: Array<string>;
     cartItems: Array<CartSummaryItem_2>;
     requiredShippingAddressFields?: Array<ContactField>;
     requiredBillingContactFields?: Array<ContactField>;
