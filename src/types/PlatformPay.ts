@@ -51,6 +51,8 @@ export type ApplePayBaseParams = {
   currencyCode: string;
   /** The SDK accepts Amex, Mastercard, Visa, and Discover for Apple Pay by default. Set this property to enable other card networks, for example: ["JCB", "barcode", "chinaUnionPay"]. A full list of possible networks can be found at https://developer.apple.com/documentation/passkit/pkpaymentnetwork. */
   additionalEnabledNetworks?: Array<string>;
+  /** Set this property to only allow specific card networks for this payment, for example: ["Visa", "MasterCard"]. Overrides the default networks, including any set in `additionalEnabledNetworks`. A full list of possible networks can be found at https://developer.apple.com/documentation/passkit/pkpaymentnetwork. */
+  supportedNetworks?: Array<string>;
   /** The list of items that describe a purchase. For example: total, tax, discount, and grand total. The final item should represent your company and the total; it'll be prepended with the word "Pay" (for example, "Pay Example Company $50"). */
   cartItems: Array<CartSummaryItem>;
   /** The list of fields that you need for a shipping contact in order to process the transaction. If you include ContactField.PostalAddress in this array, you must implement the PlatformPayButton component's `onShippingContactSelected` callback and call `updatePlatformPaySheet` from there.*/

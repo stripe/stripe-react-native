@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+**Features**
+* [Added] iOS: Added `supportedNetworks` to the Apple Pay params, which restricts the card networks offered in the Apple Pay sheet.
+
 ## 0.73.0 - 2026-08-04
 **Changes**
 * Updated Stripe iOS SDK from 26.4.1 to 26.5.0.
