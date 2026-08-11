@@ -186,6 +186,7 @@ internal fun mapPaymentDetailsType(type: PaymentMethodDisplayData.Type): String 
     PaymentMethodDisplayData.Type.Card -> "Card"
     PaymentMethodDisplayData.Type.BankAccount -> "BankAccount"
     PaymentMethodDisplayData.Type.GooglePay -> "GooglePay"
+    PaymentMethodDisplayData.Type.SamsungPay -> "SamsungPay"
   }
 
 @OptIn(ExperimentalCryptoOnramp::class)
