@@ -39,6 +39,7 @@ import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
 import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentMethodResult
 import com.stripe.android.crypto.onramp.model.OnrampConfigurationResult
 import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
+import com.stripe.android.crypto.onramp.model.OnrampDeleteWalletAddressResult
 import com.stripe.android.crypto.onramp.model.OnrampGetWalletOwnershipChallengeResult
 import com.stripe.android.crypto.onramp.model.OnrampUserAttestationResult
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
@@ -293,6 +294,28 @@ class OnrampSdkModule(
           promise.resolveVoid()
         }
         is OnrampRegisterWalletAddressResult.Failed -> {
+          promise.resolve(createOnrampFailedError(result.error))
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun deleteWalletAddress(
+    walletId: String,
+    promise: Promise,
+  ) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+    CoroutineScope(Dispatchers.IO).launch {
+      when (val result = coordinator.deleteWalletAddress(walletId)) {
+        is OnrampDeleteWalletAddressResult.Completed -> {
+          promise.resolveVoid()
+        }
+        is OnrampDeleteWalletAddressResult.Failed -> {
           promise.resolve(createOnrampFailedError(result.error))
         }
       }
