@@ -29,6 +29,12 @@ RCT_EXPORT_METHOD(configureOnramp:(nonnull NSDictionary *)config
   [StripeSdkImpl.shared configureOnramp:config resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(isSamsungPaySupported:(nonnull RCTPromiseResolveBlock)resolve
+                                reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  resolve(@NO);
+}
+
 RCT_EXPORT_METHOD(hasLinkAccount:(nonnull NSString *)email
                          resolve:(nonnull RCTPromiseResolveBlock)resolve
                           reject:(nonnull RCTPromiseRejectBlock)reject)

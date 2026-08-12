@@ -8,6 +8,8 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
+import com.reactnativestripesdk.utils.getIntegerList
+import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.link.LinkControllerPreview
@@ -17,6 +19,7 @@ import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
+import com.stripe.android.crypto.onramp.model.PaymentMethodSelection
 import com.stripe.android.crypto.onramp.model.WalletOwnershipChallenge
 import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifier
 import com.stripe.android.crypto.onramp.model.compliance.ComplianceIdentifierAlternativeGroup
@@ -51,6 +54,7 @@ internal fun mapConfig(
   val displayName = configMap.getString("merchantDisplayName") ?: ""
   val cryptoCustomerId = configMap.getString("cryptoCustomerId")
   val googlePayConfig = mapGooglePayConfig(configMap.getMap("googlePay"))
+  val samsungPayConfig = mapSamsungPayConfig(configMap.getMap("samsungPay"))
 
   return OnrampConfiguration()
     .merchantDisplayName(displayName)
@@ -58,12 +62,79 @@ internal fun mapConfig(
     .appearance(appearance)
     .cryptoCustomerId(cryptoCustomerId)
     .apply { googlePayConfig?.let { googlePayConfig(it) } }
+    .apply { samsungPayConfig?.let { samsungPayConfig(it) } }
     .apply {
       if (additionalSdkVersions.isNotEmpty()) {
         this.additionalSdkVersions(additionalSdkVersions)
       }
     }
 }
+
+@SuppressLint("RestrictedApi")
+internal fun mapSamsungPayConfig(params: ReadableMap?): OnrampConfiguration.SamsungPayConfig? {
+  if (params == null) return null
+
+  val serviceId = params.getString("serviceId")?.takeIf { it.isNotBlank() } ?: return null
+  val merchantId = params.getString("merchantId")
+  val merchantName = params.getString("merchantName")
+  val allowedCardBrands = params.getIntegerList("allowedCardBrands")
+
+  return if (allowedCardBrands == null) {
+    OnrampConfiguration.SamsungPayConfig(
+      serviceId = serviceId,
+      merchantId = merchantId,
+      merchantName = merchantName,
+    )
+  } else {
+    OnrampConfiguration.SamsungPayConfig(
+      serviceId = serviceId,
+      merchantId = merchantId,
+      merchantName = merchantName,
+      allowedCardBrands = mapToPreferredNetworks(allowedCardBrands),
+    )
+  }
+}
+
+@SuppressLint("RestrictedApi")
+internal fun mapOnrampPaymentMethodSelection(
+  paymentMethod: String,
+  platformPayParams: ReadableMap,
+): PaymentMethodSelection =
+  when (paymentMethod) {
+    "Card" -> PaymentMethodSelection.Card()
+    "BankAccount" -> PaymentMethodSelection.BankAccount()
+    "CardAndBankAccount" -> PaymentMethodSelection.CardAndBankAccount()
+    "PlatformPay" -> {
+      val googlePayParams =
+        platformPayParams.getMap("googlePay")
+          ?: throw IllegalArgumentException("Missing googlePay params in platformPayParams")
+
+      PaymentMethodSelection.GooglePay(
+        currencyCode = googlePayParams.getString("currencyCode") ?: "",
+        amount = googlePayParams.getDouble("amount").toLong(),
+        transactionId = googlePayParams.getString("transactionId"),
+        label = googlePayParams.getString("label"),
+      )
+    }
+    "SamsungPay" -> {
+      val samsungPayParams =
+        platformPayParams.getMap("samsungPay")
+          ?: throw IllegalArgumentException("Missing samsungPay params in platformPayParams")
+      val currencyCode =
+        samsungPayParams.getString("currencyCode")?.takeIf { it.isNotBlank() }
+          ?: throw IllegalArgumentException("Missing currencyCode in samsungPay params")
+      val orderNumber =
+        samsungPayParams.getString("orderNumber")?.takeIf { it.isNotBlank() }
+          ?: throw IllegalArgumentException("Missing orderNumber in samsungPay params")
+
+      PaymentMethodSelection.SamsungPay(
+        currencyCode = currencyCode,
+        amount = samsungPayParams.getDouble("amount").toLong(),
+        orderNumber = orderNumber,
+      )
+    }
+    else -> throw IllegalArgumentException("Unsupported payment method: $paymentMethod")
+  }
 
 @SuppressLint("RestrictedApi")
 internal fun mapGooglePayConfig(params: ReadableMap?): GooglePayPaymentMethodLauncher.Config? {

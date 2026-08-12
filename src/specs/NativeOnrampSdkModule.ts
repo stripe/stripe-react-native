@@ -8,6 +8,7 @@ export interface Spec extends TurboModule {
   configureOnramp(
     config: UnsafeObject<Onramp.Configuration>
   ): Promise<Onramp.VoidResult>;
+  isSamsungPaySupported(): Promise<boolean>;
   hasLinkAccount(email: string): Promise<Onramp.HasLinkAccountResult>;
   registerLinkUser(
     info: UnsafeObject<Onramp.LinkUserInfo>

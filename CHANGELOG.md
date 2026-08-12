@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+**Features**
+* [Added] Android: Added Crypto Onramp Samsung Pay configuration, availability checks, payment collection, and example integration.
+
 ## 0.74.0 - 2026-08-11
 **Features**
 * [Added] iOS: Added `supportedNetworks` to the Apple Pay params, which restricts the card networks offered in the Apple Pay sheet.

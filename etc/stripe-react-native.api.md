@@ -1089,6 +1089,7 @@ type Configuration = {
     appearance: LinkAppearance;
     cryptoCustomerId?: string;
     googlePay?: GooglePayConfig;
+    samsungPay?: SamsungPayConfig;
 };
 
 // @public
@@ -2667,7 +2668,9 @@ declare namespace Onramp {
         Configuration,
         GooglePayConfig,
         GooglePayBillingAddressConfig,
+        SamsungPayConfig,
         OnrampGooglePayParams,
+        OnrampSamsungPayParams,
         OnrampPlatformPayParams,
         LinkUserInfo,
         CryptoNetwork,
@@ -2746,7 +2749,15 @@ type OnrampGooglePayParams = {
 // @public
 type OnrampPlatformPayParams = {
     googlePay?: OnrampGooglePayParams;
+    samsungPay?: OnrampSamsungPayParams;
     applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
+};
+
+// @public
+type OnrampSamsungPayParams = {
+    currencyCode: string;
+    amount: number;
+    orderNumber: string;
 };
 
 // @public
@@ -2922,7 +2933,7 @@ type PaymentMethodDisplayData = {
     icon: string;
     label: string;
     sublabel?: string;
-    type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay';
+    type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay' | 'SamsungPay';
 };
 
 // @public (undocumented)
@@ -3591,6 +3602,14 @@ export enum RowStyle {
     FloatingButton = "floatingButton"
 }
 
+// @public
+type SamsungPayConfig = {
+    serviceId: string;
+    merchantId?: string;
+    merchantName?: string;
+    allowedCardBrands?: CardBrand[];
+};
+
 // @public (undocumented)
 interface SepaDebitResult {
     // (undocumented)
@@ -4180,6 +4199,7 @@ export function useOnramp(): {
     configure: (config: Onramp.Configuration) => Promise<{
         error?: Onramp.CryptoOnrampError;
     }>;
+    isSamsungPaySupported: () => Promise<boolean>;
     hasLinkAccount: (email: string) => Promise<Onramp.HasLinkAccountResult>;
     registerLinkUser: (info: Onramp.LinkUserInfo) => Promise<Onramp.RegisterLinkUserResult>;
     registerWalletAddress: (walletAddress: string, network: Onramp.CryptoNetwork) => Promise<{
@@ -4206,6 +4226,7 @@ export function useOnramp(): {
     collectPaymentMethod: {
         (paymentMethod: "Card" | "BankAccount" | "CardAndBankAccount", platformPayParams?: undefined): Promise<Onramp.CollectPaymentMethodResult>;
         (paymentMethod: "PlatformPay", platformPayParams: Onramp.OnrampPlatformPayParams): Promise<Onramp.CollectPaymentMethodResult>;
+        (paymentMethod: "SamsungPay", platformPayParams: Onramp.OnrampPlatformPayParams): Promise<Onramp.CollectPaymentMethodResult>;
     };
     createCryptoPaymentToken: () => Promise<Onramp.CreateCryptoPaymentTokenResult>;
     performCheckout: (onrampSessionId: string, provideCheckoutClientSecret: () => Promise<string | null>) => Promise<{
