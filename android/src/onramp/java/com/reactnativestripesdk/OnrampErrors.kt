@@ -86,10 +86,17 @@ private fun createOnrampMessageError(
   createOnrampErrorMap(code = code, message = message)
 
 private fun CryptoOnrampApiException.toOnrampErrorType(): String =
-  if (code == "link_failed_to_attest_request") {
-    "AppAttestationError"
-  } else {
-    "UncategorizedApiError"
+  when (code) {
+    "link_failed_to_attest_request" -> "AppAttestationError"
+    "crypto_onramp_invalid_wallet_ownership_signature" ->
+      "InvalidWalletOwnershipSignatureError"
+    "crypto_onramp_wallet_ownership_challenge_expired" ->
+      "WalletOwnershipChallengeExpiredError"
+    "crypto_onramp_invalid_wallet_ownership_challenge" ->
+      "InvalidWalletOwnershipChallengeError"
+    "crypto_onramp_wallet_not_found" -> "WalletNotFoundError"
+    "crypto_onramp_unsupported_network" -> "UnsupportedNetworkError"
+    else -> "UncategorizedApiError"
   }
 
 private fun StripeCryptoOnrampError.toOnrampErrorType(): String? =

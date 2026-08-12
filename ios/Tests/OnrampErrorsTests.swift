@@ -76,6 +76,52 @@ class OnrampErrorsTests: XCTestCase {
         XCTAssertEqual(details["docUrl"] as? String, error.docURL?.absoluteString)
     }
 
+    func test_createFailedError_withWalletOwnershipAPIError_mapsSpecificErrorType() throws {
+        let testCases = [
+            (
+                code: "crypto_onramp_invalid_wallet_ownership_signature",
+                expectedType: "InvalidWalletOwnershipSignatureError"
+            ),
+            (
+                code: "crypto_onramp_wallet_ownership_challenge_expired",
+                expectedType: "WalletOwnershipChallengeExpiredError"
+            ),
+            (
+                code: "crypto_onramp_invalid_wallet_ownership_challenge",
+                expectedType: "InvalidWalletOwnershipChallengeError"
+            ),
+            (
+                code: "crypto_onramp_wallet_not_found",
+                expectedType: "WalletNotFoundError"
+            ),
+            (
+                code: "crypto_onramp_unsupported_network",
+                expectedType: "UnsupportedNetworkError"
+            ),
+        ]
+
+        for testCase in testCases {
+            let error = TestStripeCryptoOnrampAPIError(
+                code: testCase.code,
+                userMessage: "Wallet ownership verification failed.",
+                developerMessage: "Developer message.",
+                docURL: nil,
+                reason: "wallet_verification_failed",
+                type: "invalid_request_error",
+                requestID: "req_wallet_verification",
+                apiMessage: "Wallet ownership verification failed.",
+                apiUserMessage: "Please try again."
+            )
+
+            let details = try errorDetails(from: OnrampErrors.createFailedError(error))
+
+            XCTAssertEqual(details["onrampErrorType"] as? String, testCase.expectedType, testCase.code)
+            XCTAssertEqual(details["apiErrorCode"] as? String, testCase.code, testCase.code)
+            XCTAssertEqual(details["reason"] as? String, error.reason, testCase.code)
+            XCTAssertEqual(details["requestId"] as? String, error.requestID, testCase.code)
+        }
+    }
+
     func test_createFailedError_withAppAttestationUnavailableError_preservesSdkErrorFields() throws {
         let error = TestStripeCryptoOnrampError(
             code: "app_attestation_unavailable",

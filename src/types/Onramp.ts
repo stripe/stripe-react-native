@@ -269,6 +269,11 @@ export type ComplianceIdentifierRequirements = {
  */
 export type OnrampApiErrorType =
   | 'AppAttestationError'
+  | 'InvalidWalletOwnershipSignatureError'
+  | 'WalletOwnershipChallengeExpiredError'
+  | 'InvalidWalletOwnershipChallengeError'
+  | 'WalletNotFoundError'
+  | 'UnsupportedNetworkError'
   | 'UncategorizedApiError';
 
 /**
@@ -309,6 +314,41 @@ export type AppAttestationError = OnrampApiError & {
 };
 
 /**
+ * A typed Crypto Onramp API error for an invalid wallet ownership signature.
+ */
+export type InvalidWalletOwnershipSignatureError = OnrampApiError & {
+  onrampErrorType: 'InvalidWalletOwnershipSignatureError';
+};
+
+/**
+ * A typed Crypto Onramp API error for an expired wallet ownership challenge.
+ */
+export type WalletOwnershipChallengeExpiredError = OnrampApiError & {
+  onrampErrorType: 'WalletOwnershipChallengeExpiredError';
+};
+
+/**
+ * A typed Crypto Onramp API error for an invalid wallet ownership challenge.
+ */
+export type InvalidWalletOwnershipChallengeError = OnrampApiError & {
+  onrampErrorType: 'InvalidWalletOwnershipChallengeError';
+};
+
+/**
+ * A typed Crypto Onramp API error when the requested wallet cannot be found.
+ */
+export type WalletNotFoundError = OnrampApiError & {
+  onrampErrorType: 'WalletNotFoundError';
+};
+
+/**
+ * A typed Crypto Onramp API error for a network unsupported by the operation.
+ */
+export type UnsupportedNetworkError = OnrampApiError & {
+  onrampErrorType: 'UnsupportedNetworkError';
+};
+
+/**
  * A typed Crypto Onramp API error that did not map to a narrower category.
  */
 export type UncategorizedApiError = OnrampApiError & {
@@ -336,6 +376,11 @@ export type CryptoOnrampError =
       userMessage?: never;
     })
   | AppAttestationError
+  | InvalidWalletOwnershipSignatureError
+  | WalletOwnershipChallengeExpiredError
+  | InvalidWalletOwnershipChallengeError
+  | WalletNotFoundError
+  | UnsupportedNetworkError
   | UncategorizedApiError
   | AppAttestationUnavailableError;
 
