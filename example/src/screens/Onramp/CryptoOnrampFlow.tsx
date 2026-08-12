@@ -28,7 +28,9 @@ import {
   saveUser,
   createLinkAuthToken,
   getCryptoCustomerId,
+  fetchCustomerWallets,
 } from '../../api/onrampBackend';
+import type { CustomerWallet } from '../../api/onrampBackend';
 import {
   getDestinationParamsForNetwork,
   formatIdentifierRequirements,
@@ -91,6 +93,7 @@ export default function CryptoOnrampFlow() {
     attachKycInfo,
     retrieveMissingIdentifiers,
     submitIdentifiers,
+    deleteWalletAddress,
     getWalletOwnershipChallenge,
     submitWalletOwnershipSignature,
     presentUserAttestation,
@@ -180,6 +183,8 @@ export default function CryptoOnrampFlow() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [walletNetwork, setWalletNetwork] =
     useState<Onramp.CryptoNetwork | null>(null);
+  const [wallets, setWallets] = useState<CustomerWallet[]>([]);
+  const [isWalletsLoading, setIsWalletsLoading] = useState(false);
   const [walletOwnershipChallenge, setWalletOwnershipChallenge] =
     useState<Onramp.WalletOwnershipChallenge | null>(null);
   const [walletOwnershipVerified, setWalletOwnershipVerified] = useState<
@@ -584,6 +589,75 @@ export default function CryptoOnrampFlow() {
     }
   }, [userInfo.phoneNumber, updatePhoneNumber]);
 
+  const handleRefreshWallets = useCallback(async () => {
+    if (!authToken) {
+      showError('Please log in to the demo backend first.');
+      return;
+    }
+
+    setIsWalletsLoading(true);
+
+    try {
+      const result = await fetchCustomerWallets(authToken);
+      if (!result.success) {
+        showError(
+          `Failed to fetch wallets: ${result.error.code} - ${result.error.message}`
+        );
+        return;
+      }
+
+      setWallets(result.data.data);
+    } finally {
+      setIsWalletsLoading(false);
+    }
+  }, [authToken]);
+
+  const handleDeleteWallet = useCallback(
+    async (wallet: CustomerWallet) => {
+      setIsWalletsLoading(true);
+
+      try {
+        const result = await withReauth(
+          () => deleteWalletAddress(wallet.id),
+          () => authorize(linkAuthIntentId)
+        );
+
+        if (result.error) {
+          showError(`Failed to delete wallet: ${result.error.message}.`);
+          return;
+        }
+
+        setWallets((currentWallets) =>
+          currentWallets.filter(
+            (currentWallet) => currentWallet.id !== wallet.id
+          )
+        );
+
+        if (
+          wallet.walletAddress === walletAddress &&
+          wallet.network === walletNetwork
+        ) {
+          setWalletAddress(null);
+          setWalletNetwork(null);
+          setWalletOwnershipChallenge(null);
+          setWalletOwnershipVerified(null);
+        }
+
+        showSuccess('Wallet deleted successfully!');
+      } finally {
+        setIsWalletsLoading(false);
+      }
+    },
+    [
+      authorize,
+      deleteWalletAddress,
+      linkAuthIntentId,
+      walletAddress,
+      walletNetwork,
+      withReauth,
+    ]
+  );
+
   const handleGetWalletOwnershipChallenge = useCallback(async () => {
     const address = walletAddress?.trim();
     const network = walletNetwork;
@@ -944,6 +1018,7 @@ export default function CryptoOnrampFlow() {
       setStoredDemoAuth(null);
       setWalletAddress(null);
       setWalletNetwork(null);
+      setWallets([]);
       setWalletOwnershipChallenge(null);
       setWalletOwnershipVerified(null);
       setOnrampSessionId(null);
@@ -952,6 +1027,12 @@ export default function CryptoOnrampFlow() {
       setAchSettlementSpeed('instant');
     }
   }, [logOut]);
+
+  useEffect(() => {
+    if (isLinkUser && customerId && authToken) {
+      handleRefreshWallets();
+    }
+  }, [authToken, customerId, handleRefreshWallets, isLinkUser]);
 
   useEffect(() => {
     let mounted = true;
@@ -1211,11 +1292,16 @@ export default function CryptoOnrampFlow() {
             handleCreateCryptoPaymentToken={handleCreateCryptoPaymentToken}
           />
           <RegisterWalletAddressSection
+            wallets={wallets}
+            isWalletsLoading={isWalletsLoading}
+            onDeleteWallet={handleDeleteWallet}
+            onRefreshWallets={handleRefreshWallets}
             onWalletRegistered={(address, network) => {
               setWalletAddress(address);
               setWalletNetwork(network);
               setWalletOwnershipChallenge(null);
               setWalletOwnershipVerified(null);
+              handleRefreshWallets();
             }}
           />
           <WalletOwnershipSection
