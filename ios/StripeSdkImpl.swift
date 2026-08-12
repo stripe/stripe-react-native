@@ -1423,6 +1423,27 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(deleteWalletAddress:resolver:rejecter:)
+    public func deleteWalletAddress(
+        walletId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                try await coordinator.deleteWalletAddress(walletId: walletId)
+                resolve([:])  // Return empty object on success
+            } catch {
+                let errorResult = OnrampErrors.createFailedError(error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
     @objc(getWalletOwnershipChallenge:network:resolver:rejecter:)
     public func getWalletOwnershipChallenge(
         walletAddress: String,
