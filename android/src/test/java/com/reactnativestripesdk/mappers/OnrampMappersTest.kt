@@ -452,6 +452,7 @@ class OnrampMappersTest {
     assertEquals("Card", mapPaymentDetailsType(PaymentMethodDisplayData.Type.Card))
     assertEquals("BankAccount", mapPaymentDetailsType(PaymentMethodDisplayData.Type.BankAccount))
     assertEquals("GooglePay", mapPaymentDetailsType(PaymentMethodDisplayData.Type.GooglePay))
+    assertEquals("SamsungPay", mapPaymentDetailsType(PaymentMethodDisplayData.Type.SamsungPay))
   }
 
   @Test
