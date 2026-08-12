@@ -54,6 +54,25 @@ interface GetCryptoCustomerResponse {
   crypto_customer_id: string;
 }
 
+interface CustomerWallet {
+  id: string;
+  network: string;
+  walletAddress: string;
+  verifiedOwnership: boolean;
+}
+
+interface CustomerWalletsResponse {
+  count: number;
+  data: CustomerWallet[];
+}
+
+interface CustomerWalletApiResponse {
+  id: string;
+  network: string;
+  wallet_address: string;
+  verified_ownership: boolean;
+}
+
 interface CreateOnrampSessionRequest {
   ui_mode: string;
   payment_token: string;
@@ -403,6 +422,32 @@ export class OnrampBackend {
       }
     );
   }
+
+  /**
+   * Retrieves the registered wallets for the currently authenticated user
+   * @param authToken Authorization token
+   */
+  async fetchCustomerWallets(
+    authToken: string
+  ): Promise<ApiResult<CustomerWalletsResponse>> {
+    return this.makeRequest<CustomerWalletsResponse>(
+      '/v1/customer_wallets?limit=50',
+      null,
+      {
+        authToken,
+        method: 'GET',
+        transformResponse: (data) => ({
+          count: data.count,
+          data: data.data.map((wallet: CustomerWalletApiResponse) => ({
+            id: wallet.id,
+            network: wallet.network,
+            walletAddress: wallet.wallet_address,
+            verifiedOwnership: wallet.verified_ownership,
+          })),
+        }),
+      }
+    );
+  }
 }
 
 const defaultClient = new OnrampBackend();
@@ -459,6 +504,12 @@ export const getCryptoCustomerId = async (
   return defaultClient.getCryptoCustomerId(authToken);
 };
 
+export const fetchCustomerWallets = async (
+  authToken: string
+): Promise<ApiResult<CustomerWalletsResponse>> => {
+  return defaultClient.fetchCustomerWallets(authToken);
+};
+
 export const saveUser = async (
   cryptoCustomerId: string,
   authToken: string
@@ -487,6 +538,8 @@ export type {
   CreateAuthIntentResponse,
   CreateLinkAuthTokenResponse,
   GetCryptoCustomerResponse,
+  CustomerWallet,
+  CustomerWalletsResponse,
   SaveUserRequest,
   SaveUserResponse,
   SignupRequest,
