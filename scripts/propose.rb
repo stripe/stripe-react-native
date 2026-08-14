@@ -5,7 +5,7 @@ require 'date'
 require 'tmpdir'
 require 'shellwords'
 require_relative 'helpers'
-require_relative 'native_sdk_versions'
+require_relative 'bump_native_sdks'
 
 @release_type = nil
 
@@ -42,22 +42,12 @@ def bump_version(version)
   execute_or_fail("yarn version --no-git-tag-version --new-version #{version}")
 end
 
-def create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
+def create_proposal_pr(version, native_sdk_changes, native_sdk_versions)
   branch = "release/propose-#{version}"
   execute_or_fail("git checkout -b #{branch}")
 
   bump_version(version)
   update_changelog(version)
-  begin
-    native_sdk_changes = native_sdk_updater.apply(native_sdk_versions)
-  rescue NativeSdkVersions::Error => e
-    abort "Error! #{e.message}"
-  end
-  native_sdk_changes.each do |change|
-    status = change.changed ? "#{change.previous_version} -> #{change.version}" : "already at #{change.version}"
-    puts "#{change.name}: #{status}"
-  end
-
   ios_changed = native_sdk_changes.any? { |change| change.name == 'stripe-ios' && change.changed }
   execute_or_fail("yarn update-pods") if ios_changed
 
@@ -128,11 +118,5 @@ preflight_checks
 
 version = next_version
 puts "Proposing #{version} (currently #{current_version})"
-native_sdk_updater = NativeSdkVersions.new
-puts "Fetching latest native SDK releases"
-begin
-  native_sdk_versions = native_sdk_updater.latest
-rescue NativeSdkVersions::Error => e
-  abort "Error! #{e.message}"
-end
-create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
+native_sdk_changes, native_sdk_versions = NativeSdkBumper.new.update
+create_proposal_pr(version, native_sdk_changes, native_sdk_versions)
