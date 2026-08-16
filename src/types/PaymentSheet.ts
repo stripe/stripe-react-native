@@ -298,7 +298,7 @@ export type FontConfig = {
    * The font used for regular text. PaymentSheet will attempt to use medium and bold versions of this font if they exist.
    *
    * On iOS, this should be the "PostScript name" found in Font Book after installing the font.
-   * On Android, this should be the name of the font file (containing only lowercase alphanumeric characters) in android/app/src/main/res/font
+   * On Android, this should be the name of the font file (containing only alphanumeric characters and underscores) in android/app/src/main/res/font
    *
    * @default The OS's system font
    */
