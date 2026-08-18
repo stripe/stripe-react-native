@@ -3,6 +3,7 @@
 ## Unreleased
 **Features**
 * [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.
+* [Added] Added typed Crypto Onramp error coverage for wallet ownership verification failures.
 
 ## 0.74.0 - 2026-08-11
 **Features**

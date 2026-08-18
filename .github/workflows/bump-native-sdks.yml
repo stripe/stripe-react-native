@@ -13,7 +13,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # Use a PAT so the resulting PR triggers pull_request CI workflows.
           # GITHUB_TOKEN-created PRs intentionally don't trigger other workflows.
@@ -74,7 +74,7 @@ jobs:
 
       - name: Set up Node.js
         if: steps.diff.outputs.ios_changed == 'true' || steps.diff.outputs.android_changed == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 18
           cache: yarn
