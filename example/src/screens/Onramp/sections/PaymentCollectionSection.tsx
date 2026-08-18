@@ -1,7 +1,7 @@
 import React from 'react';
 import { Collapse } from '../../../components/Collapse';
 import Button from '../../../components/Button';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { PlatformPayButton } from '@stripe/stripe-react-native';
 import { colors } from '../../../colors';
 import { SegmentedControl } from '../../../components/SegmentedControl';
@@ -10,9 +10,11 @@ export type SourceCurrency = 'usd' | 'eur';
 
 interface PaymentCollectionSectionProps {
   isPlatformPaySupported: boolean;
+  isSamsungPaySupported: boolean;
   sourceCurrency: SourceCurrency;
   onSourceCurrencyChange: (currency: SourceCurrency) => void;
   handleCollectPlatformPayPayment: () => void;
+  handleCollectSamsungPayPayment: () => void;
   handleCollectCardPayment: () => void;
   handleCollectBankAccountPayment: () => void;
   handleCollectCardAndBankAccountPayment: () => void;
@@ -20,9 +22,11 @@ interface PaymentCollectionSectionProps {
 
 export function PaymentCollectionSection({
   isPlatformPaySupported,
+  isSamsungPaySupported,
   sourceCurrency,
   onSourceCurrencyChange,
   handleCollectPlatformPayPayment,
+  handleCollectSamsungPayPayment,
   handleCollectCardPayment,
   handleCollectBankAccountPayment,
   handleCollectCardAndBankAccountPayment,
@@ -46,6 +50,23 @@ export function PaymentCollectionSection({
             onPress={handleCollectPlatformPayPayment}
             style={{ width: '100%', height: 44 }}
           />
+        </View>
+      )}
+      {Platform.OS === 'android' && (
+        <View style={styles.samsungPayContainer}>
+          <Button
+            title="Pay with Samsung Pay"
+            onPress={handleCollectSamsungPayPayment}
+            variant="primary"
+            disabled={!isSamsungPaySupported}
+            accessibilityLabel="Pay with Samsung Pay"
+          />
+          {!isSamsungPaySupported && (
+            <Text style={styles.walletUnavailableText}>
+              Samsung Pay requires a supported Samsung device, a configured
+              service ID, and Samsung Pay SDK 2.22.00.
+            </Text>
+          )}
         </View>
       )}
       <Button
@@ -77,5 +98,14 @@ const styles = StyleSheet.create({
   },
   sourceCurrencyOptions: {
     marginBottom: 12,
+  },
+  samsungPayContainer: {
+    marginBottom: 8,
+  },
+  walletUnavailableText: {
+    color: colors.slate,
+    fontSize: 12,
+    marginBottom: 8,
+    opacity: 0.7,
   },
 });

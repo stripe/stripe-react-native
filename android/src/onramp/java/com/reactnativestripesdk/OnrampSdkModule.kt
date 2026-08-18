@@ -53,7 +53,6 @@ import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyKycInfoResult
-import com.stripe.android.crypto.onramp.model.PaymentMethodSelection
 import com.stripe.android.link.LinkController.PaymentMethodPreview
 import com.stripe.android.link.LinkControllerPreview
 import com.stripe.android.link.PaymentMethodPreviewDetails
@@ -67,6 +66,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 
 @SuppressLint("RestrictedApi")
 @OptIn(ExperimentalCryptoOnramp::class, LinkControllerPreview::class)
@@ -89,6 +89,7 @@ class OnrampSdkModule(
   private var checkoutPromise: Promise? = null
   private var verifyKycPromise: Promise? = null
   private var userAttestationPromise: Promise? = null
+  private var samsungPayAvailability = CompletableDeferred(false)
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
   private val rnScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -137,6 +138,13 @@ class OnrampSdkModule(
       return
     }
 
+    samsungPayAvailability =
+      if (mapSamsungPayConfig(config.getMap("samsungPay")) == null) {
+        CompletableDeferred(false)
+      } else {
+        CompletableDeferred()
+      }
+
     val application =
       reactApplicationContext.currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
     if (application == null) {
@@ -160,6 +168,8 @@ class OnrampSdkModule(
           userAttestationPromise?.let {
             handleUserAttestationResult(result, it)
           }
+        }.samsungPayIsReadyCallback { isReady, _ ->
+          samsungPayAvailability.complete(isReady)
         }.onrampSessionClientSecretProvider { sessionId ->
           checkoutClientSecretDeferred = CompletableDeferred()
 
@@ -191,6 +201,17 @@ class OnrampSdkModule(
           }
         }
       }
+    }
+  }
+
+  @ReactMethod
+  override fun isSamsungPaySupported(promise: Promise) {
+    rnScope.launch {
+      val isSupported =
+        withTimeoutOrNull(15_000L) {
+          samsungPayAvailability.await()
+        } ?: false
+      promise.resolve(isSupported)
     }
   }
 
@@ -580,42 +601,11 @@ class OnrampSdkModule(
       }
 
     val method =
-      when (paymentMethod) {
-        "Card" -> PaymentMethodSelection.Card()
-        "BankAccount" -> PaymentMethodSelection.BankAccount()
-        "CardAndBankAccount" -> PaymentMethodSelection.CardAndBankAccount()
-        "PlatformPay" -> {
-          val googlePayParams =
-            platformPayParams.getMap("googlePay")
-              ?: run {
-                promise.resolve(
-                  createOnrampFailedError(
-                    IllegalArgumentException("Missing googlePay params in platformPayParams"),
-                  ),
-                )
-                return
-              }
-          val currencyCode = googlePayParams.getString("currencyCode") ?: ""
-          val amount = googlePayParams.getDouble("amount").toLong()
-
-          val transactionId = googlePayParams.getString("transactionId")
-          val label = googlePayParams.getString("label")
-
-          PaymentMethodSelection.GooglePay(
-            currencyCode = currencyCode,
-            amount = amount,
-            transactionId = transactionId,
-            label = label,
-          )
-        }
-        else -> {
-          promise.resolve(
-            createOnrampFailedError(
-              IllegalArgumentException("Unsupported payment method: $paymentMethod"),
-            ),
-          )
-          return
-        }
+      try {
+        mapOnrampPaymentMethodSelection(paymentMethod, platformPayParams)
+      } catch (error: IllegalArgumentException) {
+        promise.resolve(createOnrampFailedError(error))
+        return
       }
 
     collectPaymentPromise = promise

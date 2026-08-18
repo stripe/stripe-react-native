@@ -72,6 +72,10 @@ docs/api-reference/
 # Local stripe-android dependency
 example/android/stripe-android
 
+# Proprietary Samsung Pay SDK used by the Android example
+example/android/libs/*.jar
+!example/android/libs/README.md
+
 # e2e tests
 e2e-artifacts/
 

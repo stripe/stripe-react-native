@@ -19,6 +19,7 @@ import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
 import { Onramp } from '@stripe/stripe-react-native';
+import { SAMSUNG_PAY_SERVICE_ID } from '../Config';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -88,6 +89,14 @@ export default function HomeScreen() {
           isPhoneNumberRequired: false,
         },
       },
+      ...(Platform.OS === 'android' && SAMSUNG_PAY_SERVICE_ID
+        ? {
+            samsungPay: {
+              serviceId: SAMSUNG_PAY_SERVICE_ID,
+              merchantName: 'Onramp Example',
+            },
+          }
+        : {}),
     };
 
     configure(config)

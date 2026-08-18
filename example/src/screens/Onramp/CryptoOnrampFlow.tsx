@@ -106,6 +106,7 @@ export default function CryptoOnrampFlow() {
     getCryptoTokenDisplayData,
     logOut,
     isAuthError,
+    isSamsungPaySupported,
     authenticateUserWithToken,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
@@ -151,13 +152,19 @@ export default function CryptoOnrampFlow() {
   );
 
   const [isPlatformPayAvailable, setIsPlatformPayAvailable] = useState(false);
+  const [isSamsungPayAvailable, setIsSamsungPayAvailable] = useState(false);
   const [authInProgress, setAuthInProgress] = useState<
     null | 'login' | 'signup'
   >(null);
 
   // Payment method state used to help determine ACH settlement speed segmented control visibility (only available for bank account payments).
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    'Card' | 'BankAccount' | 'CardAndBankAccount' | 'PlatformPay' | null
+    | 'Card'
+    | 'BankAccount'
+    | 'CardAndBankAccount'
+    | 'PlatformPay'
+    | 'SamsungPay'
+    | null
   >(null);
 
   // ACH settlement speed state
@@ -760,16 +767,24 @@ export default function CryptoOnrampFlow() {
     | { type: 'Card' }
     | { type: 'BankAccount' }
     | { type: 'CardAndBankAccount' }
-    | { type: 'PlatformPay'; params: Onramp.OnrampPlatformPayParams };
+    | { type: 'PlatformPay'; params: Onramp.OnrampPlatformPayParams }
+    | { type: 'SamsungPay'; params: Onramp.OnrampPlatformPayParams };
 
   const handleCollectPaymentMethod = useCallback(
     async (request: CollectPaymentRequest) => {
-      const result = await withReauth(
-        () =>
-          request.type === 'PlatformPay'
-            ? collectPaymentMethod(request.type, request.params)
-            : collectPaymentMethod(request.type),
-        () => authorize(linkAuthIntentId)
+      const collectPayment = () => {
+        switch (request.type) {
+          case 'PlatformPay':
+            return collectPaymentMethod('PlatformPay', request.params);
+          case 'SamsungPay':
+            return collectPaymentMethod('SamsungPay', request.params);
+          default:
+            return collectPaymentMethod(request.type);
+        }
+      };
+
+      const result = await withReauth(collectPayment, () =>
+        authorize(linkAuthIntentId)
       );
 
       if (result?.error) {
@@ -848,6 +863,21 @@ export default function CryptoOnrampFlow() {
     handleCollectPaymentMethod({
       type: 'PlatformPay',
       params: googlePayParams,
+    });
+  }, [handleCollectPaymentMethod, sourceCurrency]);
+
+  const handleCollectSamsungPayPayment = useCallback(async () => {
+    const samsungPayParams: Onramp.OnrampPlatformPayParams = {
+      samsungPay: {
+        currencyCode: sourceCurrency.toUpperCase(),
+        amount: 100,
+        orderNumber: `rn-onramp-${Date.now()}`,
+      },
+    };
+
+    handleCollectPaymentMethod({
+      type: 'SamsungPay',
+      params: samsungPayParams,
     });
   }, [handleCollectPaymentMethod, sourceCurrency]);
 
@@ -1036,7 +1066,8 @@ export default function CryptoOnrampFlow() {
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
+
+    const checkPlatformPaySupport = async () => {
       try {
         const params =
           Platform.OS === 'android'
@@ -1047,11 +1078,26 @@ export default function CryptoOnrampFlow() {
       } catch {
         if (mounted) setIsPlatformPayAvailable(false);
       }
-    })();
+    };
+
+    const checkSamsungPaySupport = async () => {
+      if (Platform.OS !== 'android') return;
+
+      try {
+        const supported = await isSamsungPaySupported();
+        if (mounted) setIsSamsungPayAvailable(supported);
+      } catch {
+        if (mounted) setIsSamsungPayAvailable(false);
+      }
+    };
+
+    checkPlatformPaySupport();
+    checkSamsungPaySupport();
+
     return () => {
       mounted = false;
     };
-  }, [isPlatformPaySupported]);
+  }, [isPlatformPaySupported, isSamsungPaySupported]);
 
   // Load persisted demo auth for seamless sign-in
   useEffect(() => {
@@ -1259,6 +1305,7 @@ export default function CryptoOnrampFlow() {
           />
           <PaymentCollectionSection
             isPlatformPaySupported={isPlatformPayAvailable}
+            isSamsungPaySupported={isSamsungPayAvailable}
             sourceCurrency={sourceCurrency}
             onSourceCurrencyChange={handleSourceCurrencyChange}
             handleCollectPlatformPayPayment={
@@ -1266,6 +1313,7 @@ export default function CryptoOnrampFlow() {
                 ? handleCollectApplePayPayment
                 : handleCollectGooglePayPayment
             }
+            handleCollectSamsungPayPayment={handleCollectSamsungPayPayment}
             handleCollectCardPayment={handleCollectCardPayment}
             handleCollectBankAccountPayment={handleCollectBankAccountPayment}
             handleCollectCardAndBankAccountPayment={
