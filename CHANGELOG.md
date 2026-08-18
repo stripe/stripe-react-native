@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.75.0 - 2026-08-18
 **Features**
 * [Added] Added typed Crypto Onramp error coverage for wallet ownership verification failures.
 
