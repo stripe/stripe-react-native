@@ -1,4 +1,4 @@
-import type { Address } from './Common';
+import type { Address, CardBrand } from './Common';
 import type { StripeError } from './Errors';
 import type {
   ApplePayBaseParams,
@@ -37,6 +37,8 @@ export type Configuration = {
   cryptoCustomerId?: string;
   /** Google Pay configuration. Required on Android to enable Google Pay as a payment method. */
   googlePay?: GooglePayConfig;
+  /** Samsung Pay configuration. Required on Android to enable Samsung Pay as a payment method. */
+  samsungPay?: SamsungPayConfig;
 };
 
 /**
@@ -72,6 +74,26 @@ export type GooglePayBillingAddressConfig = {
 };
 
 /**
+ * Configuration for Samsung Pay within the onramp flow.
+ *
+ * The Android application must include Samsung Pay SDK 2.22.00 at runtime.
+ * Stripe Android does not package the Samsung Pay SDK transitively.
+ */
+export type SamsungPayConfig = {
+  /** Samsung Pay in-app service ID assigned to the merchant. */
+  serviceId: string;
+  /** Optional merchant identifier supplied to Samsung Pay. */
+  merchantId?: string;
+  /** Optional merchant name supplied to Samsung Pay. */
+  merchantName?: string;
+  /**
+   * Card brands customers may select in Samsung Pay.
+   * Omitting this or passing an empty array uses the SDK defaults.
+   */
+  allowedCardBrands?: CardBrand[];
+};
+
+/**
  * Google Pay parameters for the onramp collectPaymentMethod call.
  * Only includes the fields passed to GooglePayPaymentMethodLauncher.present().
  * Google Pay config (merchantCountryCode, testEnv, etc.) belongs in GooglePayConfig
@@ -89,6 +111,18 @@ export type OnrampGooglePayParams = {
 };
 
 /**
+ * Samsung Pay parameters for the onramp collectPaymentMethod call.
+ */
+export type OnrampSamsungPayParams = {
+  /** ISO 4217 alphabetic currency code (e.g. "USD"). */
+  currencyCode: string;
+  /** Amount in the currency's smallest unit. */
+  amount: number;
+  /** Unique order number for this transaction. */
+  orderNumber: string;
+};
+
+/**
  * Platform Pay parameters for the onramp collectPaymentMethod call.
  */
 export type OnrampPlatformPayParams = {
@@ -96,6 +130,10 @@ export type OnrampPlatformPayParams = {
    * Google Pay parameters. Android only.
    */
   googlePay?: OnrampGooglePayParams;
+  /**
+   * Samsung Pay parameters. Android only.
+   */
+  samsungPay?: OnrampSamsungPayParams;
   /**
    * Apple Pay parameters. iOS only.
    * To receive `kycInfo` back from `collectPaymentMethod`, request Apple Pay billing
@@ -571,7 +609,7 @@ export type PaymentMethodDisplayData = {
   /** Details about the underlying payment method, e.g., "Visa Credit •••• 4242". */
   sublabel?: string;
   /** The type of payment method */
-  type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay';
+  type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay' | 'SamsungPay';
 };
 
 /**

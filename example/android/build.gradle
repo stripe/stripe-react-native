@@ -62,6 +62,18 @@ subprojects { subproject ->
                 if (manifestFile.exists()) {
                     def manifest = manifestFile.text
 
+                    // Samsung Pay status checks require package visibility on Android 11+.
+                    if (!manifest.contains('com.samsung.android.spay')) {
+                        manifest = manifest.replace(
+                            '<application',
+                            '''<queries>
+        <package android:name="com.samsung.android.spay" />
+        <package android:name="com.samsung.android.samsungpay.gear" />
+    </queries>
+    <application'''
+                        )
+                    }
+
                     // Add launchMode="singleTask"
                     manifest = manifest.replace(
                         '<activity android:name="com.microsoft.reacttestapp.MainActivity" android:exported="true">',
