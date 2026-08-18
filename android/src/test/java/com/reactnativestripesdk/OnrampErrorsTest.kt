@@ -99,6 +99,47 @@ class OnrampErrorsTest {
   }
 
   @Test
+  fun createOnrampFailedError_withWalletOwnershipApiError_mapsSpecificErrorType() {
+    val testCases =
+      mapOf(
+        "crypto_onramp_invalid_wallet_ownership_signature" to
+          "InvalidWalletOwnershipSignatureError",
+        "crypto_onramp_wallet_ownership_challenge_expired" to
+          "WalletOwnershipChallengeExpiredError",
+        "crypto_onramp_invalid_wallet_ownership_challenge" to
+          "InvalidWalletOwnershipChallengeError",
+        "crypto_onramp_wallet_not_found" to "WalletNotFoundError",
+        "crypto_onramp_unsupported_network" to "UnsupportedNetworkError",
+      )
+
+    testCases.forEach { (apiErrorCode, expectedType) ->
+      val error =
+        createApiOnrampException(
+          className = "com.stripe.android.crypto.onramp.exception.UncategorizedException",
+          reason = "wallet_verification_failed",
+          operation = "submitWalletOwnershipSignature",
+          appPackageName = "com.example.app",
+          mode = "test",
+          sdkVersions = listOf(SDKVersion(name = "stripe-android", version = "23.15.0")),
+          userMessage = "Wallet ownership verification failed.",
+          apiErrorCode = apiErrorCode,
+          apiErrorType = "invalid_request_error",
+          apiErrorMessage = "Wallet ownership verification failed.",
+          apiUserMessage = "Please try again.",
+          requestId = "req_wallet_verification",
+        )
+
+      val details = createOnrampFailedError(error).getMap("error")
+
+      assertNotNull(apiErrorCode, details)
+      assertEquals(apiErrorCode, expectedType, details!!.getString("onrampErrorType"))
+      assertEquals(apiErrorCode, apiErrorCode, details.getString("apiErrorCode"))
+      assertEquals(apiErrorCode, "wallet_verification_failed", details.getString("reason"))
+      assertEquals(apiErrorCode, "req_wallet_verification", details.getString("requestId"))
+    }
+  }
+
+  @Test
   fun createOnrampFailedError_withAppAttestationUnavailableException_preservesSdkErrorFields() {
     val underlyingError = IllegalStateException("Native Link is not available")
     val error =
@@ -148,7 +189,7 @@ class OnrampErrorsTest {
     apiErrorType: String,
     apiErrorMessage: String,
     apiUserMessage: String,
-    docUrl: String,
+    docUrl: String? = null,
     requestId: String,
   ): Exception {
     val stripeError =

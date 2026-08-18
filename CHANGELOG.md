@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+**Features**
+* [Added] Added typed Crypto Onramp error coverage for wallet ownership verification failures.
+
 ## 0.74.0 - 2026-08-11
 **Features**
 * [Added] iOS: Added `supportedNetworks` to the Apple Pay params, which restricts the card networks offered in the Apple Pay sheet.
