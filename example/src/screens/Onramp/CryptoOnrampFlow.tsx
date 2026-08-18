@@ -634,7 +634,7 @@ export default function CryptoOnrampFlow() {
         );
 
         if (
-          wallet.walletAddress === walletAddress &&
+          wallet.walletAddress.toLowerCase() === walletAddress?.toLowerCase() &&
           wallet.network === walletNetwork
         ) {
           setWalletAddress(null);
