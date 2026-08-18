@@ -698,12 +698,19 @@ export default function CryptoOnrampFlow() {
 
   const handleCollectPaymentMethod = useCallback(
     async (request: CollectPaymentRequest) => {
-      const result = await withReauth(
-        () =>
-          request.type === 'PlatformPay' || request.type === 'SamsungPay'
-            ? collectPaymentMethod(request.type, request.params)
-            : collectPaymentMethod(request.type),
-        () => authorize(linkAuthIntentId)
+      const collectPayment = () => {
+        switch (request.type) {
+          case 'PlatformPay':
+            return collectPaymentMethod('PlatformPay', request.params);
+          case 'SamsungPay':
+            return collectPaymentMethod('SamsungPay', request.params);
+          default:
+            return collectPaymentMethod(request.type);
+        }
+      };
+
+      const result = await withReauth(collectPayment, () =>
+        authorize(linkAuthIntentId)
       );
 
       if (result?.error) {
