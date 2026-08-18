@@ -88,7 +88,7 @@ class OnrampSdkModule(
   private var checkoutPromise: Promise? = null
   private var verifyKycPromise: Promise? = null
   private var userAttestationPromise: Promise? = null
-  private var samsungPayAvailability = CompletableDeferred<Boolean>()
+  private var samsungPayAvailability = CompletableDeferred(false)
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
   private val rnScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)

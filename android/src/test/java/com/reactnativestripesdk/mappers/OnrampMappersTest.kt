@@ -253,6 +253,22 @@ class OnrampMappersTest {
   }
 
   @Test
+  fun mapSamsungPayConfig_EmptyAllowedCardBrands_DefaultsCardBrands() {
+    val result =
+      mapSamsungPayConfig(
+        readableMapOf(
+          "serviceId" to "service-id",
+          "allowedCardBrands" to readableArrayOf(),
+        ),
+      )
+
+    assertEquals(
+      listOf(CardBrand.Visa, CardBrand.MasterCard, CardBrand.AmericanExpress, CardBrand.Discover),
+      result!!.privateField("allowedCardBrands"),
+    )
+  }
+
+  @Test
   fun mapSamsungPayConfig_MapsAllowedCardBrands() {
     val result =
       mapSamsungPayConfig(

@@ -79,7 +79,7 @@ internal fun mapSamsungPayConfig(params: ReadableMap?): OnrampConfiguration.Sams
   val merchantName = params.getString("merchantName")
   val allowedCardBrands = params.getIntegerList("allowedCardBrands")
 
-  return if (allowedCardBrands == null) {
+  return if (allowedCardBrands.isNullOrEmpty()) {
     OnrampConfiguration.SamsungPayConfig(
       serviceId = serviceId,
       merchantId = merchantId,

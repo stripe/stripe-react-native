@@ -86,7 +86,10 @@ export type SamsungPayConfig = {
   merchantId?: string;
   /** Optional merchant name supplied to Samsung Pay. */
   merchantName?: string;
-  /** Card brands customers may select in Samsung Pay. */
+  /**
+   * Card brands customers may select in Samsung Pay.
+   * Omitting this or passing an empty array uses the SDK defaults.
+   */
   allowedCardBrands?: CardBrand[];
 };
 
