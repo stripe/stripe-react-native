@@ -1478,7 +1478,7 @@ type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
     onrampErrorType?: never;
     developerMessage?: never;
     userMessage?: never;
-}) | AppAttestationError | UncategorizedApiError | AppAttestationUnavailableError;
+}) | AppAttestationError | InvalidWalletOwnershipSignatureError | WalletOwnershipChallengeExpiredError | InvalidWalletOwnershipChallengeError | WalletNotFoundError | UnsupportedNetworkError | UncategorizedApiError | AppAttestationUnavailableError;
 
 // @public
 type CryptoPaymentToken = {
@@ -2283,6 +2283,16 @@ enum InvalidShippingField {
     SubLocality = "subLocality"
 }
 
+// @public
+type InvalidWalletOwnershipChallengeError = OnrampApiError & {
+    onrampErrorType: 'InvalidWalletOwnershipChallengeError';
+};
+
+// @public
+type InvalidWalletOwnershipSignatureError = OnrampApiError & {
+    onrampErrorType: 'InvalidWalletOwnershipSignatureError';
+};
+
 // @public (undocumented)
 interface IOSNavigationBarProps {
     // (undocumented)
@@ -2689,6 +2699,11 @@ declare namespace Onramp {
         OnrampSdkError,
         OnrampApiError,
         AppAttestationError,
+        InvalidWalletOwnershipSignatureError,
+        WalletOwnershipChallengeExpiredError,
+        InvalidWalletOwnershipChallengeError,
+        WalletNotFoundError,
+        UnsupportedNetworkError,
         UncategorizedApiError,
         AppAttestationUnavailableError,
         CryptoOnrampError,
@@ -2723,7 +2738,7 @@ type OnrampApiError = OnrampSdkError & {
 };
 
 // @public
-type OnrampApiErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+type OnrampApiErrorType = 'AppAttestationError' | 'InvalidWalletOwnershipSignatureError' | 'WalletOwnershipChallengeExpiredError' | 'InvalidWalletOwnershipChallengeError' | 'WalletNotFoundError' | 'UnsupportedNetworkError' | 'UncategorizedApiError';
 
 // @public
 enum OnrampErrorStatus {
@@ -4095,6 +4110,11 @@ type UncategorizedApiError = OnrampApiError & {
 };
 
 // @public
+type UnsupportedNetworkError = OnrampApiError & {
+    onrampErrorType: 'UnsupportedNetworkError';
+};
+
+// @public
 export const updatePlatformPaySheet: (params: {
     applePay: {
         cartItems: Array<PlatformPay.CartSummaryItem>;
@@ -4399,12 +4419,22 @@ type VoidResult = {
 };
 
 // @public
+type WalletNotFoundError = OnrampApiError & {
+    onrampErrorType: 'WalletNotFoundError';
+};
+
+// @public
 type WalletOwnershipChallenge = {
     challengeId: string;
     walletAddress: string;
     network: CryptoNetwork;
     message: string;
     expiresAt: string;
+};
+
+// @public
+type WalletOwnershipChallengeExpiredError = OnrampApiError & {
+    onrampErrorType: 'WalletOwnershipChallengeExpiredError';
 };
 
 // @public (undocumented)

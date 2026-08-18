@@ -91,11 +91,22 @@ enum OnrampErrors {
     }
 
     private static func onrampErrorType(for error: StripeCryptoOnrampAPIError) -> String {
-        if error.code == "link_failed_to_attest_request" {
+        switch error.code {
+        case "link_failed_to_attest_request":
             return "AppAttestationError"
+        case "crypto_onramp_invalid_wallet_ownership_signature":
+            return "InvalidWalletOwnershipSignatureError"
+        case "crypto_onramp_wallet_ownership_challenge_expired":
+            return "WalletOwnershipChallengeExpiredError"
+        case "crypto_onramp_invalid_wallet_ownership_challenge":
+            return "InvalidWalletOwnershipChallengeError"
+        case "crypto_onramp_wallet_not_found":
+            return "WalletNotFoundError"
+        case "crypto_onramp_unsupported_network":
+            return "UnsupportedNetworkError"
+        default:
+            return "UncategorizedApiError"
         }
-
-        return "UncategorizedApiError"
     }
 
     private static func onrampErrorType(for error: StripeCryptoOnrampError) -> String? {
