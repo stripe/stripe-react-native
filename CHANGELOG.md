@@ -1,6 +1,9 @@
 # CHANGELOG
 
 ## Unreleased
+**Changes**
+* Updated Stripe Android SDK from 23.15.0 to 23.16.0.
+
 **Features**
 * [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.
 * [Added] Added typed Crypto Onramp error coverage for wallet ownership verification failures.
