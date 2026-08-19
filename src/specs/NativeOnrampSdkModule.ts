@@ -17,6 +17,7 @@ export interface Spec extends TurboModule {
     walletAddress: string,
     network: string
   ): Promise<Onramp.VoidResult>;
+  deleteWalletAddress(walletId: string): Promise<Onramp.VoidResult>;
   getWalletOwnershipChallenge(
     walletAddress: string,
     network: string

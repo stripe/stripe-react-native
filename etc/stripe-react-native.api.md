@@ -4225,6 +4225,9 @@ export function useOnramp(): {
     registerWalletAddress: (walletAddress: string, network: Onramp.CryptoNetwork) => Promise<{
         error?: Onramp.CryptoOnrampError;
     }>;
+    deleteWalletAddress: (walletId: string) => Promise<{
+        error?: Onramp.CryptoOnrampError;
+    }>;
     getWalletOwnershipChallenge: (walletAddress: string, network: Onramp.CryptoNetwork) => Promise<Onramp.GetWalletOwnershipChallengeResult>;
     submitWalletOwnershipSignature: (challengeId: string, signature: string) => Promise<Onramp.SubmitWalletOwnershipSignatureResult>;
     attachKycInfo: (kycInfo: Onramp.KycInfo) => Promise<{

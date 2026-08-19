@@ -61,6 +61,10 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void deleteWalletAddress(String walletId, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void getWalletOwnershipChallenge(String walletAddress, String network, Promise promise);
 
   @ReactMethod

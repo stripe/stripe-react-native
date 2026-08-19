@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+**Features**
+* [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.
+
 ## 0.75.0 - 2026-08-18
 **Features**
 * [Added] Android: Added Crypto Onramp Samsung Pay configuration, availability checks, payment collection, and example integration.

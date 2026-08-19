@@ -70,6 +70,13 @@ export function useOnramp() {
     []
   );
 
+  const _deleteWalletAddress = useCallback(
+    async (walletId: string): Promise<{ error?: Onramp.CryptoOnrampError }> => {
+      return requireOnrampModule().deleteWalletAddress(walletId);
+    },
+    []
+  );
+
   const _getWalletOwnershipChallenge = useCallback(
     async (
       walletAddress: string,
@@ -301,6 +308,15 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     registerWalletAddress: _registerWalletAddress,
+
+    /**
+     * Deletes the given crypto wallet from the current Link account.
+     * Requires an authenticated Link user.
+     *
+     * @param walletId The ID of the crypto wallet to delete
+     * @returns Promise that resolves to an object with an optional error property
+     */
+    deleteWalletAddress: _deleteWalletAddress,
 
     /**
      * Creates a short-lived challenge for proving ownership of a registered wallet.
