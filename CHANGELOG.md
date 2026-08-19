@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.75.0 - 2026-08-18
 **Features**
 * [Added] Android: Added Crypto Onramp Samsung Pay configuration, availability checks, payment collection, and example integration.
 * [Added] Added typed Crypto Onramp error coverage for wallet ownership verification failures.
