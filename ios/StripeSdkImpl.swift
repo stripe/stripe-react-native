@@ -38,8 +38,6 @@ private func getDeviceType() -> String {
 public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc public static let shared = StripeSdkImpl()
 
-    static let checkoutUnavailableMessage = "Checkout Sessions are temporarily unavailable while the native integration is being rebuilt."
-
     static var isNewArchitecture: Bool {
         #if RCT_NEW_ARCH_ENABLED
         return true

@@ -938,16 +938,6 @@ export interface CheckmarkConfig {
     color?: ThemedColor;
 }
 
-// @internal
-export type CheckoutSetupParams = {
-    checkout: Checkout;
-    paymentIntentClientSecret?: never;
-    setupIntentClientSecret?: never;
-    intentConfiguration?: never;
-    customerEphemeralKeySecret?: never;
-    customerSessionClientSecret?: never;
-} & Omit<SetupParamsBase, 'paymentIntentClientSecret' | 'setupIntentClientSecret' | 'intentConfiguration'>;
-
 // @public (undocumented)
 export interface ClientSecretProvider {
     provideCustomerSessionClientSecret(): Promise<CustomerSessionClientSecret>;
@@ -3095,7 +3085,6 @@ enum PaymentRequestType {
 declare namespace PaymentSheet {
     export {
         SetupParamsBase,
-        CheckoutSetupParams,
         SetupParams,
         IntentParams,
         ApplePayParams,
@@ -3698,9 +3687,6 @@ export type SetupMode = {
     setupFutureUsage: FutureUsage;
 };
 
-// Warning: (ae-incompatible-release-tags) The symbol "SetupParams" is marked as @public, but its signature references "CheckoutSetupParams" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "SetupParams" is marked as @public, but its signature references "CheckoutSetupParams" which is marked as @internal
-//
 // @public (undocumented)
 export type SetupParams = (SetupParamsBase & {
     customerEphemeralKeySecret: string;
@@ -3708,7 +3694,7 @@ export type SetupParams = (SetupParamsBase & {
 }) | (SetupParamsBase & {
     customerEphemeralKeySecret?: never;
     customerSessionClientSecret: string;
-}) | SetupParamsBase | CheckoutSetupParams;
+}) | SetupParamsBase;
 
 // @public (undocumented)
 export type SetupParamsBase = IntentParams & {
@@ -4176,13 +4162,8 @@ export function useConfirmSetupIntent(): {
     loading: boolean;
 };
 
-// Warning: (ae-internal-mixed-release-tag) Mixed release tags are not allowed for "useEmbeddedPaymentElement" because one of its declarations is marked as @internal
-//
 // @public
 export function useEmbeddedPaymentElement(intentConfig: PaymentSheet.IntentConfiguration, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
-
-// @internal
-export function useEmbeddedPaymentElement(checkout: Checkout, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
 
 // @public (undocumented)
 export interface UseEmbeddedPaymentElementResult {
@@ -4475,7 +4456,6 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
 // src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
 // src/types/PaymentMethod.ts:298:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
-// src/types/PaymentSheet.ts:124:3 - (ae-forgotten-export) The symbol "Checkout" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

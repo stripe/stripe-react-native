@@ -88,20 +88,6 @@ class EmbeddedPaymentElementViewManager :
     view.latestElementConfig?.let { configureIfReady(view, it) }
   }
 
-  @ReactProp(name = "checkout")
-  override fun setCheckout(
-    view: EmbeddedPaymentElementView,
-    cfg: Dynamic,
-  ) {
-    val stripeSdkModule =
-      (view.context as ThemedReactContext).getNativeModule(StripeSdkModule::class.java)
-    val payload =
-      Arguments.createMap().apply {
-        putString("message", CHECKOUT_UNAVAILABLE_MESSAGE)
-      }
-    stripeSdkModule?.eventEmitter?.emitEmbeddedPaymentElementLoadingFailed(payload)
-  }
-
   /**
    * Configures the embedded element once both the element config and an
    * intent configuration have arrived. Returns

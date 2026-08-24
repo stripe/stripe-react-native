@@ -183,9 +183,7 @@ extension StripeSdkImpl {
             }
         }
 
-        if params["checkout"] != nil {
-            resolve(Errors.createError(ErrorType.Failed, StripeSdkImpl.checkoutUnavailableMessage))
-        } else if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
+        if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
             if !Errors.isPIClientSecretValid(clientSecret: paymentIntentClientSecret) {
                 resolve(Errors.createError(ErrorType.Failed, "`secret` format does not match expected client secret formatting."))
                 return

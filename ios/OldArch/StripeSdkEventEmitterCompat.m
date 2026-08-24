@@ -27,7 +27,6 @@
     @"onCheckoutClientSecretRequested",
     @"paymentMethodMessagingElementDidUpdateHeight",
     @"paymentMethodMessagingElementConfigureResult",
-    @"checkoutSessionDidChangeState",
   ];
 }
 
@@ -139,11 +138,6 @@
 - (void)emitPaymentMethodMessagingElementConfigureResult:(NSDictionary *)value
 {
   [self sendEventWithName:@"paymentMethodMessagingElementConfigureResult" body:value];
-}
-
-- (void)emitCheckoutSessionDidChangeState:(NSDictionary *)value
-{
-  [self sendEventWithName:@"checkoutSessionDidChangeState" body:value];
 }
 
 @end

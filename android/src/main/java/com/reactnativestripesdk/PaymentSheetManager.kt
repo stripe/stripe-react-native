@@ -102,11 +102,6 @@ class PaymentSheetManager(
     args: ReadableMap,
     promise: Promise,
   ) {
-    if (args.hasKey("checkout")) {
-      promise.resolve(createCheckoutUnavailableError())
-      return
-    }
-
     val merchantDisplayName = args.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
       promise.resolve(

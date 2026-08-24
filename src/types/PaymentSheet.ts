@@ -15,7 +15,6 @@ import type { FutureUsage } from './PaymentIntent';
 import type { Result } from './PaymentMethod';
 import type { StripeError } from './Errors';
 import type { Result as ConfirmationTokenResult } from './ConfirmationToken';
-import type { Checkout } from './Checkout';
 
 export type SetupParamsBase = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
@@ -113,27 +112,6 @@ export type SetupParamsBase = IntentParams & {
   };
 };
 
-/**
- * Parameters for initializing PaymentSheet from a Checkout Session.
- * Use when you have called `useCheckout` and the state is `loaded`.
- * @checkoutSessionsPreview
- * @internal
- */
-export type CheckoutSetupParams = {
-  /** A fully loaded Checkout instance whose `state.status` is `'loaded'`. */
-  checkout: Checkout;
-  paymentIntentClientSecret?: never;
-  setupIntentClientSecret?: never;
-  intentConfiguration?: never;
-  customerEphemeralKeySecret?: never;
-  customerSessionClientSecret?: never;
-} & Omit<
-  SetupParamsBase,
-  | 'paymentIntentClientSecret'
-  | 'setupIntentClientSecret'
-  | 'intentConfiguration'
->;
-
 export type SetupParams =
   | (SetupParamsBase & {
       /** A short-lived token that allows the SDK to access a Customer's payment methods. */
@@ -145,8 +123,7 @@ export type SetupParams =
       /** The client secret of this Customer Session. Used on the client to set up secure access to the given customer. */
       customerSessionClientSecret: string;
     })
-  | SetupParamsBase
-  | CheckoutSetupParams;
+  | SetupParamsBase;
 
 export type IntentParams =
   | {
