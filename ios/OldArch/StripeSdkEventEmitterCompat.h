@@ -26,4 +26,5 @@
 - (void)emitOnCheckoutClientSecretRequested:(NSDictionary *)value;
 - (void)emitPaymentMethodMessagingElementDidUpdateHeight:(NSDictionary *)value;
 - (void)emitPaymentMethodMessagingElementConfigureResult:(NSDictionary *)value;
+- (void)emitCheckoutControllerDidUpdate:(NSDictionary *)value;
 @end

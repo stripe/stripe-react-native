@@ -59,6 +59,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     weak var cardFieldView: CardFieldView?
     weak var cardFormView: CardFormView?
 
+    let checkoutControllerRegistry = CheckoutControllerRegistry()
+
     var merchantIdentifier: String?
 
     internal var paymentSheet: PaymentSheet?
@@ -137,6 +139,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     var authenticationSession: ASWebAuthenticationSession?
     var authenticationContextProvider: Any?
+
+    @objc public func invalidate() {
+        checkoutControllerRegistry.removeAll()
+    }
 
     static let authenticatedWebViewReturnURLScheme = "stripe-connect"
 

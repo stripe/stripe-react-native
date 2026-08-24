@@ -19,6 +19,7 @@ import { PaymentMethod } from './types';
 import { UnsafeObject } from './specs/utils';
 import { FinancialConnectionsEvent } from './types/FinancialConnections';
 import { Result as ConfirmationTokenResult } from './types/ConfirmationToken';
+import type { CheckoutControllerUpdate } from './checkout/CheckoutControllerEventEmitter';
 
 const compatEventEmitter =
   Platform.OS === 'ios'
@@ -66,6 +67,9 @@ type Events = {
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementConfigureResult: EventEmitter<UnsafeObject<any>>;
+  checkoutControllerDidUpdate: EventEmitter<
+    UnsafeObject<CheckoutControllerUpdate>
+  >;
 };
 
 export function addListener<EventT extends keyof Events>(

@@ -34,6 +34,12 @@ RCT_EXPORT_MODULE()
   return self;
 }
 
+- (void)invalidate
+{
+  [StripeSdkImpl.shared invalidate];
+  [super invalidate];
+}
+
 // Clang format is really bad at fromatting method with macros.
 /* clang-format off */
 
