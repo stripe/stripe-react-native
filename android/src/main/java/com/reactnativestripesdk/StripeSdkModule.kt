@@ -160,7 +160,9 @@ class StripeSdkModule(
 
     stripeUIManagers.forEach { it.destroy() }
     stripeUIManagers.clear()
-    checkoutControllerRegistry.clear()
+    UiThreadUtil.runOnUiThread {
+      checkoutControllerRegistry.clear()
+    }
     linkControllerManager?.destroy()
     linkControllerManager = null
   }

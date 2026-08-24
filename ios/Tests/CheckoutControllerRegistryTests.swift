@@ -1,6 +1,7 @@
 @testable import stripe_react_native
 import XCTest
 
+@MainActor
 final class CheckoutControllerRegistryTests: XCTestCase {
     func test_register_storesMultipleControllersBehindOpaqueIdentifiers() {
         var controllerIds = ["controller-1", "controller-2"].makeIterator()

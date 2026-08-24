@@ -1,10 +1,18 @@
 package com.reactnativestripesdk.checkout
 
+import androidx.annotation.MainThread
+import com.facebook.react.bridge.UiThreadUtil
 import java.util.UUID
 
-/** Resources owned by one Checkout controller registered with the bridge. */
+/**
+ * Resources owned by one Checkout controller registered with the bridge.
+ *
+ * Concrete instances own the native Checkout object, its stable Payment Element and presenter,
+ * observation jobs, and pending operations.
+ */
 internal interface CheckoutControllerInstance {
-  /** Releases all resources owned by this instance. Implementations must be idempotent. */
+  /** Releases all resources owned by this instance. Must be idempotent and run on the UI thread. */
+  @MainThread
   fun destroy()
 }
 
@@ -17,49 +25,56 @@ internal class CheckoutControllerRegistry(
     var eventSequence: Int = 0,
   )
 
-  private val lock = Any()
   private val entries = mutableMapOf<String, Entry>()
 
   val size: Int
-    get() = synchronized(lock) { entries.size }
-
-  fun register(instance: CheckoutControllerInstance): String =
-    synchronized(lock) {
-      var controllerId = controllerIdFactory()
-      while (entries.containsKey(controllerId)) {
-        controllerId = controllerIdFactory()
-      }
-
-      entries[controllerId] = Entry(instance)
-      controllerId
+    @MainThread
+    get() {
+      UiThreadUtil.assertOnUiThread()
+      return entries.size
     }
 
-  fun instance(controllerId: String): CheckoutControllerInstance? =
-    synchronized(lock) {
-      entries[controllerId]?.instance
+  @MainThread
+  fun register(instance: CheckoutControllerInstance): String {
+    UiThreadUtil.assertOnUiThread()
+
+    var controllerId = controllerIdFactory()
+    while (entries.containsKey(controllerId)) {
+      controllerId = controllerIdFactory()
     }
+
+    entries[controllerId] = Entry(instance)
+    return controllerId
+  }
+
+  @MainThread
+  fun instance(controllerId: String): CheckoutControllerInstance? {
+    UiThreadUtil.assertOnUiThread()
+    return entries[controllerId]?.instance
+  }
 
   /** Returns null after the controller has been removed. */
-  fun nextEventSequence(controllerId: String): Int? =
-    synchronized(lock) {
-      val entry = entries[controllerId] ?: return@synchronized null
-      entry.eventSequence += 1
-      entry.eventSequence
-    }
+  @MainThread
+  fun nextEventSequence(controllerId: String): Int? {
+    UiThreadUtil.assertOnUiThread()
+    val entry = entries[controllerId] ?: return null
+    entry.eventSequence += 1
+    return entry.eventSequence
+  }
 
+  @MainThread
   fun remove(controllerId: String): Boolean {
-    val instance = synchronized(lock) { entries.remove(controllerId)?.instance }
+    UiThreadUtil.assertOnUiThread()
+    val instance = entries.remove(controllerId)?.instance
     instance?.destroy()
     return instance != null
   }
 
+  @MainThread
   fun clear() {
-    val instances =
-      synchronized(lock) {
-        entries.values.map { it.instance }.also {
-          entries.clear()
-        }
-      }
+    UiThreadUtil.assertOnUiThread()
+    val instances = entries.values.map { it.instance }
+    entries.clear()
 
     instances.forEach { it.destroy() }
   }

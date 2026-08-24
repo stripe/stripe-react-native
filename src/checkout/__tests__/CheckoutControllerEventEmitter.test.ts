@@ -1,8 +1,8 @@
-import type { EventSubscription } from 'react-native';
 import { addListener } from '../../events';
 import {
   addCheckoutControllerListener,
   CheckoutControllerUpdate,
+  clearCheckoutControllerUpdate,
   toCheckoutControllerId,
 } from '../CheckoutControllerEventEmitter';
 
@@ -13,89 +13,139 @@ jest.mock('../../events', () => ({
 const mockedAddListener = addListener as jest.MockedFunction<
   typeof addListener
 >;
+const nativeListener = mockedAddListener.mock.calls[0]?.[1] as (
+  update: CheckoutControllerUpdate
+) => void;
 
+const firstControllerId = toCheckoutControllerId('controller-1');
+const secondControllerId = toCheckoutControllerId('controller-2');
 const session = {} as CheckoutControllerUpdate['session'];
 
+const update = (
+  controllerId: CheckoutControllerUpdate['controllerId'],
+  sequence: number,
+  status: CheckoutControllerUpdate['status'] = 'ready'
+): CheckoutControllerUpdate => ({ controllerId, sequence, status, session });
+
 describe('CheckoutControllerEventEmitter', () => {
-  let nativeListener: (update: CheckoutControllerUpdate) => void;
-  const remove = jest.fn();
-
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockedAddListener.mockImplementation((_event, listener) => {
-      nativeListener = listener as typeof nativeListener;
-      return { remove } as unknown as EventSubscription;
-    });
+    clearCheckoutControllerUpdate(firstControllerId);
+    clearCheckoutControllerUpdate(secondControllerId);
   });
 
-  it('forwards updates for the subscribed controller', () => {
-    const controllerId = toCheckoutControllerId('controller-1');
-    const listener = jest.fn();
-    const update: CheckoutControllerUpdate = {
-      controllerId,
-      sequence: 1,
-      status: 'ready',
-      session,
-    };
-
-    addCheckoutControllerListener(controllerId, listener);
-    nativeListener(update);
-
-    expect(listener).toHaveBeenCalledWith(update);
+  it('registers one native listener for all controllers', () => {
+    expect(mockedAddListener).toHaveBeenCalledTimes(1);
+    expect(mockedAddListener).toHaveBeenCalledWith(
+      'checkoutControllerDidUpdate',
+      nativeListener
+    );
   });
 
-  it('ignores updates for other controllers', () => {
+  it('replays an update emitted before the controller subscribes', () => {
+    const controllerUpdate = update(firstControllerId, 1);
     const listener = jest.fn();
+    nativeListener(controllerUpdate);
 
-    addCheckoutControllerListener(
-      toCheckoutControllerId('controller-1'),
+    const subscription = addCheckoutControllerListener(
+      firstControllerId,
       listener
     );
-    nativeListener({
-      controllerId: toCheckoutControllerId('controller-2'),
-      sequence: 1,
-      status: 'ready',
-      session,
-    });
+
+    expect(listener).toHaveBeenCalledWith(controllerUpdate);
+    subscription.remove();
+  });
+
+  it('routes live updates only to the matching controller', () => {
+    const firstListener = jest.fn();
+    const secondListener = jest.fn();
+    const firstSubscription = addCheckoutControllerListener(
+      firstControllerId,
+      firstListener
+    );
+    const secondSubscription = addCheckoutControllerListener(
+      secondControllerId,
+      secondListener
+    );
+
+    nativeListener(update(firstControllerId, 1));
+
+    expect(firstListener).toHaveBeenCalledTimes(1);
+    expect(secondListener).not.toHaveBeenCalled();
+    firstSubscription.remove();
+    secondSubscription.remove();
+  });
+
+  it('preserves sequence ordering across subscriptions', () => {
+    nativeListener(update(firstControllerId, 2, 'updating'));
+    const firstListener = jest.fn();
+    const firstSubscription = addCheckoutControllerListener(
+      firstControllerId,
+      firstListener
+    );
+    firstSubscription.remove();
+
+    nativeListener(update(firstControllerId, 1));
+    const secondListener = jest.fn();
+    const secondSubscription = addCheckoutControllerListener(
+      firstControllerId,
+      secondListener
+    );
+    nativeListener(update(firstControllerId, 3));
+
+    expect(firstListener).toHaveBeenCalledTimes(1);
+    expect(firstListener).toHaveBeenCalledWith(
+      expect.objectContaining({ sequence: 2, status: 'updating' })
+    );
+    expect(secondListener).toHaveBeenCalledTimes(2);
+    expect(secondListener).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ sequence: 2, status: 'updating' })
+    );
+    expect(secondListener).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ sequence: 3, status: 'ready' })
+    );
+    secondSubscription.remove();
+  });
+
+  it('ignores invalid sequence numbers', () => {
+    const listener = jest.fn();
+    const subscription = addCheckoutControllerListener(
+      firstControllerId,
+      listener
+    );
+
+    nativeListener(update(firstControllerId, Number.NaN));
+    nativeListener(update(firstControllerId, 0));
+    nativeListener(update(firstControllerId, 1.5));
+
+    expect(listener).not.toHaveBeenCalled();
+    subscription.remove();
+  });
+
+  it('stops forwarding updates after removal', () => {
+    const listener = jest.fn();
+    const subscription = addCheckoutControllerListener(
+      firstControllerId,
+      listener
+    );
+    subscription.remove();
+
+    nativeListener(update(firstControllerId, 1));
 
     expect(listener).not.toHaveBeenCalled();
   });
 
-  it('ignores duplicate, stale, and invalid sequence numbers', () => {
-    const controllerId = toCheckoutControllerId('controller-1');
+  it('forgets buffered state after the controller is cleared', () => {
+    nativeListener(update(firstControllerId, 1));
+    clearCheckoutControllerUpdate(firstControllerId);
     const listener = jest.fn();
-
-    addCheckoutControllerListener(controllerId, listener);
-    nativeListener({ controllerId, sequence: 2, status: 'updating', session });
-    nativeListener({ controllerId, sequence: 2, status: 'ready', session });
-    nativeListener({ controllerId, sequence: 1, status: 'ready', session });
-    nativeListener({
-      controllerId,
-      sequence: Number.NaN,
-      status: 'ready',
-      session,
-    });
-    nativeListener({ controllerId, sequence: 3, status: 'ready', session });
-
-    expect(listener).toHaveBeenCalledTimes(2);
-    expect(listener).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({ sequence: 2, status: 'updating' })
-    );
-    expect(listener).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({ sequence: 3, status: 'ready' })
-    );
-  });
-
-  it('returns the native event subscription', () => {
     const subscription = addCheckoutControllerListener(
-      toCheckoutControllerId('controller-1'),
-      jest.fn()
+      firstControllerId,
+      listener
     );
 
+    expect(listener).not.toHaveBeenCalled();
     subscription.remove();
-
-    expect(remove).toHaveBeenCalledTimes(1);
   });
 });

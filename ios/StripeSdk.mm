@@ -36,7 +36,7 @@ RCT_EXPORT_MODULE()
 
 - (void)invalidate
 {
-  [StripeSdkImpl.shared invalidate];
+  [StripeSdkImpl.shared invalidateCheckoutControllers];
   [super invalidate];
 }
 

@@ -1,4 +1,3 @@
-import type { EventSubscription } from 'react-native';
 import { addListener } from '../events';
 import type { Checkout, CheckoutController } from '../types/Checkout';
 
@@ -22,6 +21,37 @@ export const toCheckoutControllerId = (
   controllerId: string
 ): CheckoutControllerId => controllerId as CheckoutControllerId;
 
+type CheckoutControllerListener = (update: CheckoutControllerUpdate) => void;
+
+interface CheckoutControllerSubscription {
+  remove(): void;
+}
+
+const latestUpdates = new Map<CheckoutControllerId, CheckoutControllerUpdate>();
+const controllerListeners = new Map<
+  CheckoutControllerId,
+  Set<CheckoutControllerListener>
+>();
+
+// Register once when this module loads so updates emitted during native
+// controller creation are buffered before JavaScript receives the controller ID.
+addListener('checkoutControllerDidUpdate', (update) => {
+  if (!Number.isSafeInteger(update.sequence) || update.sequence <= 0) {
+    return;
+  }
+
+  const latestUpdate = latestUpdates.get(update.controllerId);
+  if (latestUpdate && update.sequence <= latestUpdate.sequence) {
+    return;
+  }
+
+  latestUpdates.set(update.controllerId, update);
+  const listeners = controllerListeners.get(update.controllerId);
+  if (listeners) {
+    [...listeners].forEach((listener) => listener(update));
+  }
+});
+
 /**
  * Subscribes to ordered updates for one Checkout controller.
  *
@@ -31,23 +61,35 @@ export const toCheckoutControllerId = (
  */
 export function addCheckoutControllerListener(
   controllerId: CheckoutControllerId,
-  listener: (update: CheckoutControllerUpdate) => void
-): EventSubscription {
-  let latestSequence = 0;
+  listener: CheckoutControllerListener
+): CheckoutControllerSubscription {
+  let listeners = controllerListeners.get(controllerId);
+  if (!listeners) {
+    listeners = new Set();
+    controllerListeners.set(controllerId, listeners);
+  }
+  listeners.add(listener);
 
-  return addListener('checkoutControllerDidUpdate', (update) => {
-    if (update.controllerId !== controllerId) {
-      return;
-    }
+  const latestUpdate = latestUpdates.get(controllerId);
+  if (latestUpdate) {
+    listener(latestUpdate);
+  }
 
-    if (
-      !Number.isSafeInteger(update.sequence) ||
-      update.sequence <= latestSequence
-    ) {
-      return;
-    }
+  return {
+    remove: () => {
+      listeners?.delete(listener);
+      if (listeners?.size === 0) {
+        controllerListeners.delete(controllerId);
+      }
+      listeners = undefined;
+    },
+  };
+}
 
-    latestSequence = update.sequence;
-    listener(update);
-  });
+/** Forgets buffered state and listeners after a controller is destroyed. */
+export function clearCheckoutControllerUpdate(
+  controllerId: CheckoutControllerId
+): void {
+  latestUpdates.delete(controllerId);
+  controllerListeners.delete(controllerId);
 }
