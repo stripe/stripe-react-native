@@ -1,5 +1,7 @@
 import type { Checkout, CheckoutController } from '../types/Checkout';
-import { createCheckoutNotImplementedError } from './errors';
+
+const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
+  'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
 
 /**
  * Creates a controller for one Checkout Session. The caller owns the
@@ -14,5 +16,5 @@ export async function createCheckout(
   _options: Checkout.CreateOptions
 ): Promise<CheckoutController> {
   // TODO(porter): Create the Checkout controller with the native SDK.
-  throw createCheckoutNotImplementedError();
+  throw new Error(CHECKOUT_NOT_IMPLEMENTED_MESSAGE);
 }

@@ -3,7 +3,9 @@ import { CheckoutPaymentElementView } from '../../components/CheckoutPaymentElem
 import { useCheckout } from '../../hooks/useCheckout';
 import type { Checkout, CheckoutPaymentElement } from '../../types/Checkout';
 import { createCheckout } from '../createCheckout';
-import { CHECKOUT_NOT_IMPLEMENTED_MESSAGE } from '../errors';
+
+const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
+  'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
 
 const createOptions: Checkout.CreateOptions = {
   clientSecret: 'cs_test_secret_example',

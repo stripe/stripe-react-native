@@ -1,12 +1,18 @@
 import { useMemo } from 'react';
 import type { Checkout } from '../types/Checkout';
-import {
-  createCheckoutNotImplementedError,
-  createCheckoutNotImplementedStripeError,
-} from '../checkout/errors';
+
+const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
+  'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
+
+const checkoutNotImplementedStripeError: NonNullable<
+  Checkout.UseResult['error']
+> = {
+  code: 'Failed',
+  message: CHECKOUT_NOT_IMPLEMENTED_MESSAGE,
+};
 
 const rejectNotImplemented = (): Promise<never> =>
-  Promise.reject(createCheckoutNotImplementedError());
+  Promise.reject(new Error(CHECKOUT_NOT_IMPLEMENTED_MESSAGE));
 
 /**
  * Loads a Checkout Session and exposes its reactive state and controller
@@ -26,7 +32,7 @@ export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {
       status: enabled ? 'error' : 'idle',
       session: null,
       paymentElement: null,
-      error: enabled ? createCheckoutNotImplementedStripeError() : null,
+      error: enabled ? checkoutNotImplementedStripeError : null,
       reload: rejectNotImplemented,
       updateEmail: rejectNotImplemented,
       updateShippingAddress: rejectNotImplemented,

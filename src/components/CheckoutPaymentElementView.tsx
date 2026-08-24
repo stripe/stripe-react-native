@@ -1,6 +1,8 @@
 import type React from 'react';
 import type { CheckoutPaymentElementViewProps } from '../types/Checkout';
-import { createCheckoutNotImplementedError } from '../checkout/errors';
+
+const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
+  'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
 
 /**
  * Renders the Checkout-owned Payment Element inline.
@@ -14,5 +16,5 @@ export function CheckoutPaymentElementView(
   _props: CheckoutPaymentElementViewProps
 ): React.JSX.Element {
   // TODO(porter): Render Checkout Payment Element with a native component.
-  throw createCheckoutNotImplementedError();
+  throw new Error(CHECKOUT_NOT_IMPLEMENTED_MESSAGE);
 }
