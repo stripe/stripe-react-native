@@ -23,6 +23,7 @@ jobs:
           # cut, so updating master keeps it current for the next release.
           ref: master
           token: ${{ secrets.NATIVE_SDK_BUMP_TOKEN }}
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
