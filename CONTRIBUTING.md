@@ -178,35 +178,18 @@ The React Native SDK depends on underlying native [iOS](https://github.com/strip
 
 ## Changing the public APIs
 
-The public API is everything exported from `src/index.tsx`. 
-**Important**: After you make changes, run `yarn api-extractor:update`. 
+The public API is everything exported from `src/index.tsx`.
+**Important**: After you make changes, run `yarn api-extractor:update`.
 
 ### In-development (not yet public) APIs
 
 - Don't export from `src/index.tsx`.
-- Exception - if a public type must reference it:
-  - Tag it with `@internal`. 
-  - Teel free to also mark with e.g. `@CheckoutSessionsPrivatePreview` for easy grepping later.
-
-```ts
-/**
- * @CheckoutSessionsPrivatePreview
- * @internal
- */
-export type CheckoutSetupParams = { ... }
-```
+- Exception - if a public type must reference it, tag it with `@internal`.
 
 ### Private Preview / Public Preview APIs
 
 - Export from `src/index.tsx`.
 - Use `@MyFeaturePrivatePreview` / `@MyFeaturePublicPreview`.
-
-```ts
-/**
- * @CheckoutSessionsPrivatePreview
- */
-export type CheckoutSetupParams = { ... }
-```
 
 ## Maintaining the Stripe old-architecture patch
 

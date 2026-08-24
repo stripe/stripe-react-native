@@ -69,17 +69,6 @@ extension StripeSdkImpl {
     }
   }
 
-  @objc(createEmbeddedPaymentElementWithCheckout:configuration:resolve:reject:)
-  public func createEmbeddedPaymentElementWithCheckout(
-    sessionKey _: String,
-    configuration _: NSDictionary,
-    resolve: @escaping RCTPromiseResolveBlock,
-    reject _: @escaping RCTPromiseRejectBlock
-  ) {
-    emitLoadingFailed(message: StripeSdkImpl.checkoutUnavailableMessage)
-    resolve(nil)
-  }
-
   /// Wires up a freshly created element and emits its initial height /
   /// payment-option state to JS.
   @nonobjc

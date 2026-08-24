@@ -175,14 +175,6 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
-              title="Checkout Playground"
-              onPress={() => {
-                navigation.navigate('CheckoutScreen');
-              }}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
               title="Prebuilt UI (multi-step) (deferred intent)"
               onPress={() => {
                 navigation.navigate(
