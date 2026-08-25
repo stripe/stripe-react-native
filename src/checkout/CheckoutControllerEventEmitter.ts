@@ -28,14 +28,20 @@ interface CheckoutControllerSubscription {
 }
 
 const latestUpdates = new Map<CheckoutControllerId, CheckoutControllerUpdate>();
+const destroyedControllerIds = new Set<CheckoutControllerId>();
+const MAX_DESTROYED_CONTROLLER_IDS = 1_000;
 const controllerListeners = new Map<
   CheckoutControllerId,
   Set<CheckoutControllerListener>
 >();
+const selectionListeners = new Map<CheckoutControllerId, () => void>();
 
 // Register once when this module loads so updates emitted during native
 // controller creation are buffered before JavaScript receives the controller ID.
 addListener('checkoutControllerDidUpdate', (update) => {
+  if (destroyedControllerIds.has(update.controllerId)) {
+    return;
+  }
   if (!Number.isSafeInteger(update.sequence) || update.sequence <= 0) {
     return;
   }
@@ -50,6 +56,25 @@ addListener('checkoutControllerDidUpdate', (update) => {
   if (listeners) {
     [...listeners].forEach((listener) => listener(update));
   }
+
+  if (update.status === 'destroyed') {
+    destroyedControllerIds.add(update.controllerId);
+    if (destroyedControllerIds.size > MAX_DESTROYED_CONTROLLER_IDS) {
+      const oldestControllerId = destroyedControllerIds.values().next().value;
+      if (oldestControllerId) {
+        destroyedControllerIds.delete(oldestControllerId);
+      }
+    }
+    latestUpdates.delete(update.controllerId);
+    controllerListeners.delete(update.controllerId);
+    selectionListeners.delete(update.controllerId);
+  }
+});
+
+addListener('checkoutControllerDidSelectPaymentOption', ({ controllerId }) => {
+  if (!destroyedControllerIds.has(controllerId)) {
+    selectionListeners.get(controllerId)?.();
+  }
 });
 
 /**
@@ -63,6 +88,10 @@ export function addCheckoutControllerListener(
   controllerId: CheckoutControllerId,
   listener: CheckoutControllerListener
 ): CheckoutControllerSubscription {
+  if (destroyedControllerIds.has(controllerId)) {
+    return { remove: () => {} };
+  }
+
   let listeners = controllerListeners.get(controllerId);
   if (!listeners) {
     listeners = new Set();
@@ -92,4 +121,23 @@ export function clearCheckoutControllerUpdate(
 ): void {
   latestUpdates.delete(controllerId);
   controllerListeners.delete(controllerId);
+  selectionListeners.delete(controllerId);
+}
+
+export function addCheckoutControllerSelectionListener(
+  controllerId: CheckoutControllerId,
+  listener: (() => void) | undefined
+): CheckoutControllerSubscription {
+  if (!listener || destroyedControllerIds.has(controllerId)) {
+    return { remove: () => {} };
+  }
+
+  selectionListeners.set(controllerId, listener);
+  return {
+    remove: () => {
+      if (selectionListeners.get(controllerId) === listener) {
+        selectionListeners.delete(controllerId);
+      }
+    },
+  };
 }

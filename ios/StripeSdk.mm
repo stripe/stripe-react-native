@@ -150,6 +150,13 @@ RCT_EXPORT_METHOD(createPaymentMethod:(nonnull NSDictionary *)params
   [StripeSdkImpl.shared createPaymentMethod:params options:options resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(createCheckout:(nonnull NSDictionary *)params
+                         resolve:(nonnull RCTPromiseResolveBlock)resolve
+                          reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared createCheckout:params resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(createPlatformPayPaymentMethod:(nonnull NSDictionary *)params
                          usesDeprecatedTokenFlow:(BOOL)usesDeprecatedTokenFlow
                                          resolve:(nonnull RCTPromiseResolveBlock)resolve
@@ -218,6 +225,13 @@ RCT_EXPORT_METHOD(customerAdapterSetupIntentClientSecretForCustomerAttachCallbac
   [StripeSdkImpl.shared customerAdapterSetupIntentClientSecretForCustomerAttachCallback:clientSecret
                                                                                resolver:resolve
                                                                                rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(destroyCheckout:(nonnull NSString *)controllerId
+                          resolve:(nonnull RCTPromiseResolveBlock)resolve
+                           reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared destroyCheckout:controllerId resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSString *)setupIntentClientSecret

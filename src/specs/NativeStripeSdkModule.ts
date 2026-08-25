@@ -42,10 +42,16 @@ import type {
   EmbeddedPaymentElementResult,
 } from '../types/EmbeddedPaymentElement';
 import type { IntentConfiguration } from '../types/PaymentSheet';
+import type { Checkout } from '../types/Checkout';
 import type { UnsafeObject } from './utils';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
+}>;
+
+type CheckoutCreateResult = UnsafeObject<{
+  controllerId: string;
+  session: Checkout.Session;
 }>;
 
 export interface Spec extends TurboModule {
@@ -240,6 +246,16 @@ export interface Spec extends TurboModule {
   confirmLinkControllerSetupIntent(
     params: UnsafeObject<{ clientSecret: string }>
   ): Promise<UnsafeObject<LinkController.ConfirmSetupIntentResult>>;
+
+  // Checkout Session - Private Preview
+
+  /** @CheckoutSessionPrivatePreview */
+  createCheckout(
+    params: UnsafeObject<Checkout.CreateOptions>
+  ): Promise<CheckoutCreateResult>;
+
+  /** @CheckoutSessionPrivatePreview */
+  destroyCheckout(controllerId: string): Promise<void>;
 
   // Events
   addListener: (eventType: string) => void;
