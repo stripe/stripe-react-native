@@ -102,10 +102,7 @@ extension StripeSdkImpl {
     ) {
         performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
             let name = params["name"] as? String
-            let address = try CheckoutConfigurationMapper.mapAddress(
-                params["address"] as? NSDictionary,
-                path: "params.address"
-            )
+            let address = CheckoutConfigurationMapper.mapAddress(params["address"] as? NSDictionary)
             // TODO(porter): Replace the non-null call when the reviewed nullable address ships.
             // try await instance.checkout.updateShippingAddress(name: name, address: address)
             guard let address else {

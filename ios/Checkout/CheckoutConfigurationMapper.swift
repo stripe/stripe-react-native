@@ -3,18 +3,12 @@ import PassKit
 @_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
 
 enum CheckoutConfigurationMapperError: LocalizedError, Equatable {
-    case missingRequiredString(String)
-    case missingAddressCountry(String)
-    case missingMerchantIdentifier
+    case unsupportedValue(path: String, value: String)
 
     var errorDescription: String? {
         switch self {
-        case .missingRequiredString(let name):
-            return "Checkout configuration requires `\(name)`."
-        case .missingAddressCountry(let path):
-            return "Checkout configuration requires `\(path).country` when an address is provided."
-        case .missingMerchantIdentifier:
-            return "Apple Pay requires `merchantIdentifier` in StripeProvider or initStripe."
+        case .unsupportedValue(let path, let value):
+            return "Unsupported Checkout configuration value `\(value)` for `\(path)`."
         }
     }
 }
@@ -26,22 +20,20 @@ enum CheckoutConfigurationMapper {
         merchantIdentifier: String?,
         didSelectPaymentOption: @escaping () -> Void
     ) throws -> Checkout.Configuration {
-        guard let clientSecret = nonEmptyString(params["clientSecret"]) else {
-            throw CheckoutConfigurationMapperError.missingRequiredString("clientSecret")
-        }
-        guard let returnURL = nonEmptyString(params["returnURL"]) else {
-            throw CheckoutConfigurationMapperError.missingRequiredString("returnURL")
-        }
+        let clientSecret = params["clientSecret"] as? String ?? ""
+        let returnURL = params["returnURL"] as? String ?? ""
 
         var configuration = Checkout.Configuration(
             clientSecret: clientSecret,
             returnURL: returnURL
         )
         configuration.merchantDisplayName = params["merchantDisplayName"] as? String
-        configuration.userInterfaceStyle = Mappers.mapToUserInterfaceStyle(params["style"] as? String)
+        if let style = params["style"] as? String {
+            configuration.userInterfaceStyle = try mapUserInterfaceStyle(style)
+        }
 
         let defaultsParams = params["defaults"] as? NSDictionary
-        configuration.defaults = try mapDefaults(defaultsParams)
+        configuration.defaults = mapDefaults(defaultsParams)
 
         let paymentElementParams = params["paymentElement"] as? NSDictionary
         configuration.paymentElement = try mapPaymentElement(
@@ -51,17 +43,9 @@ enum CheckoutConfigurationMapper {
 
         let applePayParams = paymentElementParams?["applePay"] as? NSDictionary
         if let applePayParams {
-            guard nonEmptyString(applePayParams["merchantCountryCode"]) != nil else {
-                throw CheckoutConfigurationMapperError.missingRequiredString(
-                    "paymentElement.applePay.merchantCountryCode"
-                )
-            }
-            guard let merchantIdentifier = nonEmptyString(merchantIdentifier) else {
-                throw CheckoutConfigurationMapperError.missingMerchantIdentifier
-            }
             configuration.applePayConfiguration = Checkout.ApplePayConfiguration(
-                merchantId: merchantIdentifier,
-                buttonType: mapApplePayButtonType(applePayParams["buttonType"] as? String)
+                merchantId: merchantIdentifier ?? "",
+                buttonType: try mapApplePayButtonType(applePayParams["buttonType"] as? String)
             )
             // TODO(porter): Pass merchantCountryCode when the reviewed native setter ships.
             // configuration.applePayConfiguration?.merchantCountryCode =
@@ -69,9 +53,11 @@ enum CheckoutConfigurationMapper {
         }
 
         if let linkParams = paymentElementParams?["link"] as? NSDictionary {
-            configuration.linkConfiguration = Checkout.LinkConfiguration(
-                display: mapLinkDisplay(linkParams["display"] as? String)
-            )
+            var linkConfiguration = Checkout.LinkConfiguration()
+            if let display = linkParams["display"] as? String {
+                linkConfiguration.display = try mapLinkDisplay(display)
+            }
+            configuration.linkConfiguration = linkConfiguration
         }
 
         return configuration
@@ -79,26 +65,20 @@ enum CheckoutConfigurationMapper {
 
     private static func mapDefaults(
         _ params: NSDictionary?
-    ) throws -> Checkout.Configuration.Defaults {
+    ) -> Checkout.Configuration.Defaults {
         var defaults = Checkout.Configuration.Defaults()
 
         if let billingParams = params?["billingDetails"] as? NSDictionary {
             var billingDetails = Checkout.Configuration.Defaults.BillingDetails()
             billingDetails.name = billingParams["name"] as? String
-            billingDetails.address = try mapAddress(
-                billingParams["address"] as? NSDictionary,
-                path: "defaults.billingDetails.address"
-            )
+            billingDetails.address = mapAddress(billingParams["address"] as? NSDictionary)
             defaults.billingDetails = billingDetails
         }
 
         if let shippingParams = params?["shippingDetails"] as? NSDictionary {
             var shippingDetails = Checkout.Configuration.Defaults.ShippingDetails()
             shippingDetails.name = shippingParams["name"] as? String
-            shippingDetails.address = try mapAddress(
-                shippingParams["address"] as? NSDictionary,
-                path: "defaults.shippingDetails.address"
-            )
+            shippingDetails.address = mapAddress(shippingParams["address"] as? NSDictionary)
             defaults.shippingDetails = shippingDetails
         }
 
@@ -110,18 +90,13 @@ enum CheckoutConfigurationMapper {
     }
 
     static func mapAddress(
-        _ params: NSDictionary?,
-        path: String
-    ) throws -> Checkout.Address? {
+        _ params: NSDictionary?
+    ) -> Checkout.Address? {
         guard let params else {
             return nil
         }
-        guard let country = nonEmptyString(params["country"]) else {
-            throw CheckoutConfigurationMapperError.missingAddressCountry(path)
-        }
-
         return Checkout.Address(
-            country: country,
+            country: params["country"] as? String ?? "",
             line1: params["line1"] as? String,
             line2: params["line2"] as? String,
             city: params["city"] as? String,
@@ -139,9 +114,9 @@ enum CheckoutConfigurationMapper {
             return configuration
         }
 
-        configuration.savePaymentMethodOptInBehavior = mapSavePaymentMethodOptInBehavior(
-            params["savePaymentMethodOptInBehavior"] as? String
-        )
+        if let behavior = params["savePaymentMethodOptInBehavior"] as? String {
+            configuration.savePaymentMethodOptInBehavior = try mapSavePaymentMethodOptInBehavior(behavior)
+        }
 
         if let appearance = params["appearance"] as? NSDictionary {
             configuration.appearance = try PaymentSheetAppearance.buildAppearanceFromParams(
@@ -150,98 +125,130 @@ enum CheckoutConfigurationMapper {
         }
 
         if let preferredNetworks = params["preferredNetworks"] as? [NSNumber] {
-            configuration.preferredNetworks = preferredNetworks.compactMap {
-                Mappers.intToCardBrand(int: $0.intValue)
-            }
+            configuration.preferredNetworks = try mapPreferredNetworks(preferredNetworks)
         }
 
-        configuration.billingDetailsCollectionConfiguration = mapBillingDetailsCollection(
-            params["billingDetailsCollectionConfiguration"] as? NSDictionary,
-            default: configuration.billingDetailsCollectionConfiguration
-        )
+        if let billingDetails = params["billingDetailsCollectionConfiguration"] as? NSDictionary {
+            configuration.billingDetailsCollectionConfiguration = try mapBillingDetailsCollection(
+                billingDetails,
+                default: configuration.billingDetailsCollectionConfiguration
+            )
+        }
         configuration.removeSavedPaymentMethodMessage = params["removeSavedPaymentMethodMessage"] as? String
         configuration.paymentMethodOrder = params["paymentMethodOrder"] as? [String]
-        configuration.opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool ?? false
-
-        if let termsDisplay = StripeSdkImpl.mapToTermsDisplay(params: params) {
-            configuration.termsDisplay = termsDisplay
+        if let opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool {
+            configuration.opensCardScannerAutomatically = opensCardScannerAutomatically
         }
 
-        configuration.paymentMethodLayout = mapPaymentMethodLayout(
-            params["paymentMethodLayout"] as? String
-        )
-        configuration.displaysMandateText = params["displaysMandateText"] as? Bool ?? false
-        configuration.rowSelectionBehavior = mapRowSelectionBehavior(
-            params["rowSelectionBehavior"] as? NSDictionary,
-            didSelectPaymentOption: didSelectPaymentOption
-        )
+        if let termsDisplay = params["termsDisplay"] as? [String: String] {
+            configuration.termsDisplay = try mapTermsDisplay(termsDisplay)
+        }
+
+        if let paymentMethodLayout = params["paymentMethodLayout"] as? String {
+            configuration.paymentMethodLayout = try mapPaymentMethodLayout(paymentMethodLayout)
+        }
+        if let displaysMandateText = params["displaysMandateText"] as? Bool {
+            configuration.displaysMandateText = displaysMandateText
+        }
+        if let rowSelectionBehavior = params["rowSelectionBehavior"] as? NSDictionary {
+            configuration.rowSelectionBehavior = try mapRowSelectionBehavior(
+                rowSelectionBehavior,
+                didSelectPaymentOption: didSelectPaymentOption
+            )
+        }
 
         return configuration
     }
 
     private static func mapBillingDetailsCollection(
-        _ params: NSDictionary?,
+        _ params: NSDictionary,
         default defaultConfiguration: PaymentElement.BillingDetailsCollectionConfiguration
-    ) -> PaymentElement.BillingDetailsCollectionConfiguration {
+    ) throws -> PaymentElement.BillingDetailsCollectionConfiguration {
         var configuration = defaultConfiguration
-        configuration.name = mapCollectionMode(params?["name"] as? String)
-        configuration.phone = mapCollectionMode(params?["phone"] as? String)
-        configuration.address = mapAddressCollectionMode(params?["address"] as? String)
-        configuration.attachDefaultsToPaymentMethod =
-            params?["attachDefaultsToPaymentMethod"] as? Bool ?? false
+        if let name = params["name"] as? String {
+            configuration.name = try mapCollectionMode(name, path: "name")
+        }
+        if let phone = params["phone"] as? String {
+            configuration.phone = try mapCollectionMode(phone, path: "phone")
+        }
+        if let address = params["address"] as? String {
+            configuration.address = try mapAddressCollectionMode(address)
+        }
+        if let attachDefaults = params["attachDefaultsToPaymentMethod"] as? Bool {
+            configuration.attachDefaultsToPaymentMethod = attachDefaults
+        }
         return configuration
     }
 
     private static func mapCollectionMode(
-        _ value: String?
-    ) -> PaymentElement.BillingDetailsCollectionConfiguration.CollectionMode {
-        value == "always" ? .always : .automatic
+        _ value: String,
+        path: String
+    ) throws -> PaymentElement.BillingDetailsCollectionConfiguration.CollectionMode {
+        switch value {
+        case "automatic": return .automatic
+        case "always": return .always
+        default: throw unsupported(value, at: "paymentElement.billingDetailsCollectionConfiguration.\(path)")
+        }
     }
 
     private static func mapAddressCollectionMode(
-        _ value: String?
-    ) -> PaymentElement.BillingDetailsCollectionConfiguration.AddressCollectionMode {
-        value == "full" ? .full : .automatic
+        _ value: String
+    ) throws -> PaymentElement.BillingDetailsCollectionConfiguration.AddressCollectionMode {
+        switch value {
+        case "automatic": return .automatic
+        case "full": return .full
+        default: throw unsupported(value, at: "paymentElement.billingDetailsCollectionConfiguration.address")
+        }
     }
 
     private static func mapSavePaymentMethodOptInBehavior(
-        _ value: String?
-    ) -> PaymentElement.SavePaymentMethodOptInBehavior {
+        _ value: String
+    ) throws -> PaymentElement.SavePaymentMethodOptInBehavior {
         switch value {
+        case "automatic": return .automatic
         case "requiresOptIn": return .requiresOptIn
         case "requiresOptOut": return .requiresOptOut
-        default: return .automatic
+        default: throw unsupported(value, at: "paymentElement.savePaymentMethodOptInBehavior")
         }
     }
 
     private static func mapPaymentMethodLayout(
-        _ value: String?
-    ) -> PaymentElement.PaymentMethodLayout {
+        _ value: String
+    ) throws -> PaymentElement.PaymentMethodLayout {
         switch value {
         case "Horizontal": return .horizontal
         case "Vertical": return .vertical
-        default: return .automatic
+        case "Automatic": return .automatic
+        default: throw unsupported(value, at: "paymentElement.paymentMethodLayout")
         }
     }
 
     private static func mapRowSelectionBehavior(
-        _ params: NSDictionary?,
+        _ params: NSDictionary,
         didSelectPaymentOption: @escaping () -> Void
-    ) -> PaymentElement.Configuration.RowSelectionBehavior {
-        if params?["type"] as? String == "immediateAction" {
-            return .immediateAction(didSelectPaymentOption: didSelectPaymentOption)
+    ) throws -> PaymentElement.Configuration.RowSelectionBehavior {
+        switch params["type"] as? String {
+        case nil, "default": return .default
+        case "immediateAction": return .immediateAction(didSelectPaymentOption: didSelectPaymentOption)
+        case .some(let value): throw unsupported(value, at: "paymentElement.rowSelectionBehavior.type")
         }
-        return .default
     }
 
     private static func mapLinkDisplay(
-        _ value: String?
-    ) -> Checkout.LinkConfiguration.Display {
-        value == "never" ? .never : .automatic
+        _ value: String
+    ) throws -> Checkout.LinkConfiguration.Display {
+        switch value {
+        case "automatic": return .automatic
+        case "never": return .never
+        default: throw unsupported(value, at: "paymentElement.link.display")
+        }
     }
 
-    private static func mapApplePayButtonType(_ value: String?) -> PKPaymentButtonType? {
-        let rawValue: Int? = switch value {
+    private static func mapApplePayButtonType(_ value: String?) throws -> PKPaymentButtonType? {
+        guard let value else {
+            return nil
+        }
+        let rawValue: Int = switch value {
         case "plain": 0
         case "buy": 1
         case "setUp": 2
@@ -259,15 +266,46 @@ enum CheckoutConfigurationMapper {
         case "contribute": 14
         case "tip": 15
         case "continue": 16
-        default: nil
+        default: throw unsupported(value, at: "paymentElement.applePay.buttonType")
         }
-        return rawValue.flatMap(PKPaymentButtonType.init(rawValue:))
+        return PKPaymentButtonType(rawValue: rawValue)
     }
 
-    private static func nonEmptyString(_ value: Any?) -> String? {
-        guard let value = value as? String, !value.isEmpty else {
-            return nil
+    private static func mapPreferredNetworks(_ values: [NSNumber]) throws -> [STPCardBrand] {
+        try values.map { value in
+            guard let brand = Mappers.intToCardBrand(int: value.intValue) else {
+                throw unsupported(String(value.intValue), at: "paymentElement.preferredNetworks")
+            }
+            return brand
         }
-        return value
+    }
+
+    private static func mapTermsDisplay(
+        _ values: [String: String]
+    ) throws -> [STPPaymentMethodType: PaymentSheet.TermsDisplay] {
+        try values.reduce(into: [:]) { result, item in
+            let paymentMethodType = STPPaymentMethodType.fromIdentifier(item.key)
+            guard paymentMethodType != .unknown else {
+                throw unsupported(item.key, at: "paymentElement.termsDisplay")
+            }
+            switch item.value {
+            case "automatic": result[paymentMethodType] = .automatic
+            case "never": result[paymentMethodType] = .never
+            default: throw unsupported(item.value, at: "paymentElement.termsDisplay.\(item.key)")
+            }
+        }
+    }
+
+    private static func mapUserInterfaceStyle(_ value: String) throws -> PaymentSheet.UserInterfaceStyle {
+        switch value {
+        case "alwaysLight": return .alwaysLight
+        case "alwaysDark": return .alwaysDark
+        case "automatic": return .automatic
+        default: throw unsupported(value, at: "style")
+        }
+    }
+
+    private static func unsupported(_ value: String, at path: String) -> CheckoutConfigurationMapperError {
+        .unsupportedValue(path: path, value: value)
     }
 }

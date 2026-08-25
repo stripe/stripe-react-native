@@ -1516,7 +1516,7 @@ class StripeSdkModule(
     performCheckoutMutation(controllerId, promise) { controller ->
       val name = params.getString("name")
       val address = params.getMap("address")?.let {
-        CheckoutConfigurationMapper.mapAddress(it, "params.address")
+        CheckoutConfigurationMapper.mapAddress(it)
       }
       // TODO(porter): Replace the non-null call when the reviewed nullable address ships.
       // controller.updateShippingAddress(name, address)

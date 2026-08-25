@@ -8,8 +8,6 @@ import com.facebook.react.bridge.ReadableType
 import com.reactnativestripesdk.getFontResId
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.forEachKey
-import com.reactnativestripesdk.utils.getBooleanOr
-import com.reactnativestripesdk.utils.getFloatOr
 import com.reactnativestripesdk.utils.getFloatOrNull
 import com.reactnativestripesdk.utils.getIntegerList
 import com.reactnativestripesdk.utils.getStringList
@@ -35,8 +33,8 @@ internal object CheckoutConfigurationMapper {
     context: Context,
     didSelectPaymentOption: () -> Unit,
   ): MappedCheckoutConfiguration {
-    val clientSecret = params.requiredString("clientSecret")
-    val returnURL = params.requiredString("returnURL")
+    val clientSecret = params.getString("clientSecret").orEmpty()
+    val returnURL = params.getString("returnURL").orEmpty()
     val paymentElementParams = params.getMap("paymentElement")
 
     val configuration = CheckoutController.Configuration()
@@ -61,10 +59,10 @@ internal object CheckoutConfigurationMapper {
   private fun mapDefaults(params: ReadableMap): CheckoutController.Configuration.Defaults {
     val defaults = CheckoutController.Configuration.Defaults()
     params.getMap("billingDetails")?.let {
-      defaults.billingDetails(mapContactDetails(it, "defaults.billingDetails.address"))
+      defaults.billingDetails(mapContactDetails(it))
     }
     params.getMap("shippingDetails")?.let {
-      defaults.shippingDetails(mapContactDetails(it, "defaults.shippingDetails.address"))
+      defaults.shippingDetails(mapContactDetails(it))
     }
     if (params.hasKey("email")) {
       defaults.email(params.getString("email"))
@@ -76,21 +74,17 @@ internal object CheckoutConfigurationMapper {
 
   private fun mapContactDetails(
     params: ReadableMap,
-    addressPath: String,
   ): CheckoutController.Configuration.Defaults.ContactDetails =
     CheckoutController.Configuration.Defaults.ContactDetails().apply {
       name(params.getString("name"))
-      params.getMap("address")?.let { address(mapAddress(it, addressPath)) }
+      params.getMap("address")?.let { address(mapAddress(it)) }
     }
 
   fun mapAddress(
     params: ReadableMap,
-    path: String,
   ): CheckoutController.Address {
-    val country = params.getString("country")?.takeIf(String::isNotEmpty)
-      ?: throw IllegalArgumentException("Checkout configuration requires `$path.country`.")
     return CheckoutController.Address()
-      .country(country)
+      .country(params.getString("country").orEmpty())
       .line1(params.getString("line1"))
       .line2(params.getString("line2"))
       .city(params.getString("city"))
@@ -104,34 +98,36 @@ internal object CheckoutConfigurationMapper {
     context: Context,
   ): PaymentElement.Configuration {
     val configuration = PaymentElement.Configuration()
-    val appearance = mapAppearance(params?.getMap("appearance"), style, context)
-    configuration.appearance(appearance)
-    configuration.embeddedViewDisplaysMandateText(
-      params.getBooleanOr("displaysMandateText", false),
-    )
+    if (params?.getMap("appearance") != null || style != null) {
+      configuration.appearance(mapAppearance(params?.getMap("appearance"), style, context))
+    }
 
     if (params == null) {
       return configuration
+    }
+
+    if (params.hasKey("displaysMandateText")) {
+      configuration.embeddedViewDisplaysMandateText(params.getBoolean("displaysMandateText"))
     }
 
     // TODO(porter): Uncomment when the reviewed native setter ships.
     // configuration.savePaymentMethodOptInBehavior(
     //   mapSavePaymentMethodOptInBehavior(params.getString("savePaymentMethodOptInBehavior")),
     // )
-    configuration.preferredNetworks(
-      mapToPreferredNetworks(params.getIntegerList("preferredNetworks")),
-    )
-    configuration.billingDetailsCollectionConfiguration(
-      mapBillingDetailsCollection(params.getMap("billingDetailsCollectionConfiguration")),
-    )
-    configuration.paymentMethodOrder(params.getStringList("paymentMethodOrder").orEmpty())
-    configuration.opensCardScannerAutomatically(
-      params.getBooleanOr("opensCardScannerAutomatically", false),
-    )
-    configuration.termsDisplay(mapTermsDisplay(params.getMap("termsDisplay")))
-    configuration.paymentMethodLayout(
-      mapPaymentMethodLayout(params.getString("paymentMethodLayout")),
-    )
+    params.getIntegerList("preferredNetworks")?.let {
+      configuration.preferredNetworks(mapPreferredNetworks(it))
+    }
+    params.getMap("billingDetailsCollectionConfiguration")?.let {
+      configuration.billingDetailsCollectionConfiguration(mapBillingDetailsCollection(it))
+    }
+    params.getStringList("paymentMethodOrder")?.let(configuration::paymentMethodOrder)
+    if (params.hasKey("opensCardScannerAutomatically")) {
+      configuration.opensCardScannerAutomatically(params.getBoolean("opensCardScannerAutomatically"))
+    }
+    params.getMap("termsDisplay")?.let { configuration.termsDisplay(mapTermsDisplay(it)) }
+    params.getString("paymentMethodLayout")?.let {
+      configuration.paymentMethodLayout(mapPaymentMethodLayout(it))
+    }
     params.getMap("googlePay")?.let {
       configuration.googlePayConfiguration(mapGooglePay(it))
     }
@@ -142,12 +138,19 @@ internal object CheckoutConfigurationMapper {
     return configuration
   }
 
+  private fun mapPreferredNetworks(values: List<Int>) =
+    mapToPreferredNetworks(values).also { mapped ->
+      if (mapped.size != values.size) {
+        unsupportedValue("paymentElement.preferredNetworks", values)
+      }
+    }
+
   private fun mapBillingDetailsCollection(
-    params: ReadableMap?,
+    params: ReadableMap,
   ): PaymentElement.Configuration.BillingDetailsCollectionConfiguration {
     val configuration = PaymentElement.Configuration.BillingDetailsCollectionConfiguration()
-      .name(mapCollectionMode(params?.getString("name")))
-      .address(mapAddressCollectionMode(params?.getString("address")))
+    params.getString("name")?.let { configuration.name(mapCollectionMode(it)) }
+    params.getString("address")?.let { configuration.address(mapAddressCollectionMode(it)) }
     // TODO(porter): Uncomment when the reviewed native setters ship.
     // configuration.phone(mapCollectionMode(params?.getString("phone")))
     // configuration.attachDefaultsToPaymentMethod(
@@ -157,49 +160,46 @@ internal object CheckoutConfigurationMapper {
   }
 
   internal fun mapCollectionMode(
-    value: String?,
+    value: String,
   ): PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode =
-    if (value == "always") {
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Always
-    } else {
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
+    when (value) {
+      "automatic" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
+      "always" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Always
+      else -> unsupportedValue("paymentElement.billingDetailsCollectionConfiguration.name", value)
     }
 
   internal fun mapAddressCollectionMode(
-    value: String?,
+    value: String,
   ): PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode =
-    if (value == "full") {
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full
-    } else {
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
+    when (value) {
+      "automatic" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
+      "full" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full
+      else -> unsupportedValue("paymentElement.billingDetailsCollectionConfiguration.address", value)
     }
 
   internal fun mapPaymentMethodLayout(
-    value: String?,
+    value: String,
   ): PaymentElement.Configuration.PaymentMethodLayout =
     when (value) {
       "Horizontal" -> PaymentElement.Configuration.PaymentMethodLayout.Horizontal
       "Vertical" -> PaymentElement.Configuration.PaymentMethodLayout.Vertical
-      else -> PaymentElement.Configuration.PaymentMethodLayout.Automatic
+      "Automatic" -> PaymentElement.Configuration.PaymentMethodLayout.Automatic
+      else -> unsupportedValue("paymentElement.paymentMethodLayout", value)
     }
 
   internal fun mapTermsDisplay(
-    params: ReadableMap?,
+    params: ReadableMap,
   ): Map<PaymentMethod.Type, PaymentElement.Configuration.TermsDisplay> {
-    if (params == null) {
-      return emptyMap()
-    }
     return buildMap {
       params.forEachKey { code ->
         val paymentMethodType = PaymentMethod.Type.fromCode(code)
+          ?: unsupportedValue("paymentElement.termsDisplay", code)
         val termsDisplay = when (params.getString(code)) {
           "automatic" -> PaymentElement.Configuration.TermsDisplay.AUTOMATIC
           "never" -> PaymentElement.Configuration.TermsDisplay.NEVER
-          else -> null
+          else -> unsupportedValue("paymentElement.termsDisplay.$code", params.getString(code))
         }
-        if (paymentMethodType != null && termsDisplay != null) {
-          put(paymentMethodType, termsDisplay)
-        }
+        put(paymentMethodType, termsDisplay)
       }
     }
   }
@@ -209,8 +209,8 @@ internal object CheckoutConfigurationMapper {
   ): PaymentElement.Configuration.GooglePayConfiguration =
     PaymentElement.Configuration.GooglePayConfiguration().apply {
       params.getString("label")?.let(::label)
-      buttonType(mapGooglePayButtonType(params.getString("buttonType")))
-      additionalEnabledNetworks(params.getStringList("additionalEnabledNetworks").orEmpty())
+      params.getString("buttonType")?.let { buttonType(mapGooglePayButtonType(it)) }
+      params.getStringList("additionalEnabledNetworks")?.let(::additionalEnabledNetworks)
       // TODO(porter): Uncomment when the reviewed native environment initializer ships.
       // environment(
       //   if (params.getBooleanOr("testEnv", false)) Environment.Test else Environment.Production,
@@ -218,7 +218,7 @@ internal object CheckoutConfigurationMapper {
     }
 
   internal fun mapGooglePayButtonType(
-    value: String?,
+    value: String,
   ): PaymentElement.Configuration.GooglePayConfiguration.ButtonType =
     when (value) {
       "buy" -> PaymentElement.Configuration.GooglePayConfiguration.ButtonType.Buy
@@ -228,29 +228,35 @@ internal object CheckoutConfigurationMapper {
       "order" -> PaymentElement.Configuration.GooglePayConfiguration.ButtonType.Order
       "subscribe" -> PaymentElement.Configuration.GooglePayConfiguration.ButtonType.Subscribe
       "plain" -> PaymentElement.Configuration.GooglePayConfiguration.ButtonType.Plain
-      else -> PaymentElement.Configuration.GooglePayConfiguration.ButtonType.Pay
+      "pay" -> PaymentElement.Configuration.GooglePayConfiguration.ButtonType.Pay
+      else -> unsupportedValue("paymentElement.googlePay.buttonType", value)
     }
 
   private fun mapLink(
     params: ReadableMap,
   ): PaymentElement.Configuration.LinkConfiguration =
-    PaymentElement.Configuration.LinkConfiguration().display(
-      if (params.getString("display") == "never") {
-        PaymentElement.Configuration.LinkConfiguration.Display.Never
-      } else {
-        PaymentElement.Configuration.LinkConfiguration.Display.Automatic
-      },
-    )
+    PaymentElement.Configuration.LinkConfiguration().apply {
+      params.getString("display")?.let {
+        display(
+          when (it) {
+            "automatic" -> PaymentElement.Configuration.LinkConfiguration.Display.Automatic
+            "never" -> PaymentElement.Configuration.LinkConfiguration.Display.Never
+            else -> unsupportedValue("paymentElement.link.display", it)
+          },
+        )
+      }
+    }
 
   private fun mapRowSelectionBehavior(
     paymentElementParams: ReadableMap?,
     didSelectPaymentOption: () -> Unit,
-  ): PaymentElement.RowSelectionBehavior =
-    if (paymentElementParams?.getMap("rowSelectionBehavior")?.getString("type") == "immediateAction") {
-      PaymentElement.RowSelectionBehavior.immediateAction(didSelectPaymentOption)
-    } else {
-      PaymentElement.RowSelectionBehavior.default()
+  ): PaymentElement.RowSelectionBehavior {
+    return when (val type = paymentElementParams?.getMap("rowSelectionBehavior")?.getString("type")) {
+      null, "default" -> PaymentElement.RowSelectionBehavior.default()
+      "immediateAction" -> PaymentElement.RowSelectionBehavior.immediateAction(didSelectPaymentOption)
+      else -> unsupportedValue("paymentElement.rowSelectionBehavior.type", type)
     }
+  }
 
   private fun mapAppearance(
     params: ReadableMap?,
@@ -258,31 +264,25 @@ internal object CheckoutConfigurationMapper {
     context: Context,
   ): PaymentElement.Configuration.Appearance {
     val appearance = PaymentElement.Configuration.Appearance()
-      .themeMode(mapThemeMode(style))
+    style?.let { appearance.themeMode(mapThemeMode(it)) }
     val colors = params?.getMap("colors")
-    appearance.colorsLight(mapColors(colors?.getMap("light") ?: colors, isLight = true))
-    appearance.colorsDark(mapColors(colors?.getMap("dark") ?: colors, isLight = false))
-    appearance.primaryButton(mapPrimaryButton(params?.getMap("primaryButton"), context))
-
-    params?.getMap("formInsetValues")?.let { insetParams ->
-      appearance.formInsetValues(
-        PaymentElement.Configuration.Appearance.Insets(
-          insetParams.getFloatOr("left", DEFAULT_FORM_LEFT_INSET),
-          insetParams.getFloatOr("top", DEFAULT_FORM_TOP_INSET),
-          insetParams.getFloatOr("right", DEFAULT_FORM_RIGHT_INSET),
-          insetParams.getFloatOr("bottom", DEFAULT_FORM_BOTTOM_INSET),
-        ),
-      )
+    if (colors != null) {
+      appearance.colorsLight(mapColors(colors.getMap("light") ?: colors, isLight = true))
+      appearance.colorsDark(mapColors(colors.getMap("dark") ?: colors, isLight = false))
     }
+    params?.getMap("primaryButton")?.let { appearance.primaryButton(mapPrimaryButton(it, context)) }
+
+    // TODO(porter): Map partial formInsetValues when the reviewed native setter ships.
     // TODO(porter): Map root font, shapes, and embedded appearance when their reviewed setters ship.
     return appearance
   }
 
-  internal fun mapThemeMode(style: String?): PaymentElement.Configuration.Appearance.ThemeMode =
+  internal fun mapThemeMode(style: String): PaymentElement.Configuration.Appearance.ThemeMode =
     when (style) {
       "alwaysLight" -> PaymentElement.Configuration.Appearance.ThemeMode.AlwaysLight
       "alwaysDark" -> PaymentElement.Configuration.Appearance.ThemeMode.AlwaysDark
-      else -> PaymentElement.Configuration.Appearance.ThemeMode.Automatic
+      "automatic" -> PaymentElement.Configuration.Appearance.ThemeMode.Automatic
+      else -> unsupportedValue("style", style)
     }
 
   private fun mapColors(
@@ -309,25 +309,30 @@ internal object CheckoutConfigurationMapper {
   }
 
   private fun mapPrimaryButton(
-    params: ReadableMap?,
+    params: ReadableMap,
     context: Context,
   ): PaymentElement.Configuration.Appearance.PrimaryButton {
     val primaryButton = PaymentElement.Configuration.Appearance.PrimaryButton()
-    val colors = params?.getMap("colors")
-    primaryButton.colorsLight(mapPrimaryButtonColors(colors?.getMap("light") ?: colors, true))
-    primaryButton.colorsDark(mapPrimaryButtonColors(colors?.getMap("dark") ?: colors, false))
+    val colors = params.getMap("colors")
+    if (colors != null) {
+      primaryButton.colorsLight(mapPrimaryButtonColors(colors.getMap("light") ?: colors, true))
+      primaryButton.colorsDark(mapPrimaryButtonColors(colors.getMap("dark") ?: colors, false))
+    }
 
-    val shapes = params?.getMap("shapes")
-    primaryButton.shape(
-      PaymentElement.Configuration.Appearance.PrimaryButton.Shape()
-        .cornerRadiusDp(shapes.getFloatOrNull("borderRadius"))
-        .borderStrokeWidthDp(shapes.getFloatOrNull("borderWidth"))
-        .heightDp(shapes.getFloatOrNull("height")),
-    )
-    primaryButton.typography(
-      PaymentElement.Configuration.Appearance.PrimaryButton.Typography()
-        .fontResId(getFontResId(params?.getMap("font"), "family", context)),
-    )
+    params.getMap("shapes")?.let { shapes ->
+      primaryButton.shape(
+        PaymentElement.Configuration.Appearance.PrimaryButton.Shape()
+          .cornerRadiusDp(shapes.getFloatOrNull("borderRadius"))
+          .borderStrokeWidthDp(shapes.getFloatOrNull("borderWidth"))
+          .heightDp(shapes.getFloatOrNull("height")),
+      )
+    }
+    params.getMap("font")?.let { font ->
+      primaryButton.typography(
+        PaymentElement.Configuration.Appearance.PrimaryButton.Typography()
+          .fontResId(getFontResId(font, "family", context)),
+      )
+    }
     return primaryButton
   }
 
@@ -347,10 +352,6 @@ internal object CheckoutConfigurationMapper {
     params.color("successTextColor", isLight)?.let(colors::onSuccessBackgroundColor)
     return colors
   }
-
-  private fun ReadableMap.requiredString(key: String): String =
-    getString(key)?.takeIf(String::isNotEmpty)
-      ?: throw IllegalArgumentException("Checkout configuration requires `$key`.")
 
   private fun ReadableMap?.color(key: String, isLight: Boolean): Int? {
     if (this == null || !hasKey(key)) {
@@ -372,9 +373,8 @@ internal object CheckoutConfigurationMapper {
   }
 }
 
-private const val DEFAULT_FORM_LEFT_INSET = 20f
-private const val DEFAULT_FORM_TOP_INSET = 0f
-private const val DEFAULT_FORM_RIGHT_INSET = 20f
-private const val DEFAULT_FORM_BOTTOM_INSET = 40f
+private fun unsupportedValue(path: String, value: Any?): Nothing =
+  throw IllegalArgumentException("Unsupported Checkout configuration value `$value` for `$path`.")
+
 private const val HEX_COLOR_LENGTH_RGB = 6
 private const val HEX_COLOR_LENGTH_ARGB = 8
