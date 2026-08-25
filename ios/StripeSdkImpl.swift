@@ -241,10 +241,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
         if let clientSecret = result["clientSecret"] as? String {
             paymentSheetConfirmationTokenIntentCreationCallback(.success(clientSecret))
+            resolve(nil)
         } else {
             let errorParams = result["error"] as? NSDictionary
             let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
             paymentSheetConfirmationTokenIntentCreationCallback(.failure(error))
+            resolve(nil)
         }
     }
 
