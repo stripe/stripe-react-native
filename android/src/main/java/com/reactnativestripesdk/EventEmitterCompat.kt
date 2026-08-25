@@ -100,6 +100,10 @@ class EventEmitterCompat(
     invoke("paymentMethodMessagingElementConfigureResult", value)
   }
 
+  fun emitCheckoutControllerDidUpdate(value: ReadableMap?) {
+    invoke("checkoutControllerDidUpdate", value)
+  }
+
   fun emitOnCheckoutClientSecretRequested(value: ReadableMap?) {
     invoke("onCheckoutClientSecretRequested", value)
   }

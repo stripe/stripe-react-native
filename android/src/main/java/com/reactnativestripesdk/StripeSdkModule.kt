@@ -25,6 +25,7 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
+import com.reactnativestripesdk.checkout.CheckoutControllerRegistry
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
@@ -108,6 +109,7 @@ class StripeSdkModule(
   private var googlePayPaymentMethodLauncherManager: GooglePayPaymentMethodLauncherManager? = null
   private var customerSheetManager: CustomerSheetManager? = null
   private var linkControllerManager: LinkControllerManager? = null
+  internal val checkoutControllerRegistry = CheckoutControllerRegistry()
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
   internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
@@ -158,6 +160,9 @@ class StripeSdkModule(
 
     stripeUIManagers.forEach { it.destroy() }
     stripeUIManagers.clear()
+    UiThreadUtil.runOnUiThread {
+      checkoutControllerRegistry.clear()
+    }
     linkControllerManager?.destroy()
     linkControllerManager = null
   }
