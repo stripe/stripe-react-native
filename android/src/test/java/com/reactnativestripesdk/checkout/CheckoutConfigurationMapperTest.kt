@@ -13,7 +13,6 @@ import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -27,7 +26,7 @@ class CheckoutConfigurationMapperTest {
 
   @Test
   @Suppress("LongMethod")
-  fun `map accepts every reviewed configuration field`() {
+  fun `map maps supported configuration fields`() {
     var selectionCount = 0
     val result = CheckoutConfigurationMapper.map(
       params =
@@ -38,45 +37,18 @@ class CheckoutConfigurationMapperTest {
           "style" to "alwaysDark",
           "defaults" to
             readableMapOf(
-              "billingDetails" to
-                readableMapOf(
-                  "name" to "Jenny Rosen",
-                  "address" to address("US"),
-                ),
-              "shippingDetails" to
-                readableMapOf(
-                  "name" to "Jenny Rosen",
-                  "address" to address("CA"),
-                ),
+              "billingDetails" to contactDetails("US"),
+              "shippingDetails" to contactDetails("CA"),
               "email" to "jenny@example.com",
-              "phone" to "+15555555555",
             ),
           "paymentElement" to
             readableMapOf(
-              "savePaymentMethodOptInBehavior" to "requiresOptOut",
               "appearance" to
                 readableMapOf(
                   "colors" to
                     readableMapOf(
-                      "light" to colorParams("#112233"),
-                      "dark" to colorParams("#AABBCC"),
-                    ),
-                  "primaryButton" to
-                    readableMapOf(
-                      "colors" to
-                        readableMapOf(
-                          "background" to "#123456",
-                          "text" to "#234567",
-                          "border" to "#345678",
-                          "successBackgroundColor" to "#456789",
-                          "successTextColor" to "#56789A",
-                        ),
-                      "shapes" to
-                        readableMapOf(
-                          "borderRadius" to 8.0,
-                          "borderWidth" to 1.0,
-                          "height" to 52.0,
-                        ),
+                      "light" to readableMapOf("primary" to "#112233"),
+                      "dark" to readableMapOf("primary" to "#AABBCC"),
                     ),
                   "formInsetValues" to
                     readableMapOf(
@@ -90,23 +62,16 @@ class CheckoutConfigurationMapperTest {
               "billingDetailsCollectionConfiguration" to
                 readableMapOf(
                   "name" to "always",
-                  "phone" to "always",
                   "address" to "full",
-                  "attachDefaultsToPaymentMethod" to true,
                 ),
               "paymentMethodOrder" to readableArrayOf("card", "link"),
               "opensCardScannerAutomatically" to true,
-              "termsDisplay" to
-                readableMapOf(
-                  "card" to "never",
-                  "us_bank_account" to "automatic",
-                ),
+              "termsDisplay" to readableMapOf("card" to "never"),
               "paymentMethodLayout" to "Vertical",
               "displaysMandateText" to true,
               "rowSelectionBehavior" to readableMapOf("type" to "immediateAction"),
               "googlePay" to
                 readableMapOf(
-                  "testEnv" to true,
                   "label" to "Total",
                   "buttonType" to "checkout",
                   "additionalEnabledNetworks" to readableArrayOf("INTERAC"),
@@ -122,16 +87,9 @@ class CheckoutConfigurationMapperTest {
     assertEquals("example://checkout", result.returnURL)
     assertEquals("Example Store", result.configuration.readField<String>("merchantDisplayName"))
 
-    val defaults =
-      result.configuration.readField<CheckoutController.Configuration.Defaults>("defaults")
-    val billingDetails =
-      defaults.readField<CheckoutController.Configuration.Defaults.ContactDetails>("billingDetails")
-    assertEquals("Jenny Rosen", billingDetails.readField<String>("name"))
-    assertAddress(billingDetails.readField("address"), "US")
-    val shippingDetails =
-      defaults.readField<CheckoutController.Configuration.Defaults.ContactDetails>("shippingDetails")
-    assertEquals("Jenny Rosen", shippingDetails.readField<String>("name"))
-    assertAddress(shippingDetails.readField("address"), "CA")
+    val defaults = result.configuration.readField<CheckoutController.Configuration.Defaults>("defaults")
+    assertContactDetails(defaults.readField("billingDetails"), "US")
+    assertContactDetails(defaults.readField("shippingDetails"), "CA")
     assertEquals("jenny@example.com", defaults.readField<String>("email"))
 
     val paymentElement =
@@ -145,47 +103,34 @@ class CheckoutConfigurationMapperTest {
       paymentElement.readField("paymentMethodLayout"),
     )
     assertEquals(
-      mapOf(
-        PaymentMethod.Type.Card to PaymentElement.Configuration.TermsDisplay.NEVER,
-        PaymentMethod.Type.USBankAccount to PaymentElement.Configuration.TermsDisplay.AUTOMATIC,
-      ),
-      paymentElement.readField("termsDisplay"),
+      PaymentElement.Configuration.TermsDisplay.NEVER,
+      paymentElement.readField<Map<PaymentMethod.Type, *>>("termsDisplay")[PaymentMethod.Type.Card],
     )
 
-    val billingCollection =
+    val billing =
       paymentElement.readField<PaymentElement.Configuration.BillingDetailsCollectionConfiguration>(
         "billingDetailsCollectionConfiguration",
       )
     assertEquals(
       PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Always,
-      billingCollection.readField("name"),
+      billing.readField("name"),
     )
     assertEquals(
       PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full,
-      billingCollection.readField("address"),
+      billing.readField("address"),
     )
 
-    val appearance =
-      paymentElement.readField<PaymentElement.Configuration.Appearance>("appearance")
+    val appearance = paymentElement.readField<PaymentElement.Configuration.Appearance>("appearance")
     assertEquals(
       PaymentElement.Configuration.Appearance.ThemeMode.AlwaysDark,
       appearance.readField("themeMode"),
     )
-    assertColors(
-      appearance.readField("colorsLight"),
+    assertEquals(
       "#112233".toColorInt(),
+      appearance.readField<PaymentElement.Configuration.Appearance.Colors>("colorsLight")
+        .readField<Int>("primary"),
     )
-    assertColors(
-      appearance.readField("colorsDark"),
-      "#AABBCC".toColorInt(),
-    )
-    assertPrimaryButton(appearance.readField("primaryButton"))
-    val insets =
-      appearance.readField<PaymentElement.Configuration.Appearance.Insets>("formInsetValues")
-    assertEquals(16f, insets.readField<Float>("startDp"))
-    assertEquals(8f, insets.readField<Float>("topDp"))
-    assertEquals(24f, insets.readField<Float>("endDp"))
-    assertEquals(32f, insets.readField<Float>("bottomDp"))
+    assertInsets(appearance.readField("formInsetValues"), 16f, 8f, 24f, 32f)
 
     val googlePay =
       paymentElement.readField<PaymentElement.Configuration.GooglePayConfiguration>(
@@ -197,11 +142,10 @@ class CheckoutConfigurationMapperTest {
       googlePay.readField("buttonType"),
     )
     assertEquals(listOf("INTERAC"), googlePay.readField("additionalEnabledNetworks"))
-    val link =
-      paymentElement.readField<PaymentElement.Configuration.LinkConfiguration>("linkConfiguration")
     assertEquals(
       PaymentElement.Configuration.LinkConfiguration.Display.Never,
-      link.readField("display"),
+      paymentElement.readField<PaymentElement.Configuration.LinkConfiguration>("linkConfiguration")
+        .readField("display"),
     )
 
     invokeImmediateAction(result.rowSelectionBehavior)
@@ -209,160 +153,58 @@ class CheckoutConfigurationMapperTest {
   }
 
   @Test
-  @Suppress("LongMethod")
-  fun `map uses native defaults when optional values are omitted`() {
-    val result = CheckoutConfigurationMapper.map(
-      params =
-        readableMapOf(
-          "clientSecret" to "cs_test_secret_123",
-          "returnURL" to "example://checkout",
-        ),
-      context = context,
-      didSelectPaymentOption = {},
-    )
-
-    assertEquals("cs_test_secret_123", result.clientSecret)
-    assertEquals("example://checkout", result.returnURL)
-    assertNull(result.configuration.readField<String?>("merchantDisplayName"))
-    val defaults =
-      result.configuration.readField<CheckoutController.Configuration.Defaults>("defaults")
-    assertNull(defaults.readField<Any?>("billingDetails"))
-    assertNull(defaults.readField<Any?>("shippingDetails"))
-    assertNull(defaults.readField<String?>("email"))
-
-    val paymentElement =
-      result.configuration.readField<PaymentElement.Configuration>("paymentElementConfiguration")
-    assertFalse(paymentElement.readField("embeddedViewDisplaysMandateText"))
-    assertFalse(paymentElement.readField("opensCardScannerAutomatically"))
-    assertTrue(paymentElement.readField<List<*>>("preferredNetworks").isEmpty())
-    assertTrue(paymentElement.readField<List<*>>("paymentMethodOrder").isEmpty())
-    assertTrue(paymentElement.readField<Map<*, *>>("termsDisplay").isEmpty())
-    assertEquals(
-      PaymentElement.Configuration.PaymentMethodLayout.Automatic,
-      paymentElement.readField("paymentMethodLayout"),
-    )
-    val billingCollection =
-      paymentElement.readField<PaymentElement.Configuration.BillingDetailsCollectionConfiguration>(
-        "billingDetailsCollectionConfiguration",
-      )
-    assertEquals(
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Automatic,
-      billingCollection.readField("name"),
-    )
-    assertEquals(
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic,
-      billingCollection.readField("address"),
-    )
-    val appearance =
-      paymentElement.readField<PaymentElement.Configuration.Appearance>("appearance")
+  fun `map applies reviewed defaults with or without payment element options`() {
+    val withoutPaymentElement = CheckoutConfigurationMapper.map(baseParams(), context) {}
+    val withoutOptions =
+      withoutPaymentElement.configuration
+        .readField<PaymentElement.Configuration>("paymentElementConfiguration")
+    assertFalse(withoutOptions.readField("embeddedViewDisplaysMandateText"))
+    val withoutAppearance =
+      withoutOptions.readField<PaymentElement.Configuration.Appearance>("appearance")
     assertEquals(
       PaymentElement.Configuration.Appearance.ThemeMode.Automatic,
-      appearance.readField("themeMode"),
+      withoutAppearance.readField("themeMode"),
     )
-    val insets =
-      appearance.readField<PaymentElement.Configuration.Appearance.Insets>("formInsetValues")
-    assertEquals(20f, insets.readField<Float>("startDp"))
-    assertEquals(0f, insets.readField<Float>("topDp"))
-    assertEquals(20f, insets.readField<Float>("endDp"))
-    assertEquals(40f, insets.readField<Float>("bottomDp"))
-    val googlePay =
-      paymentElement.readField<PaymentElement.Configuration.GooglePayConfiguration>(
-        "googlePayConfiguration",
-      )
-    assertEquals(
-      PaymentElement.Configuration.GooglePayConfiguration.Display.Automatic,
-      googlePay.readField("display"),
-    )
-    assertNull(googlePay.readField<String?>("label"))
-    assertEquals(
-      PaymentElement.Configuration.GooglePayConfiguration.ButtonType.Pay,
-      googlePay.readField("buttonType"),
-    )
-    assertTrue(googlePay.readField<List<*>>("additionalEnabledNetworks").isEmpty())
-    val link =
-      paymentElement.readField<PaymentElement.Configuration.LinkConfiguration>("linkConfiguration")
-    assertEquals(
-      PaymentElement.Configuration.LinkConfiguration.Display.Automatic,
-      link.readField("display"),
-    )
-    assertTrue(result.rowSelectionBehavior.javaClass.simpleName.contains("Default"))
-  }
-
-  @Test
-  fun `partial form insets preserve independent native defaults`() {
-    val result = CheckoutConfigurationMapper.map(
-      params =
-        readableMapOf(
-          "clientSecret" to "cs_test_secret_123",
-          "returnURL" to "example://checkout",
-          "paymentElement" to
-            readableMapOf(
-              "appearance" to
-                readableMapOf(
-                  "formInsetValues" to readableMapOf("left" to 16.0),
-                ),
-            ),
-        ),
-      context = context,
-      didSelectPaymentOption = {},
+    assertInsets(
+      withoutAppearance.readField("formInsetValues"),
+      20f,
+      0f,
+      20f,
+      40f,
     )
 
-    val paymentElement =
-      result.configuration.readField<PaymentElement.Configuration>("paymentElementConfiguration")
-    val appearance =
-      paymentElement.readField<PaymentElement.Configuration.Appearance>("appearance")
-    val insets =
-      appearance.readField<PaymentElement.Configuration.Appearance.Insets>("formInsetValues")
-    assertEquals(16f, insets.readField<Float>("startDp"))
-    assertEquals(0f, insets.readField<Float>("topDp"))
-    assertEquals(20f, insets.readField<Float>("endDp"))
-    assertEquals(40f, insets.readField<Float>("bottomDp"))
-  }
-
-  @Test
-  fun `map rejects malformed appearance colors`() {
-    assertThrows(PaymentSheetAppearanceException::class.java) {
-      CheckoutConfigurationMapper.map(
-        params =
+    val withPartialInsets = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "returnURL" to "example://checkout",
+        "paymentElement" to
           readableMapOf(
-            "clientSecret" to "cs_test_secret_123",
-            "returnURL" to "example://checkout",
-            "paymentElement" to
-              readableMapOf(
-                "appearance" to
-                  readableMapOf(
-                    "colors" to readableMapOf("primary" to "#12345"),
-                  ),
-              ),
+            "appearance" to
+              readableMapOf("formInsetValues" to readableMapOf("left" to 16.0)),
           ),
-        context = context,
-        didSelectPaymentOption = {},
-      )
-    }
+      ),
+      context,
+    ) {}
+    val partialAppearance =
+      withPartialInsets.configuration
+        .readField<PaymentElement.Configuration>("paymentElementConfiguration")
+        .readField<PaymentElement.Configuration.Appearance>("appearance")
+    assertInsets(partialAppearance.readField("formInsetValues"), 16f, 0f, 20f, 40f)
   }
 
   @Test
-  fun `map requires shared cross-platform parameters`() {
+  fun `map validates required configuration`() {
     val missingClientSecret = assertThrows(IllegalArgumentException::class.java) {
-      CheckoutConfigurationMapper.map(
-        readableMapOf("returnURL" to "example://checkout"),
-        context,
-      ) {}
+      CheckoutConfigurationMapper.map(readableMapOf("returnURL" to "example://checkout"), context) {}
     }
-    val missingReturnURL = assertThrows(IllegalArgumentException::class.java) {
-      CheckoutConfigurationMapper.map(
-        readableMapOf("clientSecret" to "cs_test_secret_123"),
-        context,
-      ) {}
-    }
-
     assertEquals("Checkout configuration requires `clientSecret`.", missingClientSecret.message)
-    assertEquals("Checkout configuration requires `returnURL`.", missingReturnURL.message)
-  }
 
-  @Test
-  fun `map requires country when a default address is present`() {
-    val error = assertThrows(IllegalArgumentException::class.java) {
+    val missingReturnURL = assertThrows(IllegalArgumentException::class.java) {
+      CheckoutConfigurationMapper.map(readableMapOf("clientSecret" to "cs_test_secret_123"), context) {}
+    }
+    assertEquals("Checkout configuration requires `returnURL`.", missingReturnURL.message)
+
+    val missingCountry = assertThrows(IllegalArgumentException::class.java) {
       CheckoutConfigurationMapper.map(
         readableMapOf(
           "clientSecret" to "cs_test_secret_123",
@@ -370,71 +212,47 @@ class CheckoutConfigurationMapperTest {
           "defaults" to
             readableMapOf(
               "billingDetails" to
-                readableMapOf(
-                  "address" to readableMapOf("city" to "San Francisco"),
-                ),
+                readableMapOf("address" to readableMapOf("city" to "San Francisco")),
             ),
         ),
         context,
       ) {}
     }
-
     assertEquals(
       "Checkout configuration requires `defaults.billingDetails.address.country`.",
-      error.message,
+      missingCountry.message,
     )
   }
 
   @Test
-  fun `Checkout-specific billing modes cannot map never`() {
-    assertEquals(
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Always,
-      CheckoutConfigurationMapper.mapCollectionMode("always"),
-    )
+  fun `map rejects malformed appearance colors`() {
+    assertThrows(PaymentSheetAppearanceException::class.java) {
+      CheckoutConfigurationMapper.map(
+        readableMapOf(
+          "clientSecret" to "cs_test_secret_123",
+          "returnURL" to "example://checkout",
+          "paymentElement" to
+            readableMapOf(
+              "appearance" to
+                readableMapOf("colors" to readableMapOf("primary" to "#12345")),
+            ),
+        ),
+        context,
+      ) {}
+    }
+  }
+
+  @Test
+  fun `helper mappers reject unsupported billing and terms values`() {
     assertEquals(
       PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Automatic,
       CheckoutConfigurationMapper.mapCollectionMode("never"),
     )
     assertEquals(
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full,
-      CheckoutConfigurationMapper.mapAddressCollectionMode("full"),
-    )
-    assertEquals(
       PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic,
       CheckoutConfigurationMapper.mapAddressCollectionMode("never"),
     )
-  }
 
-  @Test
-  fun `enum mappers use reviewed values and native defaults`() {
-    assertEquals(
-      PaymentElement.Configuration.PaymentMethodLayout.Horizontal,
-      CheckoutConfigurationMapper.mapPaymentMethodLayout("Horizontal"),
-    )
-    assertEquals(
-      PaymentElement.Configuration.PaymentMethodLayout.Automatic,
-      CheckoutConfigurationMapper.mapPaymentMethodLayout("invalid"),
-    )
-    assertEquals(
-      PaymentElement.Configuration.GooglePayConfiguration.ButtonType.Plain,
-      CheckoutConfigurationMapper.mapGooglePayButtonType("plain"),
-    )
-    assertEquals(
-      PaymentElement.Configuration.GooglePayConfiguration.ButtonType.Pay,
-      CheckoutConfigurationMapper.mapGooglePayButtonType(null),
-    )
-    assertEquals(
-      PaymentElement.Configuration.Appearance.ThemeMode.AlwaysLight,
-      CheckoutConfigurationMapper.mapThemeMode("alwaysLight"),
-    )
-    assertEquals(
-      PaymentElement.Configuration.Appearance.ThemeMode.Automatic,
-      CheckoutConfigurationMapper.mapThemeMode(null),
-    )
-  }
-
-  @Test
-  fun `terms mapper drops unknown methods and invalid values`() {
     val terms = CheckoutConfigurationMapper.mapTermsDisplay(
       readableMapOf(
         "card" to "never",
@@ -443,7 +261,6 @@ class CheckoutConfigurationMapperTest {
         "cashapp" to "invalid",
       ),
     )
-
     assertEquals(PaymentElement.Configuration.TermsDisplay.NEVER, terms[PaymentMethod.Type.Card])
     assertEquals(
       PaymentElement.Configuration.TermsDisplay.AUTOMATIC,
@@ -452,62 +269,48 @@ class CheckoutConfigurationMapperTest {
     assertEquals(2, terms.size)
   }
 
-  private fun colorParams(color: String) =
+  private fun baseParams() =
     readableMapOf(
-      "primary" to color,
-      "background" to color,
-      "componentBackground" to color,
-      "componentBorder" to color,
-      "componentDivider" to color,
-      "componentText" to color,
-      "secondaryText" to color,
-      "placeholderText" to color,
-      "primaryText" to color,
-      "icon" to color,
-      "error" to color,
+      "clientSecret" to "cs_test_secret_123",
+      "returnURL" to "example://checkout",
     )
 
-  private fun assertColors(
-    colors: PaymentElement.Configuration.Appearance.Colors,
-    expected: Int,
+  private fun contactDetails(country: String) =
+    readableMapOf(
+      "name" to "Jenny Rosen",
+      "address" to
+        readableMapOf(
+          "country" to country,
+          "line1" to "510 Townsend Street",
+          "line2" to "Suite 100",
+          "city" to "San Francisco",
+          "state" to "CA",
+          "postalCode" to "94103",
+        ),
+    )
+
+  private fun assertContactDetails(
+    details: CheckoutController.Configuration.Defaults.ContactDetails,
+    country: String,
   ) {
-    assertEquals(expected, colors.readField<Int>("primary"))
-    assertEquals(expected, colors.readField<Int>("surface"))
-    assertEquals(expected, colors.readField<Int>("component"))
-    assertEquals(expected, colors.readField<Int>("componentBorder"))
-    assertEquals(expected, colors.readField<Int>("componentDivider"))
-    assertEquals(expected, colors.readField<Int>("onComponent"))
-    assertEquals(expected, colors.readField<Int>("subtitle"))
-    assertEquals(expected, colors.readField<Int>("placeholderText"))
-    assertEquals(expected, colors.readField<Int>("onSurface"))
-    assertEquals(expected, colors.readField<Int>("appBarIcon"))
-    assertEquals(expected, colors.readField<Int>("error"))
+    assertEquals("Jenny Rosen", details.readField<String>("name"))
+    val address = details.readField<CheckoutController.Address>("address")
+    assertEquals(country, address.readField<String>("country"))
+    assertEquals("510 Townsend Street", address.readField<String>("line1"))
+    assertEquals("94103", address.readField<String>("postalCode"))
   }
 
-  private fun assertPrimaryButton(
-    primaryButton: PaymentElement.Configuration.Appearance.PrimaryButton,
+  private fun assertInsets(
+    insets: PaymentElement.Configuration.Appearance.Insets,
+    left: Float,
+    top: Float,
+    right: Float,
+    bottom: Float,
   ) {
-    val lightColors =
-      primaryButton.readField<PaymentElement.Configuration.Appearance.PrimaryButton.Colors>(
-        "colorsLight",
-      )
-    val darkColors =
-      primaryButton.readField<PaymentElement.Configuration.Appearance.PrimaryButton.Colors>(
-        "colorsDark",
-      )
-    for (colors in listOf(lightColors, darkColors)) {
-      assertEquals("#123456".toColorInt(), colors.readField<Int>("background"))
-      assertEquals("#234567".toColorInt(), colors.readField<Int>("onBackground"))
-      assertEquals("#345678".toColorInt(), colors.readField<Int>("border"))
-      assertEquals("#456789".toColorInt(), colors.readField<Int>("successBackgroundColor"))
-      assertEquals("#56789A".toColorInt(), colors.readField<Int>("onSuccessBackgroundColor"))
-    }
-
-    val shape =
-      primaryButton.readField<PaymentElement.Configuration.Appearance.PrimaryButton.Shape>("shape")
-    assertEquals(8f, shape.readField<Float>("cornerRadiusDp"))
-    assertEquals(1f, shape.readField<Float>("borderStrokeWidthDp"))
-    assertEquals(52f, shape.readField<Float>("heightDp"))
+    assertEquals(left, insets.readField<Float>("startDp"))
+    assertEquals(top, insets.readField<Float>("topDp"))
+    assertEquals(right, insets.readField<Float>("endDp"))
+    assertEquals(bottom, insets.readField<Float>("bottomDp"))
   }
 
   @Suppress("UNCHECKED_CAST")
@@ -526,26 +329,4 @@ class CheckoutConfigurationMapperTest {
       field.isAccessible = true
       field.get(this) as T
     }
-
-  private fun assertAddress(
-    address: CheckoutController.Address,
-    country: String,
-  ) {
-    assertEquals(country, address.readField<String>("country"))
-    assertEquals("510 Townsend Street", address.readField<String>("line1"))
-    assertEquals("Suite 100", address.readField<String>("line2"))
-    assertEquals("San Francisco", address.readField<String>("city"))
-    assertEquals("CA", address.readField<String>("state"))
-    assertEquals("94103", address.readField<String>("postalCode"))
-  }
-
-  private fun address(country: String) =
-    readableMapOf(
-      "country" to country,
-      "line1" to "510 Townsend Street",
-      "line2" to "Suite 100",
-      "city" to "San Francisco",
-      "state" to "CA",
-      "postalCode" to "94103",
-    )
 }

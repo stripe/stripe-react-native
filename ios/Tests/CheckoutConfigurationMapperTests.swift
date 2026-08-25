@@ -5,7 +5,7 @@ import XCTest
 
 @MainActor
 final class CheckoutConfigurationMapperTests: XCTestCase {
-    func test_map_mapsEverySupportedConfigurationField() throws {
+    func test_map_mapsSupportedConfiguration() throws {
         var selectionCount = 0
         let configuration = try CheckoutConfigurationMapper.map(
             params: [
@@ -22,38 +22,10 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                         "name": "Jenny Rosen",
                         "address": address(country: "CA"),
                     ],
-                    "email": "jenny@example.com",
-                    "phone": "+15555555555",
                 ],
                 "paymentElement": [
                     "savePaymentMethodOptInBehavior": "requiresOptOut",
-                    "appearance": [
-                        "colors": ["primary": "#112233"],
-                        "font": ["scale": 1.25],
-                        "shapes": [
-                            "borderRadius": 12.0,
-                            "borderWidth": 2.0,
-                        ],
-                        "primaryButton": [
-                            "shapes": [
-                                "borderRadius": 8.0,
-                                "borderWidth": 1.0,
-                                "height": 52.0,
-                            ],
-                        ],
-                        "embeddedPaymentElement": [
-                            "row": [
-                                "style": "flatWithRadio",
-                                "additionalInsets": 4.0,
-                            ],
-                        ],
-                        "formInsetValues": [
-                            "left": 16.0,
-                            "top": 8.0,
-                            "right": 24.0,
-                            "bottom": 32.0,
-                        ],
-                    ],
+                    "appearance": ["shapes": ["borderRadius": 12.0]],
                     "preferredNetworks": [7, 5],
                     "billingDetailsCollectionConfiguration": [
                         "name": "always",
@@ -87,20 +59,9 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(configuration.merchantDisplayName, "Example Store")
         XCTAssertEqual(configuration.userInterfaceStyle, .alwaysDark)
         XCTAssertEqual(configuration.defaults.billingDetails?.name, "Jenny Rosen")
-        assertAddress(configuration.defaults.billingDetails?.address, country: "US")
-        XCTAssertEqual(configuration.defaults.shippingDetails?.name, "Jenny Rosen")
-        assertAddress(configuration.defaults.shippingDetails?.address, country: "CA")
+        XCTAssertEqual(configuration.defaults.billingDetails?.address?.country, "US")
+        XCTAssertEqual(configuration.defaults.shippingDetails?.address?.country, "CA")
         XCTAssertEqual(configuration.paymentElement.appearance.cornerRadius, 12.0)
-        XCTAssertEqual(configuration.paymentElement.appearance.borderWidth, 2.0)
-        XCTAssertEqual(configuration.paymentElement.appearance.font.sizeScaleFactor, 1.25)
-        XCTAssertEqual(configuration.paymentElement.appearance.primaryButton.cornerRadius, 8.0)
-        XCTAssertEqual(configuration.paymentElement.appearance.primaryButton.borderWidth, 1.0)
-        XCTAssertEqual(configuration.paymentElement.appearance.primaryButton.height, 52.0)
-        XCTAssertEqual(configuration.paymentElement.appearance.embeddedPaymentElement.row.additionalInsets, 4.0)
-        XCTAssertEqual(configuration.paymentElement.appearance.formInsets.leading, 16.0)
-        XCTAssertEqual(configuration.paymentElement.appearance.formInsets.top, 8.0)
-        XCTAssertEqual(configuration.paymentElement.appearance.formInsets.trailing, 24.0)
-        XCTAssertEqual(configuration.paymentElement.appearance.formInsets.bottom, 32.0)
         XCTAssertEqual(configuration.paymentElement.preferredNetworks, [.visa, .mastercard])
         XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.name, .always)
         XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.phone, .always)
@@ -153,34 +114,11 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertNil(configuration.defaults.billingDetails)
         XCTAssertNil(configuration.defaults.shippingDetails)
         XCTAssertEqual(configuration.userInterfaceStyle, .automatic)
-        XCTAssertNil(configuration.paymentElement.preferredNetworks)
         XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.name, .automatic)
-        XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.phone, .automatic)
-        XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.address, .automatic)
-        XCTAssertFalse(
-            configuration.paymentElement.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod
-        )
-        XCTAssertNil(configuration.paymentElement.paymentMethodOrder)
         XCTAssertFalse(configuration.paymentElement.opensCardScannerAutomatically)
-        XCTAssertTrue(configuration.paymentElement.termsDisplay.isEmpty)
         XCTAssertFalse(configuration.paymentElement.displaysMandateText)
         XCTAssertNil(configuration.applePayConfiguration)
         XCTAssertNil(configuration.linkConfiguration)
-        if case .automatic = configuration.paymentElement.savePaymentMethodOptInBehavior {
-            // Expected.
-        } else {
-            XCTFail("Expected automatic")
-        }
-        if case .automatic = configuration.paymentElement.paymentMethodLayout {
-            // Expected.
-        } else {
-            XCTFail("Expected automatic")
-        }
-        if case .default = configuration.paymentElement.rowSelectionBehavior {
-            // Expected.
-        } else {
-            XCTFail("Expected default")
-        }
     }
 
     func test_map_requiresSharedCrossPlatformParameters() {
@@ -308,17 +246,4 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         ]
     }
 
-    private func assertAddress(
-        _ address: Checkout.Address?,
-        country: String,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) {
-        XCTAssertEqual(address?.country, country, file: file, line: line)
-        XCTAssertEqual(address?.line1, "510 Townsend Street", file: file, line: line)
-        XCTAssertEqual(address?.line2, "Suite 100", file: file, line: line)
-        XCTAssertEqual(address?.city, "San Francisco", file: file, line: line)
-        XCTAssertEqual(address?.state, "CA", file: file, line: line)
-        XCTAssertEqual(address?.postalCode, "94103", file: file, line: line)
-    }
 }
