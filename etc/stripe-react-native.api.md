@@ -975,6 +975,12 @@ export namespace Checkout {
         name?: string;
         phone?: string;
     }
+    export interface BillingDetailsCollectionConfiguration {
+        address?: 'automatic' | 'full';
+        attachDefaultsToPaymentMethod?: boolean;
+        name?: 'automatic' | 'always';
+        phone?: 'automatic' | 'always';
+    }
     export interface ContactDetails {
         address?: Address;
         name?: string;

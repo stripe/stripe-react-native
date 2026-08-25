@@ -3,7 +3,6 @@ import type { CardBrand } from './Common';
 import type { StripeError } from './Errors';
 import type {
   AppearanceParams,
-  BillingDetailsCollectionConfiguration,
   PaymentMethodLayout,
   TermsDisplay,
 } from './PaymentSheet';
@@ -323,6 +322,21 @@ export namespace Checkout {
    * @CheckoutSessionPrivatePreview
    */
   export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
+
+  /**
+   * Controls how billing details are collected during checkout.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface BillingDetailsCollectionConfiguration {
+    /** How to collect the name field. Defaults to `automatic`. */
+    name?: 'automatic' | 'always';
+    /** How to collect the phone field. Defaults to `automatic`. */
+    phone?: 'automatic' | 'always';
+    /** How to collect the billing address. Defaults to `automatic`. */
+    address?: 'automatic' | 'full';
+    /** Whether default billing details are attached to the payment method. */
+    attachDefaultsToPaymentMethod?: boolean;
+  }
 
   /**
    * Configuration for the Checkout-owned Payment Element.
