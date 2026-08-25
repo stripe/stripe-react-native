@@ -121,100 +121,19 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertNil(configuration.linkConfiguration)
     }
 
-    func test_map_requiresSharedCrossPlatformParameters() {
-        XCTAssertThrowsError(
-            try CheckoutConfigurationMapper.map(
-                params: ["returnURL": "example://checkout"],
-                merchantIdentifier: nil,
-                didSelectPaymentOption: {}
-            )
-        ) { error in
-            XCTAssertEqual(
-                error as? CheckoutConfigurationMapperError,
-                .missingRequiredString("clientSecret")
-            )
-        }
-        XCTAssertThrowsError(
-            try CheckoutConfigurationMapper.map(
-                params: ["clientSecret": "cs_test_secret_123"],
-                merchantIdentifier: nil,
-                didSelectPaymentOption: {}
-            )
-        ) { error in
-            XCTAssertEqual(
-                error as? CheckoutConfigurationMapperError,
-                .missingRequiredString("returnURL")
-            )
-        }
-    }
-
-    func test_map_requiresCountryWhenDefaultAddressIsPresent() {
-        XCTAssertThrowsError(
-            try CheckoutConfigurationMapper.map(
-                params: [
-                    "clientSecret": "cs_test_secret_123",
-                    "returnURL": "example://checkout",
-                    "defaults": [
-                        "billingDetails": [
-                            "address": ["city": "San Francisco"],
-                        ],
-                    ],
-                ],
-                merchantIdentifier: nil,
-                didSelectPaymentOption: {}
-            )
-        ) { error in
-            XCTAssertEqual(
-                error as? CheckoutConfigurationMapperError,
-                .missingAddressCountry("defaults.billingDetails.address")
-            )
-        }
-    }
-
-    func test_map_requiresMerchantIdentifierWhenApplePayIsConfigured() {
-        XCTAssertThrowsError(
-            try CheckoutConfigurationMapper.map(
-                params: [
-                    "clientSecret": "cs_test_secret_123",
-                    "returnURL": "example://checkout",
-                    "paymentElement": [
-                        "applePay": ["merchantCountryCode": "US"],
-                    ],
-                ],
-                merchantIdentifier: nil,
-                didSelectPaymentOption: {}
-            )
-        ) { error in
-            XCTAssertEqual(
-                error as? CheckoutConfigurationMapperError,
-                .missingMerchantIdentifier
-            )
-        }
-    }
-
-    func test_map_requiresMerchantCountryCodeWhenApplePayIsConfigured() {
-        XCTAssertThrowsError(
-            try CheckoutConfigurationMapper.map(
-                params: [
-                    "clientSecret": "cs_test_secret_123",
-                    "returnURL": "example://checkout",
-                    "paymentElement": [
-                        "applePay": ["buttonType": "checkout"],
-                    ],
-                ],
-                merchantIdentifier: "merchant.com.example",
-                didSelectPaymentOption: {}
-            )
-        ) { error in
-            XCTAssertEqual(
-                error as? CheckoutConfigurationMapperError,
-                .missingRequiredString("paymentElement.applePay.merchantCountryCode")
-            )
-        }
-    }
-
-    func test_map_checkoutBillingModesCannotMapNever() throws {
+    func test_map_leavesConfigurationValidationToNativeCheckout() throws {
         let configuration = try CheckoutConfigurationMapper.map(
+            params: [:],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {}
+        )
+
+        XCTAssertEqual(configuration.clientSecret, "")
+        XCTAssertEqual(configuration.returnURL, "")
+    }
+
+    func test_map_rejectsUnsupportedEnumValues() {
+        XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
             params: [
                 "clientSecret": "cs_test_secret_123",
                 "returnURL": "example://checkout",
@@ -228,11 +147,19 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
             ],
             merchantIdentifier: nil,
             didSelectPaymentOption: {}
-        )
+        ))
 
-        XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.name, .automatic)
-        XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.phone, .automatic)
-        XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.address, .automatic)
+        XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
+            params: [
+                "clientSecret": "cs_test_secret_123",
+                "returnURL": "example://checkout",
+                "paymentElement": [
+                    "termsDisplay": ["card": "invalid"],
+                ],
+            ],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {}
+        ))
     }
 
     private func address(country: String) -> [String: String] {
