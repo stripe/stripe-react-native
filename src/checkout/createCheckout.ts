@@ -38,9 +38,8 @@ function nativeCreateOptions(
  * @CheckoutSessionPrivatePreview
  */
 export async function createCheckout(
-  _options: Checkout.CreateOptions
+  options: Checkout.CreateOptions
 ): Promise<CheckoutController> {
-  const options = _options;
   const result = await NativeStripeSdk.createCheckout(
     nativeCreateOptions(options)
   );

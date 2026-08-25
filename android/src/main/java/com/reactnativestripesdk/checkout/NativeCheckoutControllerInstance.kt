@@ -19,6 +19,7 @@ internal class NativeCheckoutControllerInstance(
   private val registry: CheckoutControllerRegistry,
   private val eventEmitter: EventEmitterCompat,
   private val scope: CoroutineScope,
+  initialNativeSession: CheckoutController.Session,
   initialSession: WritableMap,
 ) : CheckoutControllerInstance {
   internal enum class Status(
@@ -32,6 +33,7 @@ internal class NativeCheckoutControllerInstance(
 
   private var controllerId: String? = null
   private var observationJob: Job? = null
+  private var latestNativeSession = initialNativeSession
   private var latestSession = initialSession
   private var confirming = false
   private var destroyed = false
@@ -48,7 +50,10 @@ internal class NativeCheckoutControllerInstance(
           if (session == null) {
             return@collect
           }
-          latestSession = CheckoutSessionSerializer.serialize(session)
+          if (session !== latestNativeSession) {
+            latestNativeSession = session
+            latestSession = CheckoutSessionSerializer.serialize(session)
+          }
           val status = when {
             confirming -> Status.Confirming
             updating -> Status.Updating

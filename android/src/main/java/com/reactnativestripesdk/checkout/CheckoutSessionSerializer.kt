@@ -149,11 +149,15 @@ internal object CheckoutSessionSerializer {
     putString("paymentMethodType", paymentOption.paymentMethodType)
     paymentOption.mandateText?.let { putString("mandateHTML", it.toHtmlString()) }
     paymentOption.billingDetails?.let { putMap("billingDetails", serializeBillingDetails(it)) }
-    val imageBase64 = withContext(Dispatchers.Default) {
-      withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) {
-        val image = withContext(Dispatchers.IO) { paymentOption.imageLoader() }
-        convertDrawableToBase64(image)
+    val imageBase64 = try {
+      withContext(Dispatchers.Default) {
+        withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) {
+          val image = withContext(Dispatchers.IO) { paymentOption.imageLoader() }
+          convertDrawableToBase64(image)
+        }
       }
+    } catch (_: Exception) {
+      null
     }
     putString("image", imageBase64.orEmpty())
   }
@@ -168,11 +172,11 @@ internal object CheckoutSessionSerializer {
         "address",
         Arguments.createMap().apply {
           putString("country", country)
-          putString("line1", billingDetails.address?.line1)
-          putString("line2", billingDetails.address?.line2)
-          putString("city", billingDetails.address?.city)
-          putString("state", billingDetails.address?.state)
-          putString("postalCode", billingDetails.address?.postalCode)
+          billingDetails.address?.line1?.let { putString("line1", it) }
+          billingDetails.address?.line2?.let { putString("line2", it) }
+          billingDetails.address?.city?.let { putString("city", it) }
+          billingDetails.address?.state?.let { putString("state", it) }
+          billingDetails.address?.postalCode?.let { putString("postalCode", it) }
         },
       )
     }

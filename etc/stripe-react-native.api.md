@@ -1556,7 +1556,7 @@ type CreateCardTokenParams = {
 };
 
 // @public
-export function createCheckout(_options: Checkout.CreateOptions): Promise<CheckoutController>;
+export function createCheckout(options: Checkout.CreateOptions): Promise<CheckoutController>;
 
 // @public
 type CreateCryptoPaymentTokenResult = {

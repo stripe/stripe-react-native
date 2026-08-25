@@ -120,6 +120,7 @@ class StripeSdkModule(
   private var linkControllerManager: LinkControllerManager? = null
   internal val checkoutControllerRegistry = CheckoutControllerRegistry()
   private val pendingCheckoutCreationScopes = mutableSetOf<CoroutineScope>()
+  private var nextCheckoutIntegrationNumber = 0
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
   internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
@@ -1437,7 +1438,7 @@ class StripeSdkModule(
             reactApplicationContext.applicationContext as Application,
             SavedStateHandle(),
           ).rowSelectionBehavior(mapped.rowSelectionBehavior)
-            .integrationName("stripe-react-native")
+            .integrationName("stripe-react-native-${nextCheckoutIntegrationNumber++}")
             .build()
 
           // TODO(porter): Pass mapped.returnURL when the reviewed configure signature ships.
@@ -1451,6 +1452,7 @@ class StripeSdkModule(
             registry = checkoutControllerRegistry,
             eventEmitter = eventEmitter,
             scope = scope,
+            initialNativeSession = nativeSession,
             initialSession = serializedSession,
           )
           val controllerId = checkoutControllerRegistry.register(instance)
