@@ -1574,21 +1574,6 @@ class StripeSdkModule(
         )
         return@runOnUiThread
       }
-      if (instance.controller.session.value?.status !is CheckoutController.Session.Status.Open) {
-        promise.reject(
-          CheckoutBridgeErrorCode.SessionNotOpen.serializedValue,
-          "This Checkout Session is not open.",
-        )
-        return@runOnUiThread
-      }
-      if (!instance.beginMutation()) {
-        promise.reject(
-          CheckoutBridgeErrorCode.Failed.serializedValue,
-          "This Checkout controller is not ready for another operation.",
-        )
-        return@runOnUiThread
-      }
-
       instance.launchMutation {
         try {
           operation(instance.controller).getOrThrow()
@@ -1614,8 +1599,6 @@ class StripeSdkModule(
             error.message,
             error,
           )
-        } finally {
-          instance.finishMutation()
         }
       }
     }

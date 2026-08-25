@@ -163,24 +163,6 @@ extension StripeSdkImpl {
                 reject(CheckoutBridgeErrorCode.failed.rawValue, "Checkout controller `\(controllerId)` does not exist.", nil)
                 return
             }
-            guard case .open = instance.checkout.session.status else {
-                reject(
-                    CheckoutBridgeErrorCode.sessionNotOpen.rawValue,
-                    "This Checkout Session is not open.",
-                    nil
-                )
-                return
-            }
-            guard instance.beginMutation() else {
-                reject(
-                    CheckoutBridgeErrorCode.failed.rawValue,
-                    "This Checkout controller is not ready for another operation.",
-                    nil
-                )
-                return
-            }
-
-            defer { instance.finishMutation() }
             do {
                 try await operation(instance)
                 let registeredInstance: NativeCheckoutControllerInstance? = checkoutControllerRegistry.instance(

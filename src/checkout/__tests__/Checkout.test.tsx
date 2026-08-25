@@ -178,7 +178,7 @@ describe('Checkout private preview', () => {
       {
         invoke: () => controller.applyPromotionCode(' SAVE10 '),
         nativeMock: mockedApplyPromotionCode,
-        expectedArguments: ['controller-1', 'SAVE10'],
+        expectedArguments: ['controller-1', ' SAVE10 '],
       },
       {
         invoke: () => controller.removePromotionCode(),
@@ -248,21 +248,6 @@ describe('Checkout private preview', () => {
     await controller.applyPromotionCode('SAVE10').catch(() => {});
     expect(controller.status).toBe('ready');
     expect(controller.session).toBe(session);
-  });
-
-  it('rejects mutations when the Checkout Session is not open', async () => {
-    mockedCreateCheckout.mockResolvedValue({
-      controllerId: 'controller-1',
-      session: { ...session, status: { type: 'expired' } },
-    });
-    const controller = await createCheckout(createOptions);
-
-    await expect(controller.clearPaymentOption()).rejects.toMatchObject({
-      code: 'SessionNotOpen',
-      message: 'This Checkout Session is not open.',
-    });
-    expect(mockedClearPaymentOption).not.toHaveBeenCalled();
-    expect(controller.status).toBe('ready');
   });
 
   it('stays idle while the hook is disabled', () => {

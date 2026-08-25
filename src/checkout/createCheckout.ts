@@ -13,7 +13,6 @@ const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
 const CHECKOUT_DESTROYED_MESSAGE = 'This Checkout controller was destroyed.';
 const CHECKOUT_MUTATION_IN_PROGRESS_MESSAGE =
   'This Checkout controller is not ready for another operation.';
-const CHECKOUT_SESSION_NOT_OPEN_MESSAGE = 'This Checkout Session is not open.';
 
 type CheckoutOperationError = Error & StripeError<Checkout.ErrorCode>;
 
@@ -98,9 +97,6 @@ export async function createCheckout(
     operation: () => Promise<{ session: Checkout.Session }>
   ): Promise<void> => {
     assertActive();
-    if (session.status.type !== 'open') {
-      throw checkoutError('SessionNotOpen', CHECKOUT_SESSION_NOT_OPEN_MESSAGE);
-    }
     if (mutationInProgress || status !== 'ready') {
       throw checkoutError('Failed', CHECKOUT_MUTATION_IN_PROGRESS_MESSAGE);
     }
@@ -161,10 +157,7 @@ export async function createCheckout(
       ),
     applyPromotionCode: (promotionCode) =>
       performMutation(() =>
-        NativeStripeSdk.applyCheckoutPromotionCode(
-          controllerId,
-          promotionCode.trim()
-        )
+        NativeStripeSdk.applyCheckoutPromotionCode(controllerId, promotionCode)
       ),
     removePromotionCode: () =>
       performMutation(() =>
