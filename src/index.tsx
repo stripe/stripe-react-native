@@ -7,6 +7,7 @@ export { usePaymentSheet } from './hooks/usePaymentSheet';
 export { useFinancialConnectionsSheet } from './hooks/useFinancialConnectionsSheet';
 export { useOnramp } from './hooks/useOnramp';
 export { useLinkController } from './hooks/useLinkController';
+export { useCheckout } from './hooks/useCheckout';
 
 //components
 export { initStripe, StripeProvider } from './components/StripeProvider';
@@ -40,6 +41,10 @@ export * from './types/ConfirmationToken';
 export * from './types/components/PaymentMethodMessagingElementComponent';
 export type { Props as PaymentMethodMessagingElementProps } from './components/PaymentMethodMessagingElement';
 export { PaymentMethodMessagingElement } from './components/PaymentMethodMessagingElement';
+
+// Checkout private preview
+export { createCheckout } from './checkout/createCheckout';
+export { CheckoutPaymentElementView } from './components/CheckoutPaymentElementView';
 
 //connect components
 export {
