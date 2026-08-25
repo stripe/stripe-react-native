@@ -6,8 +6,6 @@ enum CheckoutSessionSerializer {
         var result: [String: Any] = [
             "id": session.id,
             "livemode": session.livemode,
-            // TODO(porter): Remove the fallback when Checkout.Session.currency is non-optional.
-            "currency": session.currency ?? "",
             "orderSummaryItems": session.orderSummaryItems.map(serialize),
             "discountAmounts": session.discountAmounts.map(serialize),
             "totals": serialize(session.totals),
@@ -15,13 +13,9 @@ enum CheckoutSessionSerializer {
         ]
 
         result.setIfPresent("businessName", session.businessName)
+        result.setIfPresent("currency", session.currency)
         result.setIfPresent("minorUnitsAmountDivisor", session.minorUnitsAmountDivisor)
-        result.setIfPresent(
-            "presentmentDetails",
-            session.currencyOptions.first(where: { $0.currencyConversion != nil }).map {
-                ["presentmentCurrency": $0.currency]
-            }
-        )
+        // TODO(porter): Serialize presentmentDetails when the reviewed native field ships.
         result.setIfPresent("email", session.email)
         result.setIfPresent("paymentOption", session.paymentOption.map(serialize))
         result.setIfPresent("shippingAddress", session.shippingAddress.map(serialize))
