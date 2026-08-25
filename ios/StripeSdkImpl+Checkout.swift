@@ -84,9 +84,10 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { _ in
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
             // TODO(porter): Uncomment when the reviewed native method ships.
             // try await instance.checkout.updateEmail(email)
+            _ = instance
             _ = email
             throw CheckoutMutationBridgeError.nativeAPINotAvailable("updateEmail")
         }
