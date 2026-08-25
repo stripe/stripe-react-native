@@ -106,6 +106,9 @@ internal object CheckoutConfigurationMapper {
     val configuration = PaymentElement.Configuration()
     val appearance = mapAppearance(params?.getMap("appearance"), style, context)
     configuration.appearance(appearance)
+    configuration.embeddedViewDisplaysMandateText(
+      params.getBooleanOr("displaysMandateText", false),
+    )
 
     if (params == null) {
       return configuration
@@ -128,9 +131,6 @@ internal object CheckoutConfigurationMapper {
     configuration.termsDisplay(mapTermsDisplay(params.getMap("termsDisplay")))
     configuration.paymentMethodLayout(
       mapPaymentMethodLayout(params.getString("paymentMethodLayout")),
-    )
-    configuration.embeddedViewDisplaysMandateText(
-      params.getBooleanOr("displaysMandateText", false),
     )
     params.getMap("googlePay")?.let {
       configuration.googlePayConfiguration(mapGooglePay(it))
@@ -264,17 +264,15 @@ internal object CheckoutConfigurationMapper {
     appearance.colorsDark(mapColors(colors?.getMap("dark") ?: colors, isLight = false))
     appearance.primaryButton(mapPrimaryButton(params?.getMap("primaryButton"), context))
 
-    params?.getMap("formInsetValues")?.let { insets ->
-      val horizontal = insets.getFloatOr("left", DEFAULT_FORM_HORIZONTAL_INSET)
-      val vertical = insets.getFloatOr("top", 0f)
-      appearance.formInsetValues(PaymentElement.Configuration.Appearance.Insets(horizontal, vertical))
-      // TODO(porter): Map independent right and bottom values when the reviewed initializer ships.
-      // PaymentElement.Configuration.Appearance.Insets(
-      //   horizontal,
-      //   vertical,
-      //   insets.getFloatOr("right", 20f),
-      //   insets.getFloatOr("bottom", 40f),
-      // )
+    params?.getMap("formInsetValues")?.let { insetParams ->
+      appearance.formInsetValues(
+        PaymentElement.Configuration.Appearance.Insets(
+          insetParams.getFloatOr("left", DEFAULT_FORM_LEFT_INSET),
+          insetParams.getFloatOr("top", DEFAULT_FORM_TOP_INSET),
+          insetParams.getFloatOr("right", DEFAULT_FORM_RIGHT_INSET),
+          insetParams.getFloatOr("bottom", DEFAULT_FORM_BOTTOM_INSET),
+        ),
+      )
     }
     // TODO(porter): Map root font, shapes, and embedded appearance when their reviewed setters ship.
     return appearance
@@ -374,6 +372,9 @@ internal object CheckoutConfigurationMapper {
   }
 }
 
-private const val DEFAULT_FORM_HORIZONTAL_INSET = 20f
+private const val DEFAULT_FORM_LEFT_INSET = 20f
+private const val DEFAULT_FORM_TOP_INSET = 0f
+private const val DEFAULT_FORM_RIGHT_INSET = 20f
+private const val DEFAULT_FORM_BOTTOM_INSET = 40f
 private const val HEX_COLOR_LENGTH_RGB = 6
 private const val HEX_COLOR_LENGTH_ARGB = 8
