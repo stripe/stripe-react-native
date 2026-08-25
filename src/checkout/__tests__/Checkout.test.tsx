@@ -16,6 +16,11 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
   default: {
     createCheckout: jest.fn(),
+    updateCheckoutEmail: jest.fn(),
+    updateCheckoutShippingAddress: jest.fn(),
+    applyCheckoutPromotionCode: jest.fn(),
+    removeCheckoutPromotionCode: jest.fn(),
+    clearCheckoutPaymentOption: jest.fn(),
     destroyCheckout: jest.fn(),
   },
 }));
@@ -61,6 +66,23 @@ const session = {
 
 const mockedCreateCheckout = NativeStripeSdk.createCheckout as jest.Mock;
 const mockedDestroyCheckout = NativeStripeSdk.destroyCheckout as jest.Mock;
+const mockedUpdateEmail = NativeStripeSdk.updateCheckoutEmail as jest.Mock;
+const mockedUpdateShippingAddress =
+  NativeStripeSdk.updateCheckoutShippingAddress as jest.Mock;
+const mockedApplyPromotionCode =
+  NativeStripeSdk.applyCheckoutPromotionCode as jest.Mock;
+const mockedRemovePromotionCode =
+  NativeStripeSdk.removeCheckoutPromotionCode as jest.Mock;
+const mockedClearPaymentOption =
+  NativeStripeSdk.clearCheckoutPaymentOption as jest.Mock;
+
+const mutationMocks = [
+  mockedUpdateEmail,
+  mockedUpdateShippingAddress,
+  mockedApplyPromotionCode,
+  mockedRemovePromotionCode,
+  mockedClearPaymentOption,
+];
 
 describe('Checkout private preview', () => {
   beforeEach(() => {
@@ -68,6 +90,7 @@ describe('Checkout private preview', () => {
     mockSelectionListeners.clear();
     mockedCreateCheckout.mockReset();
     mockedDestroyCheckout.mockReset().mockResolvedValue(undefined);
+    mutationMocks.forEach((mock) => mock.mockReset());
   });
 
   it('creates a stable controller and applies native snapshots', async () => {
@@ -118,12 +141,128 @@ describe('Checkout private preview', () => {
 
     expect(mockedDestroyCheckout).toHaveBeenCalledTimes(2);
     expect(first.status).toBe('destroyed');
-    await expect(first.updateEmail('jenny@example.com')).rejects.toThrow(
-      'This Checkout controller was destroyed.'
-    );
+    await expect(first.updateEmail('jenny@example.com')).rejects.toMatchObject({
+      code: 'Failed',
+      message: 'This Checkout controller was destroyed.',
+    });
     await expect(first.paymentElement.present()).rejects.toThrow(
       'This Checkout controller was destroyed.'
     );
+  });
+
+  it('runs every standard mutation through the updating lifecycle', async () => {
+    mockedCreateCheckout.mockResolvedValue({
+      controllerId: 'controller-1',
+      session,
+    });
+    const controller = await createCheckout(createOptions);
+    const shippingAddress: Checkout.UpdateShippingAddressParams = {
+      name: 'Jenny Rosen',
+      address: { country: 'US', postalCode: '94107' },
+    };
+    const cases: Array<{
+      invoke: () => Promise<void>;
+      nativeMock: jest.Mock;
+      expectedArguments: unknown[];
+    }> = [
+      {
+        invoke: () => controller.updateEmail('jenny@example.com'),
+        nativeMock: mockedUpdateEmail,
+        expectedArguments: ['controller-1', 'jenny@example.com'],
+      },
+      {
+        invoke: () => controller.updateShippingAddress(shippingAddress),
+        nativeMock: mockedUpdateShippingAddress,
+        expectedArguments: ['controller-1', shippingAddress],
+      },
+      {
+        invoke: () => controller.applyPromotionCode(' SAVE10 '),
+        nativeMock: mockedApplyPromotionCode,
+        expectedArguments: ['controller-1', 'SAVE10'],
+      },
+      {
+        invoke: () => controller.removePromotionCode(),
+        nativeMock: mockedRemovePromotionCode,
+        expectedArguments: ['controller-1'],
+      },
+      {
+        invoke: () => controller.clearPaymentOption(),
+        nativeMock: mockedClearPaymentOption,
+        expectedArguments: ['controller-1'],
+      },
+    ];
+
+    for (const [index, mutation] of cases.entries()) {
+      const updatedSession = {
+        ...controller.session,
+        email: `mutation-${index}@example.com`,
+      };
+      mutation.nativeMock.mockImplementationOnce(async () => {
+        expect(controller.status).toBe('updating');
+        return { session: updatedSession };
+      });
+
+      await mutation.invoke();
+
+      expect(mutation.nativeMock).toHaveBeenCalledWith(
+        ...mutation.expectedArguments
+      );
+      expect(controller.status).toBe('ready');
+      expect(controller.session).toBe(updatedSession);
+    }
+  });
+
+  it('rejects concurrent mutations without calling native', async () => {
+    mockedCreateCheckout.mockResolvedValue({
+      controllerId: 'controller-1',
+      session,
+    });
+    const controller = await createCheckout(createOptions);
+    let resolveUpdate!: (value: { session: Checkout.Session }) => void;
+    mockedUpdateEmail.mockReturnValue(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      })
+    );
+
+    const firstMutation = controller.updateEmail('jenny@example.com');
+
+    await expect(controller.removePromotionCode()).rejects.toMatchObject({
+      code: 'Failed',
+      message: 'This Checkout controller is not ready for another operation.',
+    });
+    expect(mockedRemovePromotionCode).not.toHaveBeenCalled();
+    resolveUpdate({ session });
+    await firstMutation;
+    expect(controller.status).toBe('ready');
+  });
+
+  it('restores ready after a failed mutation', async () => {
+    mockedCreateCheckout.mockResolvedValue({
+      controllerId: 'controller-1',
+      session,
+    });
+    const controller = await createCheckout(createOptions);
+    mockedApplyPromotionCode.mockRejectedValue(new Error('Nope'));
+
+    await controller.applyPromotionCode('SAVE10').catch(() => {});
+    expect(controller.status).toBe('ready');
+    expect(controller.session).toBe(session);
+  });
+
+  it('rejects mutations when the Checkout Session is not open', async () => {
+    mockedCreateCheckout.mockResolvedValue({
+      controllerId: 'controller-1',
+      session: { ...session, status: { type: 'expired' } },
+    });
+    const controller = await createCheckout(createOptions);
+
+    await expect(controller.clearPaymentOption()).rejects.toMatchObject({
+      code: 'SessionNotOpen',
+      message: 'This Checkout Session is not open.',
+    });
+    expect(mockedClearPaymentOption).not.toHaveBeenCalled();
+    expect(controller.status).toBe('ready');
   });
 
   it('stays idle while the hook is disabled', () => {

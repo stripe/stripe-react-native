@@ -36,6 +36,7 @@ internal class NativeCheckoutControllerInstance(
   private var latestNativeSession = initialNativeSession
   private var latestSession = initialSession
   private var confirming = false
+  private var mutating = false
   private var destroyed = false
 
   @MainThread
@@ -54,12 +55,7 @@ internal class NativeCheckoutControllerInstance(
             latestNativeSession = session
             latestSession = CheckoutSessionSerializer.serialize(session)
           }
-          val status = when {
-            confirming -> Status.Confirming
-            updating -> Status.Updating
-            else -> Status.Ready
-          }
-          emit(status, latestSession)
+          emit(status(updating), latestSession)
         }
     }
   }
@@ -71,12 +67,34 @@ internal class NativeCheckoutControllerInstance(
       return
     }
     confirming = value
-    val status = when {
-      value -> Status.Confirming
-      controller.isUpdating.value -> Status.Updating
-      else -> Status.Ready
+    emit(status(controller.isUpdating.value), latestSession)
+  }
+
+  @MainThread
+  fun beginMutation(): Boolean {
+    UiThreadUtil.assertOnUiThread()
+    if (destroyed || confirming || mutating || controller.isUpdating.value) {
+      return false
     }
-    emit(status, latestSession)
+    mutating = true
+    emit(Status.Updating, latestSession)
+    return true
+  }
+
+  @MainThread
+  fun finishMutation() {
+    UiThreadUtil.assertOnUiThread()
+    if (destroyed || !mutating) {
+      return
+    }
+    mutating = false
+    emit(status(controller.isUpdating.value), latestSession)
+  }
+
+  @MainThread
+  fun launchMutation(block: suspend () -> Unit) {
+    UiThreadUtil.assertOnUiThread()
+    scope.launch { block() }
   }
 
   @MainThread
@@ -121,5 +139,11 @@ internal class NativeCheckoutControllerInstance(
         putMap("session", session)
       },
     )
+  }
+
+  private fun status(updating: Boolean): Status = when {
+    confirming -> Status.Confirming
+    mutating || updating -> Status.Updating
+    else -> Status.Ready
   }
 }

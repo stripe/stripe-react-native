@@ -83,7 +83,7 @@ internal object CheckoutConfigurationMapper {
       params.getMap("address")?.let { address(mapAddress(it, addressPath)) }
     }
 
-  private fun mapAddress(
+  fun mapAddress(
     params: ReadableMap,
     path: String,
   ): CheckoutController.Address {

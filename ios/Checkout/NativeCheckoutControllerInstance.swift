@@ -19,6 +19,7 @@ final class NativeCheckoutControllerInstance: CheckoutControllerInstance {
     private var cancellables = Set<AnyCancellable>()
     private var controllerId: String?
     private var isConfirming = false
+    private var isMutating = false
     private var isDestroyed = false
 
     init(
@@ -52,6 +53,23 @@ final class NativeCheckoutControllerInstance: CheckoutControllerInstance {
         emit(session: checkout.session, status: status(isLoading: checkout.isLoading))
     }
 
+    func beginMutation() -> Bool {
+        guard !isDestroyed, !isConfirming, !isMutating, !checkout.isLoading else {
+            return false
+        }
+        isMutating = true
+        emit(session: checkout.session, status: .updating)
+        return true
+    }
+
+    func finishMutation() {
+        guard !isDestroyed, isMutating else {
+            return
+        }
+        isMutating = false
+        emit(session: checkout.session, status: status(isLoading: checkout.isLoading))
+    }
+
     func emitDestroyed() {
         guard !isDestroyed else {
             return
@@ -73,7 +91,7 @@ final class NativeCheckoutControllerInstance: CheckoutControllerInstance {
         if isConfirming {
             return .confirming
         }
-        return isLoading ? .updating : .ready
+        return isMutating || isLoading ? .updating : .ready
     }
 
     private func emit(session: Checkout.Session, status: Status) {

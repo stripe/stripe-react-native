@@ -109,7 +109,7 @@ enum CheckoutConfigurationMapper {
         return defaults
     }
 
-    private static func mapAddress(
+    static func mapAddress(
         _ params: NSDictionary?,
         path: String
     ) throws -> Checkout.Address? {
