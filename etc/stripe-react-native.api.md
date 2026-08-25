@@ -1049,6 +1049,7 @@ export namespace Checkout {
         rowSelectionBehavior?: RowSelectionBehavior;
         savePaymentMethodOptInBehavior?: SavePaymentMethodOptInBehavior;
         termsDisplay?: Record<string, TermsDisplay>;
+        useAutocompleteEndpoints?: boolean;
     }
     export interface PaymentOptionDisplayData {
         billingDetails?: BillingDetails;

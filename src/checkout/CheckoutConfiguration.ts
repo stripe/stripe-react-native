@@ -11,14 +11,14 @@ type NativePaymentElementConfiguration = Omit<
   rowSelectionBehavior?: NativeRowSelectionBehavior;
 };
 
-export type NativeCheckoutCreateOptions = Omit<
+type NativeCheckoutCreateOptions = Omit<
   Checkout.CreateOptions,
   'paymentElement'
 > & {
   paymentElement?: NativePaymentElementConfiguration;
 };
 
-export interface PreparedCheckoutConfiguration {
+interface PreparedCheckoutConfiguration {
   options: NativeCheckoutCreateOptions;
   onSelectPaymentOption?: () => void;
 }
@@ -27,6 +27,8 @@ export interface PreparedCheckoutConfiguration {
  * Removes the JavaScript callback from Checkout configuration before it crosses
  * the native bridge. The callback is registered against the native controller
  * separately after the controller receives its opaque identifier.
+ *
+ * @internal
  */
 export function prepareCheckoutConfiguration(
   options: Checkout.CreateOptions

@@ -357,6 +357,8 @@ export namespace Checkout {
     paymentMethodOrder?: string[];
     /** Whether the new-card form opens the card scanner automatically. */
     opensCardScannerAutomatically?: boolean;
+    /** Whether Stripe address autocomplete endpoints are used. */
+    useAutocompleteEndpoints?: boolean;
     /** Controls legal agreement text for each payment method type. */
     termsDisplay?: Record<string, TermsDisplay>;
     /** The layout used when Payment Element is presented as a sheet. */
