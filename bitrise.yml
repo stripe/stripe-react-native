@@ -506,7 +506,9 @@ workflows:
     steps:
       - script@1:
           title: Build iOS App (Release, Simulator)
-          timeout: 1800
+          # The old-arch build compiles React Native from source and needs the
+          # longer timeout.
+          timeout: 3600
           inputs:
             - content: |
                 set -euo pipefail

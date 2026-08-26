@@ -13,18 +13,24 @@ disable_spm = ENV['STRIPE_DISABLE_SPM'] == '1'
 $StripeDisableSPM = true if disable_spm
 use_frameworks! :linkage => :dynamic unless disable_spm
 
-# Use prebuilt RN.
-ENV['RCT_USE_RN_DEP'] = '1'
-ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
-
 new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED'] == 'true'
+
+# Use prebuilt RN on the new architecture. On the old architecture React is
+# built from source: the prebuilt core only wires framework linkage through
+# the new-architecture dependency path, so old-arch pods fail to link React
+# when the workspace builds with dynamic frameworks.
+use_prebuilt_rn = new_arch_enabled
+if use_prebuilt_rn
+  ENV['RCT_USE_RN_DEP'] = '1'
+  ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
+end
 
 options = {
   :bridgeless_enabled => new_arch_enabled,
   :fabric_enabled =>  new_arch_enabled,
   :hermes_enabled => true,
   :post_install => lambda do |installer|
-    next if disable_spm
+    next if disable_spm || !use_prebuilt_rn
 
     # react-native-test-app's DevSupport xcconfig does not link the prebuilt
     # React frameworks when the workspace builds with dynamic frameworks.
