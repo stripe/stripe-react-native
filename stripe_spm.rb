@@ -113,12 +113,19 @@ module StripeSPM
     end
 
     def verify_dynamic_linkage!(pod_target)
-      return if pod_target.build_type.dynamic_framework?
+      return if pod_target.build_as_dynamic_framework?
 
+      current = if pod_target.build_as_framework?
+                  'a static framework'
+                elsif pod_target.build_as_dynamic?
+                  'a dynamic library'
+                else
+                  'a static library'
+                end
       raise Pod::Informative, <<~MESSAGE
         [stripe-react-native] Resolving the Stripe iOS SDK through Swift Package
         Manager requires dynamic frameworks, but #{POD_NAME} is building as
-        `#{pod_target.build_type}`. Either:
+        #{current}. Either:
           * add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo,
             set `"useFrameworks": "dynamic"` via the expo-build-properties
             plugin), or
@@ -218,7 +225,9 @@ def stripe_spm_activate!(spec, version:)
   )
 end
 
-if defined?(Pod::Installer) && !Pod::Installer.method_defined?(:stripe_spm_original_run_podfile_post_install_hooks)
+if defined?(Pod::Installer) &&
+   !Pod::Installer.method_defined?(:stripe_spm_original_run_podfile_post_install_hooks) &&
+   !Pod::Installer.private_method_defined?(:stripe_spm_original_run_podfile_post_install_hooks)
   Pod::Installer.class_eval do
     alias_method :stripe_spm_original_run_podfile_post_install_hooks, :run_podfile_post_install_hooks
 
