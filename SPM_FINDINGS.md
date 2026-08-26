@@ -148,6 +148,17 @@ Positive signals so far: podspec evaluation, `spm_dependency` registration, our 
 
 The resulting CI coverage split: **new-arch jobs validate SPM mode** (the default path new users get); **old-arch jobs validate the CocoaPods fallback** (the path RN < 0.75 and opted-out users get).
 
+## Risk assessment: old-architecture apps
+
+The old-arch CI failures raise the question: will merchants on the old architecture hit the same problems? Assessment:
+
+- **None of the CI failures were in the Stripe mechanism.** They were, in order: React Native's opt-in experimental prebuilt core (linkage only wired for new arch — a combination merchants essentially never run), an orthogonal RN-third-party-C++/Xcode 26 source-compatibility issue (hits master too), and react-native-test-app's own dev pod (not shipped in any merchant app). The mechanism itself — package resolution, product linking, embed phase — contains nothing architecture-dependent.
+- **The genuine merchant-facing risk is the dynamic-frameworks requirement, not the mechanism.** SPM mode forces `use_frameworks! :linkage => :dynamic`, and on old arch that flip makes every pod in the app resolve its own symbols at link time — surfacing under-declared React dependencies in *the merchant's own pod graph* (the DevSupport failure is the archetype). Old-arch apps already on dynamic frameworks: high likelihood of working unchanged. Static-library old-arch apps (the majority): the linkage flip is the gamble, and it is app-specific; `$StripeDisableSPM = true` is the pressure valve while pods publish.
+- **Precedent gap:** react-native-firebase v26 — the at-scale proof of this architecture — is new-architecture-only. On old arch × SPM we would be first; the ecosystem has not field-tested this combination for us.
+- **Unverified detail:** our own pod's old-arch compilation under SPM mode never ran to completion in CI (the harness failed on other pods first). It compiles identically in the fallback mode CI does cover, so this is low-risk, but unobserved.
+- **De-risking step (recommended before release):** the manual validation already listed in Open items — a plain RN template app (not react-native-test-app), old arch, dynamic frameworks, SDK from the branch, PaymentSheet smoke test. ~1 hour, converts "architecturally should work" into "observed working".
+- **Policy alternative (considered):** scope the SPM default to new-arch apps and leave old arch on the pods fallback until it freezes. Reduces day-one breakage but bifurcates behavior and merely defers the same migration to the pod-freeze date for a shrinking population (old arch is frozen upstream and slated for removal). Current lean: keep default-on for both architectures, validate old arch manually, rely on the fail-fast error + opt-out; revisit once the stripe-ios timeline is known.
+
 ## Current status
 
 - Draft PR [#2587](https://github.com/stripe/stripe-react-native/pull/2587) open with **CI fully green**: unit tests (new arch, SPM mode) and e2e Release builds (new arch on SPM mode, old arch on the CocoaPods fallback) all pass on Xcode 26.4 / CocoaPods 1.16.2 / RN 0.81.
