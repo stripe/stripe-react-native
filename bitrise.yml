@@ -199,6 +199,13 @@ workflows:
     envs:
       - NEW_ARCH_ENABLED: false
       - RCT_NEW_ARCH_ENABLED: 0
+      # The old-arch job exercises the CocoaPods fallback path (static
+      # libraries): react-native-test-app can't build old-arch with dynamic
+      # frameworks (its DevSupport pod under-declares React dependencies —
+      # undefined JSI symbols), and the SPM resolution mechanism is
+      # architecture-independent, so it stays covered by the new-arch jobs.
+      # This also gives the $StripeDisableSPM fallback continuous coverage.
+      - STRIPE_DISABLE_SPM: '1'
     before_run:
       - _e2e_build_ios
 
@@ -510,9 +517,7 @@ workflows:
     steps:
       - script@1:
           title: Build iOS App (Release, Simulator)
-          # The old-arch build compiles React Native from source and needs the
-          # longer timeout.
-          timeout: 3600
+          timeout: 1800
           inputs:
             - content: |
                 set -euo pipefail

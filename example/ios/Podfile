@@ -43,14 +43,23 @@ new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED']
 #   to dependent pods through standard CocoaPods behavior.
 #
 # - RCT_USE_PREBUILT_RNCORE (prebuilt React core, React.xcframework via the
-#   React-Core-prebuilt pod) is used only on the NEW architecture. The
-#   prebuilt core only wires framework linkage through the new-architecture
-#   dependency path, so with dynamic frameworks old-arch pods (e.g.
-#   react-native-safe-area-context) compile against prebuilt React headers
-#   but never link the framework, failing with undefined RCT* symbols. On
-#   the old architecture React core builds from source, which restores the
-#   standard source-pod linkage.
-use_prebuilt_rncore = new_arch_enabled
+#   React-Core-prebuilt pod) is used everywhere EXCEPT old-arch dynamic-
+#   frameworks builds. The prebuilt core only wires framework linkage through
+#   the new-architecture dependency path, so with dynamic frameworks old-arch
+#   pods (e.g. react-native-safe-area-context) compile against prebuilt React
+#   headers but never link the framework, failing with undefined RCT*
+#   symbols. Static builds (the fallback mode) don't per-pod link, so the
+#   prebuilt core is fine there on either architecture.
+#
+# Note that old-arch + dynamic frameworks (i.e. old arch + SPM mode) is not a
+# combination CI exercises: even with a source-built React core, react-native-
+# test-app's own DevSupport pod under-declares its React dependencies for
+# per-pod linking (undefined facebook::jsi::* symbols), so the harness can't
+# build it. CI runs the old-arch jobs with STRIPE_DISABLE_SPM=1 instead,
+# which also keeps the CocoaPods fallback path continuously covered. The SPM
+# resolution mechanism itself is architecture-independent and is covered by
+# the new-arch jobs.
+use_prebuilt_rncore = new_arch_enabled || disable_spm
 ENV['RCT_USE_RN_DEP'] = '1'
 ENV['RCT_USE_PREBUILT_RNCORE'] = '1' if use_prebuilt_rncore
 
