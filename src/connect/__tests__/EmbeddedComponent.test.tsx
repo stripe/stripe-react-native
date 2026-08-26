@@ -1,13 +1,16 @@
 // Mock dependencies BEFORE imports
 import { mockCreateNativeStripeSdkMock } from '../testUtils';
 
+const mockInjectJavaScript = jest.fn();
+let webViewOnMessage: ((event: any) => void) | undefined;
+
 jest.mock('react-native-webview', () => {
   const React = require('react');
   return {
-    WebView: React.forwardRef((_props: any, ref: any) => {
-      // Expose ref methods for testing
+    WebView: React.forwardRef((props: any, ref: any) => {
+      webViewOnMessage = props.onMessage;
       React.useImperativeHandle(ref, () => ({
-        injectJavaScript: jest.fn(),
+        injectJavaScript: mockInjectJavaScript,
       }));
       return null;
     }),
@@ -16,6 +19,8 @@ jest.mock('react-native-webview', () => {
 
 jest.mock('../../specs/NativeStripeSdkModule', () =>
   mockCreateNativeStripeSdkMock({
+    collectBankAccountToken: jest.fn(),
+    collectFinancialConnectionsAccounts: jest.fn(),
     openAuthenticatedWebView: jest.fn(),
   })
 );
@@ -23,6 +28,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () =>
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
 import { Platform, AppState } from 'react-native';
+import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import {
   EmbeddedComponent,
   isAllowedStripeHost,
@@ -340,6 +346,77 @@ describe('EmbeddedComponent', () => {
 
       // Custom font should be in context
       expect(contextValue.appearance.variables.fontFamily).toBe('CustomFont');
+    });
+  });
+
+  describe('Financial Connections bridge', () => {
+    it('collects and forwards a bank-account token', async () => {
+      const mockCollectBankAccountToken =
+        NativeStripeSdk.collectBankAccountToken as jest.Mock;
+      const mockCollectFinancialConnectionsAccounts =
+        NativeStripeSdk.collectFinancialConnectionsAccounts as jest.Mock;
+
+      mockCollectBankAccountToken.mockResolvedValue({
+        session: {
+          id: 'session',
+          clientSecret: 'client_secret',
+          livemode: false,
+          accounts: [],
+        },
+        token: {
+          id: 'token',
+          livemode: false,
+          used: false,
+          type: 'BankAccount',
+          created: 1000000,
+          bankAccount: {
+            id: 'bank_account',
+            bankName: 'Test Bank',
+            accountHolderName: null,
+            accountHolderType: null,
+            currency: 'usd',
+            country: 'US',
+            routingNumber: '110000000',
+            status: null,
+            fingerprint: null,
+            last4: '6789',
+          },
+        },
+        error: undefined,
+      });
+
+      renderComponent({ component: 'account-onboarding' });
+
+      await waitFor(() => {
+        expect(webViewOnMessage).toBeDefined();
+      });
+
+      await act(async () => {
+        webViewOnMessage?.({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: 'openFinancialConnections',
+              data: {
+                id: 'request',
+                clientSecret: 'client_secret',
+                connectedAccountId: 'connected_account',
+              },
+            }),
+          },
+        });
+      });
+
+      expect(mockCollectBankAccountToken).toHaveBeenCalledWith(
+        'client_secret',
+        { connectedAccountId: 'connected_account' }
+      );
+      expect(mockCollectFinancialConnectionsAccounts).not.toHaveBeenCalled();
+      expect(mockInjectJavaScript).toHaveBeenCalledWith(
+        expect.stringContaining('"id":"token"')
+      );
+      expect(mockInjectJavaScript).toHaveBeenCalledWith(
+        expect.stringContaining('"bank_account"')
+      );
     });
   });
 

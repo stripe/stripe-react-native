@@ -149,6 +149,39 @@ type StripeConnectInitParamsInternal = StripeConnectInitParams & {
   overrides?: Record<string, string>;
 };
 
+type EmbeddedFinancialConnectionsError = {
+  code: string;
+  message: string;
+  localizedMessage?: string;
+  type?: string;
+};
+
+type EmbeddedFinancialConnectionsResult =
+  | {
+      session: FinancialConnections.Session;
+      token: ReturnType<typeof toStripeJsBankAccountToken>;
+      error?: undefined;
+    }
+  | {
+      session?: undefined;
+      token?: undefined;
+      error: EmbeddedFinancialConnectionsError;
+    }
+  | {
+      session?: undefined;
+      token?: undefined;
+      error?: undefined;
+    };
+
+function collectBankAccountTokenForEmbeddedComponent(
+  clientSecret: string,
+  connectedAccountId: string
+): Promise<FinancialConnections.TokenResult> {
+  return NativeStripeSdk.collectBankAccountToken(clientSecret, {
+    connectedAccountId,
+  });
+}
+
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const [dynamicWebview, setDynamicWebview] = useState<{
     WebView: typeof WebView | null;
@@ -186,7 +219,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       const mod = await import('react-native-webview');
       setDynamicWebview({ WebView: mod.WebView });
     } catch (err) {
-      console.error('Failed to import react-native-webview:', err);
+      try {
+        const mod = require('react-native-webview');
+        setDynamicWebview({ WebView: mod.WebView });
+      } catch {
+        console.error('Failed to import react-native-webview:', err);
+      }
     }
   }, [dynamicWebview]);
 
@@ -467,16 +505,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const handleFinancialConnectionsResult = (
     id: string,
-    result: {
-      session?: FinancialConnections.Session;
-      token?: ReturnType<typeof toStripeJsBankAccountToken> | null;
-      error?: {
-        code: string;
-        message: string;
-        localizedMessage?: string;
-        type?: string;
-      };
-    }
+    result: EmbeddedFinancialConnectionsResult
   ) => {
     ref.current?.injectJavaScript(`
       (function() {
@@ -607,46 +636,36 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
-        NativeStripeSdk.collectBankAccountToken(clientSecret, {
-          connectedAccountId,
-        })
-          .then(({ session, token, error }) => {
+        collectBankAccountTokenForEmbeddedComponent(
+          clientSecret,
+          connectedAccountId
+        )
+          .then((result) => {
             cleanup();
 
-            if (error) {
-              if (error.code === FinancialConnectionsSheetError.Canceled) {
-                handleFinancialConnectionsResult(id, {
-                  session: undefined,
-                  token: undefined,
-                  error: undefined,
-                });
+            if (result.error) {
+              if (
+                result.error.code === FinancialConnectionsSheetError.Canceled
+              ) {
+                handleFinancialConnectionsResult(id, {});
                 return;
               }
-              handleFinancialConnectionsResult(id, {
-                session: undefined,
-                token: undefined,
-                error: {
-                  code: error.code,
-                  message: error.message,
-                  localizedMessage: error.localizedMessage,
-                  type: error.type,
-                },
-              });
-            } else if (token || session) {
-              handleFinancialConnectionsResult(id, {
-                session,
-                token: token ? toStripeJsBankAccountToken(token) : null,
-                error: undefined,
-              });
-            } else {
+
               handleFinancialConnectionsResult(id, {
                 error: {
-                  code: 'UnexpectedError',
-                  message:
-                    'No session, token, or error returned from Financial Connections',
+                  code: result.error.code,
+                  message: result.error.message,
+                  localizedMessage: result.error.localizedMessage,
+                  type: result.error.type,
                 },
               });
+              return;
             }
+
+            handleFinancialConnectionsResult(id, {
+              session: result.session,
+              token: toStripeJsBankAccountToken(result.token),
+            });
           })
           .catch((unexpectedError) => {
             cleanup();
