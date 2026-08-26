@@ -192,6 +192,61 @@ For an engineer (or LLM) redoing this work from zero, the distilled path — eac
 7. **Test the migration path on a dirty sandbox** (a machine with a previous CocoaPods-mode install), not just fresh checkouts — removing pods from the graph leaves dangling header-store symlinks that unscoped podspec globs will hit.
 8. **Write the user-facing story before shipping:** dynamic-frameworks requirement (+ Expo's `expo-build-properties` path), the opt-out flag and its lifetime, and RN < 0.75 behavior.
 
+## Implementation brief: enable old-arch iOS CI on SPM (agent handoff)
+
+This section is a self-contained task brief. It assumes no context beyond this document and the repo at branch `gbirch/spm-investigation` (PR [#2587](https://github.com/stripe/stripe-react-native/pull/2587)).
+
+### Goal
+
+Make the old-architecture iOS CI jobs build and test with **SPM resolution** (dynamic frameworks) instead of the CocoaPods fallback they currently use, without losing the fallback path's CI coverage. Success = the Bitrise PR pipeline fully green with `e2e-build-ios-old-arch` running in SPM mode.
+
+### Required context (read first)
+
+1. The top-of-file documentation in `stripe_spm.rb` (repo root) — the whole resolution mechanism.
+2. The comment blocks in `example/ios/Podfile` — the example app's configuration matrix (fallback toggle, dynamic frameworks, the two prebuilt-RN mechanisms, the DevSupport xcconfig hack).
+3. The "Validation methodology" section above, failures 2–4 — the history of old-arch dynamic-framework builds in this harness.
+
+### The defect being fixed
+
+- With Hermes enabled, React Native **excludes `jsi.cpp` from the React-jsi pod** and adds `s.dependency "hermes-engine"` there instead — the `facebook::jsi::*` symbol definitions live inside hermes-engine's prebuilt `hermes.framework` dylib, to preserve the One Definition Rule. See `packages/react-native/ReactCommon/jsi/React-jsi.podspec` on the `0.81-stable` branch (the `use_hermes()` block, ~lines 35–46).
+- `ReactTestApp-DevSupport` (react-native-test-app 4.4.12's pod; podspec at the repo root of that npm package) compiles its own C++ referencing JSI (`common/AppRegistry.cpp`, `ios/ReactTestApp/AppRegistryModule.mm`) and declares `React-Core` and `React-jsi` — but **not `hermes-engine`**.
+- Under `use_frameworks! :linkage => :dynamic`, every pod framework must resolve its own symbols at link time; transitive linkage doesn't propagate symbol resolution. Result: `Undefined symbols: facebook::jsi::Value::~Value() …` when linking `ReactTestApp_DevSupport`.
+- Why other configurations don't hit it: the **new-arch** build force-links `-framework "hermes"` into DevSupport via the Podfile's xcconfig hack (that hack's framework list is `['React', 'ReactNativeDependencies', 'hermes']`); **static** builds (the fallback) resolve everything at the final app link, where hermes is present.
+- Why the fix needs no search-path work: DevSupport's generated xcconfig already inherits hermes-engine's `FRAMEWORK_SEARCH_PATHS` transitively (DevSupport → React-jsi → hermes-engine); only the `-framework` flag is missing. This is consistent with the new-arch hack working with linker flags alone.
+
+### Approach note (a rejected alternative, so you don't re-derive it)
+
+Injecting `hermes-engine` as a real dependency on the DevSupport *spec* from a Podfile `pre_install` hook looks cleaner but does not work: CocoaPods computes pod-target dependency edges during analysis (`resolve_dependencies`), which runs **before** `pre_install` hooks fire, so a spec mutated there no longer affects the generated targets. Extending the existing xcconfig mechanism is the reliable lever, and it is already proven in this exact file for the new-arch configuration. (Upstreaming a conditional `hermes-engine` dependency to react-native-test-app is a good follow-up, but their podspec must handle JSC-only apps, so it needs a `use_hermes`-style conditional — file it separately rather than blocking on it.)
+
+### Changes
+
+**1. `example/ios/Podfile` — extend the DevSupport xcconfig hack to old-arch SPM builds.** Today the `:post_install` lambda is gated `next if disable_spm || !use_prebuilt_rncore` and force-links `['React', 'ReactNativeDependencies', 'hermes']` (the *prebuilt* frameworks, which don't exist under a source-built React core — that's why it's gated). Restructure it so:
+- fallback/static mode (`disable_spm`): still skipped entirely (no per-pod linking exists);
+- new-arch prebuilt mode (`use_prebuilt_rncore`): framework list unchanged — `['React', 'ReactNativeDependencies', 'hermes']`;
+- old-arch SPM mode (dynamic frameworks + source-built core): framework list `['hermes']` only. JSI was the *only* missing symbol set in the failed run (`RCT*`/Yoga resolved once the core built from source), and force-linking prebuilt names that don't exist in this mode would itself break the link.
+
+Keep the existing style of the loop (it edits `Target Support Files/ReactTestApp-DevSupport/*.xcconfig` in place) and update the comment block to document all three modes, in keeping with this repo's thorough-commenting convention. `use_prebuilt_rncore = new_arch_enabled || disable_spm` stays exactly as is — old-arch SPM keeps the source-built core.
+
+**2. `bitrise.yml` — put the old-arch e2e job back on SPM.** Remove `- STRIPE_DISABLE_SPM: '1'` (and its comment block) from the `e2e-build-ios-old-arch` workflow's `envs`. Nothing else in that workflow changes; `e2e-tests-ios-old-arch` consumes the built artifact and needs no edits.
+
+**3. `bitrise.yml` — preserve fallback coverage.** Adding SPM to old arch removes the only job exercising the CocoaPods fallback. Add a build-only workflow (suggested name `build-ios-fallback`) that runs `_e2e_build_ios` with `envs`: `NEW_ARCH_ENABLED: true`, `RCT_NEW_ARCH_ENABLED: 1`, `STRIPE_DISABLE_SPM: '1'` — new-arch static + pods is the closest match to today's real-world default configuration. Wire it into the PR pipeline where the other `e2e-build-ios-*` workflows are listed (see the `pipelines:` section at the top of the file; a build-only entry needs no `e2e-tests-*` consumer). Comment the workflow with why it exists.
+
+**4. Optional (recommended): old-arch unit tests.** Duplicate the `unit-test-ios` workflow as `unit-test-ios-old-arch` with `NEW_ARCH_ENABLED: false` in `envs` (the pods cache key already includes `NEW_ARCH_ENABLED`, and the test wiring in the Podfile's `post_integrate` is architecture-agnostic — the `-DRCT_NEW_ARCH_ENABLED` test flag is already conditional). Add to the pipeline. This can be split into a follow-up if the run budget is a concern.
+
+### Validation
+
+- This devbox has no Xcode and no CocoaPods gem — **Bitrise CI is the test bench**. Before pushing: `ruby -c example/ios/Podfile` and validate `bitrise.yml` parses (`ruby -e "require 'yaml'; YAML.safe_load(File.read('bitrise.yml'), aliases: true)"`).
+- Push to the branch; CI runs on PR #2587 automatically. Watch `e2e-build-ios-old-arch`: `pod install` should show SPM mode active (no `Stripe*` pods installed; the Podfile.lock CI generates will not contain them), the build should get past linking `ReactTestApp_DevSupport`, and the downstream Maestro job should pass.
+- Expected first-iteration outcome: green. If instead a **new** pod fails with undefined symbols: identify the owning pod and which framework owns those symbols (the hermes/ODR pattern above is the template — check whether the definitions live in a dependency the pod doesn't declare), and extend the same mechanism. If this exceeds ~3 iterations, stop and escalate to the documented alternative: a dedicated plain-RN-template harness app for old-arch SPM (see Open items).
+- After success, update this document: move the old-arch × SPM row out of Open items, append the result to the validation log, and revise the "Risk assessment: old-architecture apps" section (the mechanism will then be CI-proven on old arch). Also update `example/ios/Podfile`'s matrix comment (the "old-arch + dynamic is not a combination CI exercises" note becomes false).
+
+### Repo conventions that apply
+
+- Comment code thoroughly — what and why; this repo's owner has asked for generous documentation throughout.
+- Conventional commit messages (`fix:`/`chore:`/`docs:`); no AI-attribution lines in commit messages.
+- `GH_HOST=github.com` for all `gh` commands. PRs are created as drafts with the repository's default template body.
+- Rollback if needed: restore `STRIPE_DISABLE_SPM: '1'` on `e2e-build-ios-old-arch` — the state before this change, which is fully green.
+
 ## References
 
 - Draft PR: https://github.com/stripe/stripe-react-native/pull/2587
