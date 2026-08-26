@@ -102,7 +102,8 @@ workflows:
           inputs:
             - project_path: example/ios/example.xcworkspace
             - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
-            - scheme: stripe-react-native-Unit-Tests
+            - scheme: ReactTestApp
+            - xcodebuild_options: -only-testing:ReactTestAppTests
             - log_formatter: xcbeautify
       - save-cache@1:
           title: Save Pods Cache
@@ -391,22 +392,12 @@ workflows:
           inputs:
             - content: |
                 if [ -n "$OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH" ]; then
+                  # stripe_spm.rb reads this env var and resolves the Swift
+                  # package from that stripe-ios branch instead of the pinned
+                  # release.
                   echo "Overriding Stripe iOS SDK to use branch: $OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH"
-
-                  # Extract pod names from update-pods script (includes transitive deps)
-                  STRIPE_PODS=$(grep '"update-pods"' package.json | sed 's/.*pod update //' | sed 's/",$//')
-
-                  PODFILE="example/ios/Podfile"
-                  echo "" >> "$PODFILE"
-                  echo "# Override Stripe iOS SDK pods to use git branch" >> "$PODFILE"
-                  echo "$STRIPE_PODS" | tr ' ' '\n' | while read pod; do
-                    [ -n "$pod" ] && echo "pod '$pod', :git => 'https://github.com/stripe/stripe-ios.git', :branch => '$OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH'" >> "$PODFILE"
-                  done
-
-                  yarn update-pods
-                else
-                  yarn pods
                 fi
+                yarn pods
 
   _prepare_android:
     before_run:
@@ -531,6 +522,8 @@ workflows:
                     -configuration Release \
                     -sdk iphonesimulator \
                     -derivedDataPath "$DERIVED_DATA_PATH" \
+                    ARCHS=arm64 \
+                    ONLY_ACTIVE_ARCH=YES \
                     build | xcbeautify
                 }
                 build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)

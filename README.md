@@ -107,6 +107,24 @@ Alternatively use the `plugin-transform-typescript` plugin in your project.
 
 You'll need to run `pod install` in your `ios` directory to install the native dependencies.
 
+##### Stripe iOS SDK resolution
+
+On React Native 0.75 and above, the SDK resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks — add the following to your Podfile if it isn't there already:
+
+```ruby
+use_frameworks! :linkage => :dynamic
+```
+
+For Expo, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
+
+To keep resolving the Stripe iOS SDK through CocoaPods — for example, if your app can't build with dynamic frameworks — add this at the top of your Podfile:
+
+```ruby
+$StripeDisableSPM = true
+```
+
+The CocoaPods fallback is available for as long as the Stripe iOS SDK continues publishing to CocoaPods. React Native versions below 0.75 always use CocoaPods resolution.
+
 ## Usage example
 
 For a complete example, [visit our docs](https://docs.stripe.com/payments/accept-a-payment?platform=react-native).

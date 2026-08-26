@@ -1,4 +1,5 @@
 require 'json'
+require_relative 'stripe_spm'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
@@ -16,6 +17,11 @@ Pod::Spec.new do |s|
 
   s.platforms    = { ios: '13.0' }
   s.source       = { git: 'https://github.com/stripe/stripe-react-native.git', tag: s.version.to_s }
+
+  # On React Native >= 0.75 the Stripe iOS SDK is resolved through Swift
+  # Package Manager; older versions and apps that set `$StripeDisableSPM = true`
+  # fall back to the CocoaPods registry. See stripe_spm.rb.
+  stripe_spm_activate!(s, version: stripe_version) if stripe_spm_enabled?
 
   s.header_dir = 'stripe_react_native'
   s.pod_target_xcconfig = {
@@ -44,18 +50,22 @@ Pod::Spec.new do |s|
     # StripeSwiftInterop.h will cause circular dependency issues.
     core.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h' ]
     core.dependency 'React-Core'
-    core.dependency 'Stripe', stripe_version
-    core.dependency 'StripePaymentSheet', stripe_version
-    core.dependency 'StripePayments', stripe_version
-    core.dependency 'StripePaymentsUI', stripe_version
-    core.dependency 'StripeApplePay', stripe_version
-    core.dependency 'StripeFinancialConnections', stripe_version
+    unless stripe_spm_enabled?
+      core.dependency 'Stripe', stripe_version
+      core.dependency 'StripePaymentSheet', stripe_version
+      core.dependency 'StripePayments', stripe_version
+      core.dependency 'StripePaymentsUI', stripe_version
+      core.dependency 'StripeApplePay', stripe_version
+      core.dependency 'StripeFinancialConnections', stripe_version
+    end
   end
 
   s.subspec 'Onramp' do |onramp|
     onramp.source_files = [ 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm', 'ios/OnrampErrors.swift' ]
     onramp.dependency 'stripe-react-native/Core'
-    onramp.dependency 'StripeCryptoOnramp', stripe_version
+    unless stripe_spm_enabled?
+      onramp.dependency 'StripeCryptoOnramp', stripe_version
+    end
   end
 
   if fabric_enabled

@@ -4,6 +4,9 @@
 **Features**
 * [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.
 
+**Changes**
+* [Changed] iOS: On React Native 0.75 and above, the Stripe iOS SDK is now resolved through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). To keep resolving the Stripe iOS SDK through CocoaPods for now, add `$StripeDisableSPM = true` at the top of your Podfile. React Native versions below 0.75 continue to use CocoaPods resolution.
+
 ## 0.75.0 - 2026-08-18
 **Features**
 * [Added] Android: Added Crypto Onramp Samsung Pay configuration, availability checks, payment collection, and example integration.
