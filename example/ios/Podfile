@@ -131,18 +131,13 @@ post_integrate do |_installer|
     end
   end
 
-  # Strip react-native-test-app's single-app-mode compilation flag so the app
-  # always uses the standard ReactTestApp launch flow, which is what the e2e
-  # harness drives.
-  app_target&.build_configurations&.each do |config|
-    flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).flat_map { |flag| flag.to_s.split(' ') }
-    flags.delete('-DENABLE_SINGLE_APP_MODE')
-    config.build_settings['OTHER_SWIFT_FLAGS'] = flags
-  end
-
   # The SDK's native unit tests live in the repo (ios/Tests), not in the
   # generated test app; add them to the ReactTestAppTests target by reference
   # so `xcodebuild test -scheme ReactTestApp` runs them.
+  # (Note: app.json's `"singleApp"` mode — launching directly into the example
+  # component, no picker navigation — is preserved; an earlier prototype
+  # stripped -DENABLE_SINGLE_APP_MODE here, which put a spurious back button
+  # on the home screen.)
   tests_group = project.main_group.find_subpath('StripeReactNativeTests', true)
   tests_group.path = '../../../../ios/Tests'
   tests_group.source_tree = 'SOURCE_ROOT'
