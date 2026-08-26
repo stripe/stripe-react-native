@@ -19,8 +19,11 @@ Pod::Spec.new do |s|
   s.source       = { git: 'https://github.com/stripe/stripe-react-native.git', tag: s.version.to_s }
 
   # On React Native >= 0.75 the Stripe iOS SDK is resolved through Swift
-  # Package Manager; older versions and apps that set `$StripeDisableSPM = true`
-  # fall back to the CocoaPods registry. See stripe_spm.rb.
+  # Package Manager (the Stripe iOS SDK is deprecating CocoaPods support);
+  # older React Native versions and apps that set `$StripeDisableSPM = true`
+  # fall back to the CocoaPods registry via the `unless stripe_spm_enabled?`
+  # dependency blocks below. stripe_spm.rb documents the full mechanism.
+  # `stripe_version` pins both paths to the same stripe-ios release.
   stripe_spm_activate!(s, version: stripe_version) if stripe_spm_enabled?
 
   s.header_dir = 'stripe_react_native'
@@ -51,6 +54,9 @@ Pod::Spec.new do |s|
     core.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h' ]
     core.dependency 'React-Core'
     unless stripe_spm_enabled?
+      # CocoaPods fallback for React Native < 0.75 and $StripeDisableSPM users.
+      # Keep in sync with StripeSPM::CORE_PRODUCTS in stripe_spm.rb — these are
+      # two spellings of the same dependency set.
       core.dependency 'Stripe', stripe_version
       core.dependency 'StripePaymentSheet', stripe_version
       core.dependency 'StripePayments', stripe_version
@@ -64,6 +70,9 @@ Pod::Spec.new do |s|
     onramp.source_files = [ 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm', 'ios/OnrampErrors.swift' ]
     onramp.dependency 'stripe-react-native/Core'
     unless stripe_spm_enabled?
+      # CocoaPods fallback. In SPM mode the StripeCryptoOnramp product is
+      # linked at install time by stripe_spm.rb (link_onramp_product), because
+      # spm_dependency declarations on subspecs are silently ignored.
       onramp.dependency 'StripeCryptoOnramp', stripe_version
     end
   end

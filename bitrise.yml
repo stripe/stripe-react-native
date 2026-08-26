@@ -102,6 +102,10 @@ workflows:
           inputs:
             - project_path: example/ios/example.xcworkspace
             - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
+            # The SDK's native unit tests are compiled into the test app's
+            # ReactTestAppTests target by example/ios/Podfile (post_integrate);
+            # the standalone podspec test spec isn't usable under SPM
+            # resolution.
             - scheme: ReactTestApp
             - xcodebuild_options: -only-testing:ReactTestAppTests
             - log_formatter: xcbeautify
@@ -519,6 +523,9 @@ workflows:
 
                 DERIVED_DATA_PATH="$BITRISE_SOURCE_DIR/DerivedData"
                 build_ios() {
+                  # ARCHS/ONLY_ACTIVE_ARCH: build only the arm64 simulator
+                  # slice (CI runners and the SPM-built Stripe package don't
+                  # need Intel), roughly halving Release build time.
                   xcodebuild -workspace example.xcworkspace \
                     -scheme example \
                     -configuration Release \
