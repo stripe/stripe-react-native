@@ -51,14 +51,12 @@ new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED']
 #   symbols. Static builds (the fallback mode) don't per-pod link, so the
 #   prebuilt core is fine there on either architecture.
 #
-# Note that old-arch + dynamic frameworks (i.e. old arch + SPM mode) is not a
-# combination CI exercises: even with a source-built React core, react-native-
-# test-app's own DevSupport pod under-declares its React dependencies for
-# per-pod linking (undefined facebook::jsi::* symbols), so the harness can't
-# build it. CI runs the old-arch jobs with STRIPE_DISABLE_SPM=1 instead,
-# which also keeps the CocoaPods fallback path continuously covered. The SPM
-# resolution mechanism itself is architecture-independent and is covered by
-# the new-arch jobs.
+# Old-arch + dynamic frameworks (i.e. old arch + SPM mode) additionally needs
+# react-native-test-app's DevSupport pod force-linked against hermes — see
+# the :post_install lambda below for the full story. With that fix in place,
+# CI runs the old-arch iOS jobs in SPM mode like the new-arch ones; the
+# CocoaPods fallback path is covered by a dedicated build-only job instead
+# (build-ios-fallback in bitrise.yml).
 use_prebuilt_rncore = new_arch_enabled || disable_spm
 ENV['RCT_USE_RN_DEP'] = '1'
 ENV['RCT_USE_PREBUILT_RNCORE'] = '1' if use_prebuilt_rncore
@@ -69,24 +67,42 @@ options = {
   :hermes_enabled => true,
   # react-native-test-app runs this lambda from its own post_install hook.
   :post_install => lambda do |installer|
-    # Only needed for the full-prebuilt (new arch) dynamic-frameworks
-    # configuration; with a source-built React core, CocoaPods links the
-    # React frameworks into DevSupport through normal pod dependencies. With
-    # static libraries (fallback mode) there is no per-framework linking at
-    # all. Note the prebuilt framework names below don't exist in those other
-    # configurations, so force-linking them there would itself break the
-    # build.
-    next if disable_spm || !use_prebuilt_rncore
+    # Dynamic-frameworks builds (SPM mode) make every pod framework resolve
+    # its own symbols at link time, and react-native-test-app's DevSupport
+    # pod under-declares its dependencies for that. Which `-framework` flags
+    # it is missing depends on the configuration:
+    #
+    # - Fallback/static mode (disable_spm): skipped entirely. Static
+    #   libraries don't link per-pod — all symbols resolve at the final app
+    #   link — and force-linking framework names that aren't built in this
+    #   mode would itself break the build.
+    #
+    # - New-arch prebuilt-core mode (use_prebuilt_rncore): the prebuilt React
+    #   core only wires framework linkage through the new-architecture
+    #   dependency path, which DevSupport isn't on, so it needs the whole
+    #   prebuilt set: React, ReactNativeDependencies, and hermes.
+    #
+    # - Old-arch SPM mode (dynamic frameworks + source-built React core):
+    #   CocoaPods links the React frameworks into DevSupport through normal
+    #   pod dependencies, but hermes is still missing. DevSupport's own C++
+    #   references JSI, and with Hermes enabled React Native excludes jsi.cpp
+    #   from React-jsi — the facebook::jsi::* symbol definitions live inside
+    #   hermes-engine's prebuilt dylib, per the One Definition Rule comment
+    #   in React-jsi.podspec — yet DevSupport declares React-jsi, not
+    #   hermes-engine, so nothing links that dylib. Only the `-framework`
+    #   flag is missing; the framework search path already arrives
+    #   transitively (DevSupport -> React-jsi -> hermes-engine).
+    next if disable_spm
 
-    # react-native-test-app's DevSupport pod doesn't declare linkage against
-    # the prebuilt React frameworks, which the dynamic-frameworks build needs
-    # (each dynamic framework must resolve its own symbols at link time).
-    # Append the missing `-framework` flags to its generated xcconfigs.
+    frameworks = use_prebuilt_rncore ? ['React', 'ReactNativeDependencies', 'hermes'] : ['hermes']
+
+    # Append the missing `-framework` flags to DevSupport's generated
+    # xcconfigs.
     Dir.glob("#{installer.sandbox.root}/Target Support Files/ReactTestApp-DevSupport/*.xcconfig").each do |path|
       lines = File.readlines(path, chomp: true)
       index = lines.index { |line| line.start_with?('OTHER_LDFLAGS =') }
       values = index ? lines[index].split(' = ', 2).last.split(' ') : ['$(inherited)']
-      ['React', 'ReactNativeDependencies', 'hermes'].each do |framework|
+      frameworks.each do |framework|
         quoted_framework = "\"#{framework}\""
         next if values.include?(quoted_framework)
 
