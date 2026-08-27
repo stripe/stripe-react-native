@@ -156,9 +156,19 @@ type EmbeddedFinancialConnectionsError = {
   type?: string;
 };
 
+type FinancialConnectionsTokenSuccess = Extract<
+  FinancialConnections.TokenResult,
+  { session: FinancialConnections.Session }
+>;
+
+type ValidFinancialConnectionsTokenSuccess =
+  FinancialConnectionsTokenSuccess & {
+    token: FinancialConnections.BankAccountToken & { id: string };
+  };
+
 type EmbeddedFinancialConnectionsResult =
   | {
-      session: FinancialConnections.Session;
+      session: FinancialConnectionsTokenSuccess['session'];
       token: ReturnType<typeof toStripeJsBankAccountToken>;
       error?: undefined;
     }
@@ -180,6 +190,18 @@ function collectBankAccountTokenForEmbeddedComponent(
   return NativeStripeSdk.collectBankAccountToken(clientSecret, {
     connectedAccountId,
   });
+}
+
+function isValidFinancialConnectionsTokenSuccess(
+  result: FinancialConnections.TokenResult
+): result is ValidFinancialConnectionsTokenSuccess {
+  return (
+    !result.error &&
+    result.session != null &&
+    result.token != null &&
+    typeof result.token.id === 'string' &&
+    result.token.id.length > 0
+  );
 }
 
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
@@ -219,12 +241,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       const mod = await import('react-native-webview');
       setDynamicWebview({ WebView: mod.WebView });
     } catch (err) {
-      try {
-        const mod = require('react-native-webview');
-        setDynamicWebview({ WebView: mod.WebView });
-      } catch {
-        console.error('Failed to import react-native-webview:', err);
-      }
+      console.error('Failed to import react-native-webview:', err);
     }
   }, [dynamicWebview]);
 
@@ -657,6 +674,17 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                   message: result.error.message,
                   localizedMessage: result.error.localizedMessage,
                   type: result.error.type,
+                },
+              });
+              return;
+            }
+
+            if (!isValidFinancialConnectionsTokenSuccess(result)) {
+              handleFinancialConnectionsResult(id, {
+                error: {
+                  code: 'UnexpectedError',
+                  message:
+                    'Financial Connections completed without a session and bank-account token',
                 },
               });
               return;

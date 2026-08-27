@@ -7,6 +7,7 @@ let webViewOnMessage: ((event: any) => void) | undefined;
 jest.mock('react-native-webview', () => {
   const React = require('react');
   return {
+    __esModule: true,
     WebView: React.forwardRef((props: any, ref: any) => {
       webViewOnMessage = props.onMessage;
       React.useImperativeHandle(ref, () => ({
@@ -58,6 +59,7 @@ describe('EmbeddedComponent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    webViewOnMessage = undefined;
     connectInstance = loadConnectAndInitialize(mockInitParams);
   });
 
@@ -350,46 +352,35 @@ describe('EmbeddedComponent', () => {
   });
 
   describe('Financial Connections bridge', () => {
-    it('collects and forwards a bank-account token', async () => {
-      const mockCollectBankAccountToken =
-        NativeStripeSdk.collectBankAccountToken as jest.Mock;
-      const mockCollectFinancialConnectionsAccounts =
-        NativeStripeSdk.collectFinancialConnectionsAccounts as jest.Mock;
+    const mockSession = {
+      id: 'session',
+      clientSecret: 'client_secret',
+      livemode: false,
+      accounts: [],
+    };
+    const mockToken = {
+      id: 'btok_token',
+      livemode: false,
+      used: false,
+      type: 'BankAccount' as const,
+      created: 1000000,
+      bankAccount: {
+        id: 'bank_account',
+        bankName: 'Test Bank',
+        accountHolderName: null,
+        accountHolderType: null,
+        currency: 'usd',
+        country: 'US',
+        routingNumber: '110000000',
+        status: null,
+        fingerprint: null,
+        last4: '6789',
+      },
+    };
 
-      mockCollectBankAccountToken.mockResolvedValue({
-        session: {
-          id: 'session',
-          clientSecret: 'client_secret',
-          livemode: false,
-          accounts: [],
-        },
-        token: {
-          id: 'token',
-          livemode: false,
-          used: false,
-          type: 'BankAccount',
-          created: 1000000,
-          bankAccount: {
-            id: 'bank_account',
-            bankName: 'Test Bank',
-            accountHolderName: null,
-            accountHolderType: null,
-            currency: 'usd',
-            country: 'US',
-            routingNumber: '110000000',
-            status: null,
-            fingerprint: null,
-            last4: '6789',
-          },
-        },
-        error: undefined,
-      });
-
+    const openFinancialConnections = async () => {
       renderComponent({ component: 'account-onboarding' });
-
-      await waitFor(() => {
-        expect(webViewOnMessage).toBeDefined();
-      });
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
 
       await act(async () => {
         webViewOnMessage?.({
@@ -405,6 +396,36 @@ describe('EmbeddedComponent', () => {
           },
         });
       });
+    };
+
+    const getLastInjectedJavaScript = () =>
+      mockInjectJavaScript.mock.calls[
+        mockInjectJavaScript.mock.calls.length - 1
+      ]?.[0];
+
+    const expectUnexpectedError = () => {
+      const injectedJavaScript = getLastInjectedJavaScript();
+      expect(injectedJavaScript).toContain('UnexpectedError');
+      expect(injectedJavaScript).toContain(
+        '"financialConnectionsSession":null'
+      );
+      expect(injectedJavaScript).toContain('"token":null');
+      expect(injectedJavaScript).not.toContain('"id":"session"');
+      expect(injectedJavaScript).not.toContain('"id":"btok_token"');
+    };
+
+    it('collects and forwards a bank-account token', async () => {
+      const mockCollectBankAccountToken =
+        NativeStripeSdk.collectBankAccountToken as jest.Mock;
+      const mockCollectFinancialConnectionsAccounts =
+        NativeStripeSdk.collectFinancialConnectionsAccounts as jest.Mock;
+      mockCollectBankAccountToken.mockResolvedValue({
+        session: mockSession,
+        token: mockToken,
+        error: undefined,
+      });
+
+      await openFinancialConnections();
 
       expect(mockCollectBankAccountToken).toHaveBeenCalledWith(
         'client_secret',
@@ -412,11 +433,68 @@ describe('EmbeddedComponent', () => {
       );
       expect(mockCollectFinancialConnectionsAccounts).not.toHaveBeenCalled();
       expect(mockInjectJavaScript).toHaveBeenCalledWith(
-        expect.stringContaining('"id":"token"')
+        expect.stringContaining('"id":"btok_token"')
       );
       expect(mockInjectJavaScript).toHaveBeenCalledWith(
         expect.stringContaining('"bank_account"')
       );
+    });
+
+    it.each([
+      ['a session-only result', { session: mockSession, error: undefined }],
+      ['a result without a session', { token: mockToken, error: undefined }],
+      [
+        'a result without a token',
+        { session: mockSession, token: undefined, error: undefined },
+      ],
+      [
+        'a token with a null ID',
+        {
+          session: mockSession,
+          token: { ...mockToken, id: null },
+          error: undefined,
+        },
+      ],
+    ])('reports an unexpected error for %s', async (_description, result) => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue(
+        result
+      );
+
+      await openFinancialConnections();
+
+      expectUnexpectedError();
+    });
+
+    it('reports cancellation without an error', async () => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue({
+        error: { code: 'Canceled', message: 'Canceled' },
+      });
+
+      await openFinancialConnections();
+
+      const injectedJavaScript = getLastInjectedJavaScript();
+      expect(injectedJavaScript).toContain('"error":null');
+      expect(injectedJavaScript).not.toContain('UnexpectedError');
+    });
+
+    it('forwards native errors', async () => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue({
+        error: { code: 'Failed', message: 'Native error' },
+      });
+
+      await openFinancialConnections();
+
+      expect(getLastInjectedJavaScript()).toContain('"code":"Failed"');
+    });
+
+    it('reports rejected promises as unexpected errors', async () => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockRejectedValue(
+        new Error('Rejected')
+      );
+
+      await openFinancialConnections();
+
+      expectUnexpectedError();
     });
   });
 
