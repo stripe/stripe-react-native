@@ -127,12 +127,24 @@ workflows:
   # a source-built React core; see example/ios/Podfile). The iOS formatting
   # check isn't repeated here: it is architecture-independent and already
   # runs in unit-test-ios.
+  #
+  # Unlike unit-test-ios, this job embeds a prebuilt JS bundle
+  # (_build_js_bundle, as the e2e jobs do). CI has no Metro server, and with
+  # neither Metro nor an embedded bundle the Debug test app's old-arch launch
+  # path never becomes ready for XCTest — the run fails with "test runner
+  # hung before establishing connection" after the app's failed
+  # http://localhost:8081/status probe. react-native-test-app prefers Metro
+  # in Debug but falls back to the embedded main.ios.jsbundle once that probe
+  # fails, so the bundle unblocks launch. The new-arch (bridgeless) launch
+  # path happens to tolerate having no bundle at all, which is why
+  # unit-test-ios gets away without this step.
   unit-test-ios-old-arch:
     envs:
       - NEW_ARCH_ENABLED: false
       - RCT_NEW_ARCH_ENABLED: 0
     before_run:
       - _prepare_ios
+      - _build_js_bundle
       - _install_pods
     steps:
       - xcode-test@4:
