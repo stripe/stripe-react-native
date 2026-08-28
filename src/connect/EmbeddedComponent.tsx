@@ -638,12 +638,9 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
-        const resultPromise: Promise<FinancialConnections.TokenResult> =
-          NativeStripeSdk.collectBankAccountToken(clientSecret, {
-            connectedAccountId,
-          });
-
-        resultPromise
+        NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret, {
+          connectedAccountId,
+        })
           .then((result) => {
             if (result.error) {
               if (
