@@ -28,7 +28,7 @@ import type {
   LoaderStart,
   StripeConnectInitParams,
 } from './connectTypes';
-import type { FinancialConnections } from '../types';
+import type { FinancialConnections, StripeError } from '../types';
 import { FinancialConnectionsSheetError } from '../types/FinancialConnections';
 import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
 
@@ -149,60 +149,19 @@ type StripeConnectInitParamsInternal = StripeConnectInitParams & {
   overrides?: Record<string, string>;
 };
 
-type EmbeddedFinancialConnectionsError = {
-  code: string;
-  message: string;
-  localizedMessage?: string;
-  type?: string;
-};
-
-type FinancialConnectionsTokenSuccess = Extract<
-  FinancialConnections.TokenResult,
-  { session: FinancialConnections.Session }
->;
-
-type ValidFinancialConnectionsTokenSuccess =
-  FinancialConnectionsTokenSuccess & {
-    token: FinancialConnections.BankAccountToken & { id: string };
-  };
-
 type EmbeddedFinancialConnectionsResult =
   | {
-      session: FinancialConnectionsTokenSuccess['session'];
+      status: 'success';
+      session: FinancialConnections.Session;
       token: ReturnType<typeof toStripeJsBankAccountToken>;
-      error?: undefined;
     }
   | {
-      session?: undefined;
-      token?: undefined;
-      error: EmbeddedFinancialConnectionsError;
+      status: 'error';
+      error: StripeError<string>;
     }
   | {
-      session?: undefined;
-      token?: undefined;
-      error?: undefined;
+      status: 'canceled';
     };
-
-function collectBankAccountTokenForEmbeddedComponent(
-  clientSecret: string,
-  connectedAccountId: string
-): Promise<FinancialConnections.TokenResult> {
-  return NativeStripeSdk.collectBankAccountToken(clientSecret, {
-    connectedAccountId,
-  });
-}
-
-function isValidFinancialConnectionsTokenSuccess(
-  result: FinancialConnections.TokenResult
-): result is ValidFinancialConnectionsTokenSuccess {
-  return (
-    !result.error &&
-    result.session != null &&
-    result.token != null &&
-    typeof result.token.id === 'string' &&
-    result.token.id.length > 0
-  );
-}
 
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const [dynamicWebview, setDynamicWebview] = useState<{
@@ -524,20 +483,41 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     id: string,
     result: EmbeddedFinancialConnectionsResult
   ) => {
+    let value;
+    switch (result.status) {
+      case 'success':
+        value = {
+          id,
+          financialConnectionsSession: {
+            accounts: result.session.accounts,
+          },
+          token: result.token,
+          error: null,
+        };
+        break;
+      case 'error':
+        value = {
+          id,
+          financialConnectionsSession: null,
+          token: null,
+          error: result.error,
+        };
+        break;
+      case 'canceled':
+        value = {
+          id,
+          financialConnectionsSession: null,
+          token: null,
+          error: null,
+        };
+        break;
+    }
+
     ref.current?.injectJavaScript(`
       (function() {
         window.callSetterWithSerializableValue(${JSON.stringify({
           setter: 'setCollectMobileFinancialConnectionsResult',
-          value: {
-            id: id,
-            financialConnectionsSession: result.session
-              ? {
-                  accounts: result.session.accounts,
-                }
-              : null,
-            token: result.token ?? null,
-            error: result.error ?? null,
-          },
+          value,
         })});
         true;
       })();
@@ -609,6 +589,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         // Validate client secret
         if (!clientSecret || typeof clientSecret !== 'string') {
           handleFinancialConnectionsResult(id, {
+            status: 'error',
             error: {
               code: 'InvalidClientSecret',
               message: 'Invalid or missing clientSecret parameter',
@@ -620,6 +601,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         // Prevent multiple simultaneous flows
         if (pendingFinancialConnectionsPromise.current) {
           handleFinancialConnectionsResult(id, {
+            status: 'error',
             error: {
               code: 'AlreadyInProgress',
               message: 'Financial Connections flow already in progress',
@@ -643,7 +625,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         }
 
         // Store cleanup function
+        let hasCleanedUp = false;
         const cleanup = () => {
+          if (hasCleanedUp) return;
+          hasCleanedUp = true;
           eventListener?.remove();
           pendingFinancialConnectionsPromise.current = null;
         };
@@ -653,34 +638,36 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
-        collectBankAccountTokenForEmbeddedComponent(
-          clientSecret,
-          connectedAccountId
-        )
-          .then((result) => {
-            cleanup();
+        const resultPromise: Promise<FinancialConnections.TokenResult> =
+          NativeStripeSdk.collectBankAccountToken(clientSecret, {
+            connectedAccountId,
+          });
 
+        resultPromise
+          .then((result) => {
             if (result.error) {
               if (
                 result.error.code === FinancialConnectionsSheetError.Canceled
               ) {
-                handleFinancialConnectionsResult(id, {});
+                handleFinancialConnectionsResult(id, { status: 'canceled' });
                 return;
               }
 
               handleFinancialConnectionsResult(id, {
-                error: {
-                  code: result.error.code,
-                  message: result.error.message,
-                  localizedMessage: result.error.localizedMessage,
-                  type: result.error.type,
-                },
+                status: 'error',
+                error: result.error,
               });
               return;
             }
 
-            if (!isValidFinancialConnectionsTokenSuccess(result)) {
+            if (
+              !result.session ||
+              !result.token ||
+              typeof result.token.id !== 'string' ||
+              result.token.id.length === 0
+            ) {
               handleFinancialConnectionsResult(id, {
+                status: 'error',
                 error: {
                   code: 'UnexpectedError',
                   message:
@@ -691,14 +678,15 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
             }
 
             handleFinancialConnectionsResult(id, {
+              status: 'success',
               session: result.session,
               token: toStripeJsBankAccountToken(result.token),
             });
           })
           .catch((unexpectedError) => {
-            cleanup();
             handleUnexpectedError(unexpectedError);
             handleFinancialConnectionsResult(id, {
+              status: 'error',
               error: {
                 code: 'UnexpectedError',
                 message:
@@ -707,7 +695,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                     : 'An unexpected error occurred during Financial Connections',
               },
             });
-          });
+          })
+          .finally(cleanup);
       } else if (message.type === 'closeWebView') {
         // message.data is empty
         callbacks?.onCloseWebView?.({});
