@@ -28,7 +28,9 @@ import {
   saveUser,
   createLinkAuthToken,
   getCryptoCustomerId,
+  fetchCustomerWallets,
 } from '../../api/onrampBackend';
+import type { CustomerWallet } from '../../api/onrampBackend';
 import {
   getDestinationParamsForNetwork,
   formatIdentifierRequirements,
@@ -91,6 +93,7 @@ export default function CryptoOnrampFlow() {
     attachKycInfo,
     retrieveMissingIdentifiers,
     submitIdentifiers,
+    deleteWalletAddress,
     getWalletOwnershipChallenge,
     submitWalletOwnershipSignature,
     presentUserAttestation,
@@ -103,6 +106,7 @@ export default function CryptoOnrampFlow() {
     getCryptoTokenDisplayData,
     logOut,
     isAuthError,
+    isSamsungPaySupported,
     authenticateUserWithToken,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
@@ -148,13 +152,19 @@ export default function CryptoOnrampFlow() {
   );
 
   const [isPlatformPayAvailable, setIsPlatformPayAvailable] = useState(false);
+  const [isSamsungPayAvailable, setIsSamsungPayAvailable] = useState(false);
   const [authInProgress, setAuthInProgress] = useState<
     null | 'login' | 'signup'
   >(null);
 
   // Payment method state used to help determine ACH settlement speed segmented control visibility (only available for bank account payments).
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    'Card' | 'BankAccount' | 'CardAndBankAccount' | 'PlatformPay' | null
+    | 'Card'
+    | 'BankAccount'
+    | 'CardAndBankAccount'
+    | 'PlatformPay'
+    | 'SamsungPay'
+    | null
   >(null);
 
   // ACH settlement speed state
@@ -180,6 +190,8 @@ export default function CryptoOnrampFlow() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [walletNetwork, setWalletNetwork] =
     useState<Onramp.CryptoNetwork | null>(null);
+  const [wallets, setWallets] = useState<CustomerWallet[]>([]);
+  const [isWalletsLoading, setIsWalletsLoading] = useState(false);
   const [walletOwnershipChallenge, setWalletOwnershipChallenge] =
     useState<Onramp.WalletOwnershipChallenge | null>(null);
   const [walletOwnershipVerified, setWalletOwnershipVerified] = useState<
@@ -584,6 +596,75 @@ export default function CryptoOnrampFlow() {
     }
   }, [userInfo.phoneNumber, updatePhoneNumber]);
 
+  const handleRefreshWallets = useCallback(async () => {
+    if (!authToken) {
+      showError('Please log in to the demo backend first.');
+      return;
+    }
+
+    setIsWalletsLoading(true);
+
+    try {
+      const result = await fetchCustomerWallets(authToken);
+      if (!result.success) {
+        showError(
+          `Failed to fetch wallets: ${result.error.code} - ${result.error.message}`
+        );
+        return;
+      }
+
+      setWallets(result.data.data);
+    } finally {
+      setIsWalletsLoading(false);
+    }
+  }, [authToken]);
+
+  const handleDeleteWallet = useCallback(
+    async (wallet: CustomerWallet) => {
+      setIsWalletsLoading(true);
+
+      try {
+        const result = await withReauth(
+          () => deleteWalletAddress(wallet.id),
+          () => authorize(linkAuthIntentId)
+        );
+
+        if (result.error) {
+          showError(`Failed to delete wallet: ${result.error.message}.`);
+          return;
+        }
+
+        setWallets((currentWallets) =>
+          currentWallets.filter(
+            (currentWallet) => currentWallet.id !== wallet.id
+          )
+        );
+
+        if (
+          wallet.walletAddress.toLowerCase() === walletAddress?.toLowerCase() &&
+          wallet.network === walletNetwork
+        ) {
+          setWalletAddress(null);
+          setWalletNetwork(null);
+          setWalletOwnershipChallenge(null);
+          setWalletOwnershipVerified(null);
+        }
+
+        showSuccess('Wallet deleted successfully!');
+      } finally {
+        setIsWalletsLoading(false);
+      }
+    },
+    [
+      authorize,
+      deleteWalletAddress,
+      linkAuthIntentId,
+      walletAddress,
+      walletNetwork,
+      withReauth,
+    ]
+  );
+
   const handleGetWalletOwnershipChallenge = useCallback(async () => {
     const address = walletAddress?.trim();
     const network = walletNetwork;
@@ -686,16 +767,24 @@ export default function CryptoOnrampFlow() {
     | { type: 'Card' }
     | { type: 'BankAccount' }
     | { type: 'CardAndBankAccount' }
-    | { type: 'PlatformPay'; params: Onramp.OnrampPlatformPayParams };
+    | { type: 'PlatformPay'; params: Onramp.OnrampPlatformPayParams }
+    | { type: 'SamsungPay'; params: Onramp.OnrampPlatformPayParams };
 
   const handleCollectPaymentMethod = useCallback(
     async (request: CollectPaymentRequest) => {
-      const result = await withReauth(
-        () =>
-          request.type === 'PlatformPay'
-            ? collectPaymentMethod(request.type, request.params)
-            : collectPaymentMethod(request.type),
-        () => authorize(linkAuthIntentId)
+      const collectPayment = () => {
+        switch (request.type) {
+          case 'PlatformPay':
+            return collectPaymentMethod('PlatformPay', request.params);
+          case 'SamsungPay':
+            return collectPaymentMethod('SamsungPay', request.params);
+          default:
+            return collectPaymentMethod(request.type);
+        }
+      };
+
+      const result = await withReauth(collectPayment, () =>
+        authorize(linkAuthIntentId)
       );
 
       if (result?.error) {
@@ -774,6 +863,21 @@ export default function CryptoOnrampFlow() {
     handleCollectPaymentMethod({
       type: 'PlatformPay',
       params: googlePayParams,
+    });
+  }, [handleCollectPaymentMethod, sourceCurrency]);
+
+  const handleCollectSamsungPayPayment = useCallback(async () => {
+    const samsungPayParams: Onramp.OnrampPlatformPayParams = {
+      samsungPay: {
+        currencyCode: sourceCurrency.toUpperCase(),
+        amount: 100,
+        orderNumber: `rn-onramp-${Date.now()}`,
+      },
+    };
+
+    handleCollectPaymentMethod({
+      type: 'SamsungPay',
+      params: samsungPayParams,
     });
   }, [handleCollectPaymentMethod, sourceCurrency]);
 
@@ -944,6 +1048,7 @@ export default function CryptoOnrampFlow() {
       setStoredDemoAuth(null);
       setWalletAddress(null);
       setWalletNetwork(null);
+      setWallets([]);
       setWalletOwnershipChallenge(null);
       setWalletOwnershipVerified(null);
       setOnrampSessionId(null);
@@ -954,8 +1059,15 @@ export default function CryptoOnrampFlow() {
   }, [logOut]);
 
   useEffect(() => {
+    if (isLinkUser && customerId && authToken) {
+      handleRefreshWallets();
+    }
+  }, [authToken, customerId, handleRefreshWallets, isLinkUser]);
+
+  useEffect(() => {
     let mounted = true;
-    (async () => {
+
+    const checkPlatformPaySupport = async () => {
       try {
         const params =
           Platform.OS === 'android'
@@ -966,11 +1078,26 @@ export default function CryptoOnrampFlow() {
       } catch {
         if (mounted) setIsPlatformPayAvailable(false);
       }
-    })();
+    };
+
+    const checkSamsungPaySupport = async () => {
+      if (Platform.OS !== 'android') return;
+
+      try {
+        const supported = await isSamsungPaySupported();
+        if (mounted) setIsSamsungPayAvailable(supported);
+      } catch {
+        if (mounted) setIsSamsungPayAvailable(false);
+      }
+    };
+
+    checkPlatformPaySupport();
+    checkSamsungPaySupport();
+
     return () => {
       mounted = false;
     };
-  }, [isPlatformPaySupported]);
+  }, [isPlatformPaySupported, isSamsungPaySupported]);
 
   // Load persisted demo auth for seamless sign-in
   useEffect(() => {
@@ -1178,6 +1305,7 @@ export default function CryptoOnrampFlow() {
           />
           <PaymentCollectionSection
             isPlatformPaySupported={isPlatformPayAvailable}
+            isSamsungPaySupported={isSamsungPayAvailable}
             sourceCurrency={sourceCurrency}
             onSourceCurrencyChange={handleSourceCurrencyChange}
             handleCollectPlatformPayPayment={
@@ -1185,6 +1313,7 @@ export default function CryptoOnrampFlow() {
                 ? handleCollectApplePayPayment
                 : handleCollectGooglePayPayment
             }
+            handleCollectSamsungPayPayment={handleCollectSamsungPayPayment}
             handleCollectCardPayment={handleCollectCardPayment}
             handleCollectBankAccountPayment={handleCollectBankAccountPayment}
             handleCollectCardAndBankAccountPayment={
@@ -1211,11 +1340,16 @@ export default function CryptoOnrampFlow() {
             handleCreateCryptoPaymentToken={handleCreateCryptoPaymentToken}
           />
           <RegisterWalletAddressSection
+            wallets={wallets}
+            isWalletsLoading={isWalletsLoading}
+            onDeleteWallet={handleDeleteWallet}
+            onRefreshWallets={handleRefreshWallets}
             onWalletRegistered={(address, network) => {
               setWalletAddress(address);
               setWalletNetwork(network);
               setWalletOwnershipChallenge(null);
               setWalletOwnershipVerified(null);
+              handleRefreshWallets();
             }}
           />
           <WalletOwnershipSection

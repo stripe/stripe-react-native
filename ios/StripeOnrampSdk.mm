@@ -29,6 +29,12 @@ RCT_EXPORT_METHOD(configureOnramp:(nonnull NSDictionary *)config
   [StripeSdkImpl.shared configureOnramp:config resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(isSamsungPaySupported:(nonnull RCTPromiseResolveBlock)resolve
+                                reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  resolve(@NO);
+}
+
 RCT_EXPORT_METHOD(hasLinkAccount:(nonnull NSString *)email
                          resolve:(nonnull RCTPromiseResolveBlock)resolve
                           reject:(nonnull RCTPromiseRejectBlock)reject)
@@ -56,6 +62,13 @@ RCT_EXPORT_METHOD(registerWalletAddress:(nonnull NSString *)address
                                  reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared registerWalletAddress:address network:network resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(deleteWalletAddress:(nonnull NSString *)walletId
+                              resolve:(nonnull RCTPromiseResolveBlock)resolve
+                               reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared deleteWalletAddress:walletId resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(getWalletOwnershipChallenge:(nonnull NSString *)walletAddress

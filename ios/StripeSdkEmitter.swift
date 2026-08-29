@@ -22,7 +22,7 @@ import Foundation
     func emitOnCustomPaymentMethodConfirmHandlerCallback(_ value: [String: Any])
     func emitPaymentMethodMessagingElementDidUpdateHeight(_ value: [String: Any])
     func emitPaymentMethodMessagingElementConfigureResult(_ value: [String: Any])
-    func emitCheckoutSessionDidChangeState(_ value: [String: Any])
+    func emitCheckoutControllerDidUpdate(_ value: [String: Any])
 }
 
 @objc public protocol StripeOnrampSdkEmitter {

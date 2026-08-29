@@ -44,6 +44,10 @@ export function useOnramp() {
     []
   );
 
+  const _isSamsungPaySupported = useCallback(async (): Promise<boolean> => {
+    return requireOnrampModule().isSamsungPaySupported();
+  }, []);
+
   const _registerLinkUser = useCallback(
     async (
       info: Onramp.LinkUserInfo
@@ -62,6 +66,13 @@ export function useOnramp() {
         walletAddress,
         network
       );
+    },
+    []
+  );
+
+  const _deleteWalletAddress = useCallback(
+    async (walletId: string): Promise<{ error?: Onramp.CryptoOnrampError }> => {
+      return requireOnrampModule().deleteWalletAddress(walletId);
     },
     []
   );
@@ -155,12 +166,14 @@ export function useOnramp() {
    * The set of payment methods supported by crypto onramp collection.
    * - 'Card', 'BankAccount', 'CardAndBankAccount' present Link for collection.
    * - 'PlatformPay' presents Apple Pay / Google Pay using provided params.
+   * - 'SamsungPay' presents Samsung Pay using provided params on Android.
    */
   type OnrampPaymentMethod =
     | 'Card'
     | 'BankAccount'
     | 'CardAndBankAccount'
-    | 'PlatformPay';
+    | 'PlatformPay'
+    | 'SamsungPay';
 
   // Overloads for stronger type-safety at call-sites
   const _collectPaymentMethod: {
@@ -170,6 +183,10 @@ export function useOnramp() {
     ): Promise<Onramp.CollectPaymentMethodResult>;
     (
       paymentMethod: 'PlatformPay',
+      platformPayParams: Onramp.OnrampPlatformPayParams
+    ): Promise<Onramp.CollectPaymentMethodResult>;
+    (
+      paymentMethod: 'SamsungPay',
       platformPayParams: Onramp.OnrampPlatformPayParams
     ): Promise<Onramp.CollectPaymentMethodResult>;
   } = useCallback(
@@ -260,6 +277,13 @@ export function useOnramp() {
     configure: _configure,
 
     /**
+     * Checks whether Samsung Pay is ready for Onramp payment collection.
+     * Returns false on non-Android platforms, when Samsung Pay is not configured,
+     * or when Samsung Pay SDK 2.22.00 is unavailable on the device.
+     */
+    isSamsungPaySupported: _isSamsungPaySupported,
+
+    /**
      * Whether or not the provided email is associated with an existing Link consumer.
      *
      * @param email The email address to look up
@@ -284,6 +308,15 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     registerWalletAddress: _registerWalletAddress,
+
+    /**
+     * Deletes the given crypto wallet from the current Link account.
+     * Requires an authenticated Link user.
+     *
+     * @param walletId The ID of the crypto wallet to delete
+     * @returns Promise that resolves to an object with an optional error property
+     */
+    deleteWalletAddress: _deleteWalletAddress,
 
     /**
      * Creates a short-lived challenge for proving ownership of a registered wallet.
@@ -380,9 +413,11 @@ export function useOnramp() {
      * @param paymentMethod The payment method type to collect.
      *  - 'Card' and 'BankAccount' present Link for collection.
      *  - 'PlatformPay' presents Apple Pay / Google Pay using the provided parameters.
-     * @param platformPayParams Platform-specific parameters (required when `paymentMethod` is 'PlatformPay').
+     *  - 'SamsungPay' presents Samsung Pay on Android.
+     * @param platformPayParams Platform-specific parameters (required when `paymentMethod` is 'PlatformPay' or 'SamsungPay').
      *  - iOS: provide `applePay` params
      *  - Android: provide `googlePay` params
+     *  - Samsung Pay: provide `samsungPay` params
      *  - To receive Apple Pay billing details back as `kycInfo`, request `.name` and/or `.postalAddress`
      *    in `applePay.requiredBillingContactFields`
      *  - To receive Google Pay billing details back as `kycInfo`, ensure that the `GooglePayConfig`

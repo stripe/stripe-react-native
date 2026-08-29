@@ -25,6 +25,7 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
+import com.reactnativestripesdk.checkout.CheckoutControllerRegistry
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
@@ -83,16 +84,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-internal const val CHECKOUT_UNAVAILABLE_MESSAGE =
-  "Checkout Sessions are temporarily unavailable while the native integration is being rebuilt."
-
-private fun rejectCheckoutUnavailable(promise: Promise) {
-  promise.reject(ErrorType.Failed.toString(), CHECKOUT_UNAVAILABLE_MESSAGE)
-}
-
-internal fun createCheckoutUnavailableError(): WritableMap =
-  createError(ErrorType.Failed.toString(), CHECKOUT_UNAVAILABLE_MESSAGE)
-
 @ReactModule(name = StripeSdkModule.NAME)
 @OptIn(ReactNativeSdkInternal::class)
 class StripeSdkModule(
@@ -118,6 +109,7 @@ class StripeSdkModule(
   private var googlePayPaymentMethodLauncherManager: GooglePayPaymentMethodLauncherManager? = null
   private var customerSheetManager: CustomerSheetManager? = null
   private var linkControllerManager: LinkControllerManager? = null
+  internal val checkoutControllerRegistry = CheckoutControllerRegistry()
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
   internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
@@ -168,6 +160,9 @@ class StripeSdkModule(
 
     stripeUIManagers.forEach { it.destroy() }
     stripeUIManagers.clear()
+    UiThreadUtil.runOnUiThread {
+      checkoutControllerRegistry.clear()
+    }
     linkControllerManager?.destroy()
     linkControllerManager = null
   }
@@ -1416,15 +1411,6 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  override fun createEmbeddedPaymentElementWithCheckout(
-    sessionKey: String,
-    configuration: ReadableMap,
-    promise: Promise,
-  ) {
-    promise.resolve(null)
-  }
-
-  @ReactMethod
   override fun confirmEmbeddedPaymentElement(
     viewTag: Double,
     promise: Promise,
@@ -1753,71 +1739,6 @@ class StripeSdkModule(
     promise: Promise?,
   ) {
     // noop, iOS only.
-  }
-
-  override fun initCheckoutSession(
-    clientSecret: String,
-    configuration: ReadableMap,
-    promise: Promise,
-  ) {
-    rejectCheckoutUnavailable(promise)
-  }
-
-  override fun checkoutUpdateShippingAddress(
-    sessionKey: String,
-    address: ReadableMap,
-    name: String?,
-    phone: String?,
-    promise: Promise,
-  ) {
-    rejectCheckoutUnavailable(promise)
-  }
-
-  override fun checkoutApplyPromotionCode(
-    sessionKey: String,
-    code: String,
-    promise: Promise,
-  ) {
-    rejectCheckoutUnavailable(promise)
-  }
-
-  override fun checkoutRemovePromotionCode(
-    sessionKey: String,
-    promise: Promise,
-  ) {
-    rejectCheckoutUnavailable(promise)
-  }
-
-  override fun checkoutUpdateLineItemQuantity(
-    sessionKey: String,
-    lineItemId: String,
-    quantity: Double,
-    promise: Promise,
-  ) {
-    rejectCheckoutUnavailable(promise)
-  }
-
-  override fun checkoutSelectShippingOption(
-    sessionKey: String,
-    id: String,
-    promise: Promise,
-  ) {
-    rejectCheckoutUnavailable(promise)
-  }
-
-  override fun checkoutRunServerUpdateStart(
-    sessionKey: String,
-    promise: Promise,
-  ) {
-    rejectCheckoutUnavailable(promise)
-  }
-
-  override fun checkoutRunServerUpdateComplete(
-    sessionKey: String,
-    error: String?,
-    promise: Promise,
-  ) {
-    rejectCheckoutUnavailable(promise)
   }
 
   /**

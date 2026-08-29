@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## Unreleased
+**Features**
+* [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.
+
+## 0.75.0 - 2026-08-18
+**Features**
+* [Added] Android: Added Crypto Onramp Samsung Pay configuration, availability checks, payment collection, and example integration.
+* [Added] Added typed Crypto Onramp error coverage for wallet ownership verification failures.
+
 ## 0.74.0 - 2026-08-11
 **Features**
 * [Added] iOS: Added `supportedNetworks` to the Apple Pay params, which restricts the card networks offered in the Apple Pay sheet.

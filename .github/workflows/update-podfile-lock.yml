@@ -28,6 +28,7 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: '.node-version'
+          package-manager-cache: false
 
       - name: Run yarn bootstrap
         run: yarn bootstrap

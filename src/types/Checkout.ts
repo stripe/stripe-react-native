@@ -1,555 +1,652 @@
+import type { ViewProps } from 'react-native';
+import type { CardBrand } from './Common';
+import type { StripeError } from './Errors';
+import type {
+  AppearanceParams,
+  PaymentMethodLayout,
+  TermsDisplay,
+} from './PaymentSheet';
+import type { EmbeddedRowSelectionBehavior } from './EmbeddedPaymentElement';
+
 /**
- * All types for the Checkout Session API.
- * @internal
+ * Controls a Checkout Session, including its state, Payment Element,
+ * mutations, and confirmation flow.
+ *
+ * @remarks
+ * This API is in private preview and can change without notice.
+ *
+ * @CheckoutSessionPrivatePreview
+ */
+export interface CheckoutController {
+  /**
+   * The controller lifecycle status. Disable mutation and confirmation UI
+   * unless this is `ready`.
+   */
+  readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
+  /** The latest snapshot of the customer's Checkout Session. */
+  readonly session: Checkout.Session;
+  /** The Payment Element owned by this controller. */
+  readonly paymentElement: CheckoutPaymentElement;
+  /** Updates the customer's email address. Pass `null` to clear it. */
+  updateEmail(email: string | null): Promise<void>;
+  /** Sets or clears the customer's shipping address. */
+  updateShippingAddress(
+    params: Checkout.UpdateShippingAddressParams
+  ): Promise<void>;
+  /** Applies a promotion code after trimming leading and trailing whitespace. */
+  applyPromotionCode(promotionCode: string): Promise<void>;
+  /** Removes the currently applied promotion code, if any. */
+  removePromotionCode(): Promise<void>;
+  /** Runs a server update, then refreshes the local Checkout Session. */
+  runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+  /** Clears the customer's currently selected payment option. */
+  clearPaymentOption(): Promise<void>;
+  /** Confirms the Checkout Session for the selected payment option. */
+  confirm(): Promise<Checkout.Result>;
+  /** Releases the controller's native resources and clears its loaded state. */
+  destroy(): Promise<void>;
+}
+
+/**
+ * The Checkout-owned Payment Element. It collects a customer's payment method
+ * inline or in a sheet.
+ *
+ * @remarks
+ * This API is in private preview and can change without notice.
+ *
+ * @CheckoutSessionPrivatePreview
+ */
+export interface CheckoutPaymentElement {
+  /** Presents Payment Element in a sheet and resolves when it is dismissed. */
+  present(): Promise<void>;
+}
+
+/**
+ * Props for the inline Checkout Payment Element view.
+ *
+ * @remarks
+ * This API is in private preview and can change without notice.
+ *
+ * @CheckoutSessionPrivatePreview
+ */
+export interface CheckoutPaymentElementViewProps extends ViewProps {
+  /** The Payment Element owned by Checkout. */
+  element: CheckoutPaymentElement;
+}
+
+/**
+ * Types used by the Checkout private-preview APIs.
+ *
+ * @remarks
+ * This API is in private preview and can change without notice.
+ *
+ * @CheckoutSessionPrivatePreview
  */
 export namespace Checkout {
   /**
-   * Configuration options for a `useCheckout` instance.
-   * @internal
+   * The appearance to use for Checkout UI.
+   * @CheckoutSessionPrivatePreview
    */
-  export interface Configuration {
-    /**
-     * Controls whether adaptive pricing is requested for this session.
-     *
-     * When allowed, Stripe may present prices in the customer's local
-     * currency alongside the merchant's settlement currency.
-     *
-     * Default: `{ allowed: false }`.
-     */
-    adaptivePricing?: AdaptivePricing;
+  export type UserInterfaceStyle = 'alwaysLight' | 'alwaysDark' | 'automatic';
+
+  /**
+   * Configuration used to create Checkout.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface CreateOptions {
+    /** The Checkout Session client secret. */
+    clientSecret: string;
+    /** A URL that redirects back to your app after payment authentication. */
+    returnURL: string;
+    /** Customer information already known by your app. */
+    defaults?: Defaults;
+    /** Customer-facing business name. */
+    merchantDisplayName?: string;
+    /** Overrides the light or dark appearance. */
+    style?: UserInterfaceStyle;
+    /** Configuration for the Checkout-owned Payment Element. */
+    paymentElement?: PaymentElementConfiguration;
   }
 
   /**
-   * Options for adaptive pricing behavior.
-   * @internal
+   * Options for loading and managing Checkout with `useCheckout`.
+   * @CheckoutSessionPrivatePreview
    */
-  export interface AdaptivePricing {
+  export interface UseOptions {
+    /** Defaults to `true`. When `false`, the status remains `idle`. */
+    enabled?: boolean;
     /**
-     * Whether the integration allows adaptive pricing for this session.
-     *
-     * Set to `false` to prevent Stripe from activating adaptive pricing even
-     * if the Checkout Session is configured for it on the server.
-     *
-     * Default: `false`.
+     * Fetches a fresh Checkout Session client secret and its configuration.
+     * Called when enabled on mount and again by `reload()`.
      */
-    allowed: boolean;
+    getConfiguration: () => Promise<CreateOptions>;
   }
 
   /**
-   * The loading state of the checkout session.
-   *
-   * Returned as `state` from `useCheckout`. React re-renders automatically
-   * whenever the session changes.
-   *
-   * - `loading` – a mutation or refresh is in flight; `session` is the most
-   *   recently loaded value and may be stale.
-   * - `loaded`  – session is current and ready.
-   *
-   * Before the initial session load completes, `state` is `null`.
-   * @internal
+   * Reactive Checkout state and controller methods returned by `useCheckout`.
+   * @CheckoutSessionPrivatePreview
    */
-  export type State =
+  export interface UseResult {
+    /** The current hook or controller lifecycle status. */
+    readonly status:
+      | 'idle'
+      | 'loading'
+      | 'ready'
+      | 'updating'
+      | 'confirming'
+      | 'error';
+    /** The latest session snapshot, or `null` before Checkout is ready. */
+    readonly session: Session | null;
+    /** The Checkout-owned Payment Element, or `null` before Checkout is ready. */
+    readonly paymentElement: CheckoutPaymentElement | null;
+    /** The initialization error when `status` is `error`; otherwise `null`. */
+    readonly error: StripeError<ErrorCode> | null;
+    /** Fetches fresh configuration and replaces the current native controller. */
+    reload(): Promise<void>;
+    /** Updates the customer's email address. Pass `null` to clear it. */
+    updateEmail(email: string | null): Promise<void>;
+    /** Sets or clears the customer's shipping address. */
+    updateShippingAddress(params: UpdateShippingAddressParams): Promise<void>;
+    /** Applies a promotion code entered by the customer. */
+    applyPromotionCode(promotionCode: string): Promise<void>;
+    /** Removes the currently applied promotion code, if any. */
+    removePromotionCode(): Promise<void>;
+    /** Runs a server update and refreshes the local Checkout Session. */
+    runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+    /** Clears the customer's currently selected payment option. */
+    clearPaymentOption(): Promise<void>;
+    /** Confirms the Checkout Session for the selected payment option. */
+    confirm(): Promise<Result>;
+  }
+
+  /**
+   * Parameters for updating or clearing the customer's shipping address.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface UpdateShippingAddressParams {
+    /** The recipient's name. */
+    name?: string | null;
+    /** The shipping address. Pass `null` to clear it. */
+    address: Address | null;
+  }
+
+  /**
+   * The result of confirming a Checkout Session.
+   * @CheckoutSessionPrivatePreview
+   */
+  export type Result =
     | {
-        /**
-         * `loading` while a mutation or refresh is in flight.
-         *
-         * The associated `session` value is the most recently loaded copy and
-         * may be stale.
-         */
-        status: 'loading';
-        /** The most recently loaded session value. */
-        session: Session;
+        /** The customer completed the payment flow. */
+        status: 'completed';
+        /** The payment status after Checkout completed. */
+        paymentStatus: PaymentStatus;
       }
     | {
-        /** `loaded` when the session is current and ready to use. */
-        status: 'loaded';
-        /** The latest checkout session value from Stripe. */
-        session: Session;
+        /** The customer canceled the payment flow. */
+        status: 'canceled';
+      }
+    | {
+        /** The payment flow failed. */
+        status: 'failed';
+        /** The error that caused the payment flow to fail. */
+        error: StripeError<ErrorCode>;
       };
 
   /**
-   * A Stripe Checkout Session.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface Session {
-    /** Unique identifier for this checkout session. */
-    id: string;
-    /** The business name as configured in your Stripe account. */
-    businessName?: string;
-    /** Three-letter ISO 4217 currency code in lowercase (e.g. `"usd"`). */
-    currency?: string;
-    /** Currency options available when adaptive pricing is active. */
-    currencyOptions: CurrencyOption[];
-    /** The aggregate amounts calculated per discount for all line items. */
-    discountAmounts: DiscountAmount[];
-    /** The customer's email address, if available. */
-    email?: string;
-    /** The line items the customer is purchasing. */
-    lineItems: LineItem[];
-    /** Indicates whether this session was created in live mode. */
-    livemode: boolean;
-    /** The factor used to convert between minor and major currency units. */
-    minorUnitsAmountDivisor?: number;
-    /** The selected shipping option, if any. */
-    shipping?: SelectedShipping;
-    /** The shipping address set via `updateShippingAddress`, if any. */
-    shippingAddress?: ContactAddress;
-    /** The shipping rate options available for this session. */
-    shippingOptions: ShippingOption[];
-    /** The current session status, if available. */
-    status?: Status;
-    /** Tax computation status and aggregated tax amounts. */
-    tax: Tax;
-    /** Tax and discount details for the computed total amount. */
-    total?: Total;
-    /** The billing address for this session, if any. */
-    billingAddress?: ContactAddress;
-  }
-
-  /**
-   * The mode of a checkout session.
-   *
-   * - `unknown` - A mode not recognized by this version of the SDK.
-   * - `payment` - Accept one-time payments.
-   * - `setup` - Save payment details to charge later.
-   * - `subscription` - Set up fixed-price subscriptions.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export type Mode = 'unknown' | 'payment' | 'setup' | 'subscription';
-
-  /**
-   * The status of a checkout session.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface Status {
-    /** The lifecycle status of the session. */
-    type: StatusType;
-    /** The payment status. Only meaningful when type is `complete`. */
-    paymentStatus?: PaymentStatus;
-  }
-
-  /**
-   * The lifecycle status of a checkout session.
-   *
-   * - `unknown` - A status not recognized by this version of the SDK.
-   * - `open` - The checkout session is still in progress.
-   * - `complete` - The checkout session is complete.
-   * - `expired` - The checkout session has expired.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export type StatusType = 'unknown' | 'open' | 'complete' | 'expired';
-
-  /**
-   * The payment status of a checkout session.
-   *
-   * - `unknown` - A payment status not recognized by this version of the SDK.
-   * - `paid` - The payment funds are available in your account.
-   * - `unpaid` - The payment funds are not yet available in your account.
-   * - `noPaymentRequired` - No payment is currently required for the session.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export type PaymentStatus =
-    | 'unknown'
-    | 'paid'
-    | 'unpaid'
-    | 'noPaymentRequired';
-
-  /**
-   * A monetary amount with both a localized display string and a value in
-   * the smallest currency unit (e.g. cents).
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface Amount {
-    /** Localized, formatted string including currency symbol (e.g. `"$10.00"`). */
-    amount: string;
-    /** Value in the smallest currency unit (e.g. cents for USD). */
-    minorUnitsAmount: number;
-  }
-
-  /**
-   * A monetary amount supporting sub-minor-unit precision.
-   *
-   * Use this for sub-cent pricing (e.g. usage-based billing) where rounding
-   * to the nearest minor unit would lose precision.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface DecimalAmount {
-    /** Localized, formatted string including currency symbol. */
-    amount: string;
-    /** Value in the smallest currency unit, with decimal precision. */
-    minorUnitsAmount: number;
-  }
-
-  /**
-   * Tax and discount details for the computed total amount of a checkout session.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface Total {
-    /** Total of all line items, excluding tax, discounts, and shipping. */
-    subtotal: Amount;
-    /** Sum of all exclusive tax amounts. */
-    taxExclusive: Amount;
-    /** Sum of all inclusive tax amounts. */
-    taxInclusive: Amount;
-    /** Sum of all shipping amounts. */
-    shippingRate: Amount;
-    /** Sum of all discounts. A positive number reduces the amount to be paid. */
-    discount: Amount;
-    /** Grand total, including discounts and tax. */
-    total: Amount;
-    /** Amount of customer credit balance applied to the payment. */
-    appliedBalance: Amount;
-    /** When `true`, no payment is collected and the amount is added to the next invoice. */
-    balanceAppliedToNextInvoice: boolean;
-  }
-
-  /**
-   * Tax computation status and aggregated tax amounts for a checkout session.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface Tax {
-    /** The current tax computation status. */
-    status: TaxStatus;
-    /** Per-tax-rate amounts, or undefined if tax has not been computed. */
-    taxAmounts?: TaxAmount[];
-  }
-
-  /**
-   * The tax computation status of a checkout session.
-   *
-   * - `unknown` - A status not recognized by this version of the SDK.
-   * - `ready` - Tax is computed and the session is ready for confirmation.
-   * - `requiresShippingAddress` - A shipping address is needed to calculate tax.
-   * - `requiresBillingAddress` - A billing address is needed to calculate tax.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export type TaxStatus =
-    | 'unknown'
-    | 'ready'
-    | 'requiresShippingAddress'
-    | 'requiresBillingAddress';
-
-  /**
-   * A tax amount calculated for a line item, shipping option, or aggregate session total.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface TaxAmount {
-    /** The tax amount. */
-    amount: Amount;
-    /** Whether this tax is inclusive (already in subtotal) or exclusive (added on top). */
-    inclusive: boolean;
-    /** A user-facing description (e.g. `"Sales Tax"` or `"VAT 20%"`). */
-    displayName: string;
-  }
-
-  /**
-   * A line item in a checkout session.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface LineItem {
-    /** Unique identifier for this line item. */
-    id: string;
-    /** The display name shown for this line item. */
-    name: string;
-    /** An optional, merchant-supplied description. */
-    description?: string;
-    /** Image URLs configured on the underlying product. */
-    images: string[];
-    /** The quantity of items being purchased. */
-    quantity: number;
-    /** The cost of a single unit. */
-    unitAmount?: Amount;
-    /** The unit amount with sub-cent precision. */
-    unitAmountDecimal?: DecimalAmount;
-    /** Total before any discounts or exclusive taxes. */
-    subtotal?: Amount;
-    /** Total discount amount for this line item. */
-    discount?: Amount;
-    /** Total exclusive tax for this line item. */
-    taxExclusive?: Amount;
-    /** Total inclusive tax for this line item. */
-    taxInclusive?: Amount;
-    /** Final total for this line item, including discounts and tax. */
-    total?: Amount;
-    /** Per-discount breakdown for this line item. */
-    discountAmounts: DiscountAmount[];
-    /** Per-tax-rate breakdown for this line item. */
-    taxAmounts: TaxAmount[];
-    /** Configuration for adjustable quantity, if enabled. */
-    adjustableQuantity?: AdjustableQuantity;
-  }
-
-  /**
-   * Configuration for a customer-adjustable line item quantity.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface AdjustableQuantity {
-    /** The minimum quantity the customer can purchase. */
-    minimum: number;
-    /** The maximum quantity the customer can purchase. */
-    maximum: number;
-  }
-
-  /**
-   * A shipping option available in a checkout session.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface ShippingOption {
-    /** The shipping rate identifier. */
-    id: string;
-    /** The display name shown to the customer. */
-    displayName?: string;
-    /** The shipping cost. */
-    amount: Amount;
-    /** Three-letter ISO 4217 currency code in lowercase. */
-    currency: string;
-    /** The estimated delivery window, if available. */
-    deliveryEstimate?: DeliveryEstimate;
-  }
-
-  /**
-   * The estimated delivery range for a shipping option.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface DeliveryEstimate {
-    /** The lower bound of the delivery estimate. */
-    minimum?: DeliveryEstimateBound;
-    /** The upper bound of the delivery estimate. */
-    maximum?: DeliveryEstimateBound;
-  }
-
-  /**
-   * A bound (minimum or maximum) of a delivery estimate.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface DeliveryEstimateBound {
-    /** The unit of time. */
-    unit: DeliveryEstimateUnit;
-    /** The number of units. */
-    value: number;
-  }
-
-  /**
-   * The unit of time for a delivery estimate.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export type DeliveryEstimateUnit =
-    | 'unknown'
-    | 'hour'
-    | 'day'
-    | 'businessDay'
-    | 'week'
-    | 'month';
-
-  /**
-   * The shipping option selected for a checkout session, plus any computed
-   * shipping tax.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface SelectedShipping {
-    /** The selected shipping option. */
-    shippingOption: ShippingOption;
-    /** Tax amounts calculated for the shipping cost. */
-    taxAmounts: TaxAmount[];
-  }
-
-  /**
-   * A discount applied to a checkout session or line item.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface DiscountAmount {
-    /** The discount amount. A positive number reduces the amount to be paid. */
-    amount: Amount;
-    /** A user-facing description of the discount. */
-    displayName: string;
-    /** The promotion code used to apply this discount, if any. */
-    promotionCode?: string;
-  }
-
-  /**
-   * A currency option available on a checkout session when adaptive pricing
-   * is active.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface CurrencyOption {
-    /** The total amount in this currency. */
-    amount: Amount;
-    /** Three-letter ISO 4217 currency code in lowercase. */
-    currency: string;
-    /** Conversion details, present only for the customer's local currency. */
-    currencyConversion?: CurrencyConversion;
-  }
-
-  /**
-   * Currency conversion details for an adaptive-pricing currency option.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface CurrencyConversion {
-    /** The exchange rate used to convert source to customer currency. */
-    fxRate: string;
-    /** The merchant's original currency (three-letter ISO 4217 code). */
-    sourceCurrency: string;
-  }
-
-  /**
-   * A contact address containing a name, phone, and postal address.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface ContactAddress {
-    /** The customer's or recipient's name, if provided. */
-    name?: string;
-    /** The customer's or recipient's phone number, if provided. */
-    phone?: string;
-    /** The postal address. */
-    address: Address;
-  }
-
-  /**
-   * A postal address used for billing, shipping, or tax updates.
-   * @checkoutSessionsPreview
-   * @internal
-   */
-  export interface Address {
-    /** The country for this address, such as `"US"`. */
-    country: string;
-    /** The first address line. */
-    line1?: string;
-    /** The second address line. */
-    line2?: string;
-    /** The city, district, suburb, town, or village. */
-    city?: string;
-    /** The state, county, province, or region. */
-    state?: string;
-    /** The postal or ZIP code. */
-    postalCode?: string;
-  }
-
-  /**
-   * A Checkout-specific error returned from `useCheckout` or a Checkout
-   * mutation method.
-   * @internal
-   */
-  export interface Error {
-    /** A machine-readable error code describing the failure. */
-    code: ErrorCode;
-    /** A human-readable message describing the failure. */
-    message: string;
-  }
-
-  /**
-   * The set of Checkout-specific error codes.
-   *
-   * - `Failed` - The operation could not be completed.
-   * - `InvalidClientSecret` - The provided Checkout Session client secret is
-   *   invalid.
-   * - `SessionNotOpen` - The Checkout Session is no longer open for updates.
-   * - `SheetCurrentlyPresented` - The operation is unavailable while
-   *   PaymentSheet is being presented.
-   * - `Canceled` - The operation was canceled before completion.
-   * @internal
+   * Error codes returned by Checkout APIs.
+   * @CheckoutSessionPrivatePreview
    */
   export type ErrorCode =
     | 'Failed'
     | 'InvalidClientSecret'
     | 'SessionNotOpen'
     | 'SheetCurrentlyPresented'
+    | 'Timeout'
     | 'Canceled';
-}
-
-/**
- * A handle to a live Checkout Session.
- *
- * Returned by `useCheckout`. Call mutation methods to update the session;
- * the hook's `state` updates automatically after each mutation.
- * @internal
- */
-export interface Checkout {
-  /** @internal Opaque key for the native Checkout instance. Used by `initPaymentSheet`. */
-  readonly sessionKey: string;
 
   /**
-   * Sets the shipping address for this checkout.
-   *
-   * The address is stored locally and merged into PaymentSheet configuration
-   * when presenting payment UI. If automatic tax is enabled and the tax
-   * address source is "shipping", the address is also sent to the server to
-   * compute updated tax amounts.
-   *
-   * @param address - The shipping address to set.
-   * @param name - The recipient's name.
-   * @param phone - The recipient's phone number.
+   * Known customer details used to prefill Checkout and its elements.
+   * @CheckoutSessionPrivatePreview
    */
-  updateShippingAddress(
-    address: Checkout.Address,
-    name?: string,
-    phone?: string
-  ): Promise<void>;
+  export interface Defaults {
+    /** The customer's known billing contact details. */
+    billingDetails?: ContactDetails;
+    /** The customer's known shipping contact details. */
+    shippingDetails?: ContactDetails;
+    /** The customer's known phone number. */
+    phone?: string;
+    /** The customer's known email address. */
+    email?: string;
+  }
 
   /**
-   * Applies a promotion code to the session.
-   * - Parameter code: The promotion code to apply (e.g. `"SUMMER2026"`).
-   * - Throws: `CheckoutError` if applying the promotion code fails.
-   * @internal
+   * A customer's name and postal address.
+   * @CheckoutSessionPrivatePreview
    */
-  applyPromotionCode(code: string): Promise<void>;
+  export interface ContactDetails {
+    /** The customer's name. */
+    name?: string;
+    /** The customer's postal address. */
+    address?: Address;
+  }
 
   /**
-   * Removes the currently applied promotion code.
-   * - Throws: `CheckoutError` if removing the promotion code fails.
-   * @internal
+   * Configuration for Apple Pay in Checkout.
+   * @CheckoutSessionPrivatePreview
    */
-  removePromotionCode(): Promise<void>;
+  export interface ApplePayConfiguration {
+    /** ISO 3166-1 alpha-2 country code where the transaction is processed. */
+    merchantCountryCode: string;
+    /** The type of Apple Pay button to display. */
+    buttonType?: ApplePayButtonType;
+  }
 
   /**
-   * Updates the quantity of a line item.
-   * @param lineItemId - The ID of the line item to update.
-   * @param quantity - The new quantity to set.
-   * - Throws: `CheckoutError` if updating the line item quantity fails.
-   * @internal
+   * Apple Pay button type options.
+   * @CheckoutSessionPrivatePreview
    */
-  updateLineItemQuantity(lineItemId: string, quantity: number): Promise<void>;
+  export type ApplePayButtonType =
+    | 'plain'
+    | 'buy'
+    | 'setUp'
+    | 'inStore'
+    | 'donate'
+    | 'checkout'
+    | 'book'
+    | 'subscribe'
+    | 'reload'
+    | 'addMoney'
+    | 'topUp'
+    | 'order'
+    | 'rent'
+    | 'support'
+    | 'contribute'
+    | 'tip'
+    | 'continue';
 
   /**
-   * Selects a shipping option for the session.
-   * @param id - The ID of the shipping rate to select.
-   * - Throws: `CheckoutError` if selecting the shipping option fails.
-   * @internal
+   * Configuration for Google Pay in Checkout.
+   * @CheckoutSessionPrivatePreview
    */
-  selectShippingOption(id: string): Promise<void>;
+  export interface GooglePayConfiguration {
+    /** Whether to use the Google Pay test environment. Defaults to `false`. */
+    testEnv?: boolean;
+    /** An optional label to display with the amount. */
+    label?: string;
+    /** The Google Pay button type. Defaults to `pay`. */
+    buttonType?: GooglePayButtonType;
+    /** Additional card networks to enable, for example `INTERAC`. */
+    additionalEnabledNetworks?: string[];
+  }
 
   /**
-   * Runs an async operation that updates the Checkout Session on your server,
-   * then automatically refreshes the local session state.
-   *
-   * Call your server inside `serverUpdate` to modify the Checkout Session.
-   * A 20-second timeout is enforced by the native SDK.
-   *
-   * @param serverUpdate - An async function that calls your server to update the session.
-   * - Throws: `CheckoutError` if the operation times out or fails.
-   * @checkoutSessionsPreview
-   * @internal
+   * Google Pay button type options.
+   * @CheckoutSessionPrivatePreview
    */
-  runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+  export type GooglePayButtonType =
+    | 'buy'
+    | 'book'
+    | 'checkout'
+    | 'donate'
+    | 'order'
+    | 'pay'
+    | 'subscribe'
+    | 'plain';
+
+  /**
+   * Configuration for Link in Checkout.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface LinkConfiguration {
+    /** Controls when Link is displayed. Defaults to `automatic`. */
+    display?: 'automatic' | 'never';
+  }
+
+  /**
+   * Controls the default state of save-payment-method controls.
+   * @CheckoutSessionPrivatePreview
+   */
+  export type SavePaymentMethodOptInBehavior =
+    | 'automatic'
+    | 'requiresOptIn'
+    | 'requiresOptOut';
+
+  /**
+   * Appearance configuration for Checkout Payment Element.
+   * @CheckoutSessionPrivatePreview
+   */
+  export type PaymentElementAppearance = AppearanceParams;
+
+  /**
+   * Controls how the inline Payment Element handles row selection.
+   * @CheckoutSessionPrivatePreview
+   */
+  export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
+
+  /**
+   * Controls how billing details are collected during checkout.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface BillingDetailsCollectionConfiguration {
+    /** How to collect the name field. Defaults to `automatic`. */
+    name?: 'automatic' | 'always';
+    /** How to collect the phone field. Defaults to `automatic`. */
+    phone?: 'automatic' | 'always';
+    /** How to collect the billing address. Defaults to `automatic`. */
+    address?: 'automatic' | 'full';
+    /** Whether default billing details are attached to the payment method. */
+    attachDefaultsToPaymentMethod?: boolean;
+  }
+
+  /**
+   * Configuration for the Checkout-owned Payment Element.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface PaymentElementConfiguration {
+    /** Controls how Payment Element asks customers to save payment methods. */
+    savePaymentMethodOptInBehavior?: SavePaymentMethodOptInBehavior;
+    /** Customizes the appearance of Payment Element. */
+    appearance?: PaymentElementAppearance;
+    /** Preferred networks for co-branded cards. */
+    preferredNetworks?: CardBrand[];
+    /** Controls how billing details are collected during checkout. */
+    billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
+    /** A custom message shown when a saved payment method is removed. iOS only. */
+    removeSavedPaymentMethodMessage?: string;
+    /** Overrides the default order of payment method types. */
+    paymentMethodOrder?: string[];
+    /** Whether the new-card form opens the card scanner automatically. */
+    opensCardScannerAutomatically?: boolean;
+    /** Whether Stripe address autocomplete endpoints are used. */
+    useAutocompleteEndpoints?: boolean;
+    /** Controls legal agreement text for each payment method type. */
+    termsDisplay?: Record<string, TermsDisplay>;
+    /** The layout used when Payment Element is presented as a sheet. */
+    paymentMethodLayout?: PaymentMethodLayout;
+    /** Whether the embedded view displays mandate text. Defaults to `false`. */
+    displaysMandateText?: boolean;
+    /** Controls selection in the embedded view. */
+    rowSelectionBehavior?: RowSelectionBehavior;
+    /** Apple Pay configuration. iOS only. */
+    applePay?: ApplePayConfiguration;
+    /** Google Pay configuration. Android only. */
+    googlePay?: GooglePayConfiguration;
+    /** Link display configuration. */
+    link?: LinkConfiguration;
+  }
+
+  /**
+   * A view of the Checkout Session that represents the customer's checkout.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface Session {
+    /** The Checkout Session ID. */
+    id: string;
+    /** The business name configured in Stripe Business Public Details. */
+    businessName?: string;
+    /** Whether the Checkout Session is in live mode. */
+    livemode: boolean;
+    /** Three-letter ISO 4217 currency code in lowercase. */
+    currency: string;
+    /** Factor used to convert minor currency units to major units. */
+    minorUnitsAmountDivisor?: number;
+    /** Currency presentation details for the customer. */
+    presentmentDetails?: PresentmentDetails;
+    /** The customer's email address. */
+    email?: string;
+    /** The customer's currently selected payment option. */
+    paymentOption?: PaymentOptionDisplayData;
+    /** The customer's shipping contact details and postal address. */
+    shippingAddress?: ShippingAddress;
+    /** The items the customer is purchasing. */
+    orderSummaryItems: OrderSummaryItem[];
+    /** Aggregate discount amounts for all order items. */
+    discountAmounts: DiscountAmount[];
+    /** Tax computation status. */
+    tax?: Tax;
+    /** Aggregate amounts for each tax rate after Checkout computes tax. */
+    taxAmounts?: TaxAmount[];
+    /** Tax and discount breakdown for the computed session total. */
+    totals: Totals;
+    /** Lifecycle status of the Checkout Session. */
+    status: SessionStatus;
+    /** The error encountered the last time confirmation ran. */
+    lastPaymentError?: StripeError<ErrorCode>;
+  }
+
+  /**
+   * Currency presentation details for the Checkout Session.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface PresentmentDetails {
+    /** Currency presented to the customer during payment. */
+    presentmentCurrency: string;
+  }
+
+  /**
+   * Display data for the customer's currently selected payment option.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface PaymentOptionDisplayData {
+    /** A Base64-encoded image representing the payment method. */
+    image: string;
+    /** Customer-facing label, for example `•••• 4242`. */
+    label: string;
+    /** Billing details collected for the selected payment method. */
+    billingDetails?: BillingDetails;
+    /** The payment method, external payment method, or wallet type. */
+    paymentMethodType: string;
+    /** HTML mandate text to render when the element does not render it. */
+    mandateHTML?: string;
+  }
+
+  /**
+   * Billing details associated with a selected payment method.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface BillingDetails {
+    /** The customer's name. */
+    name?: string;
+    /** The customer's email address. */
+    email?: string;
+    /** The customer's phone number. */
+    phone?: string;
+    /** The customer's billing address. */
+    address?: Address;
+  }
+
+  /**
+   * The customer's shipping contact details and postal address.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface ShippingAddress {
+    /** The recipient's name. */
+    name?: string;
+    /** The shipping address. */
+    address: Address;
+  }
+
+  /**
+   * A postal address.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface Address {
+    /** Two-letter ISO 3166-1 alpha-2 country code. */
+    country: string;
+    /** Address line 1. */
+    line1?: string;
+    /** Address line 2. */
+    line2?: string;
+    /** City, district, suburb, town, or village. */
+    city?: string;
+    /** State, county, province, or region. */
+    state?: string;
+    /** ZIP or postal code. */
+    postalCode?: string;
+  }
+
+  /**
+   * An item or group of items in the Checkout order summary.
+   * @CheckoutSessionPrivatePreview
+   */
+  export type OrderSummaryItem = OneTimePriceOrderSummaryItem;
+
+  /**
+   * A group of one-time-price items in the Checkout order summary.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface OneTimePriceOrderSummaryItem {
+    /** Identifies this as a one-time-price group. */
+    type: 'one_time_price';
+    /** A stable key for this order summary item. */
+    key: string;
+    /** An optional description. */
+    description?: string;
+    /** The individual items in this group. */
+    items: OneTimePriceItem[];
+    /** Aggregate amounts for this group. */
+    amountDetails: AmountDetails;
+  }
+
+  /**
+   * A one-time-price item the customer is purchasing.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface OneTimePriceItem {
+    /** A stable key for this item. */
+    key: string;
+    /** The customer-facing item name. */
+    displayName: string;
+    /** URLs for images representing this item. */
+    images: string[];
+    /** The price for one unit. */
+    unitAmount: Amount;
+    /** The unit price with sub-minor-unit precision, when available. */
+    unitAmountDecimal?: Amount;
+    /** A customer-facing label for one unit, such as `seat`. */
+    unitLabel?: string;
+    /** The quantity being purchased. */
+    quantity: number;
+    /** Limits for customer-adjustable quantity, when enabled. */
+    adjustableQuantity?: AdjustableQuantity;
+  }
+
+  /**
+   * Aggregate amounts for an order summary item.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface AmountDetails {
+    /** The total after discounts and tax. */
+    total: Amount;
+    /** The subtotal before discounts and tax. */
+    subtotal: Amount;
+    /** Tax amounts grouped by tax rate after Checkout computes tax. */
+    taxAmounts?: TaxAmount[];
+    /** The total discount amount. */
+    discount: Amount;
+    /** The total inclusive tax amount. */
+    taxInclusive: Amount;
+    /** The total exclusive tax amount. */
+    taxExclusive: Amount;
+  }
+
+  /**
+   * A monetary amount in display and minor-unit forms.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface Amount {
+    /** Localized display value, for example `$10.00`. */
+    amount: string;
+    /** Value in the currency's smallest unit. */
+    minorUnitsAmount: number;
+  }
+
+  /**
+   * A tax amount calculated for the order summary.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface TaxAmount extends Amount {
+    /** Whether this tax is included in the subtotal. */
+    inclusive: boolean;
+    /** Customer-facing tax name. */
+    displayName: string;
+    /** The tax percentage, when available. */
+    percentage?: number;
+  }
+
+  /**
+   * Minimum and maximum values for a customer-adjustable quantity.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface AdjustableQuantity {
+    /** The minimum allowed quantity. */
+    minimum: number;
+    /** The maximum allowed quantity. */
+    maximum: number;
+  }
+
+  /**
+   * An aggregate discount amount for the Checkout Session.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface DiscountAmount extends Amount {
+    /** Customer-facing discount name. */
+    displayName: string;
+    /** The applied promotion code, when the discount came from one. */
+    promotionCode?: string;
+    /** The percentage discounted, when applicable. */
+    percentOff?: number;
+  }
+
+  /**
+   * Tax computation status for the Checkout Session.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface Tax {
+    /** Whether tax is ready or needs a customer address. */
+    status: 'ready' | 'requiresShippingAddress' | 'requiresBillingAddress';
+  }
+
+  /**
+   * Tax and discount breakdown for the computed Checkout Session total.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface Totals {
+    /** The subtotal before discounts and tax. */
+    subtotal: Amount;
+    /** The total exclusive tax amount. */
+    taxExclusive: Amount;
+    /** The total inclusive tax amount. */
+    taxInclusive: Amount;
+    /** The total discount amount. */
+    discount: Amount;
+    /** The final order total. */
+    total: Amount;
+  }
+
+  /**
+   * The lifecycle status of a Checkout Session.
+   * @CheckoutSessionPrivatePreview
+   */
+  export type SessionStatus =
+    | {
+        /** The Checkout Session is still in progress. */
+        type: 'open';
+      }
+    | {
+        /** The Checkout Session has expired. */
+        type: 'expired';
+      }
+    | {
+        /** The customer completed the Checkout Session. */
+        type: 'complete';
+        /** The payment status after completion. */
+        paymentStatus: PaymentStatus;
+      };
+
+  /**
+   * The payment status of a completed Checkout Session.
+   * @CheckoutSessionPrivatePreview
+   */
+  export type PaymentStatus = 'paid' | 'unpaid' | 'noPaymentRequired';
 }

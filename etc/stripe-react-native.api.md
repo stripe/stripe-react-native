@@ -938,15 +938,238 @@ export interface CheckmarkConfig {
     color?: ThemedColor;
 }
 
-// @internal
-export type CheckoutSetupParams = {
-    checkout: Checkout;
-    paymentIntentClientSecret?: never;
-    setupIntentClientSecret?: never;
-    intentConfiguration?: never;
-    customerEphemeralKeySecret?: never;
-    customerSessionClientSecret?: never;
-} & Omit<SetupParamsBase, 'paymentIntentClientSecret' | 'setupIntentClientSecret' | 'intentConfiguration'>;
+// @public
+export namespace Checkout {
+    export interface Address {
+        city?: string;
+        country: string;
+        line1?: string;
+        line2?: string;
+        postalCode?: string;
+        state?: string;
+    }
+    export interface AdjustableQuantity {
+        maximum: number;
+        minimum: number;
+    }
+    export interface Amount {
+        amount: string;
+        minorUnitsAmount: number;
+    }
+    export interface AmountDetails {
+        discount: Amount;
+        subtotal: Amount;
+        taxAmounts?: TaxAmount[];
+        taxExclusive: Amount;
+        taxInclusive: Amount;
+        total: Amount;
+    }
+    export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
+    export interface ApplePayConfiguration {
+        buttonType?: ApplePayButtonType;
+        merchantCountryCode: string;
+    }
+    export interface BillingDetails {
+        address?: Address;
+        email?: string;
+        name?: string;
+        phone?: string;
+    }
+    export interface BillingDetailsCollectionConfiguration {
+        address?: 'automatic' | 'full';
+        attachDefaultsToPaymentMethod?: boolean;
+        name?: 'automatic' | 'always';
+        phone?: 'automatic' | 'always';
+    }
+    export interface ContactDetails {
+        address?: Address;
+        name?: string;
+    }
+    export interface CreateOptions {
+        clientSecret: string;
+        defaults?: Defaults;
+        merchantDisplayName?: string;
+        paymentElement?: PaymentElementConfiguration;
+        returnURL: string;
+        style?: UserInterfaceStyle;
+    }
+    export interface Defaults {
+        billingDetails?: ContactDetails;
+        email?: string;
+        phone?: string;
+        shippingDetails?: ContactDetails;
+    }
+    export interface DiscountAmount extends Amount {
+        displayName: string;
+        percentOff?: number;
+        promotionCode?: string;
+    }
+    export type ErrorCode = 'Failed' | 'InvalidClientSecret' | 'SessionNotOpen' | 'SheetCurrentlyPresented' | 'Timeout' | 'Canceled';
+    export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
+    export interface GooglePayConfiguration {
+        additionalEnabledNetworks?: string[];
+        buttonType?: GooglePayButtonType;
+        label?: string;
+        testEnv?: boolean;
+    }
+    export interface LinkConfiguration {
+        display?: 'automatic' | 'never';
+    }
+    export interface OneTimePriceItem {
+        adjustableQuantity?: AdjustableQuantity;
+        displayName: string;
+        images: string[];
+        key: string;
+        quantity: number;
+        unitAmount: Amount;
+        unitAmountDecimal?: Amount;
+        unitLabel?: string;
+    }
+    export interface OneTimePriceOrderSummaryItem {
+        amountDetails: AmountDetails;
+        description?: string;
+        items: OneTimePriceItem[];
+        key: string;
+        type: 'one_time_price';
+    }
+    export type OrderSummaryItem = OneTimePriceOrderSummaryItem;
+    export type PaymentElementAppearance = AppearanceParams;
+    export interface PaymentElementConfiguration {
+        appearance?: PaymentElementAppearance;
+        applePay?: ApplePayConfiguration;
+        billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
+        displaysMandateText?: boolean;
+        googlePay?: GooglePayConfiguration;
+        link?: LinkConfiguration;
+        opensCardScannerAutomatically?: boolean;
+        paymentMethodLayout?: PaymentMethodLayout;
+        paymentMethodOrder?: string[];
+        preferredNetworks?: CardBrand[];
+        removeSavedPaymentMethodMessage?: string;
+        rowSelectionBehavior?: RowSelectionBehavior;
+        savePaymentMethodOptInBehavior?: SavePaymentMethodOptInBehavior;
+        termsDisplay?: Record<string, TermsDisplay>;
+        useAutocompleteEndpoints?: boolean;
+    }
+    export interface PaymentOptionDisplayData {
+        billingDetails?: BillingDetails;
+        image: string;
+        label: string;
+        mandateHTML?: string;
+        paymentMethodType: string;
+    }
+    export type PaymentStatus = 'paid' | 'unpaid' | 'noPaymentRequired';
+    export interface PresentmentDetails {
+        presentmentCurrency: string;
+    }
+    export type Result = {
+        status: 'completed';
+        paymentStatus: PaymentStatus;
+    } | {
+        status: 'canceled';
+    } | {
+        status: 'failed';
+        error: StripeError<ErrorCode>;
+    };
+    export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
+    export type SavePaymentMethodOptInBehavior = 'automatic' | 'requiresOptIn' | 'requiresOptOut';
+    export interface Session {
+        businessName?: string;
+        currency: string;
+        discountAmounts: DiscountAmount[];
+        email?: string;
+        id: string;
+        lastPaymentError?: StripeError<ErrorCode>;
+        livemode: boolean;
+        minorUnitsAmountDivisor?: number;
+        orderSummaryItems: OrderSummaryItem[];
+        paymentOption?: PaymentOptionDisplayData;
+        presentmentDetails?: PresentmentDetails;
+        shippingAddress?: ShippingAddress;
+        status: SessionStatus;
+        tax?: Tax;
+        taxAmounts?: TaxAmount[];
+        totals: Totals;
+    }
+    export type SessionStatus = {
+        type: 'open';
+    } | {
+        type: 'expired';
+    } | {
+        type: 'complete';
+        paymentStatus: PaymentStatus;
+    };
+    export interface ShippingAddress {
+        address: Address;
+        name?: string;
+    }
+    export interface Tax {
+        status: 'ready' | 'requiresShippingAddress' | 'requiresBillingAddress';
+    }
+    export interface TaxAmount extends Amount {
+        displayName: string;
+        inclusive: boolean;
+        percentage?: number;
+    }
+    export interface Totals {
+        discount: Amount;
+        subtotal: Amount;
+        taxExclusive: Amount;
+        taxInclusive: Amount;
+        total: Amount;
+    }
+    export interface UpdateShippingAddressParams {
+        address: Address | null;
+        name?: string | null;
+    }
+    export interface UseOptions {
+        enabled?: boolean;
+        getConfiguration: () => Promise<CreateOptions>;
+    }
+    export interface UseResult {
+        applyPromotionCode(promotionCode: string): Promise<void>;
+        clearPaymentOption(): Promise<void>;
+        confirm(): Promise<Result>;
+        readonly error: StripeError<ErrorCode> | null;
+        readonly paymentElement: CheckoutPaymentElement | null;
+        reload(): Promise<void>;
+        removePromotionCode(): Promise<void>;
+        runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+        readonly session: Session | null;
+        readonly status: 'idle' | 'loading' | 'ready' | 'updating' | 'confirming' | 'error';
+        updateEmail(email: string | null): Promise<void>;
+        updateShippingAddress(params: UpdateShippingAddressParams): Promise<void>;
+    }
+    export type UserInterfaceStyle = 'alwaysLight' | 'alwaysDark' | 'automatic';
+}
+
+// @public
+export interface CheckoutController {
+    applyPromotionCode(promotionCode: string): Promise<void>;
+    clearPaymentOption(): Promise<void>;
+    confirm(): Promise<Checkout.Result>;
+    destroy(): Promise<void>;
+    readonly paymentElement: CheckoutPaymentElement;
+    removePromotionCode(): Promise<void>;
+    runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+    readonly session: Checkout.Session;
+    readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
+    updateEmail(email: string | null): Promise<void>;
+    updateShippingAddress(params: Checkout.UpdateShippingAddressParams): Promise<void>;
+}
+
+// @public
+export interface CheckoutPaymentElement {
+    present(): Promise<void>;
+}
+
+// @public
+export function CheckoutPaymentElementView(_props: CheckoutPaymentElementViewProps): React_2.JSX.Element;
+
+// @public
+export interface CheckoutPaymentElementViewProps extends ViewProps {
+    element: CheckoutPaymentElement;
+}
 
 // @public (undocumented)
 export interface ClientSecretProvider {
@@ -1089,6 +1312,7 @@ type Configuration = {
     appearance: LinkAppearance;
     cryptoCustomerId?: string;
     googlePay?: GooglePayConfig;
+    samsungPay?: SamsungPayConfig;
 };
 
 // @public
@@ -1332,6 +1556,9 @@ type CreateCardTokenParams = {
 };
 
 // @public
+export function createCheckout(_options: Checkout.CreateOptions): Promise<CheckoutController>;
+
+// @public
 type CreateCryptoPaymentTokenResult = {
     cryptoPaymentToken: string;
     error?: undefined;
@@ -1477,7 +1704,7 @@ type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
     onrampErrorType?: never;
     developerMessage?: never;
     userMessage?: never;
-}) | AppAttestationError | UncategorizedApiError | AppAttestationUnavailableError;
+}) | AppAttestationError | InvalidWalletOwnershipSignatureError | WalletOwnershipChallengeExpiredError | InvalidWalletOwnershipChallengeError | WalletNotFoundError | UnsupportedNetworkError | UncategorizedApiError | AppAttestationUnavailableError;
 
 // @public
 type CryptoPaymentToken = {
@@ -2282,6 +2509,16 @@ enum InvalidShippingField {
     SubLocality = "subLocality"
 }
 
+// @public
+type InvalidWalletOwnershipChallengeError = OnrampApiError & {
+    onrampErrorType: 'InvalidWalletOwnershipChallengeError';
+};
+
+// @public
+type InvalidWalletOwnershipSignatureError = OnrampApiError & {
+    onrampErrorType: 'InvalidWalletOwnershipSignatureError';
+};
+
 // @public (undocumented)
 interface IOSNavigationBarProps {
     // (undocumented)
@@ -2667,7 +2904,9 @@ declare namespace Onramp {
         Configuration,
         GooglePayConfig,
         GooglePayBillingAddressConfig,
+        SamsungPayConfig,
         OnrampGooglePayParams,
+        OnrampSamsungPayParams,
         OnrampPlatformPayParams,
         LinkUserInfo,
         CryptoNetwork,
@@ -2686,6 +2925,11 @@ declare namespace Onramp {
         OnrampSdkError,
         OnrampApiError,
         AppAttestationError,
+        InvalidWalletOwnershipSignatureError,
+        WalletOwnershipChallengeExpiredError,
+        InvalidWalletOwnershipChallengeError,
+        WalletNotFoundError,
+        UnsupportedNetworkError,
         UncategorizedApiError,
         AppAttestationUnavailableError,
         CryptoOnrampError,
@@ -2720,7 +2964,7 @@ type OnrampApiError = OnrampSdkError & {
 };
 
 // @public
-type OnrampApiErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+type OnrampApiErrorType = 'AppAttestationError' | 'InvalidWalletOwnershipSignatureError' | 'WalletOwnershipChallengeExpiredError' | 'InvalidWalletOwnershipChallengeError' | 'WalletNotFoundError' | 'UnsupportedNetworkError' | 'UncategorizedApiError';
 
 // @public
 enum OnrampErrorStatus {
@@ -2746,7 +2990,15 @@ type OnrampGooglePayParams = {
 // @public
 type OnrampPlatformPayParams = {
     googlePay?: OnrampGooglePayParams;
+    samsungPay?: OnrampSamsungPayParams;
     applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
+};
+
+// @public
+type OnrampSamsungPayParams = {
+    currencyCode: string;
+    amount: number;
+    orderNumber: string;
 };
 
 // @public
@@ -2922,7 +3174,7 @@ type PaymentMethodDisplayData = {
     icon: string;
     label: string;
     sublabel?: string;
-    type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay';
+    type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay' | 'SamsungPay';
 };
 
 // @public (undocumented)
@@ -3069,7 +3321,6 @@ enum PaymentRequestType {
 declare namespace PaymentSheet {
     export {
         SetupParamsBase,
-        CheckoutSetupParams,
         SetupParams,
         IntentParams,
         ApplePayParams,
@@ -3591,6 +3842,14 @@ export enum RowStyle {
     FloatingButton = "floatingButton"
 }
 
+// @public
+type SamsungPayConfig = {
+    serviceId: string;
+    merchantId?: string;
+    merchantName?: string;
+    allowedCardBrands?: CardBrand[];
+};
+
 // @public (undocumented)
 interface SepaDebitResult {
     // (undocumented)
@@ -3664,9 +3923,6 @@ export type SetupMode = {
     setupFutureUsage: FutureUsage;
 };
 
-// Warning: (ae-incompatible-release-tags) The symbol "SetupParams" is marked as @public, but its signature references "CheckoutSetupParams" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "SetupParams" is marked as @public, but its signature references "CheckoutSetupParams" which is marked as @internal
-//
 // @public (undocumented)
 export type SetupParams = (SetupParamsBase & {
     customerEphemeralKeySecret: string;
@@ -3674,7 +3930,7 @@ export type SetupParams = (SetupParamsBase & {
 }) | (SetupParamsBase & {
     customerEphemeralKeySecret?: never;
     customerSessionClientSecret: string;
-}) | SetupParamsBase | CheckoutSetupParams;
+}) | SetupParamsBase;
 
 // @public (undocumented)
 export type SetupParamsBase = IntentParams & {
@@ -4076,6 +4332,11 @@ type UncategorizedApiError = OnrampApiError & {
 };
 
 // @public
+type UnsupportedNetworkError = OnrampApiError & {
+    onrampErrorType: 'UnsupportedNetworkError';
+};
+
+// @public
 export const updatePlatformPaySheet: (params: {
     applePay: {
         cartItems: Array<PlatformPay.CartSummaryItem>;
@@ -4126,6 +4387,9 @@ type USBankAccountResult = {
 };
 
 // @public
+export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult;
+
+// @public
 export function useConfirmPayment(): {
     confirmPayment: (paymentIntentClientSecret: string, data?: PaymentIntent.ConfirmParams, options?: PaymentIntent.ConfirmOptions) => Promise<ConfirmPaymentResult>;
     loading: boolean;
@@ -4137,13 +4401,8 @@ export function useConfirmSetupIntent(): {
     loading: boolean;
 };
 
-// Warning: (ae-internal-mixed-release-tag) Mixed release tags are not allowed for "useEmbeddedPaymentElement" because one of its declarations is marked as @internal
-//
 // @public
 export function useEmbeddedPaymentElement(intentConfig: PaymentSheet.IntentConfiguration, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
-
-// @internal
-export function useEmbeddedPaymentElement(checkout: Checkout, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
 
 // @public (undocumented)
 export interface UseEmbeddedPaymentElementResult {
@@ -4180,9 +4439,13 @@ export function useOnramp(): {
     configure: (config: Onramp.Configuration) => Promise<{
         error?: Onramp.CryptoOnrampError;
     }>;
+    isSamsungPaySupported: () => Promise<boolean>;
     hasLinkAccount: (email: string) => Promise<Onramp.HasLinkAccountResult>;
     registerLinkUser: (info: Onramp.LinkUserInfo) => Promise<Onramp.RegisterLinkUserResult>;
     registerWalletAddress: (walletAddress: string, network: Onramp.CryptoNetwork) => Promise<{
+        error?: Onramp.CryptoOnrampError;
+    }>;
+    deleteWalletAddress: (walletId: string) => Promise<{
         error?: Onramp.CryptoOnrampError;
     }>;
     getWalletOwnershipChallenge: (walletAddress: string, network: Onramp.CryptoNetwork) => Promise<Onramp.GetWalletOwnershipChallengeResult>;
@@ -4206,6 +4469,7 @@ export function useOnramp(): {
     collectPaymentMethod: {
         (paymentMethod: "Card" | "BankAccount" | "CardAndBankAccount", platformPayParams?: undefined): Promise<Onramp.CollectPaymentMethodResult>;
         (paymentMethod: "PlatformPay", platformPayParams: Onramp.OnrampPlatformPayParams): Promise<Onramp.CollectPaymentMethodResult>;
+        (paymentMethod: "SamsungPay", platformPayParams: Onramp.OnrampPlatformPayParams): Promise<Onramp.CollectPaymentMethodResult>;
     };
     createCryptoPaymentToken: () => Promise<Onramp.CreateCryptoPaymentTokenResult>;
     performCheckout: (onrampSessionId: string, provideCheckoutClientSecret: () => Promise<string | null>) => Promise<{
@@ -4378,12 +4642,22 @@ type VoidResult = {
 };
 
 // @public
+type WalletNotFoundError = OnrampApiError & {
+    onrampErrorType: 'WalletNotFoundError';
+};
+
+// @public
 type WalletOwnershipChallenge = {
     challengeId: string;
     walletAddress: string;
     network: CryptoNetwork;
     message: string;
     expiresAt: string;
+};
+
+// @public
+type WalletOwnershipChallengeExpiredError = OnrampApiError & {
+    onrampErrorType: 'WalletOwnershipChallengeExpiredError';
 };
 
 // @public (undocumented)
@@ -4421,7 +4695,6 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
 // src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
 // src/types/PaymentMethod.ts:298:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
-// src/types/PaymentSheet.ts:124:3 - (ae-forgotten-export) The symbol "Checkout" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

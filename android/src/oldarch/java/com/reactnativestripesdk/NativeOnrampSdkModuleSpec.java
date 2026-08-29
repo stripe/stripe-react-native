@@ -45,6 +45,10 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void isSamsungPaySupported(Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void hasLinkAccount(String email, Promise promise);
 
   @ReactMethod
@@ -54,6 +58,10 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
   @ReactMethod
   @DoNotStrip
   public abstract void registerWalletAddress(String walletAddress, String network, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void deleteWalletAddress(String walletId, Promise promise);
 
   @ReactMethod
   @DoNotStrip
