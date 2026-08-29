@@ -153,6 +153,7 @@ class StripeSdkModule(
 
   init {
     reactContext.addActivityEventListener(mActivityEventListener)
+    CharlesProxyHelper.enableIfConfigured()
   }
 
   override fun invalidate() {
