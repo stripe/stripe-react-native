@@ -61,7 +61,8 @@ Next, add:
         "@stripe/stripe-react-native",
         {
           "merchantIdentifier": string | string [],
-          "enableGooglePay": boolean
+          "enableGooglePay": boolean,
+          "disableSPM": boolean
         }
       ]
     ],
@@ -69,7 +70,7 @@ Next, add:
 }
 ```
 
-to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can set them in an array.
+to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can set them in an array. `disableSPM` (optional, iOS) resolves the Stripe iOS SDK through CocoaPods instead of Swift Package Manager — see [Stripe iOS SDK resolution](#stripe-ios-sdk-resolution).
 
 ### Requirements
 
@@ -121,6 +122,23 @@ To keep resolving the Stripe iOS SDK through CocoaPods — for example, if your 
 
 ```ruby
 $StripeDisableSPM = true
+```
+
+For Expo (where the Podfile is generated), set the equivalent option on this SDK's config plugin in your app config instead:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "@stripe/stripe-react-native",
+        {
+          "disableSPM": true
+        }
+      ]
+    ]
+  }
+}
 ```
 
 The CocoaPods fallback is available for as long as the Stripe iOS SDK continues publishing to CocoaPods. React Native versions below 0.75 always use CocoaPods resolution.

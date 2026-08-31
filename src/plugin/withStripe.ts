@@ -8,6 +8,10 @@ import {
   withGradleProperties,
   withPodfile,
 } from '@expo/config-plugins';
+import {
+  mergeContents,
+  removeGeneratedContents,
+} from '@expo/config-plugins/build/utils/generateCode';
 import path from 'path';
 
 const {
@@ -32,6 +36,16 @@ type StripePluginProps = {
    * Defaults to false.
    */
   includeOnramp?: boolean;
+  /**
+   * iOS only. When true, sets `$StripeDisableSPM = true` in the generated
+   * Podfile, so the Stripe iOS SDK is resolved through the CocoaPods registry
+   * instead of Swift Package Manager (available while Stripe continues to
+   * publish pods). Use this to opt out of SPM resolution — for example to
+   * keep building with static frameworks, which SPM mode does not support.
+   * Defaults to false (SPM resolution on React Native >= 0.75, which requires
+   * `expo-build-properties` with `"useFrameworks": "dynamic"`).
+   */
+  disableSPM?: boolean;
 };
 
 const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
@@ -43,7 +57,7 @@ const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
 
 const withStripeIos: ConfigPlugin<StripePluginProps> = (
   expoConfig,
-  { merchantIdentifier, includeOnramp = false }
+  { merchantIdentifier, includeOnramp = false, disableSPM = false }
 ) => {
   let resultConfig = withEntitlementsPlist(expoConfig, (entitlementsConfig) => {
     entitlementsConfig.modResults = setApplePayEntitlement(
@@ -51,6 +65,18 @@ const withStripeIos: ConfigPlugin<StripePluginProps> = (
       entitlementsConfig.modResults
     );
     return entitlementsConfig;
+  });
+
+  // Always run the Podfile mod (not just when disableSPM is true): when the
+  // option is turned back off, the previously generated block must be removed
+  // again, because `expo prebuild` without --clean reuses the existing
+  // Podfile.
+  resultConfig = withPodfile(resultConfig, (config) => {
+    config.modResults.contents = setPodfileDisableSPM(
+      config.modResults.contents,
+      disableSPM
+    );
+    return config;
   });
 
   // Conditionally include Onramp pod for iOS.
@@ -86,6 +112,39 @@ const withStripeIos: ConfigPlugin<StripePluginProps> = (
 
   return resultConfig;
 };
+
+const DISABLE_SPM_TAG = '@stripe/stripe-react-native-disableSPM';
+
+/**
+ * Adds `$StripeDisableSPM = true` to the Podfile (inside a tagged
+ * `@generated` block) when `disableSPM` is true, and removes any previously
+ * generated block when it is false.
+ *
+ * The flag is read by stripe_spm.rb when CocoaPods evaluates the
+ * stripe-react-native podspec, so it must be defined before any `target`
+ * block. The Podfile Expo generates opens with
+ * `prepare_react_native_project!` at the top level, which makes it a stable
+ * anchor: inserting immediately after it guarantees the flag precedes the
+ * target block on every Expo SDK's template. (Same approach as
+ * react-native-firebase's `ios.disableSPM` plugin option.)
+ */
+export function setPodfileDisableSPM(
+  contents: string,
+  disableSPM: boolean
+): string {
+  if (!disableSPM) {
+    return removeGeneratedContents(contents, DISABLE_SPM_TAG) ?? contents;
+  }
+
+  return mergeContents({
+    src: contents,
+    newSrc: '$StripeDisableSPM = true',
+    tag: DISABLE_SPM_TAG,
+    anchor: /prepare_react_native_project!/,
+    offset: 1,
+    comment: '#',
+  }).contents;
+}
 
 /**
  * Adds the following to the entitlements:
