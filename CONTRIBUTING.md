@@ -181,8 +181,8 @@ The React Native SDK depends on underlying native [iOS](https://github.com/strip
 The Stripe iOS SDK is deprecating CocoaPods support, so on React Native >= 0.75 this SDK resolves it through Swift Package Manager while remaining a CocoaPods pod itself. `stripe_spm.rb` (repo root, shipped in the npm package) contains the implementation and extensive documentation of the mechanism; the short version:
 
 - The podspec calls React Native's `spm_dependency` helper, which writes a Swift package reference for [stripe-ios-spm](https://github.com/stripe/stripe-ios-spm) into Pods.xcodeproj during `pod install`. Xcode then resolves and builds the package from source.
-- A hook on `Pod::Installer` (installed when the podspec is evaluated, so consumers change nothing) validates that the app builds with dynamic frameworks, links the `StripeCryptoOnramp` product when the Onramp subspec is installed, and maintains an embed-frameworks build phase on the app target.
-- React Native < 0.75, and apps that set `$StripeDisableSPM = true` in their Podfile, fall back to the classic `Stripe*` pod dependencies (available while Stripe continues publishing pods).
+- Hooks on `Pod::Installer` (installed when the podspec is evaluated, so consumers change nothing) do the rest in two stages: at post_install — while Pods.xcodeproj is still unwritten — they guard against a CocoaPods UUID-collision bug, validate that the app builds with dynamic frameworks, and link the `StripeCryptoOnramp` product when the Onramp subspec is installed; at post_integrate — after CocoaPods has saved the user's project — they maintain an embed-frameworks build phase on the app target.
+- React Native < 0.75, and apps that set `$StripeDisableSPM = true` in their Podfile, fall back to the classic `Stripe*` pod dependencies (available while Stripe continues publishing pods). Expo apps opt out through the config plugin's `disableSPM` option instead, since their Podfile is generated.
 
 Development toggles:
 
@@ -195,6 +195,7 @@ Notes for maintainers:
 
 - The Swift package product list in `stripe_spm.rb` (`StripeSPM::CORE_PRODUCTS`) and the fallback pod dependencies in the podspec must be kept in sync — they are two spellings of the same dependency set.
 - The example app's `Podfile` documents the additional example-only configuration this requires (dynamic frameworks, React Native's prebuilt-core matrix, and the wiring of `ios/Tests` into the `ReactTestAppTests` target, which replaced the podspec test spec for `yarn test:unit:ios`).
+- The Expo integration is validated per PR by the `expo-prebuild-ios` Bitrise workflow: `./scripts/test-expo-project --sdk-version 54 --platforms ios` creates a fresh Expo app, prebuilds it, asserts that the single `pod install` pass fully integrated SPM, and builds it — then repeats prebuild-only with `--disable-spm` to exercise the plugin's opt-out. Both modes also run locally on a Mac with those same commands.
 
 ## Changing the public APIs
 
