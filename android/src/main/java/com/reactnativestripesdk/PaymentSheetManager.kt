@@ -87,6 +87,10 @@ class PaymentSheetManager(
   private var keepJsAwake: KeepJsAwakeTask? = null
   private var lastConfigureWasCustomFlow: Boolean? = null
 
+  // Activity `paymentSheet`/`flowController` registered their launchers on; if the current
+  // Activity is ever a different instance, those launchers are stale and must be rebuilt.
+  private var builtWithActivity: Activity? = null
+
   @SuppressLint("RestrictedApi")
   override fun onCreate() {
     configure(arguments, initPromise)
@@ -96,6 +100,7 @@ class PaymentSheetManager(
     super.onDestroy()
     flowController = null
     paymentSheet = null
+    builtWithActivity = null
   }
 
   fun configure(
@@ -206,9 +211,13 @@ class PaymentSheetManager(
     args: ReadableMap,
     promise: Promise,
   ) {
+    val currentActivity = context.currentActivity
+    val activityChanged = currentActivity != null && currentActivity !== builtWithActivity
+
     if (args.getBooleanOr("customFlow", false)) {
       lastConfigureWasCustomFlow = true
-      if (flowController == null) {
+      if (flowController == null || activityChanged) {
+        flowController = null
         initFlowController(args, promise)
       }
       configureFlowController(promise)
@@ -216,7 +225,8 @@ class PaymentSheetManager(
     }
 
     lastConfigureWasCustomFlow = false
-    if (paymentSheet == null) {
+    if (paymentSheet == null || activityChanged) {
+      paymentSheet = null
       initPaymentSheet(args, promise)
     }
     promise.resolve(Arguments.createMap())
@@ -248,6 +258,7 @@ class PaymentSheetManager(
           .confirmCustomPaymentMethodCallback(this)
           .build(activity, signal)
       }
+    builtWithActivity = activity
   }
 
   private fun initFlowController(
@@ -281,6 +292,7 @@ class PaymentSheetManager(
           ).confirmCustomPaymentMethodCallback(this)
           .build(activity)
       }
+    builtWithActivity = activity
   }
 
   private fun buildCreateConfirmationTokenCallback(): CreateIntentWithConfirmationTokenCallback {
