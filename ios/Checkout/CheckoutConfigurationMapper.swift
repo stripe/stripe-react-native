@@ -89,7 +89,7 @@ enum CheckoutConfigurationMapper {
         return defaults
     }
 
-    private static func mapAddress(
+    static func mapAddress(
         _ params: NSDictionary?
     ) -> Checkout.Address? {
         guard let params else {
