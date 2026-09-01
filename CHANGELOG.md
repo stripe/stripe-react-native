@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.76.0 - 2026-09-01
 **Features**
 * [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.
 
