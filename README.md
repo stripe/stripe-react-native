@@ -1,7 +1,10 @@
 # Stripe React Native SDK
 
-[![npm version](https://img.shields.io/npm/v/@stripe/stripe-react-native.svg?style=flat-square)](https://www.npmjs.com/package/@stripe/stripe-react-native)
-[![License](https://img.shields.io/github/license/stripe/stripe-react-native)](https://github.com/stripe/stripe-react-native/blob/master/LICENSE)
+<p align="center">
+  <img src="https://img.shields.io/npm/v/@stripe/stripe-react-native.svg" />
+  <img src="https://img.shields.io/npm/dm/@stripe/stripe-react-native.svg" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" />
+</p>
 
 The Stripe React Native SDK allows you to build delightful payment experiences in your native Android and iOS apps using React Native. We provide powerful and customizable UI screens and elements that can be used out-of-the-box to collect your users' payment details.
 
@@ -31,6 +34,33 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 #### Recommended usage
 
 If you're selling digital products or services within your app, (e.g. subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use the app store's in-app purchase APIs. See [Apple's](https://developer.apple.com/app-store/review/guidelines/#payments) and [Google's](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en&ref_topic=9857752) guidelines for more information. For all other scenarios you can use this SDK to process payments via Stripe.
+
+
+## React Native Compatibility
+
+| Stripe SDK | Recommended React Native |
+|------------|-------------------------|
+| 0.68.x | 0.84+ |
+| 0.67.x | 0.84+ |
+| 0.66.x | 0.83+ |
+| 0.65.x | 0.82+ |
+| 0.64.x | 0.82+ |
+| 0.63.x | 0.81+ |
+| 0.62.x | 0.80+ |
+| 0.61.x | 0.79+ |
+| 0.60.x | 0.79+ |
+| 0.59.x | 0.78+ |
+| 0.58.x | 0.77+ |
+| 0.57.x | 0.77+ |
+| 0.56.x | 0.76+ |
+| 0.55.x | 0.75+ |
+| 0.54.x | 0.75+ |
+| 0.53.x | 0.74+ |
+| 0.52.x | 0.74+ |
+
+> Always refer to the latest release notes before upgrading.
+
+---
 
 ## Installation
 
