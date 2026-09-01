@@ -311,6 +311,14 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void createCheckout(ReadableMap params, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void destroyCheckout(String controllerId, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void addListener(String eventType);
 
   @ReactMethod

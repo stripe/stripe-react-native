@@ -28,6 +28,7 @@
     @"paymentMethodMessagingElementDidUpdateHeight",
     @"paymentMethodMessagingElementConfigureResult",
     @"checkoutControllerDidUpdate",
+    @"checkoutControllerDidSelectPaymentOption",
   ];
 }
 
@@ -144,6 +145,11 @@
 - (void)emitCheckoutControllerDidUpdate:(NSDictionary *)value
 {
   [self sendEventWithName:@"checkoutControllerDidUpdate" body:value];
+}
+
+- (void)emitCheckoutControllerDidSelectPaymentOption:(NSDictionary *)value
+{
+  [self sendEventWithName:@"checkoutControllerDidSelectPaymentOption" body:value];
 }
 
 @end

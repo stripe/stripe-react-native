@@ -60,6 +60,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     weak var cardFormView: CardFormView?
 
     @MainActor lazy var checkoutControllerRegistry = CheckoutControllerRegistry()
+    @MainActor var checkoutControllerGeneration = 0
 
     var merchantIdentifier: String?
 
@@ -142,6 +143,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     @objc public func invalidateCheckoutControllers() {
         DispatchQueue.main.async { [weak self] in
+            self?.checkoutControllerGeneration += 1
             self?.checkoutControllerRegistry.removeAll()
         }
     }
