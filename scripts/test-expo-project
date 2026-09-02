@@ -184,12 +184,7 @@ npx expo prebuild --clean --platform "$PREBUILD_TARGET"
 # ios/. The single-pass property is the point: a fresh Continuous Native
 # Generation project (`expo prebuild --clean`) must come out fully integrated
 # after one install — no artifact may require a second `pod install` to
-# appear. (react-native-firebase's SPM rollout initially violated exactly
-# this: their user-project mutations keyed off a CocoaPods build phase that
-# doesn't exist yet during the first install of a fresh project, breaking
-# every single-pass CI/EAS build — invertase/react-native-firebase#9219.
-# stripe_spm.rb's target discovery doesn't have that dependence; this check
-# keeps it that way.)
+# appear. 
 verify_ios_dependency_integration() {
   local app_pbxproj="ios/$PROJECT_NAME.xcodeproj/project.pbxproj"
   local pods_pbxproj="ios/Pods/Pods.xcodeproj/project.pbxproj"

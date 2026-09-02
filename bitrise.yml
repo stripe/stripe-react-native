@@ -275,9 +275,8 @@ workflows:
     before_run:
       - _e2e_build_ios
 
-  # Validates the Expo Continuous Native Generation path on every PR — the
-  # configuration where react-native-firebase's SPM rollout broke first
-  # (invertase/react-native-firebase#9219): a fresh `expo prebuild --clean`
+  # Validates the Expo Continuous Native Generation path on every PR.
+  # Protects this behavior: a fresh `expo prebuild --clean`
   # project gets exactly ONE `pod install`, so every SPM artifact (package
   # reference, embed phase) must land in that single pass. The other iOS jobs
   # all build the committed react-native-test-app project, which never
@@ -630,8 +629,6 @@ workflows:
                     -sdk iphonesimulator \
                     -derivedDataPath "$DERIVED_DATA_PATH" \
                     ARCHS=arm64 \
-                    ONLY_ACTIVE_ARCH=YES \
-                    build | xcbeautify
                 }
                 build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)
 
