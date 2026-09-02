@@ -628,7 +628,7 @@ workflows:
                     -configuration Release \
                     -sdk iphonesimulator \
                     -derivedDataPath "$DERIVED_DATA_PATH" \
-                    ARCHS=arm64 \
+                    ARCHS=arm64
                 }
                 build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)
 
