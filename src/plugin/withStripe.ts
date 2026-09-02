@@ -125,8 +125,7 @@ const DISABLE_SPM_TAG = '@stripe/stripe-react-native-disableSPM';
  * block. The Podfile Expo generates opens with
  * `prepare_react_native_project!` at the top level, which makes it a stable
  * anchor: inserting immediately after it guarantees the flag precedes the
- * target block on every Expo SDK's template. (Same approach as
- * react-native-firebase's `ios.disableSPM` plugin option.)
+ * target block on every Expo SDK's template
  */
 export function setPodfileDisableSPM(
   contents: string,

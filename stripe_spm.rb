@@ -12,10 +12,6 @@
 # Package Manager resolution of https://github.com/stripe/stripe-ios, while
 # CocoaPods remains the delivery vehicle for stripe-react-native itself.
 #
-# This is the same approach react-native-firebase shipped for the Firebase
-# iOS SDK's CocoaPods deprecation (default-on since @react-native-firebase/app
-# 26.1.0), so apps using both SDKs get one consistent model.
-#
 # == How it works
 #
 # There are three cooperating layers:
@@ -77,8 +73,7 @@
 #     written to the disk"; our helpers save the project themselves. Running
 #     there also means the phase is appended after CocoaPods' own `[CP]`
 #     phases regardless of whether the app project is fresh (first install,
-#     Expo prebuild --clean) or already integrated. react-native-firebase's
-#     helper moved to this hook for the same reasons.
+#     Expo prebuild --clean) or already integrated. 
 #   - On very old CocoaPods versions without post_integrate hooks (< 1.10),
 #     the user-project stage falls back to the end of the post_install stage.
 #     That works too — the analyzer, our hook, and the integrator all share
@@ -159,8 +154,7 @@ module StripeSPM
   #
   # Script details:
   #   - Filters to Stripe*.framework so we never touch frameworks that other
-  #     packages/tools manage themselves (e.g. react-native-firebase runs an
-  #     equivalent phase for Firebase frameworks).
+  #     packages/tools manage themselves.
   #   - Uses file(1) to skip statically linked frameworks: those are already
   #     linked into their consumers, and embedding a static framework in the
   #     bundle fails App Store validation.
@@ -296,9 +290,7 @@ module StripeSPM
     #
     # React Native fixed this inside its own SPM manager in facebook/
     # react-native#57576, but the fix only ships in RN >= 0.88; every earlier
-    # spm_dependency-capable release (0.75–0.87) carries the latent bug —
-    # react-native-firebase reproduced it on RN 0.85.3 and ships this same
-    # defense.
+    # spm_dependency-capable release (0.75–0.87) carries the latent bug.
     #
     # The defense: before any post_install hook runs, raise the generated-
     # UUID high-water mark past every counter-format UUID already in the
@@ -306,7 +298,7 @@ module StripeSPM
     # protects React Native's writes as well as our own. Runs even when SPM
     # mode is off (cheap, and it protects any other library using
     # `spm_dependency` in the same install); idempotent, so it composes with
-    # react-native-firebase's equivalent guard when both SDKs are installed.
+    # author libraries' equivalent guards.
     #
     # Reads/writes @generated_uuids/@available_uuids/@uuid_prefix — private
     # internals of Pod::Project/Xcodeproj::Project — which is why the caller
@@ -409,8 +401,7 @@ module StripeSPM
     # final app link then fails with undefined Stripe symbols, because a
     # static library can't carry its dependencies and nothing else links them.
     # Dynamic frameworks don't have that problem: the pod framework links the
-    # Stripe products into itself. This mirrors react-native-firebase, which
-    # enforces the same requirement for the same reason.
+    # Stripe products into itself. 
     #
     # Note: Pod::Target#build_type is a *private* reader in CocoaPods; only
     # the build_as_* predicates are public API.
@@ -600,8 +591,7 @@ end
 # corresponding block, so the integration works with zero Podfile changes —
 # including the cleanup path when the user has opted out. Pod::Installer is a
 # stable, semantically versioned public class, making it a safer patch target
-# than React Native's private cocoapods scripts. (react-native-firebase hooks
-# the same two methods for the same reasons.)
+# than React Native's private cocoapods scripts.
 #
 # The re-hook guards check both public and private visibility: the original
 # methods are private in CocoaPods, and `alias_method` preserves visibility,
