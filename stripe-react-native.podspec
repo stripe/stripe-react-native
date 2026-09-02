@@ -3,7 +3,7 @@ require_relative 'stripe_spm'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
-stripe_version = '26.7.0'
+stripe_version = '26.9.0'
 
 fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
 
