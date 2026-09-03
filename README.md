@@ -61,7 +61,8 @@ Next, add:
         "@stripe/stripe-react-native",
         {
           "merchantIdentifier": string | string [],
-          "enableGooglePay": boolean
+          "enableGooglePay": boolean,
+          "disableSPM": boolean
         }
       ]
     ],
@@ -69,7 +70,7 @@ Next, add:
 }
 ```
 
-to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can set them in an array.
+to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can set them in an array. `disableSPM` (optional, iOS) resolves the Stripe iOS SDK through CocoaPods instead of Swift Package Manager — see [Stripe iOS SDK resolution](#stripe-ios-sdk-resolution).
 
 ### Requirements
 
@@ -106,6 +107,41 @@ The SDK uses TypeScript features available in Babel version `7.9.0` and above.
 Alternatively use the `plugin-transform-typescript` plugin in your project.
 
 You'll need to run `pod install` in your `ios` directory to install the native dependencies.
+
+##### Stripe iOS SDK resolution
+
+On React Native 0.75 and above, the SDK resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks — add the following to your Podfile if it isn't there already:
+
+```ruby
+use_frameworks! :linkage => :dynamic
+```
+
+For Expo, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
+
+To keep resolving the Stripe iOS SDK through CocoaPods — for example, if your app can't build with dynamic frameworks — add this at the top of your Podfile:
+
+```ruby
+$StripeDisableSPM = true
+```
+
+For Expo (where the Podfile is generated), set the equivalent option on this SDK's config plugin in your app config instead:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "@stripe/stripe-react-native",
+        {
+          "disableSPM": true
+        }
+      ]
+    ]
+  }
+}
+```
+
+The CocoaPods fallback is available for as long as the Stripe iOS SDK continues publishing to CocoaPods. React Native versions below 0.75 always use CocoaPods resolution.
 
 ## Usage example
 

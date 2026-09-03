@@ -23,6 +23,7 @@ pipelines:
     workflows:
       js-tests: {}
       unit-test-ios: {}
+      unit-test-ios-old-arch: {}
       unit-test-android: {}
       e2e-build-ios-old-arch: {}
       e2e-tests-ios-old-arch:
@@ -32,6 +33,8 @@ pipelines:
       e2e-tests-ios-new-arch:
         depends_on: [e2e-build-ios-new-arch]
         parallel: 3
+      build-ios-fallback: {}
+      expo-prebuild-ios: {}
       e2e-build-android-old-arch: {}
       e2e-tests-android-old-arch:
         depends_on: [e2e-build-android-old-arch]
@@ -492,22 +495,12 @@ workflows:
           inputs:
             - content: |
                 if [ -n "$OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH" ]; then
+                  # stripe_spm.rb reads this env var and resolves the Swift
+                  # package from that stripe-ios branch instead of the pinned
+                  # release.
                   echo "Overriding Stripe iOS SDK to use branch: $OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH"
-
-                  # Extract pod names from update-pods script (includes transitive deps)
-                  STRIPE_PODS=$(grep '"update-pods"' package.json | sed 's/.*pod update //' | sed 's/",$//')
-
-                  PODFILE="example/ios/Podfile"
-                  echo "" >> "$PODFILE"
-                  echo "# Override Stripe iOS SDK pods to use git branch" >> "$PODFILE"
-                  echo "$STRIPE_PODS" | tr ' ' '\n' | while read pod; do
-                    [ -n "$pod" ] && echo "pod '$pod', :git => 'https://github.com/stripe/stripe-ios.git', :branch => '$OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH'" >> "$PODFILE"
-                  done
-
-                  yarn update-pods
-                else
-                  yarn pods
                 fi
+                yarn pods
 
   _prepare_android:
     before_run:
