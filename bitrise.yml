@@ -23,7 +23,6 @@ pipelines:
     workflows:
       js-tests: {}
       unit-test-ios: {}
-      unit-test-ios-old-arch: {}
       unit-test-android: {}
       e2e-build-ios-old-arch: {}
       e2e-tests-ios-old-arch:
@@ -52,6 +51,10 @@ pipelines:
       rn-078: {}
       rn-081: {}
       rn-082: {}
+      # Not an integration project: the old-arch native unit tests ride along
+      # here to stay off the per-PR pipeline. Rationale on the workflow
+      # definition.
+      unit-test-ios-old-arch: {}
 
 workflows:
   # JavaScript Tests
@@ -107,8 +110,8 @@ workflows:
             - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
             # The SDK's native unit tests are compiled into the test app's
             # ReactTestAppTests target by example/ios/Podfile (post_integrate);
-            # the standalone podspec test spec isn't usable under SPM
-            # resolution.
+            # the podspec deliberately ships no test spec, because one isn't
+            # usable under SPM resolution.
             - scheme: ReactTestApp
             - xcodebuild_options: -only-testing:ReactTestAppTests
             - log_formatter: xcbeautify
@@ -128,6 +131,16 @@ workflows:
   # a source-built React core; see example/ios/Podfile). The iOS formatting
   # check isn't repeated here: it is architecture-independent and already
   # runs in unit-test-ios.
+  #
+  # Runs in the test-projects pipeline rather than per-PR. The marginal
+  # coverage is narrow — most of the unit suite is architecture-independent
+  # Swift, so old arch uniquely adds only the RCT_NEW_ARCH_ENABLED=0 compile
+  # of the OldArch compat layer and the tests' old-arch-conditional
+  # assertions (e.g. ReactNativeAnalyticsTests) — while the build is among
+  # the most expensive: old-arch SPM mode can't use the prebuilt React core
+  # (see example/ios/Podfile), so it source-builds React with dynamic
+  # frameworks. Old-arch build and runtime coverage still runs on every PR
+  # via e2e-build-ios-old-arch / e2e-tests-ios-old-arch.
   #
   # Unlike unit-test-ios, this job embeds a prebuilt JS bundle
   # (_build_js_bundle, as the e2e jobs do). CI has no Metro server, and with
@@ -155,8 +168,8 @@ workflows:
             - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
             # The SDK's native unit tests are compiled into the test app's
             # ReactTestAppTests target by example/ios/Podfile (post_integrate);
-            # the standalone podspec test spec isn't usable under SPM
-            # resolution.
+            # the podspec deliberately ships no test spec, because one isn't
+            # usable under SPM resolution.
             - scheme: ReactTestApp
             - xcodebuild_options: -only-testing:ReactTestAppTests
             - log_formatter: xcbeautify

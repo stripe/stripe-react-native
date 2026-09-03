@@ -89,8 +89,8 @@ use_test_app! options do |_target|
   pod 'stripe-react-native/Onramp', path: '../node_modules/@stripe/stripe-react-native'
 
   # Declares the ReactTestAppTests target so CocoaPods integrates it (search
-  # paths etc.); its test sources are added in post_integrate below. The
-  # SDK's podspec test_spec isn't used here because test specs build inside
+  # paths etc.); its test sources are added in post_integrate below. The SDK
+  # deliberately ships no podspec test_spec for them: test specs build inside
   # the Pods project, where the SPM-resolved Stripe modules aren't visible to
   # a separate test target the way they are to an app-level one.
   _target.tests

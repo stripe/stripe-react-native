@@ -34,11 +34,6 @@ Pod::Spec.new do |s|
     'SWIFT_COMPILATION_MODE' => 'wholemodule',
   }
 
-  s.test_spec 'Tests' do |test_spec|
-    test_spec.platforms    = { ios: '15.1' }
-    test_spec.source_files = 'ios/Tests/**/*.{m,swift}'
-  end
-
   if fabric_enabled
     s.default_subspecs = 'Core', 'NewArch'
   else
