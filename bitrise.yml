@@ -103,8 +103,57 @@ workflows:
             - project_path: example/ios/example.xcworkspace
             - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
             # The SDK's native unit tests are compiled into the test app's
-            # ReactTestAppTests target by example/ios/Podfile (post_integrate),
-            # which also prepares the target for SPM-resolved dependencies.
+            # ReactTestAppTests target by example/ios/Podfile (post_integrate);
+            # the standalone podspec test spec isn't usable under SPM
+            # resolution.
+            - scheme: ReactTestApp
+            - xcodebuild_options: -only-testing:ReactTestAppTests
+            - log_formatter: xcbeautify
+      - save-cache@1:
+          title: Save Pods Cache
+          is_always_run: true
+          inputs:
+            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - paths: |
+                example/ios/Pods
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
+
+  # Old-architecture variant of unit-test-ios: the same native unit tests
+  # against an old-arch pod install (still SPM mode — dynamic frameworks with
+  # a source-built React core; see example/ios/Podfile). The iOS formatting
+  # check isn't repeated here: it is architecture-independent and already
+  # runs in unit-test-ios.
+  #
+  # Unlike unit-test-ios, this job embeds a prebuilt JS bundle
+  # (_build_js_bundle, as the e2e jobs do). CI has no Metro server, and with
+  # neither Metro nor an embedded bundle the Debug test app's old-arch launch
+  # path never becomes ready for XCTest — the run fails with "test runner
+  # hung before establishing connection" after the app's failed
+  # http://localhost:8081/status probe. react-native-test-app prefers Metro
+  # in Debug but falls back to the embedded main.ios.jsbundle once that probe
+  # fails, so the bundle unblocks launch. The new-arch (bridgeless) launch
+  # path happens to tolerate having no bundle at all, which is why
+  # unit-test-ios gets away without this step.
+  unit-test-ios-old-arch:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+    before_run:
+      - _prepare_ios
+      - _build_js_bundle
+      - _install_pods
+    steps:
+      - xcode-test@4:
+          title: Xcode Test for iOS
+          inputs:
+            - project_path: example/ios/example.xcworkspace
+            - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
+            # The SDK's native unit tests are compiled into the test app's
+            # ReactTestAppTests target by example/ios/Podfile (post_integrate);
+            # the standalone podspec test spec isn't usable under SPM
+            # resolution.
             - scheme: ReactTestApp
             - xcodebuild_options: -only-testing:ReactTestAppTests
             - log_formatter: xcbeautify
@@ -207,6 +256,54 @@ workflows:
       - RCT_NEW_ARCH_ENABLED: 1
     before_run:
       - _e2e_build_ios
+
+  # Build-only coverage for the CocoaPods fallback path (STRIPE_DISABLE_SPM /
+  # $StripeDisableSPM): Stripe resolved from the pod registry with React
+  # Native's default static libraries. All other iOS jobs run SPM mode, so
+  # without this job the fallback — what RN < 0.75 apps and opted-out apps use
+  # while Stripe still publishes pods — would have no CI coverage. New arch +
+  # static + pods is the closest match to today's real-world default app
+  # configuration. Build-only: no e2e-tests consumer pulls its artifact.
+  build-ios-fallback:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - STRIPE_DISABLE_SPM: '1'
+    before_run:
+      - _e2e_build_ios
+
+  # Validates the Expo Continuous Native Generation path on every PR.
+  # Protects this behavior: a fresh `expo prebuild --clean`
+  # project gets exactly ONE `pod install`, so every SPM artifact (package
+  # reference, embed phase) must land in that single pass. The other iOS jobs
+  # all build the committed react-native-test-app project, which never
+  # exercises a from-scratch app project or the Expo config plugin.
+  #
+  # Two passes: SPM mode (expo-build-properties dynamic frameworks, asserts
+  # the SPM integration, then a full Release simulator build to catch
+  # compile/link regressions under Expo), and the CocoaPods fallback via the
+  # plugin's disableSPM option (prebuild + assertions only — fallback
+  # *builds* are covered by build-ios-fallback, and Expo's static default
+  # matches that configuration).
+  expo-prebuild-ios:
+    envs:
+      - EXPO_SDK_VERSION: '54'
+    before_run:
+      - _prepare_js
+    steps:
+      - script@1:
+          title: Expo prebuild + build (SPM mode)
+          timeout: 2700
+          inputs:
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION" --platforms ios
+      - script@1:
+          title: Expo prebuild, CocoaPods fallback (plugin disableSPM)
+          timeout: 1200
+          inputs:
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION" --platforms ios --disable-spm --skip-build
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
 
   e2e-tests-ios-old-arch:
     envs:
@@ -530,11 +627,16 @@ workflows:
 
                 DERIVED_DATA_PATH="$BITRISE_SOURCE_DIR/DerivedData"
                 build_ios() {
+                  # ARCHS/ONLY_ACTIVE_ARCH: build only the arm64 simulator
+                  # slice (CI runners and the SPM-built Stripe package don't
+                  # need Intel), roughly halving Release build time.
                   xcodebuild -workspace example.xcworkspace \
                     -scheme example \
                     -configuration Release \
                     -sdk iphonesimulator \
                     -derivedDataPath "$DERIVED_DATA_PATH" \
+                    ARCHS=arm64 \
+                    ONLY_ACTIVE_ARCH=YES \
                     build | xcbeautify
                 }
                 build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)
