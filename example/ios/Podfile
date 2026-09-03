@@ -104,16 +104,6 @@ post_integrate do |_installer|
   project_path = "#{ws_dir}/node_modules/.generated/ios/ReactTestApp.xcodeproj"
   project = Xcodeproj::Project.open(project_path)
   test_target = project.targets.find { |target| target.name == 'ReactTestAppTests' }
-  app_target = project.targets.find { |target| target.name == 'ReactTestApp' }
-
-  # The SDK's public headers import React headers non-modularly; when the
-  # workspace builds with dynamic frameworks those imports land inside
-  # framework modules and Xcode rejects them without this setting.
-  [app_target, test_target].compact.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
-    end
-  end
 
   # The SDK's native unit tests live in the repo (ios/Tests), not in the
   # generated test app; add them to the ReactTestAppTests target by reference
