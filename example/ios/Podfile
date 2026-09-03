@@ -6,11 +6,11 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
 
-# Keep the example app on the existing CocoaPods resolution path while the
-# SPM integration is staged. The activation change will make SPM the default
-# and retain CocoaPods as an explicit fallback.
-disable_spm = true
-$StripeDisableSPM = true
+# By default the Stripe iOS SDK is resolved through Swift Package Manager
+# (see stripe_spm.rb at the repo root). Set STRIPE_DISABLE_SPM=1 to exercise
+# the CocoaPods fallback path instead.
+disable_spm = ENV['STRIPE_DISABLE_SPM'] == '1'
+$StripeDisableSPM = true if disable_spm
 
 # SPM resolution requires dynamic frameworks: the Stripe Swift package
 # products use automatic linkage, which only reaches the final app correctly
