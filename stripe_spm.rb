@@ -12,10 +12,6 @@
 # Package Manager resolution of https://github.com/stripe/stripe-ios, while
 # CocoaPods remains the delivery vehicle for stripe-react-native itself.
 #
-# This is the same approach react-native-firebase shipped for the Firebase
-# iOS SDK's CocoaPods deprecation (default-on since @react-native-firebase/app
-# 26.1.0), so apps using both SDKs get one consistent model.
-#
 # == How it works
 #
 # There are three cooperating layers:
@@ -33,31 +29,63 @@
 #    target. No Package.swift is generated anywhere; Xcode itself resolves,
 #    checks out, and builds the package when it builds the workspace.
 #
-# 3. This file covers what React Native's bridge doesn't, via a hook installed
-#    on `Pod::Installer#run_podfile_post_install_hooks` (see the bottom of the
-#    file). CocoaPods invokes that method on every install — even when the
-#    Podfile has no post_install block — so users need zero Podfile changes.
-#    After the normal hooks (including React Native's SPM apply step) run, the
-#    hook:
+# 3. This file covers what React Native's bridge doesn't, via hooks installed
+#    on `Pod::Installer` (see the bottom of the file). CocoaPods invokes the
+#    hooked methods on every install — even when the Podfile has no
+#    post_install/post_integrate block — so users need zero Podfile changes.
+#    The work is split across two hooks by which Xcode project it touches:
+#
+#    `run_podfile_post_install_hooks` (the Pods-project stage):
+#      - guards CocoaPods' UUID counter before the normal hooks run, so React
+#        Native's SPM apply step can't corrupt Pods.xcodeproj (see
+#        `ensure_uuid_counter_safe`), and verifies the project's integrity
+#        after they ran (see `verify_pods_project_integrity!`),
 #      - fails fast unless the pod builds as a dynamic framework, the only
 #        linkage React Native's SPM integration supports (see
 #        `verify_dynamic_linkage!` for the full linking story),
 #      - links the StripeCryptoOnramp package product when the Onramp subspec
 #        is installed (`spm_dependency` silently ignores subspec declarations;
-#        see `link_onramp_product`),
+#        see `link_onramp_product`).
+#
+#    `run_podfile_post_integrate_hooks` (the user-project stage):
 #      - maintains a build phase on the app target that embeds SPM-built
-#        dynamic frameworks into the app bundle (see EMBED_SCRIPT).
+#        dynamic frameworks into the app bundle (see EMBED_SCRIPT), or removes
+#        it again when SPM resolution is turned off.
 #
 # == Install lifecycle and ordering
 #
 # During `pod install`, CocoaPods evaluates the podspec (possibly more than
-# once — everything here is idempotent), generates the Pods project, and then
-# runs `run_podfile_post_install_hooks` just before writing the project to
-# disk. The user's post_install block runs first — React Native's
-# `react_native_post_install` writes the Swift package references at that
-# point — and our hook runs after it, so it can rely on the package reference
-# existing (and raise a clear error when it doesn't). Raising inside the hook
-# aborts the install before anything is saved.
+# once — everything here is idempotent), generates the Pods project, runs
+# `run_podfile_post_install_hooks` just before writing that project to disk,
+# then runs `integrate_user_project` (which adds its own `[CP] Embed Pods
+# Frameworks` phase to the app target and saves the *user's* project), and
+# finally runs `run_podfile_post_integrate_hooks`.
+#
+# That ordering dictates where each piece of our work must live:
+#
+#   - Everything that touches Pods.xcodeproj has to happen in the
+#     post_install stage, while the project is still in memory and unwritten
+#     — a mutation made any later is silently lost (CocoaPods does not save
+#     the Pods project again after integration).
+#   - The embed phase touches the user's project, and runs in the
+#     post_integrate stage — the hook CocoaPods documents as existing
+#     precisely so that hooks "can alter [the user project] after it is
+#     written to the disk"; our helpers save the project themselves. Running
+#     there also means the phase is appended after CocoaPods' own `[CP]`
+#     phases regardless of whether the app project is fresh (first install,
+#     Expo prebuild --clean) or already integrated.
+#   - On very old CocoaPods versions without post_integrate hooks (< 1.10),
+#     the user-project stage falls back to the end of the post_install stage.
+#     That works too — the analyzer, our hook, and the integrator all share
+#     one in-memory instance of the user project, so mutations made before
+#     integration survive it — the phase just ends up ordered before the
+#     `[CP]` phases on a fresh project.
+#
+# Within the post_install stage, the user's post_install block runs first —
+# React Native's `react_native_post_install` writes the Swift package
+# references at that point — and our code runs after it, so it can rely on
+# the package reference existing (and raise a clear error when it doesn't).
+# Raising there aborts the install before anything is saved.
 #
 # Note the asymmetry in what persists between installs: Pods.xcodeproj is
 # regenerated from scratch on every install, but the *user's* .xcodeproj is
@@ -126,8 +154,7 @@ module StripeSPM
   #
   # Script details:
   #   - Filters to Stripe*.framework so we never touch frameworks that other
-  #     packages/tools manage themselves (e.g. react-native-firebase runs an
-  #     equivalent phase for Firebase frameworks).
+  #     packages/tools manage themselves.
   #   - Uses file(1) to skip statically linked frameworks: those are already
   #     linked into their consumers, and embedding a static framework in the
   #     bundle fails App Store validation.
@@ -199,9 +226,10 @@ module StripeSPM
       end
     end
 
-    # Entry point, called by the Pod::Installer hook at the bottom of this
-    # file after all regular post_install hooks have run. The order of the
-    # steps matters:
+    # Pods-project stage. Called by the post_install hook at the bottom of
+    # this file after all regular post_install hooks have run — while
+    # Pods.xcodeproj is still in memory and unwritten, which everything here
+    # depends on. The order of the steps matters:
     #   1. verify_dynamic_linkage! first, so an unsupported configuration
     #      fails with our actionable message before anything else can fail
     #      more cryptically;
@@ -209,24 +237,150 @@ module StripeSPM
     #      package reference React Native's SPM integration should have
     #      created by now;
     #   3. mutations last, once the configuration is known-good.
-    def apply(installer)
+    def apply_pods_project(installer)
       # No-op for installs that don't include this SDK (e.g. another project
       # in a monorepo sharing the same CocoaPods process).
       pod_target = installer.pod_targets.find { |target| target.pod_name == POD_NAME }
       return if pod_target.nil?
-
-      unless active?
-        # SPM mode is off, but a previous install may have left the embed
-        # phase in the user's project (which, unlike Pods.xcodeproj, is not
-        # regenerated on each install). Clean it up so opting out is complete.
-        remove_embed_phase(installer)
-        return
-      end
+      return unless active?
 
       verify_dynamic_linkage!(pod_target)
       package = find_package_reference!(installer)
       link_onramp_product(installer, pod_target, package)
-      add_embed_phase(installer)
+    end
+
+    # User-project stage. Called by the post_integrate hook at the bottom of
+    # this file (or, on CocoaPods too old for post_integrate hooks, at the
+    # end of the post_install stage — see the lifecycle notes at the top).
+    # The helpers save the user's project themselves, because CocoaPods has
+    # already saved it by post_integrate time.
+    def apply_user_project(installer)
+      pod_target = installer.pod_targets.find { |target| target.pod_name == POD_NAME }
+      return if pod_target.nil?
+
+      if active?
+        add_embed_phase(installer)
+      else
+        # SPM mode is off, but a previous install may have left the embed
+        # phase in the user's project (which, unlike Pods.xcodeproj, is not
+        # regenerated on each install). Clean it up so opting out is complete.
+        remove_embed_phase(installer)
+      end
+    end
+
+    # Guards against a UUID-collision bug that corrupts Pods.xcodeproj when a
+    # post_install hook creates new project objects — which React Native's
+    # SPM integration does for every `spm_dependency` package reference and
+    # product (and link_onramp_product below does once more).
+    #
+    # Background, verified against CocoaPods 1.16.2: `Pod::Project` overrides
+    # `generate_available_uuid_list` to mint deterministic UUIDs — a 6-char
+    # project prefix, a 7-hex-digit counter, and a trailing '0' — with, per
+    # its own comment, *no collision check* against existing objects, "as the
+    # Pods project is regenerated each time, and thus all UUIDs will have
+    # come from this method". Whenever that freshly-generated assumption
+    # breaks (an incremental-installation project loaded from cache, UUID
+    # postprocessing that sweeps the counters), the counter restarts near
+    # zero while the object table is already full of counter-format UUIDs,
+    # and the next `project.new` silently *overwrites* an existing entry in
+    # objects_by_uuid — observed in the wild overwriting the root PBXProject
+    # itself, after which Xcode refuses to open the Pods project
+    # ("The project 'Pods' is damaged and cannot be opened",
+    # `-[XCRemoteSwiftPackageReference _setSavedArchiveVersion:]`).
+    #
+    # React Native fixed this inside its own SPM manager in facebook/
+    # react-native#57576, but the fix only ships in RN >= 0.88; every earlier
+    # spm_dependency-capable release (0.75–0.87) carries the latent bug.
+    #
+    # The defense: before any post_install hook runs, raise the generated-
+    # UUID high-water mark past every counter-format UUID already in the
+    # project, so newly minted UUIDs can't land on an existing object. This
+    # protects React Native's writes as well as our own. Runs even when SPM
+    # mode is off (cheap, and it protects any other library using
+    # `spm_dependency` in the same install); idempotent, so it composes with
+    # author libraries' equivalent guards.
+    #
+    # Reads/writes @generated_uuids/@available_uuids/@uuid_prefix — private
+    # internals of Pod::Project/Xcodeproj::Project — which is why the caller
+    # wraps this in a rescue: if a future CocoaPods restructures them, the
+    # install must degrade to a warning, not break.
+    def ensure_uuid_counter_safe(installer)
+      project = installer.pods_project
+      return unless project
+
+      prefix = project.instance_variable_get(:@uuid_prefix)
+      return unless prefix.is_a?(String) && prefix.length >= 6
+
+      counter_prefix = prefix[0, 6]
+      max_index = -1
+      project.objects_by_uuid.each_key do |uuid|
+        # Only counter-format UUIDs participate: prefix + 7 hex digits + '0'.
+        next unless uuid.is_a?(String) && uuid.length == 14 &&
+                    uuid.start_with?(counter_prefix) && uuid.end_with?('0')
+
+        index = uuid[6, 7].to_i(16)
+        max_index = index if index > max_index
+      end
+      return if max_index < 0
+
+      generated = project.instance_variable_get(:@generated_uuids)
+      generated = [] unless generated.is_a?(Array)
+      already_safe = generated.size > max_index
+      while generated.size <= max_index
+        generated << format('%.6s%07X0', prefix, generated.size)
+      end
+      project.instance_variable_set(:@generated_uuids, generated)
+      # Discard pre-minted UUIDs too — they may date from before the raise.
+      project.instance_variable_set(:@available_uuids, [])
+
+      # Padding actually happening means the freshly-generated assumption was
+      # broken on this install — the load-bearing case, worth one log line.
+      # (Quiet when SPM is off: don't add noise to installs we're not part
+      # of.)
+      if !already_safe && active? && defined?(Pod::UI)
+        Pod::UI.puts "[stripe-react-native] Raised the Pods project's UUID counter past " \
+                     "index #{max_index} before Swift Package references are written."
+      end
+    end
+
+    # Post-condition check for the failure class ensure_uuid_counter_safe
+    # defends against: after the regular post_install hooks (React Native's
+    # SPM writes included) have run, the Pods project's rootObject UUID must
+    # still resolve to that same PBXProject. If a `project.new` reused its
+    # UUID, objects_by_uuid holds the new object at that key while
+    # @root_object still points at the original — and saving would write a
+    # pbxproj whose rootObject points at a non-project object, which Xcode
+    # cannot open. There is no safe way to continue past that, so this raises
+    # (aborting the install before the corrupt project is written) rather
+    # than warning like the soft guard above.
+    def verify_pods_project_integrity!(installer)
+      return unless active?
+
+      project = installer.pods_project
+      return unless project
+      return unless project.respond_to?(:root_object) && project.respond_to?(:objects_by_uuid)
+
+      root = project.root_object
+      resolved = root && project.objects_by_uuid[root.uuid]
+      return if root &&
+                resolved.equal?(root) &&
+                resolved.respond_to?(:isa) &&
+                resolved.isa == 'PBXProject'
+
+      raise Pod::Informative, <<~MESSAGE
+        [stripe-react-native] The Pods project failed an integrity check after
+        post_install hooks ran: its rootObject no longer resolves to the
+        project object, which means a newly created object (typically a Swift
+        Package reference) was assigned a UUID that collided with an existing
+        one. Saving this project would leave Pods.xcodeproj unopenable by
+        Xcode.
+
+        Delete `ios/Pods` and re-run `pod install`. If the error persists,
+        please report it at
+        https://github.com/stripe/stripe-react-native/issues (including your
+        React Native and CocoaPods versions); `$StripeDisableSPM = true` at
+        the top of your Podfile is the interim workaround.
+      MESSAGE
     end
 
     private
@@ -247,8 +401,7 @@ module StripeSPM
     # final app link then fails with undefined Stripe symbols, because a
     # static library can't carry its dependencies and nothing else links them.
     # Dynamic frameworks don't have that problem: the pod framework links the
-    # Stripe products into itself. This mirrors react-native-firebase, which
-    # enforces the same requirement for the same reason.
+    # Stripe products into itself.
     #
     # Note: Pod::Target#build_type is a *private* reader in CocoaPods; only
     # the build_as_* predicates are public API.
@@ -429,36 +582,91 @@ def stripe_spm_activate!(spec, version:)
   )
 end
 
-# Install the Pod::Installer hook (once) as soon as the podspec requires this
-# file.
+# Install the Pod::Installer hooks (once) as soon as the podspec requires
+# this file.
 #
-# Why hook `run_podfile_post_install_hooks` instead of asking users to call a
-# helper from their Podfile's post_install: CocoaPods invokes this method on
-# every install even when no post_install block exists, so the integration
-# works with zero Podfile changes — including the cleanup path when the user
-# has opted out. Pod::Installer is a stable, semantically versioned public
-# class, making it a safer patch target than React Native's private cocoapods
-# scripts. (react-native-firebase hooks the same method for the same
-# reasons.)
+# Why hook `run_podfile_post_install_hooks`/`run_podfile_post_integrate_hooks`
+# instead of asking users to call a helper from their Podfile: CocoaPods
+# invokes both methods on every install even when the Podfile defines no
+# corresponding block, so the integration works with zero Podfile changes —
+# including the cleanup path when the user has opted out. Pod::Installer is a
+# stable, semantically versioned public class, making it a safer patch target
+# than React Native's private cocoapods scripts.
 #
-# The guard checks both public and private visibility: the original method is
-# private in CocoaPods, and `alias_method` preserves visibility, so a plain
-# `method_defined?` check would miss the alias and re-hook on a second load.
-# (`require` normally dedupes by path; this protects against the same file
-# being loaded from two paths.)
-if defined?(Pod::Installer) &&
-   !Pod::Installer.method_defined?(:stripe_spm_original_run_podfile_post_install_hooks) &&
-   !Pod::Installer.private_method_defined?(:stripe_spm_original_run_podfile_post_install_hooks)
-  Pod::Installer.class_eval do
-    alias_method :stripe_spm_original_run_podfile_post_install_hooks, :run_podfile_post_install_hooks
+# The re-hook guards check both public and private visibility: the original
+# methods are private in CocoaPods, and `alias_method` preserves visibility,
+# so a plain `method_defined?` check would miss the alias and re-hook on a
+# second load. (`require` normally dedupes by path; this protects against the
+# same file being loaded from two paths.) The wrappers are defined with
+# `define_method` so they can capture `post_integrate_supported`, and are
+# made private again afterwards to leave the class shaped as CocoaPods
+# defined it.
+if defined?(Pod::Installer)
+  installer_class = Pod::Installer
 
-    def run_podfile_post_install_hooks
-      # Run the regular hooks first: react_native_post_install (called from
-      # the user's post_install block) writes the Swift package references
-      # that StripeSPM.apply builds on.
-      result = stripe_spm_original_run_podfile_post_install_hooks
-      StripeSPM.apply(self)
-      result
+  # CocoaPods has invoked post_integrate hooks (at the end of
+  # integrate_user_project) since 1.10. When the method is missing — or when
+  # a Podfile sets `integrate_targets: false`, in which case CocoaPods never
+  # calls it — the user-project stage has to run from post_install instead.
+  # The integrate_targets case needs no special handling: without
+  # integration there is no user project to embed into, and
+  # apply_user_project no-ops.
+  post_integrate_supported =
+    installer_class.method_defined?(:run_podfile_post_integrate_hooks) ||
+    installer_class.private_method_defined?(:run_podfile_post_integrate_hooks)
+
+  unless installer_class.method_defined?(:stripe_spm_original_run_podfile_post_install_hooks) ||
+         installer_class.private_method_defined?(:stripe_spm_original_run_podfile_post_install_hooks)
+    post_install_was_private = installer_class.private_method_defined?(:run_podfile_post_install_hooks)
+    installer_class.class_eval do
+      alias_method :stripe_spm_original_run_podfile_post_install_hooks, :run_podfile_post_install_hooks
+
+      define_method(:run_podfile_post_install_hooks) do
+        # The UUID guard must run before the regular hooks: it is defending
+        # against object creation *inside* react_native_post_install. Soft
+        # failure only — it pokes CocoaPods internals, and a CocoaPods
+        # release changing those must not break `pod install`.
+        begin
+          StripeSPM.ensure_uuid_counter_safe(self)
+        rescue StandardError => e
+          if defined?(Pod::UI)
+            Pod::UI.warn "[stripe-react-native] Couldn't guard the Pods project's UUID counter " \
+                         "(#{e.class}: #{e.message}). If this install leaves Pods.xcodeproj " \
+                         'unopenable by Xcode, delete ios/Pods and report the error at ' \
+                         'https://github.com/stripe/stripe-react-native/issues.'
+          end
+        end
+        # Run the regular hooks next: react_native_post_install (called from
+        # the user's post_install block) writes the Swift package references
+        # that the integrity check and the Pods-project stage build on.
+        result = stripe_spm_original_run_podfile_post_install_hooks
+        # Deliberately not rescued: continuing past a corrupted project would
+        # only trade this message for an inscrutable Xcode failure later.
+        StripeSPM.verify_pods_project_integrity!(self)
+        StripeSPM.apply_pods_project(self)
+        # Old CocoaPods without post_integrate hooks: run the user-project
+        # stage here instead (see the lifecycle notes at the top).
+        StripeSPM.apply_user_project(self) unless post_integrate_supported
+        result
+      end
     end
+    installer_class.send(:private, :run_podfile_post_install_hooks) if post_install_was_private
+  end
+
+  if post_integrate_supported &&
+     !installer_class.method_defined?(:stripe_spm_original_run_podfile_post_integrate_hooks) &&
+     !installer_class.private_method_defined?(:stripe_spm_original_run_podfile_post_integrate_hooks)
+    post_integrate_was_private = installer_class.private_method_defined?(:run_podfile_post_integrate_hooks)
+    installer_class.class_eval do
+      alias_method :stripe_spm_original_run_podfile_post_integrate_hooks, :run_podfile_post_integrate_hooks
+
+      define_method(:run_podfile_post_integrate_hooks) do
+        # The user's own post_integrate block (if any) runs first, ours after.
+        result = stripe_spm_original_run_podfile_post_integrate_hooks
+        StripeSPM.apply_user_project(self)
+        result
+      end
+    end
+    installer_class.send(:private, :run_podfile_post_integrate_hooks) if post_integrate_was_private
   end
 end
