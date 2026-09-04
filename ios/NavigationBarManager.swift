@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import React
 
 @objc(NavigationBarManager)
 class NavigationBarManager: RCTViewManager {
