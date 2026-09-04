@@ -1,4 +1,5 @@
 import Foundation
+import React
 
 @objc(ApplePayButtonManager)
 class ApplePayButtonManager: RCTViewManager {

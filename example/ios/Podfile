@@ -6,19 +6,152 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
 
-# Use prebuilt RN.
-ENV['RCT_USE_RN_DEP'] = '1'
-ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
+# By default the Stripe iOS SDK is resolved through Swift Package Manager
+# (see stripe_spm.rb at the repo root). Set STRIPE_DISABLE_SPM=1 to exercise
+# the CocoaPods fallback path instead.
+disable_spm = ENV['STRIPE_DISABLE_SPM'] == '1'
+$StripeDisableSPM = true if disable_spm
+
+# SPM resolution requires dynamic frameworks: the Stripe Swift package
+# products use automatic linkage, which only reaches the final app correctly
+# when the pod that consumes them is a dynamic framework (stripe_spm.rb
+# enforces this with an actionable error). The CocoaPods fallback keeps
+# React Native's default static libraries.
+use_frameworks! :linkage => :dynamic unless disable_spm
 
 new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED'] == 'true'
+
+# The prebuilt core only wires framework linkage through the new-architecture
+# dependency path, so with dynamic frameworks old-arch pods (e.g. react-native-safe-area-context)
+# compile against prebuild React headers but never link the framework, failing
+# with undefined RCT* symbols. Static builds (which we still do in fallback mode)
+# don't per-pod link, so the prebuilt core is fine there on either arch.
+use_prebuilt_rncore = new_arch_enabled || disable_spm
+ENV['RCT_USE_RN_DEP'] = '1'
+ENV['RCT_USE_PREBUILT_RNCORE'] = '1' if use_prebuilt_rncore
 
 options = {
   :bridgeless_enabled => new_arch_enabled,
   :fabric_enabled =>  new_arch_enabled,
   :hermes_enabled => true,
+  # react-native-test-app runs this lambda from its own post_install hook.
+  :post_install => lambda do |installer|
+    # Dynamic-frameworks builds (SPM mode) make every pod framework resolve
+    # its own symbols at link time, and react-native-test-app's DevSupport
+    # pod under-declares its dependencies for that. Which `-framework` flags
+    # it is missing depends on the configuration:
+    #
+    # - Fallback/static mode (disable_spm): skipped entirely. Static
+    #   libraries don't link per-pod — all symbols resolve at the final app
+    #   link — and force-linking framework names that aren't built in this
+    #   mode would itself break the build.
+    #
+    # - New-arch prebuilt-core mode (use_prebuilt_rncore): the prebuilt React
+    #   core only wires framework linkage through the new-architecture
+    #   dependency path, which DevSupport isn't on, so it needs the whole
+    #   prebuilt set: React, ReactNativeDependencies, and hermes.
+    #
+    # - Old-arch SPM mode (dynamic frameworks + source-built React core):
+    #   CocoaPods links the React frameworks into DevSupport through normal
+    #   pod dependencies, but hermes is still missing. DevSupport's own C++
+    #   references JSI, and with Hermes enabled React Native excludes jsi.cpp
+    #   from React-jsi — the facebook::jsi::* symbol definitions live inside
+    #   hermes-engine's prebuilt dylib — yet DevSupport declares React-jsi, not
+    #   hermes-engine, so nothing links that dylib. Only the `-framework`
+    #   flag is missing; the framework search path already arrives
+    #   transitively (DevSupport -> React-jsi -> hermes-engine).
+    next if disable_spm
+
+    frameworks = use_prebuilt_rncore ? ['React', 'ReactNativeDependencies', 'hermes'] : ['hermes']
+
+    # Append the missing `-framework` flags to DevSupport's generated
+    # xcconfigs.
+    Dir.glob("#{installer.sandbox.root}/Target Support Files/ReactTestApp-DevSupport/*.xcconfig").each do |path|
+      lines = File.readlines(path, chomp: true)
+      index = lines.index { |line| line.start_with?('OTHER_LDFLAGS =') }
+      values = index ? lines[index].split(' = ', 2).last.split(' ') : ['$(inherited)']
+      frameworks.each do |framework|
+        quoted_framework = "\"#{framework}\""
+        next if values.include?(quoted_framework)
+
+        values << '-framework'
+        values << quoted_framework
+      end
+      line = "OTHER_LDFLAGS = #{values.join(' ')}"
+      index ? lines[index] = line : lines << line
+      File.write(path, "#{lines.join("\n")}\n")
+    end
+  end,
 }
 
-use_test_app! options do |target|
-  pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native', testspecs: ['Tests']
+use_test_app! options do |_target|
+  pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native'
   pod 'stripe-react-native/Onramp', path: '../node_modules/@stripe/stripe-react-native'
+
+  # Declares the ReactTestAppTests target so CocoaPods integrates it (search
+  # paths etc.); its test sources are added in post_integrate below. The SDK
+  # deliberately ships no podspec test_spec for them: test specs build inside
+  # the Pods project, where the SPM-resolved Stripe modules aren't visible to
+  # a separate test target the way they are to an app-level one.
+  _target.tests
+end
+
+# post_integrate runs after CocoaPods has written its projects and hooked
+# them into the workspace. react-native-test-app regenerates
+# ReactTestApp.xcodeproj under node_modules/.generated on every pod install,
+# so every adjustment here must be (re)applied on each run.
+post_integrate do |_installer|
+  project_path = "#{ws_dir}/node_modules/.generated/ios/ReactTestApp.xcodeproj"
+  project = Xcodeproj::Project.open(project_path)
+  test_target = project.targets.find { |target| target.name == 'ReactTestAppTests' }
+
+  # The SDK's native unit tests live in the repo (ios/Tests), not in the
+  # generated test app; add them to the ReactTestAppTests target by reference
+  # so `xcodebuild test -scheme ReactTestApp` runs them.
+  tests_group = project.main_group.find_subpath('StripeReactNativeTests', true)
+  tests_group.path = '../../../../ios/Tests'
+  tests_group.source_tree = 'SOURCE_ROOT'
+
+  Dir.glob("#{ws_dir.parent}/ios/Tests/*.{m,swift}").sort.each do |path|
+    name = File.basename(path)
+    file_ref = tests_group.files.find { |file| file.path == name } || tests_group.new_file(name)
+    next if test_target.source_build_phase.files_references.include?(file_ref)
+
+    test_target.add_file_references([file_ref])
+  end
+
+  test_target.build_configurations.each do |config|
+    flags = Array(config.build_settings['OTHER_SWIFT_FLAGS'] || '$(inherited)')
+    flags = flags.flat_map { |flag| flag.to_s.split(' ') }
+    flags << '$(inherited)' unless flags.include?('$(inherited)')
+    # The tests conditionally compile new-architecture code paths.
+    flags << '-DRCT_NEW_ARCH_ENABLED' if new_arch_enabled && !flags.include?('-DRCT_NEW_ARCH_ENABLED')
+    unless disable_spm
+      # The tests import Stripe modules directly (@testable-importing the SDK
+      # framework also requires resolving the modules its Swift interface
+      # references). When Stripe is built by SPM inside the Pods project,
+      # Xcode generates clang module maps for the package targets under
+      # OBJROOT/GeneratedModuleMaps, but nothing puts them on the *test*
+      # target's search paths — pod targets get that wiring from React
+      # Native's SPM integration, external targets don't. Point the compiler
+      # at each generated module map explicitly. (This is also why these
+      # flags live here and not in the shipped podspec: app code doesn't
+      # import Stripe modules, so regular apps don't need them.)
+      %w[
+        Stripe Stripe3DS2 StripeApplePay StripeCameraCore StripeCore
+        StripeCryptoOnramp StripeFinancialConnections StripeIdentity
+        StripeIssuing StripePaymentSheet StripePayments StripePaymentsUI
+        StripeUICore
+      ].each do |module_name|
+        map_flag = "-fmodule-map-file=$(OBJROOT)/GeneratedModuleMaps$(EFFECTIVE_PLATFORM_NAME)/#{module_name}.modulemap"
+        next if flags.include?(map_flag)
+
+        flags << '-Xcc'
+        flags << map_flag
+      end
+    end
+    config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+  end
+
+  project.save
 end

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+**Changes**
+* [Changed] iOS: SDK headers that import React headers are no longer exposed as public headers of the pod, making the `stripe_react_native` framework module self-contained under `use_frameworks!`. Native code that imports the module (unit tests, for example) no longer needs to set `CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES`.
+* [Changed] iOS: On React Native 0.75 and above, the Stripe iOS SDK is now resolved through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). To temporarily keep resolving the Stripe iOS SDK through CocoaPods for now, add `$StripeDisableSPM = true` at the top of your Podfile — Expo apps can set `"disableSPM": true` on this SDK's config plugin instead. React Native versions below 0.75 continue to use CocoaPods resolution. See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#stripe-ios-sdk-resolution) in the README for details and troubleshooting.
+
 ## 0.76.0 - 2026-09-01
 **Features**
 * [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.
