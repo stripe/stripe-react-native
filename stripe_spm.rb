@@ -8,7 +8,7 @@
 # which will now only be published via SPM, not CocoaPods. 
 # The stripe-react-native pod itself is unaffected since it is loaded from
 # node_modules rather than the CocoaPods registry.
-# This file's job is to replace the `s.dependency 'Stripe*'` commdands from
+# This file's job is to replace the `s.dependency 'Stripe*'` commands from
 # the stripe-react-native podspec with a Swift Package Manager resolution.
 #
 # == How it works
