@@ -131,8 +131,8 @@ module StripeSPM
   ONRAMP_PRODUCT = 'StripeCryptoOnramp'.freeze
   ONRAMP_SUBSPEC = "#{POD_NAME}/Onramp".freeze
 
-  # Shown in Xcode's build-phases UI; also the key used to find/replace
-  # the phase on later installs.
+  # Shown in Xcode's build-phases UI; also the key used to find/replace/remove
+  # the phase on later installs (if the user moves off of SPM resolution).
   EMBED_PHASE_NAME = '[stripe-react-native] Embed SPM Frameworks'.freeze
 
   # Embeds SPM-built dynamic frameworks into the app bundle.
@@ -246,9 +246,15 @@ module StripeSPM
     def apply_user_project(installer)
       pod_target = installer.pod_targets.find { |target| target.pod_name == POD_NAME }
       return if pod_target.nil?
-      return unless active?
 
-      add_embed_phase(installer)
+      if active?
+        add_embed_phase(installer)
+      else
+        # SPM mode is off, but a previous install may have left the embed
+        # phase in the user's project (which, unlike Pods.xcodeproj, is not
+        # regenerated on each install). Clean it up so opting out is complete.
+        remove_embed_phase(installer)
+      end
     end
 
     private
@@ -362,6 +368,19 @@ module StripeSPM
         # phase under build-phase fingerprinting. Guarded because older
         # Xcodeproj gems don't model the attribute.
         phase.always_out_of_date = '1' if phase.respond_to?(:always_out_of_date=)
+        true
+      end
+    end
+
+    # Inverse of add_embed_phase, used when SPM mode is off. Needed so that
+    # if the user opts out of SPM resolution they aren't left with a harmless
+    # but confusing dead build phase in their project.
+    def remove_embed_phase(installer)
+      each_user_app_target(installer) do |user_target|
+        phase = user_target.shell_script_build_phases.find { |p| p.name == EMBED_PHASE_NAME }
+        next false if phase.nil?
+
+        phase.remove_from_project
         true
       end
     end
