@@ -6,16 +6,82 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
 
-# Use prebuilt RN.
-ENV['RCT_USE_RN_DEP'] = '1'
-ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
+# Keep the example app on the existing CocoaPods resolution path while the
+# SPM integration is staged. The activation change will make SPM the default
+# and retain CocoaPods as an explicit fallback.
+disable_spm = true
+$StripeDisableSPM = true
+
+# SPM resolution requires dynamic frameworks: the Stripe Swift package
+# products use automatic linkage, which only reaches the final app correctly
+# when the pod that consumes them is a dynamic framework (stripe_spm.rb
+# enforces this with an actionable error). The CocoaPods fallback keeps
+# React Native's default static libraries.
+use_frameworks! :linkage => :dynamic unless disable_spm
 
 new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED'] == 'true'
+
+# The prebuilt core only wires framework linkage through the new-architecture
+# dependency path, so with dynamic frameworks old-arch pods (e.g. react-native-safe-area-context)
+# compile against prebuild React headers but never link the framework, failing
+# with undefined RCT* symbols. Static builds (which we still do in fallback mode)
+# don't per-pod link, so the prebuilt core is fine there on either arch.
+use_prebuilt_rncore = new_arch_enabled || disable_spm
+ENV['RCT_USE_RN_DEP'] = '1'
+ENV['RCT_USE_PREBUILT_RNCORE'] = '1' if use_prebuilt_rncore
 
 options = {
   :bridgeless_enabled => new_arch_enabled,
   :fabric_enabled =>  new_arch_enabled,
   :hermes_enabled => true,
+  # react-native-test-app runs this lambda from its own post_install hook.
+  :post_install => lambda do |installer|
+    # Dynamic-frameworks builds (SPM mode) make every pod framework resolve
+    # its own symbols at link time, and react-native-test-app's DevSupport
+    # pod under-declares its dependencies for that. Which `-framework` flags
+    # it is missing depends on the configuration:
+    #
+    # - Fallback/static mode (disable_spm): skipped entirely. Static
+    #   libraries don't link per-pod — all symbols resolve at the final app
+    #   link — and force-linking framework names that aren't built in this
+    #   mode would itself break the build.
+    #
+    # - New-arch prebuilt-core mode (use_prebuilt_rncore): the prebuilt React
+    #   core only wires framework linkage through the new-architecture
+    #   dependency path, which DevSupport isn't on, so it needs the whole
+    #   prebuilt set: React, ReactNativeDependencies, and hermes.
+    #
+    # - Old-arch SPM mode (dynamic frameworks + source-built React core):
+    #   CocoaPods links the React frameworks into DevSupport through normal
+    #   pod dependencies, but hermes is still missing. DevSupport's own C++
+    #   references JSI, and with Hermes enabled React Native excludes jsi.cpp
+    #   from React-jsi — the facebook::jsi::* symbol definitions live inside
+    #   hermes-engine's prebuilt dylib — yet DevSupport declares React-jsi, not
+    #   hermes-engine, so nothing links that dylib. Only the `-framework`
+    #   flag is missing; the framework search path already arrives
+    #   transitively (DevSupport -> React-jsi -> hermes-engine).
+    next if disable_spm
+
+    frameworks = use_prebuilt_rncore ? ['React', 'ReactNativeDependencies', 'hermes'] : ['hermes']
+
+    # Append the missing `-framework` flags to DevSupport's generated
+    # xcconfigs.
+    Dir.glob("#{installer.sandbox.root}/Target Support Files/ReactTestApp-DevSupport/*.xcconfig").each do |path|
+      lines = File.readlines(path, chomp: true)
+      index = lines.index { |line| line.start_with?('OTHER_LDFLAGS =') }
+      values = index ? lines[index].split(' = ', 2).last.split(' ') : ['$(inherited)']
+      frameworks.each do |framework|
+        quoted_framework = "\"#{framework}\""
+        next if values.include?(quoted_framework)
+
+        values << '-framework'
+        values << quoted_framework
+      end
+      line = "OTHER_LDFLAGS = #{values.join(' ')}"
+      index ? lines[index] = line : lines << line
+      File.write(path, "#{lines.join("\n")}\n")
+    end
+  end,
 }
 
 use_test_app! options do |target|
