@@ -39,11 +39,12 @@ type StripePluginProps = {
   /**
    * iOS only. When true, sets `$StripeDisableSPM = true` in the generated
    * Podfile, so the Stripe iOS SDK is resolved through the CocoaPods registry
-   * instead of Swift Package Manager (available while Stripe continues to
-   * publish pods). Use this to opt out of SPM resolution — for example to
-   * keep building with static frameworks, which SPM mode does not support.
+   * instead of Swift Package Manager.
    * Defaults to false (SPM resolution on React Native >= 0.75, which requires
    * `expo-build-properties` with `"useFrameworks": "dynamic"`).
+   * WARNING: CocoaPods support is deprecated and future Stripe SDK versions
+   * will not provide this option. Only use it as a last resort to temporarily
+   * support static linking, old React Native versions, or as a stopgap workaround.
    */
   disableSPM?: boolean;
 };
