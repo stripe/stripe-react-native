@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+**Changes**
+* [Changed] iOS: SDK headers that import React headers are no longer exposed as public headers of the pod, making the `stripe_react_native` framework module self-contained under `use_frameworks!`. Native code that imports the module (unit tests, for example) no longer needs to set `CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES`.
+
 ## 0.76.0 - 2026-09-01
 **Features**
 * [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.
