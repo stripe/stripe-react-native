@@ -137,14 +137,10 @@ workflows:
   # via e2e-build-ios-old-arch / e2e-tests-ios-old-arch.
   #
   # Unlike unit-test-ios, this job embeds a prebuilt JS bundle
-  # (_build_js_bundle, as the e2e jobs do). CI has no Metro server, and with
-  # neither Metro nor an embedded bundle the Debug test app's old-arch launch
-  # path never becomes ready for XCTest — the run fails with "test runner
-  # hung before establishing connection" after the app's failed
-  # http://localhost:8081/status probe. react-native-test-app prefers Metro
-  # in Debug but falls back to the embedded main.ios.jsbundle once that probe
-  # fails, so the bundle unblocks launch. The new-arch (bridgeless) launch
-  # path happens to tolerate having no bundle at all, which is why
+  # (_build_js_bundle, as the e2e jobs do). CI has no Metro server, and
+  # without that react-native-test-app in Debug falls back to the embedded
+  # main.ios.jsbundle, so the bundle unblocks launch. The new-arch (bridgeless)
+  # launch path happens to tolerate having no bundle at all, which is why
   # unit-test-ios gets away without this step.
   unit-test-ios-old-arch:
     envs:
@@ -269,11 +265,8 @@ workflows:
 
   # Build-only coverage for the CocoaPods fallback path (STRIPE_DISABLE_SPM /
   # $StripeDisableSPM): Stripe resolved from the pod registry with React
-  # Native's default static libraries. All other iOS jobs run SPM mode, so
-  # without this job the fallback — what RN < 0.75 apps and opted-out apps use
-  # while Stripe still publishes pods — would have no CI coverage. New arch +
-  # static + pods is the closest match to today's real-world default app
-  # configuration. Build-only: no e2e-tests consumer pulls its artifact.
+  # Native's default static libraries. New arch + static + pods is most
+  # similar to an expected real-world default app configuration, so we use it.
   build-ios-fallback:
     envs:
       - NEW_ARCH_ENABLED: true
