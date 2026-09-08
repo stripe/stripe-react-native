@@ -6,17 +6,13 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
 
-# Keep the example app on the existing CocoaPods resolution path while the
-# SPM integration is staged. The activation change will make SPM the default
-# and retain CocoaPods as an explicit fallback.
+# Temporarily keep the example app on the old CocoaPods resolution while
+# the SPM integration is being built out.
+# TODO: turn off
 disable_spm = true
 $StripeDisableSPM = true
 
-# SPM resolution requires dynamic frameworks: the Stripe Swift package
-# products use automatic linkage, which only reaches the final app correctly
-# when the pod that consumes them is a dynamic framework (stripe_spm.rb
-# enforces this with an actionable error). The CocoaPods fallback keeps
-# React Native's default static libraries.
+# SPM resolution requires dynamic frameworks.
 use_frameworks! :linkage => :dynamic unless disable_spm
 
 new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED'] == 'true'
