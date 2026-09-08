@@ -497,28 +497,24 @@ describe('EmbeddedComponent', () => {
       });
     });
 
-    it('rejects the incident session-only result', async () => {
+    it('forwards a session-only result with a null token', async () => {
       (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue({
         session: mockSession,
       });
 
       await openFinancialConnections();
 
-      expectUnexpectedError(
-        'Financial Connections completed without a session and bank-account token'
-      );
+      expect(getLastFinancialConnectionsResult()).toEqual({
+        id: 'request',
+        financialConnectionsSession: { accounts: [] },
+        token: null,
+        error: null,
+      });
     });
 
     it.each([
-      ['a result without a session', { token: mockToken }],
-      ['a result without a token', { session: mockSession, token: undefined }],
-      [
-        'a token with a null ID',
-        {
-          session: mockSession,
-          token: { ...mockToken, id: null },
-        },
-      ],
+      ['a token without a session', { token: mockToken }],
+      ['neither a session, token, nor error', {}],
     ])('reports an unexpected error for %s', async (_description, result) => {
       (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue(
         result
@@ -527,7 +523,7 @@ describe('EmbeddedComponent', () => {
       await openFinancialConnections();
 
       expectUnexpectedError(
-        'Financial Connections completed without a session and bank-account token'
+        'Financial Connections completed without a session'
       );
     });
 

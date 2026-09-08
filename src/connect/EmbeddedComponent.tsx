@@ -151,16 +151,19 @@ type StripeConnectInitParamsInternal = StripeConnectInitParams & {
 
 type EmbeddedFinancialConnectionsResult =
   | {
-      status: 'success';
       session: FinancialConnections.Session;
-      token: ReturnType<typeof toStripeJsBankAccountToken>;
+      token: ReturnType<typeof toStripeJsBankAccountToken> | null;
+      error?: undefined;
     }
   | {
-      status: 'error';
+      session?: undefined;
+      token?: undefined;
       error: StripeError<string>;
     }
   | {
-      status: 'canceled';
+      session?: undefined;
+      token?: undefined;
+      error?: undefined;
     };
 
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
@@ -484,33 +487,29 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     result: EmbeddedFinancialConnectionsResult
   ) => {
     let value;
-    switch (result.status) {
-      case 'success':
-        value = {
-          id,
-          financialConnectionsSession: {
-            accounts: result.session.accounts,
-          },
-          token: result.token,
-          error: null,
-        };
-        break;
-      case 'error':
-        value = {
-          id,
-          financialConnectionsSession: null,
-          token: null,
-          error: result.error,
-        };
-        break;
-      case 'canceled':
-        value = {
-          id,
-          financialConnectionsSession: null,
-          token: null,
-          error: null,
-        };
-        break;
+    if (result.error) {
+      value = {
+        id,
+        financialConnectionsSession: null,
+        token: null,
+        error: result.error,
+      };
+    } else if (result.session) {
+      value = {
+        id,
+        financialConnectionsSession: {
+          accounts: result.session.accounts,
+        },
+        token: result.token,
+        error: null,
+      };
+    } else {
+      value = {
+        id,
+        financialConnectionsSession: null,
+        token: null,
+        error: null,
+      };
     }
 
     ref.current?.injectJavaScript(`
@@ -589,7 +588,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         // Validate client secret
         if (!clientSecret || typeof clientSecret !== 'string') {
           handleFinancialConnectionsResult(id, {
-            status: 'error',
             error: {
               code: 'InvalidClientSecret',
               message: 'Invalid or missing clientSecret parameter',
@@ -601,7 +599,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         // Prevent multiple simultaneous flows
         if (pendingFinancialConnectionsPromise.current) {
           handleFinancialConnectionsResult(id, {
-            status: 'error',
             error: {
               code: 'AlreadyInProgress',
               message: 'Financial Connections flow already in progress',
@@ -649,44 +646,36 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               if (
                 result.error.code === FinancialConnectionsSheetError.Canceled
               ) {
-                handleFinancialConnectionsResult(id, { status: 'canceled' });
+                handleFinancialConnectionsResult(id, {});
                 return;
               }
 
               handleFinancialConnectionsResult(id, {
-                status: 'error',
                 error: result.error,
               });
               return;
             }
 
-            if (
-              !result.session ||
-              !result.token ||
-              typeof result.token.id !== 'string' ||
-              result.token.id.length === 0
-            ) {
+            if (!result.session) {
               handleFinancialConnectionsResult(id, {
-                status: 'error',
                 error: {
                   code: 'UnexpectedError',
-                  message:
-                    'Financial Connections completed without a session and bank-account token',
+                  message: 'Financial Connections completed without a session',
                 },
               });
               return;
             }
 
             handleFinancialConnectionsResult(id, {
-              status: 'success',
               session: result.session,
-              token: toStripeJsBankAccountToken(result.token),
+              token: result.token
+                ? toStripeJsBankAccountToken(result.token)
+                : null,
             });
           })
           .catch((unexpectedError) => {
             handleUnexpectedError(unexpectedError);
             handleFinancialConnectionsResult(id, {
-              status: 'error',
               error: {
                 code: 'UnexpectedError',
                 message:
