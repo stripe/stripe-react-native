@@ -238,6 +238,19 @@ module StripeSPM
       link_onramp_product(installer, pod_target, package)
     end
 
+    # User-project stage. Called by the post_integrate hook at the bottom of
+    # this file (or, on CocoaPods too old for post_integrate hooks, at the
+    # end of the post_install stage — see the lifecycle notes at the top).
+    # The helpers save the user's project themselves, because CocoaPods has
+    # already saved it by post_integrate time.
+    def apply_user_project(installer)
+      pod_target = installer.pod_targets.find { |target| target.pod_name == POD_NAME }
+      return if pod_target.nil?
+      return unless active?
+
+      add_embed_phase(installer)
+    end
+
     private
 
     def override_branch
@@ -329,6 +342,55 @@ module StripeSPM
       product.product_name = ONRAMP_PRODUCT
       native_target.package_product_dependencies << product
     end
+
+    # Installs (or refreshes) the embed phase on every app target that links
+    # this pod. Comparing shell_script means a new SDK version that changes
+    # EMBED_SCRIPT rewrites the phase in place, while an unchanged script
+    # leaves the user's project untouched (keeping repeat `pod install` runs
+    # diff-free).
+    def add_embed_phase(installer)
+      each_user_app_target(installer) do |user_target|
+        phase = user_target.shell_script_build_phases.find { |p| p.name == EMBED_PHASE_NAME }
+        next false if phase && phase.shell_script == EMBED_SCRIPT
+
+        phase ||= user_target.new_shell_script_build_phase(EMBED_PHASE_NAME)
+        phase.shell_path = '/bin/sh'
+        phase.shell_script = EMBED_SCRIPT
+        # The phase has no input/output file lists (the set of frameworks
+        # isn't knowable statically), so mark it always-run to avoid Xcode's
+        # "will be run during every build" warning turning into a skipped
+        # phase under build-phase fingerprinting. Guarded because older
+        # Xcodeproj gems don't model the attribute.
+        phase.always_out_of_date = '1' if phase.respond_to?(:always_out_of_date=)
+        true
+      end
+    end
+
+    # Yields every application target that links the stripe-react-native pod;
+    # saves the containing project when the block returns true for any target.
+    #
+    # Only :application targets are considered: unit-test and extension
+    # targets don't embed these frameworks (tests load them from the host
+    # app). Saving only on change keeps no-op installs from rewriting the
+    # user's project file.
+    def each_user_app_target(installer)
+      installer.aggregate_targets.each do |aggregate_target|
+        next unless aggregate_target.pod_targets.any? { |target| target.pod_name == POD_NAME }
+
+        # user_project is nil for non-integrating installs (e.g.
+        # `integrate_targets: false` setups); nothing to embed into there.
+        project = aggregate_target.user_project
+        next if project.nil?
+
+        changed = false
+        aggregate_target.user_targets.each do |user_target|
+          next unless user_target.respond_to?(:symbol_type) && user_target.symbol_type == :application
+
+          changed = true if yield(user_target)
+        end
+        project.save if changed
+      end
+    end
   end
 end
 
@@ -363,10 +425,30 @@ def stripe_spm_activate!(spec, version:)
   )
 end
 
-# Run the Pods-project integration after the Podfile's regular post_install
-# hook, which is where react_native_post_install writes the package reference.
+# Install the Pod::Installer hooks (once) as soon as the podspec requires
+# this file.
+#
+# The re-hook guards check both public and private visibility: the original
+# methods are private in CocoaPods, and `alias_method` preserves visibility,
+# so a plain `method_defined?` check would miss the alias and re-hook on a
+# second load. (`require` normally dedupes by path; this protects against the
+# same file being loaded from two paths.) The wrappers are defined with
+# `define_method` so they can capture `post_integrate_supported`, and are
+# made private again afterwards to leave the class shaped as CocoaPods
+# defined it.
 if defined?(Pod::Installer)
   installer_class = Pod::Installer
+
+  # CocoaPods has invoked post_integrate hooks (at the end of
+  # integrate_user_project) since 1.10. When the method is missing (or when
+  # a Podfile sets `integrate_targets: false`, in which case CocoaPods never
+  # calls it) the user-project stage has to run from post_install instead.
+  # The integrate_targets case needs no special handling: without
+  # integration there is no user project to embed into, and
+  # apply_user_project no-ops.
+  post_integrate_supported =
+    installer_class.method_defined?(:run_podfile_post_integrate_hooks) ||
+    installer_class.private_method_defined?(:run_podfile_post_integrate_hooks)
 
   unless installer_class.method_defined?(:stripe_spm_original_run_podfile_post_install_hooks) ||
          installer_class.private_method_defined?(:stripe_spm_original_run_podfile_post_install_hooks)
@@ -375,11 +457,34 @@ if defined?(Pod::Installer)
       alias_method :stripe_spm_original_run_podfile_post_install_hooks, :run_podfile_post_install_hooks
 
       define_method(:run_podfile_post_install_hooks) do
+        # Run the regular hooks first: react_native_post_install (called from
+        # the user's post_install block) writes the Swift package references
+        # that the Pods-project stage builds on.
         result = stripe_spm_original_run_podfile_post_install_hooks
         StripeSPM.apply_pods_project(self)
+        # Old CocoaPods without post_integrate hooks: run the user-project
+        # stage here instead (see the lifecycle notes at the top).
+        StripeSPM.apply_user_project(self) unless post_integrate_supported
         result
       end
     end
     installer_class.send(:private, :run_podfile_post_install_hooks) if post_install_was_private
+  end
+
+  if post_integrate_supported &&
+     !installer_class.method_defined?(:stripe_spm_original_run_podfile_post_integrate_hooks) &&
+     !installer_class.private_method_defined?(:stripe_spm_original_run_podfile_post_integrate_hooks)
+    post_integrate_was_private = installer_class.private_method_defined?(:run_podfile_post_integrate_hooks)
+    installer_class.class_eval do
+      alias_method :stripe_spm_original_run_podfile_post_integrate_hooks, :run_podfile_post_integrate_hooks
+
+      define_method(:run_podfile_post_integrate_hooks) do
+        # The user's own post_integrate block (if any) runs first, ours after.
+        result = stripe_spm_original_run_podfile_post_integrate_hooks
+        StripeSPM.apply_user_project(self)
+        result
+      end
+    end
+    installer_class.send(:private, :run_podfile_post_integrate_hooks) if post_integrate_was_private
   end
 end
