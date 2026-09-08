@@ -107,7 +107,6 @@ module StripeSPM
   # The lightweight SPM mirror of stripe-ios.
   PACKAGE_URL = 'https://github.com/stripe/stripe-ios-spm.git'.freeze
 
-  # Used when OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH is set (CI testing
   # Used when OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH is set (for example
   # for CI testing against unreleased stripe-ios). Branches only exist on the full
   # stripe-ios repo — the stripe-ios-spm mirror only receives release tags.
