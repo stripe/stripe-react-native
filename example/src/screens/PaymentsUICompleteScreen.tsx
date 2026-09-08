@@ -88,6 +88,9 @@ export default function PaymentsUICompleteScreen() {
     const { error } = await presentPaymentSheet();
 
     if (!error) {
+      // PaymentSheet can finish while its custom payment method dialog is still
+      // dismissing. Wait for that transition so this alert is not dropped.
+      await new Promise<void>((resolve) => setTimeout(resolve, 1000));
       Alert.alert('Success', 'The payment was confirmed successfully');
     } else {
       switch (error.code) {
