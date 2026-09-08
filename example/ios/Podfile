@@ -132,6 +132,30 @@ post_integrate do |_installer|
     flags << '$(inherited)' unless flags.include?('$(inherited)')
     # The tests conditionally compile new-architecture code paths.
     flags << '-DRCT_NEW_ARCH_ENABLED' if new_arch_enabled && !flags.include?('-DRCT_NEW_ARCH_ENABLED')
+    unless disable_spm
+      # The tests import Stripe modules directly (@testable-importing the SDK
+      # framework also requires resolving the modules its Swift interface
+      # references). When Stripe is built by SPM inside the Pods project,
+      # Xcode generates clang module maps for the package targets under
+      # OBJROOT/GeneratedModuleMaps, but nothing puts them on the *test*
+      # target's search paths — pod targets get that wiring from React
+      # Native's SPM integration, external targets don't. Point the compiler
+      # at each generated module map explicitly. (This is also why these
+      # flags live here and not in the shipped podspec: app code doesn't
+      # import Stripe modules, so regular apps don't need them.)
+      %w[
+        Stripe Stripe3DS2 StripeApplePay StripeCameraCore StripeCore
+        StripeCryptoOnramp StripeFinancialConnections StripeIdentity
+        StripeIssuing StripePaymentSheet StripePayments StripePaymentsUI
+        StripeUICore
+      ].each do |module_name|
+        map_flag = "-fmodule-map-file=$(OBJROOT)/GeneratedModuleMaps$(EFFECTIVE_PLATFORM_NAME)/#{module_name}.modulemap"
+        next if flags.include?(map_flag)
+
+        flags << '-Xcc'
+        flags << map_flag
+      end
+    end
     config.build_settings['OTHER_SWIFT_FLAGS'] = flags
   end
 
