@@ -181,10 +181,9 @@ echo "Running expo prebuild for platform(s): $PREBUILD_TARGET"
 npx expo prebuild --clean --platform "$PREBUILD_TARGET"
 
 # Verifies the state that expo prebuild's SINGLE `pod install` left behind in
-# ios/. The single-pass property is the point: a fresh Continuous Native
-# Generation project (`expo prebuild --clean`) must come out fully integrated
-# after one install — no artifact may require a second `pod install` to
-# appear.
+# ios/. The point is to test a fresh Continueous Native Generation project
+# (`expo prebuild --clean`), which must come out fully integrated after one
+# install. 
 verify_ios_dependency_integration() {
   local app_pbxproj="ios/$PROJECT_NAME.xcodeproj/project.pbxproj"
   local pods_pbxproj="ios/Pods/Pods.xcodeproj/project.pbxproj"
