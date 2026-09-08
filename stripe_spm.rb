@@ -125,6 +125,12 @@ module StripeSPM
     StripeFinancialConnections
   ].freeze
 
+  # The extra product required by the opt-in Onramp subspec. Deliberately not
+  # part of CORE_PRODUCTS: linking it unconditionally would pull crypto-onramp
+  # code (and its StripeIdentity dependency subtree) into every app.
+  ONRAMP_PRODUCT = 'StripeCryptoOnramp'.freeze
+  ONRAMP_SUBSPEC = "#{POD_NAME}/Onramp".freeze
+
   class << self
 
     # Records that SPM mode is on for this install and which stripe-ios
@@ -161,6 +167,7 @@ module StripeSPM
     #   2. find_package_reference! next, because the remaining steps need the
     #      package reference React Native's SPM integration should have
     #      created by now
+    #   3. mutations last
     def apply_pods_project(installer)
       # No-op for installs that don't include this SDK (e.g. another project
       # in a monorepo sharing the same CocoaPods process).
@@ -169,7 +176,8 @@ module StripeSPM
       return unless active?
 
       verify_dynamic_linkage!(pod_target)
-      find_package_reference!(installer)
+      package = find_package_reference!(installer)
+      link_onramp_product(installer, pod_target, package)
     end
 
     private
@@ -232,6 +240,37 @@ module StripeSPM
       MESSAGE
     end
 
+    # Adds the StripeCryptoOnramp product dependency to the pod's native
+    # target when (and only when) the app installs the Onramp subspec.
+    #
+    # This can't live in the podspec because React Native's SPM manager keys
+    # `spm_dependency` registrations by spec name and later looks up Pods
+    # project targets by that same name. Subspecs don't get their own targets
+    # (they merge into the root pod target), so a registration made against
+    # "stripe-react-native/Onramp" never matches a target and is silently
+    # dropped. Declaring the product at the root instead would link Onramp
+    # into every app. The Onramp-only fallback pod dependency in the podspec
+    # has the same conditionality via subspec selection; this reproduces it
+    # for SPM by inspecting which subspecs the installer actually resolved.
+    #
+    # This mirrors what react-native/scripts/cocoapods/spm.rb does when it
+    # links products (find-or-create the reference, then attach), so the
+    # object shapes stay consistent with the core-product entries.
+    def link_onramp_product(installer, pod_target, package)
+      return unless pod_target.specs.any? { |spec| spec.name == ONRAMP_SUBSPEC }
+
+      native_target = installer.pods_project.targets.find { |target| target.name == pod_target.label }
+      return if native_target.nil?
+      # Idempotency: podspecs can be evaluated multiple times per install, and
+      # nothing prevents this hook from running against a project that already
+      # has the product attached.
+      return if native_target.package_product_dependencies.any? { |dep| dep.product_name == ONRAMP_PRODUCT }
+
+      product = installer.pods_project.new(Xcodeproj::Project::Object::XCSwiftPackageProductDependency)
+      product.package = package
+      product.product_name = ONRAMP_PRODUCT
+      native_target.package_product_dependencies << product
+    end
   end
 end
 
