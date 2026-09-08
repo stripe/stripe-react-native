@@ -20,16 +20,26 @@ REQUIRED ARGUMENTS:
 
 OPTIONS:
   --platforms       Comma separated list of platforms to build (android, ios). Default: android,ios
+  --disable-spm     Opt out of Swift Package Manager resolution via the Expo
+                    plugin's disableSPM option, exercising the CocoaPods
+                    fallback path (iOS keeps Expo's static-frameworks default)
+  --skip-build      Stop after `expo prebuild` and the iOS integration checks,
+                    without running the native builds
   --keep-project    Do not delete the temporary project directory (helpful for debugging failures)
   -h, --help        Print this help message
 EOF
 }
 
 export EXPO_NO_TELEMETRY=1
+# Expo silences `pod install` output unless EXPO_DEBUG (or CI) is set; keep it
+# visible so stripe_spm.rb's install-time messages are inspectable in logs.
+export EXPO_DEBUG=1
 
 EXPO_SDK_VERSION=""
 PLATFORMS="$DEFAULT_PLATFORMS"
 KEEP_PROJECT=0
+DISABLE_SPM=0
+SKIP_BUILD=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -50,6 +60,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       shift 2
+      ;;
+    --disable-spm)
+      DISABLE_SPM=1
+      shift
+      ;;
+    --skip-build)
+      SKIP_BUILD=1
+      shift
       ;;
     --keep-project)
       KEEP_PROJECT=1
@@ -141,8 +159,13 @@ npm install "$TARBALL_PATH"
 
 APP_JSON_PATH="$PROJECT_DIR/app.json"
 
+PLUGIN_ARGS=()
+if [[ $DISABLE_SPM -eq 1 ]]; then
+  PLUGIN_ARGS+=(--disable-spm)
+fi
+
 echo "Configuring Expo plugins in app.json"
-node "$SCRIPT_DIR/update-expo-plugins.js" --app-json "$APP_JSON_PATH" --expo-version "$EXPO_SDK_VERSION"
+node "$SCRIPT_DIR/update-expo-plugins.js" --app-json "$APP_JSON_PATH" --expo-version "$EXPO_SDK_VERSION" ${PLUGIN_ARGS[@]+"${PLUGIN_ARGS[@]}"}
 
 echo "Ensuring expo-build-properties dependency is installed"
 npx expo install expo-build-properties
@@ -156,6 +179,73 @@ fi
 
 echo "Running expo prebuild for platform(s): $PREBUILD_TARGET"
 npx expo prebuild --clean --platform "$PREBUILD_TARGET"
+
+# Verifies the state that expo prebuild's SINGLE `pod install` left behind in
+# ios/. The single-pass property is the point: a fresh Continuous Native
+# Generation project (`expo prebuild --clean`) must come out fully integrated
+# after one install — no artifact may require a second `pod install` to
+# appear.
+verify_ios_dependency_integration() {
+  local app_pbxproj="ios/$PROJECT_NAME.xcodeproj/project.pbxproj"
+  local pods_pbxproj="ios/Pods/Pods.xcodeproj/project.pbxproj"
+  local podfile_lock="ios/Podfile.lock"
+  local embed_phase='[stripe-react-native] Embed SPM Frameworks'
+  # Matches the Stripe iOS SDK pods (dependency lines included) but not the
+  # stripe-react-native development pod itself (lowercase 's').
+  local stripe_pod_pattern='^[[:space:]]*- (Stripe|StripePayments|StripePaymentsUI|StripePaymentSheet|StripeApplePay|StripeFinancialConnections|StripeCryptoOnramp)[ /(]'
+
+  local file
+  for file in "$app_pbxproj" "$podfile_lock"; do
+    if [[ ! -f "$file" ]]; then
+      echo "Error! Expected $file to exist after expo prebuild. (pod install only runs on macOS.)"
+      exit 1
+    fi
+  done
+
+  if [[ $DISABLE_SPM -eq 1 ]]; then
+    echo "Verifying the CocoaPods fallback integration (plugin disableSPM option)"
+    # Grepping for the literal Ruby global, not expanding it.
+    # shellcheck disable=SC2016
+    if ! grep -qF '$StripeDisableSPM = true' ios/Podfile; then
+      echo "Error! The plugin's disableSPM option did not inject \$StripeDisableSPM = true into ios/Podfile."
+      exit 1
+    fi
+    if ! grep -qE "$stripe_pod_pattern" "$podfile_lock"; then
+      echo "Error! No Stripe pods in ios/Podfile.lock — the CocoaPods fallback did not activate."
+      exit 1
+    fi
+    if grep -qF "$embed_phase" "$app_pbxproj"; then
+      echo "Error! The SPM embed phase is present in the app project despite disableSPM."
+      exit 1
+    fi
+    echo "Fallback integration verified: Stripe resolved from the pod registry, no SPM artifacts."
+    return 0
+  fi
+
+  echo "Verifying the SPM integration left by the single prebuild pod install"
+  if grep -qE "$stripe_pod_pattern" "$podfile_lock"; then
+    echo "Error! Stripe pods found in ios/Podfile.lock — SPM mode did not activate."
+    exit 1
+  fi
+  if [[ ! -f "$pods_pbxproj" ]] || ! grep -q 'stripe-ios-spm' "$pods_pbxproj"; then
+    echo "Error! The stripe-ios-spm package reference is missing from Pods.xcodeproj."
+    exit 1
+  fi
+  if ! grep -qF "$embed_phase" "$app_pbxproj"; then
+    echo "Error! The '$embed_phase' build phase is missing from the app project after a single pod install."
+    exit 1
+  fi
+  echo "SPM integration verified: package reference present, embed phase on the app target, no Stripe pods."
+}
+
+if [[ $RUN_IOS -eq 1 ]]; then
+  verify_ios_dependency_integration
+fi
+
+if [[ $SKIP_BUILD -eq 1 ]]; then
+  echo "Skipping native builds (--skip-build). All requested checks finished successfully."
+  exit 0
+fi
 
 if [[ $RUN_ANDROID -eq 1 ]]; then
   echo "Building Android project"
