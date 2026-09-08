@@ -1,5 +1,21 @@
 # Migration Guide
 
+## iOS: Stripe iOS SDK now resolved through Swift Package Manager (requires dynamic frameworks)
+
+On React Native 0.75 and above, `@stripe/stripe-react-native` resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods, because the Stripe iOS SDK is deprecating CocoaPods support. This requires building with dynamic frameworks. If your Podfile doesn't already set that linkage, add:
+
+```ruby
+use_frameworks! :linkage => :dynamic
+```
+
+For Expo apps, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
+
+If your app can't build with dynamic frameworks yet, you can temporarily keep resolving the Stripe iOS SDK through CocoaPods (available while the Stripe iOS SDK continues publishing pods): add `$StripeDisableSPM = true` at the top of your Podfile, or for Expo set `"disableSPM": true` on this SDK's config plugin.
+
+React Native versions below 0.75 are unaffected and continue to use CocoaPods resolution.
+
+See [Stripe iOS SDK resolution](README.md#stripe-ios-sdk-resolution) in the README for more detail and a troubleshooting guide.
+
 ## Android SDK 36 requirement (stripe-android 23.x)
 
 Recent versions of `@stripe/stripe-react-native` depend on `stripe-android 23.x`, which requires:
