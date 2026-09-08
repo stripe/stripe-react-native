@@ -112,6 +112,8 @@ module StripeSPM
   # stripe-ios repo — the stripe-ios-spm mirror only receives release tags.
   BRANCH_OVERRIDE_PACKAGE_URL = 'https://github.com/stripe/stripe-ios.git'.freeze
 
+  POD_NAME = 'stripe-react-native'.freeze
+
   # The Swift package products the Core subspec needs. This list must be kept in sync
   # with the CocoaPods fallback dependencies in stripe-react-native.podspec.
   CORE_PRODUCTS = %w[
@@ -131,6 +133,11 @@ module StripeSPM
       @version = version
     end
 
+    # True when the podspec declared the Swift package this install.
+    def active?
+      !@version.nil?
+    end
+
     def package_url
       override_branch ? BRANCH_OVERRIDE_PACKAGE_URL : PACKAGE_URL
     end
@@ -145,12 +152,86 @@ module StripeSPM
       end
     end
 
+    # Pods-project stage. Called by the post_install hook at the bottom of
+    # this file after all regular post_install hooks have run — while
+    # Pods.xcodeproj is still in memory and unwritten, which everything here
+    # depends on.
+    #   1. verify_dynamic_linkage! first, so an unsupported configuration
+    #      fails with our actionable message
+    #   2. find_package_reference! next, because the remaining steps need the
+    #      package reference React Native's SPM integration should have
+    #      created by now
+    def apply_pods_project(installer)
+      # No-op for installs that don't include this SDK (e.g. another project
+      # in a monorepo sharing the same CocoaPods process).
+      pod_target = installer.pod_targets.find { |target| target.pod_name == POD_NAME }
+      return if pod_target.nil?
+      return unless active?
+
+      verify_dynamic_linkage!(pod_target)
+      find_package_reference!(installer)
+    end
+
     private
 
     def override_branch
       branch = ENV['OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH']
       branch && !branch.empty? ? branch : nil
     end
+
+    # SPM resolution only works when stripe-react-native builds as a dynamic
+    # framework, so fail `pod install` with instructions otherwise.
+    # 
+    # Note: in the future we could explore a potential solutions that supports
+    # static linkage, but for now we require host apps to use dynamic.
+    #
+    # Note: Pod::Target#build_type is a *private* reader in CocoaPods; only
+    # the build_as_* predicates are public API.
+    def verify_dynamic_linkage!(pod_target)
+      return if pod_target.build_as_dynamic_framework?
+
+      current = if pod_target.build_as_framework?
+                  'a static framework'
+                elsif pod_target.build_as_dynamic?
+                  'a dynamic library'
+                else
+                  'a static library'
+                end
+      raise Pod::Informative, <<~MESSAGE
+        [stripe-react-native] Resolving the Stripe iOS SDK through Swift Package
+        Manager requires dynamic frameworks, but #{POD_NAME} is building as
+        #{current}. To fix, add `use_frameworks! :linkage => :dynamic` to your Podfile
+        (for Expo, set `"useFrameworks": "dynamic"` via the expo-build-properties plugin).
+        If you MUST continue to use static linkage, you can temporarily add
+        `$StripeDisableSPM = true` at the top of your Podfile to resolve Stripe
+        through CocoaPods instead. WARNING: THIS IS DEPRECATED AND FUTURE STRIPE SDK
+        VERSIONS WILL NOT SUPPORT THIS OPTION.
+      MESSAGE
+    end
+
+    # Locates the XCRemoteSwiftPackageReference that React Native's
+    # `react_native_post_install` should have written into Pods.xcodeproj
+    # (triggered by the `spm_dependency` call in our podspec). Its absence
+    # means the Podfile's post_install never called react_native_post_install
+    # (which is possible if the user made changes to the Podfile), and the build
+    # would otherwise fail later.
+    def find_package_reference!(installer)
+      url = package_url
+      package = installer.pods_project.root_object.package_references.find do |ref|
+        # Local package references respond to :path instead of :repositoryURL;
+        # guard so a mixed project can't crash the lookup.
+        ref.respond_to?(:repositoryURL) && ref.repositoryURL == url
+      end
+      return package if package
+
+      raise Pod::Informative, <<~MESSAGE
+        [stripe-react-native] The Stripe iOS Swift package was not added to the
+        Pods project. Make sure your Podfile's post_install block calls
+        `react_native_post_install` (this is part of the standard React Native
+        template).
+      MESSAGE
+    end
+
   end
 end
 
@@ -173,8 +254,8 @@ def stripe_spm_enabled?
   true
 end
 
-# Declares the stripe-ios Swift package on the given (root) spec. Called from
-# the podspec when SPM resolution is enabled.
+# Declares the stripe-ios Swift package on the given (root) spec and switches
+# this file's installer hook into active mode. Called from the podspec.
 def stripe_spm_activate!(spec, version:)
   StripeSPM.activate!(version)
   spm_dependency(
@@ -183,4 +264,25 @@ def stripe_spm_activate!(spec, version:)
     requirement: StripeSPM.requirement,
     products: StripeSPM::CORE_PRODUCTS
   )
+end
+
+# Run the Pods-project integration after the Podfile's regular post_install
+# hook, which is where react_native_post_install writes the package reference.
+if defined?(Pod::Installer)
+  installer_class = Pod::Installer
+
+  unless installer_class.method_defined?(:stripe_spm_original_run_podfile_post_install_hooks) ||
+         installer_class.private_method_defined?(:stripe_spm_original_run_podfile_post_install_hooks)
+    post_install_was_private = installer_class.private_method_defined?(:run_podfile_post_install_hooks)
+    installer_class.class_eval do
+      alias_method :stripe_spm_original_run_podfile_post_install_hooks, :run_podfile_post_install_hooks
+
+      define_method(:run_podfile_post_install_hooks) do
+        result = stripe_spm_original_run_podfile_post_install_hooks
+        StripeSPM.apply_pods_project(self)
+        result
+      end
+    end
+    installer_class.send(:private, :run_podfile_post_install_hooks) if post_install_was_private
+  end
 end
