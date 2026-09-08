@@ -110,7 +110,7 @@ You'll need to run `pod install` in your `ios` directory to install the native d
 
 ##### Stripe iOS SDK resolution
 
-On React Native 0.75 and above, the SDK resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks — add the following to your Podfile if it isn't there already:
+The SDK resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks — add the following to your Podfile if it isn't there already:
 
 ```ruby
 use_frameworks! :linkage => :dynamic
@@ -118,7 +118,7 @@ use_frameworks! :linkage => :dynamic
 
 For Expo, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
 
-To keep resolving the Stripe iOS SDK through CocoaPods — for example, if your app can't build with dynamic frameworks — add this at the top of your Podfile:
+To temporarily keep resolving the Stripe iOS SDK through CocoaPods — for example, if your app can't build with dynamic frameworks — add this at the top of your Podfile:
 
 ```ruby
 $StripeDisableSPM = true
@@ -141,13 +141,15 @@ For Expo (where the Podfile is generated), set the equivalent option on this SDK
 }
 ```
 
-The CocoaPods fallback is available for as long as the Stripe iOS SDK continues publishing to CocoaPods. React Native versions below 0.75 always use CocoaPods resolution.
+React Native versions below 0.75 always use CocoaPods resolution.
+
+WARNING: The Stripe iOS SDK has deprecated CocoaPods support, and future SDK versions will not support this fallback. If you have any problems, please [file an issue](https://github.com/stripe/stripe-react-native/issues).
 
 ###### Troubleshooting
 
-- **`pod install` fails with "Resolving the Stripe iOS SDK through Swift Package Manager requires dynamic frameworks"** — your app is building with static libraries (React Native's default). Add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/)), or opt out of Swift Package Manager resolution as described above.
+- **`pod install` fails with "Resolving the Stripe iOS SDK through Swift Package Manager requires dynamic frameworks"** — your app is building with static libraries (React Native's default). Add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/)).
 
-- **`pod install` fails with "The Stripe iOS Swift package was not added to the Pods project"** — the integration relies on `react_native_post_install`, which the standard React Native Podfile calls from its `post_install` block. If your Podfile is customized and no longer calls it, restore that call (see the [React Native template Podfile](https://github.com/react-native-community/template/blob/main/template/ios/Podfile)), or opt out of Swift Package Manager resolution.
+- **`pod install` fails with "The Stripe iOS Swift package was not added to the Pods project"** — the integration relies on `react_native_post_install`, which the standard React Native Podfile calls from its `post_install` block. If your Podfile is customized and no longer calls it, restore that call (see the [React Native template Podfile](https://github.com/react-native-community/template/blob/main/template/ios/Podfile)).
 
 - **The app crashes at launch with `dyld: Library not loaded: @rpath/Stripe….framework`** — the Stripe frameworks weren't embedded into the app bundle. Embedding is handled by a build phase named `[stripe-react-native] Embed SPM Frameworks` that `pod install` adds to your app target; re-run `pod install` and confirm the phase exists on the app target. If the crash persists with the phase present, [file an issue](https://github.com/stripe/stripe-react-native/issues).
 
