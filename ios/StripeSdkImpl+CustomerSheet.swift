@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import React
 @_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
 extension StripeSdkImpl {
     @objc(initCustomerSheet:customerAdapterOverrides:resolver:rejecter:)

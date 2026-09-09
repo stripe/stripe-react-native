@@ -172,9 +172,20 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 
 The React Native SDK depends on underlying native [iOS](https://github.com/stripe/stripe-ios) and [Android](https://github.com/stripe/stripe-android) SDKs. To update:
 
-**iOS:** Update `stripe_version` in `stripe-react-native.podspec`, then run `yarn update-pods`.
+**iOS:** Update `stripe_version` in `stripe-react-native.podspec`, then run `yarn pods`. The single `stripe_version` value pins both resolution paths: the Swift Package Manager pin (the default; see the section below) and the CocoaPods fallback dependencies. `yarn update-pods` is only relevant when working in the CocoaPods fallback mode.
 
 **Android:** Update `StripeSdk_stripeVersion` in `android/gradle.properties`.
+
+## iOS dependency resolution
+
+The Stripe iOS SDK is deprecating CocoaPods support, and accordingly the Stripe React Native SDK is in a transition phase where it resolves the iOS depdency through Swift Package Manager (SPM) by default while still supporting and exposing an opt-out option.
+
+For a full explanation of the SPM resolution mechanism, see the documentation in `stripe_spm.rb`.
+
+| Toggle | Effect |
+|--------|--------|
+| `STRIPE_DISABLE_SPM=1 yarn pods` | Builds the example app using the CocoaPods fallback (static libraries), for verifying the opt-out path. |
+| `OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH=<branch>` | Resolves the Swift package from that branch instead of the pinned release. Used by CI and developers to test against unreleased stripe-ios changes. |
 
 ## Changing the public APIs
 

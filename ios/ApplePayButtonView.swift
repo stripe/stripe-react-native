@@ -1,4 +1,6 @@
 import Foundation
+import PassKit
+import React
 import UIKit
 
 @objc(ApplePayButtonView)
