@@ -1,0 +1,29 @@
+diff --git a/node_modules/react-native-test-app/ReactTestApp-DevSupport.podspec b/node_modules/react-native-test-app/ReactTestApp-DevSupport.podspec
+index cdd468b..19e7195 100644
+--- a/node_modules/react-native-test-app/ReactTestApp-DevSupport.podspec
++++ b/node_modules/react-native-test-app/ReactTestApp-DevSupport.podspec
+@@ -46,4 +46,24 @@ Pod::Spec.new do |s|
+                            'ios/ReactTestApp/Public/*.h',
+                            'ios/ReactTestApp/ReactTestApp-DevSupport.m'
+   s.public_header_files  = 'ios/ReactTestApp/Public/*.h'
++
++  # This pod's C++ (common/AppRegistry.cpp, AppRegistryModule.mm) calls into
++  # JSI, and its Objective-C references React-Core classes. Under
++  # `use_frameworks! :linkage => :dynamic`, CocoaPods links a pod's framework
++  # against its *direct* dependencies' frameworks only, so the pods that
++  # actually contain those symbols must be declared here — the same way React
++  # Native's own React-jsi.podspec declares them:
++  #   - With Hermes, React Native excludes jsi.cpp from React-jsi (One
++  #     Definition Rule) and the facebook::jsi::* definitions live in
++  #     hermes-engine's prebuilt hermes.framework.
++  #   - With the prebuilt React Native core (RCT_USE_PREBUILT_RNCORE, React
++  #     Native >= 0.80), the RCT* symbols live in React-Core-prebuilt's
++  #     React.xcframework rather than in the React-Core pod;
++  #     `add_rncore_dependency` adds that dependency and is a no-op when the
++  #     core is built from source.
++  # Static builds are unaffected (nothing links per pod there). Both helpers
++  # come from react_native_pods.rb and are guarded because older React Native
++  # versions in this package's support range don't define them.
++  s.dependency 'hermes-engine' if defined?(use_hermes) && use_hermes()
++  add_rncore_dependency(s) if defined?(add_rncore_dependency)
+ end
