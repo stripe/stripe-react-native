@@ -341,16 +341,19 @@ module StripeSPM
     # To solve this: before any post_install hook runs, raise the generated-
     # UUID high-water mark past every counter-format UUID already in the
     # project, so newly minted UUIDs can't land on an existing object. This
-    # protects React Native's writes as well as our own. Runs even when SPM
-    # mode is off (cheap, and it protects any other library using
-    # `spm_dependency` in the same install); idempotent, so it composes with
-    # author libraries' equivalent guards.
+    # protects React Native's writes as well as our own. Only runs in SPM
+    # mode: in the CocoaPods fallback this SDK creates no project objects, so
+    # it has no reason to reach into CocoaPods internals on that install
+    # (other libraries' `spm_dependency` writes are theirs to guard).
+    # Idempotent, so it composes with other libraries' equivalent guards.
     #
     # Reads/writes @generated_uuids/@available_uuids/@uuid_prefix — private
     # internals of Pod::Project/Xcodeproj::Project — which is why the caller
     # wraps this in a rescue: if a future CocoaPods restructures them, the
     # install must degrade to a warning, not break.
     def ensure_uuid_counter_safe(installer)
+      return unless active?
+
       project = installer.pods_project
       return unless project
 
@@ -380,8 +383,8 @@ module StripeSPM
       project.instance_variable_set(:@available_uuids, [])
 
       # Padding actually happening means the freshly-generated assumption was
-      # broken on this install.
-      if !already_safe && active? && defined?(Pod::UI)
+      # broken on this install — the load-bearing case, worth one log line.
+      if !already_safe && defined?(Pod::UI)
         Pod::UI.puts "[stripe-react-native] Raised the Pods project's UUID counter past " \
                      "index #{max_index} before Swift Package references are written."
       end
@@ -616,9 +619,10 @@ if defined?(Pod::Installer)
 
       define_method(:run_podfile_post_install_hooks) do
         # The UUID guard must run before the regular hooks: it is defending
-        # against object creation *inside* react_native_post_install.
-        # We fail softly only since a future CocoaPods release could change
-        # the behavior.
+        # against object creation *inside* react_native_post_install. (It
+        # no-ops in the CocoaPods fallback, like the rest of this stage.)
+        # Soft failure only — it pokes CocoaPods internals, and a CocoaPods
+        # release changing those must not break `pod install`.
         begin
           StripeSPM.ensure_uuid_counter_safe(self)
         rescue StandardError => e
