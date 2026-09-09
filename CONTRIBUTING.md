@@ -191,6 +191,7 @@ Notes for maintainers:
 
 - The Swift package product list in `stripe_spm.rb` (`StripeSPM::CORE_PRODUCTS`) and the fallback pod dependencies in the podspec must be kept in sync — they are two spellings of the same dependency set.
 - The example app's `Podfile` documents the additional example-only configuration this requires (dynamic frameworks, React Native's prebuilt-core matrix, and the wiring of `ios/Tests` into the `ReactTestAppTests` target, which replaced the podspec test spec for `yarn test:unit:ios`).
+- `example/patches/` holds [patch-package](https://github.com/ds300/patch-package) patches applied by the example's `postinstall` script. The react-native-test-app patch declares the `hermes-engine` and `React-Core-prebuilt` dependencies its DevSupport podspec is missing; without them, dynamic-frameworks builds fail to link that pod (a dynamic-framework pod is linked only against its direct dependencies). When bumping react-native-test-app, regenerate the patch against the new version (`npx patch-package react-native-test-app` from `example/` after re-applying the change) or drop it if upstream has fixed the podspec.
 
 ## Changing the public APIs
 
