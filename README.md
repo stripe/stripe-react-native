@@ -70,9 +70,13 @@ Next, add:
 }
 ```
 
-to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can set them in an array. `disableSPM` (optional, iOS) resolves the Stripe iOS SDK through CocoaPods instead of Swift Package Manager — see [Stripe iOS SDK resolution](#stripe-ios-sdk-resolution).
+to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can set them in an array. `disableSPM` (optional, iOS) resolves the Stripe iOS SDK through CocoaPods instead of Swift Package Manager — see [Stripe iOS SDK resolution](#ios-dependency-resolution).
 
 ### Requirements
+
+#### React Native
+
+React Native verions < 0.75 are deprecated.
 
 #### Android
 
@@ -103,14 +107,16 @@ implementation 'com.google.android.material:material:<version>'
 
 The Stripe React Native SDK supports all [Apple supported Xcode versions](https://developer.apple.com/news/upcoming-requirements/) and is compatible with apps targeting iOS 13 or above. For iOS 12 support, please use [`@stripe/stripe-react-native@0.19.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.19.0).
 
+The SDK requires that your app uses dynamic linkage. See more details below.
+
 The SDK uses TypeScript features available in Babel version `7.9.0` and above.
 Alternatively use the `plugin-transform-typescript` plugin in your project.
 
 You'll need to run `pod install` in your `ios` directory to install the native dependencies.
 
-##### Stripe iOS SDK resolution
+### iOS Dependency Resolution 
 
-On React Native 0.75 and above, the SDK resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks — add the following to your Podfile if it isn't there already:
+By default, the Stripe React Native SDK resolves its Stripe iOS SDK dependency through Swift Package Manager (SPM) instead of CocoaPods due to the deprecation of CocoaPods. This requires building your app with dynamic linking. Add the following to your Podfile if it isn't there already:
 
 ```ruby
 use_frameworks! :linkage => :dynamic
@@ -118,13 +124,19 @@ use_frameworks! :linkage => :dynamic
 
 For Expo, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
 
-To keep resolving the Stripe iOS SDK through CocoaPods — for example, if your app can't build with dynamic frameworks — add this at the top of your Podfile:
+If you encounter problems with SPM dependency resolution, please immediately [file an issue](https://github.com/stripe/stripe-react-native/issues).
+
+#### Opt-Out
+
+**WARNING:** CocoaPods support is deprecated and future versions of the Strpe React Native SDK will require resolving the iOS SDK dependency through CocoaPods.
+
+If you need to temporarily continue resolving the Stripe iOS SDK dependency through CocoaPods (for example if your app currently can't build with dynamic linking), add this at the top of your Podfile:
 
 ```ruby
 $StripeDisableSPM = true
 ```
 
-For Expo (where the Podfile is generated), set the equivalent option on this SDK's config plugin in your app config instead:
+For Expo, set the equivalent option on this SDK's config plugin in your app config instead:
 
 ```json
 {
@@ -141,23 +153,17 @@ For Expo (where the Podfile is generated), set the equivalent option on this SDK
 }
 ```
 
-The CocoaPods fallback is available for as long as the Stripe iOS SDK continues publishing to CocoaPods. React Native versions below 0.75 always use CocoaPods resolution.
+#### Troubleshooting
 
-###### Troubleshooting
+- **`pod install` fails with "Resolving the Stripe iOS SDK through Swift Package Manager requires dynamic frameworks"** — your app is building with static libraries (React Native's default). Add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/)).
 
-- **`pod install` fails with "Resolving the Stripe iOS SDK through Swift Package Manager requires dynamic frameworks"** — your app is building with static libraries (React Native's default). Add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/)), or opt out of Swift Package Manager resolution as described above.
+- **`pod install` fails with "The Stripe iOS Swift package was not added to the Pods project"** - the integration relies on `react_native_post_install` being called from your Podfile. If your Podfile is customized and no longer calls it, restore that call (see the [React Native template Podfile](https://github.com/react-native-community/template/blob/main/template/ios/Podfile)).
 
-- **`pod install` fails with "Resolving the Stripe iOS SDK through Swift Package Manager requires CocoaPods 1.10 or newer"** — the running CocoaPods predates the `post_integrate` hook the integration relies on. React Native's own project template already requires CocoaPods 1.13 or newer, so this usually means an outdated global `pod` was used instead of the one your project's Gemfile pins — run `bundle exec pod install`, or update CocoaPods. Alternatively, opt out of Swift Package Manager resolution as described above.
+- **The app crashes at launch with `dyld: Library not loaded: @rpath/Stripe….framework`** - there was an error embedding the Stripe frameworks into your app bundle. Re-run `pod install` and confirm that the `[stripe-react-native] Embed SPM Frameworks` build phase exists on the app target. If the crash persists with the phase present, [file an issue](https://github.com/stripe/stripe-react-native/issues).
 
-- **`pod install` fails with "The Stripe iOS Swift package was not added to the Pods project"** — the integration relies on `react_native_post_install`, which the standard React Native Podfile calls from its `post_install` block. If your Podfile is customized and no longer calls it, restore that call (see the [React Native template Podfile](https://github.com/react-native-community/template/blob/main/template/ios/Podfile)), or opt out of Swift Package Manager resolution.
+- **Your app also uses `@stripe/stripe-identity-react-native`** - Set `$StripeDisableSPM = true` until the Stripe Identity SDK supports SPM resolution.
 
-- **The app crashes at launch with `dyld: Library not loaded: @rpath/Stripe….framework`** — the Stripe frameworks weren't embedded into the app bundle. Embedding is handled by a build phase named `[stripe-react-native] Embed SPM Frameworks` that `pod install` adds to your app target; re-run `pod install` and confirm the phase exists on the app target. If the crash persists with the phase present, [file an issue](https://github.com/stripe/stripe-react-native/issues).
-
-- **Other libraries in your app fail to build or link after switching to dynamic frameworks** — with dynamic frameworks, every pod resolves its own symbols at link time, which surfaces missing dependency declarations in unrelated libraries (undefined-symbol linker errors are the typical sign). Those need fixes in the affected library; in the meantime, `$StripeDisableSPM = true` lets your app stay on static libraries.
-
-- **Your app also uses `@stripe/stripe-identity-react-native`** — it still resolves the Stripe iOS SDK through CocoaPods, and mixing the two resolution modes puts two copies of the Stripe code into one app (duplicate-class warnings at launch, and the two SDKs won't share state). Set `$StripeDisableSPM = true` until it also supports Swift Package Manager resolution.
-
-- **`pod install` aborts with a Pods-project integrity-check error, or Xcode reports "The project 'Pods' is damaged and cannot be opened"** — delete your app's `ios/Pods` directory and run `pod install` again. If it recurs, [file an issue](https://github.com/stripe/stripe-react-native/issues) with your React Native and CocoaPods versions; `$StripeDisableSPM = true` is the interim workaround.
+- **`pod install` aborts with an integrity-check error or Xcode reports "The project 'Pods' is damaged and cannot be opened"** - delete your app's `ios/Pods` directory and run `pod install` again. If the error persists, [file an issue](https://github.com/stripe/stripe-react-native/issues).
 
 ## Usage example
 

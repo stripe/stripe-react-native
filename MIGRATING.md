@@ -1,8 +1,8 @@
 # Migration Guide
 
-## iOS: Stripe iOS SDK now resolved through Swift Package Manager (requires dynamic frameworks)
+## iOS Swift Package Manager dependency resolution and dynamic linking
 
-On React Native 0.75 and above, `@stripe/stripe-react-native` resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods, because the Stripe iOS SDK is deprecating CocoaPods support. This requires building with dynamic frameworks. If your Podfile doesn't already set that linkage, add:
+By default, the Stripe React Native SDK now resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods. This requires building your app with dynamic linking. For non-Expo apps, add to your Podfile:
 
 ```ruby
 use_frameworks! :linkage => :dynamic
@@ -10,11 +10,9 @@ use_frameworks! :linkage => :dynamic
 
 For Expo apps, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
 
-If your app can't build with dynamic frameworks yet, you can temporarily keep resolving the Stripe iOS SDK through CocoaPods (available while the Stripe iOS SDK continues publishing pods): add `$StripeDisableSPM = true` at the top of your Podfile, or for Expo set `"disableSPM": true` on this SDK's config plugin.
+See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.
 
-React Native versions below 0.75 are unaffected and continue to use CocoaPods resolution.
-
-See [Stripe iOS SDK resolution](README.md#stripe-ios-sdk-resolution) in the README for more detail and a troubleshooting guide.
+React Native versions < 0.75 will continue using CocoaPods. However, these React Native versions are deprecated and will not be supported in future Stripe React Native SDK versions.
 
 ## Android SDK 36 requirement (stripe-android 23.x)
 
