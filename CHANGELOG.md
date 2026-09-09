@@ -2,7 +2,8 @@
 
 ## Unreleased
 **Changes**
-* [Changed] iOS: The Stripe iOS SDK dependency is now resolved through Swift Package Manager instead of CocoaPods. This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). To temporarily keep resolving the Stripe iOS SDK through CocoaPods for now, add `$StripeDisableSPM = true` at the top of your Podfile — Expo apps can set `"disableSPM": true` on this SDK's config plugin instead. React Native versions below 0.75 continue to use CocoaPods resolution. WARNING: Resolution of the Stripe iOS dependency via CocoaPods is deprecated and future SDK versions will not support this. If you encounter any problems, please [file an issue](https://github.com/stripe/stripe-react-native/issues). See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#stripe-ios-sdk-resolution) in the README for details and troubleshooting.
+* [Changed] React Native versions < 0.75 are deprecated.
+* [Changed] iOS: By default, the Stripe iOS SDK is now resolved through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.
 
 ## 0.76.0 - 2026-09-01
 **Features**

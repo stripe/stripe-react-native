@@ -176,21 +176,16 @@ The React Native SDK depends on underlying native [iOS](https://github.com/strip
 
 **Android:** Update `StripeSdk_stripeVersion` in `android/gradle.properties`.
 
-## iOS: how the Stripe iOS SDK is resolved
+## iOS dependency resolution
 
-The Stripe iOS SDK is deprecating CocoaPods support, so on React Native >= 0.75 this SDK resolves it through Swift Package Manager while remaining a CocoaPods pod itself. `stripe_spm.rb` (repo root, shipped in the npm package) contains the implementation and extensive documentation of the mechanism.
+The Stripe iOS SDK is deprecating CocoaPods support, and accordingly the Stripe React Native SDK is in a transition phase where it resolves the iOS depdency through Swift Package Manager (SPM) by default while still supporting and exposing an opt-out option.
 
-Development toggles:
+For a full explanation of the SPM resolution mechanism, see the documentation in `stripe_spm.rb`.
 
 | Toggle | Effect |
 |--------|--------|
 | `STRIPE_DISABLE_SPM=1 yarn pods` | Builds the example app using the CocoaPods fallback (static libraries), for verifying the opt-out path. |
-| `OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH=<branch>` | Resolves the Swift package from that branch of the full [stripe-ios](https://github.com/stripe/stripe-ios) repo instead of the pinned release (branches don't exist on the `stripe-ios-spm` mirror). Used by CI to test against unreleased stripe-ios changes. |
-
-Notes for maintainers:
-
-- The Swift package product list in `stripe_spm.rb` (`StripeSPM::CORE_PRODUCTS`) and the fallback pod dependencies in the podspec must be kept in sync — they are two spellings of the same dependency set.
-- The example app's `Podfile` documents the additional example-only configuration this requires (dynamic frameworks, React Native's prebuilt-core matrix, and the wiring of `ios/Tests` into the `ReactTestAppTests` target, which replaced the podspec test spec for `yarn test:unit:ios`).
+| `OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH=<branch>` | Resolves the Swift package from that branch instead of the pinned release. Used by CI and developers to test against unreleased stripe-ios changes. |
 
 ## Changing the public APIs
 
