@@ -13,7 +13,6 @@ import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
@@ -97,9 +96,6 @@ class StripeSdkModule(
   private var stripeAccountId: String? = null
   private var urlScheme: String? = null
 
-  private var createPlatformPayPaymentMethodPromise: Promise? = null
-  private var platformPayUsesDeprecatedTokenFlow = false
-
   private val stripeUIManagers = mutableListOf<StripeUIManager>()
   private var paymentSheetManager: PaymentSheetManager? = null
   private var paymentLauncherManager: PaymentLauncherManager? = null
@@ -123,37 +119,6 @@ class StripeSdkModule(
   private val pendingUrlsLock = Any()
 
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
-
-  private val mActivityEventListener =
-    object : BaseActivityEventListener() {
-      override fun onActivityResult(
-        activity: Activity,
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-      ) {
-        if (::stripe.isInitialized) {
-          when (requestCode) {
-            GooglePayRequestHelper.LOAD_PAYMENT_DATA_REQUEST_CODE -> {
-              createPlatformPayPaymentMethodPromise?.let {
-                GooglePayRequestHelper.handleGooglePaymentMethodResult(
-                  resultCode,
-                  data,
-                  stripe,
-                  platformPayUsesDeprecatedTokenFlow,
-                  it,
-                )
-                createPlatformPayPaymentMethodPromise = null
-              }
-            }
-          }
-        }
-      }
-    }
-
-  init {
-    reactContext.addActivityEventListener(mActivityEventListener)
-  }
 
   override fun invalidate() {
     super.invalidate()
@@ -917,8 +882,6 @@ class StripeSdkModule(
         )
         return
       }
-    platformPayUsesDeprecatedTokenFlow = usesDeprecatedTokenFlow
-    createPlatformPayPaymentMethodPromise = promise
     getCurrentActivityOrResolveWithError(promise)?.let {
       val request =
         GooglePayRequestHelper.createPaymentRequest(
@@ -926,7 +889,13 @@ class StripeSdkModule(
           GooglePayJsonFactory(reactApplicationContext),
           googlePayParams,
         )
-      GooglePayRequestHelper.createPaymentMethod(request, it)
+      GooglePayRequestHelper.createPaymentMethod(
+        request,
+        it,
+        stripe,
+        usesDeprecatedTokenFlow,
+        promise,
+      )
     }
   }
 

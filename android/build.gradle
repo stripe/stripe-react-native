@@ -176,7 +176,7 @@ dependencies {
   implementation "androidx.browser:browser:1.8.0"
 
   // play-services-wallet is already included in stripe-android
-  compileOnly "com.google.android.gms:play-services-wallet:19.3.0"
+  compileOnly "com.google.android.gms:play-services-wallet:20.0.0"
 
   // Users need to declare this dependency on their own, otherwise all methods are a no-op
   compileOnly "com.stripe:stripe-android-issuing-push-provisioning:1.3.0"
@@ -197,4 +197,3 @@ if (lintRulesJar.exists()) {
     lintChecks files(lintRulesJar)
   }
 }
-

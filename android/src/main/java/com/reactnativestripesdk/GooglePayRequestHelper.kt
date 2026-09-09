@@ -1,17 +1,18 @@
 package com.reactnativestripesdk
 
-import android.app.Activity
-import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
+import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.tasks.Task
-import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.PaymentData
 import com.google.android.gms.wallet.PaymentDataRequest
 import com.google.android.gms.wallet.Wallet
 import com.google.android.gms.wallet.WalletConstants
+import com.google.android.gms.wallet.contract.ApiTaskResult
+import com.google.android.gms.wallet.contract.TaskResultContracts
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.getBooleanOr
@@ -27,11 +28,10 @@ import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.PaymentMethodCreateParams
 import org.json.JSONObject
 import java.util.Locale
+import java.util.UUID
 
 class GooglePayRequestHelper {
   companion object {
-    internal const val LOAD_PAYMENT_DATA_REQUEST_CODE = 414243
-
     internal fun createPaymentRequest(
       activity: FragmentActivity,
       factory: GooglePayJsonFactory,
@@ -124,39 +124,51 @@ class GooglePayRequestHelper {
     internal fun createPaymentMethod(
       request: Task<PaymentData>,
       activity: FragmentActivity,
-    ) {
-      @Suppress("DEPRECATION")
-      AutoResolveHelper.resolveTask(request, activity, LOAD_PAYMENT_DATA_REQUEST_CODE)
-    }
-
-    internal fun handleGooglePaymentMethodResult(
-      resultCode: Int,
-      data: Intent?,
       stripe: Stripe,
       forToken: Boolean,
       promise: Promise,
     ) {
-      when (resultCode) {
-        Activity.RESULT_OK -> {
-          data?.let { intent ->
-            PaymentData.getFromIntent(intent)?.let {
-              if (forToken) {
-                resolveWithToken(it, promise)
-              } else {
-                resolveWithPaymentMethod(it, stripe, promise)
-              }
-            }
+      activity.runOnUiThread {
+        lateinit var launcher: ActivityResultLauncher<Task<PaymentData>>
+        launcher =
+          activity.activityResultRegistry.register(
+            "stripe-react-native-google-pay-${UUID.randomUUID()}",
+            TaskResultContracts.GetPaymentDataResult(),
+          ) { result ->
+            launcher.unregister()
+            handleGooglePaymentMethodResult(result, stripe, forToken, promise)
           }
+        launcher.launch(request)
+      }
+    }
+
+    private fun handleGooglePaymentMethodResult(
+      result: ApiTaskResult<PaymentData>,
+      stripe: Stripe,
+      forToken: Boolean,
+      promise: Promise,
+    ) {
+      when {
+        result.status.isSuccess -> {
+          result.result?.let {
+            if (forToken) {
+              resolveWithToken(it, promise)
+            } else {
+              resolveWithPaymentMethod(it, stripe, promise)
+            }
+          } ?: promise.resolve(
+            createError(ErrorType.Failed.toString(), "Google Pay did not return payment data"),
+          )
         }
-        Activity.RESULT_CANCELED -> {
+        result.status.statusCode == CommonStatusCodes.CANCELED -> {
           promise.resolve(
             createError(ErrorType.Canceled.toString(), "The payment has been canceled"),
           )
         }
-        AutoResolveHelper.RESULT_ERROR -> {
-          AutoResolveHelper.getStatusFromIntent(data)?.let {
-            promise.resolve(createError(ErrorType.Failed.toString(), it.statusMessage))
-          }
+        else -> {
+          promise.resolve(
+            createError(ErrorType.Failed.toString(), result.status.statusMessage),
+          )
         }
       }
     }
