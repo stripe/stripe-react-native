@@ -387,6 +387,43 @@ module StripeSPM
       end
     end
 
+    # Post-condition check for the failure class ensure_uuid_counter_safe
+    # defends against: after the regular post_install hooks (React Native's
+    # SPM writes included) have run, the Pods project's rootObject UUID must
+    # still resolve to that same PBXProject. If a `project.new` reused its
+    # UUID, objects_by_uuid holds the new object at that key while
+    # @root_object still points at the original — and saving would write a
+    # pbxproj whose rootObject points at a non-project object, which Xcode
+    # cannot open. There is no safe way to continue past that, so this raises
+    # (aborting the install before the corrupt project is written) rather
+    # than warning like the soft guard above.
+    def verify_pods_project_integrity!(installer)
+      return unless active?
+
+      project = installer.pods_project
+      return unless project
+      return unless project.respond_to?(:root_object) && project.respond_to?(:objects_by_uuid)
+
+      root = project.root_object
+      resolved = root && project.objects_by_uuid[root.uuid]
+      return if root &&
+                resolved.equal?(root) &&
+                resolved.respond_to?(:isa) &&
+                resolved.isa == 'PBXProject'
+
+      raise Pod::Informative, <<~MESSAGE
+        [stripe-react-native] The Pods project failed an integrity check.
+        Saving this project would leave Pods.xcodeproj unopenable by Xcode.
+
+        Delete `ios/Pods` and re-run `pod install`. If the error persists,
+        please report it at
+        https://github.com/stripe/stripe-react-native/issues (including your
+        React Native and CocoaPods versions).
+        To temporarily fix this, set `$StripeDisableSPM = true` at
+        the top of your Podfile.
+      MESSAGE
+    end
+
     private
 
     def override_branch
@@ -632,8 +669,11 @@ if defined?(Pod::Installer)
         end
         # Run the regular hooks next: react_native_post_install (called from
         # the user's post_install block) writes the Swift package references
-        # that the Pods-project stage builds on.
+        # that the integrity check and the Pods-project stage build on.
         result = stripe_spm_original_run_podfile_post_install_hooks
+        # We deliberately fail because continuing past a corrupted project would
+        # still cause an Xcode error later.
+        StripeSPM.verify_pods_project_integrity!(self)
         StripeSPM.apply_pods_project(self)
         result
       end
