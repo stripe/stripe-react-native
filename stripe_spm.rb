@@ -34,9 +34,7 @@
 #    hooked methods on every install, so users need zero Podfile changes.
 #    The work is split across two hooks by which Xcode project it touches:
 #
-#    `run_podfile_post_install_hooks` (the Pods-project stage; all of it is
-#    skipped in the CocoaPods fallback, which creates no project objects and
-#    needs nothing from Pods.xcodeproj):
+#    `run_podfile_post_install_hooks` (the Pods-project stage):
 #      - guards CocoaPods' UUID counter before the normal hooks run, so React
 #        Native's SPM apply step can't corrupt Pods.xcodeproj (see
 #        `ensure_uuid_counter_safe`), and verifies the project's integrity
