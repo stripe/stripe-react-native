@@ -34,7 +34,9 @@
 #    hooked methods on every install, so users need zero Podfile changes.
 #    The work is split across two hooks by which Xcode project it touches:
 #
-#    `run_podfile_post_install_hooks` (the Pods-project stage):
+#    `run_podfile_post_install_hooks` (the Pods-project stage; all of it is
+#    skipped in the CocoaPods fallback, which creates no project objects and
+#    needs nothing from Pods.xcodeproj):
 #      - guards CocoaPods' UUID counter before the normal hooks run, so React
 #        Native's SPM apply step can't corrupt Pods.xcodeproj (see
 #        `ensure_uuid_counter_safe`), and verifies the project's integrity
@@ -309,6 +311,82 @@ module StripeSPM
       end
     end
 
+    # Guards against a UUID-collision bug that corrupts Pods.xcodeproj when a
+    # post_install hook creates new project objects. This is provided by
+    # React Native on later React Native versions but we need to provide it
+    # ourselves for earlier ones.
+    #
+    # Background, verified against CocoaPods 1.16.2: `Pod::Project` overrides
+    # `generate_available_uuid_list` to mint deterministic UUIDs — a 6-char
+    # project prefix, a 7-hex-digit counter, and a trailing '0' — with, per
+    # its own comment, *no collision check* against existing objects, "as the
+    # Pods project is regenerated each time, and thus all UUIDs will have
+    # come from this method". Whenever that freshly-generated assumption
+    # breaks (an incremental-installation project loaded from cache, UUID
+    # postprocessing that sweeps the counters), the counter restarts near
+    # zero while the object table is already full of counter-format UUIDs,
+    # and the next `project.new` silently *overwrites* an existing entry in
+    # objects_by_uuid — observed in the wild overwriting the root PBXProject
+    # itself, after which Xcode refuses to open the Pods project
+    # ("The project 'Pods' is damaged and cannot be opened",
+    # `-[XCRemoteSwiftPackageReference _setSavedArchiveVersion:]`).
+    #
+    # React Native fixed this inside its own SPM manager in facebook/
+    # react-native#57576, but the fix only ships in RN >= 0.88; every earlier
+    # spm_dependency-capable release (0.75–0.87) carries the latent bug.
+    #
+    # To solve this: before any post_install hook runs, raise the generated-
+    # UUID high-water mark past every counter-format UUID already in the
+    # project, so newly minted UUIDs can't land on an existing object. This
+    # protects React Native's writes as well as our own. Only runs in SPM
+    # mode: in the CocoaPods fallback this SDK creates no project objects, so
+    # it has no reason to reach into CocoaPods internals on that install
+    # (other libraries' `spm_dependency` writes are theirs to guard).
+    # Idempotent, so it composes with other libraries' equivalent guards.
+    #
+    # Reads/writes @generated_uuids/@available_uuids/@uuid_prefix — private
+    # internals of Pod::Project/Xcodeproj::Project — which is why the caller
+    # wraps this in a rescue: if a future CocoaPods restructures them, the
+    # install must degrade to a warning, not break.
+    def ensure_uuid_counter_safe(installer)
+      return unless active?
+
+      project = installer.pods_project
+      return unless project
+
+      prefix = project.instance_variable_get(:@uuid_prefix)
+      return unless prefix.is_a?(String) && prefix.length >= 6
+
+      counter_prefix = prefix[0, 6]
+      max_index = -1
+      project.objects_by_uuid.each_key do |uuid|
+        # Only counter-format UUIDs participate: prefix + 7 hex digits + '0'.
+        next unless uuid.is_a?(String) && uuid.length == 14 &&
+                    uuid.start_with?(counter_prefix) && uuid.end_with?('0')
+
+        index = uuid[6, 7].to_i(16)
+        max_index = index if index > max_index
+      end
+      return if max_index < 0
+
+      generated = project.instance_variable_get(:@generated_uuids)
+      generated = [] unless generated.is_a?(Array)
+      already_safe = generated.size > max_index
+      while generated.size <= max_index
+        generated << format('%.6s%07X0', prefix, generated.size)
+      end
+      project.instance_variable_set(:@generated_uuids, generated)
+      # Discard pre-minted UUIDs too — they may date from before the raise.
+      project.instance_variable_set(:@available_uuids, [])
+
+      # Padding actually happening means the freshly-generated assumption was
+      # broken on this install — the load-bearing case, worth one log line.
+      if !already_safe && defined?(Pod::UI)
+        Pod::UI.puts "[stripe-react-native] Raised the Pods project's UUID counter past " \
+                     "index #{max_index} before Swift Package references are written."
+      end
+    end
+
     private
 
     def override_branch
@@ -537,7 +615,22 @@ if defined?(Pod::Installer)
       alias_method :stripe_spm_original_run_podfile_post_install_hooks, :run_podfile_post_install_hooks
 
       define_method(:run_podfile_post_install_hooks) do
-        # Run the regular hooks first: react_native_post_install (called from
+        # The UUID guard must run before the regular hooks: it is defending
+        # against object creation *inside* react_native_post_install. (It
+        # no-ops in the CocoaPods fallback, like the rest of this stage.)
+        # Soft failure only — it pokes CocoaPods internals, and a CocoaPods
+        # release changing those must not break `pod install`.
+        begin
+          StripeSPM.ensure_uuid_counter_safe(self)
+        rescue StandardError => e
+          if defined?(Pod::UI)
+            Pod::UI.warn "[stripe-react-native] Couldn't guard the Pods project's UUID counter " \
+                         "(#{e.class}: #{e.message}). If this install leaves Pods.xcodeproj " \
+                         'unopenable by Xcode, delete ios/Pods and report the error at ' \
+                         'https://github.com/stripe/stripe-react-native/issues.'
+          end
+        end
+        # Run the regular hooks next: react_native_post_install (called from
         # the user's post_install block) writes the Swift package references
         # that the Pods-project stage builds on.
         result = stripe_spm_original_run_podfile_post_install_hooks
