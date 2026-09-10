@@ -73,13 +73,6 @@
 #     there also means the phase is appended after CocoaPods' own `[CP]`
 #     phases regardless of whether the app project is fresh (first install,
 #     Expo prebuild --clean) or already integrated.
-#   - On very old CocoaPods versions without post_integrate hooks (< 1.10),
-#     the user-project stage falls back to the end of the post_install stage.
-#     That works too — the analyzer, our hook, and the integrator all share
-#     one in-memory instance of the user project, so mutations made before
-#     integration survive it — the phase just ends up ordered before the
-#     `[CP]` phases on a fresh project.
-#
 # Within the post_install stage, the user's post_install block runs first —
 # React Native's `react_native_post_install` writes the Swift package
 # references at that point — and our code runs after it, so it can rely on
