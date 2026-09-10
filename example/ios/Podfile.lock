@@ -1726,7 +1726,9 @@ PODS:
     - ReactNativeDependencies
     - Yoga
   - ReactTestApp-DevSupport (4.4.12):
+    - hermes-engine
     - React-Core
+    - React-Core-prebuilt
     - React-jsi
   - ReactTestApp-Resources (1.0.0-dev)
   - RNCAsyncStorage (2.2.0):
@@ -2310,7 +2312,7 @@ SPEC CHECKSUMS:
   ReactCommon: e6e232202a447d353e5531f2be82f50f47cbaa9a
   ReactNativeDependencies: 71ce9c28beb282aa720ea7b46980fff9669f428a
   ReactNativeHost: 321d403ccbfc19067e6ac1a43d7ffcd8e1b24b53
-  ReactTestApp-DevSupport: 467513802464ac48223177b7aa5e0b1b58d3ac20
+  ReactTestApp-DevSupport: 4d6eaeeb6c023b757ba42010104c1b0228b82e32
   ReactTestApp-Resources: 49fb7249af8203b9c74fd85de8c6f5bbb77a41df
   RNCAsyncStorage: e85a99325df9eb0191a6ee2b2a842644c7eb29f4
   RNCPicker: e0149590451d5eae242cf686014a6f6d808f93c7
@@ -2331,6 +2333,6 @@ SPEC CHECKSUMS:
   StripeUICore: cd7242a0449cea4e4b38b61d11584dfabb8e28ce
   Yoga: 5934998fbeaef7845dbf698f698518695ab4cd1a
 
-PODFILE CHECKSUM: 605f3cad878b7c0eee93ebb4a78a8141d34cd328
+PODFILE CHECKSUM: 220518058ece9b13378048dbc60d2ebb32b5c4e1
 
 COCOAPODS: 1.16.2

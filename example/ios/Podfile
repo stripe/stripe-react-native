@@ -6,11 +6,32 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
 
-# Use prebuilt RN.
-ENV['RCT_USE_RN_DEP'] = '1'
-ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
+# Temporarily keep the example app on the old CocoaPods resolution while
+# the SPM integration is being built out.
+# TODO: turn off
+disable_spm = true
+$StripeDisableSPM = true
+
+# SPM resolution requires dynamic frameworks. Dynamic frameworks also make
+# every pod link its own dependencies, which exposes under-declared podspecs:
+# react-native-test-app's DevSupport pod compiles against JSI and React-Core
+# but declares neither hermes-engine (where the JSI definitions live with
+# Hermes) nor React-Core-prebuilt (where the RCT* symbols live with the
+# prebuilt core). ../patches/react-native-test-app+*.patch adds those
+# declarations to its podspec; patch-package applies it on `yarn install`
+# (see the example's postinstall script).
+use_frameworks! :linkage => :dynamic unless disable_spm
 
 new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED'] == 'true'
+
+# The prebuilt core only wires framework linkage through the new-architecture
+# dependency path, so with dynamic frameworks old-arch pods (e.g. react-native-safe-area-context)
+# compile against prebuild React headers but never link the framework, failing
+# with undefined RCT* symbols. Static builds (which we still do in fallback mode)
+# don't per-pod link, so the prebuilt core is fine there on either arch.
+use_prebuilt_rncore = new_arch_enabled || disable_spm
+ENV['RCT_USE_RN_DEP'] = '1'
+ENV['RCT_USE_PREBUILT_RNCORE'] = '1' if use_prebuilt_rncore
 
 options = {
   :bridgeless_enabled => new_arch_enabled,
