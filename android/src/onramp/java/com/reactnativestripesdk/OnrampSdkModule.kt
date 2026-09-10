@@ -85,6 +85,7 @@ class OnrampSdkModule(
   private var stripeAccountId: String? = null
 
   private var onrampCoordinator: OnrampCoordinator? = null
+  private var onrampCallbacks: OnrampCallbacks? = null
   private var onrampPresenter: OnrampCoordinator.Presenter? = null
 
   private var presenterActivity: ComponentActivity? = null
@@ -213,6 +214,8 @@ class OnrampSdkModule(
           checkoutClientSecretDeferred!!.await()
         }
 
+    this.onrampCallbacks = onrampCallbacks
+
     val coordinator =
       onrampCoordinator ?: OnrampCoordinator
         .Builder()
@@ -271,6 +274,12 @@ class OnrampSdkModule(
 
     clearOnrampPresenter()
     return try {
+      // Finishing the previous host removes the SDK callback registration. Building
+      // again restores it while retaining the SDK's existing coordinator and session.
+      // This is a temporary fix until the native SDK handles this better.
+      onrampCallbacks?.let { callbacks ->
+        OnrampCoordinator.Builder().build(activity.application, SavedStateHandle(), callbacks)
+      }
       coordinator.createPresenter(activity).also {
         onrampPresenter = it
         presenterActivity = activity
