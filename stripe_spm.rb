@@ -251,7 +251,10 @@ module StripeSPM
       @version = version
     end
 
-    # True when the podspec declared the Swift package this install.
+    # True when the podspec declared the Swift package this install. When
+    # false (RN < 0.75 or $StripeDisableSPM), the installer hooks skip the
+    # Pods-project stage entirely and only perform cleanup in the
+    # user-project stage (see apply_user_project).
     def active?
       !@version.nil?
     end
