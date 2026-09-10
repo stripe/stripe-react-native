@@ -124,6 +124,64 @@ module StripeSPM
   ONRAMP_PRODUCT = 'StripeCryptoOnramp'.freeze
   ONRAMP_SUBSPEC = "#{POD_NAME}/Onramp".freeze
 
+  # Shown in Xcode's build-phases UI; also the key used to find/replace
+  # the phase on later installs.
+  EMBED_PHASE_NAME = '[stripe-react-native] Embed SPM Frameworks'.freeze
+
+  # Embeds SPM-built dynamic frameworks into the app bundle.
+  #
+  # Why this is needed: stripe-ios's package products are "automatic" linkage
+  # libraries, and in some configurations Xcode chooses to build them as real
+  # dynamic frameworks (under BUILT_PRODUCTS_DIR/PackageFrameworks for regular
+  # builds, and under OBJROOT/UninstalledProducts/<platform> for Archive
+  # builds, which never populate PackageFrameworks). Xcode only auto-embeds
+  # package frameworks for targets that link them *directly*; frameworks
+  # linked by a CocoaPods pod target are invisible to both Xcode's embedding
+  # and CocoaPods' "[CP] Embed Pods Frameworks" phase. Without this script the
+  # app builds fine and then crashes at launch with
+  # "dyld: Library not loaded: @rpath/Stripe....framework".
+  #
+  # Script details:
+  #   - Filters to Stripe*.framework so we never touch others.
+  #   - Uses file(1) to skip statically linked frameworks: those are already
+  #     linked into their consumers, and embedding a static framework in the
+  #     bundle can fail App Store validation.
+  #   - Strips Headers/PrivateHeaders/Modules, which don't belong in a shipped
+  #     app bundle.
+  #   - Re-signs with --preserve-metadata so the frameworks pick up the app's
+  #     signing identity without losing their bundle identifiers/entitlements.
+  #   - Skips frameworks already present in the destination (e.g. embedded by
+  #     another phase) rather than overwriting them.
+  #   - FRAMEWORKS_FOLDER_PATH is unset for build types with no frameworks
+  #     folder (some non-app targets); treat that as "nothing to do".
+  #
+  # The heredoc is single-quoted (<<~'SCRIPT') so ${...} reaches the shell
+  # untouched by Ruby interpolation.
+  EMBED_SCRIPT = <<~'SCRIPT'.freeze
+    set -e
+    if [ -z "${FRAMEWORKS_FOLDER_PATH:-}" ]; then
+      exit 0
+    fi
+    DEST="${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}"
+    mkdir -p "$DEST"
+    for SEARCH_DIR in "${BUILT_PRODUCTS_DIR}/PackageFrameworks" "${OBJROOT}/UninstalledProducts/${PLATFORM_NAME}"; do
+      [ -d "$SEARCH_DIR" ] || continue
+      for FRAMEWORK in "$SEARCH_DIR"/Stripe*.framework; do
+        [ -d "$FRAMEWORK" ] || continue
+        NAME="$(basename "$FRAMEWORK" .framework)"
+        BINARY="$FRAMEWORK/$NAME"
+        [ -f "$BINARY" ] || continue
+        file -b "$BINARY" | grep -q "dynamically linked" || continue
+        if [ ! -d "$DEST/$NAME.framework" ]; then
+          rsync -a --exclude Headers --exclude PrivateHeaders --exclude Modules "$FRAMEWORK" "$DEST/"
+          if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ] && [ "${CODE_SIGNING_ALLOWED:-NO}" = "YES" ]; then
+            codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --preserve-metadata=identifier,entitlements "$DEST/$NAME.framework"
+          fi
+        fi
+      done
+    done
+  SCRIPT
+
   class << self
 
     # Records that SPM mode is on for this install and which stripe-ios
