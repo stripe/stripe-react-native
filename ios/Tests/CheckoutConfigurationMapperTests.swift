@@ -121,6 +121,29 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertNil(configuration.linkConfiguration)
     }
 
+    func test_map_requiresNonEmptyMerchantIdentifierWhenApplePayIsConfigured() {
+        for merchantIdentifier: String? in [nil, ""] {
+            XCTAssertThrowsError(
+                try CheckoutConfigurationMapper.map(
+                    params: [
+                        "clientSecret": "cs_test_secret_123",
+                        "returnURL": "example://checkout",
+                        "paymentElement": [
+                            "applePay": ["merchantCountryCode": "US"],
+                        ],
+                    ],
+                    merchantIdentifier: merchantIdentifier,
+                    didSelectPaymentOption: {}
+                )
+            ) { error in
+                XCTAssertEqual(
+                    error as? CheckoutConfigurationMapperError,
+                    .missingMerchantIdentifier
+                )
+            }
+        }
+    }
+
     func test_map_leavesConfigurationValidationToNativeCheckout() throws {
         let configuration = try CheckoutConfigurationMapper.map(
             params: [:],

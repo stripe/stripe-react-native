@@ -4,11 +4,14 @@ import PassKit
 
 enum CheckoutConfigurationMapperError: LocalizedError, Equatable {
     case unsupportedValue(path: String, value: String)
+    case missingMerchantIdentifier
 
     var errorDescription: String? {
         switch self {
         case .unsupportedValue(let path, let value):
             return "Unsupported Checkout configuration value `\(value)` for `\(path)`."
+        case .missingMerchantIdentifier:
+            return "Apple Pay requires `merchantIdentifier` in StripeProvider or initStripe."
         }
     }
 }
@@ -43,8 +46,11 @@ enum CheckoutConfigurationMapper {
 
         let applePayParams = paymentElementParams?["applePay"] as? NSDictionary
         if let applePayParams {
+            guard let merchantIdentifier, !merchantIdentifier.isEmpty else {
+                throw CheckoutConfigurationMapperError.missingMerchantIdentifier
+            }
             configuration.applePayConfiguration = Checkout.ApplePayConfiguration(
-                merchantId: merchantIdentifier ?? "",
+                merchantId: merchantIdentifier,
                 buttonType: try mapApplePayButtonType(applePayParams["buttonType"] as? String)
             )
             // TODO(porter): Pass merchantCountryCode when the reviewed native setter ships.
