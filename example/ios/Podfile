@@ -10,11 +10,9 @@ workspace 'example.xcworkspace'
 ENV['RCT_USE_RN_DEP'] = '1'
 ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
 
-new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED'] == 'true'
-
 options = {
-  :bridgeless_enabled => new_arch_enabled,
-  :fabric_enabled =>  new_arch_enabled,
+  :bridgeless_enabled => true,
+  :fabric_enabled => true,
   :hermes_enabled => true,
 }
 
