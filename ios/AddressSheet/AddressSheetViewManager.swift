@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import React
 
 @objc(AddressSheetViewManager)
 class AddressSheetViewManager: RCTViewManager {
