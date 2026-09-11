@@ -4,7 +4,9 @@ package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
 stripe_version = '26.9.0'
 
-fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
+if ENV['RCT_NEW_ARCH_ENABLED'] == '0'
+  raise 'stripe-react-native requires the React Native new architecture. Remove RCT_NEW_ARCH_ENABLED=0 and run pod install with RCT_NEW_ARCH_ENABLED=1.'
+end
 
 Pod::Spec.new do |s|
   s.name         = 'stripe-react-native'
@@ -30,11 +32,7 @@ Pod::Spec.new do |s|
     test_spec.source_files = 'ios/Tests/**/*.{m,swift}'
   end
 
-  if fabric_enabled
-    s.default_subspecs = 'Core', 'NewArch'
-  else
-    s.default_subspecs = 'Core'
-  end
+  s.default_subspecs = 'Core', 'NewArch'
 
   s.subspec 'Core' do |core|
     core.source_files = 'ios/**/*.{h,m,mm,swift}'
@@ -54,18 +52,17 @@ Pod::Spec.new do |s|
 
   s.subspec 'Onramp' do |onramp|
     onramp.source_files = [ 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm', 'ios/OnrampErrors.swift' ]
+    onramp.private_header_files = 'ios/StripeOnrampSdk.h'
     onramp.dependency 'stripe-react-native/Core'
     onramp.dependency 'StripeCryptoOnramp', stripe_version
   end
 
-  if fabric_enabled
-    install_modules_dependencies(s)
+  install_modules_dependencies(s)
 
-    s.subspec "NewArch" do |ss|
-      ss.source_files = "ios/NewArch/**/*.{h,m,mm}"
-      # These headers contain c++ code so make sure they are private to avoid
-      # being exported to the umbrella header, which is used by swift interop.
-      ss.private_header_files = '**/*.h'
-    end
+  s.subspec "NewArch" do |ss|
+    ss.source_files = "ios/NewArch/**/*.{h,m,mm}"
+    # These headers contain c++ code so make sure they are private to avoid
+    # being exported to the umbrella header, which is used by swift interop.
+    ss.private_header_files = 'ios/NewArch/**/*.h'
   end
 end

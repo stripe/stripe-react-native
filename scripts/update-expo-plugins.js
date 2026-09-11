@@ -12,6 +12,7 @@ const needsBuildProperties = expoMajor !== null && expoMajor <= 52;
 
 const appConfig = JSON.parse(fs.readFileSync(appJsonPath, 'utf8'));
 const expoConfig = appConfig.expo ?? (appConfig.expo = {});
+expoConfig.newArchEnabled = true;
 expoConfig.plugins = expoConfig.plugins || [];
 
 expoConfig.plugins.push([

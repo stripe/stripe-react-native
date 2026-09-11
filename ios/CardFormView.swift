@@ -4,6 +4,7 @@ import UIKit
 
 @objc(CardFormView)
 public class CardFormView: UIView, STPCardFormViewDelegate {
+
     public var cardForm: STPCardFormView?
 
     public var cardParams: STPPaymentMethodCardParams?
@@ -36,12 +37,6 @@ public class CardFormView: UIView, STPCardFormViewDelegate {
         self.addSubview(_cardForm)
         setStyles()
         setPreferredNetworks()
-    }
-
-    override public func didSetProps(_ changedProps: [String]!) {
-        // This is only called on old arch, for new arch didSetProps() will be called
-        // by the view component.
-        self.didSetProps()
     }
 
     @objc public var cardStyle: NSDictionary = NSDictionary() {

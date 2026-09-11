@@ -23,12 +23,6 @@ public class AuBECSDebitFormView: UIView, STPAUBECSDebitFormViewDelegate {
         }
     }
 
-    override public func didSetProps(_ changedProps: [String]!) {
-        // This is only called on old arch, for new arch didSetProps() will be called
-        // by the view component.
-        self.didSetProps()
-    }
-
     @objc public var formStyle: NSDictionary = NSDictionary() {
         didSet {
             setStyles()
