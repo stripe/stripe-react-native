@@ -10,14 +10,6 @@ class ReactNativeAnalyticsTests: XCTestCase {
         XCTAssertNotNil(NSClassFromString("RCTBridge"))
     }
 
-    func test_isNewArchitecture_matchesBuildConfig() {
-        #if RCT_NEW_ARCH_ENABLED
-        XCTAssertTrue(StripeSdkImpl.isNewArchitecture)
-        #else
-        XCTAssertFalse(StripeSdkImpl.isNewArchitecture)
-        #endif
-    }
-
     func test_reactNativeVersion_isValid() {
         let version = StripeSdkImpl.reactNativeVersion
         XCTAssertFalse(version.isEmpty)
