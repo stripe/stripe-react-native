@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Breaking changes**
+
+* [Removed] Support for the React Native old architecture on iOS and Android. Enable the new architecture (`newArchEnabled=true` on Android, `RCT_NEW_ARCH_ENABLED=1` for iOS pod installation, or `newArchEnabled: true` in Expo app configuration) and rebuild your app, or remain on version 0.76.x or earlier. Existing React Native and Expo version compatibility is unchanged when the new architecture is enabled.
+
 **Fixes**
 
 * [Fixed] Android: Fixed Crypto Onramp presentation failures after Activity recreation by recreating the presenter for the current Activity.

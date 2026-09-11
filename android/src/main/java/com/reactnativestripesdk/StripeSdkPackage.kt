@@ -13,6 +13,7 @@ import com.reactnativestripesdk.pushprovisioning.AddToWalletButtonManager
 // Fool autolinking for older versions that do not support BaseReactPackage.
 // public class StripeSdkPackage implements ReactPackage {
 class StripeSdkPackage : BaseReactPackage() {
+
   override fun getModule(
     name: String,
     reactContext: ReactApplicationContext,
@@ -43,7 +44,7 @@ class StripeSdkPackage : BaseReactPackage() {
           true,
           reactModule.needsEagerInit,
           reactModule.isCxxModule,
-          BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+          true,
         )
     }
     return ReactModuleInfoProvider { reactModuleInfoMap }

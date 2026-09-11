@@ -191,66 +191,13 @@ The public API is everything exported from `src/index.tsx`.
 - Export from `src/index.tsx`.
 - Use `@MyFeaturePrivatePreview` / `@MyFeaturePublicPreview`.
 
-## Maintaining the Stripe old-architecture patch
+## React Native architecture compatibility
 
-We ship `patches/old-arch-codegen-fix.patch` so that the library builds on **React-Native >= 0.74 in the old architecture** (it converts `EventEmitter` properties into callback functions so code-gen doesn't fail).
+The SDK requires the new architecture on iOS and Android. The example app and compatibility build scripts enable it explicitly. Keep the existing React Native and Expo compatibility build coverage when changing native code.
 
-### When to update the patch
+Native module and component interfaces are generated from `src/specs` during builds; generated Android specs should not be checked in.
 
-The patch needs to be updated when:
-- You modify `src/specs/NativeStripeSdkModule.ts` and add/remove/change EventEmitter properties
-- You upgrade dependencies that might affect the TurboModule interface
-- The patch fails to apply during testing or CI
-
-### How to update the patch
-
-1. **Make your changes to the source code** in `src/specs/NativeStripeSdkModule.ts`
-
-2. **Create a backup of the original file**:
-   ```bash
-   cp src/specs/NativeStripeSdkModule.ts src/specs/NativeStripeSdkModule.ts.orig
-   ```
-
-3. **Apply the old-arch compatible changes**:
-   - Remove the `EventEmitter` import from the imports section
-   - Convert all `EventEmitter` properties to callback function methods
-   - For example, change:
-     ```typescript
-     onConfirmHandlerCallback: EventEmitter<{
-       paymentMethod: UnsafeObject<PaymentMethod.Result>;
-       shouldSavePaymentMethod: boolean;
-     }>;
-     ```
-     To:
-     ```typescript
-     onConfirmHandlerCallback(
-       callback: (event: {
-         paymentMethod: UnsafeObject<PaymentMethod.Result>;
-         shouldSavePaymentMethod: boolean;
-       }) => void
-     ): void;
-     ```
-
-4. **Generate the new patch**:
-   ```bash
-   diff -u src/specs/NativeStripeSdkModule.ts.orig src/specs/NativeStripeSdkModule.ts > patches/old-arch-codegen-fix.patch
-   ```
-
-5. **Test the patch**:
-   ```bash
-   # Test that the patch applies cleanly
-   git stash  # stash your changes
-   patch -p0 < patches/old-arch-codegen-fix.patch
-   # Verify the file looks correct
-   git stash pop  # restore your changes
-   ```
-
-6. **Commit the updated patch**:
-   ```bash
-   git add patches/old-arch-codegen-fix.patch
-   git commit -m "chore: update old-arch codegen fix patch"
-   ```
-
+React Native versions before 0.80 still require the event-emitter compatibility layers in `src/events.ts`, Android's `EventEmitterCompat.kt`, and `ios/StripeSdkEventEmitterCompat.{h,m}`. Keep these until support for those React Native versions is dropped. The iOS payment messaging and Connect onboarding view managers also remain necessary for new-architecture interop.
 
 ## Scripts reference
 

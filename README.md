@@ -73,6 +73,14 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 
 ### Requirements
 
+The React Native **new architecture** (TurboModules and Fabric) is required on both platforms. Existing React Native and Expo version compatibility is unchanged when the new architecture is enabled.
+
+- **Android:** Set `newArchEnabled=true` in `android/gradle.properties`.
+- **iOS:** Remove any `RCT_NEW_ARCH_ENABLED=0` setting and run `RCT_NEW_ARCH_ENABLED=1 pod install` in your `ios` directory.
+- **Expo:** Set `newArchEnabled: true` in your app configuration and rebuild your native app.
+
+Apps that still require the old architecture must remain on `@stripe/stripe-react-native` 0.76.x or earlier.
+
 #### Android
 
 - Android 6.0 (API level 23) and above
@@ -277,14 +285,3 @@ If you're still having troubles, please [open an issue](https://github.com/strip
 ### `Apple Pay Is Not Available in "My App Name"`
 
 This can occur if you attempt to process an Apple Pay payment on a physical device (even in test mode) without having created **and uploaded** your Apple Pay Certificate to the Stripe Dashboard. Learn how to do that [here](https://stripe.com/docs/apple-pay#csr).
-
-### `UnsupportedModulePropertyParserError` on iOS
-
-While installing pods in your iOS project using a Stripe React Native version before 0.52, the old architecture, and a React Native version after 0.74, you may encounter the following error:
-
-```
-UnsupportedModulePropertyParserError: Module NativeStripeSdkModule: TypeScript interfaces extending TurboModule must only contain 'FunctionTypeAnnotation's. Property 'onConfirmHandlerCallback' refers to a 'TSTypeReference'.
-```
-
-If possible, update to version 0.52 or above of the Stripe React Native SDK.
-If you are unable to do so, please follow our [guide to apply the fix patch](https://github.com/stripe/stripe-react-native/tree/master/patches).
