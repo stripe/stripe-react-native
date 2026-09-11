@@ -19,15 +19,15 @@ appId: ${APP_ID}
 
 # The first chrome instance in E2E emulator, welcome page must be dismissed.
 - tapOn:
-    # Dismiss Chrome onboarding screen (new arch)
+    # Dismiss Chrome onboarding screen
     text: "Use without an account"
     optional: true
 - tapOn:
-    # Accept Chrome terms (old arch)
+    # Accept Chrome terms
     text: "Accept & continue"
     optional: true
 - tapOn:
-    # Don't turn on Chrome sync (old arch)
+    # Don't turn on Chrome sync
     text: "No thanks"
     optional: true
 
