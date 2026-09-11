@@ -1,6 +1,7 @@
 import { addListener } from '../../events';
 import {
   addCheckoutControllerListener,
+  addCheckoutControllerSelectionListener,
   CheckoutControllerUpdate,
   clearCheckoutControllerUpdate,
   toCheckoutControllerId,
@@ -15,6 +16,9 @@ const mockedAddListener = addListener as jest.MockedFunction<
 >;
 const nativeListener = mockedAddListener.mock.calls[0]?.[1] as (
   update: CheckoutControllerUpdate
+) => void;
+const nativeSelectionListener = mockedAddListener.mock.calls[1]?.[1] as (
+  update: Pick<CheckoutControllerUpdate, 'controllerId'>
 ) => void;
 
 const firstControllerId = toCheckoutControllerId('controller-1');
@@ -33,11 +37,15 @@ describe('CheckoutControllerEventEmitter', () => {
     clearCheckoutControllerUpdate(secondControllerId);
   });
 
-  it('registers one native listener for all controllers', () => {
-    expect(mockedAddListener).toHaveBeenCalledTimes(1);
+  it('registers native listeners once', () => {
+    expect(mockedAddListener).toHaveBeenCalledTimes(2);
     expect(mockedAddListener).toHaveBeenCalledWith(
       'checkoutControllerDidUpdate',
       nativeListener
+    );
+    expect(mockedAddListener).toHaveBeenCalledWith(
+      'checkoutControllerDidSelectPaymentOption',
+      expect.any(Function)
     );
   });
 
@@ -73,6 +81,18 @@ describe('CheckoutControllerEventEmitter', () => {
     expect(secondListener).not.toHaveBeenCalled();
     firstSubscription.remove();
     secondSubscription.remove();
+  });
+
+  it('routes row selection to the matching controller', () => {
+    const firstListener = jest.fn();
+    const secondListener = jest.fn();
+    addCheckoutControllerSelectionListener(firstControllerId, firstListener);
+    addCheckoutControllerSelectionListener(secondControllerId, secondListener);
+
+    nativeSelectionListener({ controllerId: firstControllerId });
+
+    expect(firstListener).toHaveBeenCalledTimes(1);
+    expect(secondListener).not.toHaveBeenCalled();
   });
 
   it('preserves sequence ordering across subscriptions', () => {
@@ -147,5 +167,16 @@ describe('CheckoutControllerEventEmitter', () => {
 
     expect(listener).not.toHaveBeenCalled();
     subscription.remove();
+  });
+
+  it('ignores updates after destruction', () => {
+    const controllerId = toCheckoutControllerId('destroyed-controller');
+    nativeListener(update(controllerId, 1, 'destroyed'));
+    nativeListener(update(controllerId, 2));
+    const listener = jest.fn();
+
+    addCheckoutControllerListener(controllerId, listener);
+
+    expect(listener).not.toHaveBeenCalled();
   });
 });
