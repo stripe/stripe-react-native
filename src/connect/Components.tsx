@@ -24,6 +24,19 @@ import { useConnectComponents } from './ConnectComponentsProvider';
 export { NavigationBar } from './NavigationBar';
 export type { NavigationBarProps } from './NavigationBar';
 
+type AuthChallengeRequiredEvent = {
+  action: string;
+  requestId: number;
+};
+
+type AuthChallengeResponse = {
+  requestId: number | null;
+  completion: {
+    secret: string;
+    metadata?: Record<string, string>;
+  } | null;
+};
+
 /**
  * A full-screen modal component for Connect account onboarding.
  * Guides connected accounts through the process of providing required information.
@@ -78,13 +91,17 @@ export function ConnectAccountOnboarding({
   privacyPolicyUrl?: string;
   collectionOptions?: CollectionOptions;
 } & Omit<CommonComponentProps, 'style'>) {
-  // kycRecipientAccountId is intentionally omitted from the public prop types to
+  // The following props are intentionally omitted from the public prop types to
   // discourage use by external integrators. This is API hygiene only — it is not
   // a security boundary. Real authorization is enforced server-side.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const kycRecipientAccountId = (rest as any).kycRecipientAccountId as
-    | string
-    | undefined;
+  const { kycRecipientAccountId, authChallenge, onAuthChallengeRequired } =
+    rest as {
+      kycRecipientAccountId?: string;
+      authChallenge?: AuthChallengeResponse;
+      onAuthChallengeRequired?: (event: AuthChallengeRequiredEvent) => void;
+    };
+
   const [visible, setVisible] = useState(true);
   const [loading, setLoading] = useState(true);
   const { appearance } = useConnectComponents();
@@ -105,6 +122,7 @@ export function ConnectAccountOnboarding({
       setPrivacyPolicyUrl: privacyPolicyUrl,
       setCollectionOptions: collectionOptions,
       setKycRecipientAccountId: kycRecipientAccountId,
+      setAuthChallenge: authChallenge,
     };
   }, [
     fullTermsOfServiceUrl,
@@ -112,6 +130,7 @@ export function ConnectAccountOnboarding({
     privacyPolicyUrl,
     collectionOptions,
     kycRecipientAccountId,
+    authChallenge,
   ]);
 
   const onExitCallback = useCallback(() => {
@@ -127,8 +146,9 @@ export function ConnectAccountOnboarding({
       onExit: onExitCallback,
       onStepChange,
       onCloseWebView: onExitCallback,
+      onAuthChallengeRequired,
     };
-  }, [onExitCallback, onStepChange]);
+  }, [onExitCallback, onStepChange, onAuthChallengeRequired]);
 
   const onLoaderStartCallback = useCallback(
     (event: LoaderStart) => {
