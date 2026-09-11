@@ -27,8 +27,11 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
+import com.reactnativestripesdk.checkout.CheckoutBridgeErrorCode
 import com.reactnativestripesdk.checkout.CheckoutConfigurationMapper
 import com.reactnativestripesdk.checkout.CheckoutControllerRegistry
+import com.reactnativestripesdk.checkout.CheckoutErrorMapper
+import com.reactnativestripesdk.checkout.CheckoutMutationBridgeException
 import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
 import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
@@ -1490,6 +1493,114 @@ class StripeSdkModule(
       instance.emitDestroyed()
       checkoutControllerRegistry.remove(controllerId)
       promise.resolve(null)
+    }
+  }
+
+  @ReactMethod
+  override fun updateCheckoutEmail(
+    controllerId: String,
+    email: String?,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.updateEmail(email)
+    }
+  }
+
+  @ReactMethod
+  override fun updateCheckoutShippingAddress(
+    controllerId: String,
+    params: ReadableMap,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      val name = params.getString("name")
+      val address = params.getMap("address")?.let {
+        CheckoutConfigurationMapper.mapAddress(it)
+      }
+      // TODO(porter): Replace the non-null call when the reviewed nullable address ships.
+      // controller.updateShippingAddress(name, address)
+      if (address == null) {
+        Result.failure(CheckoutMutationBridgeException("updateShippingAddress(name, address)"))
+      } else {
+        controller.updateShippingAddress(name, address)
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun applyCheckoutPromotionCode(
+    controllerId: String,
+    promotionCode: String,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.applyPromotionCode(promotionCode)
+    }
+  }
+
+  @ReactMethod
+  override fun removeCheckoutPromotionCode(
+    controllerId: String,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.removePromotionCode()
+    }
+  }
+
+  @ReactMethod
+  override fun clearCheckoutPaymentOption(
+    controllerId: String,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.clearPaymentOption()
+    }
+  }
+
+  @Suppress("TooGenericExceptionCaught")
+  private fun performCheckoutMutation(
+    controllerId: String,
+    promise: Promise,
+    operation: suspend (CheckoutController) -> Result<Unit>,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllerRegistry.instance(controllerId) as? NativeCheckoutControllerInstance
+      if (instance == null) {
+        promise.reject(
+          CheckoutBridgeErrorCode.Failed.serializedValue,
+          "Checkout controller `$controllerId` does not exist.",
+        )
+        return@runOnUiThread
+      }
+      instance.launchMutation {
+        try {
+          operation(instance.controller).getOrThrow()
+          val nativeSession = requireNotNull(instance.controller.session.value) {
+            "Checkout did not return a session after the mutation."
+          }
+          val serializedSession = CheckoutSessionSerializer.serialize(nativeSession)
+          if (checkoutControllerRegistry.instance(controllerId) !== instance) {
+            promise.reject(
+              CheckoutBridgeErrorCode.Canceled.serializedValue,
+              "The Checkout controller was destroyed before the operation completed.",
+            )
+            return@launchMutation
+          }
+          promise.resolve(
+            Arguments.createMap().apply {
+              putMap("session", serializedSession)
+            },
+          )
+        } catch (error: Exception) {
+          promise.reject(
+            CheckoutErrorMapper.code(error).serializedValue,
+            error.message,
+            error,
+          )
+        }
+      }
     }
   }
 

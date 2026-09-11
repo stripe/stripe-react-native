@@ -80,6 +80,12 @@ internal class NativeCheckoutControllerInstance(
   }
 
   @MainThread
+  fun launchMutation(block: suspend () -> Unit) {
+    UiThreadUtil.assertOnUiThread()
+    scope.launch { block() }
+  }
+
+  @MainThread
   fun emitDestroyed() {
     UiThreadUtil.assertOnUiThread()
     if (destroyed) {

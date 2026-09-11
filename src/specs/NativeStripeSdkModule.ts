@@ -54,6 +54,10 @@ type CheckoutCreateResult = UnsafeObject<{
   session: Checkout.Session;
 }>;
 
+type CheckoutMutationResult = UnsafeObject<{
+  session: Checkout.Session;
+}>;
+
 export interface Spec extends TurboModule {
   initialise(params: UnsafeObject<InitialiseParams>): Promise<void>;
   createPaymentMethod(
@@ -253,6 +257,34 @@ export interface Spec extends TurboModule {
   createCheckout(
     params: UnsafeObject<Checkout.CreateOptions>
   ): Promise<CheckoutCreateResult>;
+
+  /** @CheckoutSessionPrivatePreview */
+  updateCheckoutEmail(
+    controllerId: string,
+    email: string | null
+  ): Promise<CheckoutMutationResult>;
+
+  /** @CheckoutSessionPrivatePreview */
+  updateCheckoutShippingAddress(
+    controllerId: string,
+    params: UnsafeObject<Checkout.UpdateShippingAddressParams>
+  ): Promise<CheckoutMutationResult>;
+
+  /** @CheckoutSessionPrivatePreview */
+  applyCheckoutPromotionCode(
+    controllerId: string,
+    promotionCode: string
+  ): Promise<CheckoutMutationResult>;
+
+  /** @CheckoutSessionPrivatePreview */
+  removeCheckoutPromotionCode(
+    controllerId: string
+  ): Promise<CheckoutMutationResult>;
+
+  /** @CheckoutSessionPrivatePreview */
+  clearCheckoutPaymentOption(
+    controllerId: string
+  ): Promise<CheckoutMutationResult>;
 
   /** @CheckoutSessionPrivatePreview */
   destroyCheckout(controllerId: string): Promise<void>;
