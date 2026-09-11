@@ -22,6 +22,14 @@ appId: ${APP_ID}
     # Dismiss Chrome onboarding screen
     text: "Use without an account"
     optional: true
+- tapOn:
+    # Accept Chrome terms
+    text: "Accept & continue"
+    optional: true
+- tapOn:
+    # Don't turn on Chrome sync
+    text: "No thanks"
+    optional: true
 
 - extendedWaitUntil:
     visible: "Connect account"
