@@ -15,6 +15,7 @@ import android.util.Log
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
@@ -61,6 +62,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
 @OptIn(
@@ -526,10 +528,12 @@ class PaymentSheetManager(
   }
 
   private fun resolvePaymentResult(map: WritableMap) {
-    confirmPromise?.let {
-      it.resolve(map)
-      confirmPromise = null
-    } ?: run { resolvePresentPromise(map) }
+    runWhenActivityAvailable(context) {
+      confirmPromise?.let {
+        it.resolve(map)
+        confirmPromise = null
+      } ?: run { resolvePresentPromise(map) }
+    }
   }
 
   override fun onConfirmCustomPaymentMethod(
@@ -615,6 +619,48 @@ class PaymentSheetManager(
 
     private const val CUSTOM_PAYMENT_METHOD_INIT_DELAY_MS = 100L
   }
+}
+
+internal fun runWhenActivityAvailable(
+  context: ReactApplicationContext,
+  action: () -> Unit,
+) {
+  if (context.currentActivity != null) {
+    action()
+    return
+  }
+
+  val didFinish = AtomicBoolean(false)
+  lateinit var listener: LifecycleEventListener
+
+  fun runIfActivityAvailable() {
+    if (context.currentActivity != null && didFinish.compareAndSet(false, true)) {
+      context.removeLifecycleEventListener(listener)
+      action()
+    }
+  }
+
+  listener =
+    object : LifecycleEventListener {
+      override fun onHostResume() {
+        runIfActivityAvailable()
+      }
+
+      override fun onHostPause() {
+        // No-op. Wait for the React activity to resume before resolving the promise.
+      }
+
+      override fun onHostDestroy() {
+        if (didFinish.compareAndSet(false, true)) {
+          context.removeLifecycleEventListener(this)
+        }
+      }
+    }
+
+  context.addLifecycleEventListener(listener)
+
+  // The activity can resume between the initial check and listener registration.
+  runIfActivityAvailable()
 }
 
 suspend fun waitForDrawableToLoad(
