@@ -22,11 +22,11 @@ enum CheckoutConfigurationMapper {
         params: NSDictionary,
         merchantIdentifier: String?,
         didSelectPaymentOption: @escaping () -> Void
-    ) throws -> Checkout.Configuration {
+    ) throws -> CheckoutController.Configuration {
         let clientSecret = params["clientSecret"] as? String ?? ""
         let returnURL = params["returnURL"] as? String ?? ""
 
-        var configuration = Checkout.Configuration(
+        var configuration = CheckoutController.Configuration(
             clientSecret: clientSecret,
             returnURL: returnURL
         )
@@ -38,70 +38,46 @@ enum CheckoutConfigurationMapper {
         let defaultsParams = params["defaults"] as? NSDictionary
         configuration.defaults = mapDefaults(defaultsParams)
 
-        let paymentElementParams = params["paymentElement"] as? NSDictionary
         configuration.paymentElement = try mapPaymentElement(
-            paymentElementParams,
+            params["paymentElement"] as? NSDictionary,
+            merchantIdentifier: merchantIdentifier,
             didSelectPaymentOption: didSelectPaymentOption
         )
-
-        let applePayParams = paymentElementParams?["applePay"] as? NSDictionary
-        if let applePayParams {
-            guard let merchantIdentifier, !merchantIdentifier.isEmpty else {
-                throw CheckoutConfigurationMapperError.missingMerchantIdentifier
-            }
-            configuration.applePayConfiguration = Checkout.ApplePayConfiguration(
-                merchantId: merchantIdentifier,
-                buttonType: try mapApplePayButtonType(applePayParams["buttonType"] as? String)
-            )
-            // TODO(porter): Pass merchantCountryCode when the reviewed native setter ships.
-            // configuration.applePayConfiguration?.merchantCountryCode =
-            //     applePayParams["merchantCountryCode"] as? String
-        }
-
-        if let linkParams = paymentElementParams?["link"] as? NSDictionary {
-            var linkConfiguration = Checkout.LinkConfiguration()
-            if let display = linkParams["display"] as? String {
-                linkConfiguration.display = try mapLinkDisplay(display)
-            }
-            configuration.linkConfiguration = linkConfiguration
-        }
-
         return configuration
     }
 
     private static func mapDefaults(
         _ params: NSDictionary?
-    ) -> Checkout.Configuration.Defaults {
-        var defaults = Checkout.Configuration.Defaults()
+    ) -> CheckoutController.Configuration.Defaults {
+        var defaults = CheckoutController.Configuration.Defaults()
 
         if let billingParams = params?["billingDetails"] as? NSDictionary {
-            var billingDetails = Checkout.Configuration.Defaults.BillingDetails()
+            var billingDetails = CheckoutController.Configuration.Defaults.BillingDetails()
             billingDetails.name = billingParams["name"] as? String
             billingDetails.address = mapAddress(billingParams["address"] as? NSDictionary)
             defaults.billingDetails = billingDetails
         }
 
         if let shippingParams = params?["shippingDetails"] as? NSDictionary {
-            var shippingDetails = Checkout.Configuration.Defaults.ShippingDetails()
+            var shippingDetails = CheckoutController.Configuration.Defaults.ShippingDetails()
             shippingDetails.name = shippingParams["name"] as? String
             shippingDetails.address = mapAddress(shippingParams["address"] as? NSDictionary)
             defaults.shippingDetails = shippingDetails
         }
 
-        // TODO(porter): Uncomment when the reviewed native setters ship.
-        // defaults.email = params?["email"] as? String
-        // defaults.phone = params?["phone"] as? String
+        defaults.email = params?["email"] as? String
+        defaults.phone = params?["phone"] as? String
 
         return defaults
     }
 
     private static func mapAddress(
         _ params: NSDictionary?
-    ) -> Checkout.Address? {
+    ) -> CheckoutController.Address? {
         guard let params else {
             return nil
         }
-        return Checkout.Address(
+        return CheckoutController.Address(
             country: params["country"] as? String ?? "",
             line1: params["line1"] as? String,
             line2: params["line2"] as? String,
@@ -113,11 +89,30 @@ enum CheckoutConfigurationMapper {
 
     private static func mapPaymentElement(
         _ params: NSDictionary?,
+        merchantIdentifier: String?,
         didSelectPaymentOption: @escaping () -> Void
     ) throws -> PaymentElement.Configuration {
         var configuration = PaymentElement.Configuration()
         guard let params else {
             return configuration
+        }
+
+        if let applePayParams = params["applePay"] as? NSDictionary {
+            guard let merchantIdentifier, !merchantIdentifier.isEmpty else {
+                throw CheckoutConfigurationMapperError.missingMerchantIdentifier
+            }
+            configuration.applePayConfiguration = PaymentElement.ApplePayConfiguration(
+                merchantId: merchantIdentifier,
+                buttonType: try mapApplePayButtonType(applePayParams["buttonType"] as? String)
+            )
+        }
+
+        if let linkParams = params["link"] as? NSDictionary {
+            var linkConfiguration = PaymentElement.LinkConfiguration()
+            if let display = linkParams["display"] as? String {
+                linkConfiguration.display = try mapLinkDisplay(display)
+            }
+            configuration.linkConfiguration = linkConfiguration
         }
 
         if let behavior = params["savePaymentMethodOptInBehavior"] as? String {
@@ -171,30 +166,10 @@ enum CheckoutConfigurationMapper {
         default defaultConfiguration: PaymentElement.BillingDetailsCollectionConfiguration
     ) throws -> PaymentElement.BillingDetailsCollectionConfiguration {
         var configuration = defaultConfiguration
-        if let name = params["name"] as? String {
-            configuration.name = try mapCollectionMode(name, path: "name")
-        }
-        if let phone = params["phone"] as? String {
-            configuration.phone = try mapCollectionMode(phone, path: "phone")
-        }
         if let address = params["address"] as? String {
             configuration.address = try mapAddressCollectionMode(address)
         }
-        if let attachDefaults = params["attachDefaultsToPaymentMethod"] as? Bool {
-            configuration.attachDefaultsToPaymentMethod = attachDefaults
-        }
         return configuration
-    }
-
-    private static func mapCollectionMode(
-        _ value: String,
-        path: String
-    ) throws -> PaymentElement.BillingDetailsCollectionConfiguration.CollectionMode {
-        switch value {
-        case "automatic": return .automatic
-        case "always": return .always
-        default: throw unsupported(value, at: "paymentElement.billingDetailsCollectionConfiguration.\(path)")
-        }
     }
 
     private static func mapAddressCollectionMode(
@@ -242,7 +217,7 @@ enum CheckoutConfigurationMapper {
 
     private static func mapLinkDisplay(
         _ value: String
-    ) throws -> Checkout.LinkConfiguration.Display {
+    ) throws -> PaymentElement.LinkConfiguration.Display {
         switch value {
         case "automatic": return .automatic
         case "never": return .never

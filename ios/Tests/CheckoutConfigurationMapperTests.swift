@@ -14,6 +14,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 "merchantDisplayName": "Example Store",
                 "style": "alwaysDark",
                 "defaults": [
+                    "email": "jenny@example.com",
+                    "phone": "+15555555555",
                     "billingDetails": [
                         "name": "Jenny Rosen",
                         "address": address(country: "US"),
@@ -28,10 +30,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                     "appearance": ["shapes": ["borderRadius": 12.0]],
                     "preferredNetworks": [7, 5],
                     "billingDetailsCollectionConfiguration": [
-                        "name": "always",
-                        "phone": "always",
                         "address": "full",
-                        "attachDefaultsToPaymentMethod": true,
                     ],
                     "removeSavedPaymentMethodMessage": "Remove this payment method?",
                     "paymentMethodOrder": ["card", "link"],
@@ -44,7 +43,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                     "displaysMandateText": true,
                     "rowSelectionBehavior": ["type": "immediateAction"],
                     "applePay": [
-                        "merchantCountryCode": "US",
                         "buttonType": "checkout",
                     ],
                     "link": ["display": "never"],
@@ -58,41 +56,39 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(configuration.returnURL, "example://checkout")
         XCTAssertEqual(configuration.merchantDisplayName, "Example Store")
         XCTAssertEqual(configuration.userInterfaceStyle, .alwaysDark)
+        XCTAssertEqual(configuration.defaults.email, "jenny@example.com")
+        XCTAssertEqual(configuration.defaults.phone, "+15555555555")
         XCTAssertEqual(configuration.defaults.billingDetails?.name, "Jenny Rosen")
         XCTAssertEqual(configuration.defaults.billingDetails?.address?.country, "US")
         XCTAssertEqual(configuration.defaults.shippingDetails?.address?.country, "CA")
-        XCTAssertEqual(configuration.paymentElement.appearance.cornerRadius, 12.0)
-        XCTAssertEqual(configuration.paymentElement.preferredNetworks, [.visa, .mastercard])
-        XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.name, .always)
-        XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.phone, .always)
-        XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.address, .full)
-        XCTAssertTrue(
-            configuration.paymentElement.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod
-        )
+        let paymentElement = try XCTUnwrap(configuration.paymentElement)
+        XCTAssertEqual(paymentElement.appearance.cornerRadius, 12.0)
+        XCTAssertEqual(paymentElement.preferredNetworks, [.visa, .mastercard])
+        XCTAssertEqual(paymentElement.billingDetailsCollectionConfiguration.address, .full)
         XCTAssertEqual(
-            configuration.paymentElement.removeSavedPaymentMethodMessage,
+            paymentElement.removeSavedPaymentMethodMessage,
             "Remove this payment method?"
         )
-        XCTAssertEqual(configuration.paymentElement.paymentMethodOrder, ["card", "link"])
-        XCTAssertTrue(configuration.paymentElement.opensCardScannerAutomatically)
-        XCTAssertEqual(configuration.paymentElement.termsDisplay[.card], .never)
-        XCTAssertEqual(configuration.paymentElement.termsDisplay[.USBankAccount], .automatic)
-        XCTAssertTrue(configuration.paymentElement.displaysMandateText)
-        XCTAssertEqual(configuration.applePayConfiguration?.merchantId, "merchant.com.example")
-        XCTAssertEqual(configuration.applePayConfiguration?.buttonType, .checkout)
-        XCTAssertEqual(configuration.linkConfiguration?.display, .never)
+        XCTAssertEqual(paymentElement.paymentMethodOrder, ["card", "link"])
+        XCTAssertTrue(paymentElement.opensCardScannerAutomatically)
+        XCTAssertEqual(paymentElement.termsDisplay[.card], .never)
+        XCTAssertEqual(paymentElement.termsDisplay[.USBankAccount], .automatic)
+        XCTAssertTrue(paymentElement.displaysMandateText)
+        XCTAssertEqual(paymentElement.applePayConfiguration?.merchantId, "merchant.com.example")
+        XCTAssertEqual(paymentElement.applePayConfiguration?.buttonType, .checkout)
+        XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
 
-        if case .requiresOptOut = configuration.paymentElement.savePaymentMethodOptInBehavior {
+        if case .requiresOptOut = paymentElement.savePaymentMethodOptInBehavior {
             // Expected.
         } else {
             XCTFail("Expected requiresOptOut")
         }
-        if case .vertical = configuration.paymentElement.paymentMethodLayout {
+        if case .vertical = paymentElement.paymentMethodLayout {
             // Expected.
         } else {
             XCTFail("Expected vertical")
         }
-        if case .immediateAction(let callback) = configuration.paymentElement.rowSelectionBehavior {
+        if case .immediateAction(let callback) = paymentElement.rowSelectionBehavior {
             callback()
         } else {
             XCTFail("Expected immediateAction")
@@ -113,12 +109,15 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertNil(configuration.merchantDisplayName)
         XCTAssertNil(configuration.defaults.billingDetails)
         XCTAssertNil(configuration.defaults.shippingDetails)
+        XCTAssertNil(configuration.defaults.email)
+        XCTAssertNil(configuration.defaults.phone)
         XCTAssertEqual(configuration.userInterfaceStyle, .automatic)
-        XCTAssertEqual(configuration.paymentElement.billingDetailsCollectionConfiguration.name, .automatic)
-        XCTAssertFalse(configuration.paymentElement.opensCardScannerAutomatically)
-        XCTAssertFalse(configuration.paymentElement.displaysMandateText)
-        XCTAssertNil(configuration.applePayConfiguration)
-        XCTAssertNil(configuration.linkConfiguration)
+        let paymentElement = try XCTUnwrap(configuration.paymentElement)
+        XCTAssertEqual(paymentElement.billingDetailsCollectionConfiguration.address, .automatic)
+        XCTAssertFalse(paymentElement.opensCardScannerAutomatically)
+        XCTAssertFalse(paymentElement.displaysMandateText)
+        XCTAssertNil(paymentElement.applePayConfiguration)
+        XCTAssertNil(paymentElement.linkConfiguration)
     }
 
     func test_map_requiresNonEmptyMerchantIdentifierWhenApplePayIsConfigured() {
@@ -129,7 +128,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                         "clientSecret": "cs_test_secret_123",
                         "returnURL": "example://checkout",
                         "paymentElement": [
-                            "applePay": ["merchantCountryCode": "US"],
+                            "applePay": [:],
                         ],
                     ],
                     merchantIdentifier: merchantIdentifier,
@@ -162,8 +161,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 "returnURL": "example://checkout",
                 "paymentElement": [
                     "billingDetailsCollectionConfiguration": [
-                        "name": "never",
-                        "phone": "never",
                         "address": "never",
                     ],
                 ],
