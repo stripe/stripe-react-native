@@ -36,7 +36,11 @@ def getExtOrIntegerDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["StripeSdk_" + name]).toInteger()
 }
 
-if (project.findProperty("newArchEnabled")?.toString() == "false") {
+def isNewArchitectureEnabled =
+  project.findProperty("newArchEnabled")?.toString()?.toBoolean() ||
+    project.findProperty("react.newArchEnabled")?.toString()?.toBoolean()
+
+if (!isNewArchitectureEnabled) {
   throw new GradleException("stripe-react-native requires the React Native new architecture. Set newArchEnabled=true in android/gradle.properties.")
 }
 
