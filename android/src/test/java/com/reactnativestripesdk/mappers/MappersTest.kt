@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.createCanAddCardResult
 import com.reactnativestripesdk.utils.mapFinancialConnectionsEventErrorCode
+import com.reactnativestripesdk.utils.mapFromFinancialConnectionsEvent
 import com.reactnativestripesdk.utils.mapNextAction
 import com.reactnativestripesdk.utils.mapPaymentMethodType
 import com.reactnativestripesdk.utils.mapToAddress
@@ -102,6 +103,50 @@ class MappersTest {
       assertEquals(expectedValue, mapFinancialConnectionsEventErrorCode(errorCode))
     }
     assertNull(mapFinancialConnectionsEventErrorCode(null))
+  }
+
+  @Test
+  fun mapFromFinancialConnectionsEvent_PreservesSessionIdWithoutMetadata() {
+    val eventNames =
+      listOf(
+        FinancialConnectionsEvent.Name.OPEN,
+        FinancialConnectionsEvent.Name.CANCEL,
+        FinancialConnectionsEvent.Name.FLOW_LAUNCHED_IN_BROWSER,
+      )
+
+    eventNames.forEach { name ->
+      val event =
+        FinancialConnectionsEventFactory.create(name, null, "fcsess_test")
+
+      val result = mapFromFinancialConnectionsEvent(event)
+
+      assertEquals(name.value, result.getString("name"))
+      assertEquals("fcsess_test", result.getString("financialConnectionsSessionId"))
+      assertEquals(setOf("name", "financialConnectionsSessionId", "metadata"), result.toHashMap().keys)
+      assertEquals(
+        mapOf("institutionName" to null, "manualEntry" to null, "errorCode" to null),
+        result.getMap("metadata")?.toHashMap(),
+      )
+    }
+  }
+
+  @Test
+  fun mapFromFinancialConnectionsEvent_PreservesSessionIdAndErrorMetadata() {
+    val event =
+      FinancialConnectionsEventFactory.create(
+        FinancialConnectionsEvent.Name.ERROR,
+        FinancialConnectionsEvent.ErrorCode.NO_ELIGIBLE_ACCOUNTS,
+        "fcsess_test",
+      )
+
+    val result = mapFromFinancialConnectionsEvent(event)
+
+    assertEquals("error", result.getString("name"))
+    assertEquals("fcsess_test", result.getString("financialConnectionsSessionId"))
+    assertEquals(
+      mapOf("institutionName" to null, "manualEntry" to null, "errorCode" to "no_eligible_accounts"),
+      result.getMap("metadata")?.toHashMap(),
+    )
   }
 
   @Test
