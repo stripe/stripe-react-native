@@ -181,6 +181,8 @@ export enum FinancialConnectionsEventErrorCode {
   AccountNumbersUnavailable = 'account_numbers_unavailable',
   /** The system could not retrieve accounts for the selected institution. */
   AccountsUnavailable = 'accounts_unavailable',
+  /** No eligible accounts were available for the selected institution. */
+  NoEligibleAccounts = 'no_eligible_accounts',
   /** For payment flows, no debitable account was available at the selected institution. */
   NoDebitableAccount = 'no_debitable_account',
   /** Authorization with the selected institution has failed. */

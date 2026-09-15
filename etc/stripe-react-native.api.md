@@ -2045,6 +2045,7 @@ enum FinancialConnectionsEventErrorCode {
     InstitutionUnavailablePlanned = "institution_unavailable_planned",
     InstitutionUnavailableUnplanned = "institution_unavailable_unplanned",
     NoDebitableAccount = "no_debitable_account",
+    NoEligibleAccounts = "no_eligible_accounts",
     SessionExpired = "session_expired",
     UnexpectedError = "unexpected_error",
     WebBrowserUnavailable = "web_browser_unavailable"
