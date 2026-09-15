@@ -2046,7 +2046,8 @@ enum FinancialConnectionsEventErrorCode {
     InstitutionUnavailableUnplanned = "institution_unavailable_unplanned",
     NoDebitableAccount = "no_debitable_account",
     SessionExpired = "session_expired",
-    UnexpectedError = "unexpected_error"
+    UnexpectedError = "unexpected_error",
+    WebBrowserUnavailable = "web_browser_unavailable"
 }
 
 // @public (undocumented)

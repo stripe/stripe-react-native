@@ -197,4 +197,6 @@ export enum FinancialConnectionsEventErrorCode {
   SessionExpired = 'session_expired',
   /** The hCaptcha challenge failed. */
   FailedBotDetection = 'failed_bot_detection',
+  /** Android only. No web browser is installed on the user's device, so the authentication flow cannot be initiated. */
+  WebBrowserUnavailable = 'web_browser_unavailable',
 }
