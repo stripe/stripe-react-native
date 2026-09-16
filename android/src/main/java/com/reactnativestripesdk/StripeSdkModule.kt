@@ -26,7 +26,10 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
+import com.reactnativestripesdk.checkout.CheckoutBridgeErrorCode
 import com.reactnativestripesdk.checkout.CheckoutConfigurationMapper
+import com.reactnativestripesdk.checkout.CheckoutErrorMapper
+import com.reactnativestripesdk.checkout.CheckoutMutationBridgeException
 import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
 import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
@@ -1496,6 +1499,107 @@ class StripeSdkModule(
         checkoutControllers.remove(controllerId)
       }
       promise.resolve(null)
+    }
+  }
+
+  @ReactMethod
+  override fun updateCheckoutEmail(
+    controllerId: String,
+    email: String?,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.updateEmail(email)
+    }
+  }
+
+  @ReactMethod
+  override fun updateCheckoutShippingAddress(
+    controllerId: String,
+    params: ReadableMap,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      val name = params.getString("name")
+      val address = params.getMap("address")?.let {
+        CheckoutConfigurationMapper.mapAddress(it)
+      }
+      // Native Checkout currently requires an address and has no clearing API.
+      // TODO(porter): Forward null addresses once the Android SDK supports clearing shipping details.
+      if (address == null) {
+        Result.failure(CheckoutMutationBridgeException("updateShippingAddress(name, address)"))
+      } else {
+        controller.updateShippingAddress(name, address)
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun applyCheckoutPromotionCode(
+    controllerId: String,
+    promotionCode: String,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.applyPromotionCode(promotionCode)
+    }
+  }
+
+  @ReactMethod
+  override fun removeCheckoutPromotionCode(
+    controllerId: String,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.removePromotionCode()
+    }
+  }
+
+  @ReactMethod
+  override fun clearCheckoutPaymentOption(
+    controllerId: String,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.clearPaymentOption()
+    }
+  }
+
+  @Suppress("TooGenericExceptionCaught")
+  private fun performCheckoutMutation(
+    controllerId: String,
+    promise: Promise,
+    operation: suspend (CheckoutController) -> Result<Unit>,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      if (instance == null) {
+        promise.reject(
+          CheckoutBridgeErrorCode.Failed.serializedValue,
+          "Checkout controller `$controllerId` does not exist.",
+        )
+        return@runOnUiThread
+      }
+      instance.launchMutation {
+        try {
+          operation(instance.controller).getOrThrow()
+          instance.publishCurrentState()
+          if (checkoutControllers[controllerId] !== instance) {
+            promise.reject(
+              CheckoutBridgeErrorCode.Canceled.serializedValue,
+              "The Checkout controller was destroyed before the operation completed.",
+            )
+            return@launchMutation
+          }
+          promise.resolve(null)
+        } catch (error: Exception) {
+          promise.reject(
+            CheckoutErrorMapper.code(error).serializedValue,
+            error.message,
+            error,
+          )
+        }
+      }
     }
   }
 
