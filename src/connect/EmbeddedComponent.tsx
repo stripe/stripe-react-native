@@ -28,7 +28,7 @@ import type {
   LoaderStart,
   StripeConnectInitParams,
 } from './connectTypes';
-import type { FinancialConnections } from '../types';
+import type { FinancialConnections, StripeError } from '../types';
 import { FinancialConnectionsSheetError } from '../types/FinancialConnections';
 import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
 
@@ -148,6 +148,23 @@ type EmbeddedComponentProps = CommonComponentProps & {
 type StripeConnectInitParamsInternal = StripeConnectInitParams & {
   overrides?: Record<string, string>;
 };
+
+type EmbeddedFinancialConnectionsResult =
+  | {
+      session: FinancialConnections.Session;
+      token: ReturnType<typeof toStripeJsBankAccountToken> | null;
+      error?: undefined;
+    }
+  | {
+      session?: undefined;
+      token?: undefined;
+      error: StripeError<string>;
+    }
+  | {
+      session?: undefined;
+      token?: undefined;
+      error?: undefined;
+    };
 
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const [dynamicWebview, setDynamicWebview] = useState<{
@@ -467,31 +484,39 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const handleFinancialConnectionsResult = (
     id: string,
-    result: {
-      session?: FinancialConnections.Session;
-      token?: ReturnType<typeof toStripeJsBankAccountToken> | null;
-      error?: {
-        code: string;
-        message: string;
-        localizedMessage?: string;
-        type?: string;
+    result: EmbeddedFinancialConnectionsResult
+  ) => {
+    let value;
+    if (result.error) {
+      value = {
+        id,
+        financialConnectionsSession: null,
+        token: null,
+        error: result.error,
+      };
+    } else if (result.session) {
+      value = {
+        id,
+        financialConnectionsSession: {
+          accounts: result.session.accounts,
+        },
+        token: result.token,
+        error: null,
+      };
+    } else {
+      value = {
+        id,
+        financialConnectionsSession: null,
+        token: null,
+        error: null,
       };
     }
-  ) => {
+
     ref.current?.injectJavaScript(`
       (function() {
         window.callSetterWithSerializableValue(${JSON.stringify({
           setter: 'setCollectMobileFinancialConnectionsResult',
-          value: {
-            id: id,
-            financialConnectionsSession: result.session
-              ? {
-                  accounts: result.session.accounts,
-                }
-              : null,
-            token: result.token ?? null,
-            error: result.error ?? null,
-          },
+          value,
         })});
         true;
       })();
@@ -597,7 +622,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         }
 
         // Store cleanup function
+        let hasCleanedUp = false;
         const cleanup = () => {
+          if (hasCleanedUp) return;
+          hasCleanedUp = true;
           eventListener?.remove();
           pendingFinancialConnectionsPromise.current = null;
         };
@@ -607,49 +635,45 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
-        NativeStripeSdk.collectBankAccountToken(clientSecret, {
-          connectedAccountId,
-        })
-          .then(({ session, token, error }) => {
-            cleanup();
+        const resultPromise: Promise<FinancialConnections.TokenResult> =
+          NativeStripeSdk.collectBankAccountToken(clientSecret, {
+            connectedAccountId,
+          });
 
-            if (error) {
-              if (error.code === FinancialConnectionsSheetError.Canceled) {
-                handleFinancialConnectionsResult(id, {
-                  session: undefined,
-                  token: undefined,
-                  error: undefined,
-                });
+        resultPromise
+          .then((result) => {
+            if (result.error) {
+              if (
+                result.error.code === FinancialConnectionsSheetError.Canceled
+              ) {
+                handleFinancialConnectionsResult(id, {});
                 return;
               }
+
               handleFinancialConnectionsResult(id, {
-                session: undefined,
-                token: undefined,
-                error: {
-                  code: error.code,
-                  message: error.message,
-                  localizedMessage: error.localizedMessage,
-                  type: error.type,
-                },
+                error: result.error,
               });
-            } else if (token || session) {
-              handleFinancialConnectionsResult(id, {
-                session,
-                token: token ? toStripeJsBankAccountToken(token) : null,
-                error: undefined,
-              });
-            } else {
+              return;
+            }
+
+            if (!result.session) {
               handleFinancialConnectionsResult(id, {
                 error: {
                   code: 'UnexpectedError',
-                  message:
-                    'No session, token, or error returned from Financial Connections',
+                  message: 'Financial Connections completed without a session',
                 },
               });
+              return;
             }
+
+            handleFinancialConnectionsResult(id, {
+              session: result.session,
+              token: result.token
+                ? toStripeJsBankAccountToken(result.token)
+                : null,
+            });
           })
           .catch((unexpectedError) => {
-            cleanup();
             handleUnexpectedError(unexpectedError);
             handleFinancialConnectionsResult(id, {
               error: {
@@ -660,7 +684,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                     : 'An unexpected error occurred during Financial Connections',
               },
             });
-          });
+          })
+          .finally(cleanup);
       } else if (message.type === 'closeWebView') {
         // message.data is empty
         callbacks?.onCloseWebView?.({});

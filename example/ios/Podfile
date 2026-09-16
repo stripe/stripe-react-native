@@ -12,30 +12,26 @@ workspace 'example.xcworkspace'
 disable_spm = ENV['STRIPE_DISABLE_SPM'] == '1'
 $StripeDisableSPM = true if disable_spm
 
-# SPM resolution requires dynamic frameworks. Dynamic frameworks also make
-# every pod link its own dependencies, which exposes under-declared podspecs:
-# react-native-test-app's DevSupport pod compiles against JSI and React-Core
-# but declares neither hermes-engine (where the JSI definitions live with
-# Hermes) nor React-Core-prebuilt (where the RCT* symbols live with the
-# prebuilt core). ../patches/react-native-test-app+*.patch adds those
-# declarations to its podspec; patch-package applies it on `yarn install`
-# (see the example's postinstall script).
+# SPM resolution requires dynamic frameworks: the Stripe Swift package
+# products use automatic linkage, which only reaches the final app correctly
+# when the pod that consumes them is a dynamic framework (stripe_spm.rb
+# enforces this with an actionable error). The CocoaPods fallback keeps
+# React Native's default static libraries.
+#
+# Dynamic frameworks also make every pod link its own dependencies, which
+# exposes under-declared podspecs: react-native-test-app's DevSupport pod
+# compiles against JSI and React-Core but declares neither hermes-engine (where
+# the JSI definitions live with Hermes) nor React-Core-prebuilt (where the RCT*
+# symbols live with the prebuilt core). ../patches/react-native-test-app+*.patch
+# adds those declarations to its podspec; patch-package applies it on
+# `yarn install` (see the example's postinstall script).
 use_frameworks! :linkage => :dynamic unless disable_spm
 
-new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED'] == 'true'
-
-# The prebuilt core only wires framework linkage through the new-architecture
-# dependency path, so with dynamic frameworks old-arch pods (e.g. react-native-safe-area-context)
-# compile against prebuild React headers but never link the framework, failing
-# with undefined RCT* symbols. Static builds (which we still do in fallback mode)
-# don't per-pod link, so the prebuilt core is fine there on either arch.
-use_prebuilt_rncore = new_arch_enabled || disable_spm
 ENV['RCT_USE_RN_DEP'] = '1'
-ENV['RCT_USE_PREBUILT_RNCORE'] = '1' if use_prebuilt_rncore
-
+ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
 options = {
-  :bridgeless_enabled => new_arch_enabled,
-  :fabric_enabled =>  new_arch_enabled,
+  :bridgeless_enabled => true,
+  :fabric_enabled => true,
   :hermes_enabled => true,
 }
 
@@ -79,8 +75,6 @@ post_integrate do |_installer|
     flags = Array(config.build_settings['OTHER_SWIFT_FLAGS'] || '$(inherited)')
     flags = flags.flat_map { |flag| flag.to_s.split(' ') }
     flags << '$(inherited)' unless flags.include?('$(inherited)')
-    # The tests conditionally compile new-architecture code paths.
-    flags << '-DRCT_NEW_ARCH_ENABLED' if new_arch_enabled && !flags.include?('-DRCT_NEW_ARCH_ENABLED')
     unless disable_spm
       # The tests import Stripe modules directly (@testable-importing the SDK
       # framework also requires resolving the modules its Swift interface

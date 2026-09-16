@@ -6,14 +6,19 @@ import android.annotation.SuppressLint
 import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.SavedStateHandle
 import com.stripe.android.core.model.CountryCode
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.utils.ErrorType
@@ -73,14 +78,26 @@ import kotlinx.coroutines.withTimeoutOrNull
 @ReactModule(name = NativeOnrampSdkModuleSpec.NAME)
 class OnrampSdkModule(
   reactContext: ReactApplicationContext,
-) : NativeOnrampSdkModuleSpec(reactContext) {
+) : NativeOnrampSdkModuleSpec(reactContext), LifecycleEventListener {
   private val eventEmitterCompat = EventEmitterCompat(reactContext)
   private var reactNativeSdkVersion: String? = null
   private lateinit var publishableKey: String
   private var stripeAccountId: String? = null
 
   private var onrampCoordinator: OnrampCoordinator? = null
+  private var onrampCallbacks: OnrampCallbacks? = null
   private var onrampPresenter: OnrampCoordinator.Presenter? = null
+
+  private var presenterActivity: ComponentActivity? = null
+  private var isOnrampConfigured = false
+  private val presenterLifecycleObserver =
+    object : DefaultLifecycleObserver {
+      override fun onDestroy(owner: LifecycleOwner) {
+        if (presenterActivity === owner) {
+          clearOnrampPresenter()
+        }
+      }
+    }
 
   private var authenticateUserPromise: Promise? = null
   private var identityVerificationPromise: Promise? = null
@@ -111,21 +128,37 @@ class OnrampSdkModule(
     promise.resolve(null)
   }
 
-  override fun invalidate() {
-    super.invalidate()
-    rnScope.cancel()
+  init {
+    reactContext.addLifecycleEventListener(this)
   }
 
-  /**
-   * Safely get and cast the current activity as an AppCompatActivity. If that fails, the promise
-   * provided will be resolved with an error message instructing the user to retry the method.
-   */
-  private fun getCurrentActivityOrResolveWithError(promise: Promise?): FragmentActivity? {
-    (reactApplicationContext.currentActivity as? FragmentActivity)?.let {
-      return it
+  override fun invalidate() {
+    super.invalidate()
+    reactApplicationContext.removeLifecycleEventListener(this)
+    rnScope.cancel()
+    UiThreadUtil.runOnUiThread {
+      clearOnrampPresenter()
+      isOnrampConfigured = false
     }
-    promise?.resolve(createMissingActivityError())
-    return null
+  }
+
+  override fun onHostResume() {
+    rnScope.launch {
+      // Re-register result handlers even if JS does not make another presentation call.
+      if (isOnrampConfigured) getOnrampPresenter(null)
+    }
+  }
+
+  override fun onHostPause() = Unit
+
+  // The presenter's actual Activity owns cleanup. RN host callbacks may refer to a
+  // different Activity, and pausing the host is normal while Link is on screen.
+  override fun onHostDestroy() = Unit
+
+  private fun clearOnrampPresenter() {
+    presenterActivity?.lifecycle?.removeObserver(presenterLifecycleObserver)
+    presenterActivity = null
+    onrampPresenter = null
   }
 
   @ReactMethod
@@ -181,6 +214,8 @@ class OnrampSdkModule(
           checkoutClientSecretDeferred!!.await()
         }
 
+    this.onrampCallbacks = onrampCallbacks
+
     val coordinator =
       onrampCoordinator ?: OnrampCoordinator
         .Builder()
@@ -191,7 +226,7 @@ class OnrampSdkModule(
       val configuration = mapConfig(config, publishableKey, onrampAdditionalSdkVersions())
       val configureResult = coordinator.configure(configuration)
 
-      CoroutineScope(Dispatchers.Main).launch {
+      rnScope.launch {
         when (configureResult) {
           is OnrampConfigurationResult.Completed -> {
             createOnrampPresenter(promise)
@@ -215,27 +250,58 @@ class OnrampSdkModule(
     }
   }
 
-  @ReactMethod
   private fun createOnrampPresenter(promise: Promise) {
-    val activity = getCurrentActivityOrResolveWithError(promise) as? ComponentActivity
-    if (activity == null) {
-      promise.resolve(createMissingActivityError())
-      return
-    }
-    if (onrampCoordinator == null) {
-      promise.resolve(createMissingInitError())
-      return
-    }
-    if (onrampPresenter != null) {
-      promise.resolveVoid()
-      return
-    }
+    isOnrampConfigured = true
+    if (getOnrampPresenter(promise) != null) promise.resolveVoid()
+  }
 
-    try {
-      onrampPresenter = onrampCoordinator!!.createPresenter(activity)
-      promise.resolveVoid()
-    } catch (e: Exception) {
-      promise.resolve(createOnrampFailedError(e))
+  // Called only on Main, so the host cannot be destroyed between validation and launch.
+  @Suppress("TooGenericExceptionCaught") // Convert SDK construction failures to bridge errors.
+  private fun getOnrampPresenter(promise: Promise?): OnrampCoordinator.Presenter? {
+    val coordinator = onrampCoordinator
+    if (!isOnrampConfigured || coordinator == null) {
+      promise?.resolve(createOnrampNotConfiguredError())
+      return null
+    }
+    val activity = reactApplicationContext.currentActivity as? FragmentActivity
+    if (activity == null || activity.isFinishing || activity.isDestroyed ||
+      !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)
+    ) {
+      promise?.resolve(createMissingActivityError())
+      return null
+    }
+    if (presenterActivity === activity) return onrampPresenter
+
+    clearOnrampPresenter()
+    return try {
+      // Finishing the previous host removes the SDK callback registration. Building
+      // again restores it while retaining the SDK's existing coordinator and session.
+      // This is a temporary fix until the native SDK handles this better.
+      onrampCallbacks?.let { callbacks ->
+        OnrampCoordinator.Builder().build(activity.application, SavedStateHandle(), callbacks)
+      }
+      coordinator.createPresenter(activity).also {
+        onrampPresenter = it
+        presenterActivity = activity
+        activity.lifecycle.addObserver(presenterLifecycleObserver)
+      }
+    } catch (error: Exception) {
+      promise?.resolve(createOnrampFailedError(error))
+      null
+    }
+  }
+
+  private fun withOnrampPresenter(
+    promise: Promise,
+    present: (OnrampCoordinator.Presenter) -> Unit,
+  ) {
+    rnScope.launch {
+      val presenter = getOnrampPresenter(promise) ?: return@launch
+      if (presenterActivity?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.RESUMED) != true) {
+        promise.resolve(createMissingActivityError())
+        return@launch
+      }
+      present(presenter)
     }
   }
 
@@ -526,14 +592,10 @@ class OnrampSdkModule(
 
   @ReactMethod
   override fun presentUserAttestation(promise: Promise) {
-    val presenter =
-      onrampPresenter ?: run {
-        promise.resolve(createOnrampNotConfiguredError())
-        return
-      }
-
-    userAttestationPromise = promise
-    presenter.presentUserAttestation()
+    withOnrampPresenter(promise) { presenter ->
+      userAttestationPromise = promise
+      presenter.presentUserAttestation()
+    }
   }
 
   @ReactMethod
@@ -560,15 +622,11 @@ class OnrampSdkModule(
 
   @ReactMethod
   override fun verifyIdentity(promise: Promise) {
-    val presenter =
-      onrampPresenter ?: run {
-        promise.resolve(createOnrampNotConfiguredError())
-        return
-      }
+    withOnrampPresenter(promise) { presenter ->
+      identityVerificationPromise = promise
 
-    identityVerificationPromise = promise
-
-    presenter.verifyIdentity()
+      presenter.verifyIdentity()
+    }
   }
 
   @ReactMethod
@@ -576,16 +634,12 @@ class OnrampSdkModule(
     updatedAddress: ReadableMap?,
     promise: Promise,
   ) {
-    val presenter =
-      onrampPresenter ?: run {
-        promise.resolve(createOnrampNotConfiguredError())
-        return
-      }
+    withOnrampPresenter(promise) { presenter ->
+      val address = mapToPaymentSheetAddress(updatedAddress)
 
-    val address = mapToPaymentSheetAddress(updatedAddress)
-
-    verifyKycPromise = promise
-    presenter.verifyKycInfo(address)
+      verifyKycPromise = promise
+      presenter.verifyKycInfo(address)
+    }
   }
 
   @ReactMethod
@@ -594,23 +648,19 @@ class OnrampSdkModule(
     platformPayParams: ReadableMap,
     promise: Promise,
   ) {
-    val presenter =
-      onrampPresenter ?: run {
-        promise.resolve(createOnrampNotConfiguredError())
-        return
-      }
+    withOnrampPresenter(promise) { presenter ->
+      val method =
+        try {
+          mapOnrampPaymentMethodSelection(paymentMethod, platformPayParams)
+        } catch (error: IllegalArgumentException) {
+          promise.resolve(createOnrampFailedError(error))
+          return@withOnrampPresenter
+        }
 
-    val method =
-      try {
-        mapOnrampPaymentMethodSelection(paymentMethod, platformPayParams)
-      } catch (error: IllegalArgumentException) {
-        promise.resolve(createOnrampFailedError(error))
-        return
-      }
+      collectPaymentPromise = promise
 
-    collectPaymentPromise = promise
-
-    presenter.collectPaymentMethod(method)
+      presenter.collectPaymentMethod(method)
+    }
   }
 
   @ReactMethod
@@ -634,15 +684,11 @@ class OnrampSdkModule(
     onrampSessionId: String,
     promise: Promise,
   ) {
-    val presenter =
-      onrampPresenter ?: run {
-        promise.resolve(createOnrampNotConfiguredError())
-        return
-      }
+    withOnrampPresenter(promise) { presenter ->
+      checkoutPromise = promise
 
-    checkoutPromise = promise
-
-    presenter.performCheckout(onrampSessionId)
+      presenter.performCheckout(onrampSessionId)
+    }
   }
 
   @ReactMethod
@@ -662,15 +708,11 @@ class OnrampSdkModule(
     linkAuthIntentId: String,
     promise: Promise,
   ) {
-    val presenter =
-      onrampPresenter ?: run {
-        promise.resolve(createOnrampNotConfiguredError())
-        return
-      }
+    withOnrampPresenter(promise) { presenter ->
+      authorizePromise = promise
 
-    authorizePromise = promise
-
-    presenter.authorize(linkAuthIntentId)
+      presenter.authorize(linkAuthIntentId)
+    }
   }
 
   @ReactMethod

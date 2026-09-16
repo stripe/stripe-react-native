@@ -12,6 +12,7 @@ import Stripe
 
 @objc(AddToWalletButtonView)
 public class AddToWalletButtonView: UIView {
+
     var pushProvisioningContext: STPPushProvisioningContext?
     var addToWalletButton: PKAddPassButton?
 
@@ -38,12 +39,6 @@ public class AddToWalletButtonView: UIView {
             addToWalletButton.addTarget(self, action: #selector(beginPushProvisioning), for: .touchUpInside)
             self.addSubview(addToWalletButton)
         }
-    }
-
-    public override func didSetProps(_ changedProps: [String]!) {
-        // This is only called on old arch, for new arch didSetProps() will be called
-        // by the view component.
-        self.didSetProps()
     }
 
     @objc func beginPushProvisioning() {
