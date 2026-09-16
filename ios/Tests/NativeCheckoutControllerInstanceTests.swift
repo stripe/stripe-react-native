@@ -52,6 +52,43 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertTrue(sdk.pendingCheckoutCreations.isEmpty)
     }
 
+    func test_inlineViewReleasesReplacedAndDestroyedControllers() async throws {
+        let sdk = StripeSdkImpl.shared
+        let first = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let second = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let firstId = "first"
+        let secondId = "second"
+        sdk.checkoutControllers[firstId] = first
+        sdk.checkoutControllers[secondId] = second
+        defer {
+            sdk.checkoutControllers.removeValue(forKey: firstId)?.destroy()
+            sdk.checkoutControllers.removeValue(forKey: secondId)?.destroy()
+        }
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+        let view = CheckoutPaymentElementContainerView(frame: CGRect(x: 0, y: 0, width: 320, height: 1))
+        view.controllerId = firstId
+        var heights: [CGFloat] = []
+        view.onHeightChanged = { event in heights.append(event?["height"] as? CGFloat ?? 0) }
+        window.addSubview(view)
+        view.layoutIfNeeded()
+        XCTAssertTrue(view.subviews.first === first.paymentElement.uiView)
+        XCTAssertGreaterThan(heights.first ?? 0, 0)
+        let measurements = heights.count
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        XCTAssertEqual(heights.count, measurements)
+
+        view.controllerId = secondId
+        XCTAssertNil(first.paymentElement.uiView.superview)
+        XCTAssertNil(first.paymentElement.uiView.delegate)
+        sdk.checkoutControllers.removeValue(forKey: firstId)?.destroy()
+        XCTAssertTrue(view.subviews.first === second.paymentElement.uiView)
+        sdk.checkoutControllers.removeValue(forKey: secondId)?.destroy()
+        XCTAssertTrue(view.subviews.isEmpty)
+        XCTAssertNil(second.paymentElement.uiView.delegate)
+        view.removeFromSuperview()
+    }
+
     private func makeCheckout() async throws -> CheckoutController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]
