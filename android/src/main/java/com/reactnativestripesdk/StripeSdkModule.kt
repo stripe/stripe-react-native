@@ -13,7 +13,6 @@ import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
@@ -99,7 +98,7 @@ class StripeSdkModule(
   private var urlScheme: String? = null
 
   private var createPlatformPayPaymentMethodPromise: Promise? = null
-  private var platformPayUsesDeprecatedTokenFlow = false
+  private var platformPayLauncher: GooglePayRequestLauncher? = null
 
   private val stripeUIManagers = mutableListOf<StripeUIManager>()
   private var paymentSheetManager: PaymentSheetManager? = null
@@ -125,43 +124,15 @@ class StripeSdkModule(
 
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
 
-  private val mActivityEventListener =
-    object : BaseActivityEventListener() {
-      override fun onActivityResult(
-        activity: Activity,
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-      ) {
-        if (::stripe.isInitialized) {
-          when (requestCode) {
-            GooglePayRequestHelper.LOAD_PAYMENT_DATA_REQUEST_CODE -> {
-              createPlatformPayPaymentMethodPromise?.let {
-                GooglePayRequestHelper.handleGooglePaymentMethodResult(
-                  resultCode,
-                  data,
-                  stripe,
-                  platformPayUsesDeprecatedTokenFlow,
-                  it,
-                )
-                createPlatformPayPaymentMethodPromise = null
-              }
-            }
-          }
-        }
-      }
-    }
-
-  init {
-    reactContext.addActivityEventListener(mActivityEventListener)
-  }
-
   override fun invalidate() {
     super.invalidate()
 
     stripeUIManagers.forEach { it.destroy() }
     stripeUIManagers.clear()
     UiThreadUtil.runOnUiThread {
+      platformPayLauncher?.destroy()
+      platformPayLauncher = null
+      createPlatformPayPaymentMethodPromise = null
       checkoutControllerRegistry.clear()
     }
     linkControllerManager?.destroy()
@@ -903,6 +874,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  @Suppress("TooGenericExceptionCaught") // Convert SDK and Activity launch failures to bridge errors.
   override fun createPlatformPayPaymentMethod(
     params: ReadableMap,
     usesDeprecatedTokenFlow: Boolean,
@@ -918,16 +890,34 @@ class StripeSdkModule(
         )
         return
       }
-    platformPayUsesDeprecatedTokenFlow = usesDeprecatedTokenFlow
-    createPlatformPayPaymentMethodPromise = promise
-    getCurrentActivityOrResolveWithError(promise)?.let {
-      val request =
-        GooglePayRequestHelper.createPaymentRequest(
-          it,
+    UiThreadUtil.runOnUiThread {
+      if (createPlatformPayPaymentMethodPromise != null) {
+        promise.resolve(createError("Failed", "A Google Pay request is already in progress."))
+        return@runOnUiThread
+      }
+      val activity = getCurrentActivityOrResolveWithError(promise) ?: return@runOnUiThread
+      createPlatformPayPaymentMethodPromise = promise
+      try {
+        platformPayLauncher = GooglePayRequestLauncher(reactApplicationContext) { result ->
+          platformPayLauncher?.destroy()
+          platformPayLauncher = null
+          createPlatformPayPaymentMethodPromise = null
+          GooglePayRequestHelper.handleGooglePaymentMethodResult(
+            result, stripe, usesDeprecatedTokenFlow, promise,
+          )
+        }
+        val request = GooglePayRequestHelper.createPaymentRequest(
+          activity,
           GooglePayJsonFactory(reactApplicationContext),
           googlePayParams,
         )
-      GooglePayRequestHelper.createPaymentMethod(request, it)
+        platformPayLauncher?.launch(activity, request)
+      } catch (error: Exception) {
+        platformPayLauncher?.destroy()
+        platformPayLauncher = null
+        createPlatformPayPaymentMethodPromise = null
+        promise.resolve(createError("Failed", error))
+      }
     }
   }
 

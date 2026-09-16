@@ -349,7 +349,10 @@ export namespace Checkout {
     appearance?: PaymentElementAppearance;
     /** Preferred networks for co-branded cards. */
     preferredNetworks?: CardBrand[];
-    /** Controls how billing details are collected during checkout. */
+    /**
+     * Controls how billing details are collected during checkout. iOS only.
+     * On Android, configure billing collection on the Checkout Session.
+     */
     billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
     /** A custom message shown when a saved payment method is removed. iOS only. */
     removeSavedPaymentMethodMessage?: string;

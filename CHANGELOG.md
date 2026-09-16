@@ -9,6 +9,9 @@
 **Changes**
 
 * Updated Stripe iOS SDK from 26.9.0 to 26.11.0.
+* Updated Stripe Android SDK from 23.17.1 to 23.19.0.
+* [Changed] Android: Migrated Google Pay payment method and token creation to the Activity Result API.
+* [Changed] Android: Checkout billing details collection is now controlled by the Checkout Session; `paymentElement.billingDetailsCollectionConfiguration` applies only to iOS.
 
 **Breaking changes**
 
