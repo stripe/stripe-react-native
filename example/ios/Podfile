@@ -6,10 +6,24 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
 
-# Use prebuilt RN.
+# Temporarily keep the example app on the old CocoaPods resolution while
+# the SPM integration is being built out.
+# TODO: turn off
+disable_spm = true
+$StripeDisableSPM = true
+
+# SPM resolution requires dynamic frameworks. Dynamic frameworks also make
+# every pod link its own dependencies, which exposes under-declared podspecs:
+# react-native-test-app's DevSupport pod compiles against JSI and React-Core
+# but declares neither hermes-engine (where the JSI definitions live with
+# Hermes) nor React-Core-prebuilt (where the RCT* symbols live with the
+# prebuilt core). ../patches/react-native-test-app+*.patch adds those
+# declarations to its podspec; patch-package applies it on `yarn install`
+# (see the example's postinstall script).
+use_frameworks! :linkage => :dynamic unless disable_spm
+
 ENV['RCT_USE_RN_DEP'] = '1'
 ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
-
 options = {
   :bridgeless_enabled => true,
   :fabric_enabled => true,
