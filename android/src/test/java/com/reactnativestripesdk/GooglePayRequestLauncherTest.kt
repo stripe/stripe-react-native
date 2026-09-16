@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Looper
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.ReactApplicationContext
+import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wallet.PaymentData
 import org.junit.Assert.assertEquals
@@ -20,6 +21,40 @@ import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
 class GooglePayRequestLauncherTest {
+  @Test
+  fun waitsForTaskCompletionBeforeLaunchingResultContract() {
+    val context = mock(ReactApplicationContext::class.java)
+    val activity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
+    `when`(context.currentActivity).thenReturn(activity)
+    val task = TaskCompletionSource<PaymentData>()
+    var resultCount = 0
+    val launcher = GooglePayRequestLauncher(context) {
+      assertTrue(it.status.isSuccess)
+      resultCount += 1
+    }
+    launcher.launch(activity, task.task)
+    shadowOf(Looper.getMainLooper()).idle()
+    assertEquals(0, resultCount)
+    task.setResult(PaymentData.fromJson("{}"))
+    shadowOf(Looper.getMainLooper()).idle()
+    assertEquals(1, resultCount)
+  }
+
+  @Test
+  fun destroyedLauncherDoesNotLaunchWhenPendingTaskCompletes() {
+    val context = mock(ReactApplicationContext::class.java)
+    val activity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
+    `when`(context.currentActivity).thenReturn(activity)
+    val task = TaskCompletionSource<PaymentData>()
+    var resultCount = 0
+    val launcher = GooglePayRequestLauncher(context) { resultCount += 1 }
+    launcher.launch(activity, task.task)
+    launcher.destroy()
+    task.setResult(PaymentData.fromJson("{}"))
+    shadowOf(Looper.getMainLooper()).idle()
+    assertEquals(0, resultCount)
+  }
+
   @Test
   fun launchesCompletedTaskAndCleansUpAfterDelivery() {
     val context = mock(ReactApplicationContext::class.java)

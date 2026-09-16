@@ -4,6 +4,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
+import com.google.android.gms.common.api.CommonStatusCodes
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.wallet.PaymentData
 import com.google.android.gms.wallet.contract.ApiTaskResult
@@ -19,11 +21,13 @@ internal class GooglePayRequestLauncher(
   private var activity: FragmentActivity? = null
   private var launcher: ActivityResultLauncher<Task<PaymentData>>? = null
   private var destroyed = false
+  private var pendingRequest: Task<PaymentData>? = null
 
   fun launch(activity: FragmentActivity, request: Task<PaymentData>) {
     context.addLifecycleEventListener(this)
     register(activity)
-    launcher?.launch(request)
+    pendingRequest = request
+    request.addOnCompleteListener { launchPendingRequest() }
   }
 
   private fun register(currentActivity: FragmentActivity) {
@@ -42,10 +46,26 @@ internal class GooglePayRequestLauncher(
     }
     // Registration can immediately deliver a pending result after Activity recreation.
     if (destroyed) registered.unregister() else launcher = registered
+    launchPendingRequest()
+  }
+
+  @Suppress("TooGenericExceptionCaught")
+  private fun launchPendingRequest() {
+    val request = pendingRequest ?: return
+    val currentLauncher = launcher ?: return
+    if (destroyed || !request.isComplete) return
+    pendingRequest = null
+    try {
+      currentLauncher.launch(request)
+    } catch (error: Exception) {
+      destroy()
+      callback(ApiTaskResult(Status(CommonStatusCodes.INTERNAL_ERROR, error.message ?: "Unable to launch Google Pay.")))
+    }
   }
 
   fun destroy() {
     destroyed = true
+    pendingRequest = null
     launcher?.unregister()
     launcher = null
     activity = null
