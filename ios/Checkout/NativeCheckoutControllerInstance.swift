@@ -18,6 +18,7 @@ final class NativeCheckoutControllerInstance {
     private let emitEvent: ([String: Any]) -> Void
     private var observation: AnyCancellable?
     private var controllerId: String?
+    private var destructionObservers: [UUID: () -> Void] = [:]
     private var isDestroyed = false
     private var serverUpdates: [String: CheckoutServerUpdate] = [:]
 
@@ -76,9 +77,23 @@ final class NativeCheckoutControllerInstance {
         serverUpdates[operationId]?.completeCallback(error: callbackError)
     }
 
+    /// Releases views when their controller is destroyed before they unmount.
+    func observeDestruction(_ observer: @escaping () -> Void) -> AnyCancellable {
+        guard !isDestroyed else {
+            observer()
+            return AnyCancellable {}
+        }
+        let id = UUID()
+        destructionObservers[id] = observer
+        return AnyCancellable { [weak self] in self?.destructionObservers.removeValue(forKey: id) }
+    }
+
     func destroy() {
         guard !isDestroyed else { return }
         isDestroyed = true
+        let observers = Array(destructionObservers.values)
+        destructionObservers.removeAll()
+        observers.forEach { $0() }
         let updates = Array(serverUpdates.values)
         serverUpdates.removeAll()
         updates.forEach { $0.finish(error: CancellationError()) }
