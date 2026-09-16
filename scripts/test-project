@@ -20,7 +20,6 @@ REQUIRED ARGUMENTS:
 
 OPTIONS:
   --platforms       Comma separated list of platforms to build (android, ios). Default: android,ios
-  --architecture    Target architecture: "old" or "new". When omitted, uses React Native defaults.
   --project-name    Name of the temporary React Native project. Default: StripeRNTest
   --keep-project    Do not delete the temporary project directory (helpful for debugging failures)
   -h, --help        Print this help message
@@ -31,8 +30,6 @@ RN_VERSION=""
 PLATFORMS="$DEFAULT_PLATFORMS"
 PROJECT_NAME="$DEFAULT_PROJECT_NAME"
 KEEP_PROJECT=0
-ARCHITECTURE=""
-ARCHITECTURE_SPECIFIED=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -63,16 +60,6 @@ while [[ $# -gt 0 ]]; do
       fi
       shift 2
       ;;
-    --architecture)
-      ARCHITECTURE=${2:-}
-      if [[ -z "$ARCHITECTURE" ]]; then
-        echo "Error! --architecture requires a value."
-        usage
-        exit 1
-      fi
-      ARCHITECTURE_SPECIFIED=1
-      shift 2
-      ;;
     --keep-project)
       KEEP_PROJECT=1
       shift
@@ -94,23 +81,6 @@ if [[ -z "$RN_VERSION" ]]; then
   usage
   exit 1
 fi
-
-IS_NEW_ARCH=0
-if [[ $ARCHITECTURE_SPECIFIED -eq 1 ]]; then
-  case "$ARCHITECTURE" in
-    old)
-      IS_NEW_ARCH=0
-      ;;
-    new)
-      IS_NEW_ARCH=1
-      ;;
-    *)
-      echo "Error! --architecture must be either 'old' or 'new'."
-      exit 1
-      ;;
-  esac
-fi
-BOOLS=("false" "true")
 
 RUN_ANDROID=0
 RUN_IOS=0
@@ -180,11 +150,7 @@ if [[ $RUN_ANDROID -eq 1 ]]; then
   echo "Building Android project"
   (
     cd android
-    GRADLE_COMMAND=(./gradlew assembleRelease)
-    if [[ $ARCHITECTURE_SPECIFIED -eq 1 ]]; then
-      GRADLE_COMMAND+=("-PnewArchEnabled=${BOOLS[$IS_NEW_ARCH]}")
-    fi
-    "${GRADLE_COMMAND[@]}"
+    ./gradlew assembleRelease -PnewArchEnabled=true
   )
 fi
 
@@ -193,11 +159,7 @@ if [[ $RUN_IOS -eq 1 ]]; then
   bundle install
   (
     cd ios
-    if [[ $ARCHITECTURE_SPECIFIED -eq 1 ]]; then
-      RCT_NEW_ARCH_ENABLED="$IS_NEW_ARCH" pod install
-    else
-      pod install
-    fi
+    RCT_NEW_ARCH_ENABLED=1 pod install
     xcodebuild \
       -workspace "$PROJECT_NAME.xcworkspace" \
       -configuration Release \

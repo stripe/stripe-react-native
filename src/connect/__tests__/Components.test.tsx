@@ -33,6 +33,18 @@ jest.mock('../../specs/NativeConnectAccountOnboardingView', () => {
   };
 });
 
+// Lets us inspect exactly what componentProps/callbacks ConnectAccountOnboarding
+// forwards down, including the internal-only props (kycRecipientAccountId,
+// authChallenge, onAuthChallengeRequired) that aren't in its public prop types.
+jest.mock('../EmbeddedComponent', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    EmbeddedComponent: (props: any) =>
+      React.createElement(View, { testID: 'embedded-component', ...props }),
+  };
+});
+
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
@@ -219,6 +231,32 @@ describe('ConnectAccountOnboarding', () => {
       await waitFor(() => {
         expect(onExit).toHaveBeenCalled();
       });
+    });
+
+    it('forwards internal-only props (kycRecipientAccountId, authChallenge, onAuthChallengeRequired) to EmbeddedComponent', () => {
+      const onAuthChallengeRequired = jest.fn();
+      const authChallenge = {
+        requestId: 42,
+        completion: { secret: 'as_secret_123' },
+      };
+
+      const { getByTestId } = renderComponent({
+        kycRecipientAccountId: 'acct_123',
+        authChallenge,
+        onAuthChallengeRequired,
+      });
+
+      const embedded = getByTestId('embedded-component');
+      expect(embedded.props.componentProps.setKycRecipientAccountId).toBe(
+        'acct_123'
+      );
+      expect(embedded.props.componentProps.setAuthChallenge).toBe(
+        authChallenge
+      );
+
+      const event = { action: 'verify_identity', requestId: 42 };
+      embedded.props.callbacks.onAuthChallengeRequired(event);
+      expect(onAuthChallengeRequired).toHaveBeenCalledWith(event);
     });
 
     it('renders with default appearance when not specified', () => {
