@@ -1,0 +1,29 @@
+appId: ${APP_ID}
+---
+- scrollUntilVisible:
+    element:
+      text: 'Show inline element'
+- tapOn: 'Show inline element'
+- scrollUntilVisible:
+    element:
+      text: 'Card'
+- tapOn: 'Card'
+- tapOn: 'Card number. Supported cards include.*'
+- inputText: ${CARD_NUMBER}
+- inputText: '0145'
+- inputText: '123'
+- tapOn: 'ZIP.*'
+- inputText: '94107'
+- scrollUntilVisible:
+    element:
+      text: 'Continue'
+- tapOn: 'Continue'
+- scrollUntilVisible:
+    element:
+      text: 'Hide inline element'
+    direction: UP
+    centerElement: true
+- tapOn: 'Hide inline element'
+- scrollUntilVisible:
+    element:
+      text: 'Confirm'
