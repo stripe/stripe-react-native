@@ -236,7 +236,7 @@ describe('ConnectAccountOnboarding', () => {
     it('forwards internal-only props (kycRecipientAccountId, authChallenge, onAuthChallengeRequired) to EmbeddedComponent', () => {
       const onAuthChallengeRequired = jest.fn();
       const authChallenge = {
-        requestId: 42,
+        requestId: '42',
         completion: { secret: 'as_secret_123' },
       };
 
@@ -254,9 +254,20 @@ describe('ConnectAccountOnboarding', () => {
         authChallenge
       );
 
-      const event = { action: 'verify_identity', requestId: 42 };
+      const event = { action: 'verify_identity', requestId: '42' };
       embedded.props.callbacks.onAuthChallengeRequired(event);
       expect(onAuthChallengeRequired).toHaveBeenCalledWith(event);
+    });
+
+    it('forwards a null-requestId authChallenge (cancels the pending request)', () => {
+      const authChallenge = { requestId: null, completion: null };
+
+      const { getByTestId } = renderComponent({ authChallenge });
+
+      const embedded = getByTestId('embedded-component');
+      expect(embedded.props.componentProps.setAuthChallenge).toBe(
+        authChallenge
+      );
     });
 
     it('renders with default appearance when not specified', () => {
