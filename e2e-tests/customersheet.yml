@@ -19,14 +19,21 @@ appId: ${APP_ID}
     text: "MM / YY"
     optional: true
 - inputText: "0145"
+- tapOn:
+    text: "CVC"
 - inputText: "123"
 - tapOn:
     text: "Done"
     optional: true
 - tapOn: "Save"
+- extendedWaitUntil:
+    visible: .*4242
+    timeout: 30000
+- tapOn: .*4242
 - tapOn: "Confirm"
-- assertVisible:
-    text: .*4242
+- extendedWaitUntil:
+    visible: .*4242
+    timeout: 30000
 - tapOn: .*4242
 - tapOn: "Close"
 - assertVisible:

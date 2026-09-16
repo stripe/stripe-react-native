@@ -39,6 +39,9 @@ appId: ${APP_ID}
 - tapOn:
     text: "Continue" # iOS
     optional: true
+- extendedWaitUntil:
+    visible: .*Buy.*4242
+    timeout: 30000
 - tapOn:
     text: .*Buy.*4242
 - assertVisible:

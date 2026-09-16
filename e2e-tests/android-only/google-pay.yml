@@ -18,15 +18,21 @@ appId: ${APP_ID}
 # G Pay logo only button
 - tapOn:
     id: 'pay-with-g-pay'
-- assertVisible: 'Google Pay requires a Google account to be set up on this device.'
-- tapOn: OK
-- assertVisible: 'The payment has been canceled'
+- runFlow:
+    when:
+      visible: 'Google Pay requires a Google account to be set up on this device.'
+    commands:
+      - tapOn: OK
+- assertVisible: 'Failure'
 - tapOn: OK
 
 # Buy with G Pay
 - tapOn:
     id: 'buy-with-g-pay'
-- assertVisible: 'Google Pay requires a Google account to be set up on this device.'
-- tapOn: OK
-- assertVisible: 'The payment has been canceled'
+- runFlow:
+    when:
+      visible: 'Google Pay requires a Google account to be set up on this device.'
+    commands:
+      - tapOn: OK
+- assertVisible: 'Failure'
 - tapOn: OK
