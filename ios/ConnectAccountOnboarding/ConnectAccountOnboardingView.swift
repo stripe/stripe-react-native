@@ -39,8 +39,7 @@ public class ConnectAccountOnboardingView: UIView {
     }
 
     override public func didSetProps(_ changedProps: [String]!) {
-        // This is only called on old arch, for new arch didSetProps() will be called
-        // by the view component.
+        // The new architecture interop layer forwards prop updates through this method.
         self.didSetProps()
     }
 
