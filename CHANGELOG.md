@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+**Features**
+
+* [Added] Added `idType` to Crypto Onramp `KycInfo`, supporting US SSN, Canada SIN, Colombia NIT, and Philippines TIN.
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.9.0 to 26.11.0.
+
 **Breaking changes**
 
 * [Removed] Removed support for the React Native old architecture. Enable the new architecture with `newArchEnabled=true` in `gradle.properties` for Android, `RCT_NEW_ARCH_ENABLED=1` in your `Podfile` for iOS, or `newArchEnabled: true` in your app configuration for Expo.
