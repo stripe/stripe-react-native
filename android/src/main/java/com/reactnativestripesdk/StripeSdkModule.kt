@@ -9,9 +9,11 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
+import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.SavedStateHandle
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
@@ -1563,6 +1565,31 @@ class StripeSdkModule(
   ) {
     performCheckoutMutation(controllerId, promise) { controller ->
       controller.clearPaymentOption()
+    }
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun presentCheckoutPaymentElement(controllerId: String, promise: Promise) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      if (instance == null) {
+        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        return@runOnUiThread
+      }
+      val activity = reactApplicationContext.currentActivity as? ComponentActivity
+      if (activity == null || activity.isFinishing ||
+        !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+      ) {
+        promise.reject("Failed", "Checkout requires a resumed activity to present Payment Element.")
+        return@runOnUiThread
+      }
+      try {
+        instance.paymentElement(activity).present()
+        promise.resolve(null)
+      } catch (error: Exception) {
+        promise.reject(CheckoutErrorMapper.code(error).serializedValue, error.message, error)
+      }
     }
   }
 
