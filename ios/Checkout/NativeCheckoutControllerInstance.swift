@@ -19,6 +19,7 @@ final class NativeCheckoutControllerInstance {
     private var observation: AnyCancellable?
     private var controllerId: String?
     private var isDestroyed = false
+    private var serverUpdates: [String: CheckoutServerUpdate] = [:]
 
     init(
         checkout: CheckoutController,
@@ -44,9 +45,43 @@ final class NativeCheckoutControllerInstance {
             }
     }
 
+    func runServerUpdate(
+        operationId: String,
+        request: @escaping () -> Void,
+        completion: @escaping (Error?) -> Void
+    ) {
+        guard !isDestroyed, serverUpdates[operationId] == nil else {
+            completion(CancellationError())
+            return
+        }
+        let operation = CheckoutServerUpdate(completion: completion)
+        serverUpdates[operationId] = operation
+        Task { @MainActor in
+            defer { serverUpdates.removeValue(forKey: operationId) }
+            do {
+                try await checkout.runServerUpdate {
+                    try await operation.requestCallback(request)
+                }
+                operation.finish(error: nil)
+            } catch {
+                operation.finish(error: error)
+            }
+        }
+    }
+
+    func completeServerUpdate(operationId: String, error: String?) {
+        let callbackError = error.map {
+            NSError(domain: "CheckoutServerUpdate", code: 0, userInfo: [NSLocalizedDescriptionKey: $0])
+        }
+        serverUpdates[operationId]?.completeCallback(error: callbackError)
+    }
+
     func destroy() {
         guard !isDestroyed else { return }
         isDestroyed = true
+        let updates = Array(serverUpdates.values)
+        serverUpdates.removeAll()
+        updates.forEach { $0.finish(error: CancellationError()) }
         observation?.cancel()
         observation = nil
         emit(status: .destroyed)

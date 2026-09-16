@@ -25,6 +25,7 @@ internal class NativeCheckoutControllerInstance(
   private val scope: CoroutineScope,
   initialSession: WritableMap,
 ) {
+  val serverUpdateCallbacks = CheckoutServerUpdateCallbacks()
   private var controllerId: String? = null
   private var latestSession = initialSession
   private var destroyed = false
