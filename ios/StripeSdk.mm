@@ -267,6 +267,13 @@ RCT_EXPORT_METHOD(clearCheckoutPaymentOption:(nonnull NSString *)controllerId
   [StripeSdkImpl.shared clearCheckoutPaymentOption:controllerId resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(presentCheckoutPaymentElement:(nonnull NSString *)controllerId
+                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                        reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentCheckoutPaymentElement:controllerId resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(runCheckoutServerUpdate:(nonnull NSString *)controllerId
                               operationId:(nonnull NSString *)operationId
                                   resolve:(nonnull RCTPromiseResolveBlock)resolve
