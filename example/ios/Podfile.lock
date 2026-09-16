@@ -1827,7 +1827,7 @@ PODS:
     - StripePayments (= 26.11.0)
     - StripePaymentsUI (= 26.11.0)
     - StripeUICore (= 26.11.0)
-  - stripe-react-native (0.76.0):
+  - stripe-react-native (0.77.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1848,10 +1848,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - stripe-react-native/Core (= 0.76.0)
-    - stripe-react-native/NewArch (= 0.76.0)
+    - stripe-react-native/Core (= 0.77.0)
+    - stripe-react-native/NewArch (= 0.77.0)
     - Yoga
-  - stripe-react-native/Core (0.76.0):
+  - stripe-react-native/Core (0.77.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1879,7 +1879,7 @@ PODS:
     - StripePaymentSheet (= 26.11.0)
     - StripePaymentsUI (= 26.11.0)
     - Yoga
-  - stripe-react-native/NewArch (0.76.0):
+  - stripe-react-native/NewArch (0.77.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1901,7 +1901,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-react-native/Onramp (0.76.0):
+  - stripe-react-native/Onramp (0.77.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1925,7 +1925,7 @@ PODS:
     - stripe-react-native/Core
     - StripeCryptoOnramp (= 26.11.0)
     - Yoga
-  - stripe-react-native/Tests (0.76.0):
+  - stripe-react-native/Tests (0.77.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2250,7 +2250,7 @@ SPEC CHECKSUMS:
   React: 914f8695f9bf38e6418228c2ffb70021e559f92f
   React-callinvoker: 1c0808402aee0c6d4a0d8e7220ce6547af9fba71
   React-Core: c61410ef0ca6055e204a963992e363227e0fd1c5
-  React-Core-prebuilt: 02f0ad625ddd47463c009c2d0c5dd35c0d982599
+  React-Core-prebuilt: 8f4cca589c14e8cf8fc6db4587ef1c2056b5c151
   React-CoreModules: 1f6d1744b5f9f2ec684a4bb5ced25370f87e5382
   React-cxxreact: 3af79478e8187b63ffc22b794cd42d3fc1f1f2da
   React-debug: 6328c2228e268846161f10082e80dc69eac2e90a
@@ -2316,7 +2316,7 @@ SPEC CHECKSUMS:
   RNCPicker: c8a3584b74133464ee926224463fcc54dfdaebca
   RNScreens: 61c18865ab074f4d995ac8d7cf5060522a649d05
   Stripe: eeb45e6b3c973d412227def2e757f9b4cf9caf95
-  stripe-react-native: 5a68109320e78a5717c7ea009f40ab1d6ffd7c14
+  stripe-react-native: 7982db37f3a3c3c74c51d0405e8214dba34cf447
   StripeApplePay: 6067bc754f87b41468ba67f2646a7fbc91abfa34
   StripeCameraCore: 31f746270b5c7af6311de5ba07473bfaa94081be
   StripeCore: 21d74e81c1bb74b711a8d06988ca675d21fdbcf8
