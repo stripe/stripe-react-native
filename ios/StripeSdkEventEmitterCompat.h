@@ -1,9 +1,10 @@
-// This is a compat layer for NativeStripeSdkModuleSpecBase which is generated with codegen
-// for the new arch. This implements the same methods, but using old arch apis.
+// This is a compat layer for new architecture event emitters on React Native < 0.80.
+// It avoids crashes when setting the generated event emitter callback by using RCTEventEmitter.
 
 #import <React/RCTEventEmitter.h>
 
 @interface StripeSdkEventEmitterCompat : RCTEventEmitter
+
 - (void)emitOnConfirmHandlerCallback:(NSDictionary *)value;
 - (void)emitOnConfirmationTokenHandlerCallback:(NSDictionary *)value;
 - (void)emitOnFinancialConnectionsEvent:(NSDictionary *)value;

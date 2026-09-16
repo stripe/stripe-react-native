@@ -1,24 +1,91 @@
 package com.reactnativestripesdk
 
+import android.app.Activity
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
 class PaymentSheetManagerTest {
+  @Test
+  fun runWhenActivityAvailable_RunsImmediatelyWhenActivityIsAttached() {
+    val context = mock(ReactApplicationContext::class.java)
+    `when`(context.currentActivity).thenReturn(mock(Activity::class.java))
+    var didRun = false
+
+    runWhenActivityAvailable(context) {
+      didRun = true
+    }
+
+    assertTrue(didRun)
+  }
+
+  @Test
+  fun runWhenActivityAvailable_WaitsForHostResumeWhenActivityIsDetached() {
+    val context = mock(ReactApplicationContext::class.java)
+    var activity: Activity? = null
+    `when`(context.currentActivity).thenAnswer { activity }
+    var didRun = false
+
+    runWhenActivityAvailable(context) {
+      didRun = true
+    }
+
+    assertFalse(didRun)
+    val listener = captureLifecycleEventListener(context)
+    activity = mock(Activity::class.java)
+    listener.onHostResume()
+
+    assertTrue(didRun)
+    verify(context).removeLifecycleEventListener(listener)
+  }
+
+  @Test
+  fun runWhenActivityAvailable_HandlesActivityResumingDuringRegistration() {
+    val context = mock(ReactApplicationContext::class.java)
+    var activity: Activity? = null
+    `when`(context.currentActivity).thenAnswer { activity }
+    doAnswer {
+      activity = mock(Activity::class.java)
+      null
+    }.`when`(context).addLifecycleEventListener(any())
+    var didRun = false
+
+    runWhenActivityAvailable(context) {
+      didRun = true
+    }
+
+    assertTrue(didRun)
+    verify(context).removeLifecycleEventListener(any())
+  }
+
+  private fun captureLifecycleEventListener(
+    context: ReactApplicationContext,
+  ): LifecycleEventListener {
+    val captor = ArgumentCaptor.forClass(LifecycleEventListener::class.java)
+    verify(context).addLifecycleEventListener(captor.capture())
+    return captor.value
+  }
+
   // ============================================
   // mapToCollectionMode Tests
   // ============================================
