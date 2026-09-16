@@ -6,11 +6,11 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
 
-# Temporarily keep the example app on the old CocoaPods resolution while
-# the SPM integration is being built out.
-# TODO: turn off
-disable_spm = true
-$StripeDisableSPM = true
+# By default the Stripe iOS SDK is resolved through Swift Package Manager
+# (see stripe_spm.rb at the repo root). Set STRIPE_DISABLE_SPM=1 to exercise
+# the CocoaPods fallback path instead.
+disable_spm = ENV['STRIPE_DISABLE_SPM'] == '1'
+$StripeDisableSPM = true if disable_spm
 
 # SPM resolution requires dynamic frameworks. Dynamic frameworks also make
 # every pod link its own dependencies, which exposes under-declared podspecs:
@@ -70,8 +70,6 @@ post_integrate do |_installer|
     flags = Array(config.build_settings['OTHER_SWIFT_FLAGS'] || '$(inherited)')
     flags = flags.flat_map { |flag| flag.to_s.split(' ') }
     flags << '$(inherited)' unless flags.include?('$(inherited)')
-    # The tests conditionally compile new-architecture code paths.
-    flags << '-DRCT_NEW_ARCH_ENABLED' unless flags.include?('-DRCT_NEW_ARCH_ENABLED')
     unless disable_spm
       # The tests import Stripe modules directly (@testable-importing the SDK
       # framework also requires resolving the modules its Swift interface
