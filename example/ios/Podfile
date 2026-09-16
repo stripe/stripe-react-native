@@ -22,20 +22,11 @@ $StripeDisableSPM = true
 # (see the example's postinstall script).
 use_frameworks! :linkage => :dynamic unless disable_spm
 
-new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED'] == 'true'
-
-# The prebuilt core only wires framework linkage through the new-architecture
-# dependency path, so with dynamic frameworks old-arch pods (e.g. react-native-safe-area-context)
-# compile against prebuild React headers but never link the framework, failing
-# with undefined RCT* symbols. Static builds (which we still do in fallback mode)
-# don't per-pod link, so the prebuilt core is fine there on either arch.
-use_prebuilt_rncore = new_arch_enabled || disable_spm
 ENV['RCT_USE_RN_DEP'] = '1'
-ENV['RCT_USE_PREBUILT_RNCORE'] = '1' if use_prebuilt_rncore
-
+ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
 options = {
-  :bridgeless_enabled => new_arch_enabled,
-  :fabric_enabled =>  new_arch_enabled,
+  :bridgeless_enabled => true,
+  :fabric_enabled => true,
   :hermes_enabled => true,
 }
 

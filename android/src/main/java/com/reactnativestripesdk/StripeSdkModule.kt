@@ -89,6 +89,7 @@ import org.json.JSONObject
 class StripeSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeStripeSdkModuleSpec(reactContext) {
+
   var cardFieldView: CardFieldView? = null
   var cardFormView: CardFormView? = null
 
@@ -224,7 +225,7 @@ class StripeSdkModule(
               ).toString()
           ),
           "appVersion" to (packageInfo?.versionName ?: ""),
-          "isNewArchitecture" to BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+          "isNewArchitecture" to true,
           "reactNativeVersion" to
             with(ReactNativeVersion.VERSION) {
               "${get("major")}.${get("minor")}.${get("patch")}"
@@ -263,7 +264,7 @@ class StripeSdkModule(
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
-    ReactNativeAnalytics.isNewArchitecture = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+    ReactNativeAnalytics.isNewArchitecture = true
     ReactNativeAnalytics.reactNativeVersion =
       with(ReactNativeVersion.VERSION) {
         "${get("major")}.${get("minor")}.${get("patch")}"

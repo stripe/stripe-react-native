@@ -9,20 +9,9 @@ import Foundation
 import StripePaymentSheet
 import UIKit
 
-@objc(EmbeddedPaymentElementView)
-class EmbeddedPaymentElementView: RCTViewManager {
-
-    override static func requiresMainQueueSetup() -> Bool {
-        return true
-    }
-
-    override func view() -> UIView! {
-        return EmbeddedPaymentElementContainerView(frame: .zero)
-    }
-}
-
 @objc(EmbeddedPaymentElementContainerView)
 public class EmbeddedPaymentElementContainerView: UIView, UIGestureRecognizerDelegate {
+
     private var embeddedPaymentElementView: UIView?
 
     override init(frame: CGRect) {
