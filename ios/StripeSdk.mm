@@ -13,12 +13,6 @@ RCT_EXPORT_MODULE()
   return NO;
 }
 
-- (NSDictionary *)constantsToExport
-{
-  // Used for old arch.
-  return [StripeSdkImpl.shared getConstants];
-}
-
 - (NSDictionary *)getConstants
 {
   // Used for new arch.
@@ -520,14 +514,10 @@ RCT_EXPORT_METHOD(confirmLinkControllerSetupIntent:(nonnull NSDictionary *)param
 
 /* clang-format on */
 
-#ifdef RCT_NEW_ARCH_ENABLED
-
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
   return std::make_shared<facebook::react::NativeStripeSdkModuleSpecJSI>(params);
 }
-
-#endif
 
 @end
