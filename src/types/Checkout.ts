@@ -401,15 +401,15 @@ export namespace Checkout {
     /** The customer's shipping contact details and postal address. */
     shippingAddress?: ShippingAddress;
     /** The items the customer is purchasing. */
-    orderSummaryItems: OrderSummaryItem[];
+    orderSummaryItems?: OrderSummaryItem[];
     /** Aggregate discount amounts for all order items. */
-    discountAmounts: DiscountAmount[];
+    discountAmounts?: DiscountAmount[];
     /** Tax computation status. */
     tax?: Tax;
     /** Aggregate amounts for each tax rate after Checkout computes tax. */
     taxAmounts?: TaxAmount[];
     /** Tax and discount breakdown for the computed session total. */
-    totals: Totals;
+    totals?: Totals;
     /** Lifecycle status of the Checkout Session. */
     status: SessionStatus;
     /** The error encountered the last time confirmation ran. */
@@ -453,8 +453,8 @@ export namespace Checkout {
     email?: string;
     /** The customer's phone number. */
     phone?: string;
-    /** The customer's billing address. */
-    address?: Address;
+    /** The collected billing address fields, which can omit the country. */
+    address?: Partial<Address>;
   }
 
   /**
@@ -506,8 +506,6 @@ export namespace Checkout {
     description?: string;
     /** The individual items in this group. */
     items: OneTimePriceItem[];
-    /** Aggregate amounts for this group. */
-    amountDetails: AmountDetails;
   }
 
   /**
@@ -531,6 +529,8 @@ export namespace Checkout {
     quantity: number;
     /** Limits for customer-adjustable quantity, when enabled. */
     adjustableQuantity?: AdjustableQuantity;
+    /** Computed amounts for this item. */
+    amountDetails: AmountDetails;
   }
 
   /**
@@ -544,8 +544,6 @@ export namespace Checkout {
     subtotal: Amount;
     /** Tax amounts grouped by tax rate after Checkout computes tax. */
     taxAmounts?: TaxAmount[];
-    /** The total discount amount. */
-    discount: Amount;
     /** The total inclusive tax amount. */
     taxInclusive: Amount;
     /** The total exclusive tax amount. */
@@ -581,6 +579,8 @@ export namespace Checkout {
    * @CheckoutSessionPrivatePreview
    */
   export interface AdjustableQuantity {
+    /** Whether the customer can adjust the quantity. */
+    enabled: boolean;
     /** The minimum allowed quantity. */
     minimum: number;
     /** The maximum allowed quantity. */
@@ -643,7 +643,7 @@ export namespace Checkout {
         /** The customer completed the Checkout Session. */
         type: 'complete';
         /** The payment status after completion. */
-        paymentStatus: PaymentStatus;
+        paymentStatus?: PaymentStatus;
       };
 
   /**
