@@ -1,11 +1,16 @@
 package com.reactnativestripesdk.checkout
 
+import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutController
+import com.stripe.android.checkout.CheckoutPresenter
+import com.stripe.android.elements.PaymentElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -29,6 +34,41 @@ internal class NativeCheckoutControllerInstance(
   private var controllerId: String? = null
   private var latestSession = initialSession
   private var destroyed = false
+  private val destructionObservers = mutableSetOf<() -> Unit>()
+  private var presenter: CheckoutPresenter? = null
+  private var activity: ComponentActivity? = null
+  private val activityObserver = LifecycleEventObserver { _, event ->
+    if (event == Lifecycle.Event.ON_DESTROY) {
+      releasePresenter()
+    }
+  }
+
+  /** Reuses the native Payment Element for the lifetime of its activity. */
+  fun paymentElement(activity: ComponentActivity): PaymentElement {
+    check(!destroyed) { "Checkout controller was destroyed." }
+    if (this.activity !== activity) {
+      releasePresenter()
+      presenter = controller.createPresenter(activity)
+      this.activity = activity
+      activity.lifecycle.addObserver(activityObserver)
+    }
+    return checkNotNull(presenter).paymentElement()
+  }
+
+  private fun releasePresenter() {
+    activity?.lifecycle?.removeObserver(activityObserver)
+    activity = null
+    presenter = null
+  }
+
+  fun observeDestruction(observer: () -> Unit): () -> Unit {
+    if (destroyed) {
+      observer()
+      return {}
+    }
+    destructionObservers.add(observer)
+    return { destructionObservers.remove(observer) }
+  }
 
   /** Starts native snapshot observation for this bridge identifier. */
   @MainThread
@@ -75,6 +115,10 @@ internal class NativeCheckoutControllerInstance(
       return
     }
     destroyed = true
+    val observers = destructionObservers.toList()
+    destructionObservers.clear()
+    observers.forEach { it() }
+    releasePresenter()
     scope.cancel()
     try {
       emit("destroyed")
