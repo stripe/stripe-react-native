@@ -16,8 +16,10 @@
 # There are three cooperating layers, the last of which is this file:
 #
 # 1. The podspec (stripe-react-native.podspec) calls `stripe_spm_enabled?` and
-#    either declares the Swift package via `stripe_spm_activate!` (SPM mode)
-#    or falls back to the classic `s.dependency 'Stripe*'` pod lines.
+#    either declares the Swift package via `stripe_spm_activate!` (SPM mode —
+#    which first checks that CocoaPods is new enough, see
+#    MINIMUM_COCOAPODS_VERSION) or falls back to the classic
+#    `s.dependency 'Stripe*'` pod lines.
 #
 # 2. React Native >= 0.75 provides the actual CocoaPods/SPM bridge:
 #    `spm_dependency` (react-native/scripts/cocoapods/spm.rb) records the
@@ -72,7 +74,11 @@
 #     written to the disk", which our helpers do. Running
 #     there also means the phase is appended after CocoaPods' own `[CP]`
 #     phases regardless of whether the app project is fresh (first install,
-#     Expo prebuild --clean) or already integrated.
+#     Expo prebuild --clean) or already integrated. post_integrate hooks have
+#     existed since CocoaPods 1.10, which is therefore the oldest CocoaPods
+#     SPM mode supports (MINIMUM_COCOAPODS_VERSION); older versions are
+#     refused up front rather than worked around.
+#
 # Within the post_install stage, the user's post_install block runs first —
 # React Native's `react_native_post_install` writes the Swift package
 # references at that point — and our code runs after it, so it can rely on
@@ -91,6 +97,10 @@
 #   React Native <  0.75                  -> Stripe via CocoaPods registry
 #                                            (no `spm_dependency` available)
 #
+# SPM mode additionally requires CocoaPods >= MINIMUM_COCOAPODS_VERSION and
+# fails the install with instructions otherwise; the CocoaPods registry modes
+# have no version requirement of their own.
+#
 # To opt out and resolve Stripe through CocoaPods instead (available while
 # Stripe continues to publish pods), add this at the top of your Podfile:
 #
@@ -106,6 +116,23 @@ module StripeSPM
   BRANCH_OVERRIDE_PACKAGE_URL = 'https://github.com/stripe/stripe-ios.git'.freeze
 
   POD_NAME = 'stripe-react-native'.freeze
+
+  # The oldest CocoaPods release SPM mode works with. The one hard dependency
+  # is the post_integrate hook the user-project stage runs from, which
+  # CocoaPods added in 1.10.0 (2020-10-20). Everything else this file uses
+  # (the build_as_* predicates, Xcodeproj's Swift-package object types, the
+  # deterministic-UUID internals the guard below relies on) predates it, and
+  # 1.10.0's gemspec requires Xcodeproj >= 1.19.0 — the release that added
+  # the build phase's always_out_of_date attribute the embed phase sets — so
+  # nothing here needs feature detection beyond this one version check.
+  #
+  # In practice this floor is never the binding constraint: `spm_dependency`
+  # only exists on React Native >= 0.75, and React Native's project template
+  # has pinned `cocoapods >= 1.13` since 0.73. The check exists so that an
+  # unsupported setup fails at podspec-evaluation time with a clear message
+  # (see verify_cocoapods_version!) instead of somewhere deep inside the
+  # install.
+  MINIMUM_COCOAPODS_VERSION = '1.10'.freeze
 
   # The Swift package products the Core subspec needs. This list must be kept in sync
   # with the CocoaPods fallback dependencies in stripe-react-native.podspec.
@@ -184,6 +211,40 @@ module StripeSPM
 
   class << self
 
+    # Fails the install when the running CocoaPods predates
+    # MINIMUM_COCOAPODS_VERSION. Called from stripe_spm_activate! — that is,
+    # only when SPM mode is about to turn on — so it runs while CocoaPods is
+    # still evaluating the podspec, before anything has been resolved,
+    # downloaded, or generated, and it never affects the CocoaPods fallback.
+    #
+    # Skipped rather than failed when the version can't be determined
+    # (Pod::VERSION missing or unparseable): that isn't evidence of an old
+    # CocoaPods, and inside `pod install` neither case can actually occur.
+    #
+    # Two presentation details follow from raising inside a podspec. CocoaPods
+    # wraps any exception escaping podspec evaluation in a DSLError ("Invalid
+    # `stripe-react-native.podspec` file: <message>", followed by the
+    # offending podspec line), and DSLError#message prepends the "[!]" marker
+    # itself and appends a full stop — so this raises PlainInformative (whose
+    # message is unadorned) rather than Informative (which would add a second
+    # "[!]"), and the message ends without a trailing period.
+    def verify_cocoapods_version!
+      return unless defined?(Pod::VERSION) && Gem::Version.correct?(Pod::VERSION)
+      return if Gem::Version.new(Pod::VERSION) >= Gem::Version.new(MINIMUM_COCOAPODS_VERSION)
+
+      raise Pod::PlainInformative, <<~MESSAGE.chomp
+        [stripe-react-native] Resolving the Stripe iOS SDK through Swift Package
+        Manager requires CocoaPods #{MINIMUM_COCOAPODS_VERSION} or newer, but this
+        install is running CocoaPods #{Pod::VERSION}. Either:
+          * update CocoaPods (React Native's project template requires 1.13 or
+            newer; if your project has a Gemfile, run `bundle exec pod install`
+            to use the version it pins), or
+          * add `$StripeDisableSPM = true` at the top of your Podfile to resolve
+            Stripe through CocoaPods instead (available while Stripe continues
+            to publish pods)
+      MESSAGE
+    end
+
     # Records that SPM mode is on for this install and which stripe-ios
     # version to pin.
     def activate!(version)
@@ -229,6 +290,17 @@ module StripeSPM
       verify_dynamic_linkage!(pod_target)
       package = find_package_reference!(installer)
       link_onramp_product(installer, pod_target, package)
+    end
+
+    # User-project stage. Called by the post_integrate hook at the bottom of
+    # this file. The helpers save the user's project themselves, because
+    # CocoaPods has already saved it by post_integrate time.
+    def apply_user_project(installer)
+      pod_target = installer.pod_targets.find { |target| target.pod_name == POD_NAME }
+      return if pod_target.nil?
+      return unless active?
+
+      add_embed_phase(installer)
     end
 
     private
@@ -322,6 +394,56 @@ module StripeSPM
       product.product_name = ONRAMP_PRODUCT
       native_target.package_product_dependencies << product
     end
+
+    # Installs (or refreshes) the embed phase on every app target that links
+    # this pod. Comparing shell_script means a new SDK version that changes
+    # EMBED_SCRIPT rewrites the phase in place, while an unchanged script
+    # leaves the user's project untouched (keeping repeat `pod install` runs
+    # diff-free).
+    def add_embed_phase(installer)
+      each_user_app_target(installer) do |user_target|
+        phase = user_target.shell_script_build_phases.find { |p| p.name == EMBED_PHASE_NAME }
+        next false if phase && phase.shell_script == EMBED_SCRIPT
+
+        phase ||= user_target.new_shell_script_build_phase(EMBED_PHASE_NAME)
+        phase.shell_path = '/bin/sh'
+        phase.shell_script = EMBED_SCRIPT
+        # The phase has no input/output file lists (the set of frameworks
+        # isn't knowable statically), so mark it always-run to avoid Xcode's
+        # "will be run during every build" warning turning into a skipped
+        # phase under build-phase fingerprinting. (The attribute exists on
+        # every Xcodeproj a supported CocoaPods can load — see
+        # MINIMUM_COCOAPODS_VERSION.)
+        phase.always_out_of_date = '1'
+        true
+      end
+    end
+
+    # Yields every application target that links the stripe-react-native pod;
+    # saves the containing project when the block returns true for any target.
+    #
+    # Only :application targets are considered: unit-test and extension
+    # targets don't embed these frameworks (tests load them from the host
+    # app). Saving only on change keeps no-op installs from rewriting the
+    # user's project file.
+    def each_user_app_target(installer)
+      installer.aggregate_targets.each do |aggregate_target|
+        next unless aggregate_target.pod_targets.any? { |target| target.pod_name == POD_NAME }
+
+        # user_project is nil for non-integrating installs (e.g.
+        # `integrate_targets: false` setups); nothing to embed into there.
+        project = aggregate_target.user_project
+        next if project.nil?
+
+        changed = false
+        aggregate_target.user_targets.each do |user_target|
+          next unless user_target.respond_to?(:symbol_type) && user_target.symbol_type == :application
+
+          changed = true if yield(user_target)
+        end
+        project.save if changed
+      end
+    end
   end
 end
 
@@ -345,8 +467,11 @@ def stripe_spm_enabled?
 end
 
 # Declares the stripe-ios Swift package on the given (root) spec and switches
-# this file's installer hook into active mode. Called from the podspec.
+# this file's installer hooks into active mode. Called from the podspec. The
+# CocoaPods version check comes first so that an unsupported CocoaPods fails
+# the install before anything is activated or declared.
 def stripe_spm_activate!(spec, version:)
+  StripeSPM.verify_cocoapods_version!
   StripeSPM.activate!(version)
   spm_dependency(
     spec,
@@ -356,10 +481,35 @@ def stripe_spm_activate!(spec, version:)
   )
 end
 
-# Run the Pods-project integration after the Podfile's regular post_install
-# hook, which is where react_native_post_install writes the package reference.
+# Install the Pod::Installer hooks (once) as soon as the podspec requires
+# this file.
+#
+# The re-hook guards check both public and private visibility: the original
+# methods are private in CocoaPods, and `alias_method` preserves visibility,
+# so a plain `method_defined?` check would miss the alias and re-hook on a
+# second load. (`require` normally dedupes by path; this protects against the
+# same file being loaded from two paths.) The wrappers are made private again
+# afterwards to leave the class shaped as CocoaPods defined it.
 if defined?(Pod::Installer)
   installer_class = Pod::Installer
+
+  # CocoaPods has invoked post_integrate hooks (at the end of
+  # integrate_user_project) since 1.10 (MINIMUM_COCOAPODS_VERSION). On older
+  # CocoaPods the method doesn't exist, so it can't be hooked — and nothing
+  # is lost by not hooking it: SPM mode refuses to activate there
+  # (verify_cocoapods_version!), and the CocoaPods fallback's only work at
+  # this stage is removing an embed phase left behind by an earlier SPM-mode
+  # install, which can't have happened on a CocoaPods this old. So this
+  # existence check is not a second code path; it only keeps the file
+  # loadable — and the fallback usable — on CocoaPods versions SPM mode
+  # doesn't support.
+  #
+  # Podfiles that set `integrate_targets: false` never reach post_integrate
+  # either (CocoaPods skips integrate_user_project entirely), which is fine:
+  # without integration there is no user project to embed into.
+  post_integrate_supported =
+    installer_class.method_defined?(:run_podfile_post_integrate_hooks) ||
+    installer_class.private_method_defined?(:run_podfile_post_integrate_hooks)
 
   unless installer_class.method_defined?(:stripe_spm_original_run_podfile_post_install_hooks) ||
          installer_class.private_method_defined?(:stripe_spm_original_run_podfile_post_install_hooks)
@@ -368,11 +518,31 @@ if defined?(Pod::Installer)
       alias_method :stripe_spm_original_run_podfile_post_install_hooks, :run_podfile_post_install_hooks
 
       define_method(:run_podfile_post_install_hooks) do
+        # Run the regular hooks first: react_native_post_install (called from
+        # the user's post_install block) writes the Swift package references
+        # that the Pods-project stage builds on.
         result = stripe_spm_original_run_podfile_post_install_hooks
         StripeSPM.apply_pods_project(self)
         result
       end
     end
     installer_class.send(:private, :run_podfile_post_install_hooks) if post_install_was_private
+  end
+
+  if post_integrate_supported &&
+     !installer_class.method_defined?(:stripe_spm_original_run_podfile_post_integrate_hooks) &&
+     !installer_class.private_method_defined?(:stripe_spm_original_run_podfile_post_integrate_hooks)
+    post_integrate_was_private = installer_class.private_method_defined?(:run_podfile_post_integrate_hooks)
+    installer_class.class_eval do
+      alias_method :stripe_spm_original_run_podfile_post_integrate_hooks, :run_podfile_post_integrate_hooks
+
+      define_method(:run_podfile_post_integrate_hooks) do
+        # The user's own post_integrate block (if any) runs first, ours after.
+        result = stripe_spm_original_run_podfile_post_integrate_hooks
+        StripeSPM.apply_user_project(self)
+        result
+      end
+    end
+    installer_class.send(:private, :run_podfile_post_integrate_hooks) if post_integrate_was_private
   end
 end
