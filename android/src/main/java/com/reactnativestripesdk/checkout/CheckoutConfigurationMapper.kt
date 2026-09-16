@@ -117,8 +117,11 @@ internal object CheckoutConfigurationMapper {
     params.getIntegerList("preferredNetworks")?.let {
       configuration.preferredNetworks(mapPreferredNetworks(it))
     }
-    params.getMap("billingDetailsCollectionConfiguration")?.let {
-      configuration.billingDetailsCollectionConfiguration(mapBillingDetailsCollection(it))
+    if (params.getMap("billingDetailsCollectionConfiguration") != null) {
+      throw IllegalArgumentException(
+        "Checkout billing collection is configured on the Checkout Session on Android. " +
+          "Remove paymentElement.billingDetailsCollectionConfiguration.",
+      )
     }
     params.getStringList("paymentMethodOrder")?.let(configuration::paymentMethodOrder)
     if (params.hasKey("opensCardScannerAutomatically")) {
@@ -143,38 +146,6 @@ internal object CheckoutConfigurationMapper {
       if (mapped.size != values.size) {
         unsupportedValue("paymentElement.preferredNetworks", values)
       }
-    }
-
-  private fun mapBillingDetailsCollection(
-    params: ReadableMap,
-  ): PaymentElement.Configuration.BillingDetailsCollectionConfiguration {
-    val configuration = PaymentElement.Configuration.BillingDetailsCollectionConfiguration()
-    params.getString("name")?.let { configuration.name(mapCollectionMode(it)) }
-    params.getString("address")?.let { configuration.address(mapAddressCollectionMode(it)) }
-    // TODO(porter): Uncomment when the reviewed native setters ship.
-    // configuration.phone(mapCollectionMode(params?.getString("phone")))
-    // configuration.attachDefaultsToPaymentMethod(
-    //   params.getBooleanOr("attachDefaultsToPaymentMethod", false),
-    // )
-    return configuration
-  }
-
-  internal fun mapCollectionMode(
-    value: String,
-  ): PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode =
-    when (value) {
-      "automatic" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
-      "always" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Always
-      else -> unsupportedValue("paymentElement.billingDetailsCollectionConfiguration.name", value)
-    }
-
-  internal fun mapAddressCollectionMode(
-    value: String,
-  ): PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode =
-    when (value) {
-      "automatic" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
-      "full" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full
-      else -> unsupportedValue("paymentElement.billingDetailsCollectionConfiguration.address", value)
     }
 
   internal fun mapPaymentMethodLayout(

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Native SDKs**
+
+* [Changed] Upgraded the Stripe Android SDK from 23.17.1 to 23.19.0.
+
 **Breaking changes**
 
 * [Removed] Removed support for the React Native old architecture. Enable the new architecture with `newArchEnabled=true` in `gradle.properties` for Android, `RCT_NEW_ARCH_ENABLED=1` in your `Podfile` for iOS, or `newArchEnabled: true` in your app configuration for Expo.

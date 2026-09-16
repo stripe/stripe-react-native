@@ -51,11 +51,6 @@ class CheckoutConfigurationMapperTest {
                     ),
                 ),
               "preferredNetworks" to readableArrayOf(7, 5),
-              "billingDetailsCollectionConfiguration" to
-                readableMapOf(
-                  "name" to "always",
-                  "address" to "full",
-                ),
               "paymentMethodOrder" to readableArrayOf("card", "link"),
               "opensCardScannerAutomatically" to true,
               "termsDisplay" to readableMapOf("card" to "never"),
@@ -97,19 +92,6 @@ class CheckoutConfigurationMapperTest {
     assertEquals(
       PaymentElement.Configuration.TermsDisplay.NEVER,
       paymentElement.readField<Map<PaymentMethod.Type, *>>("termsDisplay")[PaymentMethod.Type.Card],
-    )
-
-    val billing =
-      paymentElement.readField<PaymentElement.Configuration.BillingDetailsCollectionConfiguration>(
-        "billingDetailsCollectionConfiguration",
-      )
-    assertEquals(
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Always,
-      billing.readField("name"),
-    )
-    assertEquals(
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full,
-      billing.readField("address"),
     )
 
     val appearance = paymentElement.readField<PaymentElement.Configuration.Appearance>("appearance")
@@ -189,17 +171,26 @@ class CheckoutConfigurationMapperTest {
   @Test
   fun `helper mappers reject unsupported enum values`() {
     assertThrows(IllegalArgumentException::class.java) {
-      CheckoutConfigurationMapper.mapCollectionMode("never")
-    }
-    assertThrows(IllegalArgumentException::class.java) {
-      CheckoutConfigurationMapper.mapAddressCollectionMode("never")
-    }
-    assertThrows(IllegalArgumentException::class.java) {
       CheckoutConfigurationMapper.mapTermsDisplay(readableMapOf("unknown_method" to "never"))
     }
     assertThrows(IllegalArgumentException::class.java) {
       CheckoutConfigurationMapper.mapTermsDisplay(readableMapOf("card" to "invalid"))
     }
+  }
+
+  @Test
+  fun `map rejects billing collection settings removed by the native SDK`() {
+    val error = assertThrows(IllegalArgumentException::class.java) {
+      CheckoutConfigurationMapper.map(
+        readableMapOf(
+          "paymentElement" to readableMapOf(
+            "billingDetailsCollectionConfiguration" to readableMapOf("address" to "full"),
+          ),
+        ),
+        context,
+      ) {}
+    }
+    assertTrue(error.message.orEmpty().contains("Remove paymentElement.billingDetailsCollectionConfiguration"))
   }
 
   private fun baseParams() =
