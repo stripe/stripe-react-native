@@ -12,19 +12,14 @@ workspace 'example.xcworkspace'
 disable_spm = ENV['STRIPE_DISABLE_SPM'] == '1'
 $StripeDisableSPM = true if disable_spm
 
-# SPM resolution requires dynamic frameworks: the Stripe Swift package
-# products use automatic linkage, which only reaches the final app correctly
-# when the pod that consumes them is a dynamic framework (stripe_spm.rb
-# enforces this with an actionable error). The CocoaPods fallback keeps
-# React Native's default static libraries.
-#
-# Dynamic frameworks also make every pod link its own dependencies, which
-# exposes under-declared podspecs: react-native-test-app's DevSupport pod
-# compiles against JSI and React-Core but declares neither hermes-engine (where
-# the JSI definitions live with Hermes) nor React-Core-prebuilt (where the RCT*
-# symbols live with the prebuilt core). ../patches/react-native-test-app+*.patch
-# adds those declarations to its podspec; patch-package applies it on
-# `yarn install` (see the example's postinstall script).
+# SPM resolution requires dynamic frameworks. Dynamic frameworks also make
+# every pod link its own dependencies, which exposes under-declared podspecs:
+# react-native-test-app's DevSupport pod compiles against JSI and React-Core
+# but declares neither hermes-engine (where the JSI definitions live with
+# Hermes) nor React-Core-prebuilt (where the RCT* symbols live with the
+# prebuilt core). ../patches/react-native-test-app+*.patch adds those
+# declarations to its podspec; patch-package applies it on `yarn install`
+# (see the example's postinstall script).
 use_frameworks! :linkage => :dynamic unless disable_spm
 
 ENV['RCT_USE_RN_DEP'] = '1'
