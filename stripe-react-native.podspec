@@ -5,7 +5,9 @@ package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
 stripe_version = '26.9.0'
 
-fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
+if ENV['RCT_NEW_ARCH_ENABLED'] == '0'
+  raise 'stripe-react-native requires the React Native new architecture. Use RCT_NEW_ARCH_ENABLED=1 in your Podfile.'
+end
 
 Pod::Spec.new do |s|
   s.name         = 'stripe-react-native'
@@ -34,11 +36,7 @@ Pod::Spec.new do |s|
     'SWIFT_COMPILATION_MODE' => 'wholemodule',
   }
 
-  if fabric_enabled
-    s.default_subspecs = 'Core', 'NewArch'
-  else
-    s.default_subspecs = 'Core'
-  end
+  s.default_subspecs = 'Core', 'NewArch'
 
   s.subspec 'Core' do |core|
     core.source_files = 'ios/**/*.{h,m,mm,swift}'
@@ -56,7 +54,7 @@ Pod::Spec.new do |s|
     #   CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES. Keeping every
     #   React-importing header private keeps the framework module
     #   self-contained.
-    core.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h', 'ios/OldArch/StripeSdkEventEmitterCompat.h' ]
+    core.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h', 'ios/StripeSdkEventEmitterCompat.h' ]
     core.dependency 'React-Core'
     unless stripe_spm_enabled?
       # CocoaPods fallback for React Native < 0.75 and $StripeDisableSPM users.
@@ -88,19 +86,17 @@ Pod::Spec.new do |s|
     end
   end
 
-  if fabric_enabled
-    install_modules_dependencies(s)
+  install_modules_dependencies(s)
 
-    s.subspec "NewArch" do |ss|
-      ss.source_files = "ios/NewArch/**/*.{h,m,mm}"
-      # These headers contain c++ code so make sure they are private to avoid
-      # being exported to the umbrella header, which is used by swift interop.
-      # The pattern must stay scoped to this subspec's own files: CocoaPods
-      # globs private_header_files against the entire pod root (for a
-      # development pod, the whole repo), and an unscoped '**/*.h' can match
-      # dangling header-store symlinks in example/ios/Pods left from a
-      # previous install, crashing `pod install` on realpath.
-      ss.private_header_files = 'ios/NewArch/**/*.h'
-    end
+  s.subspec "NewArch" do |ss|
+    ss.source_files = "ios/NewArch/**/*.{h,m,mm}"
+    # These headers contain c++ code so make sure they are private to avoid
+    # being exported to the umbrella header, which is used by swift interop.
+    # The pattern must stay scoped to this subspec's own files: CocoaPods
+    # globs private_header_files against the entire pod root (for a
+    # development pod, the whole repo), and an unscoped '**/*.h' can match
+    # dangling header-store symlinks in example/ios/Pods left from a
+    # previous install, crashing `pod install` on realpath.
+    ss.private_header_files = 'ios/NewArch/**/*.h'
   end
 end

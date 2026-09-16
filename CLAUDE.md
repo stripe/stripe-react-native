@@ -22,8 +22,7 @@ Example: `GH_HOST=github.com gh pr create --repo stripe/stripe-react-native --ti
 
 When searching issues, always use `--state all` to include closed/resolved issues. Check GitHub issues for similar problems before investigating user reports.
 
-## Old Architecture Compatibility
+## React Native Architecture
 
-The SDK maintains old architecture compat via `patches/old-arch-codegen-fix.patch`.
-When modifying `src/specs/NativeStripeSdkModule.ts`, the patch must also be updated.
-See CONTRIBUTING.md "Maintaining the Stripe old-architecture patch" for the procedure.
+The SDK requires the new architecture on iOS and Android. Native specs are generated from `src/specs` during builds.
+Keep the event-emitter compatibility layers in `src/events.ts`, `EventEmitterCompat.kt`, and `ios/StripeSdkEventEmitterCompat.{h,m}` until support for React Native < 0.80 is dropped.
