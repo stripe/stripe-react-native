@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 @_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
+import UIKit
 
 /// Owns a native Checkout controller and its session observation for the bridge.
 @MainActor
@@ -8,6 +9,7 @@ final class NativeCheckoutControllerInstance {
     private enum Status: String {
         case ready
         case updating
+        case confirming
     }
 
     let checkout: CheckoutController
@@ -18,6 +20,10 @@ final class NativeCheckoutControllerInstance {
     private var controllerId: String?
     private var destructionObservers: [UUID: () -> Void] = [:]
     private var isDestroyed = false
+    private var confirmation: (
+        task: Task<Void, Never>,
+        completion: (Result<CheckoutController.ConfirmResult, Error>) -> Void
+    )?
     private var serverUpdates: [String: CheckoutServerUpdate] = [:]
 
     init(
@@ -39,8 +45,28 @@ final class NativeCheckoutControllerInstance {
             .sink { [weak self] session, isUpdating in
                 guard let self, !isDestroyed else { return }
                 self.session = session
-                emit(status: isUpdating ? .updating : .ready)
+                emit(status: confirmation != nil ? .confirming : (isUpdating ? .updating : .ready))
             }
+    }
+
+    /// Adapts native confirmation to the lifetime of this bridge controller.
+    func confirm(
+        from presenter: UIViewController,
+        completion: @escaping (Result<CheckoutController.ConfirmResult, Error>) -> Void
+    ) throws {
+        guard !isDestroyed else { throw CheckoutBridgeError.destroyed }
+        guard confirmation == nil else { throw CheckoutBridgeError.confirmationInProgress }
+        let task = Task { @MainActor [weak self, checkout] in
+            guard !Task.isCancelled else { return }
+            let result = await checkout.confirm(from: presenter)
+            guard let self, let confirmation else { return }
+            self.confirmation = nil
+            session = CheckoutSessionSerializer.serialize(checkout.session)
+            emit(status: checkout.isUpdating ? .updating : .ready)
+            confirmation.completion(.success(result))
+        }
+        confirmation = (task, completion)
+        emit(status: .confirming)
     }
 
     func runServerUpdate(
@@ -79,6 +105,11 @@ final class NativeCheckoutControllerInstance {
     func destroy() {
         guard !isDestroyed else { return }
         isDestroyed = true
+        if let confirmation {
+            self.confirmation = nil
+            confirmation.task.cancel()
+            confirmation.completion(.failure(CancellationError()))
+        }
         let observers = Array(destructionObservers.values)
         destructionObservers.removeAll()
         observers.forEach { $0() }

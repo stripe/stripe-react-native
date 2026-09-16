@@ -84,13 +84,7 @@ extension StripeSdkImpl {
     ) {
         performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { _ in
             // TODO(porter): Forward email updates once the iOS SDK exposes CheckoutController.updateEmail.
-            throw NSError(
-                domain: "StripeReactNativeCheckout",
-                code: 0,
-                userInfo: [
-                    NSLocalizedDescriptionKey: "The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.",
-                ]
-            )
+            throw CheckoutBridgeError.nativeAPINotAvailable("updateEmail")
         }
     }
 
@@ -139,6 +133,37 @@ extension StripeSdkImpl {
     ) {
         performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
             try await instance.checkout.clearPaymentOption()
+        }
+    }
+
+    @objc(confirmCheckout:resolver:rejecter:)
+    public func confirmCheckout(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self, let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            guard let presenter = RCTPresentedViewController(),
+                  presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
+                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                return
+            }
+            do {
+                try instance.confirm(from: presenter) { result in
+                    switch result {
+                    case .success(let result):
+                        resolve(CheckoutSessionSerializer.serialize(result))
+                    case .failure(let error):
+                        reject(checkoutErrorCode(for: error), error.localizedDescription, error)
+                    }
+                }
+            } catch {
+                reject(checkoutErrorCode(for: error), error.localizedDescription, error)
+            }
         }
     }
 
@@ -238,8 +263,4 @@ extension StripeSdkImpl {
             }
         }
     }
-}
-
-private func checkoutErrorCode(for error: Error) -> String {
-    error is CancellationError ? "Canceled" : "Failed"
 }

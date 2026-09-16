@@ -181,8 +181,8 @@ export namespace Checkout {
     | {
         /** The customer completed the payment flow. */
         status: 'completed';
-        /** The payment status after Checkout completed. */
-        paymentStatus: PaymentStatus;
+        /** The payment status after Checkout completed. Android includes this when the native session reports it. */
+        paymentStatus?: PaymentStatus;
       }
     | {
         /** The customer canceled the payment flow. */
