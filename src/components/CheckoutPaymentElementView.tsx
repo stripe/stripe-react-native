@@ -1,20 +1,46 @@
-import type React from 'react';
+import React, { useState } from 'react';
+import { getCheckoutPaymentElementId } from '../checkout/createCheckout';
+import NativeCheckoutPaymentElement from '../specs/NativeCheckoutPaymentElement';
 import type { CheckoutPaymentElementViewProps } from '../types/Checkout';
 
-const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
-  'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
-
 /**
- * Renders the Checkout-owned Payment Element inline.
+ * Renders the Checkout-owned Payment Element inline and follows its native height.
  *
  * @remarks
  * This API is in private preview and can change without notice.
  *
  * @CheckoutSessionPrivatePreview
  */
-export function CheckoutPaymentElementView(
-  _props: CheckoutPaymentElementViewProps
-): React.JSX.Element {
-  // TODO(porter): Render Checkout Payment Element with a native component.
-  throw new Error(CHECKOUT_NOT_IMPLEMENTED_MESSAGE);
+export function CheckoutPaymentElementView({
+  element,
+  ...props
+}: CheckoutPaymentElementViewProps): React.JSX.Element {
+  const controllerId = getCheckoutPaymentElementId(element);
+  return (
+    <MeasuredElement
+      key={controllerId}
+      controllerId={controllerId}
+      {...props}
+    />
+  );
+}
+
+function MeasuredElement({
+  controllerId,
+  style,
+  ...props
+}: Omit<CheckoutPaymentElementViewProps, 'element'> & {
+  controllerId: string;
+}): React.JSX.Element {
+  const [height, setHeight] = useState(1);
+  return (
+    <NativeCheckoutPaymentElement
+      {...props}
+      controllerId={controllerId}
+      style={[{ height }, style]}
+      onHeightChanged={({ nativeEvent }) => {
+        setHeight(nativeEvent.height);
+      }}
+    />
+  );
 }
