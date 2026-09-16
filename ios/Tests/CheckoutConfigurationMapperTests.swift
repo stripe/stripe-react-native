@@ -182,6 +182,24 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         ))
     }
 
+    func test_map_rejectsFieldsUnavailableInNativeCheckout() {
+        let configurations: [(String, NSDictionary)] = [
+            ("paymentElement.useAutocompleteEndpoints", ["useAutocompleteEndpoints": true]),
+        ] + ["name", "phone", "attachDefaultsToPaymentMethod"].map { field in
+            ("paymentElement.billingDetailsCollectionConfiguration.\(field)",
+             ["billingDetailsCollectionConfiguration": [field: "always"]] as NSDictionary)
+        }
+        for (field, paymentElement) in configurations {
+            XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
+                params: ["paymentElement": paymentElement],
+                merchantIdentifier: nil,
+                didSelectPaymentOption: {}
+            )) { error in
+                XCTAssertEqual(error as? CheckoutConfigurationMapperError, .unsupportedField(field))
+            }
+        }
+    }
+
     private func address(country: String) -> [String: String] {
         [
             "country": country,

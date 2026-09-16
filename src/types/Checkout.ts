@@ -96,7 +96,7 @@ export namespace Checkout {
   export interface CreateOptions {
     /** The Checkout Session client secret. */
     clientSecret: string;
-    /** A URL that redirects back to your app after payment authentication. */
+    /** iOS redirect URL after payment authentication. Android uses native SDK redirect handling. */
     returnURL: string;
     /** Customer information already known by your app. */
     defaults?: Defaults;
@@ -213,7 +213,7 @@ export namespace Checkout {
     billingDetails?: ContactDetails;
     /** The customer's known shipping contact details. */
     shippingDetails?: ContactDetails;
-    /** The customer's known phone number. */
+    /** The customer's known phone number. Currently supported on iOS only. */
     phone?: string;
     /** The customer's known email address. */
     email?: string;
@@ -235,7 +235,7 @@ export namespace Checkout {
    * @CheckoutSessionPrivatePreview
    */
   export interface ApplePayConfiguration {
-    /** ISO 3166-1 alpha-2 country code where the transaction is processed. */
+    /** Reserved for API compatibility. Native Checkout uses the country configured on the session. */
     merchantCountryCode: string;
     /** The type of Apple Pay button to display. */
     buttonType?: ApplePayButtonType;
@@ -269,7 +269,7 @@ export namespace Checkout {
    * @CheckoutSessionPrivatePreview
    */
   export interface GooglePayConfiguration {
-    /** Whether to use the Google Pay test environment. Defaults to `false`. */
+    /** Reserved. Native Checkout selects the environment from the session; supplying this field is unsupported. */
     testEnv?: boolean;
     /** An optional label to display with the amount. */
     label?: string;
@@ -313,6 +313,7 @@ export namespace Checkout {
 
   /**
    * Appearance configuration for Checkout Payment Element.
+   * Android currently supports colors, primaryButton, and formInsetValues.
    * @CheckoutSessionPrivatePreview
    */
   export type PaymentElementAppearance = AppearanceParams;
@@ -325,16 +326,17 @@ export namespace Checkout {
 
   /**
    * Controls how billing details are collected during checkout.
+   * iOS currently supports address only. Android configures collection on the Checkout Session.
    * @CheckoutSessionPrivatePreview
    */
   export interface BillingDetailsCollectionConfiguration {
-    /** How to collect the name field. Defaults to `automatic`. */
+    /** Reserved. Not supported by the released native Checkout SDKs. */
     name?: 'automatic' | 'always';
-    /** How to collect the phone field. Defaults to `automatic`. */
+    /** Reserved. Not supported by the released native Checkout SDKs. */
     phone?: 'automatic' | 'always';
     /** How to collect the billing address. Defaults to `automatic`. */
     address?: 'automatic' | 'full';
-    /** Whether default billing details are attached to the payment method. */
+    /** Reserved. Not supported by the released native Checkout SDKs. */
     attachDefaultsToPaymentMethod?: boolean;
   }
 
@@ -343,7 +345,7 @@ export namespace Checkout {
    * @CheckoutSessionPrivatePreview
    */
   export interface PaymentElementConfiguration {
-    /** Controls how Payment Element asks customers to save payment methods. */
+    /** Controls save-payment-method prompts. Currently supported on iOS only. */
     savePaymentMethodOptInBehavior?: SavePaymentMethodOptInBehavior;
     /** Customizes the appearance of Payment Element. */
     appearance?: PaymentElementAppearance;
@@ -357,7 +359,7 @@ export namespace Checkout {
     paymentMethodOrder?: string[];
     /** Whether the new-card form opens the card scanner automatically. */
     opensCardScannerAutomatically?: boolean;
-    /** Whether Stripe address autocomplete endpoints are used. */
+    /** Reserved. Not supported by the released native Checkout SDKs. */
     useAutocompleteEndpoints?: boolean;
     /** Controls legal agreement text for each payment method type. */
     termsDisplay?: Record<string, TermsDisplay>;

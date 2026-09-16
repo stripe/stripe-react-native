@@ -4,12 +4,15 @@ import PassKit
 
 enum CheckoutConfigurationMapperError: LocalizedError, Equatable {
     case unsupportedValue(path: String, value: String)
+    case unsupportedField(String)
     case missingMerchantIdentifier
 
     var errorDescription: String? {
         switch self {
         case .unsupportedValue(let path, let value):
             return "Unsupported Checkout configuration value `\(value)` for `\(path)`."
+        case .unsupportedField(let field):
+            return "The installed Stripe iOS SDK does not support setting `\(field)` for Checkout."
         case .missingMerchantIdentifier:
             return "Apple Pay requires `merchantIdentifier` in StripeProvider or initStripe."
         }
@@ -97,6 +100,7 @@ enum CheckoutConfigurationMapper {
             return configuration
         }
 
+        try rejectUnsupportedFields(params, path: "paymentElement", fields: ["useAutocompleteEndpoints"])
         if let applePayParams = params["applePay"] as? NSDictionary {
             guard let merchantIdentifier, !merchantIdentifier.isEmpty else {
                 throw CheckoutConfigurationMapperError.missingMerchantIdentifier
@@ -165,6 +169,11 @@ enum CheckoutConfigurationMapper {
         _ params: NSDictionary,
         default defaultConfiguration: PaymentElement.BillingDetailsCollectionConfiguration
     ) throws -> PaymentElement.BillingDetailsCollectionConfiguration {
+        try rejectUnsupportedFields(
+            params,
+            path: "paymentElement.billingDetailsCollectionConfiguration",
+            fields: ["name", "phone", "attachDefaultsToPaymentMethod"]
+        )
         var configuration = defaultConfiguration
         if let address = params["address"] as? String {
             configuration.address = try mapAddressCollectionMode(address)
@@ -283,6 +292,14 @@ enum CheckoutConfigurationMapper {
         case "alwaysDark": return .alwaysDark
         case "automatic": return .automatic
         default: throw unsupported(value, at: "style")
+        }
+    }
+
+    private static func rejectUnsupportedFields(_ params: NSDictionary, path: String, fields: [String]) throws {
+        for field in fields {
+            if let value = params[field], !(value is NSNull) {
+                throw CheckoutConfigurationMapperError.unsupportedField("\(path).\(field)")
+            }
         }
     }
 

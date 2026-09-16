@@ -8,6 +8,7 @@ import com.facebook.react.bridge.ReadableType
 import com.reactnativestripesdk.getFontResId
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.forEachKey
+import com.reactnativestripesdk.utils.getFloatOr
 import com.reactnativestripesdk.utils.getFloatOrNull
 import com.reactnativestripesdk.utils.getIntegerList
 import com.reactnativestripesdk.utils.getStringList
@@ -16,11 +17,11 @@ import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CheckoutSessionPreview
+import com.stripe.android.uicore.StripeThemeDefaults
 
 @OptIn(CheckoutSessionPreview::class)
 internal data class MappedCheckoutConfiguration(
   val clientSecret: String,
-  val returnURL: String,
   val configuration: CheckoutController.Configuration,
   val rowSelectionBehavior: PaymentElement.RowSelectionBehavior,
 )
@@ -34,7 +35,6 @@ internal object CheckoutConfigurationMapper {
     didSelectPaymentOption: () -> Unit,
   ): MappedCheckoutConfiguration {
     val clientSecret = params.getString("clientSecret").orEmpty()
-    val returnURL = params.getString("returnURL").orEmpty()
     val paymentElementParams = params.getMap("paymentElement")
 
     val configuration = CheckoutController.Configuration()
@@ -50,7 +50,6 @@ internal object CheckoutConfigurationMapper {
 
     return MappedCheckoutConfiguration(
       clientSecret = clientSecret,
-      returnURL = returnURL,
       configuration = configuration,
       rowSelectionBehavior = mapRowSelectionBehavior(paymentElementParams, didSelectPaymentOption),
     )
@@ -67,8 +66,7 @@ internal object CheckoutConfigurationMapper {
     if (params.hasKey("email")) {
       defaults.email(params.getString("email"))
     }
-    // TODO(porter): Uncomment when the reviewed native setter ships.
-    // defaults.phone(params.getString("phone"))
+    rejectUnsupportedFields(params, "defaults", "phone")
     return defaults
   }
 
@@ -110,10 +108,7 @@ internal object CheckoutConfigurationMapper {
       configuration.embeddedViewDisplaysMandateText(params.getBoolean("displaysMandateText"))
     }
 
-    // TODO(porter): Uncomment when the reviewed native setter ships.
-    // configuration.savePaymentMethodOptInBehavior(
-    //   mapSavePaymentMethodOptInBehavior(params.getString("savePaymentMethodOptInBehavior")),
-    // )
+    rejectUnsupportedFields(params, "paymentElement", "savePaymentMethodOptInBehavior", "useAutocompleteEndpoints")
     params.getIntegerList("preferredNetworks")?.let {
       configuration.preferredNetworks(mapPreferredNetworks(it))
     }
@@ -182,10 +177,8 @@ internal object CheckoutConfigurationMapper {
       params.getString("label")?.let(::label)
       params.getString("buttonType")?.let { buttonType(mapGooglePayButtonType(it)) }
       params.getStringList("additionalEnabledNetworks")?.let(::additionalEnabledNetworks)
-      // TODO(porter): Uncomment when the reviewed native environment initializer ships.
-      // environment(
-      //   if (params.getBooleanOr("testEnv", false)) Environment.Test else Environment.Production,
-      // )
+      // Native Checkout derives the Google Pay environment from the session and build type.
+      rejectUnsupportedFields(params, "paymentElement.googlePay", "testEnv")
     }
 
   internal fun mapGooglePayButtonType(
@@ -243,8 +236,18 @@ internal object CheckoutConfigurationMapper {
     }
     params?.getMap("primaryButton")?.let { appearance.primaryButton(mapPrimaryButton(it, context)) }
 
-    // TODO(porter): Map partial formInsetValues when the reviewed native setter ships.
-    // TODO(porter): Map root font, shapes, and embedded appearance when their reviewed setters ship.
+    params?.getMap("formInsetValues")?.let { insets ->
+      val defaults = StripeThemeDefaults.formInsets
+      appearance.formInsetValues(
+        PaymentElement.Configuration.Appearance.Insets(
+          startDp = insets.getFloatOr("left", defaults.start),
+          topDp = insets.getFloatOr("top", defaults.top),
+          endDp = insets.getFloatOr("right", defaults.end),
+          bottomDp = insets.getFloatOr("bottom", defaults.bottom),
+        ),
+      )
+    }
+    params?.let { rejectUnsupportedFields(it, "paymentElement.appearance", "font", "shapes", "embeddedPaymentElement") }
     return appearance
   }
 
@@ -322,6 +325,14 @@ internal object CheckoutConfigurationMapper {
     params.color("successBackgroundColor", isLight)?.let(colors::successBackgroundColor)
     params.color("successTextColor", isLight)?.let(colors::onSuccessBackgroundColor)
     return colors
+  }
+
+  private fun rejectUnsupportedFields(params: ReadableMap, path: String, vararg fields: String) {
+    for (field in fields) {
+      require(!params.hasKey(field) || params.isNull(field)) {
+        "The installed Stripe Android SDK does not support setting `$path.$field` for Checkout."
+      }
+    }
   }
 
   private fun ReadableMap?.color(key: String, isLight: Boolean): Int? {
