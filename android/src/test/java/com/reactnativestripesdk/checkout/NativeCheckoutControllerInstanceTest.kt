@@ -1,12 +1,14 @@
 package com.reactnativestripesdk.checkout
 
 import android.graphics.drawable.ColorDrawable
+import androidx.activity.ComponentActivity
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutController
+import com.stripe.android.checkout.CheckoutPresenter
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.utils.mapAsStateFlow
 import kotlinx.coroutines.CancellationException
@@ -14,6 +16,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
@@ -37,6 +40,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
 @OptIn(CheckoutSessionPreview::class)
@@ -147,6 +151,80 @@ class NativeCheckoutControllerInstanceTest {
     assertEquals("ready", fixture.events.last().getString("status"))
   }
 
+  @Test
+  fun `confirmation waits for native and publishes its session before completing`() = withFixture { fixture ->
+    fixture.start()
+    val pending = async { fixture.instance.confirm(fixture.activity.get()) }
+    runCurrent()
+    verify(fixture.presenter).confirm()
+    assertFalse(pending.isCompleted)
+    fixture.updating.value = true
+    runCurrent()
+    assertEquals("confirming", fixture.events.last().getString("status"))
+
+    fixture.sessions.value = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
+    fixture.updating.value = false
+    val completed = NativeCheckoutFixtures.completedResult()
+    fixture.instance.onConfirmationResult(completed)
+    fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+    assertEquals(completed, pending.await())
+    assertEquals("complete", fixture.events.last().getMap("session")!!.getMap("status")!!.getString("type"))
+    assertEquals("ready", fixture.events.last().getString("status"))
+  }
+
+  @Test
+  fun `second confirmation cannot replace a pending call and canceled attempts can retry`() = withFixture { fixture ->
+    fixture.start()
+    val first = async { fixture.instance.confirm(fixture.activity.get()) }
+    runCurrent()
+    val secondError = runCatching { fixture.instance.confirm(fixture.activity.get()) }.exceptionOrNull()
+    assertEquals("Checkout confirmation is already in progress.", secondError?.message)
+    assertFalse(first.isCompleted)
+    verify(fixture.presenter, times(1)).confirm()
+    val canceled = NativeCheckoutFixtures.canceledResult()
+    fixture.instance.onConfirmationResult(canceled)
+    assertEquals(canceled, first.await())
+
+    doAnswer {
+      fixture.instance.onConfirmationResult(canceled)
+      null
+    }.`when`(fixture.presenter).confirm()
+    assertEquals(canceled, fixture.instance.confirm(fixture.activity.get()))
+    verify(fixture.controller, times(1)).createPresenter(fixture.activity.get())
+  }
+
+  @Test
+  fun `native invocation failure clears pending confirmation`() = withFixture { fixture ->
+    fixture.start()
+    doAnswer { throw IllegalStateException("Native failure") }.`when`(fixture.presenter).confirm()
+    val error = runCatching { fixture.instance.confirm(fixture.activity.get()) }.exceptionOrNull()
+    assertEquals("Native failure", error?.message)
+    assertEquals("ready", fixture.events.last().getString("status"))
+    val canceled = NativeCheckoutFixtures.canceledResult()
+    doAnswer {
+      fixture.instance.onConfirmationResult(canceled)
+      null
+    }.`when`(fixture.presenter).confirm()
+    assertEquals(canceled, fixture.instance.confirm(fixture.activity.get()))
+  }
+
+  @Test
+  fun `destruction cancels pending confirmation and ignores late callbacks`() = withFixture { fixture ->
+    fixture.start()
+    var cancellation: Throwable? = null
+    fixture.instance.launchMutation {
+      cancellation = runCatching { fixture.instance.confirm(fixture.activity.get()) }.exceptionOrNull()
+    }
+    fixture.instance.destroy()
+    runCurrent()
+    assertTrue(cancellation is CancellationException)
+    val eventCount = fixture.events.size
+    fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
+    runCurrent()
+    assertEquals(eventCount, fixture.events.size)
+    assertEquals("destroyed", fixture.events.last().getString("status"))
+  }
+
   private fun withFixture(test: suspend TestScope.(Fixture) -> Unit) = runTest {
     Dispatchers.setMain(StandardTestDispatcher(testScheduler))
     val fixture = Fixture()
@@ -160,6 +238,8 @@ class NativeCheckoutControllerInstanceTest {
 
   private class Fixture {
     val controller = mock(CheckoutController::class.java)
+    val presenter = mock(CheckoutPresenter::class.java)
+    val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     val sessions = MutableStateFlow<CheckoutController.Session?>(checkoutSession())
     val updating = MutableStateFlow(false)
@@ -167,6 +247,7 @@ class NativeCheckoutControllerInstanceTest {
     val instance: NativeCheckoutControllerInstance
 
     init {
+      `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
       `when`(controller.session).thenReturn(sessions)
       `when`(controller.isUpdating).thenReturn(updating)
       val context = mock(ReactApplicationContext::class.java)
@@ -193,6 +274,7 @@ class NativeCheckoutControllerInstanceTest {
     suspend fun close() {
       instance.destroy()
       scope.coroutineContext.job.join()
+      activity.pause().stop().destroy()
     }
   }
 }

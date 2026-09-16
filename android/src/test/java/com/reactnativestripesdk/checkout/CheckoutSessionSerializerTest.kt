@@ -19,6 +19,26 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class CheckoutSessionSerializerTest {
   @Test
+  fun `confirmation results preserve native outcomes and available payment status`() {
+    val completed = NativeCheckoutFixtures.completedResult()
+    val paid = CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.completeStatus())
+    assertEquals("completed", paid.getString("status"))
+    assertEquals("paid", paid.getString("paymentStatus"))
+    val unrefreshed = CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.openStatus())
+    assertEquals("completed", unrefreshed.getString("status"))
+    assertFalse(unrefreshed.hasKey("paymentStatus"))
+    val canceled = CheckoutSessionSerializer.serialize(NativeCheckoutFixtures.canceledResult(), null)
+    assertEquals("canceled", canceled.getString("status"))
+    val failed = CheckoutSessionSerializer.serialize(
+      NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")),
+      null,
+    )
+    assertEquals("failed", failed.getString("status"))
+    assertEquals("Failed", failed.getMap("error")!!.getString("code"))
+    assertEquals("Declined", failed.getMap("error")!!.getString("message"))
+  }
+
+  @Test
   fun `serialize preserves session status and native order amounts`() = runTest {
     val statuses = listOf(
       NativeCheckoutFixtures.openStatus() to "open",

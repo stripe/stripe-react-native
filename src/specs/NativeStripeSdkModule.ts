@@ -280,6 +280,9 @@ export interface Spec extends TurboModule {
   clearCheckoutPaymentOption(controllerId: string): Promise<void>;
 
   /** @CheckoutSessionPrivatePreview */
+  confirmCheckout(controllerId: string): Promise<UnsafeObject<Checkout.Result>>;
+
+  /** @CheckoutSessionPrivatePreview */
   presentCheckoutPaymentElement(controllerId: string): Promise<void>;
 
   /** @CheckoutSessionPrivatePreview */
