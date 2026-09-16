@@ -8,6 +8,19 @@ import {
   createCheckoutBridgeId,
 } from './CheckoutControllerEventEmitter';
 
+const controllerIds = new WeakMap<CheckoutController, string>();
+
+/** Looks up a controller created by this bridge without exposing its native ID. */
+export function getCheckoutControllerId(
+  controller: CheckoutController
+): string {
+  const id = controllerIds.get(controller);
+  if (!id) {
+    throw new Error('Checkout controller was not created by this SDK.');
+  }
+  return id;
+}
+
 const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
   'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
 const CHECKOUT_DESTROYED_MESSAGE = 'This Checkout controller was destroyed.';
@@ -32,7 +45,8 @@ function checkoutError(
   return error;
 }
 
-function normalizeCheckoutError(error: unknown): CheckoutOperationError {
+/** Preserves native error codes and wraps untyped bridge failures. */
+export function normalizeCheckoutError(error: unknown): CheckoutOperationError {
   if (error instanceof Error) {
     const code = (error as Partial<CheckoutOperationError>).code;
     if (code && checkoutErrorCodes.has(code)) {
@@ -123,7 +137,7 @@ export async function createCheckout(
       present: notImplemented,
     };
 
-    return {
+    const controller: CheckoutController = {
       get status() {
         return status;
       },
@@ -175,6 +189,8 @@ export async function createCheckout(
         return destroyPromise;
       },
     };
+    controllerIds.set(controller, controllerId);
+    return controller;
   } catch (error) {
     subscription.remove();
     selectionSubscription.remove();
