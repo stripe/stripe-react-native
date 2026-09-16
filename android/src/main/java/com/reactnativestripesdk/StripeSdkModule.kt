@@ -1566,6 +1566,37 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun runCheckoutServerUpdate(controllerId: String, operationId: String, promise: Promise) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      val instance = checkoutControllers.getValue(controllerId)
+      controller.runServerUpdate {
+        instance.serverUpdateCallbacks.request(operationId) {
+          eventEmitter.emitCheckoutServerUpdateRequested(
+            Arguments.createMap().apply {
+              putString("controllerId", controllerId)
+              putString("operationId", operationId)
+            },
+          )
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun completeCheckoutServerUpdate(
+    controllerId: String,
+    operationId: String,
+    error: String?,
+    promise: Promise,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      instance?.serverUpdateCallbacks?.complete(operationId, error)
+      promise.resolve(null)
+    }
+  }
+
   @Suppress("TooGenericExceptionCaught")
   private fun performCheckoutMutation(
     controllerId: String,
