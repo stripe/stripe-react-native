@@ -1,5 +1,6 @@
 import type { Checkout, CheckoutController } from '../types/Checkout';
 import type { StripeError } from '../types/Errors';
+import { runServerUpdate } from './runServerUpdate';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import {
   addCheckoutControllerListener,
@@ -149,8 +150,8 @@ export async function createCheckout(
         performOperation(() =>
           NativeStripeSdk.removeCheckoutPromotionCode(controllerId)
         ),
-      // TODO(porter): Bridge the Checkout server-update handshake.
-      runServerUpdate: notImplemented,
+      runServerUpdate: (serverUpdate) =>
+        performOperation(() => runServerUpdate(controllerId, serverUpdate)),
       clearPaymentOption: () =>
         performOperation(() =>
           NativeStripeSdk.clearCheckoutPaymentOption(controllerId)
