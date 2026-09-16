@@ -116,6 +116,57 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         }
     }
 
+    func test_confirmationRejectsConcurrentAttemptsAndSettlesOnDestruction() async throws {
+        let checkout = try await makeCheckout()
+        var statuses: [String] = []
+        let instance = NativeCheckoutControllerInstance(checkout: checkout) { event in
+            statuses.append(event["status"] as! String)
+        }
+        instance.start(controllerId: "confirming")
+        var results: [Result<CheckoutController.ConfirmResult, Error>] = []
+        let presenter = UIViewController()
+
+        try instance.confirm(from: presenter) { results.append($0) }
+        XCTAssertEqual(statuses.last, "confirming")
+        XCTAssertThrowsError(try instance.confirm(from: presenter) { _ in
+            XCTFail("A second confirmation must not start.")
+        })
+        instance.destroy()
+        await Task.yield()
+
+        XCTAssertEqual(results.count, 1)
+        guard case .failure(let error) = results.first else {
+            return XCTFail("Destruction must reject pending confirmation.")
+        }
+        XCTAssertTrue(error is CancellationError)
+        XCTAssertEqual(statuses, ["ready", "confirming", "destroyed"])
+        XCTAssertThrowsError(try instance.confirm(from: presenter) { _ in
+            XCTFail("A destroyed controller must not confirm.")
+        })
+    }
+
+    func test_nativeConfirmationFailureRestoresReady() async throws {
+        let checkout = try await makeCheckout()
+        var statuses: [String] = []
+        let instance = NativeCheckoutControllerInstance(checkout: checkout) { event in
+            statuses.append(event["status"] as! String)
+        }
+        instance.start(controllerId: "confirm-failure")
+        defer { instance.destroy() }
+        let finished = expectation(description: "Native confirmation result")
+        try instance.confirm(from: UIViewController()) { result in
+            guard case .success(.failed) = result else {
+                XCTFail("Native Checkout should reject confirmation without a payment option.")
+                finished.fulfill()
+                return
+            }
+            finished.fulfill()
+        }
+        await fulfillment(of: [finished], timeout: 2)
+        XCTAssertEqual(statuses.last, "ready")
+        XCTAssertTrue(statuses.contains("confirming"))
+    }
+
     private func makeCheckout() async throws -> CheckoutController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]

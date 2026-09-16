@@ -83,7 +83,7 @@ extension StripeSdkImpl {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { _ in
-            throw CheckoutMutationBridgeError.nativeAPINotAvailable("updateEmail")
+            throw CheckoutBridgeError.nativeAPINotAvailable("updateEmail")
         }
     }
 
@@ -132,6 +132,37 @@ extension StripeSdkImpl {
     ) {
         performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
             instance.checkout.clearPaymentOption()
+        }
+    }
+
+    @objc(confirmCheckout:resolver:rejecter:)
+    public func confirmCheckout(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self, let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            guard let presenter = RCTPresentedViewController(),
+                  presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
+                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                return
+            }
+            do {
+                try instance.confirm(from: presenter) { result in
+                    switch result {
+                    case .success(let result):
+                        resolve(CheckoutSessionSerializer.serialize(result))
+                    case .failure(let error):
+                        reject(CheckoutErrorMapper.code(for: error).rawValue, error.localizedDescription, error)
+                    }
+                }
+            } catch {
+                reject(CheckoutErrorMapper.code(for: error).rawValue, error.localizedDescription, error)
+            }
         }
     }
 

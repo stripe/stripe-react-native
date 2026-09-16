@@ -1542,6 +1542,12 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  override fun confirmCheckout(controllerId: String, promise: Promise) {
+    // SDK 23.19 can return without calling its confirmation callback. A promise cannot safely wrap it.
+    promise.reject("Failed", "Checkout confirmation requires Android native support for a result on every attempt.")
+  }
+
+  @ReactMethod
   @Suppress("TooGenericExceptionCaught")
   override fun presentCheckoutPaymentElement(controllerId: String, promise: Promise) {
     UiThreadUtil.runOnUiThread {
