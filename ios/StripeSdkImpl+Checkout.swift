@@ -74,4 +74,94 @@ extension StripeSdkImpl {
             resolve(nil)
         }
     }
+
+    @objc(updateCheckoutEmail:email:resolver:rejecter:)
+    public func updateCheckoutEmail(
+        controllerId: String,
+        email: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { _ in
+            throw CheckoutMutationBridgeError.nativeAPINotAvailable("updateEmail")
+        }
+    }
+
+    @objc(updateCheckoutShippingAddress:params:resolver:rejecter:)
+    public func updateCheckoutShippingAddress(
+        controllerId: String,
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            let name = params["name"] as? String
+            let address = CheckoutConfigurationMapper.mapAddress(params["address"] as? NSDictionary)
+            try await instance.checkout.updateShippingAddress(name: name, address: address)
+        }
+    }
+
+    @objc(applyCheckoutPromotionCode:promotionCode:resolver:rejecter:)
+    public func applyCheckoutPromotionCode(
+        controllerId: String,
+        promotionCode: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            try await instance.checkout.applyPromotionCode(promotionCode)
+        }
+    }
+
+    @objc(removeCheckoutPromotionCode:resolver:rejecter:)
+    public func removeCheckoutPromotionCode(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            try await instance.checkout.removePromotionCode()
+        }
+    }
+
+    @objc(clearCheckoutPaymentOption:resolver:rejecter:)
+    public func clearCheckoutPaymentOption(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            instance.checkout.clearPaymentOption()
+        }
+    }
+
+    private func performCheckoutMutation(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock,
+        operation: @escaping @MainActor (NativeCheckoutControllerInstance) async throws -> Void
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self,
+                  let instance = checkoutControllers[controllerId] else {
+                reject(CheckoutBridgeErrorCode.failed.rawValue, "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            do {
+                try await operation(instance)
+                let registeredInstance = checkoutControllers[controllerId]
+                guard registeredInstance === instance else {
+                    reject(
+                        CheckoutBridgeErrorCode.canceled.rawValue,
+                        "The Checkout controller was destroyed before the operation completed.",
+                        nil
+                    )
+                    return
+                }
+                resolve(nil)
+            } catch {
+                reject(CheckoutErrorMapper.code(for: error).rawValue, error.localizedDescription, error)
+            }
+        }
+    }
 }

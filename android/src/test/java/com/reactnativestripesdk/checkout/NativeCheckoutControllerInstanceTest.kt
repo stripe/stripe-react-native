@@ -9,6 +9,7 @@ import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.utils.mapAsStateFlow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +27,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
@@ -63,6 +65,23 @@ class NativeCheckoutControllerInstanceTest {
     assertEquals(countAfterDestroy, fixture.events.size)
     assertFalse(fixture.scope.isActive)
     verify(fixture.controller, times(1)).destroy()
+  }
+
+  @Test
+  fun `destroy cancels a mutation before observation is dispatched`() = withFixture { fixture ->
+    fixture.start()
+    var canceled = false
+    fixture.instance.launchMutation {
+      try {
+        awaitCancellation()
+      } catch (_: CancellationException) {
+        canceled = true
+      }
+    }
+    fixture.instance.destroy()
+    advanceUntilIdle()
+
+    assertTrue(canceled)
   }
 
   @Test
