@@ -1,8 +1,8 @@
 /**
- * Compatibility helper to use new arch events if available and fallback
- * to NativeEventEmitter or DeviceEventEmitter.
+ * Compatibility helper for new architecture events using NativeEventEmitter
+ * or DeviceEventEmitter on React Native versions before 0.80.
  *
- * Can be removed once we no longer need to support the old arch and use
+ * Can be removed once we no longer need to support React Native < 0.80 and use
  * the methods on NativeStripeSdkModule directly.
  */
 

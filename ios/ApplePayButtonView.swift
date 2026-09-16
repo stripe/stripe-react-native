@@ -5,6 +5,7 @@ import UIKit
 
 @objc(ApplePayButtonView)
 public class ApplePayButtonView: UIView {
+
     var applePayButton: PKPaymentButton?
 
     @objc public var onShippingMethodSelectedAction: RCTDirectEventBlock?
@@ -47,12 +48,6 @@ public class ApplePayButtonView: UIView {
             applePayButton.addTarget(self, action: #selector(handleApplePayButtonTapped), for: .touchUpInside)
             self.addSubview(applePayButton)
         }
-    }
-
-    override public func didSetProps(_ changedProps: [String]!) {
-        // This is only called on old arch, for new arch didSetProps() will be called
-        // by the view component.
-        self.didSetProps()
     }
 
     override public init(frame: CGRect) {
