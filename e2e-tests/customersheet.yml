@@ -25,23 +25,25 @@ appId: ${APP_ID}
 - tapOn:
     text: "Done"
     optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save"
+    centerElement: true
 - tapOn: "Save"
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - extendedWaitUntil:
-          visible: "Confirm"
-          timeout: 30000
-      - tapOn: "Confirm"
 - runFlow:
     when:
       platform: iOS
     commands:
       - extendedWaitUntil:
-          visible: .*4242
+          visible:
+            id: ".*4242.*"
           timeout: 30000
-      - tapOn: .*4242
+      - tapOn:
+          id: ".*4242.*"
+- extendedWaitUntil:
+    visible: "Confirm"
+    timeout: 30000
+- tapOn: "Confirm"
 - extendedWaitUntil:
     visible:
       id: "customer-sheet-selected-payment-option"
