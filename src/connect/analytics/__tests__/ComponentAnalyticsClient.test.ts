@@ -15,6 +15,7 @@ describe('ComponentAnalyticsClient', () => {
   let sendEventSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
 
     mockAnalyticsClient = new AnalyticsClient({
@@ -36,6 +37,10 @@ describe('ComponentAnalyticsClient', () => {
       livemode: false,
       component: 'payments',
     });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('constructor', () => {
@@ -73,8 +78,7 @@ describe('ComponentAnalyticsClient', () => {
       const estimatedLoadStart = Date.now() - timeToLoad * 1000;
 
       expect(estimatedLoadStart).toBeGreaterThanOrEqual(beforeCreate);
-      // Allow 10ms tolerance for CI timing variability
-      expect(estimatedLoadStart).toBeLessThanOrEqual(afterCreate + 10);
+      expect(estimatedLoadStart).toBeLessThanOrEqual(afterCreate);
     });
   });
 
@@ -150,16 +154,12 @@ describe('ComponentAnalyticsClient', () => {
       expect(sendEventSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should calculate time_to_load in seconds', (done) => {
-      // Wait 100ms then log
-      setTimeout(() => {
-        componentAnalytics.logComponentWebPageLoaded();
+    it('should calculate time_to_load in seconds', () => {
+      jest.advanceTimersByTime(100);
+      componentAnalytics.logComponentWebPageLoaded();
 
-        const payload = sendEventSpy.mock.calls[0][0] as any;
-        expect(payload.time_to_load).toBeGreaterThanOrEqual(0.1); // At least 100ms = 0.1s
-        expect(payload.time_to_load).toBeLessThan(1); // Less than 1 second
-        done();
-      }, 100);
+      const payload = sendEventSpy.mock.calls[0][0] as any;
+      expect(payload.time_to_load).toBe(0.1);
     });
   });
 
@@ -456,30 +456,23 @@ describe('ComponentAnalyticsClient', () => {
   });
 
   describe('timing calculations', () => {
-    it('should calculate perceived_time_to_load correctly', (done) => {
+    it('should calculate perceived_time_to_load correctly', () => {
+      jest.advanceTimersByTime(100);
       componentAnalytics.logComponentViewed();
+      jest.advanceTimersByTime(50);
+      componentAnalytics.logComponentLoaded();
 
-      setTimeout(() => {
-        componentAnalytics.logComponentLoaded();
-
-        const payload = sendEventSpy.mock.calls[1][0] as any;
-        expect(payload.perceived_time_to_load).toBeGreaterThanOrEqual(0.04); // At least 40ms
-        // perceived_time_to_load should be less than or equal to time_to_load
-        expect(payload.perceived_time_to_load).toBeLessThanOrEqual(
-          (payload.time_to_load || 0) + 0.01 // Allow 10ms tolerance
-        );
-        done();
-      }, 50);
+      const payload = sendEventSpy.mock.calls[1][0] as any;
+      expect(payload.perceived_time_to_load).toBe(0.05);
+      expect(payload.time_to_load).toBe(0.15);
     });
 
-    it('should measure time from construction to page load', (done) => {
-      setTimeout(() => {
-        componentAnalytics.logComponentWebPageLoaded();
+    it('should measure time from construction to page load', () => {
+      jest.advanceTimersByTime(50);
+      componentAnalytics.logComponentWebPageLoaded();
 
-        const payload = sendEventSpy.mock.calls[0][0] as any;
-        expect(payload.time_to_load).toBeGreaterThanOrEqual(0.04); // At least 40ms
-        done();
-      }, 50);
+      const payload = sendEventSpy.mock.calls[0][0] as any;
+      expect(payload.time_to_load).toBe(0.05);
     });
   });
 });
