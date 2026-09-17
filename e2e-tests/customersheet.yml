@@ -35,6 +35,16 @@ appId: ${APP_ID}
       visible: "Confirm"
     commands:
       - tapOn: "Confirm"
+- runFlow:
+    when:
+      visible: "Close"
+    commands:
+      - tapOn: "Close"
+- runFlow:
+    when:
+      visible: "Canceled"
+    commands:
+      - tapOn: "OK"
 - extendedWaitUntil:
     visible:
       id: "customer-sheet-selected-payment-option"
