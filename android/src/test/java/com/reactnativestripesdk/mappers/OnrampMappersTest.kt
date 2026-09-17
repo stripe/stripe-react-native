@@ -16,11 +16,13 @@ import com.reactnativestripesdk.mapOnrampPaymentMethodSelection
 import com.reactnativestripesdk.mapPaymentDetailsType
 import com.reactnativestripesdk.mapSamsungPayConfig
 import com.reactnativestripesdk.mapToComplianceIdentifiers
+import com.reactnativestripesdk.mapToIdType
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
+import com.stripe.android.crypto.onramp.model.IdType
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
 import com.stripe.android.crypto.onramp.model.PaymentMethodSelection
@@ -573,6 +575,40 @@ class OnrampMappersTest {
   }
 
   @Test
+  fun kycInfo_PreservesIdTypes() {
+    val cases =
+      mapOf(
+        "social_security_number" to IdType.SocialSecurityNumber,
+        "ca_sin" to IdType.CanadianSocialInsuranceNumber,
+        "co_nit" to IdType.ColombianTaxIdentificationNumber,
+        "ph_tin" to IdType.PhilippinesTaxpayerIdentificationNumber,
+      )
+
+    for ((value, expectedType) in cases) {
+      val kycInfo =
+        KycInfo(
+          firstName = null,
+          lastName = null,
+          idNumber = "123456789",
+          idType = mapToIdType(value),
+          dateOfBirth = null,
+          address = null,
+        )
+
+      assertEquals(expectedType, kycInfo.idType)
+      val result = mapFromKycInfo(kycInfo)
+      assertEquals("123456789", result.getString("idNumber"))
+      assertEquals(value, result.getString("idType"))
+    }
+  }
+
+  @Test
+  fun mapToIdType_NullOrUnknown_UsesDefault() {
+    assertEquals(IdType.SocialSecurityNumber, mapToIdType(null))
+    assertEquals(IdType.SocialSecurityNumber, mapToIdType("unknown"))
+  }
+
+  @Test
   fun mapFromKycInfo_AllFields() {
     val kycInfo =
       KycInfo(
@@ -602,6 +638,7 @@ class OnrampMappersTest {
     assertEquals("Jane", result.getString("firstName"))
     assertEquals("Doe", result.getString("lastName"))
     assertEquals("123456789", result.getString("idNumber"))
+    assertEquals("social_security_number", result.getString("idType"))
 
     val address = result.getMap("address")
     assertNotNull(address)
@@ -645,6 +682,7 @@ class OnrampMappersTest {
     assertFalse(result.hasKey("firstName"))
     assertFalse(result.hasKey("lastName"))
     assertFalse(result.hasKey("idNumber"))
+    assertEquals("social_security_number", result.getString("idType"))
     assertFalse(result.hasKey("address"))
     assertFalse(result.hasKey("dateOfBirth"))
     assertFalse(result.hasKey("birthCountry"))

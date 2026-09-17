@@ -2377,6 +2377,9 @@ interface IdealResult {
 }
 
 // @public
+type IdType = 'social_security_number' | 'ca_sin' | 'co_nit' | 'ph_tin';
+
+// @public
 type ImmediateCartSummaryItem = {
     paymentType: 'Immediate';
     isPending?: boolean;
@@ -2589,6 +2592,7 @@ type KycInfo = {
     firstName?: string;
     lastName?: string;
     idNumber?: string;
+    idType?: IdType;
     dateOfBirth?: DateOfBirth;
     address?: Address;
     birthCountry?: string;
@@ -2913,6 +2917,7 @@ declare namespace Onramp {
         WalletOwnershipChallenge,
         CryptoConsumerWallet,
         DateOfBirth,
+        IdType,
         KycInfo,
         ComplianceIdentifierType,
         ComplianceRegulation,
