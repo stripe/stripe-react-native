@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## Unreleased
+## 0.77.0 - 2026-09-16
+
+**Changes**
+* Updated Stripe iOS SDK from 26.9.0 to 26.11.0.
+* Updated Stripe Android SDK from 23.17.1 to 23.19.0.
 
 **Features**
 
