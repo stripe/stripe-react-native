@@ -48,6 +48,7 @@
     "ios",
     "jest",
     "stripe-react-native.podspec",
+    "stripe_spm.rb",
     "app.plugin.js",
     "LICENSE",
     "!android/.cxx",
