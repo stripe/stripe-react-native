@@ -50,6 +50,7 @@ class CheckoutConfigurationMapperTest {
                       "dark" to readableMapOf("primary" to "#AABBCC"),
                     ),
                 ),
+              "billingDetailsCollectionConfiguration" to readableMapOf("address" to "full"),
               "preferredNetworks" to readableArrayOf(7, 5),
               "paymentMethodOrder" to readableArrayOf("card", "link"),
               "opensCardScannerAutomatically" to true,
@@ -176,21 +177,6 @@ class CheckoutConfigurationMapperTest {
     assertThrows(IllegalArgumentException::class.java) {
       CheckoutConfigurationMapper.mapTermsDisplay(readableMapOf("card" to "invalid"))
     }
-  }
-
-  @Test
-  fun `map rejects billing collection settings removed by the native SDK`() {
-    val error = assertThrows(IllegalArgumentException::class.java) {
-      CheckoutConfigurationMapper.map(
-        readableMapOf(
-          "paymentElement" to readableMapOf(
-            "billingDetailsCollectionConfiguration" to readableMapOf("address" to "full"),
-          ),
-        ),
-        context,
-      ) {}
-    }
-    assertTrue(error.message.orEmpty().contains("Remove paymentElement.billingDetailsCollectionConfiguration"))
   }
 
   private fun baseParams() =

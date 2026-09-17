@@ -117,12 +117,7 @@ internal object CheckoutConfigurationMapper {
     params.getIntegerList("preferredNetworks")?.let {
       configuration.preferredNetworks(mapPreferredNetworks(it))
     }
-    if (params.getMap("billingDetailsCollectionConfiguration") != null) {
-      throw IllegalArgumentException(
-        "Checkout billing collection is configured on the Checkout Session on Android. " +
-          "Remove paymentElement.billingDetailsCollectionConfiguration.",
-      )
-    }
+    // TODO(porter): Align this RN option with session-controlled billing collection; Android removed client overrides.
     params.getStringList("paymentMethodOrder")?.let(configuration::paymentMethodOrder)
     if (params.hasKey("opensCardScannerAutomatically")) {
       configuration.opensCardScannerAutomatically(params.getBoolean("opensCardScannerAutomatically"))
