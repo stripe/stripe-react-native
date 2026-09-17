@@ -13,9 +13,9 @@ appId: ${APP_ID}
     text: "Collect token"
     retryTapIfNoChange: false
 - extendedWaitUntil:
-    visible: "Agree and continue"
+    visible: "(?i).*continue.*"
     timeout: 60000
-- tapOn: "Agree and continue"
+- tapOn: "(?i).*continue.*"
 - assertVisible:
     text: "Test (Non-OAuth)"
 - tapOn: "Test (Non-OAuth)"
