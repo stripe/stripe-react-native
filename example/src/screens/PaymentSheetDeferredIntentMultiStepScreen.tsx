@@ -213,6 +213,9 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
           variant="primary"
           loading={loading}
           disabled={!paymentMethodOption || !paymentSheetEnabled}
+          testID={
+            paymentMethodOption ? 'buy-with-selected-payment-option' : undefined
+          }
           title={`Buy${
             paymentMethodOption ? ` with ${paymentMethodOption.label}` : ''
           }`}

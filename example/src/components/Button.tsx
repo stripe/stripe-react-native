@@ -11,6 +11,7 @@ import { colors } from '../colors';
 
 type Props = AccessibilityProps & {
   title?: string | React.ReactElement;
+  testID?: string;
   variant?: 'default' | 'primary';
   disabled?: boolean;
   loading?: boolean;

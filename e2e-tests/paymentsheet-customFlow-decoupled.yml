@@ -40,10 +40,11 @@ appId: ${APP_ID}
     text: "Continue" # iOS
     optional: true
 - extendedWaitUntil:
-    visible: .*Buy.*4242
+    visible:
+      id: "buy-with-selected-payment-option"
     timeout: 30000
 - tapOn:
-    text: .*Buy.*4242
+    id: "buy-with-selected-payment-option"
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

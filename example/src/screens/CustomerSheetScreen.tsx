@@ -141,6 +141,11 @@ export default function CustomerSheetScreen() {
       <Button
         variant="primary"
         loading={!stripeInitialized}
+        testID={
+          selectedPaymentOption
+            ? 'customer-sheet-selected-payment-option'
+            : 'customer-sheet-edit-payment-methods'
+        }
         title={
           selectedPaymentOption
             ? selectedPaymentOption.label

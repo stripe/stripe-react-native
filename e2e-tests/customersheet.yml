@@ -30,18 +30,25 @@ appId: ${APP_ID}
     visible: .*4242
     timeout: 30000
 - tapOn: .*4242
-- tapOn: "Confirm"
+- runFlow:
+    when:
+      visible: "Confirm"
+    commands:
+      - tapOn: "Confirm"
 - extendedWaitUntil:
-    visible: .*4242
+    visible:
+      id: "customer-sheet-selected-payment-option"
     timeout: 30000
-- tapOn: .*4242
+- tapOn:
+    id: "customer-sheet-selected-payment-option"
 - tapOn: "Close"
 - assertVisible:
     text: "Canceled"
 - tapOn: "OK"
 - tapOn:
     id: "customer_adapter_switch"
-- tapOn: .*4242
+- tapOn:
+    id: "customer-sheet-selected-payment-option"
 - extendedWaitUntil:
     visible: "TEST"
     timeout: 150000
