@@ -313,6 +313,7 @@ class StripeSdkModule(
     }
 
     paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
+    promise.resolve(null)
   }
 
   @ReactMethod
