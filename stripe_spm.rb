@@ -537,10 +537,10 @@ if defined?(Pod::Installer)
       alias_method :stripe_spm_original_run_podfile_post_integrate_hooks, :run_podfile_post_integrate_hooks
 
       define_method(:run_podfile_post_integrate_hooks) do
-        # The user's own post_integrate block (if any) runs first, ours after.
-        result = stripe_spm_original_run_podfile_post_integrate_hooks
+        # Apply and save our changes first so the user's post_integrate block
+        # (if any) can customize the result.
         StripeSPM.apply_user_project(self)
-        result
+        stripe_spm_original_run_podfile_post_integrate_hooks
       end
     end
     installer_class.send(:private, :run_podfile_post_integrate_hooks) if post_integrate_was_private
