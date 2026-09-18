@@ -1,0 +1,130 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create session'
+    timeout: 60000
+- tapOn: 'Create session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- tapOn: 'Show inline element'
+- scrollUntilVisible:
+    element:
+      text: 'Card'
+- tapOn: 'Card'
+- assertVisible: 'Card number. Supported cards include.*'
+- tapOn: 'Close'
+- scrollUntilVisible:
+    element:
+      text: 'Hide inline element'
+    direction: UP
+    centerElement: true
+- tapOn: 'Hide inline element'
+- tapOn: 'Present sheet'
+- waitForAnimationToEnd
+- tapOn: 'Close'
+- tapOn: 'Present sheet'
+- waitForAnimationToEnd
+- tapOn: 'Close'
+- tapOn: 'Session updates'
+- scrollUntilVisible:
+    element:
+      text: 'Server refresh'
+    centerElement: true
+- tapOn: 'Server refresh'
+- extendedWaitUntil:
+    visible: 'Server refresh: done'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Fail server update'
+    direction: UP
+    centerElement: true
+- tapOn: 'Fail server update'
+- extendedWaitUntil:
+    visible: 'Fail server update: Server rejected update'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Promotion code'
+    direction: UP
+    centerElement: true
+- tapOn: 'Promotion code'
+- eraseText
+- inputText: 'INVALID_CHECKOUT_TEST_PROMO'
+- hideKeyboard
+- tapOn: 'Apply promotion'
+- extendedWaitUntil:
+    visible: 'Apply promotion: .*'
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible: 'Apply promotion: pending'
+    timeout: 30000
+- assertNotVisible: 'Apply promotion: done'
+- scrollUntilVisible:
+    element:
+      text: 'Slow server update'
+- tapOn: 'Slow server update'
+- scrollUntilVisible:
+    element:
+      text: 'Reload'
+    direction: UP
+    centerElement: true
+- assertVisible: 'Status: updating'
+- tapOn: 'Reload'
+- extendedWaitUntil:
+    visible: 'Reload: done'
+    timeout: 150000
+- assertVisible: 'Status: ready'
+- tapOn: 'Show inline element'
+- scrollUntilVisible:
+    element:
+      text: 'Card'
+- scrollUntilVisible:
+    element:
+      text: 'Hide inline element'
+    direction: UP
+    centerElement: true
+- tapOn: 'Hide inline element'
+- scrollUntilVisible:
+    element:
+      text: 'Slow server update'
+    centerElement: true
+- tapOn: 'Slow server update'
+- assertVisible: 'Slow server update: pending'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'HomeScreen'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create session'
+    timeout: 60000
+- tapOn: 'Create session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- scrollUntilVisible:
+    element:
+      text: 'Reset'
+    direction: UP
+    centerElement: true
+- tapOn: 'Reset'
+- assertVisible: 'Session: none'
