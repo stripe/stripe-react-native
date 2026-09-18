@@ -38,6 +38,7 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       text: 'Server refresh'
+    centerElement: true
 - tapOn: 'Server refresh'
 - extendedWaitUntil:
     visible: 'Server refresh: done'
