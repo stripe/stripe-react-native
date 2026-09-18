@@ -136,6 +136,49 @@ extension StripeSdkImpl {
         }
     }
 
+    @objc(runCheckoutServerUpdate:operationId:resolver:rejecter:)
+    public func runCheckoutServerUpdate(
+        controllerId: String,
+        operationId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self,
+                  let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            instance.runServerUpdate(operationId: operationId, request: { [weak self] in
+                self?.emitter?.emitCheckoutServerUpdateRequested([
+                    "controllerId": controllerId,
+                    "operationId": operationId,
+                ])
+            }, completion: { error in
+                if let error {
+                    reject(CheckoutErrorMapper.code(for: error).rawValue, error.localizedDescription, error)
+                } else {
+                    resolve(nil)
+                }
+            })
+        }
+    }
+
+    @objc(completeCheckoutServerUpdate:operationId:error:resolver:rejecter:)
+    public func completeCheckoutServerUpdate(
+        controllerId: String,
+        operationId: String,
+        error: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            let instance = self?.checkoutControllers[controllerId]
+            instance?.completeServerUpdate(operationId: operationId, error: error)
+            resolve(nil)
+        }
+    }
+
     private func performCheckoutMutation(
         controllerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
