@@ -119,7 +119,7 @@ Alternatively use the `plugin-transform-typescript` plugin in your project.
 
 You'll need to run `pod install` in your `ios` directory to install the native dependencies.
 
-### iOS Dependency Resolution 
+### iOS Dependency Resolution
 
 By default, the Stripe React Native SDK resolves its Stripe iOS SDK dependency through Swift Package Manager (SPM) instead of CocoaPods due to the deprecation of CocoaPods. This requires building your app with dynamic linking. Add the following to your Podfile if it isn't there already:
 

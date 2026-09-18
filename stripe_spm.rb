@@ -3,18 +3,17 @@
 #
 # == Why this exists
 #
-# The Stripe iOS SDK is deprecating CocoaPods support, and the CocoaPods trunk
-# registry itself stops accepting new versions when it becomes read-only. That
-# only affects the `Stripe*` pods this SDK depends on — stripe-react-native's
-# own podspec is unaffected, because React Native autolinking always loads it
-# from node_modules rather than from the registry. So the job of this file is
-# narrow: replace `s.dependency 'Stripe*'` registry lookups with a Swift
-# Package Manager resolution of https://github.com/stripe/stripe-ios, while
-# CocoaPods remains the delivery vehicle for stripe-react-native itself.
+# The Stripe native iOS SDK is ending support for CocoaPods. The
+# stripe-react-native SDK depends on multiple `Stripe*` pods from stripe-ios,
+# which will now only be published via SPM, not CocoaPods. 
+# The stripe-react-native pod itself is unaffected since it is loaded from
+# node_modules rather than the CocoaPods registry.
+# This file's job is to replace the `s.dependency 'Stripe*'` commands from
+# the stripe-react-native podspec with a Swift Package Manager resolution.
 #
 # == How it works
 #
-# There are three cooperating layers:
+# There are three cooperating layers, the last of which is this file:
 #
 # 1. The podspec (stripe-react-native.podspec) calls `stripe_spm_enabled?` and
 #    either declares the Swift package via `stripe_spm_activate!` (SPM mode —
@@ -28,13 +27,11 @@
 #    `react_native_post_install` later writes it into Pods.xcodeproj as real
 #    Xcode objects — an XCRemoteSwiftPackageReference on the project plus
 #    XCSwiftPackageProductDependency entries on the stripe-react-native pod
-#    target. No Package.swift is generated anywhere; Xcode itself resolves,
-#    checks out, and builds the package when it builds the workspace.
+#    target.
 #
 # 3. This file covers what React Native's bridge doesn't, via hooks installed
 #    on `Pod::Installer` (see the bottom of the file). CocoaPods invokes the
-#    hooked methods on every install — even when the Podfile has no
-#    post_install/post_integrate block — so users need zero Podfile changes.
+#    hooked methods on every install, so users need zero Podfile changes.
 #    The work is split across two hooks by which Xcode project it touches:
 #
 #    `run_podfile_post_install_hooks` (the Pods-project stage; all of it is
@@ -46,7 +43,7 @@
 #        after they ran (see `verify_pods_project_integrity!`),
 #      - fails fast unless the pod builds as a dynamic framework, the only
 #        linkage React Native's SPM integration supports (see
-#        `verify_dynamic_linkage!` for the full linking story),
+#        `verify_dynamic_linkage!`),
 #      - links the StripeCryptoOnramp package product when the Onramp subspec
 #        is installed (`spm_dependency` silently ignores subspec declarations;
 #        see `link_onramp_product`).
@@ -64,17 +61,19 @@
 # then runs `integrate_user_project` (which adds its own `[CP] Embed Pods
 # Frameworks` phase to the app target and saves the *user's* project), and
 # finally runs `run_podfile_post_integrate_hooks`.
+# NOTE: CocoaPods can evaluate the podspec multiple times, so everything
+# here must be idempotent.
 #
 # That ordering dictates where each piece of our work must live:
 #
 #   - Everything that touches Pods.xcodeproj has to happen in the
-#     post_install stage, while the project is still in memory and unwritten
-#     — a mutation made any later is silently lost (CocoaPods does not save
+#     post_install stage, while the project is still in memory and unwritten.
+#     A mutation made any later is silently lost (CocoaPods does not save
 #     the Pods project again after integration).
 #   - The embed phase touches the user's project, and runs in the
-#     post_integrate stage — the hook CocoaPods documents as existing
+#     post_integrate stage. CocoaPods documents post_integrate as existing
 #     precisely so that hooks "can alter [the user project] after it is
-#     written to the disk"; our helpers save the project themselves. Running
+#     written to the disk", which our helpers do. Running
 #     there also means the phase is appended after CocoaPods' own `[CP]`
 #     phases regardless of whether the app project is fresh (first install,
 #     Expo prebuild --clean) or already integrated. post_integrate hooks have
@@ -88,10 +87,10 @@
 # the package reference existing (and raise a clear error when it doesn't).
 # Raising there aborts the install before anything is saved.
 #
-# Note the asymmetry in what persists between installs: Pods.xcodeproj is
-# regenerated from scratch on every install, but the *user's* .xcodeproj is
-# not — which is why the embed phase must be added idempotently and removed
-# again when SPM resolution is turned off.
+# Note that even though Pods.xcodeproj is regenerated from scratch on every
+# install, the *user's* .xcodeproj is not, and so the addition of the embed
+# phase msut be idempotent, and we must remove it again if SPM resolution
+# is turned off.
 #
 # == Supported modes
 #
@@ -110,13 +109,11 @@
 #   $StripeDisableSPM = true
 
 module StripeSPM
-  # The lightweight SPM mirror of stripe-ios. It carries only tagged source
-  # releases (no tests/examples/history), which keeps Xcode's package checkout
-  # small.
+  # The lightweight SPM mirror of stripe-ios.
   PACKAGE_URL = 'https://github.com/stripe/stripe-ios-spm.git'.freeze
 
-  # Used when OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH is set (CI testing
-  # against unreleased stripe-ios changes). Branches only exist on the full
+  # Used when OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH is set (for example
+  # for CI testing against unreleased stripe-ios). Branches only exist on the full
   # stripe-ios repo — the stripe-ios-spm mirror only receives release tags.
   BRANCH_OVERRIDE_PACKAGE_URL = 'https://github.com/stripe/stripe-ios.git'.freeze
 
@@ -139,9 +136,8 @@ module StripeSPM
   # install.
   MINIMUM_COCOAPODS_VERSION = '1.10'.freeze
 
-  # The Swift package products the Core subspec needs. Keep this list in sync
-  # with the CocoaPods fallback dependencies in stripe-react-native.podspec —
-  # they are two spellings of the same dependency set.
+  # The Swift package products the Core subspec needs. This list must be kept in sync
+  # with the CocoaPods fallback dependencies in stripe-react-native.podspec.
   CORE_PRODUCTS = %w[
     Stripe
     StripePaymentSheet
@@ -158,7 +154,7 @@ module StripeSPM
   ONRAMP_SUBSPEC = "#{POD_NAME}/Onramp".freeze
 
   # Shown in Xcode's build-phases UI; also the key used to find/replace/remove
-  # the phase on later installs.
+  # the phase on later installs (if the user moves off of SPM resolution).
   EMBED_PHASE_NAME = '[stripe-react-native] Embed SPM Frameworks'.freeze
 
   # Embeds SPM-built dynamic frameworks into the app bundle.
@@ -175,11 +171,10 @@ module StripeSPM
   # "dyld: Library not loaded: @rpath/Stripe....framework".
   #
   # Script details:
-  #   - Filters to Stripe*.framework so we never touch frameworks that other
-  #     packages/tools manage themselves.
+  #   - Filters to Stripe*.framework so we never touch others.
   #   - Uses file(1) to skip statically linked frameworks: those are already
   #     linked into their consumers, and embedding a static framework in the
-  #     bundle fails App Store validation.
+  #     bundle can fail App Store validation.
   #   - Strips Headers/PrivateHeaders/Modules, which don't belong in a shipped
   #     app bundle.
   #   - Re-signs with --preserve-metadata so the frameworks pick up the app's
@@ -252,17 +247,12 @@ module StripeSPM
     end
 
     # Records that SPM mode is on for this install and which stripe-ios
-    # version to pin. Called from the podspec (via stripe_spm_activate!), so
-    # it may run more than once per install — CocoaPods can evaluate a podspec
-    # repeatedly — which is fine because it only sets state.
+    # version to pin.
     def activate!(version)
       @version = version
     end
 
-    # True when the podspec declared the Swift package this install. When
-    # false (RN < 0.75 or $StripeDisableSPM), the installer hooks skip the
-    # Pods-project stage entirely and only perform cleanup in the
-    # user-project stage (see apply_user_project).
+    # True when the podspec declared the Swift package this install.
     def active?
       !@version.nil?
     end
@@ -272,9 +262,7 @@ module StripeSPM
     end
 
     # The version requirement Xcode stores in the package reference. Pinned to
-    # the exact release to mirror the exact-version pin the podspec uses for
-    # the CocoaPods fallback: the RN SDK is tested against one specific
-    # stripe-ios version per release.
+    # the exact patch release to mirror.
     def requirement
       if override_branch
         { kind: 'branch', branch: override_branch }
@@ -286,14 +274,13 @@ module StripeSPM
     # Pods-project stage. Called by the post_install hook at the bottom of
     # this file after all regular post_install hooks have run — while
     # Pods.xcodeproj is still in memory and unwritten, which everything here
-    # depends on. The order of the steps matters:
+    # depends on.
     #   1. verify_dynamic_linkage! first, so an unsupported configuration
-    #      fails with our actionable message before anything else can fail
-    #      more cryptically;
+    #      fails with our actionable message
     #   2. find_package_reference! next, because the remaining steps need the
     #      package reference React Native's SPM integration should have
-    #      created by now;
-    #   3. mutations last, once the configuration is known-good.
+    #      created by now
+    #   3. mutations last
     def apply_pods_project(installer)
       # No-op for installs that don't include this SDK (e.g. another project
       # in a monorepo sharing the same CocoaPods process).
@@ -324,9 +311,9 @@ module StripeSPM
     end
 
     # Guards against a UUID-collision bug that corrupts Pods.xcodeproj when a
-    # post_install hook creates new project objects — which React Native's
-    # SPM integration does for every `spm_dependency` package reference and
-    # product (and link_onramp_product below does once more).
+    # post_install hook creates new project objects. This is provided by
+    # React Native on later React Native versions but we need to provide it
+    # ourselves for earlier ones.
     #
     # Background, verified against CocoaPods 1.16.2: `Pod::Project` overrides
     # `generate_available_uuid_list` to mint deterministic UUIDs — a 6-char
@@ -347,7 +334,7 @@ module StripeSPM
     # react-native#57576, but the fix only ships in RN >= 0.88; every earlier
     # spm_dependency-capable release (0.75–0.87) carries the latent bug.
     #
-    # The defense: before any post_install hook runs, raise the generated-
+    # To solve this: before any post_install hook runs, raise the generated-
     # UUID high-water mark past every counter-format UUID already in the
     # project, so newly minted UUIDs can't land on an existing object. This
     # protects React Native's writes as well as our own. Only runs in SPM
@@ -424,18 +411,15 @@ module StripeSPM
                 resolved.isa == 'PBXProject'
 
       raise Pod::Informative, <<~MESSAGE
-        [stripe-react-native] The Pods project failed an integrity check after
-        post_install hooks ran: its rootObject no longer resolves to the
-        project object, which means a newly created object (typically a Swift
-        Package reference) was assigned a UUID that collided with an existing
-        one. Saving this project would leave Pods.xcodeproj unopenable by
-        Xcode.
+        [stripe-react-native] The Pods project failed an integrity check.
+        Saving this project would leave Pods.xcodeproj unopenable by Xcode.
 
         Delete `ios/Pods` and re-run `pod install`. If the error persists,
         please report it at
         https://github.com/stripe/stripe-react-native/issues (including your
-        React Native and CocoaPods versions); `$StripeDisableSPM = true` at
-        the top of your Podfile is the interim workaround.
+        React Native and CocoaPods versions).
+        To temporarily fix this, set `$StripeDisableSPM = true` at
+        the top of your Podfile.
       MESSAGE
     end
 
@@ -448,16 +432,9 @@ module StripeSPM
 
     # SPM resolution only works when stripe-react-native builds as a dynamic
     # framework, so fail `pod install` with instructions otherwise.
-    #
-    # Background: stripe-ios's package products use "automatic" linkage, which
-    # Xcode resolves by statically absorbing the product into each consumer.
-    # When the pod is a static library (React Native's default) the Stripe
-    # code never makes it into anything the app links — Xcode builds the
-    # package targets, the pod compiles against their Swift modules, and the
-    # final app link then fails with undefined Stripe symbols, because a
-    # static library can't carry its dependencies and nothing else links them.
-    # Dynamic frameworks don't have that problem: the pod framework links the
-    # Stripe products into itself. 
+    # 
+    # Note: in the future we could explore a potential solutions that supports
+    # static linkage, but for now we require host apps to use dynamic.
     #
     # Note: Pod::Target#build_type is a *private* reader in CocoaPods; only
     # the build_as_* predicates are public API.
@@ -474,13 +451,12 @@ module StripeSPM
       raise Pod::Informative, <<~MESSAGE
         [stripe-react-native] Resolving the Stripe iOS SDK through Swift Package
         Manager requires dynamic frameworks, but #{POD_NAME} is building as
-        #{current}. Either:
-          * add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo,
-            set `"useFrameworks": "dynamic"` via the expo-build-properties
-            plugin), or
-          * add `$StripeDisableSPM = true` at the top of your Podfile to resolve
-            Stripe through CocoaPods instead (available while Stripe continues
-            to publish pods).
+        #{current}. To fix, add `use_frameworks! :linkage => :dynamic` to your Podfile
+        (for Expo, set `"useFrameworks": "dynamic"` via the expo-build-properties plugin).
+        If you MUST continue to use static linkage, you can temporarily add
+        `$StripeDisableSPM = true` at the top of your Podfile to resolve Stripe
+        through CocoaPods instead. WARNING: THIS IS DEPRECATED AND FUTURE STRIPE SDK
+        VERSIONS WILL NOT SUPPORT THIS OPTION.
       MESSAGE
     end
 
@@ -488,9 +464,8 @@ module StripeSPM
     # `react_native_post_install` should have written into Pods.xcodeproj
     # (triggered by the `spm_dependency` call in our podspec). Its absence
     # means the Podfile's post_install never called react_native_post_install
-    # — possible in hand-rolled Podfiles — and the build would otherwise fail
-    # later with baffling "no such module 'Stripe'" errors, so surface it here
-    # with the fix spelled out.
+    # (which is possible if the user made changes to the Podfile), and the build
+    # would otherwise fail later.
     def find_package_reference!(installer)
       url = package_url
       package = installer.pods_project.root_object.package_references.find do |ref|
@@ -504,18 +479,17 @@ module StripeSPM
         [stripe-react-native] The Stripe iOS Swift package was not added to the
         Pods project. Make sure your Podfile's post_install block calls
         `react_native_post_install` (this is part of the standard React Native
-        template), or opt out of Swift Package Manager resolution by adding
-        `$StripeDisableSPM = true` at the top of your Podfile.
+        template).
       MESSAGE
     end
 
     # Adds the StripeCryptoOnramp product dependency to the pod's native
     # target when (and only when) the app installs the Onramp subspec.
     #
-    # Why this can't live in the podspec: React Native's SPM manager keys
+    # This can't live in the podspec because React Native's SPM manager keys
     # `spm_dependency` registrations by spec name and later looks up Pods
     # project targets by that same name. Subspecs don't get their own targets
-    # — they merge into the root pod target — so a registration made against
+    # (they merge into the root pod target), so a registration made against
     # "stripe-react-native/Onramp" never matches a target and is silently
     # dropped. Declaring the product at the root instead would link Onramp
     # into every app. The Onramp-only fallback pod dependency in the podspec
@@ -542,7 +516,7 @@ module StripeSPM
     end
 
     # Installs (or refreshes) the embed phase on every app target that links
-    # this pod. Comparing shell_script means an SDK upgrade that changes
+    # this pod. Comparing shell_script means a new SDK version that changes
     # EMBED_SCRIPT rewrites the phase in place, while an unchanged script
     # leaves the user's project untouched (keeping repeat `pod install` runs
     # diff-free).
@@ -565,10 +539,9 @@ module StripeSPM
       end
     end
 
-    # Inverse of add_embed_phase, used when SPM mode is off. Needed because
-    # the embed phase lives in the user's project, which survives between
-    # installs — without this, opting out would leave a stale (harmless but
-    # confusing) build phase behind.
+    # Inverse of add_embed_phase, used when SPM mode is off. Needed so that
+    # if the user opts out of SPM resolution they aren't left with a harmless
+    # but confusing dead build phase in their project.
     def remove_embed_phase(installer)
       each_user_app_target(installer) do |user_target|
         phase = user_target.shell_script_build_phases.find { |p| p.name == EMBED_PHASE_NAME }
@@ -608,14 +581,13 @@ module StripeSPM
 end
 
 # True when the Stripe iOS SDK should be resolved through Swift Package
-# Manager for this install. Evaluated by the podspec, which requires this
-# file.
+# Manager for this install. Evaluated by the podspec.
 #
-# `defined?(spm_dependency)` is the React Native >= 0.75 detection: the user's
-# Podfile requires react_native_pods.rb, which defines `spm_dependency` as a
-# top-level function, and CocoaPods evaluates podspecs in the same Ruby
-# process, so the function is visible here exactly when the app's React
-# Native version supports it.
+# `defined?(spm_dependency)` effectively checks if the React Native version is
+# >= 0.75 since this is the version that introduces `spm_dependency`. The user's
+# Podfile will require `react_native_pods.rb`, which defines `spm_dependency` as
+# a top-level function, so the function is visibile here exactly when the app's
+# React Native version supports it.
 #
 # `$StripeDisableSPM` is the user-facing opt-out. The value is compared to
 # `true` (not just "defined") so tooling that emits `$StripeDisableSPM =
@@ -644,14 +616,6 @@ end
 
 # Install the Pod::Installer hooks (once) as soon as the podspec requires
 # this file.
-#
-# Why hook `run_podfile_post_install_hooks`/`run_podfile_post_integrate_hooks`
-# instead of asking users to call a helper from their Podfile: CocoaPods
-# invokes both methods on every install even when the Podfile defines no
-# corresponding block, so the integration works with zero Podfile changes —
-# including the cleanup path when the user has opted out. Pod::Installer is a
-# stable, semantically versioned public class, making it a safer patch target
-# than React Native's private cocoapods scripts.
 #
 # The re-hook guards check both public and private visibility: the original
 # methods are private in CocoaPods, and `alias_method` preserves visibility,
@@ -706,8 +670,8 @@ if defined?(Pod::Installer)
         # the user's post_install block) writes the Swift package references
         # that the integrity check and the Pods-project stage build on.
         result = stripe_spm_original_run_podfile_post_install_hooks
-        # Deliberately not rescued: continuing past a corrupted project would
-        # only trade this message for an inscrutable Xcode failure later.
+        # We deliberately fail because continuing past a corrupted project would
+        # still cause an Xcode error later.
         StripeSPM.verify_pods_project_integrity!(self)
         StripeSPM.apply_pods_project(self)
         result

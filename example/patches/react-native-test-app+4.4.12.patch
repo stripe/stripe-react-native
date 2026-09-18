@@ -2,12 +2,12 @@ diff --git a/node_modules/react-native-test-app/ReactTestApp-DevSupport.podspec 
 index cdd468b..19e7195 100644
 --- a/node_modules/react-native-test-app/ReactTestApp-DevSupport.podspec
 +++ b/node_modules/react-native-test-app/ReactTestApp-DevSupport.podspec
-@@ -46,4 +46,24 @@ Pod::Spec.new do |s|
+@@ -46,4 +46,19 @@ Pod::Spec.new do |s|
                             'ios/ReactTestApp/Public/*.h',
                             'ios/ReactTestApp/ReactTestApp-DevSupport.m'
    s.public_header_files  = 'ios/ReactTestApp/Public/*.h'
 +
-+  # This pod makes calls into JSI and references React-Core classes. 
++  # This pod makes calls into JSI and references React-Core classes.
 +  # For apps using dynamic linking, CocoaPods links a pod's framework
 +  # against only its direct dependencies' frameworks only, so the pods
 +  # that actually contain those symbols must be declared here.
