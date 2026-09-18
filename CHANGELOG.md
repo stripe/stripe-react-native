@@ -5,6 +5,23 @@
 * [Changed] React Native versions < 0.75 are deprecated.
 * [Changed] iOS: By default, the Stripe iOS SDK is now resolved through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.
 
+## 0.77.0 - 2026-09-16
+
+**Changes**
+* Updated Stripe iOS SDK from 26.9.0 to 26.11.0.
+* Updated Stripe Android SDK from 23.17.1 to 23.19.0.
+
+**Features**
+
+* [Added] Added `idType` to Crypto Onramp `KycInfo`, supporting US SSN, Canada SIN, Colombia NIT, and Philippines TIN.
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.9.0 to 26.11.0.
+* Updated Stripe Android SDK from 23.17.1 to 23.19.0.
+* [Changed] Android: Migrated Google Pay payment method and token creation to the Activity Result API.
+* [Changed] Android: Checkout billing details collection is now controlled by the Checkout Session; `paymentElement.billingDetailsCollectionConfiguration` applies only to iOS.
+
 **Breaking changes**
 
 * [Removed] Removed support for the React Native old architecture. Enable the new architecture with `newArchEnabled=true` in `gradle.properties` for Android, `RCT_NEW_ARCH_ENABLED=1` in your `Podfile` for iOS, or `newArchEnabled: true` in your app configuration for Expo.

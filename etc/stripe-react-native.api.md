@@ -2377,6 +2377,9 @@ interface IdealResult {
 }
 
 // @public
+type IdType = 'social_security_number' | 'ca_sin' | 'co_nit' | 'ph_tin';
+
+// @public
 type ImmediateCartSummaryItem = {
     paymentType: 'Immediate';
     isPending?: boolean;
@@ -2589,6 +2592,7 @@ type KycInfo = {
     firstName?: string;
     lastName?: string;
     idNumber?: string;
+    idType?: IdType;
     dateOfBirth?: DateOfBirth;
     address?: Address;
     birthCountry?: string;
@@ -2913,6 +2917,7 @@ declare namespace Onramp {
         WalletOwnershipChallenge,
         CryptoConsumerWallet,
         DateOfBirth,
+        IdType,
         KycInfo,
         ComplianceIdentifierType,
         ComplianceRegulation,
@@ -4687,9 +4692,9 @@ interface WeChatPayParams_2 {
 // Warnings were encountered during analysis:
 //
 // src/components/CustomerSheet.tsx:374:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:88:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:92:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:273:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:90:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:94:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:274:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:208:3 - (ae-forgotten-export) The symbol "AppearanceOptions" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
