@@ -6,11 +6,14 @@ import React, {
   useState,
 } from 'react';
 import {
+  ActivityIndicator,
   AppState,
   AppStateStatus,
   Linking,
   Platform,
   StyleProp,
+  StyleSheet,
+  View,
   ViewStyle,
 } from 'react-native';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
@@ -81,6 +84,14 @@ export interface CommonComponentProps {
 
   style?: StyleProp<ViewStyle>;
 }
+
+const styles = StyleSheet.create({
+  loadingIndicatorContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 type EmbeddedComponentType =
   | 'invoice-history'
@@ -838,6 +849,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   );
 
   const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
+  const textColor = appearance?.variables?.colorText || '#000000';
 
   const mergedStyle = useMemo(
     () => [{ backgroundColor }, style],
@@ -850,6 +862,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     <WebViewComponent
       ref={ref}
       style={mergedStyle}
+      renderLoading={() => {
+        return (
+          <View style={[styles.loadingIndicatorContainer, { backgroundColor }]}>
+            <ActivityIndicator color={textColor} />
+          </View>
+        );
+      }}
+      startInLoadingState
       webviewDebuggingEnabled={DEVELOPMENT_MODE}
       source={source}
       userAgent={userAgent}

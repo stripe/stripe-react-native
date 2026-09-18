@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Modal,
   Platform,
   SafeAreaView,
@@ -104,16 +103,11 @@ export function ConnectAccountOnboarding({
     };
 
   const [visible, setVisible] = useState(true);
-  const [loading, setLoading] = useState(true);
   const { appearance } = useConnectComponents();
 
   // Extract colors from appearance
   const backgroundColor = useMemo(() => {
     return appearance?.variables?.colorBackground || '#FFFFFF';
-  }, [appearance]);
-
-  const loadingIndicatorColor = useMemo(() => {
-    return appearance?.variables?.colorSecondaryText || '#888888';
   }, [appearance]);
 
   const componentProps = useMemo(() => {
@@ -153,7 +147,6 @@ export function ConnectAccountOnboarding({
 
   const onLoaderStartCallback = useCallback(
     (event: LoaderStart) => {
-      setLoading(false);
       if (onLoaderStart) {
         onLoaderStart(event);
       }
@@ -178,13 +171,6 @@ export function ConnectAccountOnboarding({
         onExitAction={onExitCallback}
         style={containerStyle}
       >
-        {loading ? (
-          <ActivityIndicator
-            size="large"
-            color={loadingIndicatorColor}
-            style={styles.iosActivityIndicator}
-          />
-        ) : null}
         <EmbeddedComponent
           component="account-onboarding"
           componentProps={componentProps}
@@ -205,7 +191,7 @@ export function ConnectAccountOnboarding({
       animationType="slide"
       presentationStyle="fullScreen"
     >
-      <SafeAreaView style={styles.flex1}>
+      <SafeAreaView style={[styles.flex1]}>
         <View
           style={[
             Platform.OS === 'android' && {
@@ -220,13 +206,6 @@ export function ConnectAccountOnboarding({
           />
         </View>
         <View style={styles.onboardingWrapper}>
-          {loading ? (
-            <ActivityIndicator
-              size="large"
-              color={loadingIndicatorColor}
-              style={styles.activityIndicator}
-            />
-          ) : null}
           <EmbeddedComponent
             component="account-onboarding"
             componentProps={componentProps}
