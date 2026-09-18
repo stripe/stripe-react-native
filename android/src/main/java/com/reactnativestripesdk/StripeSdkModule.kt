@@ -2,6 +2,7 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -11,6 +12,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.SavedStateHandle
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -24,7 +26,9 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
-import com.reactnativestripesdk.checkout.CheckoutControllerRegistry
+import com.reactnativestripesdk.checkout.CheckoutConfigurationMapper
+import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
+import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
@@ -60,6 +64,7 @@ import com.stripe.android.GooglePayJsonFactory
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
+import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
 import com.stripe.android.core.reactnative.ReactNativeAnalytics
@@ -75,16 +80,20 @@ import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.RadarSession
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
+import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 @ReactModule(name = StripeSdkModule.NAME)
-@OptIn(ReactNativeSdkInternal::class)
+@OptIn(ReactNativeSdkInternal::class, CheckoutSessionPreview::class)
 class StripeSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeStripeSdkModuleSpec(reactContext) {
@@ -109,7 +118,10 @@ class StripeSdkModule(
   private var googlePayPaymentMethodLauncherManager: GooglePayPaymentMethodLauncherManager? = null
   private var customerSheetManager: CustomerSheetManager? = null
   private var linkControllerManager: LinkControllerManager? = null
-  internal val checkoutControllerRegistry = CheckoutControllerRegistry()
+  internal val checkoutControllers = mutableMapOf<String, NativeCheckoutControllerInstance>()
+  private val pendingCheckoutCreationScopes = mutableSetOf<CoroutineScope>()
+
+  @Volatile private var checkoutControllersInvalidated = false
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
   internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
@@ -125,6 +137,7 @@ class StripeSdkModule(
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
 
   override fun invalidate() {
+    checkoutControllersInvalidated = true
     super.invalidate()
 
     stripeUIManagers.forEach { it.destroy() }
@@ -133,7 +146,12 @@ class StripeSdkModule(
       platformPayLauncher?.destroy()
       platformPayLauncher = null
       createPlatformPayPaymentMethodPromise = null
-      checkoutControllerRegistry.clear()
+      val pendingScopes = pendingCheckoutCreationScopes.toList()
+      pendingCheckoutCreationScopes.clear()
+      pendingScopes.forEach { it.cancel() }
+      val controllers = checkoutControllers.values.toList()
+      checkoutControllers.clear()
+      controllers.forEach { it.destroy() }
     }
     linkControllerManager?.destroy()
     linkControllerManager = null
@@ -1384,6 +1402,101 @@ class StripeSdkModule(
         },
       activity = getCurrentActivityOrResolveWithError(promise) as? AppCompatActivity,
     )
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun createCheckout(
+    params: ReadableMap,
+    controllerId: String,
+    promise: Promise,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      if (checkoutControllersInvalidated) {
+        return@runOnUiThread promise.reject("Failed", "Stripe SDK was invalidated.")
+      }
+      val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+      pendingCheckoutCreationScopes.add(scope)
+      scope.launch {
+        var controller: CheckoutController? = null
+        try {
+          val mapped = CheckoutConfigurationMapper.map(
+            params = params,
+            context = reactApplicationContext,
+            didSelectPaymentOption = { emitCheckoutPaymentOptionSelection(controllerId) },
+          )
+          controller = CheckoutController.Builder(
+            reactApplicationContext.applicationContext as Application,
+            SavedStateHandle(),
+          ).rowSelectionBehavior(mapped.rowSelectionBehavior)
+            // Native uses this name as its Payment Element callback identifier.
+            .integrationName("stripe-react-native-$controllerId")
+            .build()
+
+          controller.configure(mapped.clientSecret, mapped.configuration).getOrThrow()
+          val nativeSession = requireNotNull(controller.session.value) {
+            "Checkout did not return a session after configuration."
+          }
+          val serializedSession = CheckoutSessionSerializer.serialize(nativeSession)
+          val instance = NativeCheckoutControllerInstance(
+            controller = controller,
+            eventEmitter = eventEmitter,
+            scope = scope,
+            initialSession = serializedSession,
+          )
+          check(!checkoutControllersInvalidated) { "Stripe SDK was invalidated." }
+          scope.coroutineContext.ensureActive()
+          checkoutControllers[controllerId] = instance
+          instance.start(controllerId)
+          promise.resolve(
+            Arguments.createMap().apply {
+              putString("controllerId", controllerId)
+              putMap("session", serializedSession.copy())
+            },
+          )
+        } catch (error: Exception) {
+          checkoutControllers.remove(controllerId)
+          controller?.destroy()
+          scope.cancel()
+          promise.reject("Failed", error.message, error)
+        } finally {
+          pendingCheckoutCreationScopes.remove(scope)
+        }
+      }
+    }
+  }
+
+  private fun emitCheckoutPaymentOptionSelection(controllerId: String?) {
+    if (controllerId != null && checkoutControllers[controllerId] != null) {
+      eventEmitter.emitCheckoutControllerDidSelectPaymentOption(
+        Arguments.createMap().apply { putString("controllerId", controllerId) },
+      )
+    }
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun destroyCheckout(
+    controllerId: String,
+    promise: Promise,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      if (instance == null) {
+        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        return@runOnUiThread
+      }
+
+      try {
+        instance.destroy()
+      } catch (error: Exception) {
+        promise.reject("Failed", error.message, error)
+        return@runOnUiThread
+      } finally {
+        checkoutControllers.remove(controllerId)
+      }
+      promise.resolve(null)
+    }
   }
 
   // Android owns EmbeddedPaymentElement through its native view. Configuration,
