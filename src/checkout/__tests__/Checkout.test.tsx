@@ -16,6 +16,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
     removeCheckoutPromotionCode: jest.fn(),
     clearCheckoutPaymentOption: jest.fn(),
     presentCheckoutPaymentElement: jest.fn(),
+    confirmCheckout: jest.fn(),
   },
 }));
 
@@ -136,4 +137,28 @@ it('removes listeners when creation fails', async () => {
   expect(
     [...listeners.values()].every((callbacks) => callbacks.size === 0)
   ).toBe(true);
+});
+
+it('returns native confirmation outcomes and preserves rejection errors', async () => {
+  const controller = await createCheckout(options);
+  const id = create.mock.calls[0][1];
+  const confirm = NativeStripeSdk.confirmCheckout as jest.Mock;
+  const failure = { code: 'Failed', message: 'Payment declined' };
+  for (const result of [
+    { status: 'completed', paymentStatus: 'paid' },
+    { status: 'canceled' },
+    { status: 'failed', error: failure },
+  ]) {
+    confirm.mockResolvedValueOnce(result);
+    await expect(controller.confirm()).resolves.toBe(result);
+    expect(confirm).toHaveBeenLastCalledWith(id);
+  }
+  const error = Object.assign(new Error('Confirmation already active'), {
+    code: 'Failed',
+  });
+  confirm.mockRejectedValueOnce(error);
+  await expect(controller.confirm()).rejects.toBe(error);
+  await controller.destroy();
+  await expect(controller.confirm()).rejects.toThrow('destroyed');
+  expect(confirm).toHaveBeenCalledTimes(4);
 });

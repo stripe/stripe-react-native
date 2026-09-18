@@ -1063,7 +1063,7 @@ export namespace Checkout {
     }
     export type Result = {
         status: 'completed';
-        paymentStatus: PaymentStatus;
+        paymentStatus?: PaymentStatus;
     } | {
         status: 'canceled';
     } | {

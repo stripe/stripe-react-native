@@ -1424,6 +1424,7 @@ class StripeSdkModule(
       pendingCheckoutCreationScopes.add(scope)
       scope.launch {
         var controller: CheckoutController? = null
+        var instance: NativeCheckoutControllerInstance? = null
         try {
           val mapped = CheckoutConfigurationMapper.map(
             params = params,
@@ -1433,7 +1434,9 @@ class StripeSdkModule(
           controller = CheckoutController.Builder(
             reactApplicationContext.applicationContext as Application,
             SavedStateHandle(),
-          ).rowSelectionBehavior(mapped.rowSelectionBehavior)
+          ).resultCallback { result ->
+            UiThreadUtil.runOnUiThread { instance?.onConfirmationResult(result) }
+          }.rowSelectionBehavior(mapped.rowSelectionBehavior)
             // Native uses this name as its Payment Element callback identifier.
             .integrationName("stripe-react-native-$controllerId")
             .build()
@@ -1443,16 +1446,17 @@ class StripeSdkModule(
             "Checkout did not return a session after configuration."
           }
           val serializedSession = CheckoutSessionSerializer.serialize(nativeSession)
-          val instance = NativeCheckoutControllerInstance(
+          val createdInstance = NativeCheckoutControllerInstance(
             controller = controller,
             eventEmitter = eventEmitter,
             scope = scope,
             initialSession = serializedSession,
           )
+          instance = createdInstance
           check(!checkoutControllersInvalidated) { "Stripe SDK was invalidated." }
           scope.coroutineContext.ensureActive()
-          checkoutControllers[controllerId] = instance
-          instance.start(controllerId)
+          checkoutControllers[controllerId] = createdInstance
+          createdInstance.start(controllerId)
           promise.resolve(
             Arguments.createMap().apply {
               putString("controllerId", controllerId)
@@ -1564,6 +1568,33 @@ class StripeSdkModule(
   ) {
     performCheckoutMutation(controllerId, promise) { controller ->
       controller.clearPaymentOption()
+    }
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun confirmCheckout(controllerId: String, promise: Promise) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      if (instance == null) {
+        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        return@runOnUiThread
+      }
+      val activity = reactApplicationContext.currentActivity as? ComponentActivity
+      if (activity == null || activity.isFinishing ||
+        !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+      ) {
+        promise.reject("Failed", "Checkout requires a resumed activity to confirm.")
+        return@runOnUiThread
+      }
+      instance.launchMutation {
+        try {
+          val result = instance.confirm(activity)
+          promise.resolve(CheckoutSessionSerializer.serialize(result, instance.controller.session.value?.status))
+        } catch (error: Exception) {
+          promise.reject(CheckoutErrorMapper.code(error).serializedValue, error.message, error)
+        }
+      }
     }
   }
 
