@@ -27,6 +27,7 @@ const options: Checkout.CreateOptions = {
 const listeners = new Map<string, Set<(event: any) => void>>();
 const create = NativeStripeSdk.createCheckout as jest.Mock;
 const destroy = NativeStripeSdk.destroyCheckout as jest.Mock;
+const present = NativeStripeSdk.presentCheckoutPaymentElement as jest.Mock;
 
 function emit(name: string, event: object) {
   listeners.get(name)?.forEach((listener) => listener(event));
@@ -113,9 +114,19 @@ it('forwards mutations unchanged and preserves native errors', async () => {
   );
   expect(NativeStripeSdk.removeCheckoutPromotionCode).toHaveBeenCalledWith(id);
   expect(NativeStripeSdk.clearCheckoutPaymentOption).toHaveBeenCalledWith(id);
+  const error = Object.assign(new Error('No presenter'), { code: 'Failed' });
+  present.mockRejectedValueOnce(error);
+  await expect(controller.paymentElement.present()).rejects.toBe(error);
+  await controller.paymentElement.present();
+  await controller.paymentElement.present();
+  expect(present).toHaveBeenCalledTimes(3);
   await controller.destroy();
   await controller.destroy();
   expect(destroy).toHaveBeenCalledTimes(1);
+  await expect(controller.paymentElement.present()).rejects.toThrow(
+    'destroyed'
+  );
+  expect(present).toHaveBeenCalledTimes(3);
 });
 
 it('removes listeners when creation fails', async () => {
