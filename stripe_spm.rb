@@ -150,8 +150,8 @@ module StripeSPM
   #     app bundle.
   #   - Re-signs with --preserve-metadata so the frameworks pick up the app's
   #     signing identity without losing their bundle identifiers/entitlements.
-  #   - Skips frameworks already present in the destination (e.g. embedded by
-  #     another phase) rather than overwriting them.
+  #   - Synchronizes frameworks on every build and removes obsolete files
+  #     within each framework so incremental builds pick up SDK updates.
   #   - FRAMEWORKS_FOLDER_PATH is unset for build types with no frameworks
   #     folder (some non-app targets); treat that as "nothing to do".
   #
@@ -172,11 +172,10 @@ module StripeSPM
         BINARY="$FRAMEWORK/$NAME"
         [ -f "$BINARY" ] || continue
         file -b "$BINARY" | grep -q "dynamically linked" || continue
-        if [ ! -d "$DEST/$NAME.framework" ]; then
-          rsync -a --exclude Headers --exclude PrivateHeaders --exclude Modules "$FRAMEWORK" "$DEST/"
-          if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ] && [ "${CODE_SIGNING_ALLOWED:-NO}" = "YES" ]; then
-            codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --preserve-metadata=identifier,entitlements "$DEST/$NAME.framework"
-          fi
+        # No trailing slash on the source: --delete stays inside this framework.
+        rsync -a --delete --exclude Headers --exclude PrivateHeaders --exclude Modules "$FRAMEWORK" "$DEST/"
+        if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ] && [ "${CODE_SIGNING_ALLOWED:-NO}" = "YES" ]; then
+          codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --preserve-metadata=identifier,entitlements "$DEST/$NAME.framework"
         fi
       done
     done
