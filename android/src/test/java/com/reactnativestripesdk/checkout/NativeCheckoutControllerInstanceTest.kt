@@ -85,6 +85,19 @@ class NativeCheckoutControllerInstanceTest {
   }
 
   @Test
+  fun `view observers can detach and are notified once on destruction`() = withFixture { fixture ->
+    var detachedCalls = 0
+    var mountedCalls = 0
+    val remove = fixture.instance.observeDestruction { detachedCalls++ }
+    fixture.instance.observeDestruction { mountedCalls++ }
+    remove()
+    fixture.instance.destroy()
+    fixture.instance.destroy()
+    assertEquals(0, detachedCalls)
+    assertEquals(1, mountedCalls)
+  }
+
+  @Test
   fun `does not emit ready with an outdated session while its image loads`() = withFixture { fixture ->
     fixture.start()
     advanceUntilIdle()
