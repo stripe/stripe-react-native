@@ -32,9 +32,19 @@ class GooglePayButtonView(
   }
 
   private fun configureGooglePayButton(): PayButton {
+    // Google's Wallet dynamite module inflates its own AppCompat widgets
+    // (e.g. `RoundedImageViewWithBorder`) using whatever Context `PayButton`
+    // is constructed with, and silently fails that inflation if the
+    // Context's theme doesn't resolve AppCompat theme attributes.
+    // `ThemedReactContext` is a per-surface wrapper React Native hands to
+    // view managers — passing it straight through is what host apps hit as
+    // a blank Google Pay button, even when the host Activity's own theme is
+    // a correct `Theme.AppCompat` descendant. The host Activity itself
+    // resolves those attributes correctly, so prefer it and fall back to
+    // `context` only if there is genuinely no current Activity to use.
     val googlePayButton =
       PayButton(
-        context,
+        context.currentActivity ?: context,
       )
     googlePayButton.initialize(buildButtonOptions())
     googlePayButton.setOnClickListener { _ ->
