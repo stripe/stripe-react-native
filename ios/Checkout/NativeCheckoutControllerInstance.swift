@@ -8,7 +8,6 @@ final class NativeCheckoutControllerInstance {
     private enum Status: String {
         case ready
         case updating
-        case destroyed
     }
 
     let checkout: CheckoutController
@@ -47,7 +46,6 @@ final class NativeCheckoutControllerInstance {
         isDestroyed = true
         observation?.cancel()
         observation = nil
-        emit(status: .destroyed)
         // The pinned iOS SDK has no explicit destruction API. Removing this
         // instance from the registry releases its Checkout and Payment Element.
     }

@@ -47,7 +47,6 @@ extension StripeSdkImpl {
                     checkoutControllers[controllerId] = instance
                     instance.start(controllerId: controllerId)
                     resolve([
-                        "controllerId": controllerId,
                         "session": instance.session,
                     ])
                 } catch {

@@ -24,15 +24,13 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertEqual(session["status"] as? NSDictionary, ["type": "expired"])
         XCTAssertEqual(events.last?["status"] as? String, "ready")
 
+        let countBeforeDestroy = events.count
         instance.destroy()
         instance.destroy()
-        let countAfterDestroy = events.count
         checkout.isUpdating = true
         checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session())
 
-        XCTAssertEqual(events.count, countAfterDestroy)
-        XCTAssertEqual(events.filter { $0["status"] as? String == "destroyed" }.count, 1)
-        XCTAssertEqual(events.last?["status"] as? String, "destroyed")
+        XCTAssertEqual(events.count, countBeforeDestroy)
     }
 
     func test_invalidationCancelsPendingCreationTasks() async {
@@ -65,10 +63,6 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
             returnURL: "https://example.com/checkout"
         )
         configuration.apiClient = apiClient
-        configuration.paymentElement = .init()
-        var link = PaymentElement.LinkConfiguration()
-        link.display = .never
-        configuration.paymentElement?.linkConfiguration = link
         return try await CheckoutController(configuration: configuration)
     }
 }
