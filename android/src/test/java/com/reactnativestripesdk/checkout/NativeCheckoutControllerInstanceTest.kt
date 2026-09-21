@@ -41,7 +41,7 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class NativeCheckoutControllerInstanceTest {
   @Test
-  fun `destroy emits once releases resources and stops future updates`() = withFixture { fixture ->
+  fun `destroy releases resources and stops future updates`() = withFixture { fixture ->
     fixture.start()
     advanceUntilIdle()
     val firstSession = fixture.events.last().getMap("session") as WritableMap
@@ -51,16 +51,14 @@ class NativeCheckoutControllerInstanceTest {
     assertEquals("jenny@example.com", fixture.events.last().getMap("session")!!.getString("email"))
     assertEquals("updating", fixture.events.last().getString("status"))
 
+    val countBeforeDestroy = fixture.events.size
     fixture.instance.destroy()
     fixture.instance.destroy()
-    val countAfterDestroy = fixture.events.size
     fixture.updating.value = false
     fixture.sessions.value = checkoutSession(email = "late@example.com")
     advanceUntilIdle()
 
-    assertEquals("destroyed", fixture.events.last().getString("status"))
-    assertEquals(1, fixture.events.count { it.getString("status") == "destroyed" })
-    assertEquals(countAfterDestroy, fixture.events.size)
+    assertEquals(countBeforeDestroy, fixture.events.size)
     assertFalse(fixture.scope.isActive)
     verify(fixture.controller, times(1)).destroy()
   }

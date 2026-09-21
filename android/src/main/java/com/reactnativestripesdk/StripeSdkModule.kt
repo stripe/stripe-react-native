@@ -1450,7 +1450,6 @@ class StripeSdkModule(
           instance.start(controllerId)
           promise.resolve(
             Arguments.createMap().apply {
-              putString("controllerId", controllerId)
               putMap("session", serializedSession.copy())
             },
           )

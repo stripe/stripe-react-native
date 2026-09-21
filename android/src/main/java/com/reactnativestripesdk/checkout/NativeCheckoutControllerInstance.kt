@@ -67,11 +67,7 @@ internal class NativeCheckoutControllerInstance(
     }
     destroyed = true
     scope.cancel()
-    try {
-      emit("destroyed")
-    } finally {
-      controller.destroy()
-    }
+    controller.destroy()
   }
 
   private fun emit(status: String) {
