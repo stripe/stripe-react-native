@@ -225,6 +225,15 @@ export type DateOfBirth = {
 };
 
 /**
+ * The type of government identification provided during KYC collection.
+ * - `social_security_number`: United States Social Security Number.
+ * - `ca_sin`: Canadian Social Insurance Number.
+ * - `co_nit`: Colombian Tax Identification Number.
+ * - `ph_tin`: Philippines Taxpayer Identification Number.
+ */
+export type IdType = 'social_security_number' | 'ca_sin' | 'co_nit' | 'ph_tin';
+
+/**
  * Know Your Customer (KYC) information required for crypto operations.
  *
  * Notes:
@@ -238,6 +247,8 @@ export type KycInfo = {
   lastName?: string;
   /** Government ID number (e.g., SSN for US). May be required by region. */
   idNumber?: string;
+  /** Type of the provided ID number. Defaults to 'social_security_number'. */
+  idType?: IdType;
   /** Customer’s date of birth, if collected. */
   dateOfBirth?: DateOfBirth;
   /** Customer’s address, if collected. */
