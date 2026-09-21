@@ -12,7 +12,6 @@ final class NativeCheckoutControllerInstance {
     }
 
     let checkout: CheckoutController
-    let paymentElement: PaymentElement
     private(set) lazy var session = CheckoutSessionSerializer.serialize(checkout.session)
 
     private let emitEvent: ([String: Any]) -> Void
@@ -25,7 +24,6 @@ final class NativeCheckoutControllerInstance {
         emitEvent: @escaping ([String: Any]) -> Void
     ) {
         self.checkout = checkout
-        self.paymentElement = checkout.getPaymentElement()
         self.emitEvent = emitEvent
     }
 

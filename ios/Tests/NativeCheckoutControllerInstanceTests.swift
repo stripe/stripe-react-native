@@ -14,7 +14,6 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         }
         let controllerId = "controller-1"
         instance.start(controllerId: controllerId)
-        XCTAssertTrue(instance.paymentElement === checkout.getPaymentElement())
         XCTAssertEqual(events.last?["status"] as? String, "ready")
 
         checkout.isUpdating = true
