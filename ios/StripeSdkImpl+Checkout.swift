@@ -162,7 +162,7 @@ extension StripeSdkImpl {
                 reject("Failed", "Checkout requires a visible presenting view controller.", nil)
                 return
             }
-            instance.paymentElement.present(from: presenter, completion: nil)
+            instance.checkout.getPaymentElement().present(from: presenter, completion: nil)
             resolve(nil)
         }
     }
