@@ -56,6 +56,8 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         let sdk = StripeSdkImpl.shared
         let first = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
         let second = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let firstElement = first.checkout.getPaymentElement()
+        let secondElement = second.checkout.getPaymentElement()
         let firstId = "first"
         let secondId = "second"
         sdk.checkoutControllers[firstId] = first
@@ -71,7 +73,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         view.onHeightChanged = { event in heights.append(event?["height"] as? CGFloat ?? 0) }
         window.addSubview(view)
         view.layoutIfNeeded()
-        XCTAssertTrue(view.subviews.first === first.paymentElement.uiView)
+        XCTAssertTrue(view.subviews.first === firstElement.uiView)
         XCTAssertGreaterThan(heights.first ?? 0, 0)
         let measurements = heights.count
         view.setNeedsLayout()
@@ -79,13 +81,13 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertEqual(heights.count, measurements)
 
         view.controllerId = secondId
-        XCTAssertNil(first.paymentElement.uiView.superview)
-        XCTAssertNil(first.paymentElement.uiView.delegate)
+        XCTAssertNil(firstElement.uiView.superview)
+        XCTAssertNil(firstElement.uiView.delegate)
         sdk.checkoutControllers.removeValue(forKey: firstId)?.destroy()
-        XCTAssertTrue(view.subviews.first === second.paymentElement.uiView)
+        XCTAssertTrue(view.subviews.first === secondElement.uiView)
         sdk.checkoutControllers.removeValue(forKey: secondId)?.destroy()
         XCTAssertTrue(view.subviews.isEmpty)
-        XCTAssertNil(second.paymentElement.uiView.delegate)
+        XCTAssertNil(secondElement.uiView.delegate)
         view.removeFromSuperview()
     }
 
@@ -100,6 +102,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
             returnURL: "https://example.com/checkout"
         )
         configuration.apiClient = apiClient
+        configuration.paymentElement = .init()
         return try await CheckoutController(configuration: configuration)
     }
 }

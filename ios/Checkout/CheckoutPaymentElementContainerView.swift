@@ -29,7 +29,7 @@ public final class CheckoutPaymentElementContainerView: UIView {
               let instance = StripeSdkImpl.shared.checkoutControllers[controllerId] else {
             return
         }
-        let view = instance.paymentElement.uiView
+        let view = instance.checkout.getPaymentElement().uiView
         guard view.superview == nil else {
             assertionFailure("A Checkout Payment Element can only be mounted once.")
             return
