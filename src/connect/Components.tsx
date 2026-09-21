@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Modal,
   Platform,
   SafeAreaView,
@@ -103,11 +104,16 @@ export function ConnectAccountOnboarding({
     };
 
   const [visible, setVisible] = useState(true);
+  const [loading, setLoading] = useState(true);
   const { appearance } = useConnectComponents();
 
   // Extract colors from appearance
   const backgroundColor = useMemo(() => {
     return appearance?.variables?.colorBackground || '#FFFFFF';
+  }, [appearance]);
+
+  const loadingIndicatorColor = useMemo(() => {
+    return appearance?.variables?.colorSecondaryText || '#888888';
   }, [appearance]);
 
   const componentProps = useMemo(() => {
@@ -147,6 +153,7 @@ export function ConnectAccountOnboarding({
 
   const onLoaderStartCallback = useCallback(
     (event: LoaderStart) => {
+      setLoading(false);
       if (onLoaderStart) {
         onLoaderStart(event);
       }
@@ -171,6 +178,18 @@ export function ConnectAccountOnboarding({
         onExitAction={onExitCallback}
         style={containerStyle}
       >
+        {loading ? (
+          <View
+            pointerEvents="none"
+            style={[styles.loadingIndicatorContainer, { backgroundColor }]}
+          >
+            <ActivityIndicator
+              size="large"
+              color={loadingIndicatorColor}
+              style={styles.iosActivityIndicator}
+            />
+          </View>
+        ) : null}
         <EmbeddedComponent
           component="account-onboarding"
           componentProps={componentProps}
@@ -206,6 +225,18 @@ export function ConnectAccountOnboarding({
           />
         </View>
         <View style={styles.onboardingWrapper}>
+          {loading ? (
+            <View
+              pointerEvents="none"
+              style={[styles.loadingIndicatorContainer, { backgroundColor }]}
+            >
+              <ActivityIndicator
+                size="large"
+                color={loadingIndicatorColor}
+                style={styles.activityIndicator}
+              />
+            </View>
+          ) : null}
           <EmbeddedComponent
             component="account-onboarding"
             componentProps={componentProps}
@@ -367,14 +398,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   activityIndicator: {
-    zIndex: 1,
     position: 'absolute',
     left: 0,
     right: 0,
     top: 48,
   },
   iosActivityIndicator: {
-    zIndex: 1,
     position: 'absolute',
     left: 0,
     right: 0,
@@ -383,5 +412,9 @@ const styles = StyleSheet.create({
   onboardingWrapper: {
     position: 'relative',
     flex: 1,
+  },
+  loadingIndicatorContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
 });
