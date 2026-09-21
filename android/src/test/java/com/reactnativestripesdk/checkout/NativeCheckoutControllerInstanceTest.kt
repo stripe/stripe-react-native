@@ -12,6 +12,7 @@ import com.stripe.android.uicore.utils.mapAsStateFlow
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
 
-@OptIn(CheckoutSessionPreview::class)
+@OptIn(CheckoutSessionPreview::class, ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class NativeCheckoutControllerInstanceTest {
   @Test

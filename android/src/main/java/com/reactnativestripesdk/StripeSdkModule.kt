@@ -1465,8 +1465,8 @@ class StripeSdkModule(
     }
   }
 
-  private fun emitCheckoutPaymentOptionSelection(controllerId: String?) {
-    if (controllerId != null && checkoutControllers[controllerId] != null) {
+  private fun emitCheckoutPaymentOptionSelection(controllerId: String) {
+    if (checkoutControllers[controllerId] != null) {
       eventEmitter.emitCheckoutControllerDidSelectPaymentOption(
         Arguments.createMap().apply { putString("controllerId", controllerId) },
       )
@@ -1480,7 +1480,7 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     UiThreadUtil.runOnUiThread {
-      val instance = checkoutControllers[controllerId]
+      val instance = checkoutControllers.remove(controllerId)
       if (instance == null) {
         promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
         return@runOnUiThread
@@ -1491,8 +1491,6 @@ class StripeSdkModule(
       } catch (error: Exception) {
         promise.reject("Failed", error.message, error)
         return@runOnUiThread
-      } finally {
-        checkoutControllers.remove(controllerId)
       }
       promise.resolve(null)
     }
