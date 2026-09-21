@@ -179,10 +179,7 @@ export function ConnectAccountOnboarding({
         style={containerStyle}
       >
         {loading ? (
-          <View
-            pointerEvents="none"
-            style={[styles.loadingIndicatorContainer, { backgroundColor }]}
-          >
+          <View style={[styles.loadingIndicatorContainer, { backgroundColor }]}>
             <ActivityIndicator
               size="large"
               color={loadingIndicatorColor}
@@ -210,7 +207,7 @@ export function ConnectAccountOnboarding({
       animationType="slide"
       presentationStyle="fullScreen"
     >
-      <SafeAreaView style={[styles.flex1]}>
+      <SafeAreaView style={styles.flex1}>
         <View
           style={[
             Platform.OS === 'android' && {
@@ -227,7 +224,6 @@ export function ConnectAccountOnboarding({
         <View style={styles.onboardingWrapper}>
           {loading ? (
             <View
-              pointerEvents="none"
               style={[styles.loadingIndicatorContainer, { backgroundColor }]}
             >
               <ActivityIndicator
