@@ -43,10 +43,7 @@ beforeEach(() => {
   for (const method of Object.values(NativeStripeSdk)) {
     (method as jest.Mock).mockReset().mockResolvedValue(undefined);
   }
-  create.mockImplementation(async (_, controllerId) => ({
-    controllerId,
-    session,
-  }));
+  create.mockImplementation(async () => ({ session }));
 });
 
 it('keeps initial snapshots and routes updates and selection to the owning controller', async () => {
@@ -58,7 +55,7 @@ it('keeps initial snapshots and routes updates and selection to the owning contr
       status: 'updating',
       session: updated,
     });
-    return { controllerId, session };
+    return { session };
   });
   const first = await createCheckout({
     ...options,
@@ -91,6 +88,8 @@ it('keeps initial snapshots and routes updates and selection to the owning contr
   expect(destroy).toHaveBeenCalledWith(firstId);
   expect(selected).toHaveBeenCalledTimes(1);
   expect(second.status).toBe('ready');
+  await first.destroy();
+  expect(destroy).toHaveBeenCalledTimes(1);
   await second.destroy();
 });
 

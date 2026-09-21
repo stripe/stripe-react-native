@@ -48,10 +48,6 @@ export async function createCheckout(
     if (status !== 'destroyed') {
       status = update.status;
       session = update.session;
-      if (status === 'destroyed') {
-        subscription.remove();
-        selectionSubscription.remove();
-      }
     }
   });
   const selectionSubscription = addCheckoutControllerSelectionListener(

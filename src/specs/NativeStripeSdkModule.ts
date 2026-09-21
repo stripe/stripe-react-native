@@ -50,7 +50,6 @@ type CustomerSheetInitResult = UnsafeObject<{
 }>;
 
 type CheckoutCreateResult = UnsafeObject<{
-  controllerId: string;
   session: Checkout.Session;
 }>;
 
