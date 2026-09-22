@@ -58,7 +58,7 @@ def create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
     puts "#{change.name}: #{status}"
   end
 
-  execute_or_fail("yarn update-pods")
+  execute_or_fail("yarn pods")
 
   files_to_add = ['package.json', 'CHANGELOG.md', 'example/ios/Podfile.lock']
   files_to_add.concat(native_sdk_changes.select(&:changed).map(&:path))
