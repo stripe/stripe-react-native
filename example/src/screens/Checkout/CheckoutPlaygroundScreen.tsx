@@ -240,7 +240,7 @@ function CheckoutForm() {
       JSON.stringify(
         {
           ...JSON.parse(sessionParameters),
-          adaptive_pricing: true,
+          adaptive_pricing: { enabled: true },
           customer_email: 'test+location_DE@example.com',
         },
         null,
