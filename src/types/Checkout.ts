@@ -360,8 +360,6 @@ export namespace Checkout {
     paymentMethodOrder?: string[];
     /** Whether the new-card form opens the card scanner automatically. */
     opensCardScannerAutomatically?: boolean;
-    /** Whether Stripe address autocomplete endpoints are used. */
-    useAutocompleteEndpoints?: boolean;
     /** Controls legal agreement text for each payment method type. */
     termsDisplay?: Record<string, TermsDisplay>;
     /** The layout used when Payment Element is presented as a sheet. */
@@ -413,8 +411,6 @@ export namespace Checkout {
     totals: Totals;
     /** Lifecycle status of the Checkout Session. */
     status: SessionStatus;
-    /** The error encountered the last time confirmation ran. */
-    lastPaymentError?: StripeError<ErrorCode>;
   }
 
   /**
@@ -454,8 +450,8 @@ export namespace Checkout {
     email?: string;
     /** The customer's phone number. */
     phone?: string;
-    /** The customer's billing address. */
-    address?: Address;
+    /** The collected billing address fields, which can omit the country. */
+    address?: Partial<Address>;
   }
 
   /**
@@ -507,8 +503,6 @@ export namespace Checkout {
     description?: string;
     /** The individual items in this group. */
     items: OneTimePriceItem[];
-    /** Aggregate amounts for this group. */
-    amountDetails: AmountDetails;
   }
 
   /**
@@ -532,6 +526,8 @@ export namespace Checkout {
     quantity: number;
     /** Limits for customer-adjustable quantity, when enabled. */
     adjustableQuantity?: AdjustableQuantity;
+    /** Computed amounts for this item. */
+    amountDetails: AmountDetails;
   }
 
   /**
@@ -545,8 +541,6 @@ export namespace Checkout {
     subtotal: Amount;
     /** Tax amounts grouped by tax rate after Checkout computes tax. */
     taxAmounts?: TaxAmount[];
-    /** The total discount amount. */
-    discount: Amount;
     /** The total inclusive tax amount. */
     taxInclusive: Amount;
     /** The total exclusive tax amount. */
@@ -582,6 +576,8 @@ export namespace Checkout {
    * @CheckoutSessionPrivatePreview
    */
   export interface AdjustableQuantity {
+    /** Whether the customer can adjust the quantity. */
+    enabled: boolean;
     /** The minimum allowed quantity. */
     minimum: number;
     /** The maximum allowed quantity. */
