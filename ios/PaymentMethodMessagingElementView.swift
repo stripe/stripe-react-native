@@ -1,4 +1,5 @@
 import Foundation
+import React
 @_spi(PaymentMethodMessagingElementPreview) @_spi(STP) import StripePaymentSheet
 import UIKit
 
