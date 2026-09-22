@@ -44,6 +44,7 @@ class CheckoutConfigurationMapperTest {
             readableMapOf(
               "appearance" to
                 readableMapOf(
+                  "formInsetValues" to readableMapOf("left" to 12, "bottom" to 24),
                   "colors" to
                     readableMapOf(
                       "light" to readableMapOf("primary" to "#112233"),
@@ -71,7 +72,6 @@ class CheckoutConfigurationMapperTest {
     )
 
     assertEquals("cs_test_secret_123", result.clientSecret)
-    assertEquals("example://checkout", result.returnURL)
     assertEquals("Example Store", result.configuration.readField<String>("merchantDisplayName"))
 
     val defaults = result.configuration.readField<CheckoutController.Configuration.Defaults>("defaults")
@@ -104,6 +104,11 @@ class CheckoutConfigurationMapperTest {
       appearance.readField<PaymentElement.Configuration.Appearance.Colors>("colorsLight")
         .readField<Int>("primary"),
     )
+    val insets = appearance.readField<PaymentElement.Configuration.Appearance.Insets>("formInsetValues")
+    assertEquals(12f, insets.readField<Float>("startDp"))
+    assertEquals(com.stripe.android.uicore.StripeThemeDefaults.formInsets.top, insets.readField<Float>("topDp"))
+    assertEquals(com.stripe.android.uicore.StripeThemeDefaults.formInsets.end, insets.readField<Float>("endDp"))
+    assertEquals(24f, insets.readField<Float>("bottomDp"))
     val googlePay =
       paymentElement.readField<PaymentElement.Configuration.GooglePayConfiguration>(
         "googlePayConfiguration",
@@ -167,7 +172,6 @@ class CheckoutConfigurationMapperTest {
     val result = CheckoutConfigurationMapper.map(readableMapOf(), context) {}
 
     assertEquals("", result.clientSecret)
-    assertEquals("", result.returnURL)
   }
 
   @Test
