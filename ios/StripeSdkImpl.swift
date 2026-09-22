@@ -55,7 +55,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     weak var cardFieldView: CardFieldView?
     weak var cardFormView: CardFormView?
 
-    @MainActor lazy var checkoutControllerRegistry = CheckoutControllerRegistry()
+    @MainActor var checkoutControllers: [String: NativeCheckoutControllerInstance] = [:]
+    @MainActor var pendingCheckoutCreations: [String: Task<Void, Never>] = [:]
 
     var merchantIdentifier: String?
 
@@ -138,7 +139,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     @objc public func invalidateCheckoutControllers() {
         DispatchQueue.main.async { [weak self] in
-            self?.checkoutControllerRegistry.removeAll()
+            guard let self else { return }
+            let pendingCreations = Array(pendingCheckoutCreations.values)
+            pendingCheckoutCreations.removeAll()
+            pendingCreations.forEach { $0.cancel() }
+            let controllers = Array(checkoutControllers.values)
+            checkoutControllers.removeAll()
+            controllers.forEach { $0.destroy() }
         }
     }
 
