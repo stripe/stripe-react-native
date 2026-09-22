@@ -5,6 +5,7 @@ import {
   setApplePayEntitlement,
   setGooglePayMetaData,
   setOnrampGradleProperty,
+  setPodfileDisableSPM,
 } from '../withStripe';
 
 jest.mock(
@@ -173,5 +174,52 @@ describe('setOnrampGradleProperty', () => {
       key: 'StripeSdk_includeOnramp',
       value: 'true',
     });
+  });
+});
+
+describe('setPodfileDisableSPM', () => {
+  // Mirrors the shape of the Podfile Expo generates: the flag must land
+  // after `prepare_react_native_project!` and before the target block.
+  const samplePodfile = [
+    `require File.join(File.dirname(\`node --print "require.resolve('expo/package.json')"\`), "scripts/autolinking")`,
+    '',
+    'prepare_react_native_project!',
+    '',
+    "target 'StripeExpoTest' do",
+    '  use_expo_modules!',
+    'end',
+    '',
+  ].join('\n');
+
+  it('inserts $StripeDisableSPM = true after prepare_react_native_project!', () => {
+    const result = setPodfileDisableSPM(samplePodfile, true);
+
+    expect(result).toContain('$StripeDisableSPM = true');
+    expect(result.indexOf('prepare_react_native_project!')).toBeLessThan(
+      result.indexOf('$StripeDisableSPM = true')
+    );
+    expect(result.indexOf('$StripeDisableSPM = true')).toBeLessThan(
+      result.indexOf("target 'StripeExpoTest'")
+    );
+  });
+
+  it('is idempotent when the flag is already present', () => {
+    const once = setPodfileDisableSPM(samplePodfile, true);
+    const twice = setPodfileDisableSPM(once, true);
+
+    expect(twice).toEqual(once);
+    expect(twice.match(/\$StripeDisableSPM = true/g)).toHaveLength(1);
+  });
+
+  it('removes a previously generated flag when disableSPM is false', () => {
+    const enabled = setPodfileDisableSPM(samplePodfile, true);
+    const disabled = setPodfileDisableSPM(enabled, false);
+
+    expect(disabled).not.toContain('$StripeDisableSPM');
+    expect(disabled).toEqual(samplePodfile);
+  });
+
+  it('leaves the Podfile untouched when disableSPM is false and no flag was generated', () => {
+    expect(setPodfileDisableSPM(samplePodfile, false)).toEqual(samplePodfile);
   });
 });
