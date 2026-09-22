@@ -254,7 +254,10 @@ describe('ConnectAccountOnboarding', () => {
         authChallenge
       );
 
-      const event = { action: 'verify_identity', requestId: '42' };
+      const event = {
+        requestId: '42',
+        spec: { action: 'verify_identity', schema: {}, precompleted: [] },
+      };
       embedded.props.callbacks.onAuthChallengeRequired(event);
       expect(onAuthChallengeRequired).toHaveBeenCalledWith(event);
     });
