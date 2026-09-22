@@ -170,6 +170,51 @@ workflows:
     before_run:
       - _e2e_build_ios
 
+  # Build-only coverage for the CocoaPods fallback path (STRIPE_DISABLE_SPM /
+  # $StripeDisableSPM): Stripe resolved from the pod registry with React
+  # Native's default static libraries. New arch + static + pods is most
+  # similar to an expected real-world default app configuration, so we use it.
+  build-ios-fallback:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - STRIPE_DISABLE_SPM: '1'
+    before_run:
+      - _e2e_build_ios
+
+  # Validates the Expo Continuous Native Generation path on every PR.
+  # Protects this behavior: a fresh `expo prebuild --clean`
+  # project gets exactly ONE `pod install`, so every SPM artifact (package
+  # reference, embed phase) must land in that single pass. The other iOS jobs
+  # all build the committed react-native-test-app project, which never
+  # exercises a from-scratch app project or the Expo config plugin.
+  #
+  # Two passes: SPM mode (expo-build-properties dynamic frameworks, asserts
+  # the SPM integration, then a full Release simulator build to catch
+  # compile/link regressions under Expo), and the CocoaPods fallback via the
+  # plugin's disableSPM option (prebuild + assertions only — fallback
+  # *builds* are covered by build-ios-fallback, and Expo's static default
+  # matches that configuration).
+  expo-prebuild-ios:
+    envs:
+      - EXPO_SDK_VERSION: '54'
+    before_run:
+      - _prepare_js
+    steps:
+      - script@1:
+          title: Expo prebuild + build (SPM mode)
+          timeout: 2700
+          inputs:
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION" --platforms ios
+      - script@1:
+          title: Expo prebuild, CocoaPods fallback (plugin disableSPM)
+          timeout: 1200
+          inputs:
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION" --platforms ios --disable-spm --skip-build
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
+
   e2e-tests-ios-new-arch:
     envs:
       - NEW_ARCH_ENABLED: true
@@ -482,11 +527,16 @@ workflows:
 
                 DERIVED_DATA_PATH="$BITRISE_SOURCE_DIR/DerivedData"
                 build_ios() {
+                  # ARCHS/ONLY_ACTIVE_ARCH: build only the arm64 simulator
+                  # slice (CI runners and the SPM-built Stripe package don't
+                  # need Intel), roughly halving Release build time.
                   xcodebuild -workspace example.xcworkspace \
                     -scheme example \
                     -configuration Release \
                     -sdk iphonesimulator \
                     -derivedDataPath "$DERIVED_DATA_PATH" \
+                    ARCHS=arm64 \
+                    ONLY_ACTIVE_ARCH=YES \
                     build | xcbeautify
                 }
                 build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)
