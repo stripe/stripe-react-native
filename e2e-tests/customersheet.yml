@@ -26,15 +26,16 @@ appId: ${APP_ID}
 - tapOn: "Save"
 - tapOn: "Confirm"
 - assertVisible:
-    text: .*4242
-- tapOn: .*4242
+    # Native card labels can end with a Unicode direction marker.
+    text: .*4242.*
+- tapOn: .*4242.*
 - tapOn: "Close"
 - assertVisible:
     text: "Canceled"
 - tapOn: "OK"
 - tapOn:
     id: "customer_adapter_switch"
-- tapOn: .*4242
+- tapOn: .*4242.*
 - extendedWaitUntil:
     visible: "TEST"
     timeout: 150000

@@ -58,6 +58,8 @@ import {
 } from './sections';
 import type { SourceCurrency } from './sections';
 import type { KycInfoInput } from './sections/AttachKycInfoSection';
+import { kycResidences } from './KycResidence';
+import type { KycResidence } from './KycResidence';
 import type { UserInfo } from './sections/PhoneNumberUpdateSection';
 import { colors } from '../../colors';
 import { PaymentMethodDisplayData } from '@stripe/stripe-react-native/src/types/Onramp';
@@ -69,6 +71,7 @@ const createInitialUserInfo = (): UserInfo => ({
 });
 
 const createInitialKycInfoInput = (): KycInfoInput => ({
+  residence: 'US',
   firstName: '',
   lastName: '',
   idNumber: '',
@@ -80,7 +83,7 @@ const createInitialKycInfoInput = (): KycInfoInput => ({
   addressCity: '',
   addressState: '',
   addressPostalCode: '',
-  addressCountry: '',
+  addressCountry: kycResidences.US.countryCode,
   birthCountry: '',
   birthCity: '',
   nationalities: '',
@@ -763,6 +766,27 @@ export default function CryptoOnrampFlow() {
     [sourceCurrency]
   );
 
+  const handleKycResidenceChange = useCallback(
+    (residence: KycResidence) => {
+      if (residence === kycInfoInput.residence) {
+        return;
+      }
+
+      const configuration = kycResidences[residence];
+      setKycInfoInput((current) => ({
+        ...current,
+        residence,
+        idNumber: '',
+        addressCountry: configuration.countryCode,
+        birthCountry: residence === 'EU' ? current.birthCountry : '',
+        birthCity: residence === 'EU' ? current.birthCity : '',
+        nationalities: residence === 'EU' ? current.nationalities : '',
+      }));
+      handleSourceCurrencyChange(configuration.sourceCurrency);
+    },
+    [handleSourceCurrencyChange, kycInfoInput.residence]
+  );
+
   type CollectPaymentRequest =
     | { type: 'Card' }
     | { type: 'BankAccount' }
@@ -1279,6 +1303,7 @@ export default function CryptoOnrampFlow() {
           <AttachKycInfoSection
             kycInfo={kycInfoInput}
             setKycInfo={setKycInfoInput}
+            onResidenceChange={handleKycResidenceChange}
             handleAttachKycInfo={handleAttachKycInfo}
           />
           <KycRefreshSection
@@ -1407,8 +1432,10 @@ function buildKycInfoInput(kycInfoInput: KycInfoInput): Onramp.KycInfo | null {
   }
 
   const idNumber = normalizeOptionalString(kycInfoInput.idNumber);
-  if (idNumber) {
+  const nationalId = kycResidences[kycInfoInput.residence].nationalId;
+  if (nationalId && idNumber) {
     result.idNumber = idNumber;
+    result.idType = nationalId.type;
   }
 
   if (hasAnyDateOfBirthValue) {
@@ -1481,19 +1508,21 @@ function buildKycInfoInput(kycInfoInput: KycInfoInput): Onramp.KycInfo | null {
     result.address = address;
   }
 
-  const birthCountry = normalizeCountryCode(kycInfoInput.birthCountry);
-  if (birthCountry) {
-    result.birthCountry = birthCountry;
-  }
+  if (kycInfoInput.residence === 'EU') {
+    const birthCountry = normalizeCountryCode(kycInfoInput.birthCountry);
+    if (birthCountry) {
+      result.birthCountry = birthCountry;
+    }
 
-  const birthCity = normalizeOptionalString(kycInfoInput.birthCity);
-  if (birthCity) {
-    result.birthCity = birthCity;
-  }
+    const birthCity = normalizeOptionalString(kycInfoInput.birthCity);
+    if (birthCity) {
+      result.birthCity = birthCity;
+    }
 
-  const nationalities = normalizeCountryCodeList(kycInfoInput.nationalities);
-  if (nationalities.length > 0) {
-    result.nationalities = nationalities;
+    const nationalities = normalizeCountryCodeList(kycInfoInput.nationalities);
+    if (nationalities.length > 0) {
+      result.nationalities = nationalities;
+    }
   }
 
   return result;

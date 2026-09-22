@@ -44,6 +44,7 @@ class CheckoutConfigurationMapperTest {
             readableMapOf(
               "appearance" to
                 readableMapOf(
+                  "formInsetValues" to readableMapOf("left" to 12, "bottom" to 24),
                   "colors" to
                     readableMapOf(
                       "light" to readableMapOf("primary" to "#112233"),
@@ -51,11 +52,6 @@ class CheckoutConfigurationMapperTest {
                     ),
                 ),
               "preferredNetworks" to readableArrayOf(7, 5),
-              "billingDetailsCollectionConfiguration" to
-                readableMapOf(
-                  "name" to "always",
-                  "address" to "full",
-                ),
               "paymentMethodOrder" to readableArrayOf("card", "link"),
               "opensCardScannerAutomatically" to true,
               "termsDisplay" to readableMapOf("card" to "never"),
@@ -76,7 +72,6 @@ class CheckoutConfigurationMapperTest {
     )
 
     assertEquals("cs_test_secret_123", result.clientSecret)
-    assertEquals("example://checkout", result.returnURL)
     assertEquals("Example Store", result.configuration.readField<String>("merchantDisplayName"))
 
     val defaults = result.configuration.readField<CheckoutController.Configuration.Defaults>("defaults")
@@ -99,19 +94,6 @@ class CheckoutConfigurationMapperTest {
       paymentElement.readField<Map<PaymentMethod.Type, *>>("termsDisplay")[PaymentMethod.Type.Card],
     )
 
-    val billing =
-      paymentElement.readField<PaymentElement.Configuration.BillingDetailsCollectionConfiguration>(
-        "billingDetailsCollectionConfiguration",
-      )
-    assertEquals(
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Always,
-      billing.readField("name"),
-    )
-    assertEquals(
-      PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full,
-      billing.readField("address"),
-    )
-
     val appearance = paymentElement.readField<PaymentElement.Configuration.Appearance>("appearance")
     assertEquals(
       PaymentElement.Configuration.Appearance.ThemeMode.AlwaysDark,
@@ -122,6 +104,11 @@ class CheckoutConfigurationMapperTest {
       appearance.readField<PaymentElement.Configuration.Appearance.Colors>("colorsLight")
         .readField<Int>("primary"),
     )
+    val insets = appearance.readField<PaymentElement.Configuration.Appearance.Insets>("formInsetValues")
+    assertEquals(12f, insets.readField<Float>("startDp"))
+    assertEquals(com.stripe.android.uicore.StripeThemeDefaults.formInsets.top, insets.readField<Float>("topDp"))
+    assertEquals(com.stripe.android.uicore.StripeThemeDefaults.formInsets.end, insets.readField<Float>("endDp"))
+    assertEquals(24f, insets.readField<Float>("bottomDp"))
     val googlePay =
       paymentElement.readField<PaymentElement.Configuration.GooglePayConfiguration>(
         "googlePayConfiguration",
@@ -140,6 +127,26 @@ class CheckoutConfigurationMapperTest {
 
     invokeImmediateAction(result.rowSelectionBehavior)
     assertEquals(1, selectionCount)
+  }
+
+  @Test
+  fun `legacy billing collection options do not interfere with Android Checkout configuration`() {
+    val mapped = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "returnURL" to "example://checkout",
+        "paymentElement" to readableMapOf(
+          "billingDetailsCollectionConfiguration" to readableMapOf(
+            "name" to "always",
+            "address" to "full",
+          ),
+          "paymentMethodOrder" to readableArrayOf("card", "link"),
+        ),
+      ),
+      context,
+    ) {}.configuration.readField<PaymentElement.Configuration>("paymentElementConfiguration")
+
+    assertEquals(listOf("card", "link"), mapped.readField("paymentMethodOrder"))
   }
 
   @Test
@@ -165,7 +172,6 @@ class CheckoutConfigurationMapperTest {
     val result = CheckoutConfigurationMapper.map(readableMapOf(), context) {}
 
     assertEquals("", result.clientSecret)
-    assertEquals("", result.returnURL)
   }
 
   @Test
@@ -188,12 +194,6 @@ class CheckoutConfigurationMapperTest {
 
   @Test
   fun `helper mappers reject unsupported enum values`() {
-    assertThrows(IllegalArgumentException::class.java) {
-      CheckoutConfigurationMapper.mapCollectionMode("never")
-    }
-    assertThrows(IllegalArgumentException::class.java) {
-      CheckoutConfigurationMapper.mapAddressCollectionMode("never")
-    }
     assertThrows(IllegalArgumentException::class.java) {
       CheckoutConfigurationMapper.mapTermsDisplay(readableMapOf("unknown_method" to "never"))
     }

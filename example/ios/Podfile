@@ -70,8 +70,6 @@ post_integrate do |_installer|
     flags = Array(config.build_settings['OTHER_SWIFT_FLAGS'] || '$(inherited)')
     flags = flags.flat_map { |flag| flag.to_s.split(' ') }
     flags << '$(inherited)' unless flags.include?('$(inherited)')
-    # The tests conditionally compile new-architecture code paths.
-    flags << '-DRCT_NEW_ARCH_ENABLED' unless flags.include?('-DRCT_NEW_ARCH_ENABLED')
     unless disable_spm
       # The tests import Stripe modules directly (@testable-importing the SDK
       # framework also requires resolving the modules its Swift interface
