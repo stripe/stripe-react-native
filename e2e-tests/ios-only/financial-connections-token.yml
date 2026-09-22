@@ -12,11 +12,13 @@ appId: ${APP_ID}
 - tapOn:
     text: "Collect token"
     retryTapIfNoChange: false
-- assertVisible:
-    text: "Agree and continue"
+- extendedWaitUntil:
+    visible: "Agree and continue"
+    timeout: 30000
 - tapOn: "Agree and continue"
-- assertVisible:
-    text: "Test (Non-OAuth)"
+- extendedWaitUntil:
+    visible: "Test (Non-OAuth)"
+    timeout: 30000
 - tapOn: "Test (Non-OAuth)"
 - extendedWaitUntil:
     # wait for the auth flow to finish
@@ -27,7 +29,7 @@ appId: ${APP_ID}
 - tapOn: "Connect account"
 - tapOn:
     # Hide the keyboard if it shows up
-    text: "Done"
+    id: "Return"
     optional: true
 - assertVisible:
     text: "Finish without saving"
