@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import {
+  CheckoutCurrencySelectorElementView,
   CheckoutPaymentElementView,
   initStripe,
   useCheckout,
@@ -224,6 +225,29 @@ function CheckoutForm() {
   const [lastAction, setLastAction] = useState('');
   const [snapshotVisible, setSnapshotVisible] = useState(false);
   const [showUpdates, setShowUpdates] = useState(false);
+  const enableCurrencySelector = () => {
+    setConfiguration(
+      JSON.stringify(
+        {
+          ...JSON.parse(configuration),
+          currencySelectorElement: {},
+        },
+        null,
+        2
+      )
+    );
+    setSessionParameters(
+      JSON.stringify(
+        {
+          ...JSON.parse(sessionParameters),
+          adaptive_pricing: true,
+          customer_email: 'test+location_DE@example.com',
+        },
+        null,
+        2
+      )
+    );
+  };
   const checkout = useCheckout({
     enabled,
     getConfiguration: async () => {
@@ -350,6 +374,11 @@ function CheckoutForm() {
         description="Configuration changes apply when a session is created or reloaded."
       >
         <View style={styles.actionStack}>
+          <PlaygroundButton
+            title="Use Adaptive Pricing"
+            disabled={enabled}
+            onPress={enableCurrencySelector}
+          />
           <PlaygroundButton
             title={
               editConfiguration ? 'Hide configuration' : 'Edit configuration'
@@ -484,6 +513,14 @@ function CheckoutForm() {
                 </Text>
               </View>
             </View>
+            {checkout.currencySelectorElement && (
+              <View style={styles.nativeElement}>
+                <CheckoutCurrencySelectorElementView
+                  testID="checkout-currency-selector"
+                  element={checkout.currencySelectorElement}
+                />
+              </View>
+            )}
             <View style={styles.paymentActions}>
               {action(
                 'Present sheet',
