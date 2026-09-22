@@ -10,6 +10,7 @@ import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutPresenter
+import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CompletableDeferred
@@ -47,6 +48,10 @@ internal class NativeCheckoutControllerInstance(
 
   /** Reuses the native Payment Element for the lifetime of its activity. */
   fun paymentElement(activity: ComponentActivity): PaymentElement = getPresenter(activity).paymentElement()
+
+  /** Reuses the native Currency Selector Element for the lifetime of its activity. */
+  fun currencySelectorElement(activity: ComponentActivity): CurrencySelectorElement =
+    getPresenter(activity).currencySelectorElement()
 
   private fun getPresenter(activity: ComponentActivity): CheckoutPresenter {
     check(!destroyed) { "Checkout controller was destroyed." }

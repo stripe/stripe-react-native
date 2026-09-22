@@ -48,6 +48,19 @@ beforeEach(() => {
   create.mockImplementation(async () => ({ session }));
 });
 
+it('keeps one nullable Currency Selector handle for the controller lifetime', async () => {
+  create.mockResolvedValueOnce({ session, isCurrencySelectorAvailable: true });
+  const controller = await createCheckout({
+    ...options,
+    currencySelectorElement: {},
+  });
+  expect(controller.currencySelectorElement).not.toBeNull();
+  expect(controller.currencySelectorElement).toBe(
+    controller.currencySelectorElement
+  );
+  await controller.destroy();
+});
+
 it('keeps initial snapshots and routes updates and selection to the owning controller', async () => {
   const selected = jest.fn();
   const updated = { ...session, email: 'updated@example.com' };

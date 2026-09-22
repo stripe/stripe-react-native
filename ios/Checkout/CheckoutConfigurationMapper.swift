@@ -43,7 +43,93 @@ enum CheckoutConfigurationMapper {
             merchantIdentifier: merchantIdentifier,
             didSelectPaymentOption: didSelectPaymentOption
         )
+        if let currencySelectorParams = params["currencySelectorElement"] as? NSDictionary {
+            var currencySelectorConfiguration = CurrencySelectorElement.Configuration()
+            currencySelectorConfiguration.appearance = try mapCurrencySelectorAppearance(
+                currencySelectorParams["appearance"] as? NSDictionary
+            )
+            configuration.currencySelectorElement = currencySelectorConfiguration
+        }
         return configuration
+    }
+
+    private static func mapCurrencySelectorAppearance(
+        _ params: NSDictionary?
+    ) throws -> CurrencySelectorElement.Appearance {
+        var appearance = CurrencySelectorElement.Appearance()
+        guard let params else { return appearance }
+
+        if let padding = params["contentVerticalPadding"] as? NSNumber {
+            appearance.contentVerticalPadding = CGFloat(truncating: padding)
+        }
+        if let shapes = params["shapes"] as? NSDictionary {
+            if let radius = shapes["cornerRadius"] as? NSNumber {
+                appearance.cornerRadius = CGFloat(truncating: radius)
+            }
+            if let width = shapes["borderWidth"] as? NSNumber {
+                appearance.borderWidth = CGFloat(truncating: width)
+            }
+        }
+        if let font = params["font"] as? NSDictionary {
+            if let family = font["family"] as? String,
+               let customFont = UIFont(name: family, size: appearance.font.pointSize) {
+                appearance.font = customFont
+            }
+            if let scale = font["scale"] as? NSNumber {
+                appearance.sizeScaleFactor = CGFloat(truncating: scale)
+            }
+        }
+        if let value = params["labelContent"] as? String {
+            appearance.labelContent = switch value {
+            case "automatic": .automatic
+            case "currencyCode": .currencyCode
+            case "amount": .amount
+            default: throw unsupported(value, at: "currencySelectorElement.appearance.labelContent")
+            }
+        }
+        if let colors = params["colors"] as? NSDictionary {
+            mapCurrencySelectorColor(colors, key: "border").map { appearance.border = $0 }
+            mapCurrencySelectorColor(colors, key: "background").map { appearance.background = $0 }
+            mapCurrencySelectorColor(colors, key: "selectedBackground").map { appearance.selectedBackground = $0 }
+            mapCurrencySelectorColor(colors, key: "text").map { appearance.text = $0 }
+            mapCurrencySelectorColor(colors, key: "selectedText").map { appearance.selectedText = $0 }
+            mapCurrencySelectorColor(colors, key: "textSecondary").map { appearance.textSecondary = $0 }
+            mapCurrencySelectorColor(colors, key: "danger").map { appearance.danger = $0 }
+        }
+        return appearance
+    }
+
+    private static func mapCurrencySelectorColor(
+        _ colors: NSDictionary,
+        key: String
+    ) -> UIColor? {
+        let lightPalette = colors["light"] as? NSDictionary
+        let darkPalette = colors["dark"] as? NSDictionary
+        if lightPalette != nil || darkPalette != nil {
+            let light = colorHex(lightPalette?[key], style: "light")
+                ?? colorHex(darkPalette?[key], style: "light")
+            let dark = colorHex(darkPalette?[key], style: "dark")
+                ?? colorHex(lightPalette?[key], style: "dark")
+            guard light != nil || dark != nil else { return nil }
+            return UIColor { traits in
+                UIColor(hexString: traits.userInterfaceStyle == .dark
+                    ? (dark ?? light!)
+                    : (light ?? dark!))
+            }
+        }
+        guard let light = colorHex(colors[key], style: "light"),
+              let dark = colorHex(colors[key], style: "dark") else {
+            return nil
+        }
+        if light == dark { return UIColor(hexString: light) }
+        return UIColor { traits in
+            UIColor(hexString: traits.userInterfaceStyle == .dark ? dark : light)
+        }
+    }
+
+    private static func colorHex(_ value: Any?, style: String) -> String? {
+        if let value = value as? String { return value }
+        return (value as? NSDictionary)?[style] as? String
     }
 
     private static func mapDefaults(

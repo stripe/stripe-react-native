@@ -39,8 +39,12 @@ extension StripeSdkImpl {
                     )
                     let checkout = try await CheckoutController(configuration: configuration)
                     try Task.checkCancellation()
+                    let currencySelectorElement = configuration.currencySelectorElement == nil
+                        ? nil
+                        : checkout.getCurrencySelectorElement()
                     let instance = NativeCheckoutControllerInstance(
                         checkout: checkout,
+                        currencySelectorElement: currencySelectorElement,
                         emitEvent: { [weak self] update in
                             self?.emitter?.emitCheckoutControllerDidUpdate(update)
                         }
@@ -49,6 +53,7 @@ extension StripeSdkImpl {
                     instance.start(controllerId: controllerId)
                     resolve([
                         "session": instance.session,
+                        "isCurrencySelectorAvailable": currencySelectorElement != nil,
                     ])
                 } catch {
                     reject("Failed", error.localizedDescription, error)
