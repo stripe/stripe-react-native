@@ -987,11 +987,39 @@ export namespace Checkout {
     }
     export interface CreateOptions {
         clientSecret: string;
+        currencySelectorElement?: CurrencySelectorElementConfiguration;
         defaults?: Defaults;
         merchantDisplayName?: string;
         paymentElement?: PaymentElementConfiguration;
         returnURL: string;
         style?: UserInterfaceStyle;
+    }
+    export interface CurrencySelectorElementAppearance {
+        colors?: CurrencySelectorElementColorConfiguration | {
+            light: CurrencySelectorElementColorConfiguration;
+            dark: CurrencySelectorElementColorConfiguration;
+        };
+        contentVerticalPadding?: number;
+        font?: Partial<FontConfig>;
+        labelContent?: CurrencySelectorElementLabelContent;
+        shapes?: CurrencySelectorElementShapeConfiguration;
+    }
+    export interface CurrencySelectorElementColorConfiguration {
+        background?: ThemedColor;
+        border?: ThemedColor;
+        danger?: ThemedColor;
+        selectedBackground?: ThemedColor;
+        selectedText?: ThemedColor;
+        text?: ThemedColor;
+        textSecondary?: ThemedColor;
+    }
+    export interface CurrencySelectorElementConfiguration {
+        appearance?: CurrencySelectorElementAppearance;
+    }
+    export type CurrencySelectorElementLabelContent = 'automatic' | 'currencyCode' | 'amount';
+    export interface CurrencySelectorElementShapeConfiguration {
+        borderWidth?: number;
+        cornerRadius?: number;
     }
     export interface Defaults {
         billingDetails?: ContactDetails;
@@ -1128,6 +1156,7 @@ export namespace Checkout {
         applyPromotionCode(promotionCode: string): Promise<void>;
         clearPaymentOption(): Promise<void>;
         confirm(): Promise<Result>;
+        readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
         readonly error: StripeError<ErrorCode> | null;
         readonly paymentElement: CheckoutPaymentElement | null;
         reload(): Promise<void>;
@@ -1146,6 +1175,7 @@ export interface CheckoutController {
     applyPromotionCode(promotionCode: string): Promise<void>;
     clearPaymentOption(): Promise<void>;
     confirm(): Promise<Checkout.Result>;
+    readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
     destroy(): Promise<void>;
     readonly paymentElement: CheckoutPaymentElement;
     removePromotionCode(): Promise<void>;
@@ -1154,6 +1184,18 @@ export interface CheckoutController {
     readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
     updateEmail(email: string | null): Promise<void>;
     updateShippingAddress(params: Checkout.UpdateShippingAddressParams): Promise<void>;
+}
+
+// @public
+export interface CheckoutCurrencySelectorElement {
+}
+
+// @public
+export function CheckoutCurrencySelectorElementView(input: CheckoutCurrencySelectorElementViewProps): React_2.JSX.Element;
+
+// @public
+export interface CheckoutCurrencySelectorElementViewProps extends ViewProps {
+    element: CheckoutCurrencySelectorElement;
 }
 
 // @public
