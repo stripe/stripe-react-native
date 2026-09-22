@@ -8,6 +8,7 @@ import com.facebook.react.bridge.ReadableType
 import com.reactnativestripesdk.getFontResId
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.forEachKey
+import com.reactnativestripesdk.utils.getFloatOr
 import com.reactnativestripesdk.utils.getFloatOrNull
 import com.reactnativestripesdk.utils.getIntegerList
 import com.reactnativestripesdk.utils.getStringList
@@ -16,11 +17,11 @@ import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CheckoutSessionPreview
+import com.stripe.android.uicore.StripeThemeDefaults
 
 @OptIn(CheckoutSessionPreview::class)
 internal data class MappedCheckoutConfiguration(
   val clientSecret: String,
-  val returnURL: String,
   val configuration: CheckoutController.Configuration,
   val rowSelectionBehavior: PaymentElement.RowSelectionBehavior,
 )
@@ -34,7 +35,6 @@ internal object CheckoutConfigurationMapper {
     didSelectPaymentOption: () -> Unit,
   ): MappedCheckoutConfiguration {
     val clientSecret = params.getString("clientSecret").orEmpty()
-    val returnURL = params.getString("returnURL").orEmpty()
     val paymentElementParams = params.getMap("paymentElement")
 
     val configuration = CheckoutController.Configuration()
@@ -50,7 +50,6 @@ internal object CheckoutConfigurationMapper {
 
     return MappedCheckoutConfiguration(
       clientSecret = clientSecret,
-      returnURL = returnURL,
       configuration = configuration,
       rowSelectionBehavior = mapRowSelectionBehavior(paymentElementParams, didSelectPaymentOption),
     )
@@ -117,9 +116,7 @@ internal object CheckoutConfigurationMapper {
     params.getIntegerList("preferredNetworks")?.let {
       configuration.preferredNetworks(mapPreferredNetworks(it))
     }
-    params.getMap("billingDetailsCollectionConfiguration")?.let {
-      configuration.billingDetailsCollectionConfiguration(mapBillingDetailsCollection(it))
-    }
+    // Billing details collection is configured by the Checkout Session on Android.
     params.getStringList("paymentMethodOrder")?.let(configuration::paymentMethodOrder)
     if (params.hasKey("opensCardScannerAutomatically")) {
       configuration.opensCardScannerAutomatically(params.getBoolean("opensCardScannerAutomatically"))
@@ -143,38 +140,6 @@ internal object CheckoutConfigurationMapper {
       if (mapped.size != values.size) {
         unsupportedValue("paymentElement.preferredNetworks", values)
       }
-    }
-
-  private fun mapBillingDetailsCollection(
-    params: ReadableMap,
-  ): PaymentElement.Configuration.BillingDetailsCollectionConfiguration {
-    val configuration = PaymentElement.Configuration.BillingDetailsCollectionConfiguration()
-    params.getString("name")?.let { configuration.name(mapCollectionMode(it)) }
-    params.getString("address")?.let { configuration.address(mapAddressCollectionMode(it)) }
-    // TODO(porter): Uncomment when the reviewed native setters ship.
-    // configuration.phone(mapCollectionMode(params?.getString("phone")))
-    // configuration.attachDefaultsToPaymentMethod(
-    //   params.getBooleanOr("attachDefaultsToPaymentMethod", false),
-    // )
-    return configuration
-  }
-
-  internal fun mapCollectionMode(
-    value: String,
-  ): PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode =
-    when (value) {
-      "automatic" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
-      "always" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.CollectionMode.Always
-      else -> unsupportedValue("paymentElement.billingDetailsCollectionConfiguration.name", value)
-    }
-
-  internal fun mapAddressCollectionMode(
-    value: String,
-  ): PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode =
-    when (value) {
-      "automatic" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
-      "full" -> PaymentElement.Configuration.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full
-      else -> unsupportedValue("paymentElement.billingDetailsCollectionConfiguration.address", value)
     }
 
   internal fun mapPaymentMethodLayout(
@@ -272,7 +237,17 @@ internal object CheckoutConfigurationMapper {
     }
     params?.getMap("primaryButton")?.let { appearance.primaryButton(mapPrimaryButton(it, context)) }
 
-    // TODO(porter): Map partial formInsetValues when the reviewed native setter ships.
+    params?.getMap("formInsetValues")?.let { insets ->
+      val defaults = StripeThemeDefaults.formInsets
+      appearance.formInsetValues(
+        PaymentElement.Configuration.Appearance.Insets(
+          startDp = insets.getFloatOr("left", defaults.start),
+          topDp = insets.getFloatOr("top", defaults.top),
+          endDp = insets.getFloatOr("right", defaults.end),
+          bottomDp = insets.getFloatOr("bottom", defaults.bottom),
+        ),
+      )
+    }
     // TODO(porter): Map root font, shapes, and embedded appearance when their reviewed setters ship.
     return appearance
   }
