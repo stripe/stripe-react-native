@@ -28,6 +28,8 @@ pipelines:
       e2e-tests-ios-new-arch:
         depends_on: [e2e-build-ios-new-arch]
         parallel: 3
+      build-ios-fallback: {}
+      expo-prebuild-ios: {}
       e2e-build-android-new-arch: {}
       e2e-tests-android-new-arch:
         depends_on: [e2e-build-android-new-arch]
@@ -172,8 +174,11 @@ workflows:
 
   # Build-only coverage for the CocoaPods fallback path (STRIPE_DISABLE_SPM /
   # $StripeDisableSPM): Stripe resolved from the pod registry with React
-  # Native's default static libraries. New arch + static + pods is most
-  # similar to an expected real-world default app configuration, so we use it.
+  # Native's default static libraries. All other iOS jobs run SPM mode, so
+  # without this job the fallback — what RN < 0.75 apps and opted-out apps use
+  # while Stripe still publishes pods — would have no CI coverage. New arch +
+  # static + pods is the closest match to today's real-world default app
+  # configuration. Build-only: no e2e-tests consumer pulls its artifact.
   build-ios-fallback:
     envs:
       - NEW_ARCH_ENABLED: true
@@ -392,22 +397,12 @@ workflows:
           inputs:
             - content: |
                 if [ -n "$OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH" ]; then
+                  # stripe_spm.rb reads this env var and resolves the Swift
+                  # package from that stripe-ios branch instead of the pinned
+                  # release.
                   echo "Overriding Stripe iOS SDK to use branch: $OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH"
-
-                  # Extract pod names from update-pods script (includes transitive deps)
-                  STRIPE_PODS=$(grep '"update-pods"' package.json | sed 's/.*pod update //' | sed 's/",$//')
-
-                  PODFILE="example/ios/Podfile"
-                  echo "" >> "$PODFILE"
-                  echo "# Override Stripe iOS SDK pods to use git branch" >> "$PODFILE"
-                  echo "$STRIPE_PODS" | tr ' ' '\n' | while read pod; do
-                    [ -n "$pod" ] && echo "pod '$pod', :git => 'https://github.com/stripe/stripe-ios.git', :branch => '$OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH'" >> "$PODFILE"
-                  done
-
-                  yarn update-pods
-                else
-                  yarn pods
                 fi
+                yarn pods
 
   _prepare_android:
     before_run:
