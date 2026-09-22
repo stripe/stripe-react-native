@@ -179,8 +179,8 @@ module StripeSPM
   #     app bundle.
   #   - Re-signs with --preserve-metadata so the frameworks pick up the app's
   #     signing identity without losing their bundle identifiers/entitlements.
-  #   - Skips frameworks already present in the destination (e.g. embedded by
-  #     another phase) rather than overwriting them.
+  #   - Synchronizes frameworks on every build and removes obsolete files
+  #     within each framework so incremental builds pick up SDK updates.
   #   - FRAMEWORKS_FOLDER_PATH is unset for build types with no frameworks
   #     folder (some non-app targets); treat that as "nothing to do".
   #
@@ -201,11 +201,10 @@ module StripeSPM
         BINARY="$FRAMEWORK/$NAME"
         [ -f "$BINARY" ] || continue
         file -b "$BINARY" | grep -q "dynamically linked" || continue
-        if [ ! -d "$DEST/$NAME.framework" ]; then
-          rsync -a --exclude Headers --exclude PrivateHeaders --exclude Modules "$FRAMEWORK" "$DEST/"
-          if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ] && [ "${CODE_SIGNING_ALLOWED:-NO}" = "YES" ]; then
-            codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --preserve-metadata=identifier,entitlements "$DEST/$NAME.framework"
-          fi
+        # No trailing slash on the source: --delete stays inside this framework.
+        rsync -a --delete --exclude Headers --exclude PrivateHeaders --exclude Modules "$FRAMEWORK" "$DEST/"
+        if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ] && [ "${CODE_SIGNING_ALLOWED:-NO}" = "YES" ]; then
+          codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --preserve-metadata=identifier,entitlements "$DEST/$NAME.framework"
         fi
       done
     done
@@ -689,10 +688,10 @@ if defined?(Pod::Installer)
       alias_method :stripe_spm_original_run_podfile_post_integrate_hooks, :run_podfile_post_integrate_hooks
 
       define_method(:run_podfile_post_integrate_hooks) do
-        # The user's own post_integrate block (if any) runs first, ours after.
-        result = stripe_spm_original_run_podfile_post_integrate_hooks
+        # Apply and save our changes first so the user's post_integrate block
+        # (if any) can customize the result.
         StripeSPM.apply_user_project(self)
-        result
+        stripe_spm_original_run_podfile_post_integrate_hooks
       end
     end
     installer_class.send(:private, :run_podfile_post_integrate_hooks) if post_integrate_was_private

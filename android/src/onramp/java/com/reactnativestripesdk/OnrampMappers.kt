@@ -16,6 +16,7 @@ import com.stripe.android.link.LinkControllerPreview
 import com.stripe.android.crypto.onramp.model.CryptoConsumerWallet
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.exception.SDKVersion
+import com.stripe.android.crypto.onramp.model.IdType
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
@@ -260,6 +261,22 @@ internal fun mapPaymentDetailsType(type: PaymentMethodDisplayData.Type): String 
     PaymentMethodDisplayData.Type.SamsungPay -> "SamsungPay"
   }
 
+internal fun mapToIdType(idType: String?): IdType =
+  when (idType) {
+    "ca_sin" -> IdType.CanadianSocialInsuranceNumber
+    "co_nit" -> IdType.ColombianTaxIdentificationNumber
+    "ph_tin" -> IdType.PhilippinesTaxpayerIdentificationNumber
+    else -> IdType.SocialSecurityNumber
+  }
+
+internal fun mapFromIdType(idType: IdType): String =
+  when (idType) {
+    IdType.SocialSecurityNumber -> "social_security_number"
+    IdType.CanadianSocialInsuranceNumber -> "ca_sin"
+    IdType.ColombianTaxIdentificationNumber -> "co_nit"
+    IdType.PhilippinesTaxpayerIdentificationNumber -> "ph_tin"
+  }
+
 @OptIn(ExperimentalCryptoOnramp::class)
 @SuppressLint("RestrictedApi")
 internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
@@ -268,6 +285,7 @@ internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
   kycInfo.firstName?.let { result.putString("firstName", it) }
   kycInfo.lastName?.let { result.putString("lastName", it) }
   kycInfo.idNumber?.let { result.putString("idNumber", it) }
+  result.putString("idType", mapFromIdType(kycInfo.idType))
   kycInfo.address?.let { result.putMap("address", mapFromKycAddress(it)) }
   kycInfo.dateOfBirth?.let { result.putMap("dateOfBirth", mapFromDateOfBirth(it)) }
   kycInfo.birthCountry?.let { result.putString("birthCountry", it.value) }
