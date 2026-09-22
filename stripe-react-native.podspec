@@ -3,7 +3,7 @@ require_relative 'stripe_spm'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
-stripe_version = '26.9.0'
+stripe_version = '26.11.0'
 
 if ENV['RCT_NEW_ARCH_ENABLED'] == '0'
   raise 'stripe-react-native requires the React Native new architecture. Use RCT_NEW_ARCH_ENABLED=1 in your Podfile.'
