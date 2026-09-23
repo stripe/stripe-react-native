@@ -1,6 +1,7 @@
 package com.reactnativestripesdk.checkout
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.test.runCurrent
@@ -11,6 +12,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class CheckoutServerUpdateCallbacksTest {
   @Test
   fun `completions are isolated and duplicate or unknown completions are ignored`() = runTest {

@@ -8,7 +8,7 @@ export interface CheckoutControllerUpdate {
 }
 
 /** Creates identifiers for controllers and server-update operations. */
-export function createCheckoutId(): string {
+export function createCheckoutBridgeId(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
     /[xy]/g,
     (character) => {

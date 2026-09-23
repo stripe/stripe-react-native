@@ -4,13 +4,9 @@ import XCTest
 
 @MainActor
 final class CheckoutServerUpdateTests: XCTestCase {
-    func test_successAndFailureCompleteOnce() async throws {
+    func test_successAndFailureCompleteOnce() async {
         for error in [nil, CocoaError(.fileReadUnknown)] as [Error?] {
-            var completions = 0
-            let operation = CheckoutServerUpdate { result in
-                completions += 1
-                XCTAssertEqual(result?.localizedDescription, error?.localizedDescription)
-            }
+            let operation = CheckoutServerUpdate()
             do {
                 try await operation.requestCallback {
                     operation.completeCallback(error: error)
@@ -20,19 +16,12 @@ final class CheckoutServerUpdateTests: XCTestCase {
             } catch let received {
                 XCTAssertEqual(received.localizedDescription, error?.localizedDescription)
             }
-            operation.finish(error: error)
-            operation.finish(error: CancellationError())
-            XCTAssertEqual(completions, 1)
         }
     }
 
     func test_destroyBeforeCallbackPreventsRequest() async {
-        var completions = 0
-        let operation = CheckoutServerUpdate { error in
-            XCTAssertTrue(error is CancellationError)
-            completions += 1
-        }
-        operation.finish(error: CancellationError())
+        let operation = CheckoutServerUpdate()
+        operation.cancel()
         do {
             try await operation.requestCallback { XCTFail("Destroyed operation requested JS") }
             XCTFail("Expected cancellation")
@@ -40,15 +29,13 @@ final class CheckoutServerUpdateTests: XCTestCase {
             XCTAssertTrue(error is CancellationError)
         }
         operation.completeCallback(error: nil)
-        operation.finish(error: nil)
-        XCTAssertEqual(completions, 1)
     }
 
     func test_destroyWhileWaitingReleasesCallback() async {
-        let operation = CheckoutServerUpdate { _ in }
+        let operation = CheckoutServerUpdate()
         do {
             try await operation.requestCallback {
-                operation.finish(error: CancellationError())
+                operation.cancel()
             }
             XCTFail("Expected cancellation")
         } catch {
@@ -57,8 +44,7 @@ final class CheckoutServerUpdateTests: XCTestCase {
     }
 
     func test_nativeTimeoutReleasesCallbackAndIgnoresLateCompletion() async {
-        var completions = 0
-        let operation = CheckoutServerUpdate { _ in completions += 1 }
+        let operation = CheckoutServerUpdate()
         let result: Result<Void, Error> = await withTimeout(0.01) {
             try await operation.requestCallback {}
         }
@@ -66,9 +52,7 @@ final class CheckoutServerUpdateTests: XCTestCase {
         case .success: XCTFail("Expected timeout")
         case .failure(let error):
             XCTAssertTrue(error is TimeoutError)
-            operation.finish(error: error)
         }
         operation.completeCallback(error: nil)
-        XCTAssertEqual(completions, 1)
     }
 }
