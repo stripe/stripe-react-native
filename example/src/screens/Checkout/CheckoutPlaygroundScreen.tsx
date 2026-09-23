@@ -563,6 +563,12 @@ function CheckoutForm() {
           <View style={styles.snapshot}>
             <Text style={styles.snapshotTitle}>Session snapshot</Text>
             <Text
+              style={styles.snapshotMetadata}
+              testID="checkout-snapshot-currency"
+            >
+              Currency: {checkout.session?.currency.toUpperCase()}
+            </Text>
+            <Text
               selectable
               testID="checkout-snapshot"
               style={styles.snapshotText}
@@ -799,6 +805,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     marginBottom: 8,
+  },
+  snapshotMetadata: {
+    color: colors.dark_gray,
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 10,
   },
   snapshotText: {
     color: colors.slate,

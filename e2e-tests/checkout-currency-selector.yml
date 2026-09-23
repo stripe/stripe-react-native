@@ -24,8 +24,11 @@ appId: ${APP_ID}
     id: 'checkout-currency-selector'
 - tapOn:
     text: '.*\$.*'
-- extendedWaitUntil:
-    visible: 'Status: ready'
+- scrollUntilVisible:
+    element:
+      text: 'Status: ready'
+    direction: UP
+    centerElement: true
     timeout: 60000
 - scrollUntilVisible:
     element:
@@ -33,5 +36,5 @@ appId: ${APP_ID}
 - tapOn: 'Show session'
 - scrollUntilVisible:
     element:
-      text: '.*"currency": "usd".*'
+      text: 'Currency: USD'
     timeout: 30000
