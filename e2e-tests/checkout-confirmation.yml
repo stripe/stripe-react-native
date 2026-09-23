@@ -15,13 +15,20 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
+- scrollUntilVisible:
+    element:
+      text: 'Confirm'
+    centerElement: true
 - runFlow:
     when:
       platform: iOS
     commands:
       - tapOn: 'Confirm'
-      - extendedWaitUntil:
-          visible: 'Confirm: .*"status":"failed".*'
+      - scrollUntilVisible:
+          element:
+            text: 'Confirm: .*"status":"failed".*'
+          direction: UP
+          centerElement: true
           timeout: 30000
       - assertVisible: 'Status: ready'
 - runFlow:
@@ -29,15 +36,18 @@ appId: ${APP_ID}
     env:
       CARD_NUMBER: '4242424242424242'
 - tapOn: 'Confirm'
-- extendedWaitUntil:
-    visible: 'Confirm: .*"status":"completed".*'
+- scrollUntilVisible:
+    element:
+      text: 'Confirm: .*"status":"completed".*'
+    direction: UP
+    centerElement: true
     timeout: 150000
 - assertVisible: 'Confirm: .*"paymentStatus":"paid".*'
 - assertVisible: 'Status: ready'
 - scrollUntilVisible:
     element:
       text: 'Reload'
-    direction: UP
+    direction: DOWN
     centerElement: true
 - tapOn: 'Reload'
 - extendedWaitUntil:
@@ -48,8 +58,11 @@ appId: ${APP_ID}
     env:
       CARD_NUMBER: '4000000000000002'
 - tapOn: 'Confirm'
-- extendedWaitUntil:
-    visible: 'Confirm: .*"status":"failed".*'
+- scrollUntilVisible:
+    element:
+      text: 'Confirm: .*"status":"failed".*'
+    direction: UP
+    centerElement: true
     timeout: 90000
 - scrollUntilVisible:
     element:
@@ -59,6 +72,8 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       text: 'Reload'
+    direction: DOWN
+    centerElement: true
 - tapOn: 'Reload'
 - extendedWaitUntil:
     visible: 'Reload: done'
@@ -84,8 +99,11 @@ appId: ${APP_ID}
       # Safari's remote authentication view does not expose its close button to Maestro.
       - tapOn:
           point: '10%,9%'
-- extendedWaitUntil:
-    visible: 'Confirm: .*"status":"canceled".*'
+- scrollUntilVisible:
+    element:
+      text: 'Confirm: .*"status":"canceled".*'
+    direction: UP
+    centerElement: true
     timeout: 90000
 - scrollUntilVisible:
     element:
