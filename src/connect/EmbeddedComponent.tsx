@@ -865,7 +865,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     <WebViewComponent
       ref={ref}
       style={mergedStyle}
-      startInLoadingState
       renderLoading={() => {
         return (
           <View style={[styles.loadingIndicatorContainer, { backgroundColor }]}>
