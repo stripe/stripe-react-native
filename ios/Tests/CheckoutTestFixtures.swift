@@ -12,7 +12,8 @@ enum CheckoutTestFixtures {
             status: status,
             paymentStatus: paymentStatus
         ))
-        return try StripeJSONDecoder().decode(PaymentPagesAPIResponse.self, from: data).makePublicSession()
+        let response = try StripeJSONDecoder().decode(PaymentPagesAPIResponse.self, from: data)
+        return CheckoutController.Session(apiResponse: response, localState: .empty)
     }
 
     static func response(

@@ -58,7 +58,8 @@ final class CheckoutSessionSerializerTests: XCTestCase {
                 .link: URL(string: "https://example.com/terms")!,
             ])
         )
-        let session = try CheckoutTestFixtures.session().makeCopyOverriding(paymentOption: .newValue(option))
+        var session = try CheckoutTestFixtures.session()
+        session.localState.paymentOption = option
         let result = CheckoutSessionSerializer.serialize(session)
         let paymentOption = try XCTUnwrap(result["paymentOption"] as? [String: Any])
         let billing = try XCTUnwrap(paymentOption["billingDetails"] as? [String: Any])
