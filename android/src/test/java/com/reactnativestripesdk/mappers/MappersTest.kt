@@ -123,6 +123,17 @@ class MappersTest {
     )
   }
 
+  @Test
+  fun mapNextAction_AwaitAuthorization_ReturnsNull() {
+    val result =
+      mapNextAction(
+        StripeIntent.NextActionType.AwaitAuthorization,
+        StripeIntent.NextActionData.AwaitAuthorization,
+      )
+
+    assertNull(result)
+  }
+
   // ============================================
   // mapToPreferredNetworks Tests
   // ============================================
