@@ -155,18 +155,17 @@ extension StripeSdkImpl {
                 reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
                 return
             }
-            instance.runServerUpdate(operationId: operationId, request: { [weak self] in
-                self?.emitter?.emitCheckoutServerUpdateRequested([
-                    "controllerId": controllerId,
-                    "operationId": operationId,
-                ])
-            }, completion: { error in
-                if let error {
-                    reject(CheckoutErrorMapper.code(for: error).rawValue, error.localizedDescription, error)
-                } else {
-                    resolve(nil)
+            do {
+                try await instance.runServerUpdate(operationId: operationId) { [weak self] in
+                    self?.emitter?.emitCheckoutServerUpdateRequested([
+                        "controllerId": controllerId,
+                        "operationId": operationId,
+                    ])
                 }
-            })
+                resolve(nil)
+            } catch {
+                reject(checkoutErrorCode(for: error), error.localizedDescription, error)
+            }
         }
     }
 
@@ -210,8 +209,12 @@ extension StripeSdkImpl {
                 }
                 resolve(nil)
             } catch {
-                reject(error is CancellationError ? "Canceled" : "Failed", error.localizedDescription, error)
+                reject(checkoutErrorCode(for: error), error.localizedDescription, error)
             }
         }
     }
+}
+
+private func checkoutErrorCode(for error: Error) -> String {
+    error is CancellationError ? "Canceled" : "Failed"
 }

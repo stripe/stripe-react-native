@@ -1,13 +1,13 @@
 import { addListener } from '../events';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
-import { createCheckoutId } from './CheckoutControllerEventEmitter';
+import { createCheckoutBridgeId } from './CheckoutControllerEventEmitter';
 
 /** Runs the merchant callback when native is ready to update this session. */
 export async function runServerUpdate(
   controllerId: string,
   serverUpdate: () => Promise<void>
 ): Promise<void> {
-  const operationId = createCheckoutId();
+  const operationId = createCheckoutBridgeId();
   let active = true;
   let requested = false;
   let rejectCompletion!: (error: unknown) => void;

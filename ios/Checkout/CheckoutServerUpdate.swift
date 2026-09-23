@@ -1,19 +1,15 @@
 import Foundation
 
-/// Holds one JS callback and completes its bridge promise exactly once.
+/// Waits for one JS server-update callback.
 @MainActor
 final class CheckoutServerUpdate {
     private var callback: CheckedContinuation<Void, Error>?
-    private var completion: ((Error?) -> Void)?
-
-    init(completion: @escaping (Error?) -> Void) {
-        self.completion = completion
-    }
+    private var isCanceled = false
 
     func requestCallback(_ request: () -> Void) async throws {
         try await withTaskCancellationHandler {
             try Task.checkCancellation()
-            guard completion != nil else { throw CancellationError() }
+            guard !isCanceled else { throw CancellationError() }
             try await withCheckedThrowingContinuation { continuation in
                 callback = continuation
                 request()
@@ -35,10 +31,8 @@ final class CheckoutServerUpdate {
         }
     }
 
-    func finish(error: Error?) {
-        guard let completion else { return }
-        self.completion = nil
-        completeCallback(error: error ?? CancellationError())
-        completion(error)
+    func cancel() {
+        isCanceled = true
+        completeCallback(error: CancellationError())
     }
 }
