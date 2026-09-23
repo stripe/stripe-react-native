@@ -14,6 +14,9 @@ import android.util.Base64
 import android.util.Log
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
@@ -41,6 +44,7 @@ import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
+import com.stripe.android.core.reactnative.UnregisterSignal
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
 import com.stripe.android.paymentelement.CreateIntentWithConfirmationTokenCallback
@@ -70,10 +74,18 @@ import kotlin.coroutines.resume
   ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
   CardFundingFilteringPrivatePreview::class,
 )
-class PaymentSheetManager(
+@SuppressLint("RestrictedApi")
+class PaymentSheetManager internal constructor(
   context: ReactApplicationContext,
   private val arguments: ReadableMap,
   private val initPromise: Promise,
+  private val paymentSheetFactory: (PaymentSheet.Builder, FragmentActivity, UnregisterSignal) -> PaymentSheet =
+    { builder, activity, signal -> builder.build(activity, signal) },
+  private val flowControllerFactory: (
+    PaymentSheet.FlowController.Builder,
+    FragmentActivity,
+  ) -> PaymentSheet.FlowController =
+    { builder, activity -> builder.build(activity) },
 ) : StripeUIManager(context),
   ConfirmCustomPaymentMethodCallback {
   private var paymentSheet: PaymentSheet? = null
@@ -88,6 +100,15 @@ class PaymentSheetManager(
   internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
   private var keepJsAwake: KeepJsAwakeTask? = null
   private var lastConfigureWasCustomFlow: Boolean? = null
+  private var hostActivity: FragmentActivity? = null
+  private val hostLifecycleObserver =
+    object : DefaultLifecycleObserver {
+      override fun onDestroy(owner: LifecycleOwner) {
+        if (owner === hostActivity) {
+          invalidateHostActivity()
+        }
+      }
+    }
 
   @SuppressLint("RestrictedApi")
   override fun onCreate() {
@@ -95,9 +116,24 @@ class PaymentSheetManager(
   }
 
   override fun onDestroy() {
+    invalidateHostActivity()
     super.onDestroy()
+  }
+
+  private fun invalidateHostActivity() {
+    hostActivity?.lifecycle?.removeObserver(hostLifecycleObserver)
+    hostActivity = null
+    signal.unregister()
     flowController = null
     paymentSheet = null
+    lastConfigureWasCustomFlow = null
+  }
+
+  private fun bindToActivity(activity: FragmentActivity) {
+    if (hostActivity === activity) return
+    invalidateHostActivity()
+    hostActivity = activity
+    activity.lifecycle.addObserver(hostLifecycleObserver)
   }
 
   fun configure(
@@ -208,10 +244,12 @@ class PaymentSheetManager(
     args: ReadableMap,
     promise: Promise,
   ) {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    bindToActivity(activity)
     if (args.getBooleanOr("customFlow", false)) {
       lastConfigureWasCustomFlow = true
       if (flowController == null) {
-        initFlowController(args, promise)
+        initFlowController(args, activity)
       }
       configureFlowController(promise)
       return
@@ -219,70 +257,48 @@ class PaymentSheetManager(
 
     lastConfigureWasCustomFlow = false
     if (paymentSheet == null) {
-      initPaymentSheet(args, promise)
+      initPaymentSheet(args, activity)
     }
     promise.resolve(Arguments.createMap())
   }
 
   private fun initPaymentSheet(
     args: ReadableMap,
-    promise: Promise,
+    activity: FragmentActivity,
   ) {
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     val intentConfigMap = args.getMap("intentConfiguration")
     val useConfirmationTokenCallback = intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
-    paymentSheet =
-      if (intentConfiguration != null) {
-        val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback())
-        if (useConfirmationTokenCallback) {
-          builder.createIntentCallback(buildCreateConfirmationTokenCallback())
-        } else {
-          builder.createIntentCallback(buildIntentCreationCallback())
-        }
-        @SuppressLint("RestrictedApi")
-        builder
-          .confirmCustomPaymentMethodCallback(this)
-          .build(activity, signal)
+    val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback())
+    if (intentConfiguration != null) {
+      if (useConfirmationTokenCallback) {
+        builder.createIntentCallback(buildCreateConfirmationTokenCallback())
       } else {
-        @SuppressLint("RestrictedApi")
-        PaymentSheet
-          .Builder(buildPaymentSheetResultCallback())
-          .confirmCustomPaymentMethodCallback(this)
-          .build(activity, signal)
+        builder.createIntentCallback(buildIntentCreationCallback())
       }
+    }
+    paymentSheet = paymentSheetFactory(builder.confirmCustomPaymentMethodCallback(this), activity, signal)
   }
 
   private fun initFlowController(
     args: ReadableMap,
-    promise: Promise,
+    activity: FragmentActivity,
   ) {
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     val intentConfigMap = args.getMap("intentConfiguration")
     val useConfirmationTokenCallback =
       intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
-    flowController =
-      if (intentConfiguration != null) {
-        val builder =
-          PaymentSheet.FlowController
-            .Builder(
-              resultCallback = buildPaymentSheetResultCallback(),
-              paymentOptionResultCallback = buildPaymentOptionCallback(),
-            )
-        if (useConfirmationTokenCallback) {
-          builder.createIntentCallback(buildCreateConfirmationTokenCallback())
-        } else {
-          builder.createIntentCallback(buildIntentCreationCallback())
-        }
-        builder.confirmCustomPaymentMethodCallback(this)
-        builder.build(activity)
+    val builder =
+      PaymentSheet.FlowController.Builder(
+        resultCallback = buildPaymentSheetResultCallback(),
+        paymentOptionResultCallback = buildPaymentOptionCallback(),
+      )
+    if (intentConfiguration != null) {
+      if (useConfirmationTokenCallback) {
+        builder.createIntentCallback(buildCreateConfirmationTokenCallback())
       } else {
-        PaymentSheet.FlowController
-          .Builder(
-            resultCallback = buildPaymentSheetResultCallback(),
-            paymentOptionResultCallback = buildPaymentOptionCallback(),
-          ).confirmCustomPaymentMethodCallback(this)
-          .build(activity)
+        builder.createIntentCallback(buildIntentCreationCallback())
       }
+    }
+    flowController = flowControllerFactory(builder.confirmCustomPaymentMethodCallback(this), activity)
   }
 
   private fun buildCreateConfirmationTokenCallback(): CreateIntentWithConfirmationTokenCallback {
