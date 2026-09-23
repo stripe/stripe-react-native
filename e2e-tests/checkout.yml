@@ -15,6 +15,10 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
+- scrollUntilVisible:
+    element:
+      text: 'Show inline element'
+    centerElement: true
 - tapOn: 'Show inline element'
 - scrollUntilVisible:
     element:
@@ -62,8 +66,11 @@ appId: ${APP_ID}
 - inputText: 'INVALID_CHECKOUT_TEST_PROMO'
 - hideKeyboard
 - tapOn: 'Apply promotion'
-- extendedWaitUntil:
-    visible: 'Apply promotion: .*'
+- scrollUntilVisible:
+    element:
+      text: 'Apply promotion: .*'
+    direction: DOWN
+    centerElement: true
     timeout: 30000
 - extendedWaitUntil:
     notVisible: 'Apply promotion: pending'
@@ -72,18 +79,29 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       text: 'Slow server update'
+    direction: UP
+    centerElement: true
 - tapOn: 'Slow server update'
 - scrollUntilVisible:
     element:
-      text: 'Reload'
+      text: 'Status: updating'
     direction: UP
     centerElement: true
-- assertVisible: 'Status: updating'
+    speed: 100
+- scrollUntilVisible:
+    element:
+      text: 'Reload'
+    direction: DOWN
+    centerElement: true
 - tapOn: 'Reload'
 - extendedWaitUntil:
     visible: 'Reload: done'
     timeout: 150000
 - assertVisible: 'Status: ready'
+- scrollUntilVisible:
+    element:
+      text: 'Show inline element'
+    centerElement: true
 - tapOn: 'Show inline element'
 - scrollUntilVisible:
     element:

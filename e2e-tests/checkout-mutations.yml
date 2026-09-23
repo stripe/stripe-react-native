@@ -15,7 +15,15 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
+- scrollUntilVisible:
+    element:
+      text: 'Session updates'
+    centerElement: true
 - tapOn: 'Session updates'
+- scrollUntilVisible:
+    element:
+      text: 'Update email'
+    centerElement: true
 - runFlow:
     when:
       platform: Android
@@ -28,6 +36,8 @@ appId: ${APP_ID}
       - scrollUntilVisible:
           element:
             text: 'Clear email'
+          direction: UP
+          centerElement: true
       - tapOn: 'Clear email'
       - scrollUntilVisible:
           element:
@@ -45,6 +55,8 @@ appId: ${APP_ID}
       - scrollUntilVisible:
           element:
             text: 'Clear email'
+          direction: UP
+          centerElement: true
       - tapOn: 'Clear email'
       - scrollUntilVisible:
           element:
@@ -53,6 +65,8 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       text: 'Update shipping'
+    direction: UP
+    centerElement: true
 - tapOn: 'Update shipping'
 - scrollUntilVisible:
     element:
@@ -65,6 +79,8 @@ appId: ${APP_ID}
       - scrollUntilVisible:
           element:
             text: 'Clear shipping'
+          direction: UP
+          centerElement: true
       - tapOn: 'Clear shipping'
       - scrollUntilVisible:
           element:
@@ -77,6 +93,8 @@ appId: ${APP_ID}
       - scrollUntilVisible:
           element:
             text: 'Clear shipping'
+          direction: UP
+          centerElement: true
       - tapOn: 'Clear shipping'
       - scrollUntilVisible:
           element:
@@ -85,6 +103,8 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       text: 'Apply promotion'
+    direction: UP
+    centerElement: true
 - tapOn: 'Apply promotion'
 - runFlow:
     when:
@@ -106,6 +126,8 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       text: 'Remove promotion'
+    direction: UP
+    centerElement: true
 - tapOn: 'Remove promotion'
 - scrollUntilVisible:
     element:
