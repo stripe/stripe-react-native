@@ -13,31 +13,21 @@ import type { CheckoutPaymentElementViewProps } from '../types/Checkout';
  */
 export function CheckoutPaymentElementView({
   element,
-  ...props
 }: CheckoutPaymentElementViewProps): React.JSX.Element {
   const controllerId = getCheckoutPaymentElementId(element);
-  return (
-    <MeasuredElement
-      key={controllerId}
-      controllerId={controllerId}
-      {...props}
-    />
-  );
+  return <MeasuredElement key={controllerId} controllerId={controllerId} />;
 }
 
 function MeasuredElement({
   controllerId,
-  style,
-  ...props
-}: Omit<CheckoutPaymentElementViewProps, 'element'> & {
+}: {
   controllerId: string;
 }): React.JSX.Element {
   const [height, setHeight] = useState(1);
   return (
     <NativeCheckoutPaymentElement
-      {...props}
       controllerId={controllerId}
-      style={[{ height }, style]}
+      style={{ height }}
       onHeightChanged={({ nativeEvent }) => {
         setHeight(nativeEvent.height);
       }}

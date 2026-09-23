@@ -1194,7 +1194,7 @@ export interface CheckoutCurrencySelectorElement {
 export function CheckoutCurrencySelectorElementView(input: CheckoutCurrencySelectorElementViewProps): React_2.JSX.Element;
 
 // @public
-export interface CheckoutCurrencySelectorElementViewProps extends ViewProps {
+export interface CheckoutCurrencySelectorElementViewProps {
     element: CheckoutCurrencySelectorElement;
 }
 
@@ -1207,7 +1207,7 @@ export interface CheckoutPaymentElement {
 export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProps): React_2.JSX.Element;
 
 // @public
-export interface CheckoutPaymentElementViewProps extends ViewProps {
+export interface CheckoutPaymentElementViewProps {
     element: CheckoutPaymentElement;
 }
 

@@ -390,9 +390,11 @@ function CheckoutForm() {
           onPress={() => setInline(!inline)}
         />
         {checkout.currencySelectorElement && (
-          <View style={styles.nativeElement}>
+          <View
+            style={styles.nativeElement}
+            testID="checkout-currency-selector"
+          >
             <CheckoutCurrencySelectorElementView
-              testID="checkout-currency-selector"
               element={checkout.currencySelectorElement}
             />
           </View>

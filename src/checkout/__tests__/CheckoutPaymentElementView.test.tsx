@@ -28,29 +28,22 @@ it('routes the controller ID and resets native height when the element changes',
     .mockResolvedValueOnce({ controllerId: 'controller-2', session });
   const first = await createCheckout(options);
   const second = await createCheckout(options);
-  const { getByTestId, rerender, unmount } = render(
-    <CheckoutPaymentElementView
-      testID="element"
-      element={first.paymentElement}
-    />
+  const { UNSAFE_getByType, rerender, unmount } = render(
+    <CheckoutPaymentElementView element={first.paymentElement} />
   );
-  expect(getByTestId('element').props.controllerId).toBe(
+  const nativeElement = () => UNSAFE_getByType(require('react-native').View);
+  expect(nativeElement().props.controllerId).toBe(
     (NativeStripeSdk.createCheckout as jest.Mock).mock.calls[0][1]
   );
-  fireEvent(getByTestId('element'), 'heightChanged', {
+  fireEvent(nativeElement(), 'heightChanged', {
     nativeEvent: { height: 140 },
   });
-  expect(getByTestId('element')).toHaveStyle({ height: 140 });
-  rerender(
-    <CheckoutPaymentElementView
-      testID="element"
-      element={second.paymentElement}
-    />
-  );
-  expect(getByTestId('element').props.controllerId).toBe(
+  expect(nativeElement().props.style).toEqual({ height: 140 });
+  rerender(<CheckoutPaymentElementView element={second.paymentElement} />);
+  expect(nativeElement().props.controllerId).toBe(
     (NativeStripeSdk.createCheckout as jest.Mock).mock.calls[1][1]
   );
-  expect(getByTestId('element')).toHaveStyle({ height: 1 });
+  expect(nativeElement().props.style).toEqual({ height: 1 });
   unmount();
   await Promise.all([first.destroy(), second.destroy()]);
 });

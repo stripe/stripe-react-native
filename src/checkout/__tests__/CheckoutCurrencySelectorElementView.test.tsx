@@ -30,18 +30,18 @@ it('exposes only available elements and follows their native height', async () =
   const available = await createCheckout(options);
   const unavailable = await createCheckout(options);
   expect(unavailable.currencySelectorElement).toBeNull();
-  const { getByTestId } = render(
+  const { UNSAFE_getByType } = render(
     <CheckoutCurrencySelectorElementView
-      testID="element"
       element={available.currencySelectorElement!}
     />
   );
-  expect(getByTestId('element').props.controllerId).toBe(
+  const nativeElement = UNSAFE_getByType(require('react-native').View);
+  expect(nativeElement.props.controllerId).toBe(
     (NativeStripeSdk.createCheckout as jest.Mock).mock.calls[0][1]
   );
-  fireEvent(getByTestId('element'), 'heightChanged', {
+  fireEvent(nativeElement, 'heightChanged', {
     nativeEvent: { height: 72 },
   });
-  expect(getByTestId('element')).toHaveStyle({ height: 72 });
+  expect(nativeElement.props.style).toEqual({ height: 72 });
   await Promise.all([available.destroy(), unavailable.destroy()]);
 });
