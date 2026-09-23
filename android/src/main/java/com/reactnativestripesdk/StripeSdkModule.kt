@@ -26,10 +26,7 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
-import com.reactnativestripesdk.checkout.CheckoutBridgeErrorCode
 import com.reactnativestripesdk.checkout.CheckoutConfigurationMapper
-import com.reactnativestripesdk.checkout.CheckoutErrorMapper
-import com.reactnativestripesdk.checkout.CheckoutMutationBridgeException
 import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
 import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
@@ -86,10 +83,12 @@ import com.stripe.android.model.Token
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
@@ -1524,7 +1523,12 @@ class StripeSdkModule(
       // Native Checkout currently requires an address and has no clearing API.
       // TODO(porter): Forward null addresses once the Android SDK supports clearing shipping details.
       if (address == null) {
-        Result.failure(CheckoutMutationBridgeException("updateShippingAddress(name, address)"))
+        Result.failure(
+          IllegalStateException(
+            "The installed Stripe Android SDK does not support " +
+              "CheckoutController.updateShippingAddress(name, address) yet.",
+          ),
+        )
       } else {
         controller.updateShippingAddress(name, address)
       }
@@ -1572,7 +1576,7 @@ class StripeSdkModule(
       val instance = checkoutControllers[controllerId]
       if (instance == null) {
         promise.reject(
-          CheckoutBridgeErrorCode.Failed.serializedValue,
+          "Failed",
           "Checkout controller `$controllerId` does not exist.",
         )
         return@runOnUiThread
@@ -1583,15 +1587,20 @@ class StripeSdkModule(
           instance.publishCurrentState()
           if (checkoutControllers[controllerId] !== instance) {
             promise.reject(
-              CheckoutBridgeErrorCode.Canceled.serializedValue,
+              "Canceled",
               "The Checkout controller was destroyed before the operation completed.",
             )
             return@launchMutation
           }
           promise.resolve(null)
         } catch (error: Exception) {
+          val code = when (error) {
+            is TimeoutCancellationException -> "Timeout"
+            is CancellationException -> "Canceled"
+            else -> "Failed"
+          }
           promise.reject(
-            CheckoutErrorMapper.code(error).serializedValue,
+            code,
             error.message,
             error,
           )

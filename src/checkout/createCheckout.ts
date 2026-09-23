@@ -142,7 +142,7 @@ export async function createCheckout(
         performOperation(() =>
           NativeStripeSdk.applyCheckoutPromotionCode(
             controllerId,
-            promotionCode
+            promotionCode.trim()
           )
         ),
       removePromotionCode: () =>

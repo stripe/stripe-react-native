@@ -84,7 +84,13 @@ extension StripeSdkImpl {
     ) {
         performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { _ in
             // TODO(porter): Forward email updates once the iOS SDK exposes CheckoutController.updateEmail.
-            throw CheckoutMutationBridgeError.nativeAPINotAvailable("updateEmail")
+            throw NSError(
+                domain: "StripeReactNativeCheckout",
+                code: 0,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.",
+                ]
+            )
         }
     }
 
@@ -145,7 +151,7 @@ extension StripeSdkImpl {
         Task { @MainActor [weak self] in
             guard let self,
                   let instance = checkoutControllers[controllerId] else {
-                reject(CheckoutBridgeErrorCode.failed.rawValue, "Checkout controller `\(controllerId)` does not exist.", nil)
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
                 return
             }
             do {
@@ -153,7 +159,7 @@ extension StripeSdkImpl {
                 let registeredInstance = checkoutControllers[controllerId]
                 guard registeredInstance === instance else {
                     reject(
-                        CheckoutBridgeErrorCode.canceled.rawValue,
+                        "Canceled",
                         "The Checkout controller was destroyed before the operation completed.",
                         nil
                     )
@@ -161,7 +167,7 @@ extension StripeSdkImpl {
                 }
                 resolve(nil)
             } catch {
-                reject(CheckoutErrorMapper.code(for: error).rawValue, error.localizedDescription, error)
+                reject(error is CancellationError ? "Canceled" : "Failed", error.localizedDescription, error)
             }
         }
     }

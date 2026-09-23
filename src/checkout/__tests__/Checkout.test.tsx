@@ -92,7 +92,7 @@ it('keeps initial snapshots and routes updates and selection to the owning contr
   await second.destroy();
 });
 
-it('forwards mutations unchanged and preserves native errors', async () => {
+it('forwards mutations and preserves native errors', async () => {
   const controller = await createCheckout(options);
   const id = create.mock.calls[0][1];
   const address = { address: { country: 'US' } };
@@ -108,10 +108,22 @@ it('forwards mutations unchanged and preserves native errors', async () => {
   );
   expect(NativeStripeSdk.applyCheckoutPromotionCode).toHaveBeenCalledWith(
     id,
-    ' SAVE10 '
+    'SAVE10'
   );
   expect(NativeStripeSdk.removeCheckoutPromotionCode).toHaveBeenCalledWith(id);
   expect(NativeStripeSdk.clearCheckoutPaymentOption).toHaveBeenCalledWith(id);
+
+  const updateEmail = NativeStripeSdk.updateCheckoutEmail as jest.Mock;
+  const canceled = Object.assign(new Error('Canceled'), { code: 'Canceled' });
+  updateEmail.mockRejectedValueOnce(canceled);
+  await expect(controller.updateEmail(null)).rejects.toBe(canceled);
+
+  updateEmail.mockRejectedValueOnce(new Error('Unknown native error'));
+  await expect(controller.updateEmail(null)).rejects.toMatchObject({
+    code: 'Failed',
+    message: 'Unknown native error',
+  });
+
   await controller.destroy();
   await controller.destroy();
   expect(destroy).toHaveBeenCalledTimes(1);
