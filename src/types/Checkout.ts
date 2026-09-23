@@ -1,4 +1,3 @@
-import type { ViewProps } from 'react-native';
 import type { CardBrand } from './Common';
 import type { StripeError } from './Errors';
 import type {
@@ -76,7 +75,7 @@ export interface CheckoutPaymentElement {
  *
  * @CheckoutSessionPrivatePreview
  */
-export interface CheckoutPaymentElementViewProps extends ViewProps {
+export interface CheckoutPaymentElementViewProps {
   /** The Payment Element owned by Checkout. */
   element: CheckoutPaymentElement;
 }
@@ -92,7 +91,7 @@ export interface CheckoutPaymentElementViewProps extends ViewProps {
 export interface CheckoutCurrencySelectorElement {}
 
 /** Props for the inline Checkout Currency Selector Element view. */
-export interface CheckoutCurrencySelectorElementViewProps extends ViewProps {
+export interface CheckoutCurrencySelectorElementViewProps {
   /** The Currency Selector Element owned by Checkout. */
   element: CheckoutCurrencySelectorElement;
 }
