@@ -179,13 +179,11 @@ export function ConnectAccountOnboarding({
         style={containerStyle}
       >
         {loading ? (
-          <View style={[styles.loadingIndicatorContainer, { backgroundColor }]}>
-            <ActivityIndicator
-              size="large"
-              color={loadingIndicatorColor}
-              style={styles.iosActivityIndicator}
-            />
-          </View>
+          <ActivityIndicator
+            size="large"
+            color={loadingIndicatorColor}
+            style={styles.iosActivityIndicator}
+          />
         ) : null}
         <EmbeddedComponent
           component="account-onboarding"
@@ -223,15 +221,11 @@ export function ConnectAccountOnboarding({
         </View>
         <View style={styles.onboardingWrapper}>
           {loading ? (
-            <View
-              style={[styles.loadingIndicatorContainer, { backgroundColor }]}
-            >
-              <ActivityIndicator
-                size="large"
-                color={loadingIndicatorColor}
-                style={styles.activityIndicator}
-              />
-            </View>
+            <ActivityIndicator
+              size="large"
+              color={loadingIndicatorColor}
+              style={styles.activityIndicator}
+            />
           ) : null}
           <EmbeddedComponent
             component="account-onboarding"
@@ -394,12 +388,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   activityIndicator: {
+    zIndex: 1,
     position: 'absolute',
     left: 0,
     right: 0,
     top: 48,
   },
   iosActivityIndicator: {
+    zIndex: 1,
     position: 'absolute',
     left: 0,
     right: 0,
@@ -408,9 +404,5 @@ const styles = StyleSheet.create({
   onboardingWrapper: {
     position: 'relative',
     flex: 1,
-  },
-  loadingIndicatorContainer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
   },
 });

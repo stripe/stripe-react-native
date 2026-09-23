@@ -87,9 +87,12 @@ export interface CommonComponentProps {
 
 const styles = StyleSheet.create({
   loadingIndicatorContainer: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    height: '100%',
+    width: '100%',
   },
 });
 
@@ -869,7 +872,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           </View>
         );
       }}
-      startInLoadingState
       webviewDebuggingEnabled={DEVELOPMENT_MODE}
       source={source}
       userAgent={userAgent}
