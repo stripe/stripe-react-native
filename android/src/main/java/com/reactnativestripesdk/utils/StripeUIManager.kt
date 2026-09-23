@@ -31,7 +31,7 @@ abstract class StripeUIManager(
     }
   }
 
-  fun present(
+  open fun present(
     promise: Promise? = null,
     timeout: Long? = null,
   ) {

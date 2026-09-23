@@ -16,12 +16,14 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.DefaultActivityLifecycleCallbacks
@@ -100,6 +102,7 @@ class PaymentSheetManager internal constructor(
   internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
   private var keepJsAwake: KeepJsAwakeTask? = null
   private var lastConfigureWasCustomFlow: Boolean? = null
+  private var configurationReady = false
   private var hostActivity: FragmentActivity? = null
   private val hostLifecycleObserver =
     object : DefaultLifecycleObserver {
@@ -127,6 +130,7 @@ class PaymentSheetManager internal constructor(
     flowController = null
     paymentSheet = null
     lastConfigureWasCustomFlow = null
+    configurationReady = false
   }
 
   private fun bindToActivity(activity: FragmentActivity) {
@@ -140,6 +144,18 @@ class PaymentSheetManager internal constructor(
     args: ReadableMap,
     promise: Promise,
   ) {
+    UiThreadUtil.runOnUiThread {
+      configureOnUiThread(args, promise)
+    }
+  }
+
+  private fun configureOnUiThread(
+    args: ReadableMap,
+    promise: Promise,
+  ) {
+    val activity = getValidActivity(promise) ?: return
+    bindToActivity(activity)
+    configurationReady = false
     val merchantDisplayName = args.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
       promise.resolve(
@@ -148,6 +164,21 @@ class PaymentSheetManager internal constructor(
       return
     }
 
+    paymentIntentClientSecret = args.getString("paymentIntentClientSecret").orEmpty()
+    setupIntentClientSecret = args.getString("setupIntentClientSecret").orEmpty()
+    intentConfiguration =
+      resolvePaymentSheetValue(promise) {
+        buildIntentConfiguration(args.getMap("intentConfiguration"))
+      }.getOrElse { return }
+    paymentSheetConfiguration = buildConfiguration(args, merchantDisplayName, promise) ?: return
+    configureMode(args, activity, promise)
+  }
+
+  private fun buildConfiguration(
+    args: ReadableMap,
+    merchantDisplayName: String,
+    promise: Promise,
+  ): PaymentSheet.Configuration? {
     val primaryButtonLabel = args.getString("primaryButtonLabel")
     val googlePayConfig = buildGooglePayConfig(args.getMap("googlePay"))
     val linkConfig = buildLinkConfig(args.getMap("link"))
@@ -160,22 +191,15 @@ class PaymentSheetManager internal constructor(
     val opensCardScannerAutomatically =
       args.getBooleanOr("opensCardScannerAutomatically", false)
 
-    paymentIntentClientSecret = args.getString("paymentIntentClientSecret").orEmpty()
-    setupIntentClientSecret = args.getString("setupIntentClientSecret").orEmpty()
-    intentConfiguration =
-      resolvePaymentSheetValue(promise) {
-        buildIntentConfiguration(args.getMap("intentConfiguration"))
-      }.getOrElse { return }
-
     val appearance =
       resolveAppearanceValue(promise) {
         buildPaymentSheetAppearance(args.getMap("appearance"), context)
-      }.getOrElse { return }
+      }.getOrElse { return null }
 
     val customerConfiguration =
       resolvePaymentSheetValue(promise) {
         buildCustomerConfiguration(args)
-      }.getOrElse { return }
+      }.getOrElse { return null }
 
     val shippingDetails =
       args.getMap("defaultShippingDetails")?.let {
@@ -214,8 +238,7 @@ class PaymentSheetManager internal constructor(
 
     mapToTermsDisplay(args)?.let { configurationBuilder.termsDisplay(it) }
 
-    paymentSheetConfiguration = configurationBuilder.build()
-    configureMode(args, promise)
+    return configurationBuilder.build()
   }
 
   private inline fun <T> resolvePaymentSheetValue(
@@ -242,10 +265,20 @@ class PaymentSheetManager internal constructor(
 
   private fun configureMode(
     args: ReadableMap,
+    activity: FragmentActivity,
     promise: Promise,
   ) {
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
-    bindToActivity(activity)
+    if (paymentIntentClientSecret.isNullOrEmpty() &&
+      setupIntentClientSecret.isNullOrEmpty() && intentConfiguration == null
+    ) {
+      promise.resolve(
+        createError(
+          PaymentSheetErrorType.Failed.toString(),
+          "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration` is required",
+        ),
+      )
+      return
+    }
     if (args.getBooleanOr("customFlow", false)) {
       lastConfigureWasCustomFlow = true
       if (flowController == null) {
@@ -259,7 +292,32 @@ class PaymentSheetManager internal constructor(
     if (paymentSheet == null) {
       initPaymentSheet(args, activity)
     }
+    configurationReady = true
     promise.resolve(Arguments.createMap())
+  }
+
+  private fun getValidActivity(promise: Promise?): FragmentActivity? {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return null
+    if (activity.isFinishing || activity.isDestroyed || activity.lifecycle.currentState == Lifecycle.State.DESTROYED) {
+      if (activity === hostActivity) invalidateHostActivity()
+      promise?.resolve(createActivityChangedError())
+      return null
+    }
+    return activity
+  }
+
+  private fun validatePresentation(promise: Promise?): Boolean {
+    val activity = getValidActivity(promise) ?: return false
+    if (activity !== hostActivity) {
+      invalidateHostActivity()
+      promise?.resolve(createActivityChangedError())
+      return false
+    }
+    if (!configurationReady) {
+      promise?.resolve(createMissingInitError())
+      return false
+    }
+    return true
   }
 
   private fun initPaymentSheet(
@@ -428,7 +486,19 @@ class PaymentSheetManager internal constructor(
     }
   }
 
+  override fun present(
+    promise: Promise?,
+    timeout: Long?,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      if (validatePresentation(promise)) {
+        super.present(promise, timeout)
+      }
+    }
+  }
+
   override fun onPresent() {
+    timeout?.let(::startPresentationTimeout)
     keepJsAwake = KeepJsAwakeTask(context).apply { start() }
     if (lastConfigureWasCustomFlow == false) {
       if (!paymentIntentClientSecret.isNullOrEmpty()) {
@@ -455,6 +525,10 @@ class PaymentSheetManager internal constructor(
     timeout: Long,
     promise: Promise,
   ) {
+    present(promise, timeout)
+  }
+
+  private fun startPresentationTimeout(timeout: Long) {
     var paymentSheetActivity: Activity? = null
 
     val activityLifecycleCallbacks =
@@ -494,19 +568,38 @@ class PaymentSheetManager internal constructor(
     context.currentActivity
       ?.application
       ?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
-
-    this.present(promise)
   }
 
   fun confirmPayment(promise: Promise) {
-    this.confirmPromise = promise
-    flowController?.confirm()
+    UiThreadUtil.runOnUiThread {
+      if (!validatePresentation(promise)) return@runOnUiThread
+      if (lastConfigureWasCustomFlow != true || flowController == null) {
+        promise.resolve(
+          createError(
+            PaymentSheetErrorType.Failed.toString(),
+            "Call `initPaymentSheet` with `customFlow: true` before `confirmPaymentSheetPayment`.",
+          ),
+        )
+        return@runOnUiThread
+      }
+      this.confirmPromise = promise
+      flowController?.confirm()
+    }
   }
 
   private fun configureFlowController(promise: Promise) {
+    val configuredController = flowController
+    val configuredActivity = hostActivity
     val onFlowControllerConfigure =
       PaymentSheet.FlowController.ConfigCallback { success, error ->
-        handleFlowControllerConfigured(success, error, promise, flowController)
+        UiThreadUtil.runOnUiThread {
+          if (configuredActivity !== hostActivity || configuredController !== flowController) {
+            promise.resolve(createActivityChangedError())
+          } else {
+            configurationReady = success
+            handleFlowControllerConfigured(success, error, promise, configuredController)
+          }
+        }
       }
 
     if (!paymentIntentClientSecret.isNullOrEmpty()) {
@@ -627,6 +720,13 @@ class PaymentSheetManager internal constructor(
   }
 
   companion object {
+    private fun createActivityChangedError(): WritableMap =
+      createError(
+        PaymentSheetErrorType.Failed.toString(),
+        "The host Activity changed or is no longer available. " +
+          "Call `initPaymentSheet` again before presenting or confirming.",
+      )
+
     internal fun createMissingInitError(): WritableMap =
       createError(
         PaymentSheetErrorType.Failed.toString(),
