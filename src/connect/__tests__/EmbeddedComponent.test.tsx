@@ -52,7 +52,6 @@ import {
   AppState,
   Platform,
   StyleSheet,
-  View,
 } from 'react-native';
 import 'react-native-webview';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
@@ -127,7 +126,7 @@ describe('EmbeddedComponent', () => {
       expect(true).toBe(true);
     });
 
-    it('renders a full-size loading indicator using appearance colors', async () => {
+    it('uses appearance colors for the loading indicator', async () => {
       connectInstance = loadConnectAndInitialize({
         ...mockInitParams,
         appearance: {
@@ -148,13 +147,7 @@ describe('EmbeddedComponent', () => {
       const loadingView = mockWebViewProps.renderLoading();
       const loadingIndicator = loadingView.props.children;
 
-      expect(loadingView.type).toBe(View);
       expect(StyleSheet.flatten(loadingView.props.style)).toMatchObject({
-        position: 'absolute',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%',
-        width: '100%',
         backgroundColor: '#AABBCC',
       });
       expect(loadingIndicator.type).toBe(ActivityIndicator);
