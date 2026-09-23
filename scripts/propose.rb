@@ -59,7 +59,7 @@ def create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
   end
 
   ios_changed = native_sdk_changes.any? { |change| change.name == 'stripe-ios' && change.changed }
-  execute_or_fail("yarn update-pods") if ios_changed
+  execute_or_fail("yarn pods") if ios_changed
 
   files_to_add = ['package.json', 'CHANGELOG.md']
   files_to_add.concat(native_sdk_changes.select(&:changed).map(&:path))
