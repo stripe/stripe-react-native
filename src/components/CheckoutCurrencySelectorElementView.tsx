@@ -14,31 +14,21 @@ import type { CheckoutCurrencySelectorElementViewProps } from '../types/Checkout
  */
 export function CheckoutCurrencySelectorElementView({
   element,
-  ...props
 }: CheckoutCurrencySelectorElementViewProps): React.JSX.Element {
   const controllerId = getCheckoutCurrencySelectorElementId(element);
-  return (
-    <MeasuredElement
-      key={controllerId}
-      controllerId={controllerId}
-      {...props}
-    />
-  );
+  return <MeasuredElement key={controllerId} controllerId={controllerId} />;
 }
 
 function MeasuredElement({
   controllerId,
-  style,
-  ...props
-}: Omit<CheckoutCurrencySelectorElementViewProps, 'element'> & {
+}: {
   controllerId: string;
 }): React.JSX.Element {
   const [height, setHeight] = useState(1);
   return (
     <NativeCheckoutCurrencySelectorElement
-      {...props}
       controllerId={controllerId}
-      style={[{ height }, style]}
+      style={{ height }}
       onHeightChanged={({ nativeEvent }) => setHeight(nativeEvent.height)}
     />
   );
