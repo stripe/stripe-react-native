@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.EventEmitterCompat
 import com.reactnativestripesdk.StripeSdkModule
 import com.stripe.android.checkout.CheckoutController
@@ -19,6 +20,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -77,6 +80,54 @@ class StripeSdkModuleCheckoutTest {
       verify(element, times(2)).present()
     } finally {
       module.checkoutControllers.remove(controllerId)?.destroy()
+      activity.pause().stop().destroy()
+    }
+  }
+
+  @OptIn(CheckoutSessionPreview::class)
+  @Test
+  fun `confirmation invokes native and resolves from the controller callback`() {
+    val context = mock(ReactApplicationContext::class.java)
+    val module = StripeSdkModule(context)
+    val controller = mock(CheckoutController::class.java)
+    val presenter = mock(CheckoutPresenter::class.java)
+    val session = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
+    `when`(controller.session).thenReturn(MutableStateFlow(session))
+    `when`(controller.isUpdating).thenReturn(MutableStateFlow(false))
+    val instance = NativeCheckoutControllerInstance(
+      controller,
+      mock(EventEmitterCompat::class.java),
+      CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
+      JavaOnlyMap(),
+    )
+    module.checkoutControllers["controller"] = instance
+    val missingActivity = mock(Promise::class.java)
+    module.confirmCheckout("controller", missingActivity)
+    shadowOf(Looper.getMainLooper()).idle()
+    verify(missingActivity).reject("Failed", "Checkout requires a resumed activity to confirm.")
+    val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
+    try {
+      `when`(context.currentActivity).thenReturn(activity.get())
+      `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
+      doAnswer {
+        instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
+        null
+      }.`when`(presenter).confirm()
+      val promise = mock(Promise::class.java)
+      module.confirmCheckout("controller", promise)
+      shadowOf(Looper.getMainLooper()).idle()
+      verify(presenter).confirm()
+      val result = ArgumentCaptor.forClass(Any::class.java)
+      verify(promise).resolve(result.capture())
+      assertEquals("completed", (result.value as ReadableMap).getString("status"))
+      assertEquals("paid", (result.value as ReadableMap).getString("paymentStatus"))
+      module.checkoutControllers.remove("controller")?.destroy()
+      val missingController = mock(Promise::class.java)
+      module.confirmCheckout("controller", missingController)
+      shadowOf(Looper.getMainLooper()).idle()
+      verify(missingController).reject("Failed", "Checkout controller `controller` does not exist.")
+    } finally {
+      module.checkoutControllers.remove("controller")?.destroy()
       activity.pause().stop().destroy()
     }
   }

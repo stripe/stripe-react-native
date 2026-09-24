@@ -74,6 +74,29 @@ final class CheckoutSessionSerializerTests: XCTestCase {
         XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
     }
 
+    func test_serializeConfirmationResults() throws {
+        let statuses: [(CheckoutController.Session.Status.PaymentStatus, String)] = [
+            (.paid, "paid"), (.unpaid, "unpaid"), (.noPaymentRequired, "noPaymentRequired"),
+        ]
+        for (nativeStatus, expected) in statuses {
+            let result = CheckoutSessionSerializer.serialize(
+                CheckoutController.ConfirmResult.completed(paymentStatus: nativeStatus)
+            )
+            XCTAssertEqual(result as NSDictionary, ["status": "completed", "paymentStatus": expected])
+        }
+        XCTAssertEqual(
+            CheckoutSessionSerializer.serialize(CheckoutController.ConfirmResult.canceled) as NSDictionary,
+            ["status": "canceled"]
+        )
+        let error = NSError(domain: "CheckoutTest", code: 1, userInfo: [NSLocalizedDescriptionKey: "Payment failed"])
+        let result = CheckoutSessionSerializer.serialize(CheckoutController.ConfirmResult.failed(error))
+        XCTAssertEqual(result["status"] as? String, "failed")
+        let mappedError = try XCTUnwrap(result["error"] as? [String: Any])
+        XCTAssertEqual(mappedError["code"] as? String, "Failed")
+        XCTAssertEqual(mappedError["message"] as? String, "Payment failed")
+        XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
+    }
+
     func test_serialize_preservesCompletionPaymentStatus() throws {
         for (nativeStatus, expected) in [("paid", "paid"), ("unpaid", "unpaid"), ("no_payment_required", "noPaymentRequired")] {
             let session = try CheckoutTestFixtures.session(status: "complete", paymentStatus: nativeStatus)
