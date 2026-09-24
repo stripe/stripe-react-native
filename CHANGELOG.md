@@ -1,6 +1,8 @@
 # CHANGELOG
 
 ## Unreleased
+**Fixes**
+* [Fixed] Correlate overlapping CustomerSheet CustomerSession provider requests and cancel pending requests on reinitialization or module teardown. Requires a native rebuild after upgrading.
 
 **Fixes**
 

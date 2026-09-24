@@ -60,8 +60,8 @@ class EventEmitterCompat(
     invoke("onCustomerSessionProviderSetupIntentClientSecret")
   }
 
-  fun emitOnCustomerSessionProviderCustomerSessionClientSecret() {
-    invoke("onCustomerSessionProviderCustomerSessionClientSecret")
+  fun emitOnCustomerSessionProviderCustomerSessionClientSecret(value: ReadableMap) {
+    invoke("onCustomerSessionProviderCustomerSessionClientSecret", value)
   }
 
   fun emitEmbeddedPaymentElementDidUpdateHeight(value: ReadableMap?) {
