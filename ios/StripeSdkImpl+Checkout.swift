@@ -142,6 +142,31 @@ extension StripeSdkImpl {
         }
     }
 
+    @objc(presentCheckoutPaymentElement:resolver:rejecter:)
+    public func presentCheckoutPaymentElement(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self,
+                  let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            guard let presenter = RCTPresentedViewController() else {
+                reject("Failed", "Checkout requires a presenting view controller.", nil)
+                return
+            }
+            guard presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
+                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                return
+            }
+            instance.checkout.getPaymentElement().present(from: presenter, completion: nil)
+            resolve(nil)
+        }
+    }
+
     @objc(runCheckoutServerUpdate:operationId:resolver:rejecter:)
     public func runCheckoutServerUpdate(
         controllerId: String,

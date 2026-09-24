@@ -91,6 +91,30 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         view.removeFromSuperview()
     }
 
+    func test_sheetRejectsMissingPresenterAndDestroyedController() async throws {
+        let sdk = StripeSdkImpl()
+        let instance = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let controllerId = "controller-1"
+        sdk.checkoutControllers[controllerId] = instance
+        defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+
+        for destroyed in [false, true] {
+            if destroyed { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+            let rejected = expectation(description: "Invalid presentation rejects")
+            sdk.presentCheckoutPaymentElement(controllerId: controllerId, resolver: { _ in
+                XCTFail("Invalid presentation should reject")
+                rejected.fulfill()
+            }, rejecter: { code, message, _ in
+                XCTAssertEqual(code, "Failed")
+                XCTAssertEqual(message, destroyed
+                    ? "Checkout controller `\(controllerId)` does not exist."
+                    : "Checkout requires a presenting view controller.")
+                rejected.fulfill()
+            })
+            await fulfillment(of: [rejected], timeout: 2)
+        }
+    }
+
     private func makeCheckout() async throws -> CheckoutController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]

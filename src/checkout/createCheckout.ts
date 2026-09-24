@@ -150,8 +150,10 @@ export async function createCheckout(
     };
 
     const paymentElement = {
-      // TODO(porter): Present the native Payment Element sheet.
-      present: notImplemented,
+      present: () =>
+        performOperation(() =>
+          NativeStripeSdk.presentCheckoutPaymentElement(controllerId)
+        ),
     };
 
     const controller: CheckoutController = {
