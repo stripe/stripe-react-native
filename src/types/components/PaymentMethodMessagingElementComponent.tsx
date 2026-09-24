@@ -30,7 +30,7 @@ export interface PaymentMethodMessagingElementFont {
    * The font used for the element text.
    *
    * On iOS, this should be the "PostScript name" found in Font Book after installing the font.
-   * On Android, this should be the name of the font file (containing only lowercase alphanumeric characters) in android/app/src/main/res/font
+   * On Android, this should be the name of the font file (containing only alphanumeric characters and underscores) in android/app/src/main/res/font
    *
    * @default The OS's system font
    */
