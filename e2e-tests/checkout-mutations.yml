@@ -1,0 +1,157 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create session'
+    timeout: 60000
+- tapOn: 'Create session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- scrollUntilVisible:
+    element:
+      text: 'Session updates'
+    centerElement: true
+- tapOn: 'Session updates'
+- scrollUntilVisible:
+    element:
+      text: 'Update email'
+    centerElement: true
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: 'Update email'
+      - scrollUntilVisible:
+          element:
+            text: 'Update email: done'
+          timeout: 30000
+      - scrollUntilVisible:
+          element:
+            text: 'Clear email'
+          direction: UP
+          centerElement: true
+      - tapOn: 'Clear email'
+      - scrollUntilVisible:
+          element:
+            text: 'Clear email: done'
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Update email'
+      - scrollUntilVisible:
+          element:
+            text: 'Update email: The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.'
+          timeout: 30000
+      - scrollUntilVisible:
+          element:
+            text: 'Clear email'
+          direction: UP
+          centerElement: true
+      - tapOn: 'Clear email'
+      - scrollUntilVisible:
+          element:
+            text: 'Clear email: The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.'
+          timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Update shipping'
+    direction: UP
+    centerElement: true
+- tapOn: 'Update shipping'
+- scrollUntilVisible:
+    element:
+      text: 'Update shipping: done'
+    timeout: 30000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: 'Clear shipping'
+          direction: UP
+          centerElement: true
+      - tapOn: 'Clear shipping'
+      - scrollUntilVisible:
+          element:
+            text: 'Clear shipping: The installed Stripe Android SDK does not support CheckoutController.updateShippingAddress.*yet.'
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: 'Clear shipping'
+          direction: UP
+          centerElement: true
+      - tapOn: 'Clear shipping'
+      - scrollUntilVisible:
+          element:
+            text: 'Clear shipping: done'
+          timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Apply promotion'
+    direction: UP
+    centerElement: true
+- tapOn: 'Apply promotion'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: 'Apply promotion: You cannot apply a `promotion_code` without first enabling `allow_promotion_codes`.'
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: 'Apply promotion: .*'
+          timeout: 30000
+      - assertNotVisible: 'Apply promotion: done'
+- scrollUntilVisible:
+    element:
+      text: 'Remove promotion'
+    direction: UP
+    centerElement: true
+- tapOn: 'Remove promotion'
+- scrollUntilVisible:
+    element:
+      text: 'Remove promotion: done'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Show inline element'
+    direction: UP
+    centerElement: true
+- runFlow:
+    file: helpers/checkout-card.yml
+    env:
+      CARD_NUMBER: '4242424242424242'
+- scrollUntilVisible:
+    element:
+      text: 'Clear payment option'
+- tapOn: 'Clear payment option'
+- scrollUntilVisible:
+    element:
+      text: 'Clear payment option: done'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Status: ready'
+    direction: UP
+    centerElement: true
