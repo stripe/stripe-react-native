@@ -2,7 +2,7 @@
 
 ## Unreleased
 **Fixes**
-* [Fixed] Correlate overlapping CustomerSheet CustomerSession provider requests and cancel pending requests on reinitialization or module teardown. Requires a native rebuild after upgrading.
+* [Fixed] Fixed an issue where CustomerSheet could crash on iOS or remain stuck loading on Android when using CustomerSession. Requires a native rebuild after upgrading.
 
 **Changes**
 * [Changed] React Native versions < 0.75 are deprecated.
