@@ -1571,7 +1571,7 @@ class StripeSdkModule(
     performCheckoutMutation(controllerId, promise) { controller ->
       val instance = checkoutControllers.getValue(controllerId)
       controller.runServerUpdate {
-        instance.serverUpdateCallbacks.request(operationId) {
+        instance.requestServerUpdate(operationId) {
           eventEmitter.emitCheckoutServerUpdateRequested(
             Arguments.createMap().apply {
               putString("controllerId", controllerId)
@@ -1592,7 +1592,7 @@ class StripeSdkModule(
   ) {
     UiThreadUtil.runOnUiThread {
       val instance = checkoutControllers[controllerId]
-      instance?.serverUpdateCallbacks?.complete(operationId, error)
+      instance?.completeServerUpdate(operationId, error)
       promise.resolve(null)
     }
   }
