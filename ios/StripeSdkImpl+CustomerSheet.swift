@@ -9,13 +9,6 @@ import Foundation
 import React
 @_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
 extension StripeSdkImpl {
-    @objc public func invalidateCustomerSessionRequests() {
-        DispatchQueue.main.async {
-            self.customerSessionRequests?.invalidate()
-            self.customerSessionRequests = nil
-        }
-    }
-
     @MainActor
     @objc(initCustomerSheet:customerAdapterOverrides:resolver:rejecter:)
     public func initCustomerSheet(params: NSDictionary,
@@ -102,6 +95,13 @@ extension StripeSdkImpl {
         }
 
         resolve([])
+    }
+
+    @objc public func invalidateCustomerSessionRequests() {
+        DispatchQueue.main.async {
+            self.customerSessionRequests?.invalidate()
+            self.customerSessionRequests = nil
+        }
     }
 
     @objc(presentCustomerSheet:resolver:rejecter:)
