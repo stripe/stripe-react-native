@@ -164,6 +164,12 @@ class CustomerSheetManager(
     initPromise.resolve(Arguments.createMap())
   }
 
+  override fun onDestroy() {
+    customerSessionProvider?.invalidate()
+    customerSessionProvider = null
+    super.onDestroy()
+  }
+
   private fun handleResult(result: CustomerSheetResult) {
     when (result) {
       is CustomerSheetResult.Failed -> {

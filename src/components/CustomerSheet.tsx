@@ -204,11 +204,20 @@ function configureClientSecretProviderEventListeners(
   customerSessionClientSecretProviderCallback?.remove();
   customerSessionClientSecretProviderCallback = addListener(
     'onCustomerSessionProviderCustomerSessionClientSecret',
-    async () => {
-      const customerSessionClientSecret =
-        await clientSecretProvider.provideCustomerSessionClientSecret();
+    async ({ requestId }) => {
+      let response;
+      try {
+        const { customerId, clientSecret } =
+          await clientSecretProvider.provideCustomerSessionClientSecret();
+        response = { requestId, customerId, clientSecret };
+      } catch (error) {
+        response = {
+          requestId,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
       await NativeStripeSdk.clientSecretProviderCustomerSessionClientSecretCallback(
-        customerSessionClientSecret
+        response
       );
     }
   );
