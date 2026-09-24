@@ -8,6 +8,7 @@ require_relative 'helpers'
 require_relative 'native_sdk_versions'
 
 @release_type = nil
+@is_dry_run = false
 
 VALID_RELEASE_TYPES = %w[patch minor major].freeze
 
@@ -44,7 +45,7 @@ end
 
 def create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
   branch = "release/propose-#{version}"
-  execute_or_fail("git checkout -b #{branch}")
+  execute_or_fail("git checkout -b #{branch}") unless @is_dry_run
 
   bump_version(version)
   update_changelog(version)
@@ -60,6 +61,12 @@ def create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
 
   ios_changed = native_sdk_changes.any? { |change| change.name == 'stripe-ios' && change.changed }
   execute_or_fail("yarn pods") if ios_changed
+
+  if @is_dry_run
+    puts "[dry-run] Local preparation complete. Changes are left in the working tree for inspection."
+    puts "[dry-run] Skipping staging, committing, pushing, and PR creation."
+    return
+  end
 
   files_to_add = ['package.json', 'CHANGELOG.md']
   files_to_add.concat(native_sdk_changes.select(&:changed).map(&:path))
@@ -96,7 +103,7 @@ end
 OptionParser.new do |opts|
   opts.banner = <<~BANNER
     USAGE:
-        ./scripts/propose.rb <release_type>
+        ./scripts/propose.rb [OPTIONS] <release_type>
 
     Creates a proposal PR for the next release. Replaces the '## Unreleased'
     header in CHANGELOG.md with the new version and today's date, updates the
@@ -104,7 +111,13 @@ OptionParser.new do |opts|
 
     ARGS:
         <release_type>    "patch", "minor", or "major"
+
+    OPTIONS:
   BANNER
+
+  opts.on("--dry-run", "Update local files and install pods; leave changes uncommitted without creating a branch, pushing, or opening a PR") do
+    @is_dry_run = true
+  end
 
   opts.on("-h", "--help", "Show this help message") do
     puts opts
@@ -124,7 +137,12 @@ end
 
 Dir.chdir(`git rev-parse --show-toplevel`.strip)
 
-preflight_checks
+if @is_dry_run
+  puts "[dry-run] Updating version files, CHANGELOG.md, and pods in the current checkout."
+  puts "[dry-run] Changes will remain in the working tree; no branch, commit, push, or PR will be created."
+else
+  preflight_checks
+end
 
 version = next_version
 puts "Proposing #{version} (currently #{current_version})"
