@@ -8,6 +8,7 @@ import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
@@ -57,6 +58,13 @@ internal class NativeCheckoutControllerInstance(
       latestSession = session
       emit(if (isUpdating) "updating" else "ready")
     }
+  }
+
+  /** Starts bridge work before disposal can cancel its pending promise. */
+  @MainThread
+  fun launchMutation(block: suspend () -> Unit) {
+    UiThreadUtil.assertOnUiThread()
+    scope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
   }
 
   @MainThread
