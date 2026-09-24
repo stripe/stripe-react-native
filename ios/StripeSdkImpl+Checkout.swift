@@ -142,6 +142,48 @@ extension StripeSdkImpl {
         }
     }
 
+    @objc(runCheckoutServerUpdate:operationId:resolver:rejecter:)
+    public func runCheckoutServerUpdate(
+        controllerId: String,
+        operationId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self,
+                  let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            do {
+                try await instance.runServerUpdate(operationId: operationId) { [weak self] in
+                    self?.emitter?.emitCheckoutServerUpdateRequested([
+                        "controllerId": controllerId,
+                        "operationId": operationId,
+                    ])
+                }
+                resolve(nil)
+            } catch {
+                reject(checkoutErrorCode(for: error), error.localizedDescription, error)
+            }
+        }
+    }
+
+    @objc(completeCheckoutServerUpdate:operationId:error:resolver:rejecter:)
+    public func completeCheckoutServerUpdate(
+        controllerId: String,
+        operationId: String,
+        error: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            let instance = self?.checkoutControllers[controllerId]
+            instance?.completeServerUpdate(operationId: operationId, error: error)
+            resolve(nil)
+        }
+    }
+
     private func performCheckoutMutation(
         controllerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -167,8 +209,12 @@ extension StripeSdkImpl {
                 }
                 resolve(nil)
             } catch {
-                reject(error is CancellationError ? "Canceled" : "Failed", error.localizedDescription, error)
+                reject(checkoutErrorCode(for: error), error.localizedDescription, error)
             }
         }
     }
+}
+
+private func checkoutErrorCode(for error: Error) -> String {
+    error is CancellationError ? "Canceled" : "Failed"
 }

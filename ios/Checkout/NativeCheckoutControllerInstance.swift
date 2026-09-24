@@ -17,6 +17,7 @@ final class NativeCheckoutControllerInstance {
     private var observation: AnyCancellable?
     private var controllerId: String?
     private var isDestroyed = false
+    private var serverUpdates: [String: CheckoutServerUpdate] = [:]
 
     init(
         checkout: CheckoutController,
@@ -41,9 +42,34 @@ final class NativeCheckoutControllerInstance {
             }
     }
 
+    func runServerUpdate(
+        operationId: String,
+        request: @escaping () -> Void
+    ) async throws {
+        guard !isDestroyed, serverUpdates[operationId] == nil else {
+            throw CancellationError()
+        }
+        let operation = CheckoutServerUpdate()
+        serverUpdates[operationId] = operation
+        defer { serverUpdates.removeValue(forKey: operationId) }
+        try await checkout.runServerUpdate {
+            try await operation.requestCallback(request)
+        }
+    }
+
+    func completeServerUpdate(operationId: String, error: String?) {
+        let callbackError = error.map {
+            NSError(domain: "CheckoutServerUpdate", code: 0, userInfo: [NSLocalizedDescriptionKey: $0])
+        }
+        serverUpdates[operationId]?.completeCallback(error: callbackError)
+    }
+
     func destroy() {
         guard !isDestroyed else { return }
         isDestroyed = true
+        let updates = Array(serverUpdates.values)
+        serverUpdates.removeAll()
+        updates.forEach { $0.cancel() }
         observation?.cancel()
         observation = nil
         // The pinned iOS SDK has no explicit destruction API. Removing this
