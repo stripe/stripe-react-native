@@ -5,6 +5,47 @@ import XCTest
 
 @MainActor
 final class CheckoutConfigurationMapperTests: XCTestCase {
+    func test_map_mapsCurrencySelectorElementAppearance() throws {
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: [
+                "clientSecret": "cs_test_secret_123",
+                "returnURL": "example://checkout",
+                "currencySelectorElement": [
+                    "appearance": [
+                        "contentVerticalPadding": 8,
+                        "shapes": ["cornerRadius": 12, "borderWidth": 2],
+                        "font": ["family": "Helvetica", "scale": 1.2],
+                        "colors": [
+                            "light": ["background": "#FFFFFF"],
+                            "dark": ["background": "#000000"],
+                        ],
+                        "labelContent": "amount",
+                    ],
+                ],
+            ],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {}
+        )
+
+        let appearance = try XCTUnwrap(configuration.currencySelectorElement?.appearance)
+        XCTAssertEqual(appearance.contentVerticalPadding, 8)
+        XCTAssertEqual(appearance.cornerRadius, 12)
+        XCTAssertEqual(appearance.borderWidth, 2)
+        XCTAssertEqual(appearance.font.fontName, "Helvetica")
+        XCTAssertEqual(appearance.sizeScaleFactor, 1.2)
+        if case .amount = appearance.labelContent {} else {
+            XCTFail("Expected amount label content")
+        }
+        XCTAssertEqual(
+            appearance.background.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light)),
+            UIColor(hexString: "#FFFFFF")
+        )
+        XCTAssertEqual(
+            appearance.background.resolvedColor(with: UITraitCollection(userInterfaceStyle: .dark)),
+            UIColor(hexString: "#000000")
+        )
+    }
+
     func test_map_mapsSupportedConfiguration() throws {
         var selectionCount = 0
         let configuration = try CheckoutConfigurationMapper.map(

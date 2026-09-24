@@ -61,6 +61,7 @@ class StripeSdkPackage : BaseReactPackage() {
       AddressSheetViewManager(),
       EmbeddedPaymentElementViewManager(),
       com.reactnativestripesdk.checkout.CheckoutPaymentElementViewManager(),
+      com.reactnativestripesdk.checkout.CheckoutCurrencySelectorElementViewManager(),
       NavigationBarManager(),
       PaymentMethodMessagingElementViewManager(),
     )

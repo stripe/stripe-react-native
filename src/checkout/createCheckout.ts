@@ -1,6 +1,7 @@
 import type {
   Checkout,
   CheckoutController,
+  CheckoutCurrencySelectorElement,
   CheckoutPaymentElement,
 } from '../types/Checkout';
 import type { StripeError } from '../types/Errors';
@@ -13,6 +14,21 @@ import {
 } from './CheckoutControllerEventEmitter';
 
 const paymentElementIds = new WeakMap<CheckoutPaymentElement, string>();
+const currencySelectorElementIds = new WeakMap<
+  CheckoutCurrencySelectorElement,
+  string
+>();
+
+/** Resolves a Currency Selector Element owned by a Checkout controller. */
+export function getCheckoutCurrencySelectorElementId(
+  element: CheckoutCurrencySelectorElement
+): string {
+  const id = currencySelectorElementIds.get(element);
+  if (!id) {
+    throw new Error('Currency Selector Element was not created by this SDK.');
+  }
+  return id;
+}
 
 /** Resolves a Payment Element owned by a Checkout controller. */
 export function getCheckoutPaymentElementId(
@@ -149,6 +165,9 @@ export async function createCheckout(
           NativeStripeSdk.presentCheckoutPaymentElement(controllerId)
         ),
     };
+    const currencySelectorElement = result.isCurrencySelectorAvailable
+      ? {}
+      : null;
 
     const controller: CheckoutController = {
       get status() {
@@ -158,6 +177,7 @@ export async function createCheckout(
         return session!;
       },
       paymentElement,
+      currencySelectorElement,
       updateEmail: (email) =>
         performOperation(() =>
           NativeStripeSdk.updateCheckoutEmail(controllerId, email)
@@ -204,6 +224,9 @@ export async function createCheckout(
     };
     controllerIds.set(controller, controllerId);
     paymentElementIds.set(paymentElement, controllerId);
+    if (currencySelectorElement) {
+      currencySelectorElementIds.set(currencySelectorElement, controllerId);
+    }
     return controller;
   } catch (error) {
     subscription.remove();

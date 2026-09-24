@@ -2,6 +2,8 @@ package com.reactnativestripesdk.checkout
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
+import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
@@ -14,6 +16,7 @@ import com.reactnativestripesdk.utils.getIntegerList
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.stripe.android.checkout.CheckoutController
+import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CheckoutSessionPreview
@@ -47,12 +50,86 @@ internal object CheckoutConfigurationMapper {
         context = context,
       ),
     )
+    params.getMap("currencySelectorElement")?.let {
+      configuration.currencySelectorElement(mapCurrencySelectorElement(it, context))
+    }
 
     return MappedCheckoutConfiguration(
       clientSecret = clientSecret,
       configuration = configuration,
       rowSelectionBehavior = mapRowSelectionBehavior(paymentElementParams, didSelectPaymentOption),
     )
+  }
+
+  private fun mapCurrencySelectorElement(
+    params: ReadableMap,
+    context: Context,
+  ): CurrencySelectorElement.Configuration {
+    val configuration = CurrencySelectorElement.Configuration()
+    val appearanceParams = params.getMap("appearance") ?: return configuration
+    val appearance = CurrencySelectorElement.Configuration.Appearance()
+    appearanceParams.getFloatOrNull("contentVerticalPadding")?.let(appearance::contentVerticalPaddingDp)
+    mapCurrencySelectorShapes(appearanceParams, appearance)
+    mapCurrencySelectorFont(appearanceParams, appearance, context)
+    mapCurrencySelectorLabel(appearanceParams, appearance)
+    mapCurrencySelectorColors(appearanceParams, appearance, context)
+    return configuration.appearance(appearance)
+  }
+
+  private fun mapCurrencySelectorShapes(
+    params: ReadableMap,
+    appearance: CurrencySelectorElement.Configuration.Appearance,
+  ) {
+    params.getMap("shapes")?.let { shapes ->
+      shapes.getFloatOrNull("cornerRadius")?.let(appearance::cornerRadiusDp)
+      shapes.getFloatOrNull("borderWidth")?.let(appearance::borderWidthDp)
+    }
+  }
+
+  private fun mapCurrencySelectorFont(
+    params: ReadableMap,
+    appearance: CurrencySelectorElement.Configuration.Appearance,
+    context: Context,
+  ) {
+    params.getMap("font")?.let { font ->
+      appearance.fontResId(getFontResId(font, "family", context))
+      font.getFloatOrNull("scale")?.let(appearance::sizeScaleFactor)
+    }
+  }
+
+  private fun mapCurrencySelectorLabel(
+    params: ReadableMap,
+    appearance: CurrencySelectorElement.Configuration.Appearance,
+  ) {
+    params.getString("labelContent")?.let { value ->
+      appearance.labelContent(
+        when (value) {
+          "automatic" -> CurrencySelectorElement.Configuration.Appearance.LabelContent.AUTOMATIC
+          "currencyCode" -> CurrencySelectorElement.Configuration.Appearance.LabelContent.CURRENCY_CODE
+          "amount" -> CurrencySelectorElement.Configuration.Appearance.LabelContent.AMOUNT
+          else -> unsupportedValue("currencySelectorElement.appearance.labelContent", value)
+        },
+      )
+    }
+  }
+
+  private fun mapCurrencySelectorColors(
+    params: ReadableMap,
+    appearance: CurrencySelectorElement.Configuration.Appearance,
+    context: Context,
+  ) {
+    params.getMap("colors")?.let { colors ->
+      val isLight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) !=
+        Configuration.UI_MODE_NIGHT_YES
+      val palette = colors.getMap(if (isLight) "light" else "dark") ?: colors
+      palette.color("border", isLight)?.let { appearance.borderColor(Color(it)) }
+      palette.color("background", isLight)?.let { appearance.background(Color(it)) }
+      palette.color("selectedBackground", isLight)?.let { appearance.selectedBackground(Color(it)) }
+      palette.color("text", isLight)?.let { appearance.textColor(Color(it)) }
+      palette.color("selectedText", isLight)?.let { appearance.selectedTextColor(Color(it)) }
+      palette.color("textSecondary", isLight)?.let { appearance.textSecondaryColor(Color(it)) }
+      palette.color("danger", isLight)?.let { appearance.dangerColor(Color(it)) }
+    }
   }
 
   private fun mapDefaults(params: ReadableMap): CheckoutController.Configuration.Defaults {

@@ -1458,6 +1458,10 @@ class StripeSdkModule(
           promise.resolve(
             Arguments.createMap().apply {
               putMap("session", serializedSession.copy())
+              putBoolean(
+                "isCurrencySelectorAvailable",
+                params.hasKey("currencySelectorElement") && nativeSession.isCurrencySelectorAvailable,
+              )
             },
           )
         } catch (error: Exception) {
