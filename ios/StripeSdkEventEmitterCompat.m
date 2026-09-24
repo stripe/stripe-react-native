@@ -87,9 +87,9 @@
   [self sendEventWithName:@"onCustomerSessionProviderSetupIntentClientSecret" body:@{}];
 }
 
-- (void)emitOnCustomerSessionProviderCustomerSessionClientSecret
+- (void)emitOnCustomerSessionProviderCustomerSessionClientSecret:(NSDictionary *)value
 {
-  [self sendEventWithName:@"onCustomerSessionProviderCustomerSessionClientSecret" body:@{}];
+  [self sendEventWithName:@"onCustomerSessionProviderCustomerSessionClientSecret" body:value];
 }
 
 - (void)emitEmbeddedPaymentElementDidUpdateHeight:(NSDictionary *)value
