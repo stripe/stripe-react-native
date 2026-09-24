@@ -14,32 +14,6 @@ extension StripeSdkImpl {
                                   customerAdapterOverrides: NSDictionary,
                                   resolver resolve: @escaping RCTPromiseResolveBlock,
                                   rejecter reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.main.async {
-            self.configureCustomerSheet(params: params, customerAdapterOverrides: customerAdapterOverrides, resolve: resolve)
-        }
-    }
-
-    @objc public func invalidateCustomerSheet() {
-        DispatchQueue.main.async {
-            self.clearCustomerSheet()
-        }
-    }
-
-    @MainActor
-    private func clearCustomerSheet() {
-        setupIntentClientSecretRequests?.invalidate()
-        customerSessionClientSecretRequests?.invalidate()
-        setupIntentClientSecretRequests = nil
-        customerSessionClientSecretRequests = nil
-        customerSheet = nil
-        customerAdapter = nil
-    }
-
-    @MainActor
-    private func configureCustomerSheet(params: NSDictionary,
-                                        customerAdapterOverrides: NSDictionary,
-                                        resolve: @escaping RCTPromiseResolveBlock) {
-        clearCustomerSheet()
         do {
             customerSheetConfiguration = CustomerSheetUtils.buildCustomerSheetConfiguration(
                 appearance: try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params["appearance"] as? NSDictionary),
@@ -70,25 +44,27 @@ extension StripeSdkImpl {
             resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration` or `customerEphemeralKeySecret`, but not both"))
             return
         } else if let intentConfigurationBase = intentConfigurationBase {
-            let setupIntentRequests = ClientSecretProviderRequestRegistry<String>()
-            let customerSessionRequests = ClientSecretProviderRequestRegistry<CustomerSessionClientSecret>()
-            setupIntentClientSecretRequests = setupIntentRequests
-            customerSessionClientSecretRequests = customerSessionRequests
             let intentConfiguration: CustomerSheet.IntentConfiguration = CustomerSheet.IntentConfiguration(
                 paymentMethodTypes: intentConfigurationBase["paymentMethodTypes"] as? [String],
                 onBehalfOf: intentConfigurationBase["onBehalfOf"] as? String,
                 setupIntentClientSecretProvider: {
-                    return try await setupIntentRequests.request { requestId in
-                        guard let emitter = self.emitter else { throw CancellationError() }
-                        emitter.emitOnCustomerSessionProviderSetupIntentClientSecret(["requestId": requestId])
+                    return try await withCheckedThrowingContinuation { continuation in
+                        // Store the continuation to be resumed later
+                        self.clientSecretProviderSetupIntentClientSecretCallback = { clientSecret in
+                            continuation.resume(returning: clientSecret)
+                        }
+                        // Emit the event to JS
+                        self.emitter?.emitOnCustomerSessionProviderSetupIntentClientSecret()
                     }
                 }
             )
 
             let customerSessionClientSecretProvider: () async throws -> CustomerSessionClientSecret = {
-                return try await customerSessionRequests.request { requestId in
-                    guard let emitter = self.emitter else { throw CancellationError() }
-                    emitter.emitOnCustomerSessionProviderCustomerSessionClientSecret(["requestId": requestId])
+                return try await withCheckedThrowingContinuation { continuation in
+                    StripeSdkImpl.shared.clientSecretProviderCustomerSessionClientSecretCallback = { customerSessionClientSecret in
+                        continuation.resume(returning: customerSessionClientSecret)
+                    }
+                    self.emitter?.emitOnCustomerSessionProviderCustomerSessionClientSecret()
                 }
             }
 
@@ -232,34 +208,21 @@ extension StripeSdkImpl {
     }
 
     @objc(clientSecretProviderSetupIntentClientSecretCallback:resolver:rejecter:)
-    public func clientSecretProviderSetupIntentClientSecretCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.main.async {
-            guard let requestId = result["requestId"] as? String, !requestId.isEmpty else {
-                resolve(Errors.createError(ErrorType.Failed, "Missing requestId"))
-                return
-            }
-            let providerResult = Result { try CustomerSheetUtils.providerClientSecret(from: result) }
-            guard self.setupIntentClientSecretRequests?.resolve(requestId: requestId, result: providerResult) == true else {
-                resolve(Errors.createError(ErrorType.Failed, "Unknown or completed requestId"))
-                return
-            }
-            resolve([])
-        }
+    public func clientSecretProviderSetupIntentClientSecretCallback(setupIntentClientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.clientSecretProviderSetupIntentClientSecretCallback?(setupIntentClientSecret)
+        resolve([])
     }
 
     @objc(clientSecretProviderCustomerSessionClientSecretCallback:resolver:rejecter:)
-    public func clientSecretProviderCustomerSessionClientSecretCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.main.async {
-            guard let requestId = result["requestId"] as? String, !requestId.isEmpty else {
-                resolve(Errors.createError(ErrorType.Failed, "Missing requestId"))
-                return
-            }
-            let providerResult = Result { try CustomerSheetUtils.providerCustomerSessionClientSecret(from: result) }
-            guard self.customerSessionClientSecretRequests?.resolve(requestId: requestId, result: providerResult) == true else {
-                resolve(Errors.createError(ErrorType.Failed, "Unknown or completed requestId"))
-                return
-            }
-            resolve([])
+    public func clientSecretProviderCustomerSessionClientSecretCallback(customerSessionClientSecretDict: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let customerId = customerSessionClientSecretDict["customerId"] as? String,
+              let clientSecret = customerSessionClientSecretDict["clientSecret"] as? String else {
+            resolve(Errors.createError(ErrorType.Failed, "Invalid CustomerSessionClientSecret format"))
+            return
         }
+
+        let customerSessionClientSecret = CustomerSessionClientSecret(customerId: customerId, clientSecret: clientSecret)
+        self.clientSecretProviderCustomerSessionClientSecretCallback?(customerSessionClientSecret)
+        resolve([])
     }
 }

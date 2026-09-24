@@ -20,7 +20,6 @@ import { UnsafeObject } from './specs/utils';
 import { FinancialConnectionsEvent } from './types/FinancialConnections';
 import { Result as ConfirmationTokenResult } from './types/ConfirmationToken';
 import type { CheckoutControllerUpdate } from './checkout/CheckoutControllerEventEmitter';
-import type { ClientSecretProviderRequest } from './specs/ClientSecretProvider';
 
 const compatEventEmitter =
   Platform.OS === 'ios'
@@ -54,8 +53,8 @@ type Events = {
   }>;
   onCustomerAdapterFetchSelectedPaymentOptionCallback: EventEmitter<void>;
   onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: EventEmitter<void>;
-  onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<ClientSecretProviderRequest>;
-  onCustomerSessionProviderCustomerSessionClientSecret: EventEmitter<ClientSecretProviderRequest>;
+  onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<void>;
+  onCustomerSessionProviderCustomerSessionClientSecret: EventEmitter<void>;
   embeddedPaymentElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
   embeddedPaymentElementWillPresent: EventEmitter<void>;
   embeddedPaymentElementDidUpdatePaymentOption: EventEmitter<UnsafeObject<any>>;

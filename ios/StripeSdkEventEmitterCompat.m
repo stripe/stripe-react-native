@@ -82,14 +82,14 @@
   [self sendEventWithName:@"onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback" body:@{}];
 }
 
-- (void)emitOnCustomerSessionProviderSetupIntentClientSecret:(NSDictionary *)value
+- (void)emitOnCustomerSessionProviderSetupIntentClientSecret
 {
-  [self sendEventWithName:@"onCustomerSessionProviderSetupIntentClientSecret" body:value];
+  [self sendEventWithName:@"onCustomerSessionProviderSetupIntentClientSecret" body:@{}];
 }
 
-- (void)emitOnCustomerSessionProviderCustomerSessionClientSecret:(NSDictionary *)value
+- (void)emitOnCustomerSessionProviderCustomerSessionClientSecret
 {
-  [self sendEventWithName:@"onCustomerSessionProviderCustomerSessionClientSecret" body:value];
+  [self sendEventWithName:@"onCustomerSessionProviderCustomerSessionClientSecret" body:@{}];
 }
 
 - (void)emitEmbeddedPaymentElementDidUpdateHeight:(NSDictionary *)value

@@ -1,9 +1,6 @@
 # CHANGELOG
 
 ## Unreleased
-**Fixes**
-* [Fixed] iOS and Android: Correlate concurrent CustomerSheet CustomerSession and SetupIntent provider requests so out-of-order responses cannot overwrite or resume another request. Provider failures, cancellation, and CustomerSheet replacement now settle pending requests. The public `ClientSecretProvider` API is unchanged. This changes the internal JS/native protocol and requires a native rebuild after upgrading the package. An OTA-only JS update or mixed old/new JS and native binaries is not supported.
-
 **Changes**
 * [Changed] React Native versions < 0.75 are deprecated.
 * [Changed] iOS: By default, the Stripe iOS SDK is now resolved through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.
