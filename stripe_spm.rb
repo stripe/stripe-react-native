@@ -181,13 +181,17 @@ module StripeSPM
   #     signing identity without losing their bundle identifiers/entitlements.
   #   - Synchronizes frameworks on every build and removes obsolete files
   #     within each framework so incremental builds pick up SDK updates.
-  #   - FRAMEWORKS_FOLDER_PATH is unset for build types with no frameworks
-  #     folder (some non-app targets); treat that as "nothing to do".
+  #   - TARGET_BUILD_DIR or FRAMEWORKS_FOLDER_PATH can be unset for build types
+  #     with no frameworks folder (some non-app targets); treat that as
+  #     "nothing to do".
   #
   # The heredoc is single-quoted (<<~'SCRIPT') so ${...} reaches the shell
   # untouched by Ruby interpolation.
   EMBED_SCRIPT = <<~'SCRIPT'.freeze
     set -e
+    if [ -z "${TARGET_BUILD_DIR:-}" ]; then
+      exit 0
+    fi
     if [ -z "${FRAMEWORKS_FOLDER_PATH:-}" ]; then
       exit 0
     fi
