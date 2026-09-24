@@ -47,8 +47,6 @@ class ReactNativeCustomerSessionProvider(
           )
         }
         deferred.await()
-      }.onFailure {
-        if (it is CancellationException) throw it
       }
     } finally {
       pendingCustomerSessions.remove(requestId)

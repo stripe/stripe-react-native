@@ -9,6 +9,7 @@ import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.utils.StripeUIManager
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.customersheet.CustomerSheet
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -130,6 +131,7 @@ class ReactNativeCustomerSessionProviderTest {
     val second = async { fixture.provider.providesCustomerSessionClientSecret() }
     runCurrent()
     first.cancelAndJoin()
+    assertTrue(first.isCancelled)
     assertEquals("Failed", fixture.respond(success(fixture.ids[0], "late")).getMap("error")?.getString("code"))
     assertFalse(second.isCompleted)
     fixture.respond(success(fixture.ids[1], "B"))
@@ -155,19 +157,21 @@ class ReactNativeCustomerSessionProviderTest {
   }
 
   @Test
-  fun `invalidation cancels all requests and rejects new work`() = providerTest {
+  fun `invalidation returns cancellation failures and rejects new work`() = providerTest {
     val fixture = fixture()
     val requests = List(2) { async { fixture.provider.providesCustomerSessionClientSecret() } }
     runCurrent()
     fixture.provider.invalidate()
     fixture.provider.invalidate()
     runCurrent()
-    assertTrue(requests.all { it.isCancelled })
+    assertTrue(requests.all { it.isCompleted })
+    requests.forEach { assertTrue(it.await().exceptionOrNull() is CancellationException) }
     assertTrue(fixture.pending().isEmpty())
     fixture.ids.forEach { assertFalse(fixture.provider.completeCustomerSessionRequest(it, JavaOnlyMap())) }
     val late = async { fixture.provider.providesCustomerSessionClientSecret() }
     runCurrent()
-    assertTrue(late.isCancelled)
+    assertTrue(late.isCompleted)
+    assertTrue(late.await().exceptionOrNull() is CancellationException)
     assertEquals(2, fixture.ids.size)
   }
 
@@ -180,7 +184,8 @@ class ReactNativeCustomerSessionProviderTest {
       if (invalidateModule) old.module.invalidate() else old.manager.destroy()
       ShadowLooper.runUiThreadTasks()
       runCurrent()
-      assertTrue(requests.all { it.isCancelled })
+      assertTrue(requests.all { it.isCompleted })
+      requests.forEach { assertTrue(it.await().exceptionOrNull() is CancellationException) }
       assertNull(old.manager.customerSessionProvider)
       assertTrue(old.pending().isEmpty())
 
