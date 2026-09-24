@@ -70,6 +70,9 @@ type Events = {
   checkoutControllerDidUpdate: EventEmitter<
     UnsafeObject<CheckoutControllerUpdate>
   >;
+  checkoutControllerDidSelectPaymentOption: EventEmitter<{
+    controllerId: CheckoutControllerUpdate['controllerId'];
+  }>;
 };
 
 export function addListener<EventT extends keyof Events>(
