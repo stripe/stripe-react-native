@@ -1,10 +1,11 @@
 import type { Checkout, CheckoutController } from '../types/Checkout';
 import type { StripeError } from '../types/Errors';
+import { runServerUpdate } from './runServerUpdate';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import {
   addCheckoutControllerListener,
   addCheckoutControllerSelectionListener,
-  createCheckoutId,
+  createCheckoutBridgeId,
 } from './CheckoutControllerEventEmitter';
 
 const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
@@ -71,7 +72,7 @@ function nativeCreateOptions(
 export async function createCheckout(
   options: Checkout.CreateOptions
 ): Promise<CheckoutController> {
-  const controllerId = createCheckoutId();
+  const controllerId = createCheckoutBridgeId();
   let status: CheckoutController['status'] = 'ready';
   let session: Checkout.Session | undefined;
   let destroyPromise: Promise<void> | undefined;
@@ -149,8 +150,8 @@ export async function createCheckout(
         performOperation(() =>
           NativeStripeSdk.removeCheckoutPromotionCode(controllerId)
         ),
-      // TODO(porter): Bridge the Checkout server-update handshake.
-      runServerUpdate: notImplemented,
+      runServerUpdate: (serverUpdate) =>
+        performOperation(() => runServerUpdate(controllerId, serverUpdate)),
       clearPaymentOption: () =>
         performOperation(() =>
           NativeStripeSdk.clearCheckoutPaymentOption(controllerId)
