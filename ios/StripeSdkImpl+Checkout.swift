@@ -74,4 +74,101 @@ extension StripeSdkImpl {
             resolve(nil)
         }
     }
+
+    @objc(updateCheckoutEmail:email:resolver:rejecter:)
+    public func updateCheckoutEmail(
+        controllerId: String,
+        email: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { _ in
+            // TODO(porter): Forward email updates once the iOS SDK exposes CheckoutController.updateEmail.
+            throw NSError(
+                domain: "StripeReactNativeCheckout",
+                code: 0,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.",
+                ]
+            )
+        }
+    }
+
+    @objc(updateCheckoutShippingAddress:params:resolver:rejecter:)
+    public func updateCheckoutShippingAddress(
+        controllerId: String,
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            let name = params["name"] as? String
+            let address = CheckoutConfigurationMapper.mapAddress(params["address"] as? NSDictionary)
+            try await instance.checkout.updateShippingAddress(name: name, address: address)
+        }
+    }
+
+    @objc(applyCheckoutPromotionCode:promotionCode:resolver:rejecter:)
+    public func applyCheckoutPromotionCode(
+        controllerId: String,
+        promotionCode: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            try await instance.checkout.applyPromotionCode(promotionCode)
+        }
+    }
+
+    @objc(removeCheckoutPromotionCode:resolver:rejecter:)
+    public func removeCheckoutPromotionCode(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            try await instance.checkout.removePromotionCode()
+        }
+    }
+
+    @objc(clearCheckoutPaymentOption:resolver:rejecter:)
+    public func clearCheckoutPaymentOption(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            try await instance.checkout.clearPaymentOption()
+        }
+    }
+
+    private func performCheckoutMutation(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock,
+        operation: @escaping @MainActor (NativeCheckoutControllerInstance) async throws -> Void
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self,
+                  let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            do {
+                try await operation(instance)
+                let registeredInstance = checkoutControllers[controllerId]
+                guard registeredInstance === instance else {
+                    reject(
+                        "Canceled",
+                        "The Checkout controller was destroyed before the operation completed.",
+                        nil
+                    )
+                    return
+                }
+                resolve(nil)
+            } catch {
+                reject(error is CancellationError ? "Canceled" : "Failed", error.localizedDescription, error)
+            }
+        }
+    }
 }
