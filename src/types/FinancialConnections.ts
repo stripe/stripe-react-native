@@ -138,6 +138,8 @@ export enum FinancialConnectionsSheetError {
 export type FinancialConnectionsEvent = {
   /** The event's name. Represents the type of event that has occurred during the Financial Connections process. */
   name: FinancialConnectionsEventName;
+  /** The Financial Connections Session that produced this event. */
+  financialConnectionsSessionId: string;
   /** Event-associated metadata. Provides further detail related to the occurred event. */
   metadata: FinancialConnectionsEventMetadata;
 };
