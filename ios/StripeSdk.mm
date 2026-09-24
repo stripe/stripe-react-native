@@ -30,6 +30,7 @@ RCT_EXPORT_MODULE()
 
 - (void)invalidate
 {
+  [StripeSdkImpl.shared invalidateCustomerSessionRequests];
   [StripeSdkImpl.shared invalidateCheckoutControllers];
   [super invalidate];
 }
@@ -240,7 +241,9 @@ RCT_EXPORT_METHOD(clientSecretProviderCustomerSessionClientSecretCallback:(nonnu
                                                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
                                                                        reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared clientSecretProviderCustomerSessionClientSecretCallback:customerSessionClientSecret resolver:resolve rejecter:reject];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [StripeSdkImpl.shared clientSecretProviderCustomerSessionClientSecretCallback:customerSessionClientSecret resolver:resolve rejecter:reject];
+  });
 }
 
 RCT_EXPORT_METHOD(dismissPlatformPay:(nonnull RCTPromiseResolveBlock)resolve
@@ -283,10 +286,12 @@ RCT_EXPORT_METHOD(initCustomerSheet:(nonnull NSDictionary *)params
                            resolve:(nonnull RCTPromiseResolveBlock)resolve
                             reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared initCustomerSheet:params
-                 customerAdapterOverrides:customerAdapterOverrides
-                                 resolver:resolve
-                                 rejecter:reject];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [StripeSdkImpl.shared initCustomerSheet:params
+                   customerAdapterOverrides:customerAdapterOverrides
+                                   resolver:resolve
+                                   rejecter:reject];
+  });
 }
 
 RCT_EXPORT_METHOD(initPaymentSheet:(nonnull NSDictionary *)params

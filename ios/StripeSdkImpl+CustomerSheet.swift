@@ -9,11 +9,22 @@ import Foundation
 import React
 @_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
 extension StripeSdkImpl {
+    @objc public func invalidateCustomerSessionRequests() {
+        DispatchQueue.main.async {
+            self.customerSessionRequests?.invalidate()
+            self.customerSessionRequests = nil
+        }
+    }
+
+    @MainActor
     @objc(initCustomerSheet:customerAdapterOverrides:resolver:rejecter:)
     public func initCustomerSheet(params: NSDictionary,
                                   customerAdapterOverrides: NSDictionary,
                                   resolver resolve: @escaping RCTPromiseResolveBlock,
                                   rejecter reject: @escaping RCTPromiseRejectBlock) {
+        customerSessionRequests?.invalidate()
+        customerSessionRequests = nil
+
         do {
             customerSheetConfiguration = CustomerSheetUtils.buildCustomerSheetConfiguration(
                 appearance: try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params["appearance"] as? NSDictionary),
@@ -59,12 +70,14 @@ extension StripeSdkImpl {
                 }
             )
 
+            let requests = CustomerSessionRequestRegistry()
+            customerSessionRequests = requests
             let customerSessionClientSecretProvider: () async throws -> CustomerSessionClientSecret = {
-                return try await withCheckedThrowingContinuation { continuation in
-                    StripeSdkImpl.shared.clientSecretProviderCustomerSessionClientSecretCallback = { customerSessionClientSecret in
-                        continuation.resume(returning: customerSessionClientSecret)
+                return try await requests.request { requestId in
+                    guard let emitter = self.emitter else {
+                        throw CancellationError()
                     }
-                    self.emitter?.emitOnCustomerSessionProviderCustomerSessionClientSecret()
+                    emitter.emitOnCustomerSessionProviderCustomerSessionClientSecret(["requestId": requestId])
                 }
             }
 
@@ -213,16 +226,28 @@ extension StripeSdkImpl {
         resolve([])
     }
 
+    @MainActor
     @objc(clientSecretProviderCustomerSessionClientSecretCallback:resolver:rejecter:)
     public func clientSecretProviderCustomerSessionClientSecretCallback(customerSessionClientSecretDict: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let customerId = customerSessionClientSecretDict["customerId"] as? String,
-              let clientSecret = customerSessionClientSecretDict["clientSecret"] as? String else {
-            resolve(Errors.createError(ErrorType.Failed, "Invalid CustomerSessionClientSecret format"))
+        guard let requestId = customerSessionClientSecretDict["requestId"] as? String else {
+            resolve(Errors.createError(ErrorType.Failed, "Missing CustomerSession request ID"))
             return
         }
 
-        let customerSessionClientSecret = CustomerSessionClientSecret(customerId: customerId, clientSecret: clientSecret)
-        self.clientSecretProviderCustomerSessionClientSecretCallback?(customerSessionClientSecret)
+        let result: Result<CustomerSessionClientSecret, Error>
+        if let error = customerSessionClientSecretDict["error"] as? String {
+            result = .failure(NSError(domain: "StripeReactNative", code: 0, userInfo: [NSLocalizedDescriptionKey: error]))
+        } else if let customerId = customerSessionClientSecretDict["customerId"] as? String, !customerId.isEmpty,
+                  let clientSecret = customerSessionClientSecretDict["clientSecret"] as? String, !clientSecret.isEmpty {
+            result = .success(CustomerSessionClientSecret(customerId: customerId, clientSecret: clientSecret))
+        } else {
+            result = .failure(NSError(domain: "StripeReactNative", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid CustomerSessionClientSecret format"]))
+        }
+
+        guard customerSessionRequests?.complete(requestId: requestId, result: result) == true else {
+            resolve(Errors.createError(ErrorType.Failed, "Unknown or completed CustomerSession request ID"))
+            return
+        }
         resolve([])
     }
 }

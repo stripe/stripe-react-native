@@ -64,7 +64,6 @@ import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
 import com.stripe.android.core.reactnative.ReactNativeAnalytics
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
-import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.BankAccountTokenParams
 import com.stripe.android.model.CardParams
@@ -1337,28 +1336,23 @@ class StripeSdkModule(
     customerSessionClientSecretJson: ReadableMap,
     promise: Promise,
   ) {
-    val clientSecret = customerSessionClientSecretJson.getString("clientSecret")
-    val customerId = customerSessionClientSecretJson.getString("customerId")
-
-    if (clientSecret.isNullOrEmpty() || customerId.isNullOrEmpty()) {
-      Log.e(
-        "StripeReactNative",
-        "Invalid CustomerSessionClientSecret format",
-      )
+    val requestId = runCatching { customerSessionClientSecretJson.getString("requestId") }.getOrNull()
+    if (requestId == null) {
+      promise.resolve(createError(ErrorType.Failed.toString(), "Missing CustomerSession request ID"))
       return
     }
 
-    customerSheetManager?.let {
-      it.customerSessionProvider?.providesCustomerSessionClientSecretCallback?.complete(
-        CustomerSheet.CustomerSessionClientSecret.create(
-          customerId = customerId,
-          clientSecret = clientSecret,
-        ),
+    val completed = customerSheetManager?.customerSessionProvider?.completeCustomerSessionRequest(
+      requestId,
+      customerSessionClientSecretJson,
+    )
+    if (completed != true) {
+      promise.resolve(
+        createError(ErrorType.Failed.toString(), "Unknown or completed CustomerSession request ID"),
       )
-    } ?: run {
-      promise.resolve(CustomerSheetManager.createMissingInitError())
       return
     }
+    promise.resolve(Arguments.createMap())
   }
 
   @ReactMethod
