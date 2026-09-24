@@ -2,7 +2,7 @@
 
 ## Unreleased
 **Fixes**
-* [Fixed] Fixed an issue where CustomerSheet could crash on iOS or remain stuck loading on Android when using CustomerSession. Requires a native rebuild after upgrading.
+* [Fixed] Fixed an issue where CustomerSheet could crash on iOS or remain stuck loading on Android when using CustomerSession.
 
 **Changes**
 * [Changed] React Native versions < 0.75 are deprecated.
