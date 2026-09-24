@@ -56,6 +56,14 @@ class CustomerSheetManager(
   private var presentPromise: Promise? = null
   private var keepJsAwake: KeepJsAwakeTask? = null
 
+  override fun onDestroy() {
+    customerSessionProvider?.invalidate()
+    customerSessionProvider = null
+    keepJsAwake?.stop()
+    keepJsAwake = null
+    super.onDestroy()
+  }
+
   override fun onCreate() {
     val headerTextForSelectionScreen = arguments.getString("headerTextForSelectionScreen")
     val merchantDisplayName = arguments.getString("merchantDisplayName")

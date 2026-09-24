@@ -1,0 +1,51 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Accept a payment"
+- scrollUntilVisible:
+    element:
+      text: "Customer Sheet with Customer Session"
+    direction: DOWN
+- tapOn: "Customer Sheet with Customer Session"
+- extendedWaitUntil:
+    visible: "Edit payment methods"
+    timeout: 60000
+- tapOn:
+    id: "customer_session_provider_delay"
+- tapOn: "Edit payment methods"
+- extendedWaitUntil:
+    visible: "TEST"
+    timeout: 60000
+- tapOn: "Card number. Supported cards include.*"
+- inputText: "4242424242424242"
+- tapOn:
+    text: "MM / YY"
+    optional: true
+- inputText: "0145"
+- inputText: "123"
+- tapOn:
+    text: "Done"
+    optional: true
+- tapOn: "Save"
+- tapOn: "Confirm"
+- assertVisible: ".*4242.*"
+# Reopen so the newly added card is the sheet's original selection.
+- tapOn: ".*4242.*"
+- extendedWaitUntil:
+    visible: "Edit"
+    timeout: 60000
+- tapOn: "Edit"
+# Card networks that support editing show a pencil before the removal action.
+- tapOn:
+    id: "CircularButton.Edit"
+- tapOn: "Remove"
+- tapOn: "Remove"
+- extendedWaitUntil:
+    visible: "Card number. Supported cards include.*"
+    timeout: 60000
+- tapOn: "Close"
+- assertVisible:
+    id: "customer_session_provider_overlap"
+- assertVisible:
+    id: "customer_session_provider_delay"

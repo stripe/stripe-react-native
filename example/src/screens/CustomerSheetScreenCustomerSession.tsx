@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Image, StyleSheet } from 'react-native';
+import { Alert, Image, StyleSheet, Switch, Text } from 'react-native';
 import { CustomerSheet } from '@stripe/stripe-react-native';
 import { PaymentSheet } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
@@ -13,6 +13,10 @@ import {
 
 class MyClientSecretProvider implements ClientSecretProvider {
   customerId?: string | null = null;
+  delayRequests = false;
+  private activeRequests = 0;
+
+  constructor(private readonly onOverlap: () => void) {}
 
   async provideSetupIntentClientSecret(): Promise<string> {
     const response = await fetch(
@@ -31,28 +35,41 @@ class MyClientSecretProvider implements ClientSecretProvider {
   }
 
   async provideCustomerSessionClientSecret(): Promise<CustomerSessionClientSecret> {
-    console.log(
-      'providesCustomerSessionClientSecret customerId',
-      this.customerId
-    );
-    const response = await fetch(
-      `${API_URL}/customer-sheet-customer-session-customer`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ customerId: this.customerId }),
+    console.log('CustomerSession provider started', Date.now());
+    this.activeRequests += 1;
+    if (this.activeRequests > 1) {
+      this.onOverlap();
+    }
+    try {
+      if (this.delayRequests) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    );
-    const result = await response.json();
 
-    this.customerId = result.customer;
+      console.log(
+        'providesCustomerSessionClientSecret customerId',
+        this.customerId
+      );
+      const response = await fetch(
+        `${API_URL}/customer-sheet-customer-session-customer`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ customerId: this.customerId }),
+        }
+      );
+      const result = await response.json();
 
-    return {
-      customerId: result.customer,
-      clientSecret: result.customerSessionClientSecret,
-    };
+      this.customerId = result.customer;
+
+      return {
+        customerId: result.customer,
+        clientSecret: result.customerSessionClientSecret,
+      };
+    } finally {
+      this.activeRequests -= 1;
+    }
   }
 }
 
@@ -63,7 +80,11 @@ export default function CustomerSheetCustomerSessionScreen() {
     React.useState<PaymentSheet.PaymentOption | null>(null);
   const [customerSheetVisible, setCustomerSheetVisible] = React.useState(false);
   const [clientSecretProvider, setClientSecretProvider] =
-    React.useState<ClientSecretProvider | null>(null);
+    React.useState<MyClientSecretProvider | null>(null);
+  const [delayProviderRequests, setDelayProviderRequests] =
+    React.useState(false);
+  const [providerRequestsOverlapped, setProviderRequestsOverlapped] =
+    React.useState(false);
 
   const setup = async () => {
     console.log('setup');
@@ -82,7 +103,9 @@ export default function CustomerSheetCustomerSessionScreen() {
       address: address,
     };
 
-    const newClientSecretProvider = new MyClientSecretProvider();
+    const newClientSecretProvider = new MyClientSecretProvider(() => {
+      setProviderRequestsOverlapped(true);
+    });
 
     setClientSecretProvider(newClientSecretProvider);
 
@@ -148,6 +171,24 @@ export default function CustomerSheetCustomerSessionScreen() {
 
   return (
     <PaymentScreen onInit={setup}>
+      <Text>Delay CustomerSession provider for concurrency testing</Text>
+      <Switch
+        testID="customer_session_provider_delay"
+        accessibilityLabel="Delay CustomerSession provider for concurrency testing"
+        value={delayProviderRequests}
+        disabled={!clientSecretProvider}
+        onValueChange={(enabled) => {
+          setDelayProviderRequests(enabled);
+          if (clientSecretProvider) {
+            clientSecretProvider.delayRequests = enabled;
+          }
+        }}
+      />
+      {providerRequestsOverlapped && (
+        <Text testID="customer_session_provider_overlap">
+          CustomerSession provider requests overlapped
+        </Text>
+      )}
       <Button
         variant="primary"
         loading={!stripeInitialized}

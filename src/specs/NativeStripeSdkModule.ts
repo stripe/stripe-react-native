@@ -11,7 +11,6 @@ import type {
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
   CustomerAdapter,
-  CustomerSessionClientSecret,
   CustomerSheetError,
   CustomerSheetInitParams,
   CustomerSheetPresentParams,
@@ -44,6 +43,10 @@ import type {
 import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { Checkout } from '../types/Checkout';
 import type { UnsafeObject } from './utils';
+import type {
+  CustomerSessionProviderResult,
+  SetupIntentProviderResult,
+} from './ClientSecretProvider';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
@@ -195,10 +198,10 @@ export interface Spec extends TurboModule {
     clientSecret: string
   ): Promise<void>;
   clientSecretProviderSetupIntentClientSecretCallback(
-    setupIntentClientSecret: string
+    result: UnsafeObject<SetupIntentProviderResult>
   ): Promise<void>;
   clientSecretProviderCustomerSessionClientSecretCallback(
-    customerSessionClientSecret: UnsafeObject<CustomerSessionClientSecret>
+    result: UnsafeObject<CustomerSessionProviderResult>
   ): Promise<void>;
   createEmbeddedPaymentElement(
     intentConfig: UnsafeObject<IntentConfiguration>,

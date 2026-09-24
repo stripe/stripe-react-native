@@ -5,6 +5,7 @@
 **Fixes**
 
 * [Fixed] Android: ConfirmationToken `setupFutureUsage` now returns the `FutureUsage` values (`OffSession` / `OnSession` / `None`), matching iOS. ([#2697](https://github.com/stripe/stripe-react-native/pull/2697))
+* [Fixed] iOS and Android: Correlate concurrent CustomerSheet CustomerSession and SetupIntent provider requests so out-of-order responses cannot overwrite or resume another request. Provider failures, cancellation, and CustomerSheet replacement now settle pending requests. The public `ClientSecretProvider` API is unchanged. This changes the internal JS/native protocol and requires a native rebuild after upgrading the package. An OTA-only JS update or mixed old/new JS and native binaries is not supported.
 
 ## 0.80.0 - 2026-09-30
 
