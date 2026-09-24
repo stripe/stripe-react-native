@@ -18,6 +18,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
@@ -64,7 +65,6 @@ import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
 import com.stripe.android.core.reactnative.ReactNativeAnalytics
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
-import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.BankAccountTokenParams
 import com.stripe.android.model.CardParams
@@ -1321,43 +1321,44 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun clientSecretProviderSetupIntentClientSecretCallback(
-    setupIntentClientSecret: String,
+    result: ReadableMap,
     promise: Promise,
   ) {
-    customerSheetManager?.let {
-      it.customerSessionProvider?.provideSetupIntentClientSecretCallback?.complete(setupIntentClientSecret)
-    } ?: run {
-      promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
+    resolveClientSecretProviderResponse(result, promise) { provider, requestId ->
+      provider.resolveSetupIntent(requestId, result)
     }
   }
 
   @ReactMethod
   override fun clientSecretProviderCustomerSessionClientSecretCallback(
-    customerSessionClientSecretJson: ReadableMap,
+    result: ReadableMap,
     promise: Promise,
   ) {
-    val clientSecret = customerSessionClientSecretJson.getString("clientSecret")
-    val customerId = customerSessionClientSecretJson.getString("customerId")
+    resolveClientSecretProviderResponse(result, promise) { provider, requestId ->
+      provider.resolveCustomerSession(requestId, result)
+    }
+  }
 
-    if (clientSecret.isNullOrEmpty() || customerId.isNullOrEmpty()) {
-      Log.e(
-        "StripeReactNative",
-        "Invalid CustomerSessionClientSecret format",
-      )
+  private fun resolveClientSecretProviderResponse(
+    result: ReadableMap,
+    promise: Promise,
+    complete: (ReactNativeCustomerSessionProvider, String) -> Boolean,
+  ) {
+    val requestId =
+      if (result.hasKey("requestId") && result.getType("requestId") == ReadableType.String) {
+        result.getString("requestId")
+      } else {
+        null
+      }
+    if (requestId.isNullOrEmpty()) {
+      promise.resolve(createError(ErrorType.Failed.toString(), "Missing requestId"))
       return
     }
-
-    customerSheetManager?.let {
-      it.customerSessionProvider?.providesCustomerSessionClientSecretCallback?.complete(
-        CustomerSheet.CustomerSessionClientSecret.create(
-          customerId = customerId,
-          clientSecret = clientSecret,
-        ),
-      )
-    } ?: run {
-      promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
+    val provider = customerSheetManager?.customerSessionProvider
+    if (provider == null || !complete(provider, requestId)) {
+      promise.resolve(createError(ErrorType.Failed.toString(), "Unknown or completed requestId"))
+    } else {
+      promise.resolve(Arguments.createMap())
     }
   }
 

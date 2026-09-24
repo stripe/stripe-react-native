@@ -22,6 +22,13 @@ $StripeDisableSPM = true if disable_spm
 # (see the example's postinstall script).
 use_frameworks! :linkage => :dynamic unless disable_spm
 
+# The SDK requires New Architecture, including when the CLI uses --force-pods.
+ENV['RCT_NEW_ARCH_ENABLED'] = '1'
+# The CLI's deprecation flag also skips codegen during pod install. Regenerate
+# it here: Xcode's codegen phase copies back a podspec with paths relative to
+# DerivedData, which would otherwise be reused by the next CLI pod install.
+ENV.delete('RCT_IGNORE_PODS_DEPRECATION')
+
 ENV['RCT_USE_RN_DEP'] = '1'
 ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
 options = {
@@ -49,6 +56,17 @@ end
 post_integrate do |_installer|
   project_path = "#{ws_dir}/node_modules/.generated/ios/ReactTestApp.xcodeproj"
   project = Xcodeproj::Project.open(project_path)
+
+  unless disable_spm || ReactNativeCoreUtils.build_rncore_from_source()
+    # ReactNativeHost's public headers import React-Core source headers that
+    # aren't part of the prebuilt React module. Allow those includes when the
+    # example imports ReactNativeHost as a framework (including in Xcode 26's
+    # explicit Clang module builds).
+    project.build_configurations.each do |config|
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+    end
+  end
+
   test_target = project.targets.find { |target| target.name == 'ReactTestAppTests' }
 
   # The SDK's native unit tests live in the repo (ios/Tests), not in the
@@ -70,6 +88,14 @@ post_integrate do |_installer|
     flags = Array(config.build_settings['OTHER_SWIFT_FLAGS'] || '$(inherited)')
     flags = flags.flat_map { |flag| flag.to_s.split(' ') }
     flags << '$(inherited)' unless flags.include?('$(inherited)')
+    unless ReactNativeCoreUtils.build_rncore_from_source()
+      # @testable imports React through the SDK. React's prebuilt umbrella omits
+      # some shipped headers; don't promote that upstream warning to a test error.
+      unless flags.include?('-Wno-incomplete-umbrella')
+        flags << '-Xcc'
+        flags << '-Wno-incomplete-umbrella'
+      end
+    end
     unless disable_spm
       # The tests import Stripe modules directly (@testable-importing the SDK
       # framework also requires resolving the modules its Swift interface

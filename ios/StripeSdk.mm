@@ -30,6 +30,7 @@ RCT_EXPORT_MODULE()
 
 - (void)invalidate
 {
+  [StripeSdkImpl.shared invalidateCustomerSheet];
   [StripeSdkImpl.shared invalidateCheckoutControllers];
   [super invalidate];
 }
@@ -229,7 +230,7 @@ RCT_EXPORT_METHOD(destroyCheckout:(nonnull NSString *)controllerId
   [StripeSdkImpl.shared destroyCheckout:controllerId resolver:resolve rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSString *)setupIntentClientSecret
+RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSDictionary *)setupIntentClientSecret
                                                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
                                                                        reject:(nonnull RCTPromiseRejectBlock)reject)
 {
