@@ -31,7 +31,7 @@ class MyClientSecretProvider implements ClientSecretProvider {
   }
 
   async provideCustomerSessionClientSecret(): Promise<CustomerSessionClientSecret> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise<void>((resolve) => setTimeout(resolve, 1000));
 
     console.log(
       'providesCustomerSessionClientSecret customerId',
