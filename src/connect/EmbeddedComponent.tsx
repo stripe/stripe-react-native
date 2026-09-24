@@ -31,6 +31,7 @@ import type {
 import type { FinancialConnections, StripeError } from '../types';
 import { FinancialConnectionsSheetError } from '../types/FinancialConnections';
 import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
+import { buildInjectedObjectScript } from './injectedObjectScript';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -844,6 +845,24 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     [backgroundColor, style]
   );
 
+  const injectedObject = useMemo(
+    () => ({
+      initParams: {
+        appearance: withDefaultFontFamily(appearance),
+        locale,
+        fonts,
+      },
+      initComponentProps: componentProps,
+      appInfo: { applicationId: overrides?.applicationId },
+    }),
+    [appearance, locale, fonts, componentProps, overrides?.applicationId]
+  );
+
+  const injectedObjectScript = useMemo(
+    () => buildInjectedObjectScript(injectedObject),
+    [injectedObject]
+  );
+
   if (!WebViewComponent) return null;
 
   return (
@@ -853,17 +872,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       webviewDebuggingEnabled={DEVELOPMENT_MODE}
       source={source}
       userAgent={userAgent}
-      injectedJavaScriptObject={{
-        initParams: {
-          appearance: withDefaultFontFamily(appearance),
-          locale,
-          fonts,
-        },
-        initComponentProps: componentProps,
-        appInfo: { applicationId: overrides?.applicationId },
-      }}
+      // injectedObjectScript defines injectedObjectJson() read-only, so it takes
+      // precedence over injectedJavaScriptObject, which corrupts values
+      // containing double quotes or backslashes. Keep the prop: on Android,
+      // react-native-webview 13.6.0-13.13.0 serves it from a Java method that
+      // page scripts can't override.
+      injectedJavaScriptObject={injectedObject}
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
-      injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
+      injectedJavaScriptBeforeContentLoaded={injectedObjectScript}
       injectedJavaScript={
         sizeToContent ? CONTENT_HEIGHT_OBSERVER_SCRIPT : undefined
       }

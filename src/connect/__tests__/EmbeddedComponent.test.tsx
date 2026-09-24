@@ -5,6 +5,7 @@ const mockInjectJavaScript = jest.fn();
 let webViewOnMessage: ((event: any) => void) | undefined;
 let mockLoadWebView = false;
 let mockWebViewComponent: any;
+let mockWebViewProps: any;
 
 jest.mock('react', () => {
   const React = jest.requireActual('react');
@@ -25,6 +26,7 @@ jest.mock('react-native-webview', () => {
   const React = require('react');
   mockWebViewComponent = React.forwardRef((props: any, ref: any) => {
     webViewOnMessage = props.onMessage;
+    mockWebViewProps = props;
     React.useImperativeHandle(ref, () => ({
       injectJavaScript: mockInjectJavaScript,
     }));
@@ -47,6 +49,7 @@ import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
 import { Platform, AppState } from 'react-native';
 import 'react-native-webview';
+import vm from 'vm';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import {
   EmbeddedComponent,
@@ -78,6 +81,7 @@ describe('EmbeddedComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     webViewOnMessage = undefined;
+    mockWebViewProps = undefined;
     mockLoadWebView = false;
     connectInstance = loadConnectAndInitialize(mockInitParams);
   });
@@ -367,6 +371,59 @@ describe('EmbeddedComponent', () => {
 
       // Custom font should be in context
       expect(contextValue.appearance.variables.fontFamily).toBe('CustomFont');
+    });
+  });
+
+  describe('Init params injection', () => {
+    // Runs the injected script the way the page would see it.
+    const readInjectedObject = (script: string) => {
+      const page: any = {};
+      page.window = page;
+      vm.createContext(page);
+      vm.runInContext(script, page);
+      return JSON.parse(page.ReactNativeWebView.injectedObjectJson());
+    };
+
+    it('defines injectedObjectJson in a script as well as injectedJavaScriptObject', async () => {
+      // A value that react-native-webview's injectedJavaScriptObject corrupts.
+      const appearance = {
+        variables: { fontFamily: '"Courier New", Courier, monospace' },
+      };
+      connectInstance = loadConnectAndInitialize({
+        ...mockInitParams,
+        appearance,
+      });
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+
+      const expected = {
+        initParams: { appearance, locale: 'en' },
+        appInfo: {},
+      };
+      expect(mockWebViewProps.injectedJavaScriptObject).toEqual(expected);
+      expect(
+        readInjectedObject(
+          mockWebViewProps.injectedJavaScriptBeforeContentLoaded
+        )
+      ).toEqual(expected);
+    });
+
+    it('passes the default font family in the script too', async () => {
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+
+      const injected = readInjectedObject(
+        mockWebViewProps.injectedJavaScriptBeforeContentLoaded
+      );
+      expect(injected.initParams.appearance.variables.fontFamily).toEqual(
+        mockWebViewProps.injectedJavaScriptObject.initParams.appearance
+          .variables.fontFamily
+      );
+      expect(injected.initParams.appearance.variables.fontFamily).toBeTruthy();
     });
   });
 
