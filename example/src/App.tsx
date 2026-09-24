@@ -29,6 +29,7 @@ import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import EmbeddedPaymentElementConfirmScreen from './screens/EmbeddedPaymentElementConfirmScreen';
 import EmbeddedPaymentElementImmediateActionScreen from './screens/EmbeddedPaymentElementImmediateActionScreen';
 import EmbeddedPaymentElementScreen from './screens/EmbeddedPaymentElementScreen';
+import CheckoutPlaygroundScreen from './screens/Checkout/CheckoutPlaygroundScreen';
 import EPSPaymentScreen from './screens/EPSPaymentScreen';
 import GooglePayScreen from './screens/GooglePayScreen';
 import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
@@ -109,6 +110,7 @@ export type RootStackParamList = {
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
   EmbeddedPaymentElementScreen: undefined;
+  CheckoutPlaygroundScreen: undefined;
   EmbeddedPaymentElementImmediateActionScreen: undefined;
   EmbeddedPaymentElementConfirmScreen: {
     confirm: () => Promise<EmbeddedPaymentElementResult>;
@@ -211,6 +213,11 @@ export default function App() {
           <Stack.Screen
             name="PaymentSheetDeferredIntentMultiStepScreen"
             component={PaymentSheetDeferredIntentMultiStepScreen}
+          />
+          <Stack.Screen
+            name="CheckoutPlaygroundScreen"
+            component={CheckoutPlaygroundScreen}
+            options={{ title: 'Checkout Sessions' }}
           />
           <Stack.Screen
             name="EmbeddedPaymentElementScreen"

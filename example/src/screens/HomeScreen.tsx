@@ -185,6 +185,12 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Checkout Sessions (private preview)"
+              onPress={() => navigation.navigate('CheckoutPlaygroundScreen')}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Prebuilt UI (EmbeddedPaymentElement)"
               onPress={() => {
                 navigation.navigate('EmbeddedPaymentElementScreen');
