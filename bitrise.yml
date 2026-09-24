@@ -24,15 +24,15 @@ pipelines:
       js-tests: {}
       unit-test-ios: {}
       unit-test-android: {}
-      e2e-build-ios-new-arch: {}
-      e2e-tests-ios-new-arch:
-        depends_on: [e2e-build-ios-new-arch]
+      e2e-build-ios: {}
+      e2e-tests-ios:
+        depends_on: [e2e-build-ios]
         parallel: 3
       build-ios-fallback: {}
       expo-prebuild-ios: {}
-      e2e-build-android-new-arch: {}
-      e2e-tests-android-new-arch:
-        depends_on: [e2e-build-android-new-arch]
+      e2e-build-android: {}
+      e2e-tests-android:
+        depends_on: [e2e-build-android]
         parallel: 4
   test-projects:
     workflows:
@@ -79,8 +79,6 @@ workflows:
         machine_type_id: g2.linux.medium
 
   unit-test-ios:
-    envs:
-      - NEW_ARCH_ENABLED: true
     before_run:
       - _prepare_ios
       - _install_pods
@@ -107,7 +105,7 @@ workflows:
           title: Save Pods Cache
           is_always_run: true
           inputs:
-            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - key: pods-{{ .Arch }}-{{ checksum "example/ios/Podfile.lock" }}
             - paths: |
                 example/ios/Pods
       - deploy-to-bitrise-io@2:
@@ -141,9 +139,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: g2.linux.x-large
 
-  e2e-build-android-new-arch:
-    envs:
-      - NEW_ARCH_ENABLED: true
+  e2e-build-android:
     before_run:
       - _e2e_build_android
     meta:
@@ -151,11 +147,9 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: g2.linux.x-large
 
-  e2e-tests-android-new-arch:
+  e2e-tests-android:
     envs:
-      - NEW_ARCH_ENABLED: true
-      - RCT_NEW_ARCH_ENABLED: 1
-      - BUILD_WORKFLOW: e2e-build-android-new-arch
+      - BUILD_WORKFLOW: e2e-build-android
       - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
       - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
     before_run:
@@ -165,10 +159,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: g2.linux.x-large
 
-  e2e-build-ios-new-arch:
-    envs:
-      - NEW_ARCH_ENABLED: true
-      - RCT_NEW_ARCH_ENABLED: 1
+  e2e-build-ios:
     before_run:
       - _e2e_build_ios
 
@@ -176,13 +167,11 @@ workflows:
   # $StripeDisableSPM): Stripe resolved from the pod registry with React
   # Native's default static libraries. All other iOS jobs run SPM mode, so
   # without this job the fallback — what RN < 0.75 apps and opted-out apps use
-  # while Stripe still publishes pods — would have no CI coverage. New arch +
-  # static + pods is the closest match to today's real-world default app
-  # configuration. Build-only: no e2e-tests consumer pulls its artifact.
+  # while Stripe still publishes pods — would have no CI coverage. This is the
+  # closest match to today's real-world default app configuration. Build-only:
+  # no e2e-tests consumer pulls its artifact.
   build-ios-fallback:
     envs:
-      - NEW_ARCH_ENABLED: true
-      - RCT_NEW_ARCH_ENABLED: 1
       - STRIPE_DISABLE_SPM: '1'
     before_run:
       - _e2e_build_ios
@@ -220,11 +209,9 @@ workflows:
           inputs:
             - notify_user_groups: none
 
-  e2e-tests-ios-new-arch:
+  e2e-tests-ios:
     envs:
-      - NEW_ARCH_ENABLED: true
-      - RCT_NEW_ARCH_ENABLED: 1
-      - BUILD_WORKFLOW: e2e-build-ios-new-arch
+      - BUILD_WORKFLOW: e2e-build-ios
       - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
       - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
     before_run:
@@ -376,7 +363,7 @@ workflows:
       # - restore-cache@2:
       #     title: Restore Pods Cache
       #     inputs:
-      #       - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+      #       - key: pods-{{ .Arch }}-{{ checksum "example/ios/Podfile.lock" }}
       - activate-build-cache-for-xcode: {}
       - yarn@0:
           title: Bootstrap Project
@@ -453,9 +440,9 @@ workflows:
             - content: |
                 cd example/android
                 yarn build:android
-                ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan || \
+                ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan || \
                   (echo "Gradle build failed, retrying in 30s..." && sleep 30 && \
-                   ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan)
+                   ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan)
       - save-gradle-cache@1:
           is_always_run: true
       - deploy-to-bitrise-io@2:
@@ -545,7 +532,7 @@ workflows:
           title: Save Pods Cache
           is_always_run: true
           inputs:
-            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - key: pods-{{ .Arch }}-{{ checksum "example/ios/Podfile.lock" }}
             - paths: |
                 example/ios/Pods
       - deploy-to-bitrise-io@2:
@@ -611,7 +598,6 @@ workflows:
             - text: |
                 🚨 *Financial Connections Tests Failed*
                 Platform: $BITRISE_PLATFORM
-                Architecture: $NEW_ARCH_ENABLED
                 Shard: $SHARD_INDEX
                 Build: $BITRISE_BUILD_URL
       - slack@3:
