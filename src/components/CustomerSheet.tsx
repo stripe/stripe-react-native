@@ -11,10 +11,6 @@ import type {
   ClientSecretProvider,
 } from '../types';
 import { addListener } from '../events';
-import type {
-  CustomerSessionProviderResult,
-  SetupIntentProviderResult,
-} from '../specs/ClientSecretProvider';
 
 let fetchPaymentMethodsCallback: EventSubscription | null = null;
 let attachPaymentMethodCallback: EventSubscription | null = null;
@@ -43,11 +39,6 @@ const initialize = async (
 
   if (params.clientSecretProvider) {
     configureClientSecretProviderEventListeners(params.clientSecretProvider);
-  } else {
-    setupIntentClientSecretProviderCallback?.remove();
-    setupIntentClientSecretProviderCallback = null;
-    customerSessionClientSecretProviderCallback?.remove();
-    customerSessionClientSecretProviderCallback = null;
   }
 
   try {
@@ -202,42 +193,22 @@ function configureClientSecretProviderEventListeners(
   setupIntentClientSecretProviderCallback?.remove();
   setupIntentClientSecretProviderCallback = addListener(
     'onCustomerSessionProviderSetupIntentClientSecret',
-    async ({ requestId }) => {
-      let result: SetupIntentProviderResult;
-      try {
-        const clientSecret =
-          await clientSecretProvider.provideSetupIntentClientSecret();
-        result = { requestId, clientSecret };
-      } catch (error) {
-        result = {
-          requestId,
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
-      // Send one response, even if the provider rejects. A native bridge failure
-      // must not be caught as a provider failure and produce a second response.
+    async () => {
+      const setupIntentClientSecret =
+        await clientSecretProvider.provideSetupIntentClientSecret();
       await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
-        result
+        setupIntentClientSecret
       );
     }
   );
   customerSessionClientSecretProviderCallback?.remove();
   customerSessionClientSecretProviderCallback = addListener(
     'onCustomerSessionProviderCustomerSessionClientSecret',
-    async ({ requestId }) => {
-      let result: CustomerSessionProviderResult;
-      try {
-        const { customerId, clientSecret } =
-          await clientSecretProvider.provideCustomerSessionClientSecret();
-        result = { requestId, customerId, clientSecret };
-      } catch (error) {
-        result = {
-          requestId,
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
+    async () => {
+      const customerSessionClientSecret =
+        await clientSecretProvider.provideCustomerSessionClientSecret();
       await NativeStripeSdk.clientSecretProviderCustomerSessionClientSecretCallback(
-        result
+        customerSessionClientSecret
       );
     }
   );

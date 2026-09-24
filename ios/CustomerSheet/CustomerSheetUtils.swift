@@ -9,28 +9,6 @@ import Foundation
 @_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
 
 class CustomerSheetUtils {
-    static func providerClientSecret(from result: NSDictionary) throws -> String {
-        if let error = result["error"] {
-            throw providerError(error as? String ?? "Invalid client secret provider error")
-        }
-        guard let clientSecret = result["clientSecret"] as? String, !clientSecret.isEmpty else {
-            throw providerError("Missing or invalid clientSecret")
-        }
-        return clientSecret
-    }
-
-    static func providerCustomerSessionClientSecret(from result: NSDictionary) throws -> CustomerSessionClientSecret {
-        let clientSecret = try providerClientSecret(from: result)
-        guard let customerId = result["customerId"] as? String, !customerId.isEmpty else {
-            throw providerError("Missing or invalid customerId")
-        }
-        return CustomerSessionClientSecret(customerId: customerId, clientSecret: clientSecret)
-    }
-
-    private static func providerError(_ message: String) -> NSError {
-        NSError(domain: "StripeReactNative.ClientSecretProvider", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
-    }
-
     internal class func buildCustomerSheetConfiguration(
         appearance: PaymentSheet.Appearance,
         style: PaymentSheet.UserInterfaceStyle,
