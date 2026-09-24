@@ -1162,7 +1162,7 @@ export interface CheckoutPaymentElement {
 }
 
 // @public
-export function CheckoutPaymentElementView(_props: CheckoutPaymentElementViewProps): React_2.JSX.Element;
+export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProps): React_2.JSX.Element;
 
 // @public
 export interface CheckoutPaymentElementViewProps extends ViewProps {
