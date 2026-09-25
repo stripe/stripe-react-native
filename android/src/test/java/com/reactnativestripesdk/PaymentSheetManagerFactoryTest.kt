@@ -72,8 +72,8 @@ class PaymentSheetManagerFactoryTest {
     assertNull(factory.get(oldHost.get()))
     assertNull(factory.getOrCreate(oldHost.get()))
     assertSame(second, factory.getOrCreate(newHost))
-    verify(first).onDispose()
-    verify(second, never()).onDispose()
+    verify(first).destroy()
+    verify(second, never()).destroy()
     assertEquals(2, createdFor.size)
   }
 
@@ -87,7 +87,7 @@ class PaymentSheetManagerFactoryTest {
     host.restart().start().resume()
 
     assertSame(manager, factory.getOrCreate(host.get()))
-    verify(manager, never()).onDispose()
+    verify(manager, never()).destroy()
   }
 
   @Test
@@ -102,13 +102,13 @@ class PaymentSheetManagerFactoryTest {
 
     assertNull(factory.get(host.get()))
     assertEquals(originalObserverCount, lifecycle.observerCount)
-    verify(first).onDispose()
+    verify(first).destroy()
     val second = requireNotNull(factory.getOrCreate(host.get()))
     assertNotSame(first, second)
     host.pause().stop().destroy()
 
-    verify(first, times(1)).onDispose()
-    verify(second, times(1)).onDispose()
+    verify(first, times(1)).destroy()
+    verify(second, times(1)).destroy()
     assertNull(factory.get(host.get()))
   }
 
@@ -122,8 +122,8 @@ class PaymentSheetManagerFactoryTest {
     factory.dispose()
     factory.dispose()
 
-    verify(first, times(1)).onDispose()
-    verify(second, times(1)).onDispose()
+    verify(first, times(1)).destroy()
+    verify(second, times(1)).destroy()
     assertNull(factory.get(firstHost))
     assertNull(factory.get(secondHost))
     assertNull(factory.getOrCreate(newHost().get()))

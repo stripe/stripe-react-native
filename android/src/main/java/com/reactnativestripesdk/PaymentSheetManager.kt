@@ -93,10 +93,6 @@ class PaymentSheetManager(
   private var timeoutRunnable: Runnable? = null
   private var timeoutLifecycleCallbacks: DefaultActivityLifecycleCallbacks? = null
 
-  fun onDispose() {
-    destroy()
-  }
-
   override fun onDestroy() {
     if (disposed) return
     disposed = true

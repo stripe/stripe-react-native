@@ -55,7 +55,7 @@ internal class DefaultPaymentSheetManagerFactory(
   override fun dispose(activity: FragmentActivity) {
     val entry = entries.remove(activity) ?: return
     activity.lifecycle.removeObserver(entry.observer)
-    entry.manager.onDispose()
+    entry.manager.destroy()
   }
 
   override fun dispose() {
