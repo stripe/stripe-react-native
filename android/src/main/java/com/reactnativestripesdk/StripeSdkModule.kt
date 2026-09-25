@@ -96,9 +96,16 @@ import org.json.JSONObject
 
 @ReactModule(name = StripeSdkModule.NAME)
 @OptIn(ReactNativeSdkInternal::class, CheckoutSessionPreview::class)
-class StripeSdkModule(
+class StripeSdkModule internal constructor(
   reactContext: ReactApplicationContext,
+  private val paymentSheetManagerFactory: PaymentSheetManagerFactory,
 ) : NativeStripeSdkModuleSpec(reactContext) {
+  constructor(reactContext: ReactApplicationContext) : this(
+    reactContext,
+    DefaultPaymentSheetManagerFactory { activity ->
+      PaymentSheetManager(reactContext, activity)
+    },
+  )
 
   var cardFieldView: CardFieldView? = null
   var cardFormView: CardFormView? = null
@@ -112,7 +119,6 @@ class StripeSdkModule(
   private var platformPayLauncher: GooglePayRequestLauncher? = null
 
   private val stripeUIManagers = mutableListOf<StripeUIManager>()
-  private var paymentSheetManager: PaymentSheetManager? = null
   private var paymentLauncherManager: PaymentLauncherManager? = null
   private var collectBankAccountLauncherManager: CollectBankAccountLauncherManager? = null
   private var financialConnectionsSheetManager: FinancialConnectionsSheetManager? = null
@@ -145,6 +151,7 @@ class StripeSdkModule(
     stripeUIManagers.forEach { it.destroy() }
     stripeUIManagers.clear()
     UiThreadUtil.runOnUiThread {
+      paymentSheetManagerFactory.dispose()
       platformPayLauncher?.destroy()
       platformPayLauncher = null
       createPlatformPayPaymentMethodPromise = null
@@ -271,16 +278,24 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    if (paymentSheetManager != null) {
-      UiThreadUtil.runOnUiThread {
-        paymentSheetManager?.configure(params, promise)
+    UiThreadUtil.runOnUiThread {
+      val activity = getCurrentActivityOrResolveWithError(promise) ?: return@runOnUiThread
+      val manager = paymentSheetManagerFactory.getOrCreate(activity)
+      if (manager == null) {
+        promise.resolve(createMissingActivityError())
+        return@runOnUiThread
       }
-    } else {
-      paymentSheetManager =
-        PaymentSheetManager(reactApplicationContext, params, promise).also {
-          registerStripeUIManager(it)
-        }
+      manager.configure(params, promise)
     }
+  }
+
+  private fun getPaymentSheetManager(promise: Promise): PaymentSheetManager? {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return null
+    val manager = paymentSheetManagerFactory.get(activity)
+    if (manager == null) {
+      promise.resolve(PaymentSheetManager.createMissingInitError())
+    }
+    return manager
   }
 
   @ReactMethod
@@ -288,30 +303,22 @@ class StripeSdkModule(
     options: ReadableMap,
     promise: Promise,
   ) {
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
-    }
-
-    val timeout = options.getLongOrNull("timeout")
-    if (timeout != null) {
-      paymentSheetManager?.presentWithTimeout(
-        timeout,
-        promise,
-      )
-    } else {
-      paymentSheetManager?.present(promise)
+    UiThreadUtil.runOnUiThread {
+      val manager = getPaymentSheetManager(promise) ?: return@runOnUiThread
+      val timeout = options.getLongOrNull("timeout")
+      if (timeout != null) {
+        manager.presentWithTimeout(timeout, promise)
+      } else {
+        manager.present(promise)
+      }
     }
   }
 
   @ReactMethod
   override fun confirmPaymentSheetPayment(promise: Promise) {
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
+    UiThreadUtil.runOnUiThread {
+      getPaymentSheetManager(promise)?.confirmPayment(promise)
     }
-
-    paymentSheetManager?.confirmPayment(promise)
   }
 
   @ReactMethod
@@ -327,12 +334,9 @@ class StripeSdkModule(
   ) {
     embeddedIntentCreationCallback.complete(params)
 
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
+    UiThreadUtil.runOnUiThread {
+      getPaymentSheetManager(promise)?.paymentSheetIntentCreationCallback?.complete(params)
     }
-
-    paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
   }
 
   @ReactMethod
@@ -355,12 +359,9 @@ class StripeSdkModule(
     embeddedConfirmationTokenCreationCallback.complete(params)
     paymentSheetConfirmationTokenCreationCallback.complete(params)
 
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
+    UiThreadUtil.runOnUiThread {
+      getPaymentSheetManager(promise)?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
     }
-
-    paymentSheetManager?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
   }
 
   @ReactMethod
@@ -569,19 +570,21 @@ class StripeSdkModule(
     returnUrl: String?,
     promise: Promise,
   ) {
-    unregisterStripeUIManager(paymentSheetManager)
-    paymentLauncherManager =
-      PaymentLauncherManager
-        .forNextActionPayment(
-          context = reactApplicationContext,
-          stripe,
-          publishableKey,
-          stripeAccountId,
-          paymentIntentClientSecret,
-        ).also {
-          registerStripeUIManager(it)
-          it.present(promise)
-        }
+    UiThreadUtil.runOnUiThread {
+      (reactApplicationContext.currentActivity as? FragmentActivity)?.let(paymentSheetManagerFactory::dispose)
+      paymentLauncherManager =
+        PaymentLauncherManager
+          .forNextActionPayment(
+            context = reactApplicationContext,
+            stripe,
+            publishableKey,
+            stripeAccountId,
+            paymentIntentClientSecret,
+          ).also {
+            registerStripeUIManager(it)
+            it.present(promise)
+          }
+    }
   }
 
   @ReactMethod
