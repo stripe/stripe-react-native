@@ -5,6 +5,7 @@ const mockInjectJavaScript = jest.fn();
 let webViewOnMessage: ((event: any) => void) | undefined;
 let mockLoadWebView = false;
 let mockWebViewComponent: any;
+let mockWebViewProps: any;
 
 jest.mock('react', () => {
   const React = jest.requireActual('react');
@@ -25,6 +26,7 @@ jest.mock('react-native-webview', () => {
   const React = require('react');
   mockWebViewComponent = React.forwardRef((props: any, ref: any) => {
     webViewOnMessage = props.onMessage;
+    mockWebViewProps = props;
     React.useImperativeHandle(ref, () => ({
       injectJavaScript: mockInjectJavaScript,
     }));
@@ -45,7 +47,12 @@ jest.mock('../../specs/NativeStripeSdkModule', () =>
 
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
-import { Platform, AppState } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import 'react-native-webview';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import {
@@ -79,6 +86,7 @@ describe('EmbeddedComponent', () => {
     jest.clearAllMocks();
     webViewOnMessage = undefined;
     mockLoadWebView = false;
+    mockWebViewProps = undefined;
     connectInstance = loadConnectAndInitialize(mockInitParams);
   });
 
@@ -116,6 +124,56 @@ describe('EmbeddedComponent', () => {
 
       // Component should render without crashing
       expect(true).toBe(true);
+    });
+
+    it('uses appearance colors for the loading indicator', async () => {
+      connectInstance = loadConnectAndInitialize({
+        ...mockInitParams,
+        appearance: {
+          variables: {
+            colorBackground: '#AABBCC',
+            colorText: '#112233',
+          },
+        },
+      });
+
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => {
+        expect(mockWebViewProps?.renderLoading).toEqual(expect.any(Function));
+      });
+
+      const loadingView = mockWebViewProps.renderLoading();
+      const loadingIndicator = loadingView.props.children;
+
+      expect(StyleSheet.flatten(loadingView.props.style)).toMatchObject({
+        backgroundColor: '#AABBCC',
+      });
+      expect(loadingIndicator.type).toBe(ActivityIndicator);
+      expect(loadingIndicator.props.color).toBe('#112233');
+    });
+
+    it('uses fallback colors for the loading indicator', async () => {
+      connectInstance = loadConnectAndInitialize({
+        publishableKey: 'pk_test_123',
+        fetchClientSecret: jest.fn(async () => 'secret_123'),
+      });
+
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => {
+        expect(mockWebViewProps?.renderLoading).toEqual(expect.any(Function));
+      });
+
+      const loadingView = mockWebViewProps.renderLoading();
+      const loadingIndicator = loadingView.props.children;
+
+      expect(StyleSheet.flatten(loadingView.props.style)).toMatchObject({
+        backgroundColor: '#FFFFFF',
+      });
+      expect(loadingIndicator.props.color).toBe('#000000');
     });
 
     it('SDK version validation rejects invalid formats', () => {
