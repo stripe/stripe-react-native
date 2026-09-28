@@ -208,7 +208,7 @@ export function VerifyIdentity() {
 
 For imperative usage, call `presentIdentityVerificationSheet(options)`. It returns `{ status, error? }`, where status is `FlowCompleted`, `FlowCanceled`, or `FlowFailed`. `FlowCompleted` means the user submitted the flow; use your server's VerificationSession result to determine whether verification succeeded. The hook keeps `loading` true until presentation completes and reports credential-fetching failures through `error`.
 
-On iOS, add `NSCameraUsageDescription` to your app's `Info.plist` with a description of why you capture identity documents and selfies, then reinstall pods. Expo apps can set this in `ios.infoPlist`.
+On iOS, Identity and its camera dependency are included in the core SDK, including for apps that only use Payments. Identity requests camera access when its verification flow needs it. To use Identity, add `NSCameraUsageDescription` to your app's `Info.plist` with a description of why you capture identity documents and selfies, then reinstall pods. Expo apps can set this in `ios.infoPlist`.
 
 On Android, Identity is optional so existing Payments integrations retain API 23 support. To use Identity:
 
@@ -217,7 +217,7 @@ On Android, Identity is optional so existing Payments integrations retain API 23
 3. Use a `Theme.MaterialComponents` theme for the hosting activity and allow the camera permission for every supported Android version.
 4. Rebuild the native app. Calling Identity without including it returns `FlowFailed` with setup instructions.
 
-Payments users do not need to change their configuration. Identity uses the same native Stripe SDK version as Payments.
+Android Payments users do not need to change their configuration. Identity uses the same native Stripe SDK version as Payments.
 
 The [Identity example](./example-identity/README.md) contains the verification options playground and runs with the same native projects and dependencies as the payments example.
 

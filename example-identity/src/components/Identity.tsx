@@ -18,7 +18,7 @@ type Props = {
 
 export function Identity({ fetchOptions }: Props) {
   const colors = useAppThemeColors();
-  const { status, present, loading } = useStripeIdentity(fetchOptions);
+  const { status, present, loading, error } = useStripeIdentity(fetchOptions);
 
   const handlePress = useCallback(() => {
     present();
@@ -47,6 +47,14 @@ export function Identity({ fetchOptions }: Props) {
       <Text style={[styles.statusText, { color: colors.text }]}>
         Status: {status ?? 'Undefined'}
       </Text>
+      {error && (
+        <Text
+          accessibilityRole="alert"
+          style={[styles.statusText, { color: colors.text }]}
+        >
+          {error.message}
+        </Text>
+      )}
     </View>
   );
 }

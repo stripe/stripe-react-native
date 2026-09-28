@@ -97,6 +97,8 @@ The dedicated Identity playground lives in `example-identity/`. After the same b
 
 Identity uses `example/`'s native projects, dependency installation, and lockfile. Keep React Native and native build configuration there; do not add a separate Identity package manifest, Podfile, or Gradle project. SDK code, tests, API reports, and publishing use the existing root tooling. Both Payments and Identity use `stripe_version` in `stripe-react-native.podspec` (including SPM) and `StripeSdk_stripeVersion` in `android/gradle.properties`.
 
+This avoids adding another set of Identity versions. It does not consolidate the existing JavaScript manifests in the SDK root, Payments example, and Connect example; their existing install and upgrade workflows remain in place. The Identity playground also shares Payments' app identifier and native installation, so it is run separately rather than installed alongside Payments.
+
 The shared Android example already enables Onramp, which also includes Identity. Payments-only consumer builds exclude Identity by default and retain API 23 support; apps using Identity opt in with `StripeSdk_includeIdentity=true` and require API 24 or higher.
 
 ## Tests

@@ -10,6 +10,11 @@ React and React Native versions, dependencies, Metro/Babel settings, CocoaPods,
 Gradle, and lockfiles. Install and upgrade those shared dependencies once. This
 directory deliberately has no package manifest or native project.
 
+The playground has its own UI and JavaScript entrypoint, but uses the same app
+identifier and native installation as Payments. The examples cannot be installed
+side by side. This shares Identity's versions with Payments; the existing SDK
+root and Connect example still maintain their own JavaScript manifests.
+
 ## Run
 
 From the repository root, install the shared example using `yarn bootstrap`
@@ -57,7 +62,7 @@ From the repository root:
 
 ```sh
 yarn typescript
-yarn test --runInBand example-identity/src/utils/__tests__/api.test.ts
+yarn test --runInBand example-identity
 ```
 
 Both examples use the same native build and camera configuration. The shared

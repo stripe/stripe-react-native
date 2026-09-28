@@ -37,11 +37,88 @@ describe('getTestCredentials', () => {
   beforeEach(() => {
     fetchMock.mockReset();
     fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
       json: jest.fn().mockResolvedValue({
         id: 'vs_123',
         ephemeral_key_secret: 'ek_123',
       }),
     });
+  });
+
+  it('returns validated session credentials', async () => {
+    await expect(getTestCredentials(baseOptions)).resolves.toEqual({
+      id: 'vs_123',
+      ephemeral_key_secret: 'ek_123',
+    });
+  });
+
+  it('preserves network failures', async () => {
+    const error = new Error('Network request failed');
+    fetchMock.mockRejectedValueOnce(error);
+
+    await expect(getTestCredentials(baseOptions)).rejects.toBe(error);
+  });
+
+  it('preserves invalid JSON failures', async () => {
+    const error = new SyntaxError('Invalid JSON response');
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: jest.fn().mockRejectedValue(error),
+    });
+
+    await expect(getTestCredentials(baseOptions)).rejects.toBe(error);
+  });
+
+  it('reports an unavailable backend instead of returning credentials', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      json: jest.fn().mockResolvedValue({}),
+    });
+
+    await expect(getTestCredentials(baseOptions)).rejects.toThrow(
+      'Unable to create an Identity session (HTTP 503).'
+    );
+  });
+
+  it.each([
+    { error: 'This verification type is unavailable.' },
+    { error: { message: 'This verification type is unavailable.' } },
+  ])('preserves backend error messages', async (body) => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      json: jest.fn().mockResolvedValue(body),
+    });
+
+    await expect(getTestCredentials(baseOptions)).rejects.toThrow(
+      'This verification type is unavailable.'
+    );
+  });
+
+  it.each([
+    null,
+    [],
+    'invalid',
+    {},
+    { id: 'vs_123' },
+    { ephemeral_key_secret: 'ek_123' },
+    { id: 123, ephemeral_key_secret: 'ek_123' },
+    { id: 'vs_123', ephemeral_key_secret: null },
+    { id: ' ', ephemeral_key_secret: 'ek_123' },
+    { id: 'vs_123', ephemeral_key_secret: '' },
+  ])('rejects malformed or incomplete credentials: %p', async (body) => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: jest.fn().mockResolvedValue(body),
+    });
+
+    await expect(getTestCredentials(baseOptions)).rejects.toThrow(
+      'The Identity server returned incomplete session credentials.'
+    );
   });
 
   it('creates a live-mode Verification Session by default', async () => {
