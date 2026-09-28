@@ -67,6 +67,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     var urlScheme: String?
 
+    /// Captured when an action that can show a challenge starts. Stripe asks for the
+    /// presenter only after its confirmation round trip, when the scene can be momentarily
+    /// inactive (e.g. behind a Face ID prompt) and the key window lookup finds nothing.
+    var authenticationPresenter: UIViewController?
+
     var confirmPaymentResolver: RCTPromiseResolveBlock?
 
     var confirmApplePayResolver: RCTPromiseResolveBlock?
@@ -422,6 +427,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             setupIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
         }
 
+        authenticationPresenter = currentAuthenticationPresenter()
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.confirmSetupIntent(setupIntentParams, with: self) { status, setupIntent, error in
             switch status {
@@ -768,6 +774,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ){
+        authenticationPresenter = currentAuthenticationPresenter()
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.handleNextAction(forPayment: paymentIntentClientSecret, with: self, returnURL: returnURL) { status, paymentIntent, handleActionError in
             switch status {
@@ -796,6 +803,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ){
+        authenticationPresenter = currentAuthenticationPresenter()
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.handleNextAction(forSetupIntent: setupIntentClientSecret, with: self, returnURL: returnURL) { status, setupIntent, handleActionError in
             switch status {
@@ -942,6 +950,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         if error != nil {
             resolve(error)
         } else {
+            authenticationPresenter = currentAuthenticationPresenter()
             STPPaymentHandler.shared().confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
         }
     }
@@ -2228,9 +2237,34 @@ func findViewControllerPresenter(from uiViewController: UIViewController) -> UIV
     return presentingViewController
 }
 
+/// The view controller a challenge can be presented from right now: the top of the key
+/// window of a foreground-active scene, skipping one that is being dismissed. Returns nil
+/// rather than a view controller outside any window, which UIKit refuses to present from,
+/// leaving the payment handler waiting for a challenge that never shows.
+func currentAuthenticationPresenter() -> UIViewController? {
+    let window =
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .filter { $0.activationState == .foregroundActive }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+        ?? RCTKeyWindow()
+    guard var presenter = window?.rootViewController else { return nil }
+    while let presented = presenter.presentedViewController, !presented.isBeingDismissed {
+        presenter = presented
+    }
+    return presenter
+}
+
 extension StripeSdkImpl: STPAuthenticationContext {
     public func authenticationPresentingViewController() -> UIViewController {
-        return findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
+        if let presenter = authenticationPresenter,
+           presenter.viewIfLoaded?.window != nil,
+           presenter.presentedViewController == nil {
+            return presenter
+        }
+        return currentAuthenticationPresenter()
+            ?? findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
     }
 }
 
