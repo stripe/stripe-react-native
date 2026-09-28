@@ -181,6 +181,8 @@ export enum FinancialConnectionsEventErrorCode {
   AccountNumbersUnavailable = 'account_numbers_unavailable',
   /** The system could not retrieve accounts for the selected institution. */
   AccountsUnavailable = 'accounts_unavailable',
+  /** No eligible accounts were available for the selected institution. */
+  NoEligibleAccounts = 'no_eligible_accounts',
   /** For payment flows, no debitable account was available at the selected institution. */
   NoDebitableAccount = 'no_debitable_account',
   /** Authorization with the selected institution has failed. */
@@ -197,4 +199,6 @@ export enum FinancialConnectionsEventErrorCode {
   SessionExpired = 'session_expired',
   /** The hCaptcha challenge failed. */
   FailedBotDetection = 'failed_bot_detection',
+  /** Android only. No web browser is installed on the user's device, so the authentication flow cannot be initiated. */
+  WebBrowserUnavailable = 'web_browser_unavailable',
 }

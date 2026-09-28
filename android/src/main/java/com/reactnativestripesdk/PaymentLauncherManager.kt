@@ -356,6 +356,7 @@ class PaymentLauncherManager(
       StripeIntent.NextActionType.WeChatPayRedirect,
       StripeIntent.NextActionType.CashAppRedirect,
       StripeIntent.NextActionType.SwishRedirect,
+      StripeIntent.NextActionType.AwaitAuthorization,
       StripeIntent.NextActionType.DisplayPromptPayDetails,
       null,
       -> false
