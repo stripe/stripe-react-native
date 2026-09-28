@@ -48,6 +48,7 @@ def create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
   execute_or_fail("git checkout -b #{branch}") unless @is_dry_run
 
   bump_version(version)
+  execute_or_fail("node scripts/generate-package-info.js")
   update_changelog(version)
   begin
     native_sdk_changes = native_sdk_updater.apply(native_sdk_versions)
@@ -67,7 +68,7 @@ def create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
     return
   end
 
-  files_to_add = ['package.json', 'CHANGELOG.md', 'example/ios/Podfile.lock']
+  files_to_add = ['package.json', 'src/packageInfo.ts', 'CHANGELOG.md', 'example/ios/Podfile.lock']
   files_to_add.concat(native_sdk_changes.select(&:changed).map(&:path))
   execute_or_fail("git add #{files_to_add.map(&:shellescape).join(' ')}")
   execute_or_fail("git commit -m 'Propose #{version}'")

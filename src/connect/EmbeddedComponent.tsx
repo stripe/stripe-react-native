@@ -22,7 +22,7 @@ import type {
   WebViewOpenWindowEvent,
 } from 'react-native-webview/lib/WebViewTypes';
 import type { EventSubscription } from 'react-native';
-import pjson from '../../package.json';
+import { packageInfo } from '../packageInfo';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import { addListener } from '../events';
 import { useConnectComponents } from './ConnectComponentsProvider';
@@ -41,7 +41,7 @@ const DEVELOPMENT_URL =
 const PRODUCTION_URL = 'https://connect-js.stripe.com';
 const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
-const sdkVersion = pjson.version;
+const sdkVersion = packageInfo.version;
 
 // Android deep link polling configuration
 // These constants control the polling mechanism that prevents Expo Router from dismissing screens

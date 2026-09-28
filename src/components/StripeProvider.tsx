@@ -4,7 +4,7 @@ import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
 import { isAndroid, shouldAttributeExpo } from '../helpers';
 import type { AppInfo, InitStripeParams, InitialiseParams } from '../types';
-import pjson from '../../package.json';
+import { packageInfo } from '../packageInfo';
 import { AppRegistry, Platform } from 'react-native';
 
 const EXPO_PARTNER_ID = 'pp_partner_JBN7LkABco2yUu';
@@ -16,15 +16,10 @@ export type Props = InitStripeParams & {
   children: React.ReactElement | React.ReactElement[];
 };
 
-const repository: any = pjson.repository;
-
 const appInfo: AppInfo = {
-  name: shouldAttributeExpo() ? `${pjson.name}/expo` : pjson.name,
-  // package.json output installed via npm is a bit different than from yarn
-  // the repository field can be an object or string
-  // for more context: https://github.com/stripe/stripe-react-native/issues/200
-  url: repository.url || repository,
-  version: pjson.version,
+  name: shouldAttributeExpo() ? `${packageInfo.name}/expo` : packageInfo.name,
+  url: packageInfo.url,
+  version: packageInfo.version,
   partnerId: shouldAttributeExpo() ? EXPO_PARTNER_ID : undefined,
 };
 

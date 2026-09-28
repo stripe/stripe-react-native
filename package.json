@@ -12,7 +12,7 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
-    "prepare": "bob build && rm -rf lib/*/package.json && husky",
+    "prepare": "node scripts/generate-package-info.js && bob build && rm -rf lib/*/package.json && husky",
     "propose": "./scripts/propose.rb",
     "release": "./scripts/publish.rb",
     "example": "yarn --cwd example",
@@ -125,10 +125,7 @@
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!(react-native|@react-native|react-native-webview)/)"
-    ],
-    "moduleNameMapper": {
-      "^.+/package\\.json$": "<rootDir>/package.json"
-    }
+    ]
   },
   "eslintConfig": {
     "extends": [
