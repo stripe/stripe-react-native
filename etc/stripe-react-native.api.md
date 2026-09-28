@@ -5,6 +5,7 @@
 ```ts
 
 import { AccessibilityProps } from 'react-native';
+import type { ImageResolvedAssetSource } from 'react-native';
 import { ImageSourcePropType } from 'react-native';
 import { JSX } from 'react';
 import { NativeSyntheticEvent } from 'react-native';
@@ -2377,6 +2378,22 @@ interface IdealResult {
 }
 
 // @public
+export type IdentityVerificationSheetOptions = {
+    sessionId: string;
+    ephemeralKeySecret: string;
+    brandLogo: ImageResolvedAssetSource;
+};
+
+// @public (undocumented)
+export type IdentityVerificationSheetResult = {
+    status: IdentityVerificationSheetStatus;
+    error?: StripeError<IdentityVerificationSheetStatus>;
+};
+
+// @public
+export type IdentityVerificationSheetStatus = 'FlowCompleted' | 'FlowCanceled' | 'FlowFailed';
+
+// @public
 type IdType = 'social_security_number' | 'ca_sin' | 'co_nit' | 'ph_tin';
 
 // @public
@@ -3526,6 +3543,9 @@ export enum PlatformPayError {
 }
 
 // @public
+export function presentIdentityVerificationSheet(options: IdentityVerificationSheetOptions): Promise<IdentityVerificationSheetResult>;
+
+// @public
 export const presentLinkController: () => Promise<LinkController.PresentResult>;
 
 // @public (undocumented)
@@ -4572,6 +4592,14 @@ export function useStripe(): {
     }>;
     openPlatformPaySetup: () => Promise<void>;
     createRadarSession: () => Promise<CreateRadarSessionResult>;
+};
+
+// @public
+export function useStripeIdentity(optionsProvider: () => Promise<IdentityVerificationSheetOptions>): {
+    present: () => Promise<void>;
+    status: IdentityVerificationSheetStatus | undefined;
+    loading: boolean;
+    error: StripeError<IdentityVerificationSheetStatus> | undefined;
 };
 
 // @public (undocumented)

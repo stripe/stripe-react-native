@@ -1,5 +1,32 @@
 # Migration Guide
 
+## Stripe Identity
+
+Stripe Identity is now part of `@stripe/stripe-react-native`. Remove `@stripe/stripe-identity-react-native`, install this package, and change imports:
+
+```tsx
+import {
+  presentIdentityVerificationSheet,
+  useStripeIdentity,
+} from '@stripe/stripe-react-native';
+import type {
+  IdentityVerificationSheetOptions,
+  IdentityVerificationSheetResult,
+  IdentityVerificationSheetStatus,
+  StripeError,
+} from '@stripe/stripe-react-native';
+
+type IdentityError = StripeError<IdentityVerificationSheetStatus>;
+```
+
+The options (`sessionId`, `ephemeralKeySecret`, and `brandLogo`) and result statuses (`FlowCompleted`, `FlowCanceled`, and `FlowFailed`) are unchanged. `StripeError` uses the shared SDK's generic type, as shown above. The hook's `loading` flag now covers both fetching credentials and presenting the sheet, and credential-fetching failures populate `status` and `error` instead of rejecting and leaving `loading` set. Native failures provide a single `error` object on both platforms.
+
+Reinstall iOS pods and rebuild the native app after removing the old package. Identity uses this package's React Native new architecture requirements and native Stripe versions, including its SPM or CocoaPods configuration. Keep your camera usage description on iOS and MaterialComponents theme on Android. Identity still works without calling `initStripe` or adding a `StripeProvider`.
+
+On Android, set `StripeSdk_includeIdentity=true` in `android/gradle.properties` (or `includeIdentity: true` in the Expo config plugin) and use `minSdkVersion` **24 or higher**. Enabling Onramp also includes Identity. The native Identity SDK and its MediaPipe dependency require API 24; Payments-only apps retain API 23 support with no configuration changes.
+
+The standalone Identity release, dependency pins, and native example projects are replaced by the main SDK's existing tooling. The [Identity playground](./example-identity/README.md) retains its own UI and entrypoint while sharing the payments example's dependency installation and native projects.
+
 ## iOS Swift Package Manager dependency resolution and dynamic linking
 
 By default, the Stripe React Native SDK now resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods. This requires building your app with dynamic linking. For non-Expo apps, add to your Podfile:

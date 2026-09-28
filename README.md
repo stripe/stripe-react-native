@@ -23,6 +23,8 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 
 **Native UI**: We provide native screens and elements to securely collect payment details on Android and iOS.
 
+**Identity**: Present Stripe Identity's document and selfie verification flow with `useStripeIdentity` or `presentIdentityVerificationSheet`. Identity shares the SDK's native Stripe versions and supports both iOS dependency resolution modes. See [Identity usage](#identity) and the [dedicated example](./example-identity/README.md).
+
 **PaymentSheet**: [Learn how to integrate](https://stripe.com/docs/payments/accept-a-payment) PaymentSheet, our new pre-built payments UI for mobile apps.
 - PaymentSheet lets you accept cards, Apple Pay, Google Pay, and much more out of the box and also supports saving & reusing payment methods.
 - PaymentSheet currently accepts the following payment methods: Card, Apple Pay, Google Pay, SEPA Debit, Bancontact, Billie, iDEAL, EPS, P24, Afterpay/Clearpay, Klarna, Giropay, and ACH.
@@ -166,9 +168,58 @@ For Expo, set the equivalent option on this SDK's config plugin in your app conf
 
 - **The app crashes at launch with `dyld: Library not loaded: @rpath/Stripe….framework`** - there was an error embedding the Stripe frameworks into your app bundle. Re-run `pod install` and confirm that the `[stripe-react-native] Embed SPM Frameworks` build phase exists on the app target. If the crash persists with the phase present, [file an issue](https://github.com/stripe/stripe-react-native/issues).
 
-- **Your app also uses `@stripe/stripe-identity-react-native`** - Set `$StripeDisableSPM = true` until the Stripe Identity SDK supports SPM resolution.
+- **Your app also uses `@stripe/stripe-identity-react-native`** — migrate its imports to this package and remove the separate Identity package. See [Identity migration](./MIGRATING.md#stripe-identity).
 
 - **`pod install` aborts with an integrity-check error or Xcode reports "The project 'Pods' is damaged and cannot be opened"** - delete your app's `ios/Pods` directory and run `pod install` again. If the error persists, [file an issue](https://github.com/stripe/stripe-react-native/issues).
+
+## Identity
+
+Identity is included in `@stripe/stripe-react-native`; it does not require a `StripeProvider` or `initStripe` call. Create a VerificationSession and ephemeral key on your server, then pass their values and your resolved brand logo to the hook:
+
+```tsx
+import { Button, Image, Text, View } from 'react-native';
+import { useStripeIdentity } from '@stripe/stripe-react-native';
+import logo from './assets/logo.png';
+
+export function VerifyIdentity() {
+  const { present, status, loading, error } = useStripeIdentity(async () => {
+    const response = await fetch(`${YOUR_SERVER_URL}/verification-session`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error('Could not create a verification session.');
+    }
+    const { id, ephemeral_key_secret } = await response.json();
+    return {
+      sessionId: id,
+      ephemeralKeySecret: ephemeral_key_secret,
+      brandLogo: Image.resolveAssetSource(logo),
+    };
+  });
+
+  return (
+    <View>
+      <Button title="Verify identity" disabled={loading} onPress={present} />
+      <Text>{error?.message ?? status}</Text>
+    </View>
+  );
+}
+```
+
+For imperative usage, call `presentIdentityVerificationSheet(options)`. It returns `{ status, error? }`, where status is `FlowCompleted`, `FlowCanceled`, or `FlowFailed`. `FlowCompleted` means the user submitted the flow; use your server's VerificationSession result to determine whether verification succeeded. The hook keeps `loading` true until presentation completes and reports credential-fetching failures through `error`.
+
+On iOS, add `NSCameraUsageDescription` to your app's `Info.plist` with a description of why you capture identity documents and selfies, then reinstall pods. Expo apps can set this in `ios.infoPlist`.
+
+On Android, Identity is optional so existing Payments integrations retain API 23 support. To use Identity:
+
+1. Set your app's `minSdkVersion` to **24 or higher**.
+2. Add `StripeSdk_includeIdentity=true` to `android/gradle.properties`. Expo apps can instead set `includeIdentity: true` in this SDK's config plugin options. Onramp already includes Identity when enabled.
+3. Use a `Theme.MaterialComponents` theme for the hosting activity and allow the camera permission for every supported Android version.
+4. Rebuild the native app. Calling Identity without including it returns `FlowFailed` with setup instructions.
+
+Payments users do not need to change their configuration. Identity uses the same native Stripe SDK version as Payments.
+
+The [Identity example](./example-identity/README.md) contains the verification options playground and runs with the same native projects and dependencies as the payments example.
 
 ## Usage example
 

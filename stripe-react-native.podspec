@@ -2,7 +2,7 @@ require 'json'
 require_relative 'stripe_spm'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
-# Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
+# Shared by Payments, Identity, and the optional Onramp integration.
 stripe_version = '26.12.0'
 
 if ENV['RCT_NEW_ARCH_ENABLED'] == '0'
@@ -66,6 +66,7 @@ Pod::Spec.new do |s|
       core.dependency 'StripePaymentsUI', stripe_version
       core.dependency 'StripeApplePay', stripe_version
       core.dependency 'StripeFinancialConnections', stripe_version
+      core.dependency 'StripeIdentity', stripe_version
     end
   end
 

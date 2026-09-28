@@ -37,6 +37,12 @@ type StripePluginProps = {
    */
   includeOnramp?: boolean;
   /**
+   * Android only. Includes native Identity verification, which requires
+   * minSdkVersion 24 or higher. Defaults to false; Onramp also includes Identity.
+   * Identity is included automatically on iOS.
+   */
+  includeIdentity?: boolean;
+  /**
    * iOS only. When true, sets `$StripeDisableSPM = true` in the generated
    * Podfile, so the Stripe iOS SDK is resolved through the CocoaPods registry
    * instead of Swift Package Manager.
@@ -196,7 +202,7 @@ export const withNoopSwiftFile: ConfigPlugin = (config) => {
 
 const withStripeAndroid: ConfigPlugin<StripePluginProps> = (
   expoConfig,
-  { enableGooglePay = false, includeOnramp = false }
+  { enableGooglePay = false, includeOnramp = false, includeIdentity = false }
 ) => {
   let resultConfig = withAndroidManifest(expoConfig, (config) => {
     config.modResults = setGooglePayMetaData(
@@ -210,6 +216,10 @@ const withStripeAndroid: ConfigPlugin<StripePluginProps> = (
   resultConfig = withGradleProperties(resultConfig, (config) => {
     config.modResults = setOnrampGradleProperty(
       includeOnramp,
+      config.modResults
+    );
+    config.modResults = setIdentityGradleProperty(
+      includeIdentity,
       config.modResults
     );
 
@@ -262,18 +272,40 @@ export function setOnrampGradleProperty(
   includeOnramp: boolean,
   modResults: AndroidConfig.Properties.PropertiesItem[]
 ): AndroidConfig.Properties.PropertiesItem[] {
-  const ONRAMP_PROPERTY_KEY = 'StripeSdk_includeOnramp';
+  return setOptionalModuleGradleProperty(
+    'StripeSdk_includeOnramp',
+    includeOnramp,
+    modResults
+  );
+}
 
+/** Adds or removes the Android Identity opt-in without changing other flags. */
+export function setIdentityGradleProperty(
+  includeIdentity: boolean,
+  modResults: AndroidConfig.Properties.PropertiesItem[]
+): AndroidConfig.Properties.PropertiesItem[] {
+  return setOptionalModuleGradleProperty(
+    'StripeSdk_includeIdentity',
+    includeIdentity,
+    modResults
+  );
+}
+
+function setOptionalModuleGradleProperty(
+  key: string,
+  enabled: boolean,
+  modResults: AndroidConfig.Properties.PropertiesItem[]
+): AndroidConfig.Properties.PropertiesItem[] {
   // Find existing property if it exists
   const existingPropertyIndex = modResults.findIndex(
-    (item) => item.type === 'property' && item.key === ONRAMP_PROPERTY_KEY
+    (item) => item.type === 'property' && item.key === key
   );
 
-  if (includeOnramp) {
+  if (enabled) {
     // Add or update the property to true
     const propertyItem = {
       type: 'property' as const,
-      key: ONRAMP_PROPERTY_KEY,
+      key,
       value: 'true',
     };
 

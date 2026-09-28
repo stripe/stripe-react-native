@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": {
+      "@stripe/stripe-react-native": ["src"]
+    }
+  },
+  "include": ["App.tsx", "src"]
+}

@@ -36,6 +36,8 @@ import type {
   Token,
   VerifyMicrodepositsParams,
   CreateRadarSessionResult,
+  IdentityVerificationSheetOptions,
+  IdentityVerificationSheetResult,
 } from '../types';
 import type {
   EmbeddedPaymentElementConfiguration,
@@ -55,6 +57,9 @@ type CheckoutCreateResult = UnsafeObject<{
 }>;
 
 export interface Spec extends TurboModule {
+  presentIdentityVerificationSheet(
+    options: UnsafeObject<IdentityVerificationSheetOptions>
+  ): Promise<IdentityVerificationSheetResult>;
   initialise(params: UnsafeObject<InitialiseParams>): Promise<void>;
   createPaymentMethod(
     params: UnsafeObject<PaymentMethod.CreateParams>,

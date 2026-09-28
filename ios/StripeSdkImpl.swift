@@ -6,6 +6,7 @@ import SafariServices
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(STP) @_spi(ReactNativeSDK) import StripeCore
 import StripeFinancialConnections
+import StripeIdentity
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
 import StripePaymentsUI
 import UIKit
@@ -61,6 +62,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var merchantIdentifier: String?
 
     internal var paymentSheet: PaymentSheet?
+    internal var identityVerificationSheet: IdentityVerificationSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?

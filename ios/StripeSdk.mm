@@ -351,6 +351,13 @@ RCT_EXPORT_METHOD(presentPaymentSheet:(nonnull NSDictionary *)options
   [StripeSdkImpl.shared presentPaymentSheet:options resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(presentIdentityVerificationSheet:(nonnull NSDictionary *)options
+                                          resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                           reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentIdentityVerificationSheet:options resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(resetPaymentSheetCustomer:(nonnull RCTPromiseResolveBlock)resolve
                                      reject:(nonnull RCTPromiseRejectBlock)reject)
 {

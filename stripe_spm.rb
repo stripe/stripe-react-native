@@ -145,11 +145,12 @@ module StripeSPM
     StripePaymentsUI
     StripeApplePay
     StripeFinancialConnections
+    StripeIdentity
   ].freeze
 
   # The extra product required by the opt-in Onramp subspec. Deliberately not
   # part of CORE_PRODUCTS: linking it unconditionally would pull crypto-onramp
-  # code (and its StripeIdentity dependency subtree) into every app.
+  # code into every app.
   ONRAMP_PRODUCT = 'StripeCryptoOnramp'.freeze
   ONRAMP_SUBSPEC = "#{POD_NAME}/Onramp".freeze
 

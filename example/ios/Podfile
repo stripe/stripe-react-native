@@ -48,6 +48,13 @@ end
 # so every adjustment here must be (re)applied on each run.
 post_integrate do |_installer|
   project_path = "#{ws_dir}/node_modules/.generated/ios/ReactTestApp.xcodeproj"
+  # Both examples use this generated app. Replace RNTA's QR-scanner-only
+  # description with one that also explains Identity's camera use.
+  info_plist_path = File.join(File.dirname(project_path), 'Info.plist')
+  info_plist = Xcodeproj::Plist.read_from_path(info_plist_path)
+  info_plist['NSCameraUsageDescription'] = 'This app uses the camera to verify identity documents and scan QR codes.'
+  Xcodeproj::Plist.write_to_path(info_plist, info_plist_path)
+
   project = Xcodeproj::Project.open(project_path)
   test_target = project.targets.find { |target| target.name == 'ReactTestAppTests' }
 

@@ -5,6 +5,7 @@ import {
   setApplePayEntitlement,
   setGooglePayMetaData,
   setOnrampGradleProperty,
+  setIdentityGradleProperty,
   setPodfileDisableSPM,
 } from '../withStripe';
 
@@ -174,6 +175,59 @@ describe('setOnrampGradleProperty', () => {
       key: 'StripeSdk_includeOnramp',
       value: 'true',
     });
+  });
+});
+
+describe('setIdentityGradleProperty', () => {
+  it('keeps the default configuration unchanged', () => {
+    const properties = [
+      { type: 'property' as const, key: 'unrelated', value: 'keep' },
+    ];
+
+    expect(setIdentityGradleProperty(false, [...properties])).toEqual(
+      properties
+    );
+  });
+
+  it('enables Identity idempotently and removes only its flag when disabled', () => {
+    const original = [
+      {
+        type: 'property' as const,
+        key: 'StripeSdk_includeOnramp',
+        value: 'true',
+      },
+      { type: 'comment' as const, value: 'Keep this comment' },
+    ];
+    const enabled = setIdentityGradleProperty(true, [...original]);
+    setIdentityGradleProperty(true, enabled);
+
+    expect(enabled).toEqual([
+      ...original,
+      {
+        type: 'property',
+        key: 'StripeSdk_includeIdentity',
+        value: 'true',
+      },
+    ]);
+    expect(setIdentityGradleProperty(false, enabled)).toEqual(original);
+  });
+
+  it('updates an existing disabled Identity flag', () => {
+    expect(
+      setIdentityGradleProperty(true, [
+        {
+          type: 'property',
+          key: 'StripeSdk_includeIdentity',
+          value: 'false',
+        },
+      ])
+    ).toEqual([
+      {
+        type: 'property',
+        key: 'StripeSdk_includeIdentity',
+        value: 'true',
+      },
+    ]);
   });
 });
 
