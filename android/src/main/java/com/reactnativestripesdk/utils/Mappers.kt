@@ -563,6 +563,7 @@ internal fun mapNextAction(
     NextActionType.BlikAuthorize,
     NextActionType.UseStripeSdk,
     NextActionType.AwaitAuthorization,
+    NextActionType.MbWayAwaitAuthorization,
     NextActionType.DisplayPayNowDetails,
     NextActionType.DisplayPromptPayDetails,
     null,
