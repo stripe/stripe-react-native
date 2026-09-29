@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  createCheckout,
-  getCheckoutControllerId,
+  createCheckoutController,
   normalizeCheckoutError,
 } from '../checkout/createCheckout';
-import { addCheckoutControllerListener } from '../checkout/CheckoutControllerEventEmitter';
 import type { Checkout, CheckoutController } from '../types/Checkout';
 
 type State = Pick<
@@ -17,6 +15,25 @@ const idle: State = {
   paymentElement: null,
   error: null,
 };
+
+function stateForController(controller: CheckoutController): State {
+  if (controller.status === 'destroyed') {
+    return {
+      ...idle,
+      status: 'error',
+      error: {
+        code: 'Canceled',
+        message: 'The Checkout controller was destroyed.',
+      },
+    };
+  }
+  return {
+    status: controller.status,
+    session: controller.session,
+    paymentElement: controller.paymentElement,
+    error: null,
+  };
+}
 
 /**
  * Loads Checkout and exposes native session updates. The hook destroys its
@@ -34,19 +51,14 @@ export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {
   configuration.current = options.getConfiguration;
   const active = useRef(false);
   const generation = useRef(0);
-  const owned = useRef<
-    { controller: CheckoutController; remove: () => void } | undefined
-  >(undefined);
-  const [state, setState] = useState<State>(idle);
+  const controller = useRef<CheckoutController | undefined>(undefined);
   const destruction = useRef<Promise<void> | undefined>(undefined);
+  const [state, setState] = useState<State>(idle);
 
-  const release = useCallback(async () => {
-    const previous = owned.current;
-    owned.current = undefined;
-    previous?.remove();
-    const pending = previous
-      ? previous.controller.destroy()
-      : destruction.current;
+  const destroy = useCallback(async () => {
+    const previous = controller.current;
+    controller.current = undefined;
+    const pending = previous ? previous.destroy() : destruction.current;
     destruction.current = pending;
     try {
       await pending;
@@ -62,52 +74,30 @@ export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {
       return;
     }
     const request = ++generation.current;
-    const current = () => active.current && generation.current === request;
+    const isCurrent = () => active.current && generation.current === request;
     setState({ ...idle, status: 'loading' });
     try {
-      await release();
-      if (!current()) {
+      await destroy();
+      if (!isCurrent()) {
         return;
       }
       const createOptions = await configuration.current();
-      if (!current()) {
+      if (!isCurrent()) {
         return;
       }
-      const controller = await createCheckout(createOptions);
-      if (!current()) {
-        await controller.destroy();
-        return;
-      }
-      const update = () => {
-        if (!current()) {
-          return;
+      const next = await createCheckoutController(createOptions, (updated) => {
+        if (isCurrent() && controller.current === updated) {
+          setState(stateForController(updated));
         }
-        setState(
-          controller.status === 'destroyed'
-            ? {
-                ...idle,
-                status: 'error',
-                error: {
-                  code: 'Canceled',
-                  message: 'The Checkout controller was destroyed.',
-                },
-              }
-            : {
-                status: controller.status,
-                session: controller.session,
-                paymentElement: controller.paymentElement,
-                error: null,
-              }
-        );
-      };
-      update();
-      const subscription = addCheckoutControllerListener(
-        getCheckoutControllerId(controller),
-        update
-      );
-      owned.current = { controller, remove: () => subscription.remove() };
+      });
+      if (!isCurrent()) {
+        await next.destroy();
+        return;
+      }
+      controller.current = next;
+      setState(stateForController(next));
     } catch (error) {
-      if (current()) {
+      if (isCurrent()) {
         setState({
           ...idle,
           status: 'error',
@@ -116,7 +106,7 @@ export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {
       }
       throw error;
     }
-  }, [release]);
+  }, [destroy]);
 
   useEffect(() => {
     active.current = enabled;
@@ -130,28 +120,30 @@ export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {
       active.current = false;
       generation.current += 1;
       // Cleanup cannot report errors through an unmounted hook.
-      release().catch(() => {});
+      destroy().catch(() => {});
     };
-  }, [enabled, reload, release]);
+  }, [destroy, enabled, reload]);
 
   const methods = useMemo<Omit<Checkout.UseResult, keyof State>>(() => {
-    const controller = () => {
-      if (!active.current || !owned.current) {
+    const currentController = () => {
+      if (!active.current || !controller.current) {
         throw new Error('Checkout has not loaded a controller.');
       }
-      return owned.current.controller;
+      return controller.current;
     };
     return {
       reload,
-      updateEmail: async (email) => controller().updateEmail(email),
+      updateEmail: async (email) => currentController().updateEmail(email),
       updateShippingAddress: async (address) =>
-        controller().updateShippingAddress(address),
-      applyPromotionCode: async (code) => controller().applyPromotionCode(code),
-      removePromotionCode: async () => controller().removePromotionCode(),
-      clearPaymentOption: async () => controller().clearPaymentOption(),
+        currentController().updateShippingAddress(address),
+      applyPromotionCode: async (code) =>
+        currentController().applyPromotionCode(code),
+      removePromotionCode: async () =>
+        currentController().removePromotionCode(),
+      clearPaymentOption: async () => currentController().clearPaymentOption(),
       runServerUpdate: async (callback) =>
-        controller().runServerUpdate(callback),
-      confirm: async () => controller().confirm(),
+        currentController().runServerUpdate(callback),
+      confirm: async () => currentController().confirm(),
     };
   }, [reload]);
 

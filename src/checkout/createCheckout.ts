@@ -8,19 +8,6 @@ import {
   createCheckoutBridgeId,
 } from './CheckoutControllerEventEmitter';
 
-const controllerIds = new WeakMap<CheckoutController, string>();
-
-/** Looks up a controller created by this bridge without exposing its native ID. */
-export function getCheckoutControllerId(
-  controller: CheckoutController
-): string {
-  const id = controllerIds.get(controller);
-  if (!id) {
-    throw new Error('Checkout controller was not created by this SDK.');
-  }
-  return id;
-}
-
 const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
   'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
 const CHECKOUT_DESTROYED_MESSAGE = 'This Checkout controller was destroyed.';
@@ -86,15 +73,27 @@ function nativeCreateOptions(
 export async function createCheckout(
   options: Checkout.CreateOptions
 ): Promise<CheckoutController> {
+  return createCheckoutController(options);
+}
+
+/** Creates a controller and reports its native state changes to useCheckout. */
+export async function createCheckoutController(
+  options: Checkout.CreateOptions,
+  onUpdate?: (controller: CheckoutController) => void
+): Promise<CheckoutController> {
   const controllerId = createCheckoutBridgeId();
   let status: CheckoutController['status'] = 'ready';
   let session: Checkout.Session | undefined;
   let destroyPromise: Promise<void> | undefined;
+  let controller: CheckoutController | undefined;
   // Subscribe before creating native so initial updates cannot be lost.
   const subscription = addCheckoutControllerListener(controllerId, (update) => {
     if (status !== 'destroyed') {
       status = update.status;
       session = update.session;
+      if (controller) {
+        onUpdate?.(controller);
+      }
     }
   });
   const selectionSubscription = addCheckoutControllerSelectionListener(
@@ -137,7 +136,7 @@ export async function createCheckout(
       present: notImplemented,
     };
 
-    const controller: CheckoutController = {
+    controller = {
       get status() {
         return status;
       },
@@ -189,7 +188,6 @@ export async function createCheckout(
         return destroyPromise;
       },
     };
-    controllerIds.set(controller, controllerId);
     return controller;
   } catch (error) {
     subscription.remove();
