@@ -9,6 +9,7 @@ import com.reactnativestripesdk.utils.mapPaymentMethodType
 import com.reactnativestripesdk.utils.mapToAddress
 import com.reactnativestripesdk.utils.mapToBillingDetails
 import com.reactnativestripesdk.utils.mapToPaymentMethodType
+import com.reactnativestripesdk.utils.mapToPreCollectedConsent
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.readableArrayOf
@@ -30,6 +31,28 @@ import org.robolectric.RobolectricTestRunner
 @SuppressLint("RestrictedApi")
 @RunWith(RobolectricTestRunner::class)
 class MappersTest {
+  @Test
+  fun mapToPreCollectedConsent_mapsValues() {
+    val params =
+      readableMapOf(
+        "preCollectedConsent" to
+          readableMapOf(
+            "consent" to "fccons_test",
+            "collectedAt" to 1_725_000_123.0,
+          ),
+      )
+
+    val result = mapToPreCollectedConsent(params)
+
+    assertEquals("fccons_test", result?.consent)
+    assertEquals(1_725_000_123L, result?.collectedAt)
+  }
+
+  @Test
+  fun mapToPreCollectedConsent_returnsNullWhenAbsent() {
+    assertNull(mapToPreCollectedConsent(readableMapOf()))
+  }
+
   @Test
   fun mapFinancialConnectionsEventErrorCode_ReturnsPublicValue() {
     val expectedValues =

@@ -861,6 +861,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
         let style = STPBankAccountCollectorUserInterfaceStyle(from: params)
         let bankAccountCollector = STPBankAccountCollector(style: style)
+        let preCollectedConsent = FinancialConnections.mapToPreCollectedConsent(params)
 
         if isPaymentIntent {
             DispatchQueue.main.async {
@@ -868,6 +869,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
+                    preCollectedConsent: preCollectedConsent,
                     from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
                     onEvent: onEvent
                 ) { intent, error in
@@ -895,6 +897,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
+                    preCollectedConsent: preCollectedConsent,
                     from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
                     onEvent: onEvent
                 ) { intent, error in
@@ -1198,6 +1201,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             withClientSecret: clientSecret,
             returnURL: returnURL,
             configuration: configuration,
+            preCollectedConsent: FinancialConnections.mapToPreCollectedConsent(params),
             onEvent: onEvent,
             resolve: wrappedResolve
         )
@@ -1244,6 +1248,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             withClientSecret: clientSecret,
             returnURL: returnURL,
             configuration: configuration,
+            preCollectedConsent: FinancialConnections.mapToPreCollectedConsent(params),
             onEvent: onEvent,
             resolve: wrappedResolve
         )

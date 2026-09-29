@@ -6,7 +6,10 @@ import type {
 } from './Token';
 import type { FutureUsage } from './PaymentIntent';
 import type { BillingDetails, UserInterfaceStyle } from './Common';
-import type { FinancialConnectionsEvent } from './FinancialConnections';
+import type {
+  FinancialConnectionsEvent,
+  PreCollectedConsent,
+} from './FinancialConnections';
 
 export interface Result {
   id: string;
@@ -298,6 +301,8 @@ export type CollectBankAccountParams = {
   style?: UserInterfaceStyle;
   /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
   onEvent?: (event: FinancialConnectionsEvent) => void;
+  /** Evidence that the customer accepted consent text before Financial Connections was presented. */
+  preCollectedConsent?: PreCollectedConsent;
 };
 
 export type CollectBankAccountTokenParams = {
@@ -307,4 +312,6 @@ export type CollectBankAccountTokenParams = {
   onEvent?: (event: FinancialConnectionsEvent) => void;
   /** Optional connected account ID. Used for Stripe Connect embedded components. */
   connectedAccountId?: string;
+  /** Evidence that the customer accepted consent text before Financial Connections was presented. */
+  preCollectedConsent?: PreCollectedConsent;
 };

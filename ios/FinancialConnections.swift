@@ -16,6 +16,7 @@ class FinancialConnections {
         withClientSecret: String,
         returnURL: String? = nil,
         configuration: FinancialConnectionsSheet.Configuration? = nil,
+        preCollectedConsent: FinancialConnectionsPreCollectedConsent? = nil,
         onEvent: ((FinancialConnectionsEvent) -> Void)? = nil,
         resolve: @escaping RCTPromiseResolveBlock
     ) {
@@ -28,6 +29,7 @@ class FinancialConnections {
             financialConnectionsSheet.onEvent = onEvent
             financialConnectionsSheet.present(
                 from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
+                preCollectedConsent: preCollectedConsent,
                 completion: { result in
                     switch result {
                     case .completed(session: let session):
@@ -45,6 +47,7 @@ class FinancialConnections {
         withClientSecret: String,
         returnURL: String? = nil,
         configuration: FinancialConnectionsSheet.Configuration? = nil,
+        preCollectedConsent: FinancialConnectionsPreCollectedConsent? = nil,
         onEvent: ((FinancialConnectionsEvent) -> Void)? = nil,
         resolve: @escaping RCTPromiseResolveBlock
     ) {
@@ -57,6 +60,7 @@ class FinancialConnections {
             financialConnectionsSheet.onEvent = onEvent
             financialConnectionsSheet.presentForToken(
                 from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
+                preCollectedConsent: preCollectedConsent,
                 completion: { result in
                     switch result {
                     case .completed(result: let result):
@@ -73,6 +77,23 @@ class FinancialConnections {
                     }
                 })
         }
+    }
+
+    internal static func mapToPreCollectedConsent(
+        _ params: NSDictionary
+    ) -> FinancialConnectionsPreCollectedConsent? {
+        guard
+            let value = params["preCollectedConsent"] as? NSDictionary,
+            let consent = value["consent"] as? String,
+            let collectedAt = value["collectedAt"] as? NSNumber
+        else {
+            return nil
+        }
+
+        return FinancialConnectionsPreCollectedConsent(
+            consent: consent,
+            collectedAt: collectedAt.intValue
+        )
     }
 
     internal static func mapFromSessionResult(

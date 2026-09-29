@@ -56,6 +56,7 @@ import com.reactnativestripesdk.utils.mapFromToken
 import com.reactnativestripesdk.utils.mapToAddress
 import com.reactnativestripesdk.utils.mapToBankAccountType
 import com.reactnativestripesdk.utils.mapToPaymentMethodType
+import com.reactnativestripesdk.utils.mapToPreCollectedConsent
 import com.reactnativestripesdk.utils.mapToReturnURL
 import com.reactnativestripesdk.utils.mapToShippingDetails
 import com.reactnativestripesdk.utils.mapToUICustomization
@@ -1052,6 +1053,7 @@ class StripeSdkModule(
         clientSecret,
         isPaymentIntent,
         collectParams,
+        mapToPreCollectedConsent(params),
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1165,6 +1167,7 @@ class StripeSdkModule(
         FinancialConnectionsSheetManager.Mode.ForToken,
         publishableKey,
         accountId,
+        mapToPreCollectedConsent(params),
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1193,6 +1196,7 @@ class StripeSdkModule(
         FinancialConnectionsSheetManager.Mode.ForSession,
         publishableKey,
         accountId,
+        mapToPreCollectedConsent(params),
       ).also {
         registerStripeUIManager(it)
         it.present(promise)

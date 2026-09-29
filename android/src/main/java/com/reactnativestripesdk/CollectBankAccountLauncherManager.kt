@@ -12,6 +12,7 @@ import com.reactnativestripesdk.utils.mapFromPaymentIntentResult
 import com.reactnativestripesdk.utils.mapFromSetupIntentResult
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.financialconnections.FinancialConnections
+import com.stripe.android.financialconnections.FinancialConnectionsPreCollectedConsent
 import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.StripeIntent
@@ -27,6 +28,7 @@ class CollectBankAccountLauncherManager(
   private val clientSecret: String,
   private val isPaymentIntent: Boolean,
   private val collectParams: CollectBankAccountConfiguration.USBankAccount,
+  private val preCollectedConsent: FinancialConnectionsPreCollectedConsent?,
 ) : StripeUIManager(context) {
   private lateinit var collectBankAccountLauncher: CollectBankAccountLauncher
 
@@ -48,6 +50,7 @@ class CollectBankAccountLauncherManager(
         stripeAccountId,
         clientSecret,
         collectParams,
+        preCollectedConsent,
       )
     } else {
       collectBankAccountLauncher.presentWithSetupIntent(
@@ -55,6 +58,7 @@ class CollectBankAccountLauncherManager(
         stripeAccountId,
         clientSecret,
         collectParams,
+        preCollectedConsent,
       )
     }
   }

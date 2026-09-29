@@ -2,6 +2,13 @@ import type { UserInterfaceStyle } from './Common';
 import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
 
+export type PreCollectedConsent = {
+  /** ID of the Financial Connections Consent object returned by your server. */
+  consent: string;
+  /** Unix timestamp, in seconds, when the customer accepted the consent text. */
+  collectedAt: number;
+};
+
 export type CollectFinancialConnectionsAccountsParams = {
   /** iOS Only. Style options for colors in Financial Connections. By default, the bank account collector will automatically switch between light and dark mode compatible colors based on device settings. */
   style?: UserInterfaceStyle;
@@ -9,6 +16,8 @@ export type CollectFinancialConnectionsAccountsParams = {
   onEvent?: (event: FinancialConnectionsEvent) => void;
   /** Optional connected account ID to use for this Financial Connections session. Used for Stripe Connect embedded components. */
   connectedAccountId?: string;
+  /** Evidence that the customer accepted consent text before Financial Connections was presented. */
+  preCollectedConsent?: PreCollectedConsent;
 };
 
 export type SessionResult =

@@ -8,6 +8,7 @@ import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.PaymentAuthConfig
+import com.stripe.android.financialconnections.FinancialConnectionsPreCollectedConsent
 import com.stripe.android.financialconnections.analytics.FinancialConnectionsEvent
 import com.stripe.android.model.Address
 import com.stripe.android.model.BankAccount
@@ -636,6 +637,14 @@ fun getValOr(
   map?.let {
     if (it.hasKey(key)) it.getString(key) else default
   } ?: default
+
+internal fun mapToPreCollectedConsent(params: ReadableMap): FinancialConnectionsPreCollectedConsent? =
+  params.getMap("preCollectedConsent")?.let {
+    FinancialConnectionsPreCollectedConsent(
+      consent = it.getString("consent")!!,
+      collectedAt = it.getDouble("collectedAt").toLong(),
+    )
+  }
 
 internal fun mapToAddress(
   addressMap: ReadableMap?,

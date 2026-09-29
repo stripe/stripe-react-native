@@ -540,6 +540,24 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapToUserInterfaceStyle(""), .automatic)
     }
 
+    // MARK: - Financial Connections Consent
+
+    func test_mapToPreCollectedConsent_mapsValues() {
+        let result = FinancialConnections.mapToPreCollectedConsent([
+            "preCollectedConsent": [
+                "consent": "fccons_test",
+                "collectedAt": 1_725_000_123,
+            ],
+        ])
+
+        XCTAssertEqual(result?.consent, "fccons_test")
+        XCTAssertEqual(result?.collectedAt, 1_725_000_123)
+    }
+
+    func test_mapToPreCollectedConsent_returnsNilWhenAbsent() {
+        XCTAssertNil(FinancialConnections.mapToPreCollectedConsent([:]))
+    }
+
     // MARK: - Return URL Mappers
 
     func test_mapToReturnURL_validScheme() {
