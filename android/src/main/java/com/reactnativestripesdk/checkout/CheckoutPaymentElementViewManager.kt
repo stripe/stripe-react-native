@@ -3,7 +3,6 @@ package com.reactnativestripesdk.checkout
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
-import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.CheckoutPaymentElementViewManagerDelegate
 import com.facebook.react.viewmanagers.CheckoutPaymentElementViewManagerInterface
 
@@ -20,11 +19,7 @@ class CheckoutPaymentElementViewManager :
   override fun getDelegate() = delegate
   override fun createViewInstance(context: ThemedReactContext) = CheckoutPaymentElementView(context)
   override fun needsCustomLayoutForChildren() = true
-  override fun getExportedCustomDirectEventTypeConstants() = mutableMapOf(
-    "topHeightChanged" to mutableMapOf("registrationName" to "onHeightChanged"),
-  )
 
-  @ReactProp(name = "controllerId")
   override fun setControllerId(view: CheckoutPaymentElementView, value: String?) {
     view.setControllerId(value)
   }

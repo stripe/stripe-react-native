@@ -8,6 +8,7 @@ import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
 import com.facebook.react.uimanager.ViewManager
 import com.reactnativestripesdk.addresssheet.AddressSheetViewManager
+import com.reactnativestripesdk.checkout.CheckoutPaymentElementViewManager
 import com.reactnativestripesdk.pushprovisioning.AddToWalletButtonManager
 
 // Fool autolinking for older versions that do not support BaseReactPackage.
@@ -60,7 +61,7 @@ class StripeSdkPackage : BaseReactPackage() {
       AddToWalletButtonManager(),
       AddressSheetViewManager(),
       EmbeddedPaymentElementViewManager(),
-      com.reactnativestripesdk.checkout.CheckoutPaymentElementViewManager(),
+      CheckoutPaymentElementViewManager(),
       NavigationBarManager(),
       PaymentMethodMessagingElementViewManager(),
     )
