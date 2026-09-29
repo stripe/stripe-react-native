@@ -271,15 +271,16 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    if (paymentSheetManager != null) {
-      UiThreadUtil.runOnUiThread {
-        paymentSheetManager?.configure(params, promise)
+    UiThreadUtil.runOnUiThread {
+      val manager = paymentSheetManager
+      if (manager != null) {
+        manager.configure(params, promise)
+      } else {
+        paymentSheetManager =
+          PaymentSheetManager(reactApplicationContext, params, promise).also {
+            registerStripeUIManager(it)
+          }
       }
-    } else {
-      paymentSheetManager =
-        PaymentSheetManager(reactApplicationContext, params, promise).also {
-          registerStripeUIManager(it)
-        }
     }
   }
 
@@ -288,30 +289,26 @@ class StripeSdkModule(
     options: ReadableMap,
     promise: Promise,
   ) {
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
-    }
-
-    val timeout = options.getLongOrNull("timeout")
-    if (timeout != null) {
-      paymentSheetManager?.presentWithTimeout(
-        timeout,
-        promise,
-      )
-    } else {
-      paymentSheetManager?.present(promise)
+    UiThreadUtil.runOnUiThread {
+      val manager = paymentSheetManager
+      if (manager == null) {
+        promise.resolve(PaymentSheetManager.createMissingInitError())
+        return@runOnUiThread
+      }
+      manager.present(promise, options.getLongOrNull("timeout"))
     }
   }
 
   @ReactMethod
   override fun confirmPaymentSheetPayment(promise: Promise) {
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
+    UiThreadUtil.runOnUiThread {
+      val manager = paymentSheetManager
+      if (manager == null) {
+        promise.resolve(PaymentSheetManager.createMissingInitError())
+        return@runOnUiThread
+      }
+      manager.confirmPayment(promise)
     }
-
-    paymentSheetManager?.confirmPayment(promise)
   }
 
   @ReactMethod
