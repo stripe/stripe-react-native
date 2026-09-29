@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.79.0 - 2026-09-29
 
 **Changes**
 
