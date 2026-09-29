@@ -2,6 +2,9 @@
 export const API_URL =
   'https://rigorous-heartbreaking-cephalopod.stripedemos.com';
 
+export const FINANCIAL_CONNECTIONS_API_URL =
+  'https://ios-financial-connections-playground.stripedemos.com';
+
 // To test Samsung Pay in the Crypto Onramp example, register the Android app
 // with Samsung Pay and replace this value with the assigned in-app service ID.
 // Samsung Pay SDK 2.22.00 must also be installed in example/android/libs.
