@@ -24,44 +24,21 @@ appId: ${APP_ID}
     element:
       text: 'Update email'
     centerElement: true
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - tapOn: 'Update email'
-      - scrollUntilVisible:
-          element:
-            text: 'Update email: done'
-          timeout: 30000
-      - scrollUntilVisible:
-          element:
-            text: 'Clear email'
-          direction: UP
-          centerElement: true
-      - tapOn: 'Clear email'
-      - scrollUntilVisible:
-          element:
-            text: 'Clear email: done'
-          timeout: 30000
-- runFlow:
-    when:
-      platform: iOS
-    commands:
-      - tapOn: 'Update email'
-      - scrollUntilVisible:
-          element:
-            text: 'Update email: The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.'
-          timeout: 30000
-      - scrollUntilVisible:
-          element:
-            text: 'Clear email'
-          direction: UP
-          centerElement: true
-      - tapOn: 'Clear email'
-      - scrollUntilVisible:
-          element:
-            text: 'Clear email: The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.'
-          timeout: 30000
+- tapOn: 'Update email'
+- scrollUntilVisible:
+    element:
+      text: 'Update email: done'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Clear email'
+    direction: UP
+    centerElement: true
+- tapOn: 'Clear email'
+- scrollUntilVisible:
+    element:
+      text: 'Clear email: done'
+    timeout: 30000
 - scrollUntilVisible:
     element:
       text: 'Update shipping'
