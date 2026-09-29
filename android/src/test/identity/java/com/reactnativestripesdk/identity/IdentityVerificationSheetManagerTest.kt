@@ -231,6 +231,43 @@ class IdentityVerificationSheetManagerTest {
     assertTrue(activity.supportFragmentManager.fragments.isEmpty())
   }
 
+  @Test
+  fun `unrelated React host resume does not steal fragment ownership`() {
+    `when`(context.currentActivity).thenReturn(activity)
+    val promise = mock(Promise::class.java)
+    manager.present(options(), promise)
+    shadowOf(Looper.getMainLooper()).idle()
+
+    val otherActivity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
+    `when`(context.currentActivity).thenReturn(otherActivity)
+    manager.onHostResume()
+    manager.invalidate()
+    shadowOf(Looper.getMainLooper()).idle()
+
+    assertEquals("FlowFailed", resolved(promise).getString("status"))
+    assertTrue(activity.supportFragmentManager.fragments.isEmpty())
+  }
+
+  @Test
+  fun `unrelated React host destruction preserves the original presentation result`() {
+    `when`(context.currentActivity).thenReturn(activity)
+    val promise = mock(Promise::class.java)
+    manager.present(options(), promise)
+    shadowOf(Looper.getMainLooper()).idle()
+
+    val otherActivity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
+    `when`(context.currentActivity).thenReturn(otherActivity)
+    manager.onHostResume()
+    manager.onHostDestroy()
+    verify(promise, never()).resolve(any())
+
+    callback.onVerificationFlowResult(VerificationFlowResult.Completed)
+    shadowOf(Looper.getMainLooper()).idle()
+
+    assertEquals("FlowCompleted", resolved(promise).getString("status"))
+    assertTrue(activity.supportFragmentManager.fragments.isEmpty())
+  }
+
   private fun options() = JavaOnlyMap.of(
     "sessionId", "vs_test",
     "ephemeralKeySecret", "ek_test",

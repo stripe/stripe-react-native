@@ -102,9 +102,11 @@ internal class IdentityVerificationSheetManagerImpl(
   override fun onHostResume() {
     if (promise == null) return
     val currentActivity = context.currentActivity as? FragmentActivity ?: return
-    activity = currentActivity
     val restored = currentActivity.supportFragmentManager.findFragmentByTag(fragmentTag)
-    if (restored is IdentityVerificationSheetFragment && restored !== fragment) {
+    if (restored !is IdentityVerificationSheetFragment) return
+    // Another React Activity can resume without owning this presentation.
+    activity = currentActivity
+    if (restored !== fragment) {
       fragment?.setResultCallback(null)
       fragment = restored
       restored.setResultCallback(::finish)
@@ -114,6 +116,9 @@ internal class IdentityVerificationSheetManagerImpl(
   override fun onHostPause() = Unit
 
   override fun onHostDestroy() {
+    val currentActivity = context.currentActivity
+    // A ReactContext can also report lifecycle events for another host Activity.
+    if (currentActivity != null && activity != null && currentActivity !== activity) return
     if (activity?.isChangingConfigurations == true) {
       fragment?.setResultCallback(null)
       activity = null
