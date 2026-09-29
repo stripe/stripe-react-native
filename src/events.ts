@@ -30,6 +30,10 @@ const compatEventEmitter =
 // Versions before RN 0.80 crash sometimes when setting the event emitter callback.
 // Move this back to the NativeStripeSdkModule spec once we drop support for RN < 0.80.
 type Events = {
+  checkoutServerUpdateRequested: EventEmitter<{
+    controllerId: string;
+    operationId: string;
+  }>;
   onConfirmHandlerCallback: EventEmitter<{
     paymentMethod: UnsafeObject<PaymentMethod.Result>;
     shouldSavePaymentMethod: boolean;

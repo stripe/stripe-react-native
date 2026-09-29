@@ -281,6 +281,19 @@ export interface Spec extends TurboModule {
   /** @CheckoutSessionPrivatePreview */
   destroyCheckout(controllerId: string): Promise<void>;
 
+  /** @CheckoutSessionPrivatePreview */
+  runCheckoutServerUpdate(
+    controllerId: string,
+    operationId: string
+  ): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  completeCheckoutServerUpdate(
+    controllerId: string,
+    operationId: string,
+    error: string | null
+  ): Promise<void>;
+
   // Events
   addListener: (eventType: string) => void;
   removeListeners: (count: number) => void;
