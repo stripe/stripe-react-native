@@ -515,6 +515,7 @@ class OnrampSdkModule(
           firstName = firstName,
           lastName = lastName,
           idNumber = idNumber,
+          idType = mapToIdType(kycInfo.getString("idType")),
           dateOfBirth = dob,
           address = addressObj,
           birthCountry = birthCountry,

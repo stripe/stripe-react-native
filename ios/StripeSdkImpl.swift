@@ -1,6 +1,7 @@
 import AuthenticationServices
 import Foundation
 import PassKit
+import React
 import SafariServices
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(STP) @_spi(ReactNativeSDK) import StripeCore
@@ -36,15 +37,10 @@ private func getDeviceType() -> String {
 
 @objc(StripeSdkImpl)
 public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
+
     @objc public static let shared = StripeSdkImpl()
 
-    static var isNewArchitecture: Bool {
-        #if RCT_NEW_ARCH_ENABLED
-        return true
-        #else
-        return false
-        #endif
-    }
+    static let isNewArchitecture = true
 
     static var reactNativeVersion: String {
         let version = RCTGetReactNativeVersion()
@@ -59,7 +55,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     weak var cardFieldView: CardFieldView?
     weak var cardFormView: CardFormView?
 
-    @MainActor lazy var checkoutControllerRegistry = CheckoutControllerRegistry()
+    @MainActor var checkoutControllers: [String: NativeCheckoutControllerInstance] = [:]
+    @MainActor var pendingCheckoutCreations: [String: Task<Void, Never>] = [:]
 
     var merchantIdentifier: String?
 
@@ -142,7 +139,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     @objc public func invalidateCheckoutControllers() {
         DispatchQueue.main.async { [weak self] in
-            self?.checkoutControllerRegistry.removeAll()
+            guard let self else { return }
+            let pendingCreations = Array(pendingCheckoutCreations.values)
+            pendingCheckoutCreations.removeAll()
+            pendingCreations.forEach { $0.cancel() }
+            let controllers = Array(checkoutControllers.values)
+            checkoutControllers.removeAll()
+            controllers.forEach { $0.destroy() }
         }
     }
 

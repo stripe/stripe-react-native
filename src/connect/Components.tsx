@@ -26,11 +26,13 @@ export type { NavigationBarProps } from './NavigationBar';
 
 type AuthChallengeRequiredEvent = {
   action: string;
-  requestId: number;
+  requestId: string;
 };
 
 type AuthChallengeResponse = {
-  requestId: number | null;
+  // `null` cancels whichever request is currently pending, for a host with no
+  // request to address (e.g. it received a malformed AuthChallengeRequiredEvent).
+  requestId: string | null;
   completion: {
     secret: string;
     metadata?: Record<string, string>;
@@ -94,7 +96,6 @@ export function ConnectAccountOnboarding({
   // The following props are intentionally omitted from the public prop types to
   // discourage use by external integrators. This is API hygiene only — it is not
   // a security boundary. Real authorization is enforced server-side.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { kycRecipientAccountId, authChallenge, onAuthChallengeRequired } =
     rest as {
       kycRecipientAccountId?: string;

@@ -40,7 +40,8 @@ appId: ${APP_ID}
     text: "Continue" # iOS
     optional: true
 - tapOn:
-    text: .*Buy.*4242
+    # Native card labels can end with a Unicode direction marker.
+    text: .*Buy.*4242.*
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

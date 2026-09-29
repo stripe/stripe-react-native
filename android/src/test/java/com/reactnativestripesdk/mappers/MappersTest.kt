@@ -3,6 +3,7 @@ package com.reactnativestripesdk.mappers
 import android.annotation.SuppressLint
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.createCanAddCardResult
+import com.reactnativestripesdk.utils.mapFinancialConnectionsEventErrorCode
 import com.reactnativestripesdk.utils.mapNextAction
 import com.reactnativestripesdk.utils.mapPaymentMethodType
 import com.reactnativestripesdk.utils.mapToAddress
@@ -12,6 +13,7 @@ import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
+import com.stripe.android.financialconnections.analytics.FinancialConnectionsEvent
 import com.stripe.android.model.CardBrand
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.StripeIntent
@@ -28,6 +30,32 @@ import org.robolectric.RobolectricTestRunner
 @SuppressLint("RestrictedApi")
 @RunWith(RobolectricTestRunner::class)
 class MappersTest {
+  @Test
+  fun mapFinancialConnectionsEventErrorCode_ReturnsPublicValue() {
+    val expectedValues =
+      mapOf(
+        FinancialConnectionsEvent.ErrorCode.ACCOUNT_NUMBERS_UNAVAILABLE to "account_numbers_unavailable",
+        FinancialConnectionsEvent.ErrorCode.ACCOUNTS_UNAVAILABLE to "accounts_unavailable",
+        FinancialConnectionsEvent.ErrorCode.NO_DEBITABLE_ACCOUNT to "no_debitable_account",
+        FinancialConnectionsEvent.ErrorCode.AUTHORIZATION_FAILED to "authorization_failed",
+        FinancialConnectionsEvent.ErrorCode.INSTITUTION_UNAVAILABLE_PLANNED to
+          "institution_unavailable_planned",
+        FinancialConnectionsEvent.ErrorCode.INSTITUTION_UNAVAILABLE_UNPLANNED to
+          "institution_unavailable_unplanned",
+        FinancialConnectionsEvent.ErrorCode.INSTITUTION_TIMEOUT to "institution_timeout",
+        FinancialConnectionsEvent.ErrorCode.UNEXPECTED_ERROR to "unexpected_error",
+        FinancialConnectionsEvent.ErrorCode.SESSION_EXPIRED to "session_expired",
+        FinancialConnectionsEvent.ErrorCode.FAILED_BOT_DETECTION to "failed_bot_detection",
+        FinancialConnectionsEvent.ErrorCode.WEB_BROWSER_UNAVAILABLE to "web_browser_unavailable",
+      )
+
+    assertEquals(FinancialConnectionsEvent.ErrorCode.entries.toSet(), expectedValues.keys)
+    expectedValues.forEach { (errorCode, expectedValue) ->
+      assertEquals(expectedValue, mapFinancialConnectionsEventErrorCode(errorCode))
+    }
+    assertNull(mapFinancialConnectionsEventErrorCode(null))
+  }
+
   @Test
   fun createCanAddCardResult_NoStatus() {
     val result =
@@ -121,6 +149,17 @@ class MappersTest {
       "https://payments.stripe.com/multibanco/voucher",
       result?.getString("voucherURL"),
     )
+  }
+
+  @Test
+  fun mapNextAction_AwaitAuthorization_ReturnsNull() {
+    val result =
+      mapNextAction(
+        StripeIntent.NextActionType.AwaitAuthorization,
+        StripeIntent.NextActionData.AwaitAuthorization,
+      )
+
+    assertNull(result)
   }
 
   // ============================================

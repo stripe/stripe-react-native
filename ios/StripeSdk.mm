@@ -13,12 +13,6 @@ RCT_EXPORT_MODULE()
   return NO;
 }
 
-- (NSDictionary *)constantsToExport
-{
-  // Used for old arch.
-  return [StripeSdkImpl.shared getConstants];
-}
-
 - (NSDictionary *)getConstants
 {
   // Used for new arch.
@@ -150,6 +144,14 @@ RCT_EXPORT_METHOD(createPaymentMethod:(nonnull NSDictionary *)params
   [StripeSdkImpl.shared createPaymentMethod:params options:options resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(createCheckout:(nonnull NSDictionary *)params
+                   controllerId:(nonnull NSString *)controllerId
+                         resolve:(nonnull RCTPromiseResolveBlock)resolve
+                          reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared createCheckout:params controllerId:controllerId resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(createPlatformPayPaymentMethod:(nonnull NSDictionary *)params
                          usesDeprecatedTokenFlow:(BOOL)usesDeprecatedTokenFlow
                                          resolve:(nonnull RCTPromiseResolveBlock)resolve
@@ -218,6 +220,51 @@ RCT_EXPORT_METHOD(customerAdapterSetupIntentClientSecretForCustomerAttachCallbac
   [StripeSdkImpl.shared customerAdapterSetupIntentClientSecretForCustomerAttachCallback:clientSecret
                                                                                resolver:resolve
                                                                                rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(destroyCheckout:(nonnull NSString *)controllerId
+                          resolve:(nonnull RCTPromiseResolveBlock)resolve
+                           reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared destroyCheckout:controllerId resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(updateCheckoutEmail:(nonnull NSString *)controllerId
+                                email:(nullable NSString *)email
+                              resolve:(nonnull RCTPromiseResolveBlock)resolve
+                               reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared updateCheckoutEmail:controllerId email:email resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(updateCheckoutShippingAddress:(nonnull NSString *)controllerId
+                                          params:(nonnull NSDictionary *)params
+                                         resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                          reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared updateCheckoutShippingAddress:controllerId params:params resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(applyCheckoutPromotionCode:(nonnull NSString *)controllerId
+                               promotionCode:(nonnull NSString *)promotionCode
+                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                       reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared applyCheckoutPromotionCode:controllerId promotionCode:promotionCode resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(removeCheckoutPromotionCode:(nonnull NSString *)controllerId
+                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                        reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared removeCheckoutPromotionCode:controllerId resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(clearCheckoutPaymentOption:(nonnull NSString *)controllerId
+                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                       reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared clearCheckoutPaymentOption:controllerId resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSString *)setupIntentClientSecret
@@ -520,14 +567,10 @@ RCT_EXPORT_METHOD(confirmLinkControllerSetupIntent:(nonnull NSDictionary *)param
 
 /* clang-format on */
 
-#ifdef RCT_NEW_ARCH_ENABLED
-
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
   return std::make_shared<facebook::react::NativeStripeSdkModuleSpecJSI>(params);
 }
-
-#endif
 
 @end

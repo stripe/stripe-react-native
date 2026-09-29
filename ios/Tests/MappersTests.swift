@@ -1,3 +1,4 @@
+import PassKit
 import Stripe
 @testable import stripe_react_native
 import StripePaymentSheet

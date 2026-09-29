@@ -172,9 +172,20 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 
 The React Native SDK depends on underlying native [iOS](https://github.com/stripe/stripe-ios) and [Android](https://github.com/stripe/stripe-android) SDKs. To update:
 
-**iOS:** Update `stripe_version` in `stripe-react-native.podspec`, then run `yarn update-pods`.
+**iOS:** Update `stripe_version` in `stripe-react-native.podspec`, then run `yarn pods`. The single `stripe_version` value pins both resolution paths: the Swift Package Manager pin (the default; see the section below) and the CocoaPods fallback dependencies. `yarn update-pods` is only relevant when working in the CocoaPods fallback mode.
 
 **Android:** Update `StripeSdk_stripeVersion` in `android/gradle.properties`.
+
+## iOS dependency resolution
+
+The Stripe iOS SDK is deprecating CocoaPods support, and accordingly the Stripe React Native SDK is in a transition phase where it resolves the iOS dependency through Swift Package Manager (SPM) by default while still supporting and exposing an opt-out option.
+
+For a full explanation of the SPM resolution mechanism, see the documentation in `stripe_spm.rb`.
+
+| Toggle | Effect |
+|--------|--------|
+| `STRIPE_DISABLE_SPM=1 yarn pods` | Builds the example app using the CocoaPods fallback (static libraries), for verifying the opt-out path. |
+| `OVERRIDE_STRIPE_IOS_VERSION_GIT_BRANCH=<branch>` | Resolves the Swift package from that branch instead of the pinned release. Used by CI and developers to test against unreleased stripe-ios changes. |
 
 ## Changing the public APIs
 
@@ -191,66 +202,11 @@ The public API is everything exported from `src/index.tsx`.
 - Export from `src/index.tsx`.
 - Use `@MyFeaturePrivatePreview` / `@MyFeaturePublicPreview`.
 
-## Maintaining the Stripe old-architecture patch
+## React Native architecture compatibility
 
-We ship `patches/old-arch-codegen-fix.patch` so that the library builds on **React-Native >= 0.74 in the old architecture** (it converts `EventEmitter` properties into callback functions so code-gen doesn't fail).
+The SDK requires the new architecture.
 
-### When to update the patch
-
-The patch needs to be updated when:
-- You modify `src/specs/NativeStripeSdkModule.ts` and add/remove/change EventEmitter properties
-- You upgrade dependencies that might affect the TurboModule interface
-- The patch fails to apply during testing or CI
-
-### How to update the patch
-
-1. **Make your changes to the source code** in `src/specs/NativeStripeSdkModule.ts`
-
-2. **Create a backup of the original file**:
-   ```bash
-   cp src/specs/NativeStripeSdkModule.ts src/specs/NativeStripeSdkModule.ts.orig
-   ```
-
-3. **Apply the old-arch compatible changes**:
-   - Remove the `EventEmitter` import from the imports section
-   - Convert all `EventEmitter` properties to callback function methods
-   - For example, change:
-     ```typescript
-     onConfirmHandlerCallback: EventEmitter<{
-       paymentMethod: UnsafeObject<PaymentMethod.Result>;
-       shouldSavePaymentMethod: boolean;
-     }>;
-     ```
-     To:
-     ```typescript
-     onConfirmHandlerCallback(
-       callback: (event: {
-         paymentMethod: UnsafeObject<PaymentMethod.Result>;
-         shouldSavePaymentMethod: boolean;
-       }) => void
-     ): void;
-     ```
-
-4. **Generate the new patch**:
-   ```bash
-   diff -u src/specs/NativeStripeSdkModule.ts.orig src/specs/NativeStripeSdkModule.ts > patches/old-arch-codegen-fix.patch
-   ```
-
-5. **Test the patch**:
-   ```bash
-   # Test that the patch applies cleanly
-   git stash  # stash your changes
-   patch -p0 < patches/old-arch-codegen-fix.patch
-   # Verify the file looks correct
-   git stash pop  # restore your changes
-   ```
-
-6. **Commit the updated patch**:
-   ```bash
-   git add patches/old-arch-codegen-fix.patch
-   git commit -m "chore: update old-arch codegen fix patch"
-   ```
-
+React Native versions before 0.80 still require the event-emitter compatibility layers in `src/events.ts`, Android's `EventEmitterCompat.kt`, and `ios/StripeSdkEventEmitterCompat.{h,m}`.
 
 ## Scripts reference
 
