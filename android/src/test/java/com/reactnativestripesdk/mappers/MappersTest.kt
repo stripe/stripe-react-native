@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.createCanAddCardResult
 import com.reactnativestripesdk.utils.mapFinancialConnectionsEventErrorCode
+import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapNextAction
 import com.reactnativestripesdk.utils.mapPaymentMethodType
 import com.reactnativestripesdk.utils.mapToAddress
@@ -18,6 +19,8 @@ import com.stripe.android.financialconnections.analytics.FinancialConnectionsEve
 import com.stripe.android.model.CardBrand
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.StripeIntent
+import com.stripe.android.model.parsers.ConfirmationTokenJsonParser
+import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -705,4 +708,36 @@ class MappersTest {
     assertEquals("90210", result.address?.postalCode)
     assertEquals("US", result.address?.country)
   }
+
+  @Test
+  fun mapFromConfirmationToken_SetupFutureUsage_MatchesFutureUsageType() {
+    val expectedValues =
+      mapOf(
+        "off_session" to "OffSession",
+        "on_session" to "OnSession",
+        "none" to "None",
+      )
+
+    expectedValues.forEach { (apiValue, expected) ->
+      val result = mapFromConfirmationToken(confirmationToken(setupFutureUsage = apiValue))
+      assertEquals(expected, result.getString("setupFutureUsage"))
+    }
+  }
+
+  @Test
+  fun mapFromConfirmationToken_NoSetupFutureUsage_ReturnsNull() {
+    val result = mapFromConfirmationToken(confirmationToken(setupFutureUsage = null))
+    assertNull(result.getString("setupFutureUsage"))
+  }
+
+  private fun confirmationToken(setupFutureUsage: String?) =
+    requireNotNull(
+      ConfirmationTokenJsonParser().parse(
+        JSONObject()
+          .put("id", "ctoken_123")
+          .put("created", 1_700_000_000L)
+          .put("livemode", false)
+          .apply { setupFutureUsage?.let { put("setup_future_usage", it) } },
+      ),
+    )
 }
