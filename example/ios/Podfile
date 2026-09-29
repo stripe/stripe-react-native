@@ -28,6 +28,26 @@ options = {
   :bridgeless_enabled => true,
   :fabric_enabled => true,
   :hermes_enabled => true,
+  # react-native's own post_install only raises IPHONEOS_DEPLOYMENT_TARGET on
+  # each pod's main native target (ReactNativePodsUtils.updateOSDeploymentTarget),
+  # not on the resource bundle targets CocoaPods generates for pods declaring
+  # resource_bundles (e.g. RNCAsyncStorage-RNCAsyncStorage_resources, which
+  # inherits 13.4 from that pod's podspec). Xcode 27 rejects deployment targets
+  # below 15.0, so bump those bundle targets too.
+  :post_install => lambda do |installer|
+    min_deployment_target = Helpers::Constants.min_ios_version_supported.to_f
+
+    installer.pods_project.targets.each do |target|
+      next unless target.respond_to?(:product_type) && target.product_type == 'com.apple.product-type.bundle'
+
+      target.build_configurations.each do |config|
+        current_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f
+        if current_target < min_deployment_target
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_deployment_target.to_s
+        end
+      end
+    end
+  end,
 }
 
 use_test_app! options do |_target|
