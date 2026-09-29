@@ -32,7 +32,8 @@ function checkoutError(
   return error;
 }
 
-function normalizeCheckoutError(error: unknown): CheckoutOperationError {
+/** Preserves native error codes and wraps untyped bridge failures. */
+export function normalizeCheckoutError(error: unknown): CheckoutOperationError {
   if (error instanceof Error) {
     const code = (error as Partial<CheckoutOperationError>).code;
     if (code && checkoutErrorCodes.has(code)) {
@@ -72,15 +73,27 @@ function nativeCreateOptions(
 export async function createCheckout(
   options: Checkout.CreateOptions
 ): Promise<CheckoutController> {
+  return createCheckoutController(options);
+}
+
+/** Creates a controller and reports its native state changes to useCheckout. */
+export async function createCheckoutController(
+  options: Checkout.CreateOptions,
+  onUpdate?: (controller: CheckoutController) => void
+): Promise<CheckoutController> {
   const controllerId = createCheckoutBridgeId();
   let status: CheckoutController['status'] = 'ready';
   let session: Checkout.Session | undefined;
   let destroyPromise: Promise<void> | undefined;
+  let controller: CheckoutController | undefined;
   // Subscribe before creating native so initial updates cannot be lost.
   const subscription = addCheckoutControllerListener(controllerId, (update) => {
     if (status !== 'destroyed') {
       status = update.status;
       session = update.session;
+      if (controller) {
+        onUpdate?.(controller);
+      }
     }
   });
   const selectionSubscription = addCheckoutControllerSelectionListener(
@@ -123,7 +136,7 @@ export async function createCheckout(
       present: notImplemented,
     };
 
-    return {
+    controller = {
       get status() {
         return status;
       },
@@ -175,6 +188,7 @@ export async function createCheckout(
         return destroyPromise;
       },
     };
+    return controller;
   } catch (error) {
     subscription.remove();
     selectionSubscription.remove();
