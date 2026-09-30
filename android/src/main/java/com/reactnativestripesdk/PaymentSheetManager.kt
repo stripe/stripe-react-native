@@ -54,9 +54,9 @@ import com.stripe.android.paymentsheet.PaymentOptionResultCallback
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -84,8 +84,7 @@ class PaymentSheetManager(
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
   private var confirmPromise: Promise? = null
   private var paymentSheetTimedOut = false
-  internal var paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
-  internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
+  private val intentCreationCallbackJob = Job()
   private var keepJsAwake: KeepJsAwakeTask? = null
   private var lastConfigureWasCustomFlow: Boolean? = null
 
@@ -96,6 +95,7 @@ class PaymentSheetManager(
 
   override fun onDestroy() {
     super.onDestroy()
+    intentCreationCallbackJob.cancel()
     flowController = null
     paymentSheet = null
   }
@@ -287,17 +287,17 @@ class PaymentSheetManager(
 
   private fun buildCreateConfirmationTokenCallback(): CreateIntentWithConfirmationTokenCallback {
     return CreateIntentWithConfirmationTokenCallback { confirmationToken ->
-      val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+      val stripeSdkModule = requireNotNull(context.getNativeModule(StripeSdkModule::class.java))
       val params =
         Arguments.createMap().apply {
           putMap("confirmationToken", mapFromConfirmationToken(confirmationToken))
         }
 
-      stripeSdkModule?.eventEmitter?.emitOnConfirmationTokenHandlerCallback(params)
-
-      val resultFromJavascript = paymentSheetConfirmationTokenCreationCallback.await()
-      // reset the completable
-      paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
+      val resultFromJavascript =
+        stripeSdkModule.intentCreationCallbacks.awaitResult(intentCreationCallbackJob) { requestId ->
+          params.putString("requestId", requestId)
+          stripeSdkModule.eventEmitter.emitOnConfirmationTokenHandlerCallback(params)
+        }
 
       return@CreateIntentWithConfirmationTokenCallback resultFromJavascript.getString("clientSecret")?.let {
         CreateIntentResult.Success(clientSecret = it)
@@ -314,18 +314,18 @@ class PaymentSheetManager(
 
   private fun buildIntentCreationCallback(): CreateIntentCallback {
     return CreateIntentCallback { paymentMethod, shouldSavePaymentMethod ->
-      val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+      val stripeSdkModule = requireNotNull(context.getNativeModule(StripeSdkModule::class.java))
       val params =
         Arguments.createMap().apply {
           putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
           putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
         }
 
-      stripeSdkModule?.eventEmitter?.emitOnConfirmHandlerCallback(params)
-
-      val resultFromJavascript = paymentSheetIntentCreationCallback.await()
-      // reset the completable
-      paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
+      val resultFromJavascript =
+        stripeSdkModule.intentCreationCallbacks.awaitResult(intentCreationCallbackJob) { requestId ->
+          params.putString("requestId", requestId)
+          stripeSdkModule.eventEmitter.emitOnConfirmHandlerCallback(params)
+        }
 
       return@CreateIntentCallback resultFromJavascript.getString("clientSecret")?.let {
         CreateIntentResult.Success(clientSecret = it)
