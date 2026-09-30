@@ -36,6 +36,7 @@ class MappersTest {
       mapOf(
         FinancialConnectionsEvent.ErrorCode.ACCOUNT_NUMBERS_UNAVAILABLE to "account_numbers_unavailable",
         FinancialConnectionsEvent.ErrorCode.ACCOUNTS_UNAVAILABLE to "accounts_unavailable",
+        FinancialConnectionsEvent.ErrorCode.NO_ELIGIBLE_ACCOUNTS to "no_eligible_accounts",
         FinancialConnectionsEvent.ErrorCode.NO_DEBITABLE_ACCOUNT to "no_debitable_account",
         FinancialConnectionsEvent.ErrorCode.AUTHORIZATION_FAILED to "authorization_failed",
         FinancialConnectionsEvent.ErrorCode.INSTITUTION_UNAVAILABLE_PLANNED to
@@ -157,6 +158,17 @@ class MappersTest {
       mapNextAction(
         StripeIntent.NextActionType.AwaitAuthorization,
         StripeIntent.NextActionData.AwaitAuthorization,
+      )
+
+    assertNull(result)
+  }
+
+  @Test
+  fun mapNextAction_MbWayAwaitAuthorization_ReturnsNull() {
+    val result =
+      mapNextAction(
+        StripeIntent.NextActionType.MbWayAwaitAuthorization,
+        StripeIntent.NextActionData.MbWayAwaitAuthorization,
       )
 
     assertNull(result)

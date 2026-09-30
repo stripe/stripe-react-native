@@ -5,6 +5,18 @@
 * [Added] Stripe Identity is now included in this package through `useStripeIdentity` and `presentIdentityVerificationSheet`, sharing the native Stripe SDK versions and release workflow. The dedicated Identity example shares the existing example's native projects and dependencies. See [migration instructions](./MIGRATING.md#stripe-identity) for the former standalone package.
 * [Added] Android Identity is opt-in through `StripeSdk_includeIdentity` (or the Expo plugin's `includeIdentity` option) and requires API 24 or higher. Existing Payments-only integrations retain API 23 support; Onramp also includes Identity.
 
+## 0.79.0 - 2026-09-29
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.12.0 to 26.12.1.
+* Updated Stripe Android SDK from 23.20.0 to 23.21.0.
+
+**Fixes**
+
+* [Fixed] Connect embedded components now use the configured appearance background and text colors for their loading indicator. ([#2665](https://github.com/stripe/stripe-react-native/pull/2665))
+
+## 0.78.0 - 2026-09-23
 **Changes**
 * [Changed] React Native versions < 0.75 are deprecated.
 * [Changed] iOS: By default, the Stripe iOS SDK is now resolved through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.

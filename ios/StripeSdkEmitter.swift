@@ -1,6 +1,7 @@
 import Foundation
 
 @objc public protocol StripeSdkEmitter {
+    func emitCheckoutServerUpdateRequested(_ value: [String: Any])
     func emitOnConfirmHandlerCallback(_ value: [String: Any])
     func emitOnConfirmationTokenHandlerCallback(_ value: [String: Any])
     func emitOnFinancialConnectionsEvent(_ value: [String: Any])

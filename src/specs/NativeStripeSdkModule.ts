@@ -52,7 +52,6 @@ type CustomerSheetInitResult = UnsafeObject<{
 }>;
 
 type CheckoutCreateResult = UnsafeObject<{
-  controllerId: string;
   session: Checkout.Session;
 }>;
 
@@ -261,7 +260,44 @@ export interface Spec extends TurboModule {
   ): Promise<CheckoutCreateResult>;
 
   /** @CheckoutSessionPrivatePreview */
+  updateCheckoutEmail(
+    controllerId: string,
+    email: string | null
+  ): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  updateCheckoutShippingAddress(
+    controllerId: string,
+    params: UnsafeObject<Checkout.UpdateShippingAddressParams>
+  ): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  applyCheckoutPromotionCode(
+    controllerId: string,
+    promotionCode: string
+  ): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  removeCheckoutPromotionCode(controllerId: string): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  clearCheckoutPaymentOption(controllerId: string): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
   destroyCheckout(controllerId: string): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  runCheckoutServerUpdate(
+    controllerId: string,
+    operationId: string
+  ): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  completeCheckoutServerUpdate(
+    controllerId: string,
+    operationId: string,
+    error: string | null
+  ): Promise<void>;
 
   // Events
   addListener: (eventType: string) => void;
