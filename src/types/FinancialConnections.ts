@@ -11,10 +11,11 @@ export type PreCollectedConsent = {
   /** ID of the Financial Connections Consent object returned by your server. */
   consent: string;
   /**
-   * Unix timestamp, in seconds, when the customer accepted the consent text.
-   * Capture this once, at acceptance time, and reuse the same value on
-   * retries instead of the time Financial Connections is (re-)launched.
-   * `Date.now()` returns milliseconds, so divide by 1000.
+   * Unix timestamp, in seconds, when the customer affirmatively accepted the
+   * complete Stripe-issued consent text. Capture this once, at acceptance
+   * time, and reuse the same value on retries instead of the time Financial
+   * Connections is (re-)launched. `Date.now()` returns milliseconds, so
+   * divide by 1000.
    */
   collectedAt: number;
 };
@@ -26,7 +27,10 @@ export type CollectFinancialConnectionsAccountsParams = {
   onEvent?: (event: FinancialConnectionsEvent) => void;
   /** Optional connected account ID to use for this Financial Connections session. Used for Stripe Connect embedded components. */
   connectedAccountId?: string;
-  /** Evidence that the customer accepted consent text before Financial Connections was presented. */
+  /**
+   * Optional evidence that the customer accepted the text issued through a
+   * Consent object.
+   */
   preCollectedConsent?: PreCollectedConsent;
 };
 

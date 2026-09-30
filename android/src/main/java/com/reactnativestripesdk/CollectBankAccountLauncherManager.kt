@@ -46,19 +46,19 @@ class CollectBankAccountLauncherManager(
 
     if (isPaymentIntent) {
       collectBankAccountLauncher.presentWithPaymentIntent(
-        publishableKey,
-        stripeAccountId,
-        clientSecret,
-        collectParams,
-        preCollectedConsent,
+        publishableKey = publishableKey,
+        stripeAccountId = stripeAccountId,
+        clientSecret = clientSecret,
+        configuration = collectParams,
+        preCollectedConsent = preCollectedConsent,
       )
     } else {
       collectBankAccountLauncher.presentWithSetupIntent(
-        publishableKey,
-        stripeAccountId,
-        clientSecret,
-        collectParams,
-        preCollectedConsent,
+        publishableKey = publishableKey,
+        stripeAccountId = stripeAccountId,
+        clientSecret = clientSecret,
+        configuration = collectParams,
+        preCollectedConsent = preCollectedConsent,
       )
     }
   }

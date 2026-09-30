@@ -1053,13 +1053,13 @@ class StripeSdkModule(
     unregisterStripeUIManager(collectBankAccountLauncherManager)
     collectBankAccountLauncherManager =
       CollectBankAccountLauncherManager(
-        reactApplicationContext,
-        publishableKey,
-        stripeAccountId,
-        clientSecret,
-        isPaymentIntent,
-        collectParams,
-        preCollectedConsent,
+        context = reactApplicationContext,
+        publishableKey = publishableKey,
+        stripeAccountId = stripeAccountId,
+        clientSecret = clientSecret,
+        isPaymentIntent = isPaymentIntent,
+        collectParams = collectParams,
+        preCollectedConsent = preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1174,12 +1174,12 @@ class StripeSdkModule(
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
-        reactApplicationContext,
-        clientSecret,
-        FinancialConnectionsSheetManager.Mode.ForToken,
-        publishableKey,
-        accountId,
-        preCollectedConsent,
+        context = reactApplicationContext,
+        clientSecret = clientSecret,
+        mode = FinancialConnectionsSheetManager.Mode.ForToken,
+        publishableKey = publishableKey,
+        stripeAccountId = accountId,
+        preCollectedConsent = preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1209,12 +1209,12 @@ class StripeSdkModule(
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
-        reactApplicationContext,
-        clientSecret,
-        FinancialConnectionsSheetManager.Mode.ForSession,
-        publishableKey,
-        accountId,
-        preCollectedConsent,
+        context = reactApplicationContext,
+        clientSecret = clientSecret,
+        mode = FinancialConnectionsSheetManager.Mode.ForSession,
+        publishableKey = publishableKey,
+        stripeAccountId = accountId,
+        preCollectedConsent = preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
