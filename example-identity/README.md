@@ -65,6 +65,21 @@ yarn typescript
 yarn test --runInBand example-identity
 ```
 
+CI also builds this example in Release mode on iOS and Android and runs its
+Maestro flow. The flow opens the native document-verification screen using a
+test session, cancels, and checks that `FlowCanceled` returns to the example.
+It does not capture or submit identity documents. Identity's lint, TypeScript,
+Jest, and native unit tests run in the existing shared jobs.
+
+To run the same flow locally after building and installing the Identity example
+on a simulator or emulator:
+
+```sh
+yarn test:e2e:ios --identity
+# or
+yarn test:e2e:android --identity
+```
+
 Both examples use the same native build and camera configuration. The shared
 Android app uses a MaterialComponents theme; the shared iOS Podfile configures a
 camera usage description for document verification.

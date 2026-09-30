@@ -77,6 +77,7 @@ export function Options({ options, setOptions }: OptionsProps) {
   return (
     <View style={styles.container}>
       <Option
+        testID="use-test-mode"
         title="Use Test Mode"
         value={options.useTestMode}
         onChange={(value) => setOptions({ ...options, useTestMode: value })}
