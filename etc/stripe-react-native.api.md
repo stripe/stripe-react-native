@@ -3529,7 +3529,7 @@ export enum PlatformPayError {
     Unknown = "Unknown"
 }
 
-// @public (undocumented)
+// @public
 type PreCollectedConsent = {
     consent: string;
     collectedAt: number;
