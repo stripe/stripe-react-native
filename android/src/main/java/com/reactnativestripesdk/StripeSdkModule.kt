@@ -1610,7 +1610,7 @@ class StripeSdkModule(
         instance.paymentElement(activity).present()
         promise.resolve(null)
       } catch (error: Exception) {
-        promise.reject(CheckoutErrorMapper.code(error).serializedValue, error.message, error)
+        promise.reject("Failed", error.message, error)
       }
     }
   }

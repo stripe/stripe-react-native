@@ -154,7 +154,7 @@ extension StripeSdkImpl {
                 reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
                 return
             }
-            guard let presenter = RCTPresentedViewController() else {
+            guard let presenter = checkoutPresentingViewControllerProvider() else {
                 reject("Failed", "Checkout requires a presenting view controller.", nil)
                 return
             }

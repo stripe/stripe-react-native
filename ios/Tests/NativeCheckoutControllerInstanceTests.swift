@@ -93,6 +93,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
 
     func test_sheetRejectsMissingPresenterAndDestroyedController() async throws {
         let sdk = StripeSdkImpl()
+        sdk.checkoutPresentingViewControllerProvider = { nil }
         let instance = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
         let controllerId = "controller-1"
         sdk.checkoutControllers[controllerId] = instance
