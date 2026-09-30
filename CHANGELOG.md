@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+**Features**
+
+* [Added] Added support for pre-collected consent in Financial Connections flows. (private preview)
+
 ## 0.79.0 - 2026-09-29
 
 **Changes**
