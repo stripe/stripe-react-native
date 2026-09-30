@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LayoutAnimation } from 'react-native';
 import { getCheckoutPaymentElementId } from '../checkout/createCheckout';
 import NativeCheckoutPaymentElement from '../specs/NativeCheckoutPaymentElement';
 import type { CheckoutPaymentElementViewProps } from '../types/Checkout';
@@ -37,8 +38,9 @@ function MeasuredElement({
     <NativeCheckoutPaymentElement
       {...props}
       controllerId={controllerId}
-      style={[{ height }, style]}
+      style={[{ width: '100%' }, style, { height }]}
       onHeightChanged={({ nativeEvent }) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setHeight(nativeEvent.height);
       }}
     />
