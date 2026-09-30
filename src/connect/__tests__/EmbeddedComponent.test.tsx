@@ -2,6 +2,7 @@
 import { mockCreateNativeStripeSdkMock } from '../testUtils';
 
 const mockInjectJavaScript = jest.fn();
+const mockReload = jest.fn();
 let webViewOnMessage: ((event: any) => void) | undefined;
 let mockLoadWebView = false;
 let mockWebViewComponent: any;
@@ -29,6 +30,7 @@ jest.mock('react-native-webview', () => {
     mockWebViewProps = props;
     React.useImperativeHandle(ref, () => ({
       injectJavaScript: mockInjectJavaScript,
+      reload: mockReload,
     }));
     return null;
   });
