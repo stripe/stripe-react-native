@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
@@ -638,13 +639,25 @@ fun getValOr(
     if (it.hasKey(key)) it.getString(key) else default
   } ?: default
 
-internal fun mapToPreCollectedConsent(params: ReadableMap): FinancialConnectionsPreCollectedConsent? =
-  params.getMap("preCollectedConsent")?.let {
-    FinancialConnectionsPreCollectedConsent(
-      consent = it.getString("consent")!!,
-      collectedAt = it.getDouble("collectedAt").toLong(),
+internal fun mapToPreCollectedConsent(params: ReadableMap): Result<FinancialConnectionsPreCollectedConsent?> {
+  val consentMap = params.getMap("preCollectedConsent") ?: return Result.success(null)
+  val consent = consentMap.getString("consent")
+  val hasNumericCollectedAt =
+    consentMap.hasKey("collectedAt") && consentMap.getType("collectedAt") == ReadableType.Number
+  if (consent.isNullOrEmpty() || !hasNumericCollectedAt) {
+    return Result.failure(
+      IllegalArgumentException(
+        "preCollectedConsent must include a non-empty consent string and a numeric collectedAt timestamp.",
+      ),
     )
   }
+  return Result.success(
+    FinancialConnectionsPreCollectedConsent(
+      consent = consent,
+      collectedAt = consentMap.getDouble("collectedAt").toLong(),
+    ),
+  )
+}
 
 internal fun mapToAddress(
   addressMap: ReadableMap?,

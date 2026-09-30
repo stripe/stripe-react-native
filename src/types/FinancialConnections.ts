@@ -2,10 +2,20 @@ import type { UserInterfaceStyle } from './Common';
 import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
 
+/**
+ * Evidence that the customer accepted your own consent text before Financial
+ * Connections was presented. Stripe may still show its own consent pane in
+ * addition to yours.
+ */
 export type PreCollectedConsent = {
   /** ID of the Financial Connections Consent object returned by your server. */
   consent: string;
-  /** Unix timestamp, in seconds, when the customer accepted the consent text. */
+  /**
+   * Unix timestamp, in seconds, when the customer accepted the consent text.
+   * Capture this once, at acceptance time, and reuse the same value on
+   * retries instead of the time Financial Connections is (re-)launched.
+   * `Date.now()` returns milliseconds, so divide by 1000.
+   */
   collectedAt: number;
 };
 

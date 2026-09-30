@@ -542,8 +542,8 @@ class MappersTests: XCTestCase {
 
     // MARK: - Financial Connections Consent
 
-    func test_mapToPreCollectedConsent_mapsValues() {
-        let result = FinancialConnections.mapToPreCollectedConsent([
+    func test_mapToPreCollectedConsent_mapsValues() throws {
+        let result = try FinancialConnections.mapToPreCollectedConsent([
             "preCollectedConsent": [
                 "consent": "fccons_test",
                 "collectedAt": 1_725_000_123,
@@ -554,8 +554,27 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(result?.collectedAt, 1_725_000_123)
     }
 
-    func test_mapToPreCollectedConsent_returnsNilWhenAbsent() {
-        XCTAssertNil(FinancialConnections.mapToPreCollectedConsent([:]))
+    func test_mapToPreCollectedConsent_returnsNilWhenAbsent() throws {
+        XCTAssertNil(try FinancialConnections.mapToPreCollectedConsent([:]))
+    }
+
+    func test_mapToPreCollectedConsent_throwsWhenConsentMissing() {
+        XCTAssertThrowsError(
+            try FinancialConnections.mapToPreCollectedConsent([
+                "preCollectedConsent": ["collectedAt": 1_725_000_123],
+            ])
+        )
+    }
+
+    func test_mapToPreCollectedConsent_throwsWhenCollectedAtIsNotNumeric() {
+        XCTAssertThrowsError(
+            try FinancialConnections.mapToPreCollectedConsent([
+                "preCollectedConsent": [
+                    "consent": "fccons_test",
+                    "collectedAt": "not-a-number",
+                ],
+            ])
+        )
     }
 
     // MARK: - Return URL Mappers

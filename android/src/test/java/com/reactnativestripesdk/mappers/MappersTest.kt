@@ -42,7 +42,7 @@ class MappersTest {
           ),
       )
 
-    val result = mapToPreCollectedConsent(params)
+    val result = mapToPreCollectedConsent(params).getOrThrow()
 
     assertEquals("fccons_test", result?.consent)
     assertEquals(1_725_000_123L, result?.collectedAt)
@@ -50,7 +50,31 @@ class MappersTest {
 
   @Test
   fun mapToPreCollectedConsent_returnsNullWhenAbsent() {
-    assertNull(mapToPreCollectedConsent(readableMapOf()))
+    assertNull(mapToPreCollectedConsent(readableMapOf()).getOrThrow())
+  }
+
+  @Test
+  fun mapToPreCollectedConsent_failsWhenConsentMissing() {
+    val params =
+      readableMapOf(
+        "preCollectedConsent" to readableMapOf("collectedAt" to 1_725_000_123.0),
+      )
+
+    assertTrue(mapToPreCollectedConsent(params).isFailure)
+  }
+
+  @Test
+  fun mapToPreCollectedConsent_failsWhenCollectedAtIsNotNumeric() {
+    val params =
+      readableMapOf(
+        "preCollectedConsent" to
+          readableMapOf(
+            "consent" to "fccons_test",
+            "collectedAt" to "not-a-number",
+          ),
+      )
+
+    assertTrue(mapToPreCollectedConsent(params).isFailure)
   }
 
   @Test

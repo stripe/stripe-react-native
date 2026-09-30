@@ -1044,6 +1044,12 @@ class StripeSdkModule(
         billingDetails.getString("email"),
       )
 
+    val preCollectedConsent =
+      mapToPreCollectedConsent(params).getOrElse {
+        promise.resolve(createError(ErrorType.Failed.toString(), it.message))
+        return
+      }
+
     unregisterStripeUIManager(collectBankAccountLauncherManager)
     collectBankAccountLauncherManager =
       CollectBankAccountLauncherManager(
@@ -1053,7 +1059,7 @@ class StripeSdkModule(
         clientSecret,
         isPaymentIntent,
         collectParams,
-        mapToPreCollectedConsent(params),
+        preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1159,6 +1165,12 @@ class StripeSdkModule(
     // Use connectedAccountId from params if provided, otherwise fall back to global stripeAccountId
     val accountId = getValOr(params, "connectedAccountId", null) ?: stripeAccountId
 
+    val preCollectedConsent =
+      mapToPreCollectedConsent(params).getOrElse {
+        promise.resolve(createError(ErrorType.Failed.toString(), it.message))
+        return
+      }
+
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
@@ -1167,7 +1179,7 @@ class StripeSdkModule(
         FinancialConnectionsSheetManager.Mode.ForToken,
         publishableKey,
         accountId,
-        mapToPreCollectedConsent(params),
+        preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1188,6 +1200,12 @@ class StripeSdkModule(
     // Use connectedAccountId from params if provided, otherwise fall back to global stripeAccountId
     val accountId = getValOr(params, "connectedAccountId", null) ?: stripeAccountId
 
+    val preCollectedConsent =
+      mapToPreCollectedConsent(params).getOrElse {
+        promise.resolve(createError(ErrorType.Failed.toString(), it.message))
+        return
+      }
+
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
@@ -1196,7 +1214,7 @@ class StripeSdkModule(
         FinancialConnectionsSheetManager.Mode.ForSession,
         publishableKey,
         accountId,
-        mapToPreCollectedConsent(params),
+        preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)

@@ -79,15 +79,25 @@ class FinancialConnections {
         }
     }
 
+    internal struct PreCollectedConsentError: LocalizedError {
+        var errorDescription: String? {
+            "preCollectedConsent must include a non-empty consent string and a numeric collectedAt timestamp."
+        }
+    }
+
     internal static func mapToPreCollectedConsent(
         _ params: NSDictionary
-    ) -> FinancialConnectionsPreCollectedConsent? {
+    ) throws -> FinancialConnectionsPreCollectedConsent? {
+        guard let value = params["preCollectedConsent"] as? NSDictionary else {
+            return nil
+        }
+
         guard
-            let value = params["preCollectedConsent"] as? NSDictionary,
             let consent = value["consent"] as? String,
+            !consent.isEmpty,
             let collectedAt = value["collectedAt"] as? NSNumber
         else {
-            return nil
+            throw PreCollectedConsentError()
         }
 
         return FinancialConnectionsPreCollectedConsent(

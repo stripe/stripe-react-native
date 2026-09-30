@@ -17,6 +17,7 @@ import type { FinancialConnections } from '@stripe/stripe-react-native';
 import { setFinancialConnectionsForceNativeFlow } from '@stripe/stripe-react-native/src/functions';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
+import { fetchPublishableKey } from '../helpers';
 import {
   API_URL,
   FINANCIAL_CONNECTIONS_API_URL,
@@ -84,6 +85,12 @@ export default function CollectBankAccountScreen() {
   const [pendingConsent, setPendingConsent] =
     React.useState<PendingConsent | null>(null);
   const [consentLoading, setConsentLoading] = React.useState(false);
+  const [defaultPublishableKey, setDefaultPublishableKey] = React.useState<
+    string | null
+  >(null);
+  // Set once launchWithPendingConsent swaps in the playground's publishable
+  // key, so the default-merchant flow can restore it before launching again.
+  const usingCustomStripeKeyRef = React.useRef(false);
   const {
     loading,
     collectBankAccountToken,
@@ -92,6 +99,7 @@ export default function CollectBankAccountScreen() {
 
   React.useEffect(() => {
     fetchClientSecret();
+    fetchPublishableKey('us_bank_account').then(setDefaultPublishableKey);
   }, []);
 
   React.useEffect(() => {
@@ -249,6 +257,7 @@ export default function CollectBankAccountScreen() {
         urlScheme: 'com.stripe.react.native',
         setReturnUrlSchemeOnAndroid: true,
       });
+      usingCustomStripeKeyRef.current = true;
       const preCollectedConsent = {
         consent: pendingConsent.consent.id,
         collectedAt,
@@ -269,10 +278,24 @@ export default function CollectBankAccountScreen() {
     }
   };
 
+  const restoreDefaultStripeKeyIfNeeded = async () => {
+    if (!usingCustomStripeKeyRef.current || !defaultPublishableKey) {
+      return;
+    }
+    await initStripe({
+      publishableKey: defaultPublishableKey,
+      merchantIdentifier: 'merchant.com.stripe.react.native',
+      urlScheme: 'com.stripe.react.native',
+      setReturnUrlSchemeOnAndroid: true,
+    });
+    usingCustomStripeKeyRef.current = false;
+  };
+
   const handleCollectTokenPress = async () => {
     if (usePreCollectedConsent) {
       await prepareConsent('token');
     } else {
+      await restoreDefaultStripeKeyIfNeeded();
       await collectToken(clientSecret);
     }
   };
@@ -281,6 +304,7 @@ export default function CollectBankAccountScreen() {
     if (usePreCollectedConsent) {
       await prepareConsent('session');
     } else {
+      await restoreDefaultStripeKeyIfNeeded();
       await collectSession(clientSecret);
     }
   };
