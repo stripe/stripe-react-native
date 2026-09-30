@@ -28,4 +28,6 @@
 - (void)emitPaymentMethodMessagingElementDidUpdateHeight:(NSDictionary *)value;
 - (void)emitPaymentMethodMessagingElementConfigureResult:(NSDictionary *)value;
 - (void)emitCheckoutControllerDidUpdate:(NSDictionary *)value;
+- (void)emitCheckoutControllerDidSelectPaymentOption:(NSDictionary *)value;
+- (void)emitCheckoutServerUpdateRequested:(NSDictionary *)value;
 @end

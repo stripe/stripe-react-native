@@ -562,6 +562,8 @@ internal fun mapNextAction(
     NextActionType.CashAppRedirect,
     NextActionType.BlikAuthorize,
     NextActionType.UseStripeSdk,
+    NextActionType.AwaitAuthorization,
+    NextActionType.MbWayAwaitAuthorization,
     NextActionType.DisplayPayNowDetails,
     NextActionType.DisplayPromptPayDetails,
     null,
@@ -992,11 +994,15 @@ internal fun mapFromFinancialConnectionsEvent(event: FinancialConnectionsEvent):
       buildMap {
         put("institutionName", event.metadata.institutionName)
         put("manualEntry", event.metadata.manualEntry)
-        put("errorCode", event.metadata.errorCode)
+        put("errorCode", mapFinancialConnectionsEventErrorCode(event.metadata.errorCode))
       }
 
     putMap("metadata", tweakedMap.toReadableMap())
   }
+
+internal fun mapFinancialConnectionsEventErrorCode(
+  errorCode: FinancialConnectionsEvent.ErrorCode?
+): String? = errorCode?.value
 
 private fun List<Any?>.toWritableArray(): WritableArray {
   val writableArray = Arguments.createArray()

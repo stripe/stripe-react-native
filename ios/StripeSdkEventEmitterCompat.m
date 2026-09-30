@@ -28,6 +28,8 @@
     @"paymentMethodMessagingElementDidUpdateHeight",
     @"paymentMethodMessagingElementConfigureResult",
     @"checkoutControllerDidUpdate",
+    @"checkoutServerUpdateRequested",
+    @"checkoutControllerDidSelectPaymentOption",
   ];
 }
 
@@ -144,6 +146,16 @@
 - (void)emitCheckoutControllerDidUpdate:(NSDictionary *)value
 {
   [self sendEventWithName:@"checkoutControllerDidUpdate" body:value];
+}
+
+- (void)emitCheckoutControllerDidSelectPaymentOption:(NSDictionary *)value
+{
+  [self sendEventWithName:@"checkoutControllerDidSelectPaymentOption" body:value];
+}
+
+- (void)emitCheckoutServerUpdateRequested:(NSDictionary *)value
+{
+  [self sendEventWithName:@"checkoutServerUpdateRequested" body:value];
 }
 
 @end

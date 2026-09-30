@@ -1,22 +1,44 @@
-import { useMemo } from 'react';
-import type { Checkout } from '../types/Checkout';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createCheckoutController,
+  normalizeCheckoutError,
+} from '../checkout/createCheckout';
+import type { Checkout, CheckoutController } from '../types/Checkout';
 
-const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
-  'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
-
-const checkoutNotImplementedStripeError: NonNullable<
-  Checkout.UseResult['error']
-> = {
-  code: 'Failed',
-  message: CHECKOUT_NOT_IMPLEMENTED_MESSAGE,
+type State = Pick<
+  Checkout.UseResult,
+  'status' | 'session' | 'paymentElement' | 'error'
+>;
+const idle: State = {
+  status: 'idle',
+  session: null,
+  paymentElement: null,
+  error: null,
 };
 
-const rejectNotImplemented = (): Promise<never> =>
-  Promise.reject(new Error(CHECKOUT_NOT_IMPLEMENTED_MESSAGE));
+function stateForController(controller: CheckoutController): State {
+  if (controller.status === 'destroyed') {
+    return {
+      ...idle,
+      status: 'error',
+      error: {
+        code: 'Canceled',
+        message: 'The Checkout controller was destroyed.',
+      },
+    };
+  }
+  return {
+    status: controller.status,
+    session: controller.session,
+    paymentElement: controller.paymentElement,
+    error: null,
+  };
+}
 
 /**
- * Loads a Checkout Session and exposes its reactive state and controller
- * methods. The hook owns the native controller lifecycle.
+ * Loads Checkout and exposes native session updates. The hook destroys its
+ * controller on disable, reload, and unmount. Changing getConfiguration does
+ * not reload automatically; reload uses its latest value.
  *
  * @remarks
  * This API is in private preview and can change without notice.
@@ -24,24 +46,106 @@ const rejectNotImplemented = (): Promise<never> =>
  * @CheckoutSessionPrivatePreview
  */
 export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {
-  // TODO(porter): Implement the Checkout lifecycle with the native SDK.
   const enabled = options.enabled ?? true;
+  const configuration = useRef(options.getConfiguration);
+  configuration.current = options.getConfiguration;
+  const active = useRef(false);
+  const generation = useRef(0);
+  const controller = useRef<CheckoutController | undefined>(undefined);
+  const destruction = useRef<Promise<void> | undefined>(undefined);
+  const [state, setState] = useState<State>(idle);
 
-  return useMemo<Checkout.UseResult>(
-    () => ({
-      status: enabled ? 'error' : 'idle',
-      session: null,
-      paymentElement: null,
-      error: enabled ? checkoutNotImplementedStripeError : null,
-      reload: rejectNotImplemented,
-      updateEmail: rejectNotImplemented,
-      updateShippingAddress: rejectNotImplemented,
-      applyPromotionCode: rejectNotImplemented,
-      removePromotionCode: rejectNotImplemented,
-      runServerUpdate: rejectNotImplemented,
-      clearPaymentOption: rejectNotImplemented,
-      confirm: rejectNotImplemented,
-    }),
-    [enabled]
-  );
+  const destroy = useCallback(async () => {
+    const previous = controller.current;
+    controller.current = undefined;
+    const pending = previous ? previous.destroy() : destruction.current;
+    destruction.current = pending;
+    try {
+      await pending;
+    } finally {
+      if (destruction.current === pending) {
+        destruction.current = undefined;
+      }
+    }
+  }, []);
+
+  const reload = useCallback(async () => {
+    if (!active.current) {
+      return;
+    }
+    const request = ++generation.current;
+    const isCurrent = () => active.current && generation.current === request;
+    setState({ ...idle, status: 'loading' });
+    try {
+      await destroy();
+      if (!isCurrent()) {
+        return;
+      }
+      const createOptions = await configuration.current();
+      if (!isCurrent()) {
+        return;
+      }
+      const next = await createCheckoutController(createOptions, (updated) => {
+        if (isCurrent() && controller.current === updated) {
+          setState(stateForController(updated));
+        }
+      });
+      if (!isCurrent()) {
+        await next.destroy();
+        return;
+      }
+      controller.current = next;
+      setState(stateForController(next));
+    } catch (error) {
+      if (isCurrent()) {
+        setState({
+          ...idle,
+          status: 'error',
+          error: normalizeCheckoutError(error),
+        });
+      }
+      throw error;
+    }
+  }, [destroy]);
+
+  useEffect(() => {
+    active.current = enabled;
+    if (enabled) {
+      // The hook exposes initialization failures through its error state.
+      reload().catch(() => {});
+    } else {
+      setState(idle);
+    }
+    return () => {
+      active.current = false;
+      generation.current += 1;
+      // Cleanup cannot report errors through an unmounted hook.
+      destroy().catch(() => {});
+    };
+  }, [destroy, enabled, reload]);
+
+  const methods = useMemo<Omit<Checkout.UseResult, keyof State>>(() => {
+    const currentController = () => {
+      if (!active.current || !controller.current) {
+        throw new Error('Checkout has not loaded a controller.');
+      }
+      return controller.current;
+    };
+    return {
+      reload,
+      updateEmail: async (email) => currentController().updateEmail(email),
+      updateShippingAddress: async (address) =>
+        currentController().updateShippingAddress(address),
+      applyPromotionCode: async (code) =>
+        currentController().applyPromotionCode(code),
+      removePromotionCode: async () =>
+        currentController().removePromotionCode(),
+      clearPaymentOption: async () => currentController().clearPaymentOption(),
+      runServerUpdate: async (callback) =>
+        currentController().runServerUpdate(callback),
+      confirm: async () => currentController().confirm(),
+    };
+  }, [reload]);
+
+  return { ...(enabled ? state : idle), ...methods };
 }
