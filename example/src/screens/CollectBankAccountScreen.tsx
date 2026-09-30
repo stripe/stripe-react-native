@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Alert,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -18,13 +17,28 @@ import type { FinancialConnections } from '@stripe/stripe-react-native';
 import { setFinancialConnectionsForceNativeFlow } from '@stripe/stripe-react-native/src/functions';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
-import { API_URL, FINANCIAL_CONNECTIONS_API_URL } from '../Config';
+import {
+  API_URL,
+  FINANCIAL_CONNECTIONS_API_URL,
+  FINANCIAL_CONNECTIONS_CUSTOM_PK,
+  FINANCIAL_CONNECTIONS_CUSTOM_SK,
+} from '../Config';
 import type { FinancialConnectionsEvent } from '@stripe/stripe-react-native/src/types/FinancialConnections';
 
-const DEMO_CONFIGURATION = {
-  merchant: 'default',
-  test_mode: true,
-};
+// The financial_connections_pre_collected_consent preview isn't enabled on
+// the demo backend's default merchant, so route pre-collected consent
+// requests through custom_keys when a demo account is configured locally.
+const DEMO_CONFIGURATION = FINANCIAL_CONNECTIONS_CUSTOM_SK
+  ? {
+      merchant: 'custom_keys',
+      test_mode: true,
+      custom_public_key: FINANCIAL_CONNECTIONS_CUSTOM_PK,
+      custom_secret_key: FINANCIAL_CONNECTIONS_CUSTOM_SK,
+    }
+  : {
+      merchant: 'default',
+      test_mode: true,
+    };
 
 type AccountHolder =
   | { type: 'customer'; customer: string }
@@ -272,69 +286,78 @@ export default function CollectBankAccountScreen() {
   };
 
   return (
-    <PaymentScreen paymentMethod="us_bank_account">
-      {Platform.OS === 'ios' && (
-        <View
-          style={{
-            marginBottom: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Text>Force native flow</Text>
+    <View style={styles.screen}>
+      <PaymentScreen paymentMethod="us_bank_account">
+        {Platform.OS === 'ios' && (
+          <View
+            style={{
+              marginBottom: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Text>Force native flow</Text>
+            <Switch
+              value={forceNativeFlow}
+              onValueChange={setForceNativeFlow}
+              accessibilityLabel="Force native flow"
+              testID="force_native_flow_switch"
+            />
+          </View>
+        )}
+        <View style={styles.settingRow}>
+          <Text>Use pre-collected consent</Text>
           <Switch
-            value={forceNativeFlow}
-            onValueChange={setForceNativeFlow}
-            accessibilityLabel="Force native flow"
-            testID="force_native_flow_switch"
+            value={usePreCollectedConsent}
+            onValueChange={setUsePreCollectedConsent}
+            accessibilityLabel="Use pre-collected consent"
+            testID="pre_collected_consent_switch"
           />
         </View>
-      )}
-      <View style={styles.settingRow}>
-        <Text>Use pre-collected consent</Text>
-        <Switch
-          value={usePreCollectedConsent}
-          onValueChange={setUsePreCollectedConsent}
-          accessibilityLabel="Use pre-collected consent"
-          testID="pre_collected_consent_switch"
+        {usePreCollectedConsent && !FINANCIAL_CONNECTIONS_CUSTOM_SK && (
+          <Text style={styles.hint}>
+            Enter your demo account keys in example/src/Config.ts
+            (FINANCIAL_CONNECTIONS_CUSTOM_PK/SK) to use pre-collected consent.
+          </Text>
+        )}
+        {usePreCollectedConsent && (
+          <TextInput
+            style={styles.input}
+            value={consentLocale}
+            onChangeText={setConsentLocale}
+            placeholder="Consent locale (optional)"
+            autoCapitalize="none"
+          />
+        )}
+        <Button
+          variant="primary"
+          onPress={handleCollectTokenPress}
+          title={!clientSecret ? 'loading...' : 'Collect token'}
+          loading={loading || consentLoading}
+          disabled={!clientSecret || consentLoading}
         />
-      </View>
-      {usePreCollectedConsent && (
-        <TextInput
-          style={styles.input}
-          value={consentLocale}
-          onChangeText={setConsentLocale}
-          placeholder="Consent locale (optional)"
-          autoCapitalize="none"
+        <Button
+          variant="primary"
+          onPress={handleCollectSessionPress}
+          title={!clientSecret ? 'loading...' : 'Collect session'}
+          loading={loading || consentLoading}
+          disabled={!clientSecret || consentLoading}
         />
-      )}
-      <Button
-        variant="primary"
-        onPress={handleCollectTokenPress}
-        title={!clientSecret ? 'loading...' : 'Collect token'}
-        loading={loading || consentLoading}
-        disabled={!clientSecret || consentLoading}
-      />
-      <Button
-        variant="primary"
-        onPress={handleCollectSessionPress}
-        title={!clientSecret ? 'loading...' : 'Collect session'}
-        loading={loading || consentLoading}
-        disabled={!clientSecret || consentLoading}
-      />
-      <Modal
-        visible={pendingConsent !== null}
-        animationType="slide"
-        onRequestClose={() => setPendingConsent(null)}
-      >
+      </PaymentScreen>
+      {pendingConsent && (
+        // Rendered as a sibling of PaymentScreen (not inside its ScrollView,
+        // and not a native Modal) so it fills the actual screen and fully
+        // disappears before collectToken/collectSession presents the native
+        // Financial Connections sheet - stacking two native modal
+        // presentations back-to-back causes a blank screen on iOS.
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Financial Connections consent</Text>
           <Text style={styles.locale}>
-            Locale: {pendingConsent?.consent.locale}
+            Locale: {pendingConsent.consent.locale}
           </Text>
           <ScrollView style={styles.consentTextContainer}>
-            <Text selectable>{pendingConsent?.consent.consentText}</Text>
+            <Text selectable>{pendingConsent.consent.consentText}</Text>
           </ScrollView>
           <View style={styles.modalActions}>
             <Button onPress={() => setPendingConsent(null)} title="Cancel" />
@@ -347,12 +370,20 @@ export default function CollectBankAccountScreen() {
             />
           </View>
         </View>
-      </Modal>
-    </PaymentScreen>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  hint: {
+    marginBottom: 16,
+    color: '#6b7280',
+    fontSize: 13,
+  },
   settingRow: {
     marginBottom: 16,
     flexDirection: 'row',
@@ -366,9 +397,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   modalContainer: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#fff',
     padding: 24,
     paddingTop: 64,
+    zIndex: 10,
+    elevation: 10,
   },
   modalTitle: {
     fontSize: 20,
