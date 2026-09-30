@@ -57,6 +57,7 @@ import com.reactnativestripesdk.utils.mapFromToken
 import com.reactnativestripesdk.utils.mapToAddress
 import com.reactnativestripesdk.utils.mapToBankAccountType
 import com.reactnativestripesdk.utils.mapToPaymentMethodType
+import com.reactnativestripesdk.utils.mapToPreCollectedConsent
 import com.reactnativestripesdk.utils.mapToReturnURL
 import com.reactnativestripesdk.utils.mapToShippingDetails
 import com.reactnativestripesdk.utils.mapToUICustomization
@@ -1054,15 +1055,22 @@ class StripeSdkModule(
         billingDetails.getString("email"),
       )
 
+    val preCollectedConsent =
+      mapToPreCollectedConsent(params).getOrElse {
+        promise.resolve(createError(ErrorType.Failed.toString(), it.message))
+        return
+      }
+
     unregisterStripeUIManager(collectBankAccountLauncherManager)
     collectBankAccountLauncherManager =
       CollectBankAccountLauncherManager(
-        reactApplicationContext,
-        publishableKey,
-        stripeAccountId,
-        clientSecret,
-        isPaymentIntent,
-        collectParams,
+        context = reactApplicationContext,
+        publishableKey = publishableKey,
+        stripeAccountId = stripeAccountId,
+        clientSecret = clientSecret,
+        isPaymentIntent = isPaymentIntent,
+        collectParams = collectParams,
+        preCollectedConsent = preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1168,14 +1176,21 @@ class StripeSdkModule(
     // Use connectedAccountId from params if provided, otherwise fall back to global stripeAccountId
     val accountId = getValOr(params, "connectedAccountId", null) ?: stripeAccountId
 
+    val preCollectedConsent =
+      mapToPreCollectedConsent(params).getOrElse {
+        promise.resolve(createError(ErrorType.Failed.toString(), it.message))
+        return
+      }
+
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
-        reactApplicationContext,
-        clientSecret,
-        FinancialConnectionsSheetManager.Mode.ForToken,
-        publishableKey,
-        accountId,
+        context = reactApplicationContext,
+        clientSecret = clientSecret,
+        mode = FinancialConnectionsSheetManager.Mode.ForToken,
+        publishableKey = publishableKey,
+        stripeAccountId = accountId,
+        preCollectedConsent = preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1196,14 +1211,21 @@ class StripeSdkModule(
     // Use connectedAccountId from params if provided, otherwise fall back to global stripeAccountId
     val accountId = getValOr(params, "connectedAccountId", null) ?: stripeAccountId
 
+    val preCollectedConsent =
+      mapToPreCollectedConsent(params).getOrElse {
+        promise.resolve(createError(ErrorType.Failed.toString(), it.message))
+        return
+      }
+
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
-        reactApplicationContext,
-        clientSecret,
-        FinancialConnectionsSheetManager.Mode.ForSession,
-        publishableKey,
-        accountId,
+        context = reactApplicationContext,
+        clientSecret = clientSecret,
+        mode = FinancialConnectionsSheetManager.Mode.ForSession,
+        publishableKey = publishableKey,
+        stripeAccountId = accountId,
+        preCollectedConsent = preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)

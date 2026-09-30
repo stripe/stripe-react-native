@@ -1,4 +1,8 @@
-import type { Checkout, CheckoutController } from '../types/Checkout';
+import type {
+  Checkout,
+  CheckoutController,
+  CheckoutPaymentElement,
+} from '../types/Checkout';
 import type { StripeError } from '../types/Errors';
 import { runServerUpdate } from './runServerUpdate';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
@@ -7,6 +11,19 @@ import {
   addCheckoutControllerSelectionListener,
   createCheckoutBridgeId,
 } from './CheckoutControllerEventEmitter';
+
+const paymentElementIds = new WeakMap<CheckoutPaymentElement, string>();
+
+/** Resolves a Payment Element owned by a Checkout controller. */
+export function getCheckoutPaymentElementId(
+  element: CheckoutPaymentElement
+): string {
+  const id = paymentElementIds.get(element);
+  if (!id) {
+    throw new Error('Payment Element was not created by this SDK.');
+  }
+  return id;
+}
 
 const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
   'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
@@ -188,6 +205,7 @@ export async function createCheckoutController(
         return destroyPromise;
       },
     };
+    paymentElementIds.set(paymentElement, controllerId);
     return controller;
   } catch (error) {
     subscription.remove();

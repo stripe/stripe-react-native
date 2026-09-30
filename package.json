@@ -208,6 +208,7 @@
         "CardField": "CardFieldComponentView",
         "CardForm": "CardFormComponentView",
         "EmbeddedPaymentElementView": "EmbeddedPaymentElementViewComponentView",
+        "CheckoutPaymentElementView": "CheckoutPaymentElementViewComponentView",
         "NavigationBar": "NavigationBarComponentView",
         "StripeContainer": "StripeContainerComponentView"
       }

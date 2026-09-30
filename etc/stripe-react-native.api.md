@@ -1163,7 +1163,7 @@ export interface CheckoutPaymentElement {
 }
 
 // @public
-export function CheckoutPaymentElementView(_props: CheckoutPaymentElementViewProps): React_2.JSX.Element;
+export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProps): React_2.JSX.Element;
 
 // @public
 export interface CheckoutPaymentElementViewProps extends ViewProps {
@@ -1221,6 +1221,7 @@ type CollectBankAccountParams = {
     };
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public (undocumented)
@@ -1244,6 +1245,7 @@ type CollectBankAccountTokenParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
     connectedAccountId?: string;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public
@@ -1254,6 +1256,7 @@ type CollectFinancialConnectionsAccountsParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
     connectedAccountId?: string;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public (undocumented)
@@ -2006,6 +2009,7 @@ type FieldName_2 = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
 declare namespace FinancialConnections {
     export {
+        PreCollectedConsent,
         CollectFinancialConnectionsAccountsParams,
         SessionResult,
         TokenResult,
@@ -3543,6 +3547,12 @@ export enum PlatformPayError {
 }
 
 // @public
+type PreCollectedConsent = {
+    consent: string;
+    collectedAt: number;
+};
+
+// @public
 export function presentIdentityVerificationSheet(options: IdentityVerificationSheetOptions): Promise<IdentityVerificationSheetResult>;
 
 // @public
@@ -4727,7 +4737,7 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
 // src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
-// src/types/PaymentMethod.ts:298:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:301:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
