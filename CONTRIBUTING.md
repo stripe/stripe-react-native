@@ -99,7 +99,7 @@ Identity uses `example/`'s native projects, dependency installation, and lockfil
 
 This avoids adding another set of Identity versions. It does not consolidate the existing JavaScript manifests in the SDK root, Payments example, and Connect example; their existing install and upgrade workflows remain in place. The Identity playground also shares Payments' app identifier and native installation, so it is run separately rather than installed alongside Payments.
 
-The shared Android example already enables Onramp, which also includes Identity. Payments-only consumer builds exclude Identity by default and retain API 23 support; apps using Identity opt in with `StripeSdk_includeIdentity=true` and require API 24 or higher.
+The shared example already enables Onramp on iOS and Android, which also includes Identity. Payments-only consumer builds exclude Identity by default. Consumer apps opt in on iOS with the `stripe-react-native/Identity` subspec, and on Android with `StripeSdk_includeIdentity=true` (or use the Expo plugin's `includeIdentity: true` option for both platforms). Android Identity requires API 24 or higher; Payments-only apps retain API 23 support. See [Identity setup](./README.md#identity).
 
 ## Tests
 

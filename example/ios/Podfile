@@ -46,7 +46,7 @@ end
 # them into the workspace. react-native-test-app regenerates
 # ReactTestApp.xcodeproj under node_modules/.generated on every pod install,
 # so every adjustment here must be (re)applied on each run.
-post_integrate do |_installer|
+post_integrate do |installer|
   project_path = "#{ws_dir}/node_modules/.generated/ios/ReactTestApp.xcodeproj"
   # Both examples use this generated app. Replace RNTA's QR-scanner-only
   # description with one that also explains Identity's camera use.
@@ -56,7 +56,24 @@ post_integrate do |_installer|
   Xcodeproj::Plist.write_to_path(info_plist, info_plist_path)
 
   project = Xcodeproj::Project.open(project_path)
+  # ReactNativeHost's public headers reference React's source headers, which
+  # aren't modular in the prebuilt React framework. Allow those imports in
+  # the generated example host and its tests. Keep this out of the SDK's
+  # pod settings so consumer apps retain their own compiler configuration.
+  prebuilt_react = installer.pod_targets.any? { |target| target.pod_name == 'React-Core-prebuilt' }
+  if prebuilt_react
+    project.targets.select { |target| %w[ReactTestApp ReactTestAppTests].include?(target.name) }.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      end
+    end
+  end
   test_target = project.targets.find { |target| target.name == 'ReactTestAppTests' }
+  stripe_subspecs = installer.pod_targets
+    .select { |target| target.pod_name == 'stripe-react-native' }
+    .flat_map { |target| target.specs.map(&:name) }
+  identity_enabled = stripe_subspecs.include?('stripe-react-native/Identity')
+  onramp_enabled = stripe_subspecs.include?('stripe-react-native/Onramp')
 
   # The SDK's native unit tests live in the repo (ios/Tests), not in the
   # generated test app; add them to the ReactTestAppTests target by reference
@@ -74,9 +91,22 @@ post_integrate do |_installer|
   end
 
   test_target.build_configurations.each do |config|
+    # Exercise the same enabled implementation or disabled fallback as the SDK.
+    conditions = Array(config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] || '$(inherited)')
+      .flat_map { |condition| condition.to_s.split(' ') }
+    conditions.delete('STRIPE_IDENTITY')
+    conditions << 'STRIPE_IDENTITY' if identity_enabled
+    config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = conditions
+
     flags = Array(config.build_settings['OTHER_SWIFT_FLAGS'] || '$(inherited)')
     flags = flags.flat_map { |flag| flag.to_s.split(' ') }
     flags << '$(inherited)' unless flags.include?('$(inherited)')
+    # The prebuilt React umbrella omits some legacy headers. Native tests
+    # import it through @testable and treat warnings as errors; suppress only
+    # this Clang packaging diagnostic, retaining other compiler diagnostics.
+    if prebuilt_react && !flags.include?('-Wno-incomplete-umbrella')
+      flags.concat(['-Xcc', '-Wno-incomplete-umbrella'])
+    end
     unless disable_spm
       # The tests import Stripe modules directly (@testable-importing the SDK
       # framework also requires resolving the modules its Swift interface
@@ -88,12 +118,14 @@ post_integrate do |_installer|
       # at each generated module map explicitly. (This is also why these
       # flags live here and not in the shipped podspec: app code doesn't
       # import Stripe modules, so regular apps don't need them.)
-      %w[
-        Stripe Stripe3DS2 StripeApplePay StripeCameraCore StripeCore
-        StripeCryptoOnramp StripeFinancialConnections StripeIdentity
+      modules = %w[
+        Stripe Stripe3DS2 StripeApplePay StripeCore StripeFinancialConnections
         StripeIssuing StripePaymentSheet StripePayments StripePaymentsUI
         StripeUICore
-      ].each do |module_name|
+      ]
+      modules.concat(%w[StripeCameraCore StripeIdentity]) if identity_enabled
+      modules << 'StripeCryptoOnramp' if onramp_enabled
+      modules.each do |module_name|
         map_flag = "-fmodule-map-file=$(OBJROOT)/GeneratedModuleMaps$(EFFECTIVE_PLATFORM_NAME)/#{module_name}.modulemap"
         next if flags.include?(map_flag)
 

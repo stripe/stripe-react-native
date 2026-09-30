@@ -37,9 +37,9 @@ type StripePluginProps = {
    */
   includeOnramp?: boolean;
   /**
-   * Android only. Includes native Identity verification, which requires
-   * minSdkVersion 24 or higher. Defaults to false; Onramp also includes Identity.
-   * Identity is included automatically on iOS.
+   * Includes native Identity verification on iOS and Android.
+   * Requires minSdkVersion 24 or higher on Android.
+   * Defaults to false; Onramp also includes Identity on both platforms.
    */
   includeIdentity?: boolean;
   /**
@@ -64,7 +64,12 @@ const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
 
 const withStripeIos: ConfigPlugin<StripePluginProps> = (
   expoConfig,
-  { merchantIdentifier, includeOnramp = false, disableSPM = false }
+  {
+    merchantIdentifier,
+    includeOnramp,
+    includeIdentity = false,
+    disableSPM = false,
+  }
 ) => {
   let resultConfig = withEntitlementsPlist(expoConfig, (entitlementsConfig) => {
     entitlementsConfig.modResults = setApplePayEntitlement(
@@ -74,53 +79,135 @@ const withStripeIos: ConfigPlugin<StripePluginProps> = (
     return entitlementsConfig;
   });
 
-  // Always run the Podfile mod (not just when disableSPM is true): when the
-  // option is turned back off, the previously generated block must be removed
-  // again, because `expo prebuild` without --clean reuses the existing
-  // Podfile.
+  // Always run the Podfile mod: turning an option back off must remove its
+  // generated block, because `expo prebuild` without --clean reuses the Podfile.
   resultConfig = withPodfile(resultConfig, (config) => {
-    config.modResults.contents = setPodfileDisableSPM(
-      config.modResults.contents,
-      disableSPM
+    let contents = setPodfileDisableSPM(config.modResults.contents, disableSPM);
+    // Remove our Identity block before migrating a legacy Onramp line, whose
+    // ownership signature is its position immediately after autolinking.
+    contents = setPodfileIdentity(contents, false, '');
+    const needsPodPath =
+      includeIdentity ||
+      includeOnramp ||
+      (includeOnramp === false &&
+        contents.includes("pod 'stripe-react-native/Onramp', :path => '"));
+    const relativePodPath = needsPodPath
+      ? path.relative(
+          path.join(config.modRequest.projectRoot, 'ios'),
+          path.dirname(
+            require.resolve('@stripe/stripe-react-native/package.json', {
+              paths: [config.modRequest.projectRoot],
+            })
+          )
+        )
+      : '';
+    contents = setPodfileOnramp(contents, includeOnramp, relativePodPath);
+    config.modResults.contents = setPodfileIdentity(
+      contents,
+      includeIdentity,
+      relativePodPath
     );
     return config;
   });
-
-  // Conditionally include Onramp pod for iOS.
-  if (includeOnramp) {
-    resultConfig = withPodfile(resultConfig, (config) => {
-      const podfile = config.modResults.contents;
-
-      const localPodPath = path.dirname(
-        require.resolve('@stripe/stripe-react-native/package.json', {
-          paths: [config.modRequest.projectRoot],
-        })
-      );
-      const relativePodPath = path.relative(
-        path.join(config.modRequest.projectRoot, 'ios'),
-        localPodPath
-      );
-
-      // Using Expo BuildProperties with `extraPods` unfortunately results in
-      // an empty pod, so we're modifying the Podfile directly. The pod line
-      // *must* come after the use_native_modules! call.
-      const podLine = `  pod 'stripe-react-native/Onramp', :path => '${relativePodPath}'`;
-
-      if (!podfile.includes(podLine)) {
-        config.modResults.contents = podfile.replace(
-          'config = use_native_modules!(config_command)',
-          (match) => `${match}\n${podLine}`
-        );
-      }
-
-      return config;
-    });
-  }
 
   return resultConfig;
 };
 
 const DISABLE_SPM_TAG = '@stripe/stripe-react-native-disableSPM';
+
+/**
+ * Includes the optional Identity subspec after React Native autolinking.
+ * Only the generated block is managed; manually configured pods are preserved.
+ */
+export function setPodfileIdentity(
+  contents: string,
+  includeIdentity: boolean,
+  relativePodPath: string
+): string {
+  return setPodfileOptionalModule(
+    contents,
+    'Identity',
+    includeIdentity,
+    relativePodPath
+  );
+}
+
+/** Includes Onramp and removes only generated or explicitly disabled legacy setup. */
+export function setPodfileOnramp(
+  contents: string,
+  includeOnramp: boolean | undefined,
+  relativePodPath: string
+): string {
+  // Older plugin versions inserted this exact untagged line immediately after
+  // this exact autolinking call. Only an explicit opt-out removes that signature:
+  // a matching hand-written line is indistinguishable, so an omitted option must
+  // preserve it. Other paths, positions, comments, and formatting are user-owned.
+  const lines = contents.split('\n');
+  const anchorIndex = lines.findIndex((line) =>
+    /^[\t ]*config = use_native_modules!\(config_command\)\r?$/.test(line)
+  );
+  const legacyPodLine = `  pod 'stripe-react-native/Onramp', :path => '${relativePodPath}'`;
+  if (
+    includeOnramp === false &&
+    anchorIndex >= 0 &&
+    lines[anchorIndex + 1]?.replace(/\r$/, '') === legacyPodLine
+  ) {
+    lines.splice(anchorIndex + 1, 1);
+  }
+  return setPodfileOptionalModule(
+    lines.join('\n'),
+    'Onramp',
+    includeOnramp === true,
+    relativePodPath
+  );
+}
+
+function setPodfileOptionalModule(
+  contents: string,
+  subspec: 'Identity' | 'Onramp',
+  enabled: boolean,
+  relativePodPath: string
+): string {
+  const tag = `@stripe/stripe-react-native-${subspec}`;
+  const withoutGenerated = removeGeneratedContents(contents, tag) ?? contents;
+  if (!enabled) {
+    return withoutGenerated;
+  }
+
+  // Keep a manually configured pod as the source of truth, including
+  // custom paths. Adding another declaration could give CocoaPods two sources.
+  const manualPod = new RegExp(
+    `(?:^|;)[\\t ]*pod[\\t ]*(?:\\([\\t ]*)?(['"])stripe-react-native/${subspec}\\1(?=[\\t ,)]|$)`,
+    'm'
+  );
+  if (
+    withoutGenerated
+      .split('\n')
+      .some((line) => !line.trimStart().startsWith('#') && manualPod.test(line))
+  ) {
+    return withoutGenerated;
+  }
+
+  const anchor =
+    /^[\t ]*config[\t ]*=[\t ]*use_native_modules!(?:[\t ]*\([^\r\n]*\))?[\t ]*(?:#.*)?$/m;
+  if (!anchor.test(withoutGenerated)) {
+    throw new Error(
+      `Cannot enable Stripe ${subspec}: no supported use_native_modules! call was found in the Podfile. Add the stripe-react-native/${subspec} pod manually after React Native autolinking.`
+    );
+  }
+
+  const escapedPodPath = relativePodPath
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'");
+  return mergeContents({
+    src: withoutGenerated,
+    newSrc: `  pod 'stripe-react-native/${subspec}', :path => '${escapedPodPath}'`,
+    tag,
+    anchor,
+    offset: 1,
+    comment: '#',
+  }).contents;
+}
 
 /**
  * Adds `$StripeDisableSPM = true` to the Podfile (inside a tagged

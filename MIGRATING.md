@@ -23,6 +23,8 @@ The options (`sessionId`, `ephemeralKeySecret`, and `brandLogo`) and result stat
 
 Reinstall iOS pods and rebuild the native app after removing the old package. Identity uses this package's React Native new architecture requirements and native Stripe versions, including its SPM or CocoaPods configuration. Keep your camera usage description on iOS and MaterialComponents theme on Android. Identity still works without calling `initStripe` or adding a `StripeProvider`.
 
+On iOS, opt in with the `stripe-react-native/Identity` subspec in your app's Podfile target after `use_native_modules!` (see [Identity setup](./README.md#identity)), or set `includeIdentity: true` in the Expo config plugin. Enabling Onramp also includes Identity. Payments-only apps exclude Identity by default.
+
 On Android, set `StripeSdk_includeIdentity=true` in `android/gradle.properties` (or `includeIdentity: true` in the Expo config plugin) and use `minSdkVersion` **24 or higher**. Enabling Onramp also includes Identity. The native Identity SDK and its MediaPipe dependency require API 24; Payments-only apps retain API 23 support with no configuration changes.
 
 The standalone Identity release, dependency pins, and native example projects are replaced by the main SDK's existing tooling. The [Identity playground](./example-identity/README.md) retains its own UI and entrypoint while sharing the payments example's dependency installation and native projects.

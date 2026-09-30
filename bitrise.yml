@@ -107,9 +107,15 @@ workflows:
             - scheme: ReactTestApp
             - xcodebuild_options: -only-testing:ReactTestAppTests
             - log_formatter: xcbeautify
+      - script@1:
+          title: Verify iOS Identity opt-in and opt-out
+          timeout: 1800
+          inputs:
+            - content: ./scripts/test-ios-optionality
       - save-cache@1:
           title: Save Pods Cache
           is_always_run: true
+          run_if: '{{getenv "STRIPE_IOS_OPTIONALITY_RESTORED" | ne "false"}}'
           inputs:
             - key: pods-{{ .Arch }}-{{ checksum "example/ios/Podfile.lock" }}
             - paths: |
@@ -216,9 +222,9 @@ workflows:
   # all build the committed react-native-test-app project, which never
   # exercises a from-scratch app project or the Expo config plugin.
   #
-  # Two passes: SPM mode (expo-build-properties dynamic frameworks, asserts
-  # the SPM integration, then a full Release simulator build to catch
-  # compile/link regressions under Expo), and the CocoaPods fallback via the
+  # SPM passes cover both default Payments and Identity opt-in with dynamic
+  # frameworks, integration assertions, and full Release simulator builds.
+  # A third pass checks the CocoaPods fallback via the
   # plugin's disableSPM option (prebuild + assertions only — fallback
   # *builds* are covered by build-ios-fallback, and Expo's static default
   # matches that configuration).
@@ -233,6 +239,11 @@ workflows:
           timeout: 2700
           inputs:
             - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION" --platforms ios
+      - script@1:
+          title: Expo Identity prebuild + build (SPM mode)
+          timeout: 2700
+          inputs:
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION" --platforms ios --include-identity
       - script@1:
           title: Expo prebuild, CocoaPods fallback (plugin disableSPM)
           timeout: 1200

@@ -44,9 +44,9 @@
 #      - fails fast unless the pod builds as a dynamic framework, the only
 #        linkage React Native's SPM integration supports (see
 #        `verify_dynamic_linkage!`),
-#      - links the StripeCryptoOnramp package product when the Onramp subspec
-#        is installed (`spm_dependency` silently ignores subspec declarations;
-#        see `link_onramp_product`).
+#      - reconciles the optional Identity and Onramp package products for
+#        each resolved pod target (`spm_dependency` silently ignores subspec
+#        declarations; see `link_optional_products`).
 #
 #    `run_podfile_post_integrate_hooks` (the user-project stage):
 #      - maintains a build phase on the app target that embeds SPM-built
@@ -145,14 +145,14 @@ module StripeSPM
     StripePaymentsUI
     StripeApplePay
     StripeFinancialConnections
-    StripeIdentity
   ].freeze
 
-  # The extra product required by the opt-in Onramp subspec. Deliberately not
-  # part of CORE_PRODUCTS: linking it unconditionally would pull crypto-onramp
-  # code into every app.
-  ONRAMP_PRODUCT = 'StripeCryptoOnramp'.freeze
-  ONRAMP_SUBSPEC = "#{POD_NAME}/Onramp".freeze
+  # Extra products are linked only for resolved opt-in subspecs. Onramp depends
+  # on the Identity subspec, so its install also selects StripeIdentity.
+  OPTIONAL_PRODUCTS = {
+    "#{POD_NAME}/Identity" => 'StripeIdentity',
+    "#{POD_NAME}/Onramp" => 'StripeCryptoOnramp',
+  }.freeze
 
   # Shown in Xcode's build-phases UI; also the key used to find/replace/remove
   # the phase on later installs (if the user moves off of SPM resolution).
@@ -289,13 +289,13 @@ module StripeSPM
     def apply_pods_project(installer)
       # No-op for installs that don't include this SDK (e.g. another project
       # in a monorepo sharing the same CocoaPods process).
-      pod_target = installer.pod_targets.find { |target| target.pod_name == POD_NAME }
-      return if pod_target.nil?
+      pod_targets = installer.pod_targets.select { |target| target.pod_name == POD_NAME }
+      return if pod_targets.empty?
       return unless active?
 
-      verify_dynamic_linkage!(pod_target)
+      pod_targets.each { |pod_target| verify_dynamic_linkage!(pod_target) }
       package = find_package_reference!(installer)
-      link_onramp_product(installer, pod_target, package)
+      pod_targets.each { |pod_target| link_optional_products(installer, pod_target, package) }
     end
 
     # User-project stage. Called by the post_integrate hook at the bottom of
@@ -488,36 +488,59 @@ module StripeSPM
       MESSAGE
     end
 
-    # Adds the StripeCryptoOnramp product dependency to the pod's native
-    # target when (and only when) the app installs the Onramp subspec.
+    # Reconciles optional product dependencies with the resolved subspecs for
+    # this pod target. Handles repeated hooks and cached projects as well as
+    # fresh installs: opting out removes our reference, while opting in keeps
+    # one reference to the current package.
     #
     # This can't live in the podspec because React Native's SPM manager keys
     # `spm_dependency` registrations by spec name and later looks up Pods
     # project targets by that same name. Subspecs don't get their own targets
     # (they merge into the root pod target), so a registration made against
-    # "stripe-react-native/Onramp" never matches a target and is silently
-    # dropped. Declaring the product at the root instead would link Onramp
-    # into every app. The Onramp-only fallback pod dependency in the podspec
-    # has the same conditionality via subspec selection; this reproduces it
+    # "stripe-react-native/Identity" never matches a target and is silently
+    # dropped. Declaring the products at the root instead would link them
+    # into every app. The fallback pod dependencies in the podspec
+    # have the same conditionality via subspec selection; this reproduces it
     # for SPM by inspecting which subspecs the installer actually resolved.
     #
-    # This mirrors what react-native/scripts/cocoapods/spm.rb does when it
-    # links products (find-or-create the reference, then attach), so the
-    # object shapes stay consistent with the core-product entries.
-    def link_onramp_product(installer, pod_target, package)
-      return unless pod_target.specs.any? { |spec| spec.name == ONRAMP_SUBSPEC }
-
+    # Only our optional products from Stripe's supported package URLs (or a
+    # reference whose package was removed by React Native's cleanup) are
+    # managed. Other products and packages are left alone.
+    def link_optional_products(installer, pod_target, package)
       native_target = installer.pods_project.targets.find { |target| target.name == pod_target.label }
       return if native_target.nil?
-      # Idempotency: podspecs can be evaluated multiple times per install, and
-      # nothing prevents this hook from running against a project that already
-      # has the product attached.
-      return if native_target.package_product_dependencies.any? { |dep| dep.product_name == ONRAMP_PRODUCT }
 
-      product = installer.pods_project.new(Xcodeproj::Project::Object::XCSwiftPackageProductDependency)
-      product.package = package
-      product.product_name = ONRAMP_PRODUCT
-      native_target.package_product_dependencies << product
+      OPTIONAL_PRODUCTS.each do |subspec, product_name|
+        existing = native_target.package_product_dependencies.select do |dependency|
+          dependency.product_name == product_name && stripe_package_reference?(dependency.package, package)
+        end
+        selected = nil
+        if pod_target.specs.any? { |spec| spec.name == subspec }
+          # Updating a shared reference would also modify another target. Reuse
+          # it only when it already points at this package, or is ours alone.
+          selected = existing.find { |dependency| dependency.package == package } ||
+                     existing.find { |dependency| dependency.referrers.all? { |referrer| referrer == native_target } }
+          unless selected
+            selected = installer.pods_project.new(Xcodeproj::Project::Object::XCSwiftPackageProductDependency)
+            selected.product_name = product_name
+            native_target.package_product_dependencies << selected
+          end
+          selected.package = package
+        end
+
+        existing.each do |dependency|
+          next if dependency == selected
+
+          native_target.package_product_dependencies.delete(dependency)
+          dependency.remove_from_project if dependency.referrers.empty?
+        end
+      end
+    end
+
+    def stripe_package_reference?(reference, current_package)
+      reference.nil? || reference == current_package ||
+        (reference.respond_to?(:repositoryURL) &&
+          [PACKAGE_URL, BRANCH_OVERRIDE_PACKAGE_URL].include?(reference.repositoryURL))
     end
 
     # Installs (or refreshes) the embed phase on every app target that links

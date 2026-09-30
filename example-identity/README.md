@@ -84,8 +84,13 @@ Both examples use the same native build and camera configuration. The shared
 Android app uses a MaterialComponents theme; the shared iOS Podfile configures a
 camera usage description for document verification.
 
-The shared Android app already enables Onramp, which includes Identity, and uses
-API 24 or higher. Payments-only consumers retain API 23 support. In a separate
-consumer app, enable Identity with `StripeSdk_includeIdentity=true` in
+The shared app already enables Onramp on iOS and Android, which includes Identity
+automatically. In a separate iOS consumer app, select the
+`stripe-react-native/Identity` subspec in your Podfile or set `includeIdentity: true`
+in the Expo config plugin. See [Identity setup](../README.md#identity).
+
+The shared Android app uses API 24 or higher. Payments-only consumers retain API
+23 support. In a separate Android consumer app, enable Identity with
+`StripeSdk_includeIdentity=true` in
 `android/gradle.properties` (or `includeIdentity: true` in the Expo config plugin)
 and use `minSdkVersion` 24 or higher.

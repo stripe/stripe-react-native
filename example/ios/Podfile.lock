@@ -1868,6 +1868,29 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - stripe-react-native/Identity (0.79.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - stripe-react-native/Core
+    - Yoga
   - stripe-react-native/NewArch (0.79.0):
     - hermes-engine
     - RCTRequired
@@ -1912,6 +1935,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - stripe-react-native/Core
+    - stripe-react-native/Identity
     - Yoga
   - Yoga (0.0.0)
 
@@ -2221,9 +2245,9 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: c8407cc394627a3a4cf56b457d594bfa822b6ab8
   RNCPicker: 0a2e0c924f89d88878cbda326b0fe1655e35967f
   RNScreens: 30e3e86744e6dd0c46ebee546f7f79d70b382c69
-  stripe-react-native: 94d4640fa9867615519031420eaff965cb4f9329
+  stripe-react-native: d2c65c9ec3d63c8190177cf6b499c10af488f22d
   Yoga: 65431d43277b661ebc7289c6c5d82f64ce42cfe0
 
-PODFILE CHECKSUM: 96ed6e4728a9621cde47fceb6639595dfea39ddf
+PODFILE CHECKSUM: 69cf11203c59d203f05367c5e8c4955830332faf
 
 COCOAPODS: 1.15.2

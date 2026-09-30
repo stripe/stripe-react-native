@@ -1,7 +1,9 @@
 import Foundation
 import React
-import StripeIdentity
 import UIKit
+#if STRIPE_IDENTITY
+import StripeIdentity
+#endif
 
 extension StripeSdkImpl {
     @objc(presentIdentityVerificationSheet:resolver:rejecter:)
@@ -10,6 +12,7 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
+#if STRIPE_IDENTITY
         DispatchQueue.main.async {
             guard let sessionId = options["sessionId"] as? String,
                   !sessionId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -38,8 +41,12 @@ extension StripeSdkImpl {
             )
             self.presentIdentityVerificationSheet(sheet, from: findViewControllerPresenter(from: rootViewController), resolver: resolve)
         }
+#else
+        resolve(Self.identityVerificationSheetFailure("Stripe Identity is not included. Add the stripe-react-native/Identity pod subspec, or set includeIdentity: true in the Expo plugin, then reinstall pods and rebuild the app."))
+#endif
     }
 
+#if STRIPE_IDENTITY
     @MainActor
     func presentIdentityVerificationSheet(
         _ sheet: IdentityVerificationSheet,
@@ -78,6 +85,7 @@ extension StripeSdkImpl {
             ]
         }
     }
+#endif
 
     private static func identityVerificationSheetFailure(_ message: String) -> NSDictionary {
         return [

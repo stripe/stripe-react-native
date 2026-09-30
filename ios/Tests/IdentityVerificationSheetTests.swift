@@ -1,9 +1,12 @@
 @testable import stripe_react_native
-import StripeIdentity
 import UIKit
 import XCTest
+#if STRIPE_IDENTITY
+import StripeIdentity
+#endif
 
 class IdentityVerificationSheetTests: XCTestCase {
+#if STRIPE_IDENTITY
     func testMapsCompletionAndCancellationWithoutAnError() {
         let completed = StripeSdkImpl.mapIdentityVerificationSheetResult(.flowCompleted)
         let canceled = StripeSdkImpl.mapIdentityVerificationSheetResult(.flowCanceled)
@@ -104,8 +107,34 @@ class IdentityVerificationSheetTests: XCTestCase {
         XCTAssertTrue((error?["message"] as? String)?.contains("not ready") == true, file: file, line: line)
         XCTAssertNil(sdk.identityVerificationSheet, file: file, line: line)
     }
+#else
+    func testDisabledIdentityResolvesSetupFailureWithoutStripeInitialization() {
+        let resolved = expectation(description: "Resolves disabled Identity setup instructions")
+        let sdk = StripeSdkImpl()
+
+        XCTAssertTrue(sdk.responds(to: #selector(StripeSdkImpl.presentIdentityVerificationSheet(options:resolver:rejecter:))))
+        sdk.presentIdentityVerificationSheet(options: [:], resolver: { response in
+            let result = response as? NSDictionary
+            let error = result?["error"] as? NSDictionary
+            let message = error?["message"] as? String
+            XCTAssertEqual(result?["status"] as? String, "FlowFailed")
+            XCTAssertEqual(error?["code"] as? String, "FlowFailed")
+            XCTAssertNil(error?["error"])
+            XCTAssertTrue(message?.contains("stripe-react-native/Identity") == true)
+            XCTAssertTrue(message?.contains("includeIdentity: true") == true)
+            XCTAssertTrue(message?.contains("rebuild the app") == true)
+            resolved.fulfill()
+        }, rejecter: { _, _, _ in
+            XCTFail("Disabled Identity must resolve with a FlowFailed result")
+            resolved.fulfill()
+        })
+
+        waitForExpectations(timeout: 1)
+    }
+#endif
 }
 
+#if STRIPE_IDENTITY
 private class IdentityPresentationStateViewController: UIViewController {
     var presenting = false
     var dismissing = false
@@ -115,3 +144,4 @@ private class IdentityPresentationStateViewController: UIViewController {
     override var isBeingDismissed: Bool { dismissing }
     override var presentingViewController: UIViewController? { modalPresenter }
 }
+#endif

@@ -66,7 +66,18 @@ Pod::Spec.new do |s|
       core.dependency 'StripePaymentsUI', stripe_version
       core.dependency 'StripeApplePay', stripe_version
       core.dependency 'StripeFinancialConnections', stripe_version
-      core.dependency 'StripeIdentity', stripe_version
+    end
+  end
+
+  s.subspec 'Identity' do |identity|
+    identity.dependency 'stripe-react-native/Core'
+    # A resolved subspec, rather than canImport, controls the implementation:
+    # cached Swift modules must not keep Identity enabled after opting out.
+    identity.pod_target_xcconfig = {
+      'SWIFT_ACTIVE_COMPILATION_CONDITIONS' => '$(inherited) STRIPE_IDENTITY',
+    }
+    unless stripe_spm_enabled?
+      identity.dependency 'StripeIdentity', stripe_version
     end
   end
 
@@ -79,9 +90,10 @@ Pod::Spec.new do |s|
     # comment).
     onramp.private_header_files = 'ios/StripeOnrampSdk.h'
     onramp.dependency 'stripe-react-native/Core'
+    onramp.dependency 'stripe-react-native/Identity'
     unless stripe_spm_enabled?
       # CocoaPods fallback. In SPM mode the StripeCryptoOnramp product is
-      # linked at install time by stripe_spm.rb (link_onramp_product), because
+      # linked at install time by stripe_spm.rb (link_optional_products), because
       # spm_dependency declarations on subspecs are silently ignored.
       onramp.dependency 'StripeCryptoOnramp', stripe_version
     end
