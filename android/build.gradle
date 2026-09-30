@@ -49,6 +49,12 @@ def isOnrampIncluded() {
     rootProject.ext.StripeSdk_includeOnramp.toString().toLowerCase() == "true"
 }
 
+def isIdentityIncluded() {
+  return isOnrampIncluded() ||
+    (rootProject.ext.has("StripeSdk_includeIdentity") &&
+      rootProject.ext.StripeSdk_includeIdentity.toString().toLowerCase() == "true")
+}
+
 def reactNativeArchitectures() {
   def value = project.getProperties().get("reactNativeArchitectures")
   return value ? value.split(",") : [
@@ -71,6 +77,13 @@ if (kotlinMajor >= 2) {
 }
 
 apply plugin: "com.facebook.react"
+
+// Recompile when optional SDK source sets change so Kotlin does not reuse their
+// previous metadata. Normal builds remain incremental.
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+  inputs.property("stripeIdentityIncluded", isIdentityIncluded())
+  inputs.property("stripeOnrampIncluded", isOnrampIncluded())
+}
 
 android {
   namespace "com.reactnativestripesdk"
@@ -126,8 +139,18 @@ android {
 
   sourceSets.main {
     java {
+      srcDirs += [isIdentityIncluded() ? "src/identity/java" : "src/identityDisabled/java"]
       if (isOnrampIncluded()) {
         srcDirs += ["src/onramp/java"]
+      }
+    }
+  }
+
+  sourceSets.test {
+    java {
+      srcDirs += [isIdentityIncluded() ? "src/test/identity/java" : "src/test/identityDisabled/java"]
+      if (isOnrampIncluded()) {
+        srcDirs += ["src/test/onramp/java"]
       }
     }
   }
@@ -158,6 +181,10 @@ dependencies {
   implementation("com.stripe:stripe-android:$stripeVersion")
   implementation("com.stripe:financial-connections:$stripeVersion")
   implementation("com.stripe:payment-method-messaging:$stripeVersion")
+
+  if (isIdentityIncluded()) {
+    implementation("com.stripe:identity:$stripeVersion")
+  }
 
   if (isOnrampIncluded()) {
     implementation("com.stripe:crypto-onramp:$stripeVersion")

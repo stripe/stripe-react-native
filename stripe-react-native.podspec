@@ -2,7 +2,7 @@ require 'json'
 require_relative 'stripe_spm'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
-# Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
+# Shared by Payments, Identity, and the optional Onramp integration.
 stripe_version = '26.12.1'
 
 if ENV['RCT_NEW_ARCH_ENABLED'] == '0'
@@ -69,6 +69,18 @@ Pod::Spec.new do |s|
     end
   end
 
+  s.subspec 'Identity' do |identity|
+    identity.dependency 'stripe-react-native/Core'
+    # A resolved subspec, rather than canImport, controls the implementation:
+    # cached Swift modules must not keep Identity enabled after opting out.
+    identity.pod_target_xcconfig = {
+      'SWIFT_ACTIVE_COMPILATION_CONDITIONS' => '$(inherited) STRIPE_IDENTITY',
+    }
+    unless stripe_spm_enabled?
+      identity.dependency 'StripeIdentity', stripe_version
+    end
+  end
+
   s.subspec 'Onramp' do |onramp|
     onramp.source_files = [ 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm', 'ios/OnrampErrors.swift' ]
     # Private for the same reasons as Core's StripeSdk.h: the header imports
@@ -78,9 +90,10 @@ Pod::Spec.new do |s|
     # comment).
     onramp.private_header_files = 'ios/StripeOnrampSdk.h'
     onramp.dependency 'stripe-react-native/Core'
+    onramp.dependency 'stripe-react-native/Identity'
     unless stripe_spm_enabled?
       # CocoaPods fallback. In SPM mode the StripeCryptoOnramp product is
-      # linked at install time by stripe_spm.rb (link_onramp_product), because
+      # linked at install time by stripe_spm.rb (link_optional_products), because
       # spm_dependency declarations on subspecs are silently ignored.
       onramp.dependency 'StripeCryptoOnramp', stripe_version
     end

@@ -3,6 +3,7 @@
 set -uo pipefail
 
 PLATFORM=""
+IDENTITY=false
 RECORD_ON_FAILURE=false
 IS_RECORDING=false
 
@@ -65,6 +66,9 @@ trap handle_interrupt INT TERM
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --identity)
+      IDENTITY=true
+      ;;
     --record-on-failure)
       RECORD_ON_FAILURE=true
       ;;
@@ -89,7 +93,13 @@ case $PLATFORM in
     ;;
 esac
 
-if [ "$PLATFORM" == "ios" ]; then
+if [ "$IDENTITY" = true ]; then
+  APPID="com.stripe.react.native"
+  allTestFiles=$(ls ./e2e-tests/identity/*.yml) || {
+    echo "Error! No Identity e2e flows found in ./e2e-tests/identity."
+    exit 1
+  }
+elif [ "$PLATFORM" == "ios" ]; then
   APPID="com.stripe.react.native"
   allTestFiles=$(ls ./e2e-tests/*.yml ./e2e-tests/ios-only/*.yml)
 else

@@ -9,6 +9,9 @@ import StripeFinancialConnections
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
 import StripePaymentsUI
 import UIKit
+#if STRIPE_IDENTITY
+import StripeIdentity
+#endif
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
 @_spi(LinkControllerPreview) @_spi(CryptoOnrampAlpha) @_spi(ReactNativeSDK) @_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
@@ -61,6 +64,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var merchantIdentifier: String?
 
     internal var paymentSheet: PaymentSheet?
+#if STRIPE_IDENTITY
+    internal var identityVerificationSheet: IdentityVerificationSheet?
+#endif
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?

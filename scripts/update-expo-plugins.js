@@ -9,6 +9,7 @@ const expoVersion = args[args.indexOf('--expo-version') + 1];
 // When set, opts the app out of Swift Package Manager resolution through the
 // plugin's disableSPM option, exercising the CocoaPods fallback path instead.
 const disableSPM = args.includes('--disable-spm');
+const includeIdentity = args.includes('--include-identity');
 const expoMajorMatch = expoVersion ? expoVersion.match(/^(\d+)/) : null;
 const expoMajor = expoMajorMatch ? parseInt(expoMajorMatch[1], 10) : null;
 const needsKotlinVersion = expoMajor !== null && expoMajor <= 52;
@@ -24,6 +25,7 @@ expoConfig.plugins.push([
     merchantIdentifier: 'com.stripe.test',
     enableGooglePay: true,
     ...(disableSPM ? { disableSPM: true } : {}),
+    ...(includeIdentity ? { includeIdentity: true } : {}),
   },
 ]);
 
@@ -31,6 +33,12 @@ const buildProperties = {};
 if (needsKotlinVersion) {
   buildProperties.android = {
     kotlinVersion: '2.0.21',
+  };
+}
+if (includeIdentity) {
+  buildProperties.android = {
+    ...buildProperties.android,
+    minSdkVersion: 24,
   };
 }
 if (!disableSPM) {
@@ -47,6 +55,13 @@ if (!disableSPM) {
 }
 if (Object.keys(buildProperties).length > 0) {
   expoConfig.plugins.push(['expo-build-properties', buildProperties]);
+}
+
+if (includeIdentity) {
+  expoConfig.ios = expoConfig.ios ?? {};
+  expoConfig.ios.infoPlist = expoConfig.ios.infoPlist ?? {};
+  expoConfig.ios.infoPlist.NSCameraUsageDescription =
+    'Verify identity documents and selfies.';
 }
 
 expoConfig.android = expoConfig.android ?? {};

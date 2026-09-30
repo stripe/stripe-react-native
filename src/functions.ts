@@ -39,6 +39,8 @@ import type { CollectFinancialConnectionsAccountsParams } from './types/Financia
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 import { addListener } from './events';
 
+export { presentIdentityVerificationSheet } from './identity/functions';
+
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
   options: PaymentMethod.CreateOptions = {}

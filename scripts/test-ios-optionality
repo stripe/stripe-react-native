@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# CI coverage for the optional iOS implementation. Normal example commands and
+# its committed Onramp configuration are unchanged.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
+# Use the Ruby selected by the same environment as CocoaPods, and fail clearly
+# if PATH points at a different Ruby instead of silently skipping these tests.
+POD_VERSION="$(pod --version)"
+ruby -rcocoapods -e 'abort "ruby and pod use different CocoaPods installations" unless Pod::VERSION == ARGV.fetch(0)' "$POD_VERSION"
+ruby -e 'begin; require "minitest"; rescue LoadError; require "rubygems/dependency_installer"; Gem::DependencyInstaller.new.install("minitest"); end'
+ruby scripts/test/stripe_spm_identity_test.rb
+
+VALIDATION_DIR="$(mktemp -d)"
+PODFILE="$REPO_ROOT/example/ios/Podfile"
+PODFILE_LOCK="$REPO_ROOT/example/ios/Podfile.lock"
+cp "$PODFILE" "$VALIDATION_DIR/Podfile"
+cp "$PODFILE_LOCK" "$VALIDATION_DIR/Podfile.lock"
+
+restore_example() {
+  local status=$?
+  local restored=true
+  trap - EXIT INT TERM
+  cp "$VALIDATION_DIR/Podfile" "$PODFILE" || restored=false
+  cp "$VALIDATION_DIR/Podfile.lock" "$PODFILE_LOCK" || restored=false
+  # Restore Pods, its manifest, and the generated project as well as the input
+  # files before the existing CI job saves its CocoaPods cache.
+  if ! yarn pods; then
+    echo "Error! Failed to restore the normal example's CocoaPods installation."
+    restored=false
+  elif ! cmp -s "$PODFILE_LOCK" "$REPO_ROOT/example/ios/Pods/Manifest.lock"; then
+    echo "Error! Restored CocoaPods lockfiles do not match."
+    restored=false
+  fi
+  if [ "$restored" = true ] && command -v envman >/dev/null 2>&1; then
+    envman add --key STRIPE_IOS_OPTIONALITY_RESTORED --value true || restored=false
+  fi
+  if [ "$restored" = false ] && [ "$status" -eq 0 ]; then
+    status=1
+  fi
+  rm -rf "$VALIDATION_DIR"
+  exit "$status"
+}
+trap restore_example EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# A killed or failed matrix must not populate the existing always-run CI cache
+# with projects from an intermediate feature selection.
+if command -v envman >/dev/null 2>&1; then
+  envman add --key STRIPE_IOS_OPTIONALITY_RESTORED --value false
+fi
+
+select_identity() {
+  ruby - "$VALIDATION_DIR/Podfile" "$PODFILE" "$1" <<'RUBY'
+original, destination, mode = ARGV
+contents = File.read(original)
+onramp = /^[\t ]*pod ['"]stripe-react-native\/Onramp['"].*\n/
+raise 'Expected exactly one Onramp pod in the shared example' unless contents.scan(onramp).length == 1
+contents = contents.sub(onramp) { |line| mode == 'enabled' ? line.sub('/Onramp', '/Identity') : '' }
+File.write(destination, contents)
+RUBY
+  yarn pods
+}
+
+check_selection() {
+  ruby - "$REPO_ROOT" "$1" <<'RUBY'
+require 'xcodeproj'
+root, mode = ARGV
+require File.join(root, 'stripe_spm')
+enabled = mode == 'enabled'
+project = Xcodeproj::Project.open(File.join(root, 'example/ios/Pods/Pods.xcodeproj'))
+target = project.targets.find { |candidate| candidate.name == 'stripe-react-native' }
+raise 'Missing Stripe pod target' unless target
+products = target.package_product_dependencies.map(&:product_name).sort
+expected = StripeSPM::CORE_PRODUCTS + (enabled ? ['StripeIdentity'] : [])
+raise "Unexpected native products: #{products}" unless products == expected.sort
+
+configs = Dir.glob(File.join(root, 'example/ios/Pods/Target Support Files/stripe-react-native/*.xcconfig'))
+raise 'Missing SDK build configurations' if configs.empty?
+configs.each do |config|
+  conditions = File.read(config)[/^SWIFT_ACTIVE_COMPILATION_CONDITIONS = (.*)$/, 1].to_s.split
+  raise "Wrong Identity compilation flag in #{config}" unless conditions.include?('STRIPE_IDENTITY') == enabled
+end
+
+app = Xcodeproj::Project.open(File.join(root, 'example/node_modules/.generated/ios/ReactTestApp.xcodeproj'))
+tests = app.targets.find { |candidate| candidate.name == 'ReactTestAppTests' }
+raise 'Missing native test target' unless tests
+tests.build_configurations.each do |config|
+  conditions = Array(config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']).join(' ').split
+  raise 'SDK and test Identity compilation flags disagree' unless conditions.include?('STRIPE_IDENTITY') == enabled
+end
+puts "Identity #{mode}: SDK products and compilation flags verified."
+RUBY
+}
+
+test_identity() {
+  local formatter=cat
+  if command -v xcbeautify >/dev/null 2>&1; then
+    formatter=xcbeautify
+  fi
+  (
+    cd example/ios
+    xcodebuild test \
+      -workspace example.xcworkspace \
+      -scheme ReactTestApp \
+      -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' \
+      -derivedDataPath "$VALIDATION_DIR/DerivedData" \
+      -only-testing:ReactTestAppTests/IdentityVerificationSheetTests \
+      CODE_SIGNING_ALLOWED=NO | "$formatter"
+  )
+}
+
+# Start without cached Onramp modules; reuse the build directory on opt-out to
+# prove cached Identity modules cannot keep the implementation enabled.
+select_identity enabled
+check_selection enabled
+test_identity
+select_identity disabled
+check_selection disabled
+test_identity
