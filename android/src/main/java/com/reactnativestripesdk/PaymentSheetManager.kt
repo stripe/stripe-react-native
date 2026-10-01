@@ -14,6 +14,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
@@ -76,6 +77,7 @@ class PaymentSheetManager(
   private val initPromise: Promise,
 ) : StripeUIManager(context),
   ConfirmCustomPaymentMethodCallback {
+  private var hostActivity: FragmentActivity? = null
   private var paymentSheet: PaymentSheet? = null
   private var flowController: PaymentSheet.FlowController? = null
   private var paymentIntentClientSecret: String? = null
@@ -179,6 +181,13 @@ class PaymentSheetManager(
     mapToTermsDisplay(args)?.let { configurationBuilder.termsDisplay(it) }
 
     paymentSheetConfiguration = configurationBuilder.build()
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    if (hostActivity !== activity) {
+      signal.unregister()
+      paymentSheet = null
+      flowController = null
+      hostActivity = activity
+    }
     configureMode(args, promise)
   }
 
