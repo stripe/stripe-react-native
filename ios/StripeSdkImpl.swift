@@ -118,8 +118,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)?
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)?
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
-    var clientSecretProviderSetupIntentClientSecretCallback: ((String) -> Void)?
-    var clientSecretProviderCustomerSessionClientSecretCallback: ((CustomerSessionClientSecret) -> Void)?
+    let setupIntentClientSecretRequests = CustomerSheetClientSecretRequestStore<String>()
+    let customerSessionClientSecretRequests = CustomerSheetClientSecretRequestStore<CustomerSessionClientSecret>()
 
 #if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?

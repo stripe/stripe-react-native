@@ -200,6 +200,15 @@ export interface Spec extends TurboModule {
   clientSecretProviderCustomerSessionClientSecretCallback(
     customerSessionClientSecret: UnsafeObject<CustomerSessionClientSecret>
   ): Promise<void>;
+  customerSheetClientSecretProviderResponse(
+    response: UnsafeObject<{
+      requestId: string;
+      type: string;
+      clientSecret?: string;
+      customerId?: string;
+      error?: string;
+    }>
+  ): Promise<void>;
   createEmbeddedPaymentElement(
     intentConfig: UnsafeObject<IntentConfiguration>,
     configuration: UnsafeObject<EmbeddedPaymentElementConfiguration>

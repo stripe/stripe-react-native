@@ -1406,6 +1406,14 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  override fun customerSheetClientSecretProviderResponse(
+    response: ReadableMap,
+    promise: Promise,
+  ) {
+    promise.reject("Unsupported", "CustomerSheet request IDs are only used on iOS")
+  }
+
+  @ReactMethod
   override fun createRadarSession(promise: Promise) {
     if (!::stripe.isInitialized) {
       promise.resolve(createMissingInitError())

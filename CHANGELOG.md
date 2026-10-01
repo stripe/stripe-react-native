@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+**Fixes**
+
+* [Fixed] iOS: Prevent CustomerSheet crashes when CustomerSession client secret responses overlap.
+
 ## 0.80.0 - 2026-09-30
 
 **Features**

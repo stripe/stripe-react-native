@@ -1,5 +1,5 @@
 import React from 'react';
-import { EventSubscription } from 'react-native';
+import { EventSubscription, Platform } from 'react-native';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import type {
   CustomerSheetInitParams,
@@ -193,23 +193,68 @@ function configureClientSecretProviderEventListeners(
   setupIntentClientSecretProviderCallback?.remove();
   setupIntentClientSecretProviderCallback = addListener(
     'onCustomerSessionProviderSetupIntentClientSecret',
-    async () => {
-      const setupIntentClientSecret =
-        await clientSecretProvider.provideSetupIntentClientSecret();
-      await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
-        setupIntentClientSecret
-      );
+    async (event) => {
+      const requestId = event?.requestId;
+      let clientSecret: string;
+      try {
+        clientSecret =
+          await clientSecretProvider.provideSetupIntentClientSecret();
+      } catch (error) {
+        if (Platform.OS === 'ios' && requestId) {
+          await NativeStripeSdk.customerSheetClientSecretProviderResponse({
+            requestId,
+            type: 'setupIntent',
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return;
+        }
+        throw error;
+      }
+      if (Platform.OS === 'ios' && requestId) {
+        await NativeStripeSdk.customerSheetClientSecretProviderResponse({
+          requestId,
+          type: 'setupIntent',
+          clientSecret,
+        });
+      } else {
+        await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
+          clientSecret
+        );
+      }
     }
   );
   customerSessionClientSecretProviderCallback?.remove();
   customerSessionClientSecretProviderCallback = addListener(
     'onCustomerSessionProviderCustomerSessionClientSecret',
-    async () => {
-      const customerSessionClientSecret =
-        await clientSecretProvider.provideCustomerSessionClientSecret();
-      await NativeStripeSdk.clientSecretProviderCustomerSessionClientSecretCallback(
-        customerSessionClientSecret
-      );
+    async (event) => {
+      const requestId = event?.requestId;
+      let clientSecret;
+      try {
+        clientSecret =
+          await clientSecretProvider.provideCustomerSessionClientSecret();
+      } catch (error) {
+        if (Platform.OS === 'ios' && requestId) {
+          await NativeStripeSdk.customerSheetClientSecretProviderResponse({
+            requestId,
+            type: 'customerSession',
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return;
+        }
+        throw error;
+      }
+      if (Platform.OS === 'ios' && requestId) {
+        await NativeStripeSdk.customerSheetClientSecretProviderResponse({
+          requestId,
+          type: 'customerSession',
+          clientSecret: clientSecret.clientSecret,
+          customerId: clientSecret.customerId,
+        });
+      } else {
+        await NativeStripeSdk.clientSecretProviderCustomerSessionClientSecretCallback(
+          clientSecret
+        );
+      }
     }
   );
 }

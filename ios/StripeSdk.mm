@@ -31,6 +31,7 @@ RCT_EXPORT_MODULE()
 - (void)invalidate
 {
   [StripeSdkImpl.shared invalidateCheckoutControllers];
+  [StripeSdkImpl.shared cancelCustomerSheetClientSecretRequests];
   [super invalidate];
 }
 
@@ -303,6 +304,13 @@ RCT_EXPORT_METHOD(clientSecretProviderCustomerSessionClientSecretCallback:(nonnu
                                                                        reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared clientSecretProviderCustomerSessionClientSecretCallback:customerSessionClientSecret resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(customerSheetClientSecretProviderResponse:(nonnull NSDictionary *)response
+                                                     resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                      reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared customerSheetClientSecretProviderResponse:response resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(dismissPlatformPay:(nonnull RCTPromiseResolveBlock)resolve

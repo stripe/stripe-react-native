@@ -44,27 +44,20 @@ extension StripeSdkImpl {
             resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration` or `customerEphemeralKeySecret`, but not both"))
             return
         } else if let intentConfigurationBase = intentConfigurationBase {
+            cancelCustomerSheetClientSecretRequests()
             let intentConfiguration: CustomerSheet.IntentConfiguration = CustomerSheet.IntentConfiguration(
                 paymentMethodTypes: intentConfigurationBase["paymentMethodTypes"] as? [String],
                 onBehalfOf: intentConfigurationBase["onBehalfOf"] as? String,
                 setupIntentClientSecretProvider: {
-                    return try await withCheckedThrowingContinuation { continuation in
-                        // Store the continuation to be resumed later
-                        self.clientSecretProviderSetupIntentClientSecretCallback = { clientSecret in
-                            continuation.resume(returning: clientSecret)
-                        }
-                        // Emit the event to JS
-                        self.emitter?.emitOnCustomerSessionProviderSetupIntentClientSecret()
+                    return try await self.setupIntentClientSecretRequests.request { requestId in
+                        self.emitter?.emitOnCustomerSessionProviderSetupIntentClientSecret(["requestId": requestId])
                     }
                 }
             )
 
             let customerSessionClientSecretProvider: () async throws -> CustomerSessionClientSecret = {
-                return try await withCheckedThrowingContinuation { continuation in
-                    StripeSdkImpl.shared.clientSecretProviderCustomerSessionClientSecretCallback = { customerSessionClientSecret in
-                        continuation.resume(returning: customerSessionClientSecret)
-                    }
-                    self.emitter?.emitOnCustomerSessionProviderCustomerSessionClientSecret()
+                return try await self.customerSessionClientSecretRequests.request { requestId in
+                    self.emitter?.emitOnCustomerSessionProviderCustomerSessionClientSecret(["requestId": requestId])
                 }
             }
 
@@ -75,6 +68,7 @@ extension StripeSdkImpl {
                 return
             }
 
+            cancelCustomerSheetClientSecretRequests()
             customerAdapter = CustomerSheetUtils.buildStripeCustomerAdapter(
                 customerId: customerId,
                 ephemeralKeySecret: customerEphemeralKeySecret!,
@@ -89,6 +83,11 @@ extension StripeSdkImpl {
         }
 
         resolve([])
+    }
+
+    @objc public func cancelCustomerSheetClientSecretRequests() {
+        setupIntentClientSecretRequests.cancelAll()
+        customerSessionClientSecretRequests.cancelAll()
     }
 
     @objc(presentCustomerSheet:resolver:rejecter:)
@@ -207,22 +206,50 @@ extension StripeSdkImpl {
         resolve([])
     }
 
+    @objc(customerSheetClientSecretProviderResponse:resolver:rejecter:)
+    public func customerSheetClientSecretProviderResponse(response: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let requestId = response["requestId"] as? String,
+              let type = response["type"] as? String else {
+            resolve(Errors.createError(ErrorType.Failed, "Invalid CustomerSheet client secret response"))
+            return
+        }
+
+        let error = (response["error"] as? String).map {
+            NSError(domain: "StripeReactNative.CustomerSheet", code: 0, userInfo: [NSLocalizedDescriptionKey: $0])
+        }
+        switch type {
+        case "setupIntent":
+            if let error {
+                setupIntentClientSecretRequests.fail(requestId: requestId, error: error)
+            } else if let clientSecret = response["clientSecret"] as? String {
+                setupIntentClientSecretRequests.succeed(requestId: requestId, value: clientSecret)
+            } else {
+                setupIntentClientSecretRequests.fail(requestId: requestId, error: NSError(domain: "StripeReactNative.CustomerSheet", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid SetupIntent client secret response"]))
+            }
+        case "customerSession":
+            if let error {
+                customerSessionClientSecretRequests.fail(requestId: requestId, error: error)
+            } else if let customerId = response["customerId"] as? String,
+                      let clientSecret = response["clientSecret"] as? String {
+                customerSessionClientSecretRequests.succeed(requestId: requestId, value: CustomerSessionClientSecret(customerId: customerId, clientSecret: clientSecret))
+            } else {
+                customerSessionClientSecretRequests.fail(requestId: requestId, error: NSError(domain: "StripeReactNative.CustomerSheet", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid CustomerSession client secret response"]))
+            }
+        default:
+            resolve(Errors.createError(ErrorType.Failed, "Invalid CustomerSheet client secret response type"))
+            return
+        }
+        resolve([])
+    }
+
+    // These methods remain in the shared native module spec for Android.
     @objc(clientSecretProviderSetupIntentClientSecretCallback:resolver:rejecter:)
     public func clientSecretProviderSetupIntentClientSecretCallback(setupIntentClientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.clientSecretProviderSetupIntentClientSecretCallback?(setupIntentClientSecret)
-        resolve([])
+        resolve(Errors.createError(ErrorType.Failed, "Use customerSheetClientSecretProviderResponse on iOS"))
     }
 
     @objc(clientSecretProviderCustomerSessionClientSecretCallback:resolver:rejecter:)
     public func clientSecretProviderCustomerSessionClientSecretCallback(customerSessionClientSecretDict: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let customerId = customerSessionClientSecretDict["customerId"] as? String,
-              let clientSecret = customerSessionClientSecretDict["clientSecret"] as? String else {
-            resolve(Errors.createError(ErrorType.Failed, "Invalid CustomerSessionClientSecret format"))
-            return
-        }
-
-        let customerSessionClientSecret = CustomerSessionClientSecret(customerId: customerId, clientSecret: clientSecret)
-        self.clientSecretProviderCustomerSessionClientSecretCallback?(customerSessionClientSecret)
-        resolve([])
+        resolve(Errors.createError(ErrorType.Failed, "Use customerSheetClientSecretProviderResponse on iOS"))
     }
 }
