@@ -3,10 +3,13 @@ package com.reactnativestripesdk
 import android.app.Activity
 import android.os.Looper
 import androidx.fragment.app.FragmentActivity
+import app.cash.turbine.Turbine
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.google.common.truth.Truth.assertThat
+import com.reactnativestripesdk.utils.StripeUIManager
 import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
@@ -70,6 +73,33 @@ class PaymentSheetManagerHostTest {
     ).isTrue()
     assertPresentationResultReceived()
     assertThat(shadowOf(firstHost).nextStartedActivityForResult).isNull()
+  }
+
+  @Test
+  fun presentingAnotherStripeManagerPreservesThePendingPresentationResult() = runScenario {
+    manager.present(presentPromise)
+    shadowOf(Looper.getMainLooper()).idle()
+    val launch = requireNotNull(shadowOf(firstHost).nextStartedActivityForResult)
+    presentPromise.resolveCalls.expectNoEvents()
+
+    val otherPromise = FakePromise()
+    val otherManager = FakeStripeUIManager(context)
+    try {
+      otherManager.present(otherPromise)
+      shadowOf(Looper.getMainLooper()).idle()
+      otherManager.presentCalls.awaitItem()
+
+      assertThat(
+        firstHost.activityResultRegistry.dispatchResult(launch.requestCode, Activity.RESULT_CANCELED, null),
+      ).isTrue()
+      assertPresentationResultReceived()
+      otherPromise.resolveCalls.expectNoEvents()
+    } finally {
+      otherManager.destroy()
+      shadowOf(Looper.getMainLooper()).idle()
+    }
+    otherManager.ensureAllEventsConsumed()
+    otherPromise.ensureAllEventsConsumed()
   }
 
   @Test
@@ -164,5 +194,18 @@ class PaymentSheetManagerHostTest {
 
   private companion object {
     const val PAYMENT_SHEET_ACTIVITY = "com.stripe.android.paymentsheet.PaymentSheetActivity"
+  }
+}
+
+@OptIn(ReactNativeSdkInternal::class)
+internal class FakeStripeUIManager(context: ReactApplicationContext) : StripeUIManager(context) {
+  val presentCalls = Turbine<Unit>()
+
+  override fun onPresent() {
+    presentCalls.add(Unit)
+  }
+
+  fun ensureAllEventsConsumed() {
+    presentCalls.ensureAllEventsConsumed()
   }
 }

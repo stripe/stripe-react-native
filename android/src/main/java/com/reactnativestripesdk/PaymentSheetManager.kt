@@ -15,11 +15,13 @@ import android.util.Log
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProvider
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.DefaultActivityLifecycleCallbacks
@@ -28,6 +30,7 @@ import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.PaymentSheetErrorType
 import com.reactnativestripesdk.utils.PaymentSheetException
+import com.reactnativestripesdk.utils.PromiseViewModel
 import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
@@ -238,11 +241,17 @@ class PaymentSheetManager(
     promise: Promise,
   ) {
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    val promiseViewModel =
+      ViewModelProvider.create(
+        owner = activity,
+        factory = PromiseViewModel.Factory,
+      )[PromiseViewModel::class]
+    promiseViewModel.setPromise(promise)
     val intentConfigMap = args.getMap("intentConfiguration")
     val useConfirmationTokenCallback = intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
     paymentSheet =
       if (intentConfiguration != null) {
-        val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback())
+        val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback(promiseViewModel))
         if (useConfirmationTokenCallback) {
           builder.createIntentCallback(buildCreateConfirmationTokenCallback())
         } else {
@@ -255,7 +264,7 @@ class PaymentSheetManager(
       } else {
         @SuppressLint("RestrictedApi")
         PaymentSheet
-          .Builder(buildPaymentSheetResultCallback())
+          .Builder(buildPaymentSheetResultCallback(promiseViewModel))
           .confirmCustomPaymentMethodCallback(this)
           .build(activity, signal)
       }
@@ -266,6 +275,12 @@ class PaymentSheetManager(
     promise: Promise,
   ) {
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    val promiseViewModel =
+      ViewModelProvider.create(
+        owner = activity,
+        factory = PromiseViewModel.Factory,
+      )[PromiseViewModel::class]
+    promiseViewModel.setPromise(promise)
     val intentConfigMap = args.getMap("intentConfiguration")
     val useConfirmationTokenCallback =
       intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
@@ -274,8 +289,8 @@ class PaymentSheetManager(
         val builder =
           PaymentSheet.FlowController
             .Builder(
-              resultCallback = buildPaymentSheetResultCallback(),
-              paymentOptionResultCallback = buildPaymentOptionCallback(),
+              resultCallback = buildPaymentSheetResultCallback(promiseViewModel),
+              paymentOptionResultCallback = buildPaymentOptionCallback(promiseViewModel),
             )
         if (useConfirmationTokenCallback) {
           builder.createIntentCallback(buildCreateConfirmationTokenCallback())
@@ -287,8 +302,8 @@ class PaymentSheetManager(
       } else {
         PaymentSheet.FlowController
           .Builder(
-            resultCallback = buildPaymentSheetResultCallback(),
-            paymentOptionResultCallback = buildPaymentOptionCallback(),
+            resultCallback = buildPaymentSheetResultCallback(promiseViewModel),
+            paymentOptionResultCallback = buildPaymentOptionCallback(promiseViewModel),
           ).confirmCustomPaymentMethodCallback(this)
           .build(activity)
       }
@@ -349,17 +364,19 @@ class PaymentSheetManager(
     }
   }
 
-  private fun buildPaymentSheetResultCallback(): PaymentSheetResultCallback =
+  private fun buildPaymentSheetResultCallback(viewModel: PromiseViewModel): PaymentSheetResultCallback =
     PaymentSheetResultCallback { paymentResult ->
       if (paymentSheetTimedOut) {
         paymentSheetTimedOut = false
         resolvePaymentResult(
+          viewModel,
           createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out"),
         )
       } else {
         when (paymentResult) {
           is PaymentSheetResult.Canceled -> {
             resolvePaymentResult(
+              viewModel,
               createError(
                 PaymentSheetErrorType.Canceled.toString(),
                 "The payment flow has been canceled",
@@ -369,18 +386,19 @@ class PaymentSheetManager(
 
           is PaymentSheetResult.Failed -> {
             resolvePaymentResult(
+              viewModel,
               createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error),
             )
           }
 
           is PaymentSheetResult.Completed -> {
-            resolvePaymentResult(Arguments.createMap())
+            resolvePaymentResult(viewModel, Arguments.createMap())
           }
         }
       }
     }
 
-  private fun buildPaymentOptionCallback(): PaymentOptionResultCallback {
+  private fun buildPaymentOptionCallback(viewModel: PromiseViewModel): PaymentOptionResultCallback {
     return PaymentOptionResultCallback { paymentOptionResult ->
       paymentOptionResult.paymentOption?.let { paymentOption ->
         // Convert drawable to bitmap asynchronously to avoid shared state issues
@@ -394,7 +412,7 @@ class PaymentSheetManager(
                   PaymentSheetErrorType.Failed.toString(),
                   "Failed to process payment option image: ${e.message}",
                 )
-              resolvePresentPromise(result)
+              resolvePromise(viewModel, result)
               return@launch
             }
 
@@ -403,7 +421,7 @@ class PaymentSheetManager(
           option.putString("image", imageString)
           val additionalFields: Map<String, Any> = mapOf("didCancel" to paymentOptionResult.didCancel)
           val result = createResult("paymentOption", option, additionalFields)
-          resolvePresentPromise(result)
+          resolvePromise(viewModel, result)
         }
       } ?: run {
         val result =
@@ -416,8 +434,26 @@ class PaymentSheetManager(
               "The payment option selection flow has been canceled",
             )
           }
-        resolvePresentPromise(result)
+        resolvePromise(viewModel, result)
       }
+    }
+  }
+
+  override fun present(
+    promise: Promise?,
+    timeout: Long?,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      val activity = getCurrentActivityOrResolveWithError(promise) ?: return@runOnUiThread
+      val promiseViewModel =
+        ViewModelProvider.create(
+          owner = activity,
+          factory = PromiseViewModel.Factory,
+        )[PromiseViewModel::class]
+      promiseViewModel.setPromise(promise)
+      this.promise = promise
+      this.timeout = timeout
+      onPresent()
     }
   }
 
@@ -531,17 +567,17 @@ class PaymentSheetManager(
     }
   }
 
-  private fun resolvePresentPromise(value: Any?) {
+  private fun resolvePromise(viewModel: PromiseViewModel, value: Any?) {
     keepJsAwake?.stop()
-    promise?.resolve(value)
+    viewModel.resolve(value)
   }
 
-  private fun resolvePaymentResult(map: WritableMap) {
+  private fun resolvePaymentResult(viewModel: PromiseViewModel, map: WritableMap) {
     runWhenActivityAvailable(context) {
       confirmPromise?.let {
         it.resolve(map)
         confirmPromise = null
-      } ?: run { resolvePresentPromise(map) }
+      } ?: run { resolvePromise(viewModel, map) }
     }
   }
 
