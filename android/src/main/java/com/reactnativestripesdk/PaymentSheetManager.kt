@@ -63,6 +63,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
@@ -77,7 +78,7 @@ class PaymentSheetManager(
   private val initPromise: Promise,
 ) : StripeUIManager(context),
   ConfirmCustomPaymentMethodCallback {
-  private var hostActivity: FragmentActivity? = null
+  private var hostActivityRef: WeakReference<FragmentActivity>? = null
   private var paymentSheet: PaymentSheet? = null
   private var flowController: PaymentSheet.FlowController? = null
   private var paymentIntentClientSecret: String? = null
@@ -182,11 +183,11 @@ class PaymentSheetManager(
 
     paymentSheetConfiguration = configurationBuilder.build()
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
-    if (hostActivity !== activity) {
+    if (hostActivityRef?.get() !== activity) {
       signal.unregister()
       paymentSheet = null
       flowController = null
-      hostActivity = activity
+      hostActivityRef = WeakReference(activity)
     }
     configureMode(args, promise)
   }
