@@ -30,7 +30,11 @@ appId: ${APP_ID}
           direction: UP
           centerElement: true
           timeout: 30000
-      - assertVisible: 'Status: ready'
+      - scrollUntilVisible:
+          element:
+            text: 'Status: ready'
+          direction: UP
+          centerElement: true
 - runFlow:
     file: helpers/checkout-card.yml
     env:

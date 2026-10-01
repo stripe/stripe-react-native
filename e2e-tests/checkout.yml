@@ -87,7 +87,6 @@ appId: ${APP_ID}
       text: 'Status: updating'
     direction: UP
     centerElement: true
-    speed: 100
 - scrollUntilVisible:
     element:
       text: 'Reload'

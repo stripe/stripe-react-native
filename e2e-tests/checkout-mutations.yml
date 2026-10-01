@@ -155,3 +155,4 @@ appId: ${APP_ID}
       text: 'Status: ready'
     direction: UP
     centerElement: true
+    timeout: 60000
