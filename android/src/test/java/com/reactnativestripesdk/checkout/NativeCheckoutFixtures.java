@@ -2,6 +2,7 @@ package com.reactnativestripesdk.checkout;
 
 import android.graphics.drawable.Drawable;
 import androidx.compose.ui.text.AnnotatedString;
+import com.stripe.android.checkout.CheckoutController;
 import com.stripe.android.checkout.CheckoutController.Session;
 import java.util.Collections;
 import kotlin.coroutines.Continuation;
@@ -30,6 +31,10 @@ final class NativeCheckoutFixtures {
         100, paymentOption, null, taxStatus == null ? null : new Session.Tax(taxStatus), null,
         new Session.Totals(subtotal, zero, zero, zero, total), null, Collections.emptyList());
   }
+
+  static CheckoutController.Result completedResult() { return new CheckoutController.Result.Completed(); }
+  static CheckoutController.Result canceledResult() { return new CheckoutController.Result.Canceled(); }
+  static CheckoutController.Result failedResult(Throwable error) { return new CheckoutController.Result.Failed(error); }
 
   static Session.Status openStatus() { return new Session.Status.Open(); }
   static Session.Status expiredStatus() { return new Session.Status.Expired(); }

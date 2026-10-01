@@ -31,6 +31,7 @@ import com.reactnativestripesdk.addresssheet.AddressLauncherManager
 import com.reactnativestripesdk.checkout.CheckoutConfigurationMapper
 import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
 import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
+import com.reactnativestripesdk.checkout.checkoutErrorCode
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
@@ -1454,7 +1455,9 @@ class StripeSdkModule(
           controller = CheckoutController.Builder(
             reactApplicationContext.applicationContext as Application,
             SavedStateHandle(),
-          ).rowSelectionBehavior(mapped.rowSelectionBehavior)
+          ).resultCallback { result ->
+            UiThreadUtil.runOnUiThread { checkoutControllers[controllerId]?.onConfirmationResult(result) }
+          }.rowSelectionBehavior(mapped.rowSelectionBehavior)
             // Native uses this name as its Payment Element callback identifier.
             .integrationName("stripe-react-native-$controllerId")
             .build()
@@ -1587,6 +1590,33 @@ class StripeSdkModule(
   ) {
     performCheckoutMutation(controllerId, promise) { controller ->
       controller.clearPaymentOption()
+    }
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun confirmCheckout(controllerId: String, promise: Promise) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      if (instance == null) {
+        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        return@runOnUiThread
+      }
+      val activity = reactApplicationContext.currentActivity as? ComponentActivity
+      if (activity == null || activity.isFinishing ||
+        !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+      ) {
+        promise.reject("Failed", "Checkout requires a resumed activity to confirm.")
+        return@runOnUiThread
+      }
+      instance.launchMutation {
+        try {
+          val result = instance.confirm(activity)
+          promise.resolve(CheckoutSessionSerializer.serialize(result, instance.controller.session.value?.status))
+        } catch (error: Exception) {
+          promise.reject(checkoutErrorCode(error), error.message, error)
+        }
+      }
     }
   }
 
