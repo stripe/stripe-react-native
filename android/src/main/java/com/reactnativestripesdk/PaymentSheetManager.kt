@@ -184,7 +184,6 @@ class PaymentSheetManager(
     paymentSheetConfiguration = configurationBuilder.build()
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     if (hostActivityRef?.get() !== activity) {
-      signal.unregister()
       paymentSheet = null
       flowController = null
       hostActivityRef = WeakReference(activity)
