@@ -57,6 +57,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     @MainActor var checkoutControllers: [String: NativeCheckoutControllerInstance] = [:]
     @MainActor var pendingCheckoutCreations: [String: Task<Void, Never>] = [:]
+    @MainActor var checkoutPresentingViewControllerProvider: () -> UIViewController? = {
+        RCTPresentedViewController()
+    }
 
     var merchantIdentifier: String?
 
