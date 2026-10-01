@@ -2,13 +2,14 @@ package com.reactnativestripesdk
 
 import android.app.Activity
 import com.facebook.react.bridge.LifecycleEventListener
-import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.ReadableMap
+import com.google.common.truth.Truth.assertThat
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.PaymentSheet
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -599,62 +600,31 @@ class PaymentSheetManagerTest {
   // ============================================
 
   @Test
-  fun handleFlowControllerConfigured_Failure_ResolvesWithError() {
-    val promise = mock(Promise::class.java)
+  fun handleFlowControllerConfigured_Failure_ResolvesWithError() = runTest {
+    val promise = FakePromise()
     val errorMessage = "Configuration failed: invalid API key"
-
-    handleFlowControllerConfigured(
-      success = false,
-      error = IllegalArgumentException(errorMessage),
-      promise = promise,
-      flowController = null,
-    )
-
-    val captor = ArgumentCaptor.forClass(WritableMap::class.java)
-    verify(promise).resolve(captor.capture())
-    val resolved = captor.value
-    assertNotNull(resolved)
-    val errorMap = resolved.getMap("error")
-    assertNotNull(errorMap)
-    assertEquals(errorMessage, errorMap!!.getString("message"))
-    assertEquals("Failed", errorMap.getString("code"))
+    handleFlowControllerConfigured(false, IllegalArgumentException(errorMessage), null, this, promise::resolve)
+    val result = promise.resolveCalls.awaitItem().value as ReadableMap
+    assertThat(result.getMap("error")?.getString("message")).isEqualTo(errorMessage)
+    assertThat(result.getMap("error")?.getString("code")).isEqualTo("Failed")
+    promise.ensureAllEventsConsumed()
   }
 
   @Test
-  fun handleFlowControllerConfigured_FailureWithNullError_UsesDefaultMessage() {
-    val promise = mock(Promise::class.java)
-
-    handleFlowControllerConfigured(
-      success = false,
-      error = null,
-      promise = promise,
-      flowController = null,
-    )
-
-    val captor = ArgumentCaptor.forClass(WritableMap::class.java)
-    verify(promise).resolve(captor.capture())
-    val resolved = captor.value
-    assertNotNull(resolved)
-    val errorMap = resolved.getMap("error")
-    assertNotNull(errorMap)
-    assertEquals("Failed to configure payment sheet", errorMap!!.getString("message"))
+  fun handleFlowControllerConfigured_FailureWithNullError_UsesDefaultMessage() = runTest {
+    val promise = FakePromise()
+    handleFlowControllerConfigured(false, null, null, this, promise::resolve)
+    val result = promise.resolveCalls.awaitItem().value as ReadableMap
+    assertThat(result.getMap("error")?.getString("message")).isEqualTo("Failed to configure payment sheet")
+    promise.ensureAllEventsConsumed()
   }
 
   @Test
-  fun handleFlowControllerConfigured_SuccessWithNoPaymentOption_ResolvesEmptyMap() {
-    val promise = mock(Promise::class.java)
-
-    handleFlowControllerConfigured(
-      success = true,
-      error = null,
-      promise = promise,
-      flowController = null,
-    )
-
-    val captor = ArgumentCaptor.forClass(WritableMap::class.java)
-    verify(promise).resolve(captor.capture())
-    val resolved = captor.value
-    assertNotNull(resolved)
-    assertTrue(!resolved.hasKey("error"))
+  fun handleFlowControllerConfigured_SuccessWithNoPaymentOption_ResolvesEmptyMap() = runTest {
+    val promise = FakePromise()
+    handleFlowControllerConfigured(true, null, null, this, promise::resolve)
+    val result = promise.resolveCalls.awaitItem().value as ReadableMap
+    assertThat(result.hasKey("error")).isFalse()
+    promise.ensureAllEventsConsumed()
   }
 }

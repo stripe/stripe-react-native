@@ -1,28 +1,26 @@
 package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.Drawable
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Base64
 import android.util.Log
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.addresssheet.AddressSheetView
-import com.reactnativestripesdk.utils.DefaultActivityLifecycleCallbacks
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
@@ -42,6 +40,7 @@ import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
+import com.stripe.android.core.reactnative.UnregisterSignal
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
 import com.stripe.android.paymentelement.CreateIntentWithConfirmationTokenCallback
@@ -53,14 +52,18 @@ import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.PaymentOptionResultCallback
 import com.stripe.android.paymentsheet.PaymentSheet
-import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
 import java.lang.ref.WeakReference
@@ -78,19 +81,29 @@ class PaymentSheetManager(
   private val initPromise: Promise,
 ) : StripeUIManager(context),
   ConfirmCustomPaymentMethodCallback {
-  private var hostActivityRef: WeakReference<FragmentActivity>? = null
-  private var paymentSheet: PaymentSheet? = null
-  private var flowController: PaymentSheet.FlowController? = null
-  private var paymentIntentClientSecret: String? = null
-  private var setupIntentClientSecret: String? = null
-  private var intentConfiguration: PaymentSheet.IntentConfiguration? = null
-  private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
-  private var confirmPromise: Promise? = null
-  private var paymentSheetTimedOut = false
+  private class HostBinding(activity: FragmentActivity) {
+    val activity = WeakReference(activity)
+    val signal = UnregisterSignal()
+    var observer: LifecycleEventObserver? = null
+    var paymentSheet: PaymentSheet? = null
+    var flowController: PaymentSheet.FlowController? = null
+    var paymentIntentClientSecret: String? = null
+    var setupIntentClientSecret: String? = null
+    var intentConfiguration: PaymentSheet.IntentConfiguration? = null
+    lateinit var configuration: PaymentSheet.Configuration
+    var customFlow = false
+    var pendingOperation: PaymentSheetOperation? = null
+    var pendingInitialization: PaymentSheetOperation? = null
+    var disposed = false
+  }
+
+  private val hosts = mutableListOf<HostBinding>()
+  private var currentHost: HostBinding? = null
+  private val operations = mutableSetOf<PaymentSheetOperation>()
+  private val callbackScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+  private var destroyed = false
   internal var paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
   internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
-  private var keepJsAwake: KeepJsAwakeTask? = null
-  private var lastConfigureWasCustomFlow: Boolean? = null
 
   @SuppressLint("RestrictedApi")
   override fun onCreate() {
@@ -99,14 +112,89 @@ class PaymentSheetManager(
 
   override fun onDestroy() {
     super.onDestroy()
-    flowController = null
-    paymentSheet = null
+    destroyed = true
+    promise = null
+    timeout = null
+    hosts.toList().forEach { disposeHost(it) }
+    operations.toList().forEach { it.dispose() }
+    callbackScope.cancel()
+    paymentSheetIntentCreationCallback.cancel()
+    paymentSheetConfirmationTokenCreationCallback.cancel()
+  }
+
+  private fun newOperation(promise: Promise): PaymentSheetOperation =
+    PaymentSheetOperation(context, promise) { operations.remove(it) }.also { operations.add(it) }
+
+  private fun bindingFor(activity: FragmentActivity): HostBinding {
+    hosts.firstOrNull { it.activity.get() === activity }?.let { return it }
+    val binding = HostBinding(activity)
+    val observer = LifecycleEventObserver { _, event ->
+      if (event == Lifecycle.Event.ON_DESTROY) {
+        takeOperation(binding)?.deliver(createUnavailableResultError())
+        binding.pendingInitialization?.let { operation ->
+          binding.pendingInitialization = null
+          operation.deliver(
+            createError(
+              PaymentSheetErrorType.Failed.toString(),
+              "PaymentSheet initialization was interrupted because its host Activity was destroyed. " +
+                "Call initPaymentSheet again.",
+            ),
+          )
+        }
+        disposeHost(binding)
+      }
+    }
+    binding.observer = observer
+    hosts.add(binding)
+    activity.lifecycle.addObserver(observer)
+    return binding
+  }
+
+  private fun disposeHost(binding: HostBinding) {
+    if (binding.disposed) return
+    binding.disposed = true
+    binding.signal.unregister()
+    binding.observer?.let { binding.activity.get()?.lifecycle?.removeObserver(it) }
+    binding.observer = null
+    binding.paymentSheet = null
+    binding.flowController = null
+    binding.pendingOperation = null
+    binding.pendingInitialization = null
+    hosts.remove(binding)
+    if (currentHost === binding) currentHost = null
+  }
+
+  private fun disposeIfRetired(binding: HostBinding) {
+    if (binding !== currentHost && binding.pendingOperation == null && binding.pendingInitialization == null) {
+      disposeHost(binding)
+    }
+  }
+
+  private fun takeOperation(binding: HostBinding): PaymentSheetOperation? {
+    if (destroyed) return null
+    val operation = binding.pendingOperation ?: return null
+    binding.pendingOperation = null
+    operation.stopPresentationWork()
+    disposeIfRetired(binding)
+    return operation
   }
 
   fun configure(
     args: ReadableMap,
     promise: Promise,
   ) {
+    if (destroyed) return
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    if (activity.isDestroyed || activity.lifecycle.currentState == Lifecycle.State.DESTROYED) {
+      promise.resolve(createUnavailableResultError())
+      return
+    }
+    if (hosts.any { it.activity.get() === activity && it.pendingInitialization != null }) {
+      promise.resolve(
+        createError(ErrorType.Failed.toString(), "PaymentSheet is already being initialized for this Activity."),
+      )
+      return
+    }
     val merchantDisplayName = args.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
       promise.resolve(
@@ -127,9 +215,9 @@ class PaymentSheetManager(
     val opensCardScannerAutomatically =
       args.getBooleanOr("opensCardScannerAutomatically", false)
 
-    paymentIntentClientSecret = args.getString("paymentIntentClientSecret").orEmpty()
-    setupIntentClientSecret = args.getString("setupIntentClientSecret").orEmpty()
-    intentConfiguration =
+    val paymentIntentClientSecret = args.getString("paymentIntentClientSecret").orEmpty()
+    val setupIntentClientSecret = args.getString("setupIntentClientSecret").orEmpty()
+    val intentConfiguration =
       resolvePaymentSheetValue(promise) {
         buildIntentConfiguration(args.getMap("intentConfiguration"))
       }.getOrElse { return }
@@ -181,15 +269,16 @@ class PaymentSheetManager(
 
     mapToTermsDisplay(args)?.let { configurationBuilder.termsDisplay(it) }
 
-    paymentSheetConfiguration = configurationBuilder.build()
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
-    if (hostActivityRef?.get() !== activity) {
-      signal.unregister()
-      paymentSheet = null
-      flowController = null
-      hostActivityRef = WeakReference(activity)
-    }
-    configureMode(args, promise)
+    val binding = bindingFor(activity)
+    binding.paymentIntentClientSecret = paymentIntentClientSecret
+    binding.setupIntentClientSecret = setupIntentClientSecret
+    binding.intentConfiguration = intentConfiguration
+    binding.configuration = configurationBuilder.build()
+    binding.customFlow = args.getBooleanOr("customFlow", false)
+    val previous = currentHost
+    currentHost = binding
+    previous?.let { disposeIfRetired(it) }
+    configureMode(binding, activity, args, promise)
   }
 
   private inline fun <T> resolvePaymentSheetValue(
@@ -215,35 +304,35 @@ class PaymentSheetManager(
     }
 
   private fun configureMode(
+    binding: HostBinding,
+    activity: FragmentActivity,
     args: ReadableMap,
     promise: Promise,
   ) {
-    if (args.getBooleanOr("customFlow", false)) {
-      lastConfigureWasCustomFlow = true
-      if (flowController == null) {
-        initFlowController(args, promise)
+    if (binding.customFlow) {
+      if (binding.flowController == null) {
+        initFlowController(binding, activity, args)
       }
-      configureFlowController(promise)
+      configureFlowController(binding, promise)
       return
     }
 
-    lastConfigureWasCustomFlow = false
-    if (paymentSheet == null) {
-      initPaymentSheet(args, promise)
+    if (binding.paymentSheet == null) {
+      initPaymentSheet(binding, activity, args)
     }
     promise.resolve(Arguments.createMap())
   }
 
   private fun initPaymentSheet(
+    binding: HostBinding,
+    activity: FragmentActivity,
     args: ReadableMap,
-    promise: Promise,
   ) {
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     val intentConfigMap = args.getMap("intentConfiguration")
     val useConfirmationTokenCallback = intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
-    paymentSheet =
-      if (intentConfiguration != null) {
-        val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback())
+    binding.paymentSheet =
+      if (binding.intentConfiguration != null) {
+        val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback(binding))
         if (useConfirmationTokenCallback) {
           builder.createIntentCallback(buildCreateConfirmationTokenCallback())
         } else {
@@ -252,31 +341,31 @@ class PaymentSheetManager(
         @SuppressLint("RestrictedApi")
         builder
           .confirmCustomPaymentMethodCallback(this)
-          .build(activity, signal)
+          .build(activity, binding.signal)
       } else {
         @SuppressLint("RestrictedApi")
         PaymentSheet
-          .Builder(buildPaymentSheetResultCallback())
+          .Builder(buildPaymentSheetResultCallback(binding))
           .confirmCustomPaymentMethodCallback(this)
-          .build(activity, signal)
+          .build(activity, binding.signal)
       }
   }
 
   private fun initFlowController(
+    binding: HostBinding,
+    activity: FragmentActivity,
     args: ReadableMap,
-    promise: Promise,
   ) {
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     val intentConfigMap = args.getMap("intentConfiguration")
     val useConfirmationTokenCallback =
       intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
-    flowController =
-      if (intentConfiguration != null) {
+    binding.flowController =
+      if (binding.intentConfiguration != null) {
         val builder =
           PaymentSheet.FlowController
             .Builder(
-              resultCallback = buildPaymentSheetResultCallback(),
-              paymentOptionResultCallback = buildPaymentOptionCallback(),
+              resultCallback = buildPaymentSheetResultCallback(binding),
+              paymentOptionResultCallback = buildPaymentOptionCallback(binding),
             )
         if (useConfirmationTokenCallback) {
           builder.createIntentCallback(buildCreateConfirmationTokenCallback())
@@ -288,8 +377,8 @@ class PaymentSheetManager(
       } else {
         PaymentSheet.FlowController
           .Builder(
-            resultCallback = buildPaymentSheetResultCallback(),
-            paymentOptionResultCallback = buildPaymentOptionCallback(),
+            resultCallback = buildPaymentSheetResultCallback(binding),
+            paymentOptionResultCallback = buildPaymentOptionCallback(binding),
           ).confirmCustomPaymentMethodCallback(this)
           .build(activity)
       }
@@ -350,203 +439,150 @@ class PaymentSheetManager(
     }
   }
 
-  private fun buildPaymentSheetResultCallback(): PaymentSheetResultCallback =
+  private fun buildPaymentSheetResultCallback(binding: HostBinding): PaymentSheetResultCallback =
     PaymentSheetResultCallback { paymentResult ->
-      if (paymentSheetTimedOut) {
-        paymentSheetTimedOut = false
-        resolvePaymentResult(
-          createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out"),
-        )
-      } else {
-        when (paymentResult) {
-          is PaymentSheetResult.Canceled -> {
-            resolvePaymentResult(
-              createError(
-                PaymentSheetErrorType.Canceled.toString(),
-                "The payment flow has been canceled",
-              ),
-            )
-          }
-
-          is PaymentSheetResult.Failed -> {
-            resolvePaymentResult(
-              createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error),
-            )
-          }
-
-          is PaymentSheetResult.Completed -> {
-            resolvePaymentResult(Arguments.createMap())
-          }
-        }
-      }
+      takeOperation(binding)?.complete(paymentResult)
     }
 
-  private fun buildPaymentOptionCallback(): PaymentOptionResultCallback {
-    return PaymentOptionResultCallback { paymentOptionResult ->
-      paymentOptionResult.paymentOption?.let { paymentOption ->
-        // Convert drawable to bitmap asynchronously to avoid shared state issues
-        CoroutineScope(Dispatchers.Default).launch {
-          val imageString =
-            try {
-              convertDrawableToBase64(paymentOption.icon())
-            } catch (e: Exception) {
-              val result =
-                createError(
-                  PaymentSheetErrorType.Failed.toString(),
-                  "Failed to process payment option image: ${e.message}",
-                )
-              resolvePresentPromise(result)
-              return@launch
-            }
-
-          val option: WritableMap = Arguments.createMap()
-          option.putString("label", paymentOption.label)
-          option.putString("image", imageString)
-          val additionalFields: Map<String, Any> = mapOf("didCancel" to paymentOptionResult.didCancel)
-          val result = createResult("paymentOption", option, additionalFields)
-          resolvePresentPromise(result)
-        }
-      } ?: run {
-        val result =
-          if (paymentSheetTimedOut) {
-            paymentSheetTimedOut = false
+  private fun buildPaymentOptionCallback(binding: HostBinding): PaymentOptionResultCallback =
+    PaymentOptionResultCallback { paymentOptionResult ->
+      val operation = takeOperation(binding) ?: return@PaymentOptionResultCallback
+      val paymentOption = paymentOptionResult.paymentOption
+      if (paymentOption == null) {
+        operation.deliver(
+          if (operation.timedOut) {
             createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out")
           } else {
             createError(
-              PaymentSheetErrorType.Canceled.toString(),
-              "The payment option selection flow has been canceled",
+              PaymentSheetErrorType.Canceled.toString(), "The payment option selection flow has been canceled",
             )
+          },
+        )
+      } else {
+        operation.processingJob = callbackScope.launch {
+          val imageString = try {
+            withContext(Dispatchers.Default) { convertDrawableToBase64(paymentOption.icon()) }
+          } catch (e: CancellationException) {
+            throw e
+          } catch (e: Exception) {
+            operation.deliver(
+              createError(
+                PaymentSheetErrorType.Failed.toString(), "Failed to process payment option image: ${e.message}",
+              ),
+            )
+            return@launch
           }
-        resolvePresentPromise(result)
+          val option = Arguments.createMap().apply {
+            putString("label", paymentOption.label)
+            putString("image", imageString)
+          }
+          operation.deliver(createResult("paymentOption", option, mapOf("didCancel" to paymentOptionResult.didCancel)))
+        }
       }
     }
-  }
 
   override fun onPresent() {
-    keepJsAwake = KeepJsAwakeTask(context).apply { start() }
-    if (lastConfigureWasCustomFlow == false) {
-      if (!paymentIntentClientSecret.isNullOrEmpty()) {
-        paymentSheet?.presentWithPaymentIntent(
-          paymentIntentClientSecret!!,
-          paymentSheetConfiguration,
-        )
-      } else if (!setupIntentClientSecret.isNullOrEmpty()) {
-        paymentSheet?.presentWithSetupIntent(setupIntentClientSecret!!, paymentSheetConfiguration)
-      } else if (intentConfiguration != null) {
-        paymentSheet?.presentWithIntentConfiguration(
-          intentConfiguration = intentConfiguration!!,
-          configuration = paymentSheetConfiguration,
-        )
-      }
-    } else if (lastConfigureWasCustomFlow == true && flowController != null) {
-      flowController?.presentPaymentOptions()
+    // StripeUIManager's fields are only the synchronous handoff, never result ownership.
+    val originalPromise = promise ?: return
+    val presentationTimeout = timeout
+    promise = null
+    timeout = null
+    if (destroyed) return
+    val activity = getCurrentActivityOrResolveWithError(originalPromise) ?: return
+    val binding = currentHost
+    if (binding == null || binding.activity.get() !== activity) {
+      originalPromise.resolve(createMissingInitError())
+      return
+    }
+    val operation = beginOperation(binding, originalPromise) ?: return
+    operation.start(
+      activity, presentationTimeout, if (binding.customFlow) PAYMENT_OPTIONS_ACTIVITY else PAYMENT_SHEET_ACTIVITY,
+    )
+    if (binding.customFlow) {
+      binding.flowController?.presentPaymentOptions()
+    } else if (!binding.paymentIntentClientSecret.isNullOrEmpty()) {
+      binding.paymentSheet?.presentWithPaymentIntent(binding.paymentIntentClientSecret!!, binding.configuration)
+    } else if (!binding.setupIntentClientSecret.isNullOrEmpty()) {
+      binding.paymentSheet?.presentWithSetupIntent(binding.setupIntentClientSecret!!, binding.configuration)
+    } else if (binding.intentConfiguration != null) {
+      binding.paymentSheet?.presentWithIntentConfiguration(binding.intentConfiguration!!, binding.configuration)
     } else {
-      promise?.resolve(createMissingInitError())
+      takeOperation(binding)?.deliver(createMissingInitError())
     }
   }
 
-  fun presentWithTimeout(
-    timeout: Long,
-    promise: Promise,
-  ) {
-    var paymentSheetActivity: Activity? = null
-
-    val activityLifecycleCallbacks =
-      object : DefaultActivityLifecycleCallbacks() {
-        override fun onActivityCreated(
-          activity: Activity,
-          savedInstanceState: Bundle?,
-        ) {
-          if (activity.javaClass.name == PAYMENT_SHEET_ACTIVITY ||
-            activity.javaClass.name == PAYMENT_OPTIONS_ACTIVITY
-          ) {
-            paymentSheetActivity = activity
-          }
-        }
-
-        override fun onActivityDestroyed(activity: Activity) {
-          if (activity.javaClass.name == PAYMENT_SHEET_ACTIVITY ||
-            activity.javaClass.name == PAYMENT_OPTIONS_ACTIVITY
-          ) {
-            paymentSheetActivity = null
-            context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
-          }
-        }
-      }
-
-    Handler(Looper.getMainLooper())
-      .postDelayed(
-        {
-          paymentSheetActivity?.let {
-            it.finish()
-            paymentSheetTimedOut = true
-          }
-        },
-        timeout,
+  private fun beginOperation(binding: HostBinding, promise: Promise): PaymentSheetOperation? {
+    if (binding.pendingOperation != null) {
+      promise.resolve(
+        createError(
+          PaymentSheetErrorType.Failed.toString(),
+          "PaymentSheet is already presenting or confirming for this Activity.",
+        ),
       )
+      return null
+    }
+    return newOperation(promise).also { binding.pendingOperation = it }
+  }
 
-    context.currentActivity
-      ?.application
-      ?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
-
-    this.present(promise)
+  fun presentWithTimeout(timeout: Long, promise: Promise) {
+    present(promise, timeout)
   }
 
   fun confirmPayment(promise: Promise) {
-    this.confirmPromise = promise
-    flowController?.confirm()
+    UiThreadUtil.runOnUiThread {
+      if (destroyed) return@runOnUiThread
+      val binding = currentHost
+      if (binding == null || binding.flowController == null || binding.activity.get() !== context.currentActivity) {
+        promise.resolve(createMissingInitError())
+        return@runOnUiThread
+      }
+      beginOperation(binding, promise) ?: return@runOnUiThread
+      binding.flowController?.confirm()
+    }
   }
 
-  private fun configureFlowController(promise: Promise) {
-    val onFlowControllerConfigure =
-      PaymentSheet.FlowController.ConfigCallback { success, error ->
-        handleFlowControllerConfigured(success, error, promise, flowController)
+  private fun configureFlowController(binding: HostBinding, promise: Promise) {
+    val controller = binding.flowController ?: return
+    val operation = newOperation(promise)
+    binding.pendingInitialization = operation
+    val onConfigured = PaymentSheet.FlowController.ConfigCallback { success, error ->
+      UiThreadUtil.runOnUiThread {
+        if (destroyed || binding.pendingInitialization !== operation) return@runOnUiThread
+        val configuredController = binding.flowController
+        binding.pendingInitialization = null
+        disposeIfRetired(binding)
+        operation.processingJob = handleFlowControllerConfigured(
+          success, error, configuredController, callbackScope, operation::deliver,
+        )
       }
-
-    if (!paymentIntentClientSecret.isNullOrEmpty()) {
-      flowController?.configureWithPaymentIntent(
-        paymentIntentClientSecret = paymentIntentClientSecret!!,
-        configuration = paymentSheetConfiguration,
-        callback = onFlowControllerConfigure,
-      )
-    } else if (!setupIntentClientSecret.isNullOrEmpty()) {
-      flowController?.configureWithSetupIntent(
-        setupIntentClientSecret = setupIntentClientSecret!!,
-        configuration = paymentSheetConfiguration,
-        callback = onFlowControllerConfigure,
-      )
-    } else if (intentConfiguration != null) {
-      flowController?.configureWithIntentConfiguration(
-        intentConfiguration = intentConfiguration!!,
-        configuration = paymentSheetConfiguration,
-        callback = onFlowControllerConfigure,
-      )
+    }
+    if (!binding.paymentIntentClientSecret.isNullOrEmpty()) {
+      controller.configureWithPaymentIntent(binding.paymentIntentClientSecret!!, binding.configuration, onConfigured)
+    } else if (!binding.setupIntentClientSecret.isNullOrEmpty()) {
+      controller.configureWithSetupIntent(binding.setupIntentClientSecret!!, binding.configuration, onConfigured)
+    } else if (binding.intentConfiguration != null) {
+      controller.configureWithIntentConfiguration(binding.intentConfiguration!!, binding.configuration, onConfigured)
     } else {
-      promise.resolve(
+      binding.pendingInitialization = null
+      operation.deliver(
         createError(
           ErrorType.Failed.toString(),
           "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration` is required",
         ),
       )
-      return
-    }
-  }
-
-  private fun resolvePresentPromise(value: Any?) {
-    keepJsAwake?.stop()
-    promise?.resolve(value)
-  }
-
-  private fun resolvePaymentResult(map: WritableMap) {
-    runWhenActivityAvailable(context) {
-      confirmPromise?.let {
-        it.resolve(map)
-        confirmPromise = null
-      } ?: run { resolvePresentPromise(map) }
     }
   }
 
   override fun onConfirmCustomPaymentMethod(
+    customPaymentMethod: PaymentSheet.CustomPaymentMethod,
+    billingDetails: PaymentMethod.BillingDetails,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      if (!destroyed) confirmCustomPaymentMethod(customPaymentMethod, billingDetails)
+    }
+  }
+
+  private fun confirmCustomPaymentMethod(
     customPaymentMethod: PaymentSheet.CustomPaymentMethod,
     billingDetails: PaymentMethod.BillingDetails,
   ) {
@@ -577,7 +613,7 @@ class PaymentSheetManager(
       KeepJsAwakeTask(context).apply { start() }
 
     // Run on main coroutine scope.
-    CoroutineScope(Dispatchers.Main).launch {
+    callbackScope.launch {
       try {
         // Give the CustomPaymentMethodActivity a moment to fully initialize
         delay(CUSTOM_PAYMENT_METHOD_INIT_DELAY_MS)
@@ -614,6 +650,7 @@ class PaymentSheetManager(
           nativeResult,
         )
       } finally {
+        keepJsAwakeTask.stop()
         // Clean up the transparent activity
         CustomPaymentMethodActivity.finishCurrent()
       }
@@ -621,6 +658,12 @@ class PaymentSheetManager(
   }
 
   companion object {
+    internal fun createUnavailableResultError(): WritableMap = createError(
+      PaymentSheetErrorType.Failed.toString(),
+      "The payment result is unavailable because its host Activity was destroyed. " +
+        "The payment may have completed. Check the payment status before trying again.",
+    )
+
     internal fun createMissingInitError(): WritableMap =
       createError(
         PaymentSheetErrorType.Failed.toString(),
@@ -634,10 +677,10 @@ class PaymentSheetManager(
 internal fun runWhenActivityAvailable(
   context: ReactApplicationContext,
   action: () -> Unit,
-) {
+): () -> Unit {
   if (context.currentActivity != null) {
     action()
-    return
+    return {}
   }
 
   val didFinish = AtomicBoolean(false)
@@ -661,9 +704,7 @@ internal fun runWhenActivityAvailable(
       }
 
       override fun onHostDestroy() {
-        if (didFinish.compareAndSet(false, true)) {
-          context.removeLifecycleEventListener(this)
-        }
+        // The runtime may survive. Keep the already-received result until another host attaches.
       }
     }
 
@@ -671,6 +712,11 @@ internal fun runWhenActivityAvailable(
 
   // The activity can resume between the initial check and listener registration.
   runIfActivityAvailable()
+  return {
+    if (didFinish.compareAndSet(false, true)) {
+      context.removeLifecycleEventListener(listener)
+    }
+  }
 }
 
 suspend fun waitForDrawableToLoad(
@@ -818,41 +864,37 @@ internal fun mapToPaymentMethodOptions(
 internal fun handleFlowControllerConfigured(
   success: Boolean,
   error: Throwable?,
-  promise: Promise,
   flowController: PaymentSheet.FlowController?,
-) {
+  scope: CoroutineScope,
+  onResult: (WritableMap) -> Unit,
+): Job? {
   if (!success) {
-    promise.resolve(
-      createError(
-        PaymentSheetErrorType.Failed.toString(),
-        error?.message ?: "Failed to configure payment sheet",
-      ),
+    onResult(
+      createError(PaymentSheetErrorType.Failed.toString(), error?.message ?: "Failed to configure payment sheet"),
     )
-    return
+    return null
   }
-  flowController?.getPaymentOption()?.let { paymentOption ->
-    CoroutineScope(Dispatchers.Default).launch {
-      val imageString =
-        try {
-          convertDrawableToBase64(paymentOption.icon())
-        } catch (e: Exception) {
-          val result =
-            createError(
-              PaymentSheetErrorType.Failed.toString(),
-              "Failed to process payment option image: ${e.message}",
-            )
-          promise.resolve(result)
-          return@launch
-        }
-
-      val option: WritableMap = Arguments.createMap()
-      option.putString("label", paymentOption.label)
-      option.putString("image", imageString)
-      val result = createResult("paymentOption", option)
-      promise.resolve(result)
+  val paymentOption = flowController?.getPaymentOption()
+  if (paymentOption == null) {
+    onResult(Arguments.createMap())
+    return null
+  }
+  return scope.launch {
+    val imageString = try {
+      withContext(Dispatchers.Default) { convertDrawableToBase64(paymentOption.icon()) }
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      onResult(
+        createError(PaymentSheetErrorType.Failed.toString(), "Failed to process payment option image: ${e.message}"),
+      )
+      return@launch
     }
-  } ?: run {
-    promise.resolve(Arguments.createMap())
+    val option = Arguments.createMap().apply {
+      putString("label", paymentOption.label)
+      putString("image", imageString)
+    }
+    onResult(createResult("paymentOption", option))
   }
 }
 
