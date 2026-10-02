@@ -53,6 +53,7 @@ end
 
 def run_tests
   puts "Running tests"
+  execute_or_fail("node scripts/generate-package-info.js --check")
   execute_or_fail("yarn run test")
 end
 

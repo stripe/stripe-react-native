@@ -81,6 +81,7 @@ fi
 
 echo "Bumping package.json prerelease version and tagging commit"
 yarn version --prerelease --no-git-tag-version
+node scripts/generate-package-info.js
 
 echo "Publishing beta release"
 yarn -s --ignore-scripts publish --non-interactive --access=public --tag=beta

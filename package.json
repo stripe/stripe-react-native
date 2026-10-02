@@ -5,14 +5,14 @@
   "description": "Stripe SDK for React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
-  "types": "lib/typescript/src/index.d.ts",
+  "types": "lib/typescript/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
   "scripts": {
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
-    "prepare": "bob build && rm -rf lib/*/package.json && husky",
+    "prepare": "node scripts/generate-package-info.js && bob build && rm -rf lib/*/package.json && husky",
     "propose": "./scripts/propose.rb",
     "release": "./scripts/publish.rb",
     "example": "yarn --cwd example",
@@ -125,10 +125,7 @@
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!(react-native|@react-native|react-native-webview)/)"
-    ],
-    "moduleNameMapper": {
-      "^.+/package\\.json$": "<rootDir>/package.json"
-    }
+    ]
   },
   "eslintConfig": {
     "extends": [

@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "projectFolder": ".",
   // Must match "types" in package.json — this is what consumers resolve via TS.
-  "mainEntryPointFilePath": "lib/typescript/src/index.d.ts",
+  "mainEntryPointFilePath": "lib/typescript/index.d.ts",
   "compiler": {
     "tsconfigFilePath": "<projectFolder>/tsconfig.json"
   },

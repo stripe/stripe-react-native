@@ -29,6 +29,7 @@ jest.mock('react-native-webview', () => {
     mockWebViewProps = props;
     React.useImperativeHandle(ref, () => ({
       injectJavaScript: mockInjectJavaScript,
+      reload: jest.fn(),
     }));
     return null;
   });
