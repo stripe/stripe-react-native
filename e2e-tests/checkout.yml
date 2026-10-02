@@ -38,6 +38,10 @@ appId: ${APP_ID}
 - tapOn: 'Present sheet'
 - waitForAnimationToEnd
 - tapOn: 'Close'
+- scrollUntilVisible:
+    element:
+      text: 'Session updates'
+    centerElement: true
 - tapOn: 'Session updates'
 - scrollUntilVisible:
     element:
