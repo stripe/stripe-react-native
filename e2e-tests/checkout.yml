@@ -84,15 +84,10 @@ appId: ${APP_ID}
 - tapOn: 'Slow server update'
 - scrollUntilVisible:
     element:
-      id: 'checkout-status'
+      id: 'checkout-action'
     direction: UP
     centerElement: true
-- assertVisible: 'Status: updating'
-- scrollUntilVisible:
-    element:
-      text: 'Reload'
-    direction: DOWN
-    centerElement: true
+- assertVisible: 'Slow server update: pending'
 - tapOn: 'Reload'
 - extendedWaitUntil:
     visible: 'Reload: done'
