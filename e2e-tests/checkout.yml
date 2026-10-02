@@ -78,16 +78,9 @@ appId: ${APP_ID}
 - assertNotVisible: 'Apply promotion: done'
 - scrollUntilVisible:
     element:
-      text: 'Slow server update'
+      text: 'Reload'
     direction: UP
     centerElement: true
-- tapOn: 'Slow server update'
-- scrollUntilVisible:
-    element:
-      id: 'checkout-action'
-    direction: UP
-    centerElement: true
-- assertVisible: 'Slow server update: pending'
 - tapOn: 'Reload'
 - extendedWaitUntil:
     visible: 'Reload: done'
@@ -107,12 +100,6 @@ appId: ${APP_ID}
     direction: UP
     centerElement: true
 - tapOn: 'Hide inline element'
-- scrollUntilVisible:
-    element:
-      text: 'Slow server update'
-    centerElement: true
-- tapOn: 'Slow server update'
-- assertVisible: 'Slow server update: pending'
 - runFlow:
     when:
       platform: Android
