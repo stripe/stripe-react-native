@@ -24,9 +24,11 @@ import { useConnectComponents } from './ConnectComponentsProvider';
 export { NavigationBar } from './NavigationBar';
 export type { NavigationBarProps } from './NavigationBar';
 
+// Mirrors the web bridge's `authchallengerequired` event. `spec` is opaque --
+// this SDK never inspects it, only forwards it to the host.
 type AuthChallengeRequiredEvent = {
-  action: string;
   requestId: string;
+  spec?: unknown;
 };
 
 type AuthChallengeResponse = {
