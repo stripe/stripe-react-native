@@ -86,8 +86,11 @@ appId: ${APP_ID}
     direction: UP
     centerElement: true
 - tapOn: 'Reload'
-- extendedWaitUntil:
-    visible: 'Reload: done'
+- scrollUntilVisible:
+    element:
+      text: 'Reload: done'
+    direction: UP
+    centerElement: true
     timeout: 150000
 - assertVisible: 'Status: ready'
 - scrollUntilVisible:
