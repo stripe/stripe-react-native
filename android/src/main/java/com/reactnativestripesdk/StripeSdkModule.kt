@@ -128,10 +128,8 @@ class StripeSdkModule(
 
   @Volatile private var checkoutControllersInvalidated = false
 
-  internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
-  internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
+  internal val intentCreationCallbacks = IntentCreationCallbackRegistry()
   internal var customPaymentMethodResultCallback = CompletableDeferred<ReadableMap>()
-  internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
 
@@ -143,6 +141,7 @@ class StripeSdkModule(
 
   override fun invalidate() {
     checkoutControllersInvalidated = true
+    intentCreationCallbacks.dispose()
     super.invalidate()
 
     stripeUIManagers.forEach { it.destroy() }
@@ -169,6 +168,9 @@ class StripeSdkModule(
 
   private fun unregisterStripeUIManager(uiManager: StripeUIManager?) {
     val uiManager = uiManager ?: return
+    if (uiManager === paymentSheetManager) {
+      paymentSheetManager = null
+    }
     uiManager.destroy()
     stripeUIManagers.remove(uiManager)
   }
@@ -328,14 +330,8 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    embeddedIntentCreationCallback.complete(params)
-
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
-    }
-
-    paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
+    intentCreationCallbacks.complete(if (params.hasKey("requestId")) params.getString("requestId") else null, params)
+    promise.resolve(null)
   }
 
   @ReactMethod
@@ -355,15 +351,8 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    embeddedConfirmationTokenCreationCallback.complete(params)
-    paymentSheetConfirmationTokenCreationCallback.complete(params)
-
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
-    }
-
-    paymentSheetManager?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
+    intentCreationCallbacks.complete(if (params.hasKey("requestId")) params.getString("requestId") else null, params)
+    promise.resolve(null)
   }
 
   @ReactMethod
