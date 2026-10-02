@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import {
+  CheckoutCurrencySelectorElementView,
   CheckoutPaymentElementView,
   initStripe,
   useCheckout,
@@ -224,6 +225,29 @@ function CheckoutForm() {
   const [lastAction, setLastAction] = useState('');
   const [snapshotVisible, setSnapshotVisible] = useState(false);
   const [showUpdates, setShowUpdates] = useState(false);
+  const enableCurrencySelector = () => {
+    setConfiguration(
+      JSON.stringify(
+        {
+          ...JSON.parse(configuration),
+          currencySelectorElement: {},
+        },
+        null,
+        2
+      )
+    );
+    setSessionParameters(
+      JSON.stringify(
+        {
+          ...JSON.parse(sessionParameters),
+          adaptive_pricing: { enabled: true },
+          customer_email: 'test+location_DE@example.com',
+        },
+        null,
+        2
+      )
+    );
+  };
   const checkout = useCheckout({
     enabled,
     getConfiguration: async () => {
@@ -350,6 +374,11 @@ function CheckoutForm() {
         description="Configuration changes apply when a session is created or reloaded."
       >
         <View style={styles.actionStack}>
+          <PlaygroundButton
+            title="Use Adaptive Pricing"
+            disabled={enabled}
+            onPress={enableCurrencySelector}
+          />
           <PlaygroundButton
             title={
               editConfiguration ? 'Hide configuration' : 'Edit configuration'
@@ -484,6 +513,16 @@ function CheckoutForm() {
                 </Text>
               </View>
             </View>
+            {checkout.currencySelectorElement && (
+              <View
+                style={styles.nativeElement}
+                testID="checkout-currency-selector"
+              >
+                <CheckoutCurrencySelectorElementView
+                  element={checkout.currencySelectorElement}
+                />
+              </View>
+            )}
             <View style={styles.paymentActions}>
               {action(
                 'Present sheet',
@@ -696,6 +735,12 @@ function CheckoutForm() {
         {snapshotVisible && (
           <View style={styles.snapshot}>
             <Text style={styles.snapshotTitle}>Session snapshot</Text>
+            <Text
+              style={styles.snapshotMetadata}
+              testID="checkout-snapshot-currency"
+            >
+              Currency: {checkout.session?.currency.toUpperCase()}
+            </Text>
             <Text
               selectable
               testID="checkout-snapshot"
@@ -1031,6 +1076,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     marginBottom: 8,
+  },
+  snapshotMetadata: {
+    color: colors.dark_gray,
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 10,
   },
   snapshotText: {
     color: colors.slate,

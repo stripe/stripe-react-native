@@ -51,6 +51,7 @@ type CustomerSheetInitResult = UnsafeObject<{
 
 type CheckoutCreateResult = UnsafeObject<{
   session: Checkout.Session;
+  isCurrencySelectorAvailable: boolean;
 }>;
 
 export interface Spec extends TurboModule {

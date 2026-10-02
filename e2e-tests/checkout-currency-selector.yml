@@ -1,0 +1,40 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create session'
+    timeout: 60000
+- tapOn: 'Use Adaptive Pricing'
+- tapOn: 'Create session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- scrollUntilVisible:
+    element:
+      id: 'checkout-currency-selector'
+    timeout: 30000
+- assertVisible:
+    id: 'checkout-currency-selector'
+- tapOn:
+    text: '.*\$.*'
+- scrollUntilVisible:
+    element:
+      text: 'Status: ready'
+    direction: UP
+    centerElement: true
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      text: 'Show session'
+- tapOn: 'Show session'
+- scrollUntilVisible:
+    element:
+      text: 'Currency: USD'
+    timeout: 30000
