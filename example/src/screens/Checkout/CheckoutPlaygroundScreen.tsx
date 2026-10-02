@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -61,10 +62,11 @@ export default function CheckoutPlaygroundScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.intro}>
-        <Text style={styles.eyebrow}>TEST MODE</Text>
-        <Text style={styles.heading}>Checkout Sessions</Text>
+        <Text style={styles.eyebrow}>CHECKOUT ELEMENTS</Text>
+        <Text style={styles.heading}>Checkout Playground</Text>
         <Text style={styles.introCopy}>
-          Create a session, exercise Checkout, and inspect native SDK state.
+          Configure a session, preview the cart, and exercise the native
+          Checkout flow.
         </Text>
       </View>
       {!!error && (
@@ -149,6 +151,47 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return <Text style={styles.fieldLabel}>{children}</Text>;
 }
 
+function SummaryRow({
+  label,
+  value,
+  emphasis,
+}: {
+  label: string;
+  value: string;
+  emphasis?: 'success';
+}) {
+  return (
+    <View style={styles.summaryRow}>
+      <Text
+        style={[
+          styles.summaryLabel,
+          emphasis === 'success' && styles.successText,
+        ]}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          styles.summaryValue,
+          emphasis === 'success' && styles.successText,
+        ]}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function formatAddress(shippingAddress: Checkout.ShippingAddress): string {
+  const { address, name } = shippingAddress;
+  const locality = [address.city, address.state, address.postalCode]
+    .filter(Boolean)
+    .join(', ');
+  return [name, address.line1, address.line2, locality, address.country]
+    .filter(Boolean)
+    .join('\n');
+}
+
 function CheckoutForm() {
   const [enabled, setEnabled] = useState(false);
   const [inline, setInline] = useState(false);
@@ -229,6 +272,11 @@ function CheckoutForm() {
     setLastAction('');
   };
   const actionPending = lastAction.endsWith(': pending');
+  const session = checkout.session;
+  const lineItems =
+    session?.orderSummaryItems.flatMap((summaryItem) => summaryItem.items) ??
+    [];
+  const shippingAddress = session?.shippingAddress;
   return (
     <View style={styles.panel}>
       <View style={styles.statusCard}>
@@ -350,38 +398,161 @@ function CheckoutForm() {
         </View>
       </Section>
 
-      <Section
-        title="Payment"
-        description="Present the native sheet or render PaymentElement inline."
-      >
-        <PlaygroundButton
-          title={inline ? 'Hide inline element' : 'Show inline element'}
-          variant="quiet"
-          disabled={!checkout.session}
-          onPress={() => setInline(!inline)}
-        />
-        {inline && checkout.paymentElement && (
-          <View style={styles.nativeElement}>
-            <CheckoutPaymentElementView element={checkout.paymentElement} />
-          </View>
-        )}
-        <View style={styles.buttonRow}>
-          <View style={styles.buttonRowItem}>
-            {action(
-              'Present sheet',
-              async () => checkout.paymentElement?.present(),
-              'secondary'
+      {!!session && (
+        <>
+          <Section title="Items">
+            {lineItems.length === 0 ? (
+              <Text style={styles.emptyText}>No items</Text>
+            ) : (
+              lineItems.map((item, index) => (
+                <View
+                  key={item.key}
+                  style={[styles.lineItem, index > 0 && styles.dividedRow]}
+                >
+                  {item.images[0] ? (
+                    <Image
+                      source={{ uri: item.images[0] }}
+                      style={styles.itemImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.itemImagePlaceholder}>
+                      <Text style={styles.itemImagePlaceholderText}>RN</Text>
+                    </View>
+                  )}
+                  <View style={styles.lineItemDetails}>
+                    <Text style={styles.lineItemName}>{item.displayName}</Text>
+                    <Text style={styles.lineItemMeta}>
+                      {item.unitAmountDecimal?.amount ?? item.unitAmount.amount}{' '}
+                      × {item.quantity}
+                    </Text>
+                  </View>
+                  <Text style={styles.lineItemAmount}>
+                    {item.amountDetails.total.amount}
+                  </Text>
+                </View>
+              ))
             )}
-          </View>
-          <View style={styles.buttonRowItem}>
-            {action('Confirm', checkout.confirm, 'primary')}
-          </View>
-        </View>
-      </Section>
+          </Section>
+
+          <Section title="Contact">
+            <View style={styles.detailRow}>
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Email</Text>
+                <Text style={styles.detailValue}>
+                  {session.email ?? 'No email'}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setShowUpdates(true)}
+                hitSlop={8}
+              >
+                <Text style={styles.inlineAction}>Edit</Text>
+              </Pressable>
+            </View>
+            <View style={[styles.detailRow, styles.dividedRow]}>
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Shipping address</Text>
+                <Text style={styles.detailValue}>
+                  {shippingAddress
+                    ? formatAddress(shippingAddress)
+                    : 'No shipping address'}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setShowUpdates(true)}
+                hitSlop={8}
+              >
+                <Text style={styles.inlineAction}>
+                  {shippingAddress ? 'Edit' : 'Add'}
+                </Text>
+              </Pressable>
+            </View>
+          </Section>
+
+          <Section
+            title="Payment method"
+            description="Present the native sheet or render PaymentElement inline."
+          >
+            <View style={styles.paymentOptionRow}>
+              <View style={styles.paymentOptionCopy}>
+                <Text style={styles.detailLabel}>Selected payment method</Text>
+                <Text style={styles.paymentOptionValue}>
+                  {session.paymentOption?.label ?? 'None selected'}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.paymentActions}>
+              {action(
+                'Present sheet',
+                async () => checkout.paymentElement?.present(),
+                'secondary'
+              )}
+              <PlaygroundButton
+                title={inline ? 'Hide inline element' : 'Show inline element'}
+                variant="quiet"
+                onPress={() => setInline(!inline)}
+              />
+            </View>
+            {inline && checkout.paymentElement && (
+              <View style={styles.nativeElement}>
+                <CheckoutPaymentElementView element={checkout.paymentElement} />
+              </View>
+            )}
+          </Section>
+
+          <Section title="Order summary">
+            <SummaryRow
+              label="Subtotal"
+              value={session.totals.subtotal.amount}
+            />
+            {session.totals.discount.minorUnitsAmount > 0 && (
+              <SummaryRow
+                label="Discount"
+                value={`-${session.totals.discount.amount}`}
+                emphasis="success"
+              />
+            )}
+            {session.tax?.status === 'requiresShippingAddress' && (
+              <Text style={styles.taxPrompt}>
+                Enter a shipping address to calculate tax.
+              </Text>
+            )}
+            {session.tax?.status === 'requiresBillingAddress' && (
+              <Text style={styles.taxPrompt}>
+                Enter a billing address to calculate tax.
+              </Text>
+            )}
+            {session.tax?.status === 'ready' &&
+              session.totals.taxExclusive.minorUnitsAmount > 0 && (
+                <SummaryRow
+                  label="Tax"
+                  value={session.totals.taxExclusive.amount}
+                />
+              )}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>
+                {session.totals.total.amount}
+              </Text>
+            </View>
+            {session.totals.taxInclusive.minorUnitsAmount > 0 && (
+              <Text style={styles.inclusiveTaxText}>
+                Includes {session.totals.taxInclusive.amount} in tax
+              </Text>
+            )}
+            <View style={styles.confirmAction}>
+              {action('Confirm', checkout.confirm, 'primary')}
+            </View>
+          </Section>
+        </>
+      )}
 
       <Section
-        title="Update session"
-        description="Mutate the active session and exercise server update states."
+        title="Developer tools"
+        description="Mutate the active session and inspect lifecycle state."
       >
         <PlaygroundButton
           title={showUpdates ? 'Hide session updates' : 'Session updates'}
@@ -661,6 +832,104 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#D9E2EC',
   },
+  emptyText: {
+    color: colors.dark_gray,
+    fontSize: 15,
+    paddingVertical: 8,
+  },
+  lineItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 4,
+  },
+  dividedRow: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#D9E2EC',
+    marginTop: 12,
+    paddingTop: 14,
+  },
+  itemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    backgroundColor: '#F0F3F7',
+  },
+  itemImagePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EEF0FF',
+  },
+  itemImagePlaceholderText: {
+    color: colors.blurple,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  lineItemDetails: { flex: 1, gap: 4 },
+  lineItemName: { color: colors.slate, fontSize: 16, fontWeight: '700' },
+  lineItemMeta: { color: colors.dark_gray, fontSize: 14 },
+  lineItemAmount: { color: colors.slate, fontSize: 15, fontWeight: '600' },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingVertical: 4,
+  },
+  detailContent: { flex: 1, gap: 4 },
+  detailLabel: {
+    color: '#697386',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  detailValue: { color: colors.slate, fontSize: 15, lineHeight: 21 },
+  inlineAction: { color: colors.blurple, fontSize: 15, fontWeight: '700' },
+  paymentOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  paymentOptionCopy: { flex: 1, gap: 4 },
+  paymentOptionValue: { color: colors.slate, fontSize: 16 },
+  paymentActions: { gap: 2, marginTop: 10 },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+    paddingVertical: 6,
+  },
+  summaryLabel: { color: colors.dark_gray, fontSize: 15 },
+  summaryValue: { color: colors.slate, fontSize: 15, fontWeight: '600' },
+  successText: { color: '#0E8A5F' },
+  taxPrompt: {
+    color: colors.dark_gray,
+    fontSize: 13,
+    lineHeight: 18,
+    paddingVertical: 6,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#D9E2EC',
+    marginTop: 8,
+    paddingTop: 14,
+  },
+  totalLabel: { color: colors.slate, fontSize: 18, fontWeight: '700' },
+  totalValue: { color: colors.slate, fontSize: 18, fontWeight: '700' },
+  inclusiveTaxText: {
+    color: colors.dark_gray,
+    fontSize: 13,
+    marginTop: 6,
+    textAlign: 'right',
+  },
+  confirmAction: { marginTop: 14 },
   actionStack: { gap: 4 },
   disclosureContent: {
     borderTopWidth: StyleSheet.hairlineWidth,

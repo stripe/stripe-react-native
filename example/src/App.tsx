@@ -217,7 +217,7 @@ export default function App() {
           <Stack.Screen
             name="CheckoutPlaygroundScreen"
             component={CheckoutPlaygroundScreen}
-            options={{ title: 'Checkout Sessions' }}
+            options={{ title: 'Checkout Playground' }}
           />
           <Stack.Screen
             name="EmbeddedPaymentElementScreen"
