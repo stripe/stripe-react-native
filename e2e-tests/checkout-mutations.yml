@@ -150,9 +150,14 @@ appId: ${APP_ID}
     element:
       text: 'Clear payment option: done'
     timeout: 30000
-- scrollUntilVisible:
-    element:
-      text: 'Status: ready'
-    direction: UP
-    centerElement: true
-    timeout: 60000
+# Android 23.21.0 leaves CheckoutController.isUpdating true after this call.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: 'Status: ready'
+          direction: UP
+          centerElement: true
+          timeout: 60000
