@@ -27,6 +27,19 @@ enum CheckoutSessionSerializer {
         return result
     }
 
+    static func serialize(_ result: CheckoutController.ConfirmResult) -> [String: Any] {
+        switch result {
+        case .completed(let paymentStatus):
+            return ["status": "completed", "paymentStatus": serialize(paymentStatus)]
+        case .canceled:
+            return ["status": "canceled"]
+        case .failed(let error):
+            var result = Errors.createError(checkoutErrorCode(for: error), error) as! [String: Any]
+            result["status"] = "failed"
+            return result
+        }
+    }
+
     private static func serialize(
         _ item: CheckoutController.Session.OrderSummaryItem
     ) -> [String: Any] {

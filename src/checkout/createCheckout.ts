@@ -25,8 +25,6 @@ export function getCheckoutPaymentElementId(
   return id;
 }
 
-const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
-  'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
 const CHECKOUT_DESTROYED_MESSAGE = 'This Checkout controller was destroyed.';
 
 type CheckoutOperationError = Error & StripeError<Checkout.ErrorCode>;
@@ -131,18 +129,14 @@ export async function createCheckoutController(
         throw checkoutError('Failed', CHECKOUT_DESTROYED_MESSAGE);
       }
     };
-    const notImplemented = async (): Promise<never> => {
-      assertActive();
-      throw new Error(CHECKOUT_NOT_IMPLEMENTED_MESSAGE);
-    };
-
-    const performOperation = async (
-      operation: () => Promise<void>
-    ): Promise<void> => {
+    const performOperation = async <T>(
+      operation: () => Promise<T>
+    ): Promise<T> => {
       assertActive();
       try {
-        await operation();
+        const operationResult = await operation();
         assertActive();
+        return operationResult;
       } catch (error) {
         throw normalizeCheckoutError(error);
       }
@@ -188,8 +182,8 @@ export async function createCheckoutController(
         performOperation(() =>
           NativeStripeSdk.clearCheckoutPaymentOption(controllerId)
         ),
-      // TODO(porter): Bridge Checkout confirmation.
-      confirm: notImplemented,
+      confirm: () =>
+        performOperation(() => NativeStripeSdk.confirmCheckout(controllerId)),
       destroy: () => {
         if (destroyPromise) {
           return destroyPromise;

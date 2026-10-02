@@ -35,6 +35,7 @@ internal class NativeCheckoutControllerInstance(
   private var controllerId: String? = null
   private var latestSession = initialSession
   private var destroyed = false
+  private var confirmation: CompletableDeferred<CheckoutController.Result>? = null
   private val destructionObservers = mutableSetOf<() -> Unit>()
   private var presenter: CheckoutPresenter? = null
   private var activity: ComponentActivity? = null
@@ -45,7 +46,9 @@ internal class NativeCheckoutControllerInstance(
   }
 
   /** Reuses the native Payment Element for the lifetime of its activity. */
-  fun paymentElement(activity: ComponentActivity): PaymentElement {
+  fun paymentElement(activity: ComponentActivity): PaymentElement = getPresenter(activity).paymentElement()
+
+  private fun getPresenter(activity: ComponentActivity): CheckoutPresenter {
     check(!destroyed) { "Checkout controller was destroyed." }
     if (this.activity !== activity) {
       releasePresenter()
@@ -53,7 +56,33 @@ internal class NativeCheckoutControllerInstance(
       this.activity = activity
       activity.lifecycle.addObserver(activityObserver)
     }
-    return checkNotNull(presenter).paymentElement()
+    return checkNotNull(presenter)
+  }
+
+  /** Waits for the controller's result callback within the bridge controller's lifetime. */
+  @MainThread
+  suspend fun confirm(activity: ComponentActivity): CheckoutController.Result {
+    UiThreadUtil.assertOnUiThread()
+    check(!destroyed) { "Checkout controller was destroyed." }
+    check(confirmation == null) { "Checkout confirmation is already in progress." }
+    val result = CompletableDeferred<CheckoutController.Result>()
+    confirmation = result
+    try {
+      emit("confirming")
+      getPresenter(activity).confirm()
+      val confirmationResult = result.await()
+      publishCurrentState()
+      return confirmationResult
+    } finally {
+      confirmation = null
+      if (!destroyed) emit(if (controller.isUpdating.value) "updating" else "ready")
+    }
+  }
+
+  @MainThread
+  fun onConfirmationResult(result: CheckoutController.Result) {
+    UiThreadUtil.assertOnUiThread()
+    confirmation?.complete(result)
   }
 
   private fun releasePresenter() {
@@ -98,7 +127,12 @@ internal class NativeCheckoutControllerInstance(
   private fun publish(session: WritableMap, isUpdating: Boolean) {
     if (!destroyed) {
       latestSession = session
-      emit(if (isUpdating) "updating" else "ready")
+      val status = when {
+        confirmation != null -> "confirming"
+        isUpdating -> "updating"
+        else -> "ready"
+      }
+      emit(status)
     }
   }
 
