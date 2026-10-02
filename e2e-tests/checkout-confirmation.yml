@@ -54,8 +54,11 @@ appId: ${APP_ID}
     direction: DOWN
     centerElement: true
 - tapOn: 'Reload'
-- extendedWaitUntil:
-    visible: 'Reload: done'
+- scrollUntilVisible:
+    element:
+      text: 'Reload: done'
+    direction: UP
+    centerElement: true
     timeout: 150000
 - runFlow:
     file: helpers/checkout-card.yml
@@ -79,8 +82,11 @@ appId: ${APP_ID}
     direction: DOWN
     centerElement: true
 - tapOn: 'Reload'
-- extendedWaitUntil:
-    visible: 'Reload: done'
+- scrollUntilVisible:
+    element:
+      text: 'Reload: done'
+    direction: UP
+    centerElement: true
     timeout: 150000
 - runFlow:
     file: helpers/checkout-card.yml
