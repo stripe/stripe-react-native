@@ -1162,7 +1162,7 @@ export interface CheckoutPaymentElement {
 }
 
 // @public
-export function CheckoutPaymentElementView(_props: CheckoutPaymentElementViewProps): React_2.JSX.Element;
+export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProps): React_2.JSX.Element;
 
 // @public
 export interface CheckoutPaymentElementViewProps extends ViewProps {
@@ -1220,6 +1220,7 @@ type CollectBankAccountParams = {
     };
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public (undocumented)
@@ -1243,6 +1244,7 @@ type CollectBankAccountTokenParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
     connectedAccountId?: string;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public
@@ -1253,6 +1255,7 @@ type CollectFinancialConnectionsAccountsParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
     connectedAccountId?: string;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public (undocumented)
@@ -1554,7 +1557,7 @@ type CreateCardTokenParams = {
 };
 
 // @public
-export function createCheckout(_options: Checkout.CreateOptions): Promise<CheckoutController>;
+export function createCheckout(options: Checkout.CreateOptions): Promise<CheckoutController>;
 
 // @public
 type CreateCryptoPaymentTokenResult = {
@@ -2005,6 +2008,7 @@ type FieldName_2 = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
 declare namespace FinancialConnections {
     export {
+        PreCollectedConsent,
         CollectFinancialConnectionsAccountsParams,
         SessionResult,
         TokenResult,
@@ -2045,8 +2049,10 @@ enum FinancialConnectionsEventErrorCode {
     InstitutionUnavailablePlanned = "institution_unavailable_planned",
     InstitutionUnavailableUnplanned = "institution_unavailable_unplanned",
     NoDebitableAccount = "no_debitable_account",
+    NoEligibleAccounts = "no_eligible_accounts",
     SessionExpired = "session_expired",
-    UnexpectedError = "unexpected_error"
+    UnexpectedError = "unexpected_error",
+    WebBrowserUnavailable = "web_browser_unavailable"
 }
 
 // @public (undocumented)
@@ -3524,6 +3530,12 @@ export enum PlatformPayError {
 }
 
 // @public
+type PreCollectedConsent = {
+    consent: string;
+    collectedAt: number;
+};
+
+// @public
 export const presentLinkController: () => Promise<LinkController.PresentResult>;
 
 // @public (undocumented)
@@ -4689,7 +4701,7 @@ interface WeChatPayParams_2 {
 
 // Warnings were encountered during analysis:
 //
-// src/components/CustomerSheet.tsx:374:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
+// src/components/CustomerSheet.tsx:383:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
 // src/connect/Components.tsx:90:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
 // src/connect/Components.tsx:94:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
 // src/connect/Components.tsx:274:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
@@ -4697,7 +4709,7 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
 // src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
-// src/types/PaymentMethod.ts:298:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:301:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -60,8 +60,8 @@ class EventEmitterCompat(
     invoke("onCustomerSessionProviderSetupIntentClientSecret")
   }
 
-  fun emitOnCustomerSessionProviderCustomerSessionClientSecret() {
-    invoke("onCustomerSessionProviderCustomerSessionClientSecret")
+  fun emitOnCustomerSessionProviderCustomerSessionClientSecret(value: ReadableMap) {
+    invoke("onCustomerSessionProviderCustomerSessionClientSecret", value)
   }
 
   fun emitEmbeddedPaymentElementDidUpdateHeight(value: ReadableMap?) {
@@ -100,8 +100,16 @@ class EventEmitterCompat(
     invoke("paymentMethodMessagingElementConfigureResult", value)
   }
 
+  fun emitCheckoutServerUpdateRequested(value: ReadableMap?) {
+    invoke("checkoutServerUpdateRequested", value)
+  }
+
   fun emitCheckoutControllerDidUpdate(value: ReadableMap?) {
     invoke("checkoutControllerDidUpdate", value)
+  }
+
+  fun emitCheckoutControllerDidSelectPaymentOption(value: ReadableMap?) {
+    invoke("checkoutControllerDidSelectPaymentOption", value)
   }
 
   fun emitOnCheckoutClientSecretRequested(value: ReadableMap?) {

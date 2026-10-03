@@ -57,6 +57,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     @MainActor var checkoutControllers: [String: NativeCheckoutControllerInstance] = [:]
     @MainActor var pendingCheckoutCreations: [String: Task<Void, Never>] = [:]
+    @MainActor var checkoutPresentingViewControllerProvider: () -> UIViewController? = {
+        RCTPresentedViewController()
+    }
 
     var merchantIdentifier: String?
 
@@ -116,7 +119,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)?
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
     var clientSecretProviderSetupIntentClientSecretCallback: ((String) -> Void)?
-    var clientSecretProviderCustomerSessionClientSecretCallback: ((CustomerSessionClientSecret) -> Void)?
+    @MainActor var customerSessionRequests: CustomerSessionRequestRegistry?
 
 #if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
@@ -861,6 +864,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
         let style = STPBankAccountCollectorUserInterfaceStyle(from: params)
         let bankAccountCollector = STPBankAccountCollector(style: style)
+        let preCollectedConsent: FinancialConnectionsPreCollectedConsent?
+        do {
+            preCollectedConsent = try FinancialConnections.mapToPreCollectedConsent(params)
+        } catch {
+            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
+        }
 
         if isPaymentIntent {
             DispatchQueue.main.async {
@@ -868,6 +878,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
+                    preCollectedConsent: preCollectedConsent,
                     from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
                     onEvent: onEvent
                 ) { intent, error in
@@ -895,6 +906,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
+                    preCollectedConsent: preCollectedConsent,
                     from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
                     onEvent: onEvent
                 ) { intent, error in
@@ -1194,10 +1206,19 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             resolve(result)
         }
 
+        let preCollectedConsent: FinancialConnectionsPreCollectedConsent?
+        do {
+            preCollectedConsent = try FinancialConnections.mapToPreCollectedConsent(params)
+        } catch {
+            wrappedResolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
+        }
+
         FinancialConnections.presentForToken(
             withClientSecret: clientSecret,
             returnURL: returnURL,
             configuration: configuration,
+            preCollectedConsent: preCollectedConsent,
             onEvent: onEvent,
             resolve: wrappedResolve
         )
@@ -1240,10 +1261,19 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             resolve(result)
         }
 
+        let preCollectedConsent: FinancialConnectionsPreCollectedConsent?
+        do {
+            preCollectedConsent = try FinancialConnections.mapToPreCollectedConsent(params)
+        } catch {
+            wrappedResolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
+        }
+
         FinancialConnections.present(
             withClientSecret: clientSecret,
             returnURL: returnURL,
             configuration: configuration,
+            preCollectedConsent: preCollectedConsent,
             onEvent: onEvent,
             resolve: wrappedResolve
         )

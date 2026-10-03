@@ -58,7 +58,8 @@ final class CheckoutSessionSerializerTests: XCTestCase {
                 .link: URL(string: "https://example.com/terms")!,
             ])
         )
-        let session = try CheckoutTestFixtures.session().makeCopyOverriding(paymentOption: .newValue(option))
+        var session = try CheckoutTestFixtures.session()
+        session.localState.paymentOption = option
         let result = CheckoutSessionSerializer.serialize(session)
         let paymentOption = try XCTUnwrap(result["paymentOption"] as? [String: Any])
         let billing = try XCTUnwrap(paymentOption["billingDetails"] as? [String: Any])
@@ -70,6 +71,29 @@ final class CheckoutSessionSerializerTests: XCTestCase {
         let html = try XCTUnwrap(paymentOption["mandateHTML"] as? String)
         XCTAssertTrue(html.contains("https://example.com/terms"))
         XCTAssertTrue(html.contains("&amp;"))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
+    }
+
+    func test_serializeConfirmationResults() throws {
+        let statuses: [(CheckoutController.Session.Status.PaymentStatus, String)] = [
+            (.paid, "paid"), (.unpaid, "unpaid"), (.noPaymentRequired, "noPaymentRequired"),
+        ]
+        for (nativeStatus, expected) in statuses {
+            let result = CheckoutSessionSerializer.serialize(
+                CheckoutController.ConfirmResult.completed(paymentStatus: nativeStatus)
+            )
+            XCTAssertEqual(result as NSDictionary, ["status": "completed", "paymentStatus": expected])
+        }
+        XCTAssertEqual(
+            CheckoutSessionSerializer.serialize(CheckoutController.ConfirmResult.canceled) as NSDictionary,
+            ["status": "canceled"]
+        )
+        let error = NSError(domain: "CheckoutTest", code: 1, userInfo: [NSLocalizedDescriptionKey: "Payment failed"])
+        let result = CheckoutSessionSerializer.serialize(CheckoutController.ConfirmResult.failed(error))
+        XCTAssertEqual(result["status"] as? String, "failed")
+        let mappedError = try XCTUnwrap(result["error"] as? [String: Any])
+        XCTAssertEqual(mappedError["code"] as? String, "Failed")
+        XCTAssertEqual(mappedError["message"] as? String, "Payment failed")
         XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
     }
 
