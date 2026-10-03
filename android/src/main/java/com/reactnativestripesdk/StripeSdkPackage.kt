@@ -8,11 +8,13 @@ import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
 import com.facebook.react.uimanager.ViewManager
 import com.reactnativestripesdk.addresssheet.AddressSheetViewManager
+import com.reactnativestripesdk.checkout.CheckoutPaymentElementViewManager
 import com.reactnativestripesdk.pushprovisioning.AddToWalletButtonManager
 
 // Fool autolinking for older versions that do not support BaseReactPackage.
 // public class StripeSdkPackage implements ReactPackage {
 class StripeSdkPackage : BaseReactPackage() {
+
   override fun getModule(
     name: String,
     reactContext: ReactApplicationContext,
@@ -43,7 +45,7 @@ class StripeSdkPackage : BaseReactPackage() {
           true,
           reactModule.needsEagerInit,
           reactModule.isCxxModule,
-          BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+          true,
         )
     }
     return ReactModuleInfoProvider { reactModuleInfoMap }
@@ -54,15 +56,14 @@ class StripeSdkPackage : BaseReactPackage() {
       CardFieldViewManager(),
       AuBECSDebitFormViewManager(),
       StripeContainerManager(),
-      CurrencySelectorElementViewManager(),
       CardFormViewManager(),
       GooglePayButtonManager(),
       AddToWalletButtonManager(),
       AddressSheetViewManager(),
       EmbeddedPaymentElementViewManager(),
+      CheckoutPaymentElementViewManager(),
       NavigationBarManager(),
       PaymentMethodMessagingElementViewManager(),
-      CurrencySelectorElementViewManager(),
     )
 
   private fun getOnrampModuleClass(): Class<out NativeModule?>? {

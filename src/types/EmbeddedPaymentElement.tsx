@@ -13,7 +13,6 @@ import type {
   CardBrand,
 } from './Common';
 import type { PaymentMethod } from '.';
-import type { Checkout } from './Checkout';
 import type * as ConfirmationToken from './ConfirmationToken';
 import * as PaymentSheetTypes from './PaymentSheet';
 import NativeStripeSdkModule from '../specs/NativeStripeSdkModule';
@@ -223,22 +222,13 @@ export interface EmbeddedPaymentElementConfiguration {
   opensCardScannerAutomatically?: boolean;
 }
 
-// Narrows a value to `Checkout` vs. `IntentConfiguration`.
-const isCheckoutSession = (
-  value: PaymentSheetTypes.IntentConfiguration | Checkout
-): value is Checkout =>
-  typeof value === 'object' &&
-  value !== null &&
-  'sessionKey' in value &&
-  !('mode' in value);
-
 // -----------------------------------------------------------------------------
 // Embedded API
 // -----------------------------------------------------------------------------
 
 class EmbeddedPaymentElement {
   /**
-   * Call this when the intent configuration or Checkout Session changes.
+   * Call this when the intent configuration changes.
    * Cancels any in-progress update. Ensures the correct payment methods are shown and fields are collected.
    * If the selected payment option becomes invalid, it may be cleared.
    * Returns the final result of the update; earlier in-flight updates will return `{ status: 'canceled' }`.
@@ -280,23 +270,15 @@ let customPaymentMethodConfirmCallback: EventSubscription | null = null;
 let rowSelectionCallback: EventSubscription | null = null;
 
 async function createEmbeddedPaymentElement(
-  intent: PaymentSheetTypes.IntentConfiguration | Checkout,
+  intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
 ): Promise<EmbeddedPaymentElement> {
   setupConfigurationHandlers(configuration);
-
-  if (isCheckoutSession(intent)) {
-    await NativeStripeSdkModule.createEmbeddedPaymentElementWithCheckout(
-      intent.sessionKey,
-      configuration
-    );
-  } else {
-    setupIntentConfirmHandlers(intent);
-    await NativeStripeSdkModule.createEmbeddedPaymentElement(
-      intent,
-      configuration
-    );
-  }
+  setupIntentConfirmHandlers(intentConfig);
+  await NativeStripeSdkModule.createEmbeddedPaymentElement(
+    intentConfig,
+    configuration
+  );
   return new EmbeddedPaymentElement();
 }
 
@@ -452,38 +434,6 @@ export interface UseEmbeddedPaymentElementResult {
 export function useEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
-): UseEmbeddedPaymentElementResult;
-/**
- * Initializes an `EmbeddedPaymentElement` from a Stripe Checkout Session.
- *
- * Pass a loaded handle from `useCheckout`. Render the consumer in a child
- * component so the hook only runs once `state.status === 'loaded'`.
- *
- * @example
- * function Cart() {
- *   const { checkout, state } = useCheckout(clientSecret);
- *   if (state?.status !== 'loaded') return null;
- *   return <EmbeddedCheckout checkout={checkout} />;
- * }
- *
- * function EmbeddedCheckout({ checkout }: { checkout: Checkout }) {
- *   const { embeddedPaymentElementView } =
- *     useEmbeddedPaymentElement(checkout, configuration);
- *   return embeddedPaymentElementView;
- * }
- *
- * @param checkout - A loaded `Checkout` handle from `useCheckout`.
- * @param configuration - Configuration for the embedded element.
- * @checkoutSessionsPreview
- * @internal
- */
-export function useEmbeddedPaymentElement(
-  checkout: Checkout,
-  configuration: EmbeddedPaymentElementConfiguration
-): UseEmbeddedPaymentElementResult;
-export function useEmbeddedPaymentElement(
-  intent: PaymentSheetTypes.IntentConfiguration | Checkout,
-  configuration: EmbeddedPaymentElementConfiguration
 ): UseEmbeddedPaymentElementResult {
   const isAndroid = Platform.OS === 'android';
   const elementRef = useRef<EmbeddedPaymentElement | null>(null);
@@ -509,18 +459,12 @@ export function useEmbeddedPaymentElement(
     return ref.current;
   }
 
-  // Re-key on the session key (Checkout) or intent object so we only
-  // recreate the element when the source actually changes.
-  const intentKey = isCheckoutSession(intent) ? intent.sessionKey : intent;
-  const intentRef = useRef(intent);
-  intentRef.current = intent;
-
   // Create embedded payment element
   useEffect(() => {
     let active = true;
     (async () => {
       const el = await createEmbeddedPaymentElement(
-        intentRef.current,
+        intentConfig,
         configuration
       );
       if (!active) return;
@@ -532,7 +476,7 @@ export function useEmbeddedPaymentElement(
       elementRef.current = null;
       setElement(null);
     };
-  }, [intentKey, configuration, viewRef, isAndroid]);
+  }, [intentConfig, configuration, viewRef, isAndroid]);
 
   useEffect(() => {
     const sub = addListener(
@@ -570,19 +514,13 @@ export function useEmbeddedPaymentElement(
 
   // Render the embedded view
   const embeddedPaymentElementView = useMemo(() => {
-    // `intentKey` is the session key string for Checkout, the IntentConfiguration object otherwise.
-    const intentProps =
-      typeof intentKey === 'string'
-        ? { checkout: { sessionKey: intentKey } }
-        : { intentConfiguration: intentKey };
-
-    if (isAndroid && configuration && intentKey) {
+    if (isAndroid && configuration && intentConfig) {
       return (
         <NativeEmbeddedPaymentElement
           ref={viewRef}
           style={[{ width: '100%', height: height }]}
           configuration={configuration}
-          {...intentProps}
+          intentConfiguration={intentConfig}
         />
       );
     }
@@ -592,10 +530,10 @@ export function useEmbeddedPaymentElement(
         ref={viewRef}
         style={{ width: '100%', height }}
         configuration={configuration}
-        {...intentProps}
+        intentConfiguration={intentConfig}
       />
     );
-  }, [configuration, element, height, intentKey, isAndroid]);
+  }, [configuration, element, height, intentConfig, isAndroid]);
 
   // Other APIs
   const confirm = useCallback((): Promise<EmbeddedPaymentElementResult> => {

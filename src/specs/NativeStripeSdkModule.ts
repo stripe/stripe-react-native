@@ -11,7 +11,6 @@ import type {
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
   CustomerAdapter,
-  CustomerSessionClientSecret,
   CustomerSheetError,
   CustomerSheetInitParams,
   CustomerSheetPresentParams,
@@ -22,6 +21,7 @@ import type {
   InitialiseParams,
   InitPaymentSheetResult,
   IsCardInWalletResult,
+  LinkController,
   OpenApplePaySetupResult,
   PaymentIntent,
   PaymentMethod,
@@ -36,16 +36,20 @@ import type {
   VerifyMicrodepositsParams,
   CreateRadarSessionResult,
 } from '../types';
-import type { Checkout } from '../types/Checkout';
 import type {
   EmbeddedPaymentElementConfiguration,
   EmbeddedPaymentElementResult,
 } from '../types/EmbeddedPaymentElement';
 import type { IntentConfiguration } from '../types/PaymentSheet';
+import type { Checkout } from '../types/Checkout';
 import type { UnsafeObject } from './utils';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
+}>;
+
+type CheckoutCreateResult = UnsafeObject<{
+  session: Checkout.Session;
 }>;
 
 export interface Spec extends TurboModule {
@@ -193,14 +197,15 @@ export interface Spec extends TurboModule {
     setupIntentClientSecret: string
   ): Promise<void>;
   clientSecretProviderCustomerSessionClientSecretCallback(
-    customerSessionClientSecret: UnsafeObject<CustomerSessionClientSecret>
+    customerSessionClientSecret: UnsafeObject<{
+      requestId: string;
+      customerId?: string;
+      clientSecret?: string;
+      error?: string;
+    }>
   ): Promise<void>;
   createEmbeddedPaymentElement(
     intentConfig: UnsafeObject<IntentConfiguration>,
-    configuration: UnsafeObject<EmbeddedPaymentElementConfiguration>
-  ): Promise<void>;
-  createEmbeddedPaymentElementWithCheckout(
-    sessionKey: string,
     configuration: UnsafeObject<EmbeddedPaymentElementConfiguration>
   ): Promise<void>;
   confirmEmbeddedPaymentElement(
@@ -212,55 +217,14 @@ export interface Spec extends TurboModule {
   clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
   createRadarSession(): Promise<CreateRadarSessionResult>;
 
-  // Checkout Session
-
-  initCheckoutSession(
-    clientSecret: string,
-    configuration: UnsafeObject<Checkout.Configuration>
-  ): Promise<UnsafeObject<{ sessionKey: string; state: Checkout.State }>>;
-
-  checkoutUpdateShippingAddress(
-    sessionKey: string,
-    address: UnsafeObject<Checkout.Address>,
-    name: string | null,
-    phone: string | null
-  ): Promise<UnsafeObject<Checkout.State>>;
-
-  checkoutApplyPromotionCode(
-    sessionKey: string,
-    code: string
-  ): Promise<UnsafeObject<Checkout.State>>;
-
-  checkoutRemovePromotionCode(
-    sessionKey: string
-  ): Promise<UnsafeObject<Checkout.State>>;
-
-  checkoutUpdateLineItemQuantity(
-    sessionKey: string,
-    lineItemId: string,
-    quantity: number
-  ): Promise<UnsafeObject<Checkout.State>>;
-
-  checkoutSelectShippingOption(
-    sessionKey: string,
-    id: string
-  ): Promise<UnsafeObject<Checkout.State>>;
-
-  checkoutRunServerUpdateStart(
-    sessionKey: string
-  ): Promise<UnsafeObject<Checkout.State>>;
-
-  checkoutRunServerUpdateComplete(
-    sessionKey: string,
-    error: string | null
-  ): Promise<void>;
-
   setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;
 
   openAuthenticatedWebView(
     id: string,
     url: string
   ): Promise<{ url?: string } | null>;
+
+  presentExternalWebPage(url: string): Promise<void>;
 
   downloadAndShareFile(
     url: string,
@@ -270,6 +234,75 @@ export interface Spec extends TurboModule {
 
   storeStripeConnectDeepLink(url: string): Promise<void>;
   pollAndClearPendingStripeConnectUrls(): Promise<string[]>;
+
+  // LinkController - Private Preview
+
+  /** @PrivatePreview */
+  initLinkController(
+    params: UnsafeObject<LinkController.Configuration>
+  ): Promise<UnsafeObject<LinkController.InitResult>>;
+
+  /** @PrivatePreview */
+  presentLinkController(): Promise<UnsafeObject<LinkController.PresentResult>>;
+
+  /** @PrivatePreview */
+  confirmLinkControllerSetupIntent(
+    params: UnsafeObject<{ clientSecret: string }>
+  ): Promise<UnsafeObject<LinkController.ConfirmSetupIntentResult>>;
+
+  // Checkout Session - Private Preview
+
+  /** @CheckoutSessionPrivatePreview */
+  createCheckout(
+    params: UnsafeObject<Checkout.CreateOptions>,
+    controllerId: string
+  ): Promise<CheckoutCreateResult>;
+
+  /** @CheckoutSessionPrivatePreview */
+  updateCheckoutEmail(
+    controllerId: string,
+    email: string | null
+  ): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  updateCheckoutShippingAddress(
+    controllerId: string,
+    params: UnsafeObject<Checkout.UpdateShippingAddressParams>
+  ): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  applyCheckoutPromotionCode(
+    controllerId: string,
+    promotionCode: string
+  ): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  removeCheckoutPromotionCode(controllerId: string): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  clearCheckoutPaymentOption(controllerId: string): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  confirmCheckout(controllerId: string): Promise<UnsafeObject<Checkout.Result>>;
+
+  /** @CheckoutSessionPrivatePreview */
+  presentCheckoutPaymentElement(controllerId: string): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  destroyCheckout(controllerId: string): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  runCheckoutServerUpdate(
+    controllerId: string,
+    operationId: string
+  ): Promise<void>;
+
+  /** @CheckoutSessionPrivatePreview */
+  completeCheckoutServerUpdate(
+    controllerId: string,
+    operationId: string,
+    error: string | null
+  ): Promise<void>;
 
   // Events
   addListener: (eventType: string) => void;

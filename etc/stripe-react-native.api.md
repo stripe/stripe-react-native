@@ -217,6 +217,11 @@ type AppAttestationError = OnrampApiError & {
     onrampErrorType: 'AppAttestationError';
 };
 
+// @public
+type AppAttestationUnavailableError = OnrampSdkError & {
+    onrampErrorType: 'AppAttestationUnavailableError';
+};
+
 // Warning: (ae-forgotten-export) The symbol "RecursivePartial" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -266,6 +271,7 @@ type ApplePayBaseParams = {
     merchantCountryCode: string;
     currencyCode: string;
     additionalEnabledNetworks?: Array<string>;
+    supportedNetworks?: Array<string>;
     cartItems: Array<CartSummaryItem_2>;
     requiredShippingAddressFields?: Array<ContactField>;
     requiredBillingContactFields?: Array<ContactField>;
@@ -932,15 +938,236 @@ export interface CheckmarkConfig {
     color?: ThemedColor;
 }
 
-// @internal
-export type CheckoutSetupParams = {
-    checkout: Checkout;
-    paymentIntentClientSecret?: never;
-    setupIntentClientSecret?: never;
-    intentConfiguration?: never;
-    customerEphemeralKeySecret?: never;
-    customerSessionClientSecret?: never;
-} & Omit<SetupParamsBase, 'paymentIntentClientSecret' | 'setupIntentClientSecret' | 'intentConfiguration'>;
+// @public
+export namespace Checkout {
+    export interface Address {
+        city?: string;
+        country: string;
+        line1?: string;
+        line2?: string;
+        postalCode?: string;
+        state?: string;
+    }
+    export interface AdjustableQuantity {
+        enabled: boolean;
+        maximum: number;
+        minimum: number;
+    }
+    export interface Amount {
+        amount: string;
+        minorUnitsAmount: number;
+    }
+    export interface AmountDetails {
+        subtotal: Amount;
+        taxAmounts?: TaxAmount[];
+        taxExclusive: Amount;
+        taxInclusive: Amount;
+        total: Amount;
+    }
+    export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
+    export interface ApplePayConfiguration {
+        buttonType?: ApplePayButtonType;
+        merchantCountryCode: string;
+    }
+    export interface BillingDetails {
+        address?: Partial<Address>;
+        email?: string;
+        name?: string;
+        phone?: string;
+    }
+    export interface BillingDetailsCollectionConfiguration {
+        address?: 'automatic' | 'full';
+        attachDefaultsToPaymentMethod?: boolean;
+        name?: 'automatic' | 'always';
+        phone?: 'automatic' | 'always';
+    }
+    export interface ContactDetails {
+        address?: Address;
+        name?: string;
+    }
+    export interface CreateOptions {
+        clientSecret: string;
+        defaults?: Defaults;
+        merchantDisplayName?: string;
+        paymentElement?: PaymentElementConfiguration;
+        returnURL: string;
+        style?: UserInterfaceStyle;
+    }
+    export interface Defaults {
+        billingDetails?: ContactDetails;
+        email?: string;
+        phone?: string;
+        shippingDetails?: ContactDetails;
+    }
+    export interface DiscountAmount extends Amount {
+        displayName: string;
+        percentOff?: number;
+        promotionCode?: string;
+    }
+    export type ErrorCode = 'Failed' | 'InvalidClientSecret' | 'SessionNotOpen' | 'SheetCurrentlyPresented' | 'Timeout' | 'Canceled';
+    export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
+    export interface GooglePayConfiguration {
+        additionalEnabledNetworks?: string[];
+        buttonType?: GooglePayButtonType;
+        label?: string;
+        testEnv?: boolean;
+    }
+    export interface LinkConfiguration {
+        display?: 'automatic' | 'never';
+    }
+    export interface OneTimePriceItem {
+        adjustableQuantity?: AdjustableQuantity;
+        amountDetails: AmountDetails;
+        displayName: string;
+        images: string[];
+        key: string;
+        quantity: number;
+        unitAmount: Amount;
+        unitAmountDecimal?: Amount;
+        unitLabel?: string;
+    }
+    export interface OneTimePriceOrderSummaryItem {
+        description?: string;
+        items: OneTimePriceItem[];
+        key: string;
+        type: 'one_time_price';
+    }
+    export type OrderSummaryItem = OneTimePriceOrderSummaryItem;
+    export type PaymentElementAppearance = AppearanceParams;
+    export interface PaymentElementConfiguration {
+        appearance?: PaymentElementAppearance;
+        applePay?: ApplePayConfiguration;
+        billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
+        displaysMandateText?: boolean;
+        googlePay?: GooglePayConfiguration;
+        link?: LinkConfiguration;
+        opensCardScannerAutomatically?: boolean;
+        paymentMethodLayout?: PaymentMethodLayout;
+        paymentMethodOrder?: string[];
+        preferredNetworks?: CardBrand[];
+        removeSavedPaymentMethodMessage?: string;
+        rowSelectionBehavior?: RowSelectionBehavior;
+        savePaymentMethodOptInBehavior?: SavePaymentMethodOptInBehavior;
+        termsDisplay?: Record<string, TermsDisplay>;
+    }
+    export interface PaymentOptionDisplayData {
+        billingDetails?: BillingDetails;
+        image: string;
+        label: string;
+        mandateHTML?: string;
+        paymentMethodType: string;
+    }
+    export type PaymentStatus = 'paid' | 'unpaid' | 'noPaymentRequired';
+    export interface PresentmentDetails {
+        presentmentCurrency: string;
+    }
+    export type Result = {
+        status: 'completed';
+        paymentStatus: PaymentStatus;
+    } | {
+        status: 'canceled';
+    } | {
+        status: 'failed';
+        error: StripeError<ErrorCode>;
+    };
+    export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
+    export type SavePaymentMethodOptInBehavior = 'automatic' | 'requiresOptIn' | 'requiresOptOut';
+    export interface Session {
+        businessName?: string;
+        currency: string;
+        discountAmounts: DiscountAmount[];
+        email?: string;
+        id: string;
+        livemode: boolean;
+        minorUnitsAmountDivisor?: number;
+        orderSummaryItems: OrderSummaryItem[];
+        paymentOption?: PaymentOptionDisplayData;
+        presentmentDetails?: PresentmentDetails;
+        shippingAddress?: ShippingAddress;
+        status: SessionStatus;
+        tax?: Tax;
+        taxAmounts?: TaxAmount[];
+        totals: Totals;
+    }
+    export type SessionStatus = {
+        type: 'open';
+    } | {
+        type: 'expired';
+    } | {
+        type: 'complete';
+        paymentStatus: PaymentStatus;
+    };
+    export interface ShippingAddress {
+        address: Address;
+        name?: string;
+    }
+    export interface Tax {
+        status: 'ready' | 'requiresShippingAddress' | 'requiresBillingAddress';
+    }
+    export interface TaxAmount extends Amount {
+        displayName: string;
+        inclusive: boolean;
+        percentage?: number;
+    }
+    export interface Totals {
+        discount: Amount;
+        subtotal: Amount;
+        taxExclusive: Amount;
+        taxInclusive: Amount;
+        total: Amount;
+    }
+    export interface UpdateShippingAddressParams {
+        address: Address | null;
+        name?: string | null;
+    }
+    export interface UseOptions {
+        enabled?: boolean;
+        getConfiguration: () => Promise<CreateOptions>;
+    }
+    export interface UseResult {
+        applyPromotionCode(promotionCode: string): Promise<void>;
+        clearPaymentOption(): Promise<void>;
+        confirm(): Promise<Result>;
+        readonly error: StripeError<ErrorCode> | null;
+        readonly paymentElement: CheckoutPaymentElement | null;
+        reload(): Promise<void>;
+        removePromotionCode(): Promise<void>;
+        runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+        readonly session: Session | null;
+        readonly status: 'idle' | 'loading' | 'ready' | 'updating' | 'confirming' | 'error';
+        updateEmail(email: string | null): Promise<void>;
+        updateShippingAddress(params: UpdateShippingAddressParams): Promise<void>;
+    }
+    export type UserInterfaceStyle = 'alwaysLight' | 'alwaysDark' | 'automatic';
+}
+
+// @public
+export interface CheckoutController {
+    applyPromotionCode(promotionCode: string): Promise<void>;
+    clearPaymentOption(): Promise<void>;
+    confirm(): Promise<Checkout.Result>;
+    destroy(): Promise<void>;
+    readonly paymentElement: CheckoutPaymentElement;
+    removePromotionCode(): Promise<void>;
+    runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+    readonly session: Checkout.Session;
+    readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
+    updateEmail(email: string | null): Promise<void>;
+    updateShippingAddress(params: Checkout.UpdateShippingAddressParams): Promise<void>;
+}
+
+// @public
+export interface CheckoutPaymentElement {
+    present(): Promise<void>;
+}
+
+// @public
+export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProps): React_2.JSX.Element;
+
+// @public
+export interface CheckoutPaymentElementViewProps extends ViewProps {
+    element: CheckoutPaymentElement;
+}
 
 // @public (undocumented)
 export interface ClientSecretProvider {
@@ -993,6 +1220,7 @@ type CollectBankAccountParams = {
     };
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public (undocumented)
@@ -1016,6 +1244,7 @@ type CollectBankAccountTokenParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
     connectedAccountId?: string;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public
@@ -1026,6 +1255,7 @@ type CollectFinancialConnectionsAccountsParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
     connectedAccountId?: string;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public (undocumented)
@@ -1083,6 +1313,19 @@ type Configuration = {
     appearance: LinkAppearance;
     cryptoCustomerId?: string;
     googlePay?: GooglePayConfig;
+    samsungPay?: SamsungPayConfig;
+};
+
+// @public
+type Configuration_2 = {
+    email?: string;
+    merchantDisplayName: string;
+    supportedPaymentMethodTypes?: LinkPaymentMethodType[];
+    paymentMethodTypes?: string[];
+    phoneNumber?: string;
+    allowLogout?: boolean;
+    billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
+    appearance?: LinkAppearance;
 };
 
 // @public (undocumented)
@@ -1121,6 +1364,9 @@ export { ConfirmationToken }
 export type ConfirmCustomPaymentMethodCallback = (customPaymentMethod: CustomPaymentMethod, billingDetails: BillingDetails | null,
 resultHandler: (result: CustomPaymentMethodResult) => void) => void;
 
+// @public
+export const confirmLinkControllerSetupIntent: (clientSecret: string) => Promise<LinkController.ConfirmSetupIntentResult>;
+
 // @public (undocumented)
 type ConfirmOptions = PaymentMethod.ConfirmOptions;
 
@@ -1131,7 +1377,7 @@ type ConfirmOptions_2 = CreateOptions;
 type ConfirmOptions_3 = ConfirmOptions;
 
 // @public (undocumented)
-type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams;
+type ConfirmParams = CardParams | IdealParams | OxxoParams | MultibancoParams | P24Params | AlipayParams | AlmaParams | SepaParams | EpsParams | AuBecsDebitParams | GrabPayParams | FPXParams | AfterpayClearpayParams | KlarnaParams | BancontactParams | BillieParams | USBankAccountParams | PayPalParams | AffirmParams | CashAppParams | RevolutPayParams | PayByBankParams | TwintParams;
 
 // @public (undocumented)
 type ConfirmParams_2 = CreateParams;
@@ -1221,6 +1467,13 @@ type ConfirmSetupIntentResult_2 = {
     error: StripeError<PlatformPayError>;
 };
 
+// @public
+type ConfirmSetupIntentResult_3 = {
+    error?: undefined;
+} | {
+    error: StripeError<LinkControllerError>;
+};
+
 // Warning: (ae-forgotten-export) The symbol "CommonComponentProps" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -1302,6 +1555,9 @@ type CreateCardTokenParams = {
     name?: string;
     currency?: string;
 };
+
+// @public
+export function createCheckout(options: Checkout.CreateOptions): Promise<CheckoutController>;
 
 // @public
 type CreateCryptoPaymentTokenResult = {
@@ -1405,9 +1661,19 @@ export type CreateTokenResult = {
 };
 
 // @public
+type CryptoConsumerWallet = {
+    id: string;
+    walletAddress: string;
+    network: CryptoNetwork;
+    verifiedOwnership: boolean;
+};
+
+// @public
 enum CryptoNetwork {
     // (undocumented)
     aptos = "aptos",
+    // (undocumented)
+    arbitrum = "arbitrum",
     // (undocumented)
     avalanche = "avalanche",
     // (undocumented)
@@ -1427,15 +1693,19 @@ enum CryptoNetwork {
     // (undocumented)
     sui = "sui",
     // (undocumented)
+    tempo = "tempo",
+    // (undocumented)
     worldchain = "worldchain",
     // (undocumented)
     xrpl = "xrpl"
 }
 
 // @public
-type CryptoOnrampError = (StripeError<OnrampError> & {
-    onrampErrorType?: undefined;
-}) | AppAttestationError | UncategorizedApiError;
+type CryptoOnrampError = (StripeError<OnrampErrorStatus> & {
+    onrampErrorType?: never;
+    developerMessage?: never;
+    userMessage?: never;
+}) | AppAttestationError | InvalidWalletOwnershipSignatureError | WalletOwnershipChallengeExpiredError | InvalidWalletOwnershipChallengeError | WalletNotFoundError | UnsupportedNetworkError | UncategorizedApiError | AppAttestationUnavailableError;
 
 // @public
 type CryptoPaymentToken = {
@@ -1738,6 +2008,7 @@ type FieldName_2 = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
 declare namespace FinancialConnections {
     export {
+        PreCollectedConsent,
         CollectFinancialConnectionsAccountsParams,
         SessionResult,
         TokenResult,
@@ -1778,8 +2049,10 @@ enum FinancialConnectionsEventErrorCode {
     InstitutionUnavailablePlanned = "institution_unavailable_planned",
     InstitutionUnavailableUnplanned = "institution_unavailable_unplanned",
     NoDebitableAccount = "no_debitable_account",
+    NoEligibleAccounts = "no_eligible_accounts",
     SessionExpired = "session_expired",
-    UnexpectedError = "unexpected_error"
+    UnexpectedError = "unexpected_error",
+    WebBrowserUnavailable = "web_browser_unavailable"
 }
 
 // @public (undocumented)
@@ -1892,6 +2165,15 @@ type FutureUsage = 'OffSession' | 'OnSession' | 'None';
 
 // @public (undocumented)
 type FutureUsage_2 = 'Unknown' | 'None' | 'OnSession' | 'OffSession' | 'OneTime';
+
+// @public
+type GetWalletOwnershipChallengeResult = {
+    challenge: WalletOwnershipChallenge;
+    error?: undefined;
+} | {
+    challenge?: undefined;
+    error: CryptoOnrampError;
+};
 
 // @public (undocumented)
 export type GlobalColorConfig = {
@@ -2099,6 +2381,9 @@ interface IdealResult {
 }
 
 // @public
+type IdType = 'social_security_number' | 'ca_sin' | 'co_nit' | 'ph_tin';
+
+// @public
 type ImmediateCartSummaryItem = {
     paymentType: 'Immediate';
     isPending?: boolean;
@@ -2120,6 +2405,9 @@ export interface InitialiseParams extends InitStripeParams {
     appInfo: AppInfo;
 }
 
+// @public
+export const initLinkController: (params: LinkController.Configuration) => Promise<LinkController.InitResult>;
+
 // @public (undocumented)
 export const initPaymentSheet: (params: PaymentSheet.SetupParams) => Promise<InitPaymentSheetResult>;
 
@@ -2130,6 +2418,13 @@ export type InitPaymentSheetResult = {
 } | {
     paymentOption?: undefined;
     error: StripeError<PaymentSheetError>;
+};
+
+// @public
+type InitResult = {
+    error?: undefined;
+} | {
+    error: StripeError<LinkControllerError>;
 };
 
 // @public (undocumented)
@@ -2221,6 +2516,16 @@ enum InvalidShippingField {
     SubLocality = "subLocality"
 }
 
+// @public
+type InvalidWalletOwnershipChallengeError = OnrampApiError & {
+    onrampErrorType: 'InvalidWalletOwnershipChallengeError';
+};
+
+// @public
+type InvalidWalletOwnershipSignatureError = OnrampApiError & {
+    onrampErrorType: 'InvalidWalletOwnershipSignatureError';
+};
+
 // @public (undocumented)
 interface IOSNavigationBarProps {
     // (undocumented)
@@ -2291,6 +2596,7 @@ type KycInfo = {
     firstName?: string;
     lastName?: string;
     idNumber?: string;
+    idType?: IdType;
     dateOfBirth?: DateOfBirth;
     address?: Address;
     birthCountry?: string;
@@ -2321,6 +2627,7 @@ type LinkAppearance = {
     darkColors?: LinkColors;
     style?: LinkStyle;
     primaryButton?: LinkPrimaryButton;
+    reduceLinkBranding?: boolean;
 };
 
 // @public
@@ -2329,6 +2636,32 @@ type LinkColors = {
     contentOnPrimary: string;
     borderSelected: string;
 };
+
+declare namespace LinkController {
+    export {
+        LinkAppearance,
+        LinkColors,
+        LinkStyle,
+        LinkPrimaryButton,
+        LinkPaymentMethodType,
+        Configuration_2 as Configuration,
+        PaymentMethodPreview_2 as PaymentMethodPreview,
+        InitResult,
+        ConfirmSetupIntentResult_3 as ConfirmSetupIntentResult,
+        PresentResult
+    }
+}
+export { LinkController }
+
+// @public (undocumented)
+export enum LinkControllerError {
+    // (undocumented)
+    Canceled = "Canceled",
+    // (undocumented)
+    Failed = "Failed",
+    // (undocumented)
+    Unknown = "Unknown"
+}
 
 // @public
 export enum LinkDisplay {
@@ -2340,6 +2673,14 @@ export enum LinkDisplay {
 export type LinkParams = {
     display?: LinkDisplay;
 };
+
+// @public
+enum LinkPaymentMethodType {
+    // (undocumented)
+    BankAccount = "bankAccount",
+    // (undocumented)
+    Card = "card"
+}
 
 // @public
 type LinkPrimaryButton = {
@@ -2563,19 +2904,24 @@ type OnFormCompleteEvent = NativeSyntheticEvent<{
 
 declare namespace Onramp {
     export {
-        OnrampError,
-        Configuration,
-        GooglePayConfig,
-        GooglePayBillingAddressConfig,
-        OnrampGooglePayParams,
-        OnrampPlatformPayParams,
         LinkAppearance,
         LinkColors,
         LinkStyle,
         LinkPrimaryButton,
+        OnrampErrorStatus,
+        Configuration,
+        GooglePayConfig,
+        GooglePayBillingAddressConfig,
+        SamsungPayConfig,
+        OnrampGooglePayParams,
+        OnrampSamsungPayParams,
+        OnrampPlatformPayParams,
         LinkUserInfo,
         CryptoNetwork,
+        WalletOwnershipChallenge,
+        CryptoConsumerWallet,
         DateOfBirth,
+        IdType,
         KycInfo,
         ComplianceIdentifierType,
         ComplianceRegulation,
@@ -2583,10 +2929,18 @@ declare namespace Onramp {
         ComplianceIdentifierRequirement,
         ComplianceIdentifierAlternativeGroup,
         ComplianceIdentifierRequirements,
+        OnrampApiErrorType,
         OnrampErrorType,
+        OnrampSdkError,
         OnrampApiError,
         AppAttestationError,
+        InvalidWalletOwnershipSignatureError,
+        WalletOwnershipChallengeExpiredError,
+        InvalidWalletOwnershipChallengeError,
+        WalletNotFoundError,
+        UnsupportedNetworkError,
         UncategorizedApiError,
+        AppAttestationUnavailableError,
         CryptoOnrampError,
         RetrieveMissingIdentifiersResult,
         SubmitIdentifiersResult,
@@ -2596,6 +2950,8 @@ declare namespace Onramp {
         AuthorizeResult,
         HasLinkAccountResult,
         RegisterLinkUserResult,
+        GetWalletOwnershipChallengeResult,
+        SubmitWalletOwnershipSignatureResult,
         PaymentMethodDisplayData,
         CollectPaymentMethodResult,
         CreateCryptoPaymentTokenResult,
@@ -2605,22 +2961,22 @@ declare namespace Onramp {
 }
 export { Onramp }
 
-// @public (undocumented)
-type OnrampApiError = StripeError<OnrampError> & {
-    onrampErrorType: string;
-    developerMessage: string;
-    userMessage: string;
+// @public
+type OnrampApiError = OnrampSdkError & {
+    onrampErrorType: OnrampApiErrorType;
     reason?: string;
     requestId?: string;
     apiErrorCode?: string;
     apiErrorType?: string;
     apiErrorMessage?: string;
     apiUserMessage?: string;
-    docUrl?: string;
 };
 
 // @public
-enum OnrampError {
+type OnrampApiErrorType = 'AppAttestationError' | 'InvalidWalletOwnershipSignatureError' | 'WalletOwnershipChallengeExpiredError' | 'InvalidWalletOwnershipChallengeError' | 'WalletNotFoundError' | 'UnsupportedNetworkError' | 'UncategorizedApiError';
+
+// @public
+enum OnrampErrorStatus {
     // (undocumented)
     Canceled = "Canceled",
     // (undocumented)
@@ -2630,7 +2986,7 @@ enum OnrampError {
 }
 
 // @public
-type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+type OnrampErrorType = OnrampApiErrorType | 'AppAttestationUnavailableError';
 
 // @public
 type OnrampGooglePayParams = {
@@ -2643,7 +2999,23 @@ type OnrampGooglePayParams = {
 // @public
 type OnrampPlatformPayParams = {
     googlePay?: OnrampGooglePayParams;
+    samsungPay?: OnrampSamsungPayParams;
     applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
+};
+
+// @public
+type OnrampSamsungPayParams = {
+    currencyCode: string;
+    amount: number;
+    orderNumber: string;
+};
+
+// @public
+type OnrampSdkError = StripeError<OnrampErrorStatus> & {
+    onrampErrorType: OnrampErrorType;
+    developerMessage: string;
+    userMessage: string;
+    docUrl?: string;
 };
 
 // @public (undocumented)
@@ -2705,6 +3077,16 @@ interface P24Params_2 {
     paymentMethodType: 'P24';
 }
 
+// @public (undocumented)
+type PayByBankParams = {
+    paymentMethodType: 'PayByBank';
+    paymentMethodData?: {
+        billingDetails?: BillingDetails;
+        mandateData?: MandateData;
+        metadata?: MetaData;
+    };
+};
+
 // @public
 type PaymentDisplayDataResult = {
     displayData: PaymentMethodDisplayData;
@@ -2734,6 +3116,7 @@ declare namespace PaymentIntent {
         MultibancoParams,
         GrabPayParams,
         BancontactParams,
+        TwintParams,
         BillieParams,
         SepaParams,
         AfterpayClearpayParams,
@@ -2747,6 +3130,7 @@ declare namespace PaymentIntent {
         PayPalParams,
         CashAppParams,
         RevolutPayParams,
+        PayByBankParams,
         CollectBankAccountParams_2 as CollectBankAccountParams
     }
 }
@@ -2799,7 +3183,7 @@ type PaymentMethodDisplayData = {
     icon: string;
     label: string;
     sublabel?: string;
-    type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay';
+    type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay' | 'SamsungPay';
 };
 
 // @public (undocumented)
@@ -2886,6 +3270,13 @@ export interface PaymentMethodPreview {
     type: Type;
 }
 
+// @public
+type PaymentMethodPreview_2 = {
+    icon: string;
+    label: string;
+    sublabel?: string;
+};
+
 // @public (undocumented)
 type PaymentMethodResult = {
     paymentMethod: Result_3;
@@ -2939,7 +3330,6 @@ enum PaymentRequestType {
 declare namespace PaymentSheet {
     export {
         SetupParamsBase,
-        CheckoutSetupParams,
         SetupParams,
         IntentParams,
         ApplePayParams,
@@ -3139,6 +3529,15 @@ export enum PlatformPayError {
     Unknown = "Unknown"
 }
 
+// @public
+type PreCollectedConsent = {
+    consent: string;
+    collectedAt: number;
+};
+
+// @public
+export const presentLinkController: () => Promise<LinkController.PresentResult>;
+
 // @public (undocumented)
 export type PresentOptions = {
     timeout?: number;
@@ -3152,6 +3551,17 @@ export type PresentPaymentSheetResult = {
     paymentOption?: PaymentSheet.PaymentOption | undefined;
     didCancel?: boolean;
     error?: StripeError<PaymentSheetError> | undefined;
+};
+
+// @public
+type PresentResult = {
+    paymentMethod: Result_3;
+    paymentMethodPreview?: PaymentMethodPreview_2;
+    error?: undefined;
+} | {
+    paymentMethod?: undefined;
+    paymentMethodPreview?: undefined;
+    error: StripeError<LinkControllerError>;
 };
 
 // @public (undocumented)
@@ -3447,6 +3857,14 @@ export enum RowStyle {
     FloatingButton = "floatingButton"
 }
 
+// @public
+type SamsungPayConfig = {
+    serviceId: string;
+    merchantId?: string;
+    merchantName?: string;
+    allowedCardBrands?: CardBrand[];
+};
+
 // @public (undocumented)
 interface SepaDebitResult {
     // (undocumented)
@@ -3520,9 +3938,6 @@ export type SetupMode = {
     setupFutureUsage: FutureUsage;
 };
 
-// Warning: (ae-incompatible-release-tags) The symbol "SetupParams" is marked as @public, but its signature references "CheckoutSetupParams" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "SetupParams" is marked as @public, but its signature references "CheckoutSetupParams" which is marked as @internal
-//
 // @public (undocumented)
 export type SetupParams = (SetupParamsBase & {
     customerEphemeralKeySecret: string;
@@ -3530,7 +3945,7 @@ export type SetupParams = (SetupParamsBase & {
 }) | (SetupParamsBase & {
     customerEphemeralKeySecret?: never;
     customerSessionClientSecret: string;
-}) | SetupParamsBase | CheckoutSetupParams;
+}) | SetupParamsBase;
 
 // @public (undocumented)
 export type SetupParamsBase = IntentParams & {
@@ -3810,6 +4225,15 @@ type SubmitIdentifiersResult = {
 };
 
 // @public
+type SubmitWalletOwnershipSignatureResult = {
+    consumerWallet: CryptoConsumerWallet;
+    error?: undefined;
+} | {
+    consumerWallet?: undefined;
+    error: CryptoOnrampError;
+};
+
+// @public
 export enum TermsDisplay {
     AUTOMATIC = "automatic",
     NEVER = "never"
@@ -3900,7 +4324,19 @@ type TokenResult_2 = {
 };
 
 // @public (undocumented)
-type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx' | 'CardPresent' | 'SepaDebit' | 'AuBecsDebit' | 'BacsDebit' | 'P24' | 'Eps' | 'Bancontact' | 'Multibanco' | 'Oxxo' | 'USBankAccount' | 'PayPal' | 'Unknown';
+interface TwintParams {
+    // (undocumented)
+    paymentMethodData: {
+        billingDetails: BillingDetails;
+        mandateData?: MandateData;
+        metadata?: MetaData;
+    };
+    // (undocumented)
+    paymentMethodType: 'Twint';
+}
+
+// @public (undocumented)
+type Type = 'AfterpayClearpay' | 'Card' | 'Alipay' | 'GrabPay' | 'Ideal' | 'Fpx' | 'CardPresent' | 'SepaDebit' | 'AuBecsDebit' | 'BacsDebit' | 'P24' | 'Eps' | 'Bancontact' | 'Multibanco' | 'Oxxo' | 'USBankAccount' | 'PayPal' | 'PayByBank' | 'Unknown';
 
 // @public (undocumented)
 type Type_2 = 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii';
@@ -3908,6 +4344,11 @@ type Type_2 = 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii
 // @public
 type UncategorizedApiError = OnrampApiError & {
     onrampErrorType: 'UncategorizedApiError';
+};
+
+// @public
+type UnsupportedNetworkError = OnrampApiError & {
+    onrampErrorType: 'UnsupportedNetworkError';
 };
 
 // @public
@@ -3961,6 +4402,9 @@ type USBankAccountResult = {
 };
 
 // @public
+export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult;
+
+// @public
 export function useConfirmPayment(): {
     confirmPayment: (paymentIntentClientSecret: string, data?: PaymentIntent.ConfirmParams, options?: PaymentIntent.ConfirmOptions) => Promise<ConfirmPaymentResult>;
     loading: boolean;
@@ -3972,13 +4416,8 @@ export function useConfirmSetupIntent(): {
     loading: boolean;
 };
 
-// Warning: (ae-internal-mixed-release-tag) Mixed release tags are not allowed for "useEmbeddedPaymentElement" because one of its declarations is marked as @internal
-//
 // @public
 export function useEmbeddedPaymentElement(intentConfig: PaymentSheet.IntentConfiguration, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
-
-// @internal
-export function useEmbeddedPaymentElement(checkout: Checkout, configuration: EmbeddedPaymentElementConfiguration): UseEmbeddedPaymentElementResult;
 
 // @public (undocumented)
 export interface UseEmbeddedPaymentElementResult {
@@ -4003,15 +4442,29 @@ export function useFinancialConnectionsSheet(): {
 };
 
 // @public
+export function useLinkController(): {
+    loading: boolean;
+    initLinkController: (params: LinkController.Configuration) => Promise<LinkController.InitResult>;
+    presentLinkController: () => Promise<LinkController.PresentResult>;
+    confirmLinkControllerSetupIntent: (clientSecret: string) => Promise<LinkController.ConfirmSetupIntentResult>;
+};
+
+// @public
 export function useOnramp(): {
     configure: (config: Onramp.Configuration) => Promise<{
         error?: Onramp.CryptoOnrampError;
     }>;
+    isSamsungPaySupported: () => Promise<boolean>;
     hasLinkAccount: (email: string) => Promise<Onramp.HasLinkAccountResult>;
     registerLinkUser: (info: Onramp.LinkUserInfo) => Promise<Onramp.RegisterLinkUserResult>;
     registerWalletAddress: (walletAddress: string, network: Onramp.CryptoNetwork) => Promise<{
         error?: Onramp.CryptoOnrampError;
     }>;
+    deleteWalletAddress: (walletId: string) => Promise<{
+        error?: Onramp.CryptoOnrampError;
+    }>;
+    getWalletOwnershipChallenge: (walletAddress: string, network: Onramp.CryptoNetwork) => Promise<Onramp.GetWalletOwnershipChallengeResult>;
+    submitWalletOwnershipSignature: (challengeId: string, signature: string) => Promise<Onramp.SubmitWalletOwnershipSignatureResult>;
     attachKycInfo: (kycInfo: Onramp.KycInfo) => Promise<{
         error?: Onramp.CryptoOnrampError;
     }>;
@@ -4031,6 +4484,7 @@ export function useOnramp(): {
     collectPaymentMethod: {
         (paymentMethod: "Card" | "BankAccount" | "CardAndBankAccount", platformPayParams?: undefined): Promise<Onramp.CollectPaymentMethodResult>;
         (paymentMethod: "PlatformPay", platformPayParams: Onramp.OnrampPlatformPayParams): Promise<Onramp.CollectPaymentMethodResult>;
+        (paymentMethod: "SamsungPay", platformPayParams: Onramp.OnrampPlatformPayParams): Promise<Onramp.CollectPaymentMethodResult>;
     };
     createCryptoPaymentToken: () => Promise<Onramp.CreateCryptoPaymentTokenResult>;
     performCheckout: (onrampSessionId: string, provideCheckoutClientSecret: () => Promise<string | null>) => Promise<{
@@ -4202,6 +4656,25 @@ type VoidResult = {
     error?: CryptoOnrampError;
 };
 
+// @public
+type WalletNotFoundError = OnrampApiError & {
+    onrampErrorType: 'WalletNotFoundError';
+};
+
+// @public
+type WalletOwnershipChallenge = {
+    challengeId: string;
+    walletAddress: string;
+    network: CryptoNetwork;
+    message: string;
+    expiresAt: string;
+};
+
+// @public
+type WalletOwnershipChallengeExpiredError = OnrampApiError & {
+    onrampErrorType: 'WalletOwnershipChallengeExpiredError';
+};
+
 // @public (undocumented)
 interface WeChatPayParams {
     // (undocumented)
@@ -4228,16 +4701,15 @@ interface WeChatPayParams_2 {
 
 // Warnings were encountered during analysis:
 //
-// src/components/CustomerSheet.tsx:374:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:75:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:79:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:253:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
+// src/components/CustomerSheet.tsx:383:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:90:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:94:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:274:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:208:3 - (ae-forgotten-export) The symbol "AppearanceOptions" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
-// src/types/PaymentIntent.ts:269:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
-// src/types/PaymentMethod.ts:297:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
-// src/types/PaymentSheet.ts:124:3 - (ae-forgotten-export) The symbol "Checkout" needs to be exported by the entry point index.d.ts
+// src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:301:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

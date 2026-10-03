@@ -32,6 +32,12 @@ export default function HomeScreen() {
         },
       },
       {
+        title: 'Notification banner',
+        description: 'Show account notifications inline with your app content.',
+        badge: 'EXPERIMENTAL',
+        onPress: () => router.push('/notification-banner'),
+      },
+      {
         title: 'Payouts',
         description: 'Show payouts and allow your users to perform payouts.',
         onPress: () => {

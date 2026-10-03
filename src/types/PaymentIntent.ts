@@ -51,7 +51,9 @@ export type ConfirmParams =
   | PayPalParams
   | AffirmParams
   | CashAppParams
-  | RevolutPayParams;
+  | RevolutPayParams
+  | PayByBankParams
+  | TwintParams;
 
 export type ConfirmOptions = PaymentMethod.ConfirmOptions;
 
@@ -185,6 +187,15 @@ export interface BancontactParams {
   };
 }
 
+export interface TwintParams {
+  paymentMethodType: 'Twint';
+  paymentMethodData: {
+    billingDetails: BillingDetails;
+    mandateData?: MandateData;
+    metadata?: MetaData;
+  };
+}
+
 export type BillieParams = {
   paymentMethodType: 'Billie';
   paymentMethodData: {
@@ -309,6 +320,15 @@ export type CashAppParams = {
 
 export type RevolutPayParams = {
   paymentMethodType: 'RevolutPay';
+  paymentMethodData?: {
+    billingDetails?: BillingDetails;
+    mandateData?: MandateData;
+    metadata?: MetaData;
+  };
+};
+
+export type PayByBankParams = {
+  paymentMethodType: 'PayByBank';
   paymentMethodData?: {
     billingDetails?: BillingDetails;
     mandateData?: MandateData;

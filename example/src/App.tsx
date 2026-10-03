@@ -18,7 +18,6 @@ import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
 import BilliePaymentScreen from './screens/BilliePaymentScreen';
 import CashAppScreen from './screens/CashAppScreen';
-import CheckoutScreen from './screens/CheckoutScreen';
 import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 import ConnectAccountOnboardingScreen from './screens/ConnectAccountOnboardingScreen';
 import ConnectPaymentsListScreen from './screens/ConnectPaymentsListScreen';
@@ -50,15 +49,19 @@ import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen
 import PaymentSheetWithSetupIntent from './screens/PaymentSheetWithSetupIntent';
 import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
+import PayByBankScreen from './screens/PayByBankScreen';
 import PayPalScreen from './screens/PayPalScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
 import SepaPaymentScreen from './screens/SepaPaymentScreen';
 import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
+import TwintPaymentScreen from './screens/TwintPaymentsScreen';
+import TwintSetupFuturePaymentScreen from './screens/TwintSetupFuturePaymentScreen';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
 import RegisterCryptoUserScreen from './screens/Onramp/RegisterCryptoUserScreen';
 import PaymentMethodMessagingElementScreen from './screens/PaymentMethodMessagingElementScreen';
+import LinkControllerScreen from './screens/LinkControllerScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -79,7 +82,9 @@ export type RootStackParamList = {
   AlipayPaymentScreen: undefined;
   PaymentResultScreen: { url: string };
   BancontactPaymentScreen: undefined;
+  TwintPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
+  TwintSetupFuturePaymentScreen: undefined;
   BilliePaymentScreen: undefined;
   AlmaPaymentScreen: undefined;
   SepaPaymentScreen: undefined;
@@ -99,7 +104,6 @@ export type RootStackParamList = {
   ACHSetupScreen: undefined;
   PayPalScreen: undefined;
   CashAppScreen: undefined;
-  CheckoutScreen: undefined;
   AffirmScreen: undefined;
   CollectBankAccountScreen: undefined;
   PaymentSheetDeferredIntentScreen: undefined;
@@ -112,6 +116,7 @@ export type RootStackParamList = {
   CustomerSheetScreen: undefined;
   CustomerSheetScreenCustomerSession: undefined;
   RevolutPayScreen: undefined;
+  PayByBankScreen: undefined;
   PaymentSheetWithPmoSfuScreen: undefined;
   ConnectAccountOnboardingScreen: undefined;
   ConnectPaymentsListScreen: undefined;
@@ -119,6 +124,7 @@ export type RootStackParamList = {
   CryptoOnrampFlow: undefined;
   RegisterCryptoUserScreen: undefined;
   PaymentMethodMessagingElementScreen: undefined;
+  LinkControllerScreen: undefined;
 };
 
 declare global {
@@ -251,10 +257,18 @@ export default function App() {
             name="BancontactPaymentScreen"
             component={BancontactPaymentScreen}
           />
+          <Stack.Screen
+            name="TwintPaymentScreen"
+            component={TwintPaymentScreen}
+          />
           <Stack.Screen name="EPSPaymentScreen" component={EPSPaymentScreen} />
           <Stack.Screen
             name="BancontactSetupFuturePaymentScreen"
             component={BancontactSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="TwintSetupFuturePaymentScreen"
+            component={TwintSetupFuturePaymentScreen}
           />
           <Stack.Screen
             name="BilliePaymentScreen"
@@ -289,11 +303,6 @@ export default function App() {
           <Stack.Screen name="ACHSetupScreen" component={ACHSetupScreen} />
           <Stack.Screen name="PayPalScreen" component={PayPalScreen} />
           <Stack.Screen name="CashAppScreen" component={CashAppScreen} />
-          <Stack.Screen
-            name="CheckoutScreen"
-            component={CheckoutScreen}
-            options={{ title: 'Checkout Playground' }}
-          />
           <Stack.Screen name="AffirmScreen" component={AffirmScreen} />
           <Stack.Screen
             name="CollectBankAccountScreen"
@@ -308,6 +317,7 @@ export default function App() {
             component={CustomerSheetScreenCustomerSession}
           />
           <Stack.Screen name="RevolutPayScreen" component={RevolutPayScreen} />
+          <Stack.Screen name="PayByBankScreen" component={PayByBankScreen} />
           <Stack.Screen
             name="PaymentSheetWithPmoSfuScreen"
             component={PaymentSheetWithPmoSfuScreen}
@@ -336,6 +346,10 @@ export default function App() {
           <Stack.Screen
             name="PaymentMethodMessagingElementScreen"
             component={PaymentMethodMessagingElementScreen}
+          />
+          <Stack.Screen
+            name="LinkControllerScreen"
+            component={LinkControllerScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

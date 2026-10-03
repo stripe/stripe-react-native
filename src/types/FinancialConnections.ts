@@ -2,6 +2,24 @@ import type { UserInterfaceStyle } from './Common';
 import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
 
+/**
+ * Evidence that the customer accepted your own consent text before Financial
+ * Connections was presented. Stripe may still show its own consent pane in
+ * addition to yours.
+ */
+export type PreCollectedConsent = {
+  /** ID of the Financial Connections Consent object returned by your server. */
+  consent: string;
+  /**
+   * Unix timestamp, in seconds, when the customer affirmatively accepted the
+   * complete Stripe-issued consent text. Capture this once, at acceptance
+   * time, and reuse the same value on retries instead of the time Financial
+   * Connections is (re-)launched. `Date.now()` returns milliseconds, so
+   * divide by 1000.
+   */
+  collectedAt: number;
+};
+
 export type CollectFinancialConnectionsAccountsParams = {
   /** iOS Only. Style options for colors in Financial Connections. By default, the bank account collector will automatically switch between light and dark mode compatible colors based on device settings. */
   style?: UserInterfaceStyle;
@@ -9,6 +27,11 @@ export type CollectFinancialConnectionsAccountsParams = {
   onEvent?: (event: FinancialConnectionsEvent) => void;
   /** Optional connected account ID to use for this Financial Connections session. Used for Stripe Connect embedded components. */
   connectedAccountId?: string;
+  /**
+   * Optional evidence that the customer accepted the text issued through a
+   * Consent object.
+   */
+  preCollectedConsent?: PreCollectedConsent;
 };
 
 export type SessionResult =
@@ -181,6 +204,8 @@ export enum FinancialConnectionsEventErrorCode {
   AccountNumbersUnavailable = 'account_numbers_unavailable',
   /** The system could not retrieve accounts for the selected institution. */
   AccountsUnavailable = 'accounts_unavailable',
+  /** No eligible accounts were available for the selected institution. */
+  NoEligibleAccounts = 'no_eligible_accounts',
   /** For payment flows, no debitable account was available at the selected institution. */
   NoDebitableAccount = 'no_debitable_account',
   /** Authorization with the selected institution has failed. */
@@ -197,4 +222,6 @@ export enum FinancialConnectionsEventErrorCode {
   SessionExpired = 'session_expired',
   /** The hCaptcha challenge failed. */
   FailedBotDetection = 'failed_bot_detection',
+  /** Android only. No web browser is installed on the user's device, so the authentication flow cannot be initiated. */
+  WebBrowserUnavailable = 'web_browser_unavailable',
 }

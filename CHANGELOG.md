@@ -1,9 +1,109 @@
 # CHANGELOG
 
 ## Unreleased
+
+**Fixes**
+
+* [Fixed] Fixed an issue where CustomerSheet could crash on iOS or remain stuck loading on Android when using CustomerSession.
+* [Fixed] Android: ConfirmationToken `setupFutureUsage` now returns the `FutureUsage` values (`OffSession` / `OnSession` / `None`), matching iOS. ([#2697](https://github.com/stripe/stripe-react-native/pull/2697))
+
+## 0.80.0 - 2026-09-30
+
+**Features**
+
+* [Added] Added support for pre-collected consent in Financial Connections flows. (private preview)
+
+## 0.79.0 - 2026-09-29
+
 **Changes**
-* Updated Stripe iOS SDK from 26.0.0 to 26.1.0.
+
+* Updated Stripe iOS SDK from 26.12.0 to 26.12.1.
+* Updated Stripe Android SDK from 23.20.0 to 23.21.0.
+
+**Fixes**
+
+* [Fixed] Connect embedded components now use the configured appearance background and text colors for their loading indicator. ([#2665](https://github.com/stripe/stripe-react-native/pull/2665))
+
+## 0.78.0 - 2026-09-23
+**Changes**
+* [Changed] React Native versions < 0.75 are deprecated.
+* [Changed] iOS: By default, the Stripe iOS SDK is now resolved through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.
+
+## 0.77.0 - 2026-09-16
+
+**Changes**
+* Updated Stripe iOS SDK from 26.9.0 to 26.11.0.
+* Updated Stripe Android SDK from 23.17.1 to 23.19.0.
+
+**Features**
+
+* [Added] Added `idType` to Crypto Onramp `KycInfo`, supporting US SSN, Canada SIN, Colombia NIT, and Philippines TIN.
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.9.0 to 26.11.0.
+* Updated Stripe Android SDK from 23.17.1 to 23.19.0.
+* [Changed] Android: Migrated Google Pay payment method and token creation to the Activity Result API.
+* [Changed] Android: Checkout billing details collection is now controlled by the Checkout Session; `paymentElement.billingDetailsCollectionConfiguration` applies only to iOS.
+
+**Breaking changes**
+
+* [Removed] Removed support for the React Native old architecture. Enable the new architecture with `newArchEnabled=true` in `gradle.properties` for Android, `RCT_NEW_ARCH_ENABLED=1` in your `Podfile` for iOS, or `newArchEnabled: true` in your app configuration for Expo.
+
+**Fixes**
+
+* [Fixed] Android: Fixed Crypto Onramp presentation failures after Activity recreation by recreating the presenter for the current Activity.
+
+## 0.76.0 - 2026-09-01
+**Features**
+* [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.
+
+## 0.75.0 - 2026-08-18
+**Features**
+* [Added] Android: Added Crypto Onramp Samsung Pay configuration, availability checks, payment collection, and example integration.
+* [Added] Added typed Crypto Onramp error coverage for wallet ownership verification failures.
+
+## 0.74.0 - 2026-08-11
+**Features**
+* [Added] iOS: Added `supportedNetworks` to the Apple Pay params, which restricts the card networks offered in the Apple Pay sheet.
+
+## 0.73.0 - 2026-08-04
+**Changes**
+* Updated Stripe iOS SDK from 26.4.1 to 26.5.0.
+* Updated Stripe Android SDK from 23.13.1 to 23.14.0.
+* [Added] `useLinkController` (private preview): Added `billingDetailsCollectionConfiguration` to `LinkController.Configuration` to control which billing fields are collected in the Link sheet.
+* [Added] `useLinkController` (private preview): Added `appearance` to `LinkController.Configuration` to customize Link UI colors and styling.
+* [Added] Added Tempo network support to Crypto Onramp.
+
+## 0.72.0 - 2026-07-27
+**Changes**
+* Updated Stripe iOS SDK from 26.3.0 to 26.4.1.
+* Updated Stripe Android SDK from 23.12.0 to 23.13.1.
+* [Changed] `useLinkController` (private preview): SetupIntent confirmation is now a separate step. The SDK no longer confirms the SetupIntent automatically inside `presentLinkController`; instead, confirmation is triggered explicitly after the payment method is selected.
+
+## 0.71.0 - 2026-07-22
+**Features**
+* [Added] Added support for the Pay by Bank payment method (`paymentMethodType: 'PayByBank'`) in `confirmPayment` and `confirmSetupIntent`.
+
+## 0.70.0 - 2026-07-16
+**Changes**
+* [Changed] Renamed the Crypto Onramp error status enum from `OnrampError` to `OnrampErrorStatus`. Existing generic Onramp errors now use `StripeError<OnrampErrorStatus>`.
+* [Changed] Split rich Crypto Onramp errors into `OnrampSdkError` for SDK-owned diagnostics and `OnrampApiError` for API response context. Rich SDK errors use an `onrampErrorType` discriminator typed as `OnrampErrorType`, while API errors narrow it to `OnrampApiErrorType` and add fields such as `reason`, `requestId`, and API message/code details.
+* [Fixed] Android: `PaymentMethod.Card.availableNetworks` and `PaymentMethod.USBankAccount.supportedNetworks` now return the expected array of network strings instead of always returning `null`, matching iOS behavior.
+
+**Features**
+* [Added] Added `AppAttestationUnavailableError` for local SDK app attestation availability/setup failures.
+* [Added] Added Crypto Onramp wallet ownership verification APIs, `getWalletOwnershipChallenge` and `submitWalletOwnershipSignature`, for EU Travel Rule compliance.
+* [Added] Added Arbitrum network support to Crypto Onramp.
+
+## 0.69.0 - 2026-07-15
+**Changes**
+* Updated Stripe iOS SDK from 26.0.0 to 26.3.0.
+* Updated Stripe Android SDK from 23.11.0 to 23.12.0.
 * [Changed] Connect embedded components — `ConnectAccountOnboarding`, `ConnectPayments`, and `ConnectPayouts` — are now generally available. No API changes; existing integrations continue to work without modification.
+
+**Features**
+* [Added] Added standalone Link wallet APIs in private preview via `useLinkController`.
 
 ## 0.68.0 - 2026-06-29
 **Changes**

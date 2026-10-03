@@ -5,8 +5,6 @@ import type { Address } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
 import { CryptoPaymentToken } from '../types/Onramp';
-import { getCurrentPublishableKey } from '../internal/stripeConfig';
-import pjson from '../../package.json';
 
 export function requireOnrampModule() {
   if (NativeOnrampSdk == null) {
@@ -26,83 +24,6 @@ export function requireOnrampModule() {
 let onCheckoutClientSecretRequestedSubscription: EventSubscription | null =
   null;
 
-const legacyAppAttestationUnavailableMessages = [
-  'App attestation is missing or device cannot use native Link.',
-  'Native Link is not available',
-];
-const cryptoOnrampAppAttestationUnavailableCode = 'app_attestation_unavailable';
-
-function isLegacyAppAttestationUnavailableMessage(message?: string): boolean {
-  return (
-    message != null && legacyAppAttestationUnavailableMessages.includes(message)
-  );
-}
-
-function publishableKeyMode(): 'live' | 'test' | undefined {
-  const publishableKey = getCurrentPublishableKey();
-  if (publishableKey?.startsWith('pk_live_')) {
-    return 'live';
-  }
-  if (publishableKey?.startsWith('pk_test_')) {
-    return 'test';
-  }
-  return undefined;
-}
-
-// Temporary React Native shim: iOS/Android currently surface this configure/create
-// failure as a legacy SDK-level message instead of a typed rich error. This can be
-// removed once the native SDKs map it themselves, though keeping it is harmless as
-// a compatibility fallback for older native SDK versions.
-function mapLegacyConfigureAppAttestationError(result: {
-  error?: Onramp.CryptoOnrampError;
-}): { error?: Onramp.CryptoOnrampError } {
-  const error = result.error;
-  if (
-    error == null ||
-    error.onrampErrorType != null ||
-    (!isLegacyAppAttestationUnavailableMessage(error.message) &&
-      !isLegacyAppAttestationUnavailableMessage(error.localizedMessage))
-  ) {
-    return result;
-  }
-
-  const userMessage =
-    "This app couldn't be verified. Contact the app developer for help.";
-  const mode = publishableKeyMode();
-
-  const context = [
-    'Context:',
-    '  operation: configure',
-    mode != null ? `  mode: ${mode}` : undefined,
-  ].filter((line): line is string => line != null);
-  const appAttestationError = {
-    ...error,
-    message: userMessage,
-    localizedMessage: userMessage,
-    stripeErrorCode: cryptoOnrampAppAttestationUnavailableCode,
-    developerMessage: [
-      "App attestation unavailable: this app isn't configured to use Stripe Crypto Onramp.",
-      '',
-      "This usually means app attestation isn't enabled for this Stripe account, or this app isn't registered as a trusted application. Use your iOS bundle ID or Android package name and contact Stripe to enable app attestation or register the app for this account.",
-      '',
-      ...context,
-      '',
-      `Code: ${cryptoOnrampAppAttestationUnavailableCode}`,
-      '',
-      'Next step: confirm app attestation is enabled for this Stripe account and that the app identifier is registered as trusted, then call configure again.',
-      `SDK: stripe-react-native@${pjson.version}`,
-    ].join('\n'),
-    userMessage,
-    operation: 'configure',
-    mode,
-  } as unknown as Onramp.CryptoOnrampError;
-
-  return {
-    ...result,
-    error: appAttestationError,
-  };
-}
-
 /**
  * useOnramp hook
  */
@@ -111,9 +32,7 @@ export function useOnramp() {
     async (
       config: Onramp.Configuration
     ): Promise<{ error?: Onramp.CryptoOnrampError }> => {
-      return mapLegacyConfigureAppAttestationError(
-        await requireOnrampModule().configureOnramp(config)
-      );
+      return requireOnrampModule().configureOnramp(config);
     },
     []
   );
@@ -124,6 +43,10 @@ export function useOnramp() {
     },
     []
   );
+
+  const _isSamsungPaySupported = useCallback(async (): Promise<boolean> => {
+    return requireOnrampModule().isSamsungPaySupported();
+  }, []);
 
   const _registerLinkUser = useCallback(
     async (
@@ -142,6 +65,39 @@ export function useOnramp() {
       return requireOnrampModule().registerWalletAddress(
         walletAddress,
         network
+      );
+    },
+    []
+  );
+
+  const _deleteWalletAddress = useCallback(
+    async (walletId: string): Promise<{ error?: Onramp.CryptoOnrampError }> => {
+      return requireOnrampModule().deleteWalletAddress(walletId);
+    },
+    []
+  );
+
+  const _getWalletOwnershipChallenge = useCallback(
+    async (
+      walletAddress: string,
+      network: Onramp.CryptoNetwork
+    ): Promise<Onramp.GetWalletOwnershipChallengeResult> => {
+      return requireOnrampModule().getWalletOwnershipChallenge(
+        walletAddress,
+        network
+      );
+    },
+    []
+  );
+
+  const _submitWalletOwnershipSignature = useCallback(
+    async (
+      challengeId: string,
+      signature: string
+    ): Promise<Onramp.SubmitWalletOwnershipSignatureResult> => {
+      return requireOnrampModule().submitWalletOwnershipSignature(
+        challengeId,
+        signature
       );
     },
     []
@@ -210,12 +166,14 @@ export function useOnramp() {
    * The set of payment methods supported by crypto onramp collection.
    * - 'Card', 'BankAccount', 'CardAndBankAccount' present Link for collection.
    * - 'PlatformPay' presents Apple Pay / Google Pay using provided params.
+   * - 'SamsungPay' presents Samsung Pay using provided params on Android.
    */
   type OnrampPaymentMethod =
     | 'Card'
     | 'BankAccount'
     | 'CardAndBankAccount'
-    | 'PlatformPay';
+    | 'PlatformPay'
+    | 'SamsungPay';
 
   // Overloads for stronger type-safety at call-sites
   const _collectPaymentMethod: {
@@ -225,6 +183,10 @@ export function useOnramp() {
     ): Promise<Onramp.CollectPaymentMethodResult>;
     (
       paymentMethod: 'PlatformPay',
+      platformPayParams: Onramp.OnrampPlatformPayParams
+    ): Promise<Onramp.CollectPaymentMethodResult>;
+    (
+      paymentMethod: 'SamsungPay',
       platformPayParams: Onramp.OnrampPlatformPayParams
     ): Promise<Onramp.CollectPaymentMethodResult>;
   } = useCallback(
@@ -292,7 +254,9 @@ export function useOnramp() {
   const _isAuthError = (error?: Onramp.CryptoOnrampError): boolean => {
     const stripeErrorCode =
       error?.stripeErrorCode ??
-      (error?.onrampErrorType ? error.apiErrorCode : undefined);
+      (error != null && 'apiErrorCode' in error
+        ? error.apiErrorCode
+        : undefined);
     if (stripeErrorCode == null) {
       return false;
     }
@@ -311,6 +275,13 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     configure: _configure,
+
+    /**
+     * Checks whether Samsung Pay is ready for Onramp payment collection.
+     * Returns false on non-Android platforms, when Samsung Pay is not configured,
+     * or when Samsung Pay SDK 2.22.00 is unavailable on the device.
+     */
+    isSamsungPaySupported: _isSamsungPaySupported,
 
     /**
      * Whether or not the provided email is associated with an existing Link consumer.
@@ -337,6 +308,35 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     registerWalletAddress: _registerWalletAddress,
+
+    /**
+     * Deletes the given crypto wallet from the current Link account.
+     * Requires an authenticated Link user.
+     *
+     * @param walletId The ID of the crypto wallet to delete
+     * @returns Promise that resolves to an object with an optional error property
+     */
+    deleteWalletAddress: _deleteWalletAddress,
+
+    /**
+     * Creates a short-lived challenge for proving ownership of a registered wallet.
+     * Requires an authenticated Link user.
+     *
+     * @param walletAddress The registered crypto wallet address to verify
+     * @param network The crypto network for the wallet address
+     * @returns Promise that resolves to the challenge whose message must be signed, or an error
+     */
+    getWalletOwnershipChallenge: _getWalletOwnershipChallenge,
+
+    /**
+     * Verifies a signature over a previously issued wallet ownership challenge.
+     * Requires an authenticated Link user.
+     *
+     * @param challengeId The opaque identifier returned by `getWalletOwnershipChallenge`
+     * @param signature The signature produced over the exact challenge message
+     * @returns Promise that resolves to the verified consumer wallet, or an error
+     */
+    submitWalletOwnershipSignature: _submitWalletOwnershipSignature,
 
     /**
      * Attaches the specific KYC info to the current Link user. Requires an authenticated Link user.
@@ -413,9 +413,11 @@ export function useOnramp() {
      * @param paymentMethod The payment method type to collect.
      *  - 'Card' and 'BankAccount' present Link for collection.
      *  - 'PlatformPay' presents Apple Pay / Google Pay using the provided parameters.
-     * @param platformPayParams Platform-specific parameters (required when `paymentMethod` is 'PlatformPay').
+     *  - 'SamsungPay' presents Samsung Pay on Android.
+     * @param platformPayParams Platform-specific parameters (required when `paymentMethod` is 'PlatformPay' or 'SamsungPay').
      *  - iOS: provide `applePay` params
      *  - Android: provide `googlePay` params
+     *  - Samsung Pay: provide `samsungPay` params
      *  - To receive Apple Pay billing details back as `kycInfo`, request `.name` and/or `.postalAddress`
      *    in `applePay.requiredBillingContactFields`
      *  - To receive Google Pay billing details back as `kycInfo`, ensure that the `GooglePayConfig`

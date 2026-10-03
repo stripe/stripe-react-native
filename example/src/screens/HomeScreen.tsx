@@ -19,6 +19,7 @@ import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
 import { Onramp } from '@stripe/stripe-react-native';
+import { SAMSUNG_PAY_SERVICE_ID } from '../Config';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -88,6 +89,14 @@ export default function HomeScreen() {
           isPhoneNumberRequired: false,
         },
       },
+      ...(Platform.OS === 'android' && SAMSUNG_PAY_SERVICE_ID
+        ? {
+            samsungPay: {
+              serviceId: SAMSUNG_PAY_SERVICE_ID,
+              merchantName: 'Onramp Example',
+            },
+          }
+        : {}),
     };
 
     configure(config)
@@ -166,14 +175,6 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
-              title="Checkout Playground"
-              onPress={() => {
-                navigation.navigate('CheckoutScreen');
-              }}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
               title="Prebuilt UI (multi-step) (deferred intent)"
               onPress={() => {
                 navigation.navigate(
@@ -197,6 +198,14 @@ export default function HomeScreen() {
                 navigation.navigate(
                   'EmbeddedPaymentElementImmediateActionScreen'
                 );
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Link Controller (Private Preview)"
+              onPress={() => {
+                navigation.navigate('LinkControllerScreen');
               }}
             />
           </View>
@@ -396,6 +405,24 @@ export default function HomeScreen() {
               }}
             />
           </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Twint Payment"
+              onPress={() => {
+                navigation.navigate('TwintPaymentScreen');
+              }}
+            />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Twint Recurring set up"
+              onPress={() => {
+                navigation.navigate('TwintSetupFuturePaymentScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 
@@ -527,6 +554,14 @@ export default function HomeScreen() {
               title="RevolutPay"
               onPress={() => {
                 navigation.navigate('RevolutPayScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Pay by Bank"
+              onPress={() => {
+                navigation.navigate('PayByBankScreen');
               }}
             />
           </View>

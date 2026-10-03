@@ -1,316 +1,262 @@
-//
-//  StripeSdkImpl+Checkout.swift
-//  stripe-react-native
-//
-//  Created by Nick Porter on 4/29/26.
-//
-
-import Combine
 import Foundation
-@_spi(ReactNativeSDK) import StripePaymentSheet
+import React
+@_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdkImpl {
-    internal func currentCheckoutStateResult(checkout: Checkout) -> NSDictionary {
-        Mappers.mapFromCheckoutState(isLoading: checkout.isLoading, session: checkout.session)
-    }
-
-    @objc(initCheckoutSession:configuration:resolver:rejecter:)
-    public func initCheckoutSession(
-        clientSecret: String,
-        configuration: NSDictionary,
+    @objc(createCheckout:controllerId:resolver:rejecter:)
+    public func createCheckout(
+        params: NSDictionary,
+        controllerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        let checkoutConfiguration = buildCheckoutConfiguration(params: configuration)
-
-        Task { @MainActor [weak self] in
+        DispatchQueue.main.async { [weak self] in
             guard let self else {
-                reject(ErrorType.Failed, "Stripe SDK is unavailable", nil)
+                reject("Failed", "Stripe SDK is unavailable.", nil)
                 return
             }
 
-            do {
-                let checkout = try await Checkout(
-                    clientSecret: clientSecret,
-                    configuration: checkoutConfiguration
-                )
-                let sessionKey = UUID().uuidString
-
-                let cancellable = checkout.$isLoading
-                    .combineLatest(checkout.$session)
-                    .dropFirst()
-                    .sink { [weak self] isLoading, session in
-                        self?.emitter?.emitCheckoutSessionDidChangeState([
-                            "sessionKey": sessionKey,
-                            "state": Mappers.mapFromCheckoutState(isLoading: isLoading, session: session),
-                        ])
-                    }
-
-                self.checkoutInstances[sessionKey] = checkout
-                self.checkoutStateCancellables[sessionKey] = cancellable
-
-                resolve([
-                    "sessionKey": sessionKey,
-                    "state": self.currentCheckoutStateResult(checkout: checkout),
-                ])
-            } catch {
-                reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
+            pendingCheckoutCreations[controllerId] = Task { @MainActor [weak self] in
+                guard let self else {
+                    reject("Failed", "Stripe SDK is unavailable.", nil)
+                    return
+                }
+                defer { pendingCheckoutCreations.removeValue(forKey: controllerId) }
+                do {
+                    try Task.checkCancellation()
+                    let configuration = try CheckoutConfigurationMapper.map(
+                        params: params,
+                        merchantIdentifier: merchantIdentifier,
+                        didSelectPaymentOption: { [weak self] in
+                            guard let self,
+                                  checkoutControllers[controllerId] != nil else {
+                                return
+                            }
+                            emitter?.emitCheckoutControllerDidSelectPaymentOption([
+                                "controllerId": controllerId,
+                            ])
+                        }
+                    )
+                    let checkout = try await CheckoutController(configuration: configuration)
+                    try Task.checkCancellation()
+                    let instance = NativeCheckoutControllerInstance(
+                        checkout: checkout,
+                        emitEvent: { [weak self] update in
+                            self?.emitter?.emitCheckoutControllerDidUpdate(update)
+                        }
+                    )
+                    checkoutControllers[controllerId] = instance
+                    instance.start(controllerId: controllerId)
+                    resolve([
+                        "session": instance.session,
+                    ])
+                } catch {
+                    reject("Failed", error.localizedDescription, error)
+                }
             }
         }
     }
 
-    @objc(checkoutUpdateShippingAddress:address:name:phone:resolver:rejecter:)
-    public func checkoutUpdateShippingAddress(
-        sessionKey: String,
-        address: NSDictionary,
-        name: String?,
-        phone: String?,
+    @objc(destroyCheckout:resolver:rejecter:)
+    public func destroyCheckout(
+        controllerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        performCheckoutAddressMutation(
-            sessionKey: sessionKey,
-            address: address,
-            name: name,
-            phone: phone,
-            missingCountryMessage: "A shipping address country is required.",
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout, addressUpdate in
-            try await checkout.updateShippingAddress(
-                name: addressUpdate.name,
-                phone: addressUpdate.phone,
-                address: addressUpdate.address
+        Task { @MainActor [weak self] in
+            guard let self,
+                  let instance = checkoutControllers.removeValue(forKey: controllerId) else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+
+            instance.destroy()
+            resolve(nil)
+        }
+    }
+
+    @objc(updateCheckoutEmail:email:resolver:rejecter:)
+    public func updateCheckoutEmail(
+        controllerId: String,
+        email: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { _ in
+            // TODO(porter): Forward email updates once the iOS SDK exposes CheckoutController.updateEmail.
+            throw NSError(
+                domain: "StripeReactNativeCheckout",
+                code: 0,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.",
+                ]
             )
         }
     }
 
-    @objc(checkoutApplyPromotionCode:code:resolver:rejecter:)
-    public func checkoutApplyPromotionCode(
-        sessionKey: String,
-        code: String,
+    @objc(updateCheckoutShippingAddress:params:resolver:rejecter:)
+    public func updateCheckoutShippingAddress(
+        controllerId: String,
+        params: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        performCheckoutMutation(
-            sessionKey: sessionKey,
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout in
-            try await checkout.applyPromotionCode(code)
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            let name = params["name"] as? String
+            let address = CheckoutConfigurationMapper.mapAddress(params["address"] as? NSDictionary)
+            try await instance.checkout.updateShippingAddress(name: name, address: address)
         }
     }
 
-    @objc(checkoutRemovePromotionCode:resolver:rejecter:)
-    public func checkoutRemovePromotionCode(
-        sessionKey: String,
+    @objc(applyCheckoutPromotionCode:promotionCode:resolver:rejecter:)
+    public func applyCheckoutPromotionCode(
+        controllerId: String,
+        promotionCode: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        performCheckoutMutation(
-            sessionKey: sessionKey,
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout in
-            try await checkout.removePromotionCode()
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            try await instance.checkout.applyPromotionCode(promotionCode)
         }
     }
 
-    @objc(checkoutUpdateLineItemQuantity:lineItemId:quantity:resolver:rejecter:)
-    public func checkoutUpdateLineItemQuantity(
-        sessionKey: String,
-        lineItemId: String,
-        quantity: Double,
+    @objc(removeCheckoutPromotionCode:resolver:rejecter:)
+    public func removeCheckoutPromotionCode(
+        controllerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        guard quantity.isFinite, let integerQuantity = Int(exactly: quantity) else {
-            reject(ErrorType.Failed, "Line item quantity must be an integer.", nil)
-            return
-        }
-
-        performCheckoutMutation(
-            sessionKey: sessionKey,
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout in
-            try await checkout.updateQuantity(lineItemId: lineItemId, quantity: integerQuantity)
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            try await instance.checkout.removePromotionCode()
         }
     }
 
-    @objc(checkoutSelectShippingOption:id:resolver:rejecter:)
-    public func checkoutSelectShippingOption(
-        sessionKey: String,
-        id: String,
+    @objc(clearCheckoutPaymentOption:resolver:rejecter:)
+    public func clearCheckoutPaymentOption(
+        controllerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        performCheckoutMutation(
-            sessionKey: sessionKey,
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout in
-            try await checkout.selectShippingOption(id)
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            try await instance.checkout.clearPaymentOption()
         }
     }
 
-    @objc(checkoutRunServerUpdateStart:resolver:rejecter:)
-    public func checkoutRunServerUpdateStart(
-        sessionKey: String,
+    @objc(confirmCheckout:resolver:rejecter:)
+    public func confirmCheckout(
+        controllerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         Task { @MainActor [weak self] in
-            guard let self else {
-                reject(ErrorType.Failed, "Stripe SDK is unavailable", nil)
+            guard let self, let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
                 return
             }
-
-            guard let checkout = self.checkoutInstances[sessionKey] else {
-                reject(ErrorType.Failed, "Checkout session not found", nil)
+            guard let presenter = checkoutPresentingViewControllerProvider(),
+                  presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
+                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
                 return
             }
-
-            guard self.serverUpdateContinuations[sessionKey] == nil else {
-                reject(ErrorType.Failed, "A server update is already in progress for this session", nil)
-                return
-            }
-
             do {
-                try await checkout.runServerUpdate {
-                    try await withCheckedThrowingContinuation { continuation in
-                        self.serverUpdateContinuations[sessionKey] = continuation
+                try instance.confirm(from: presenter) { result in
+                    switch result {
+                    case .success(let result):
+                        resolve(CheckoutSessionSerializer.serialize(result))
+                    case .failure(let error):
+                        reject(checkoutErrorCode(for: error), error.localizedDescription, error)
                     }
                 }
-                resolve(self.currentCheckoutStateResult(checkout: checkout))
             } catch {
-                reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
+                reject(checkoutErrorCode(for: error), error.localizedDescription, error)
             }
         }
     }
 
-    @objc(checkoutRunServerUpdateComplete:error:resolver:rejecter:)
-    public func checkoutRunServerUpdateComplete(
-        sessionKey: String,
+    @objc(presentCheckoutPaymentElement:resolver:rejecter:)
+    public func presentCheckoutPaymentElement(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self,
+                  let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            guard let presenter = checkoutPresentingViewControllerProvider() else {
+                reject("Failed", "Checkout requires a presenting view controller.", nil)
+                return
+            }
+            guard presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
+                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                return
+            }
+            instance.checkout.getPaymentElement().present(from: presenter, completion: nil)
+            resolve(nil)
+        }
+    }
+
+    @objc(runCheckoutServerUpdate:operationId:resolver:rejecter:)
+    public func runCheckoutServerUpdate(
+        controllerId: String,
+        operationId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { [weak self] instance in
+            try await instance.runServerUpdate(operationId: operationId) { [weak self] in
+                self?.emitter?.emitCheckoutServerUpdateRequested([
+                    "controllerId": controllerId,
+                    "operationId": operationId,
+                ])
+            }
+        }
+    }
+
+    @objc(completeCheckoutServerUpdate:operationId:error:resolver:rejecter:)
+    public func completeCheckoutServerUpdate(
+        controllerId: String,
+        operationId: String,
         error: String?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        guard let continuation = serverUpdateContinuations.removeValue(forKey: sessionKey) else {
-            reject(ErrorType.Failed, "No pending server update for this session", nil)
-            return
+        Task { @MainActor [weak self] in
+            let instance = self?.checkoutControllers[controllerId]
+            instance?.completeServerUpdate(operationId: operationId, error: error)
+            resolve(nil)
         }
-
-        if let error {
-            continuation.resume(throwing: CheckoutError.apiError(message: error))
-        } else {
-            continuation.resume()
-        }
-        resolve(nil)
-    }
-
-    internal func buildCheckoutConfiguration(params: NSDictionary) -> Checkout.Configuration {
-        var configuration = Checkout.Configuration()
-
-        if let adaptivePricing = params["adaptivePricing"] as? NSDictionary,
-           let allowed = adaptivePricing["allowed"] as? Bool {
-            configuration.adaptivePricing.allowed = allowed
-        }
-
-        return configuration
     }
 
     private func performCheckoutMutation(
-        sessionKey: String,
+        controllerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock,
-        operation: @escaping (Checkout) async throws -> Void
+        operation: @escaping @MainActor (NativeCheckoutControllerInstance) async throws -> Void
     ) {
         Task { @MainActor [weak self] in
-            guard let self else {
-                reject(ErrorType.Failed, "Stripe SDK is unavailable", nil)
+            guard let self,
+                  let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
                 return
             }
-
-            guard let checkout = self.checkoutInstances[sessionKey] else {
-                reject(ErrorType.Failed, "Checkout session not found", nil)
-                return
-            }
-
             do {
-                try await operation(checkout)
-                resolve(self.currentCheckoutStateResult(checkout: checkout))
+                try await operation(instance)
+                let registeredInstance = checkoutControllers[controllerId]
+                guard registeredInstance === instance else {
+                    reject(
+                        "Canceled",
+                        "The Checkout controller was destroyed before the operation completed.",
+                        nil
+                    )
+                    return
+                }
+                resolve(nil)
             } catch {
-                reject(self.checkoutErrorCode(for: error), error.localizedDescription, error)
+                reject(error is CancellationError ? "Canceled" : "Failed", error.localizedDescription, error)
             }
         }
-    }
-
-    private func performCheckoutAddressMutation(
-        sessionKey: String,
-        address: NSDictionary,
-        name: String?,
-        phone: String?,
-        missingCountryMessage: String,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock,
-        operation: @escaping (Checkout, Checkout.ContactAddress) async throws -> Void
-    ) {
-        guard let addressUpdate = buildCheckoutAddressUpdate(
-            address: address,
-            name: name,
-            phone: phone
-        ) else {
-            reject(ErrorType.Failed, missingCountryMessage, nil)
-            return
-        }
-
-        performCheckoutMutation(
-            sessionKey: sessionKey,
-            resolver: resolve,
-            rejecter: reject
-        ) { checkout in
-            try await operation(checkout, addressUpdate)
-        }
-    }
-
-    private func buildCheckoutAddressUpdate(
-        address: NSDictionary,
-        name: String?,
-        phone: String?
-    ) -> Checkout.ContactAddress? {
-        guard let country = address["country"] as? String, !country.isEmpty else {
-            return nil
-        }
-
-        let checkoutAddress = Checkout.Address(
-            country: country,
-            line1: address["line1"] as? String,
-            line2: address["line2"] as? String,
-            city: address["city"] as? String,
-            state: address["state"] as? String,
-            postalCode: address["postalCode"] as? String
-        )
-
-        return Checkout.ContactAddress(
-            name: name,
-            phone: phone,
-            address: checkoutAddress
-        )
-    }
-
-    private func checkoutErrorCode(for error: Error) -> String {
-        if let checkoutError = error as? CheckoutError {
-            switch checkoutError {
-            case .invalidClientSecret:
-                return "InvalidClientSecret"
-            case .sheetCurrentlyPresented:
-                return "SheetCurrentlyPresented"
-            default:
-                return ErrorType.Failed
-            }
-        }
-
-        return ErrorType.Failed
     }
 }

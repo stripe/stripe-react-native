@@ -2,17 +2,19 @@ package com.reactnativestripesdk.mappers
 
 import android.annotation.SuppressLint
 import com.facebook.react.bridge.WritableMap
-import com.reactnativestripesdk.utils.buildCheckoutAddressUpdate
 import com.reactnativestripesdk.utils.createCanAddCardResult
+import com.reactnativestripesdk.utils.mapFinancialConnectionsEventErrorCode
 import com.reactnativestripesdk.utils.mapNextAction
 import com.reactnativestripesdk.utils.mapPaymentMethodType
 import com.reactnativestripesdk.utils.mapToAddress
 import com.reactnativestripesdk.utils.mapToBillingDetails
 import com.reactnativestripesdk.utils.mapToPaymentMethodType
+import com.reactnativestripesdk.utils.mapToPreCollectedConsent
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
+import com.stripe.android.financialconnections.analytics.FinancialConnectionsEvent
 import com.stripe.android.model.CardBrand
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.StripeIntent
@@ -29,6 +31,79 @@ import org.robolectric.RobolectricTestRunner
 @SuppressLint("RestrictedApi")
 @RunWith(RobolectricTestRunner::class)
 class MappersTest {
+  @Test
+  fun mapToPreCollectedConsent_mapsValues() {
+    val params =
+      readableMapOf(
+        "preCollectedConsent" to
+          readableMapOf(
+            "consent" to "fccons_test",
+            "collectedAt" to 1_725_000_123.0,
+          ),
+      )
+
+    val result = mapToPreCollectedConsent(params).getOrThrow()
+
+    assertEquals("fccons_test", result?.consent)
+    assertEquals(1_725_000_123L, result?.collectedAt)
+  }
+
+  @Test
+  fun mapToPreCollectedConsent_returnsNullWhenAbsent() {
+    assertNull(mapToPreCollectedConsent(readableMapOf()).getOrThrow())
+  }
+
+  @Test
+  fun mapToPreCollectedConsent_failsWhenConsentMissing() {
+    val params =
+      readableMapOf(
+        "preCollectedConsent" to readableMapOf("collectedAt" to 1_725_000_123.0),
+      )
+
+    assertTrue(mapToPreCollectedConsent(params).isFailure)
+  }
+
+  @Test
+  fun mapToPreCollectedConsent_failsWhenCollectedAtIsNotNumeric() {
+    val params =
+      readableMapOf(
+        "preCollectedConsent" to
+          readableMapOf(
+            "consent" to "fccons_test",
+            "collectedAt" to "not-a-number",
+          ),
+      )
+
+    assertTrue(mapToPreCollectedConsent(params).isFailure)
+  }
+
+  @Test
+  fun mapFinancialConnectionsEventErrorCode_ReturnsPublicValue() {
+    val expectedValues =
+      mapOf(
+        FinancialConnectionsEvent.ErrorCode.ACCOUNT_NUMBERS_UNAVAILABLE to "account_numbers_unavailable",
+        FinancialConnectionsEvent.ErrorCode.ACCOUNTS_UNAVAILABLE to "accounts_unavailable",
+        FinancialConnectionsEvent.ErrorCode.NO_ELIGIBLE_ACCOUNTS to "no_eligible_accounts",
+        FinancialConnectionsEvent.ErrorCode.NO_DEBITABLE_ACCOUNT to "no_debitable_account",
+        FinancialConnectionsEvent.ErrorCode.AUTHORIZATION_FAILED to "authorization_failed",
+        FinancialConnectionsEvent.ErrorCode.INSTITUTION_UNAVAILABLE_PLANNED to
+          "institution_unavailable_planned",
+        FinancialConnectionsEvent.ErrorCode.INSTITUTION_UNAVAILABLE_UNPLANNED to
+          "institution_unavailable_unplanned",
+        FinancialConnectionsEvent.ErrorCode.INSTITUTION_TIMEOUT to "institution_timeout",
+        FinancialConnectionsEvent.ErrorCode.UNEXPECTED_ERROR to "unexpected_error",
+        FinancialConnectionsEvent.ErrorCode.SESSION_EXPIRED to "session_expired",
+        FinancialConnectionsEvent.ErrorCode.FAILED_BOT_DETECTION to "failed_bot_detection",
+        FinancialConnectionsEvent.ErrorCode.WEB_BROWSER_UNAVAILABLE to "web_browser_unavailable",
+      )
+
+    assertEquals(FinancialConnectionsEvent.ErrorCode.entries.toSet(), expectedValues.keys)
+    expectedValues.forEach { (errorCode, expectedValue) ->
+      assertEquals(expectedValue, mapFinancialConnectionsEventErrorCode(errorCode))
+    }
+    assertNull(mapFinancialConnectionsEventErrorCode(null))
+  }
+
   @Test
   fun createCanAddCardResult_NoStatus() {
     val result =
@@ -97,6 +172,16 @@ class MappersTest {
   }
 
   @Test
+  fun mapPaymentMethodType_PayByBank_ReturnsString() {
+    assertEquals("PayByBank", mapPaymentMethodType(PaymentMethod.Type.PayByBank))
+  }
+
+  @Test
+  fun mapToPaymentMethodType_PayByBank_ReturnsType() {
+    assertEquals(PaymentMethod.Type.PayByBank, mapToPaymentMethodType("PayByBank"))
+  }
+
+  @Test
   fun mapNextAction_DisplayMultibancoDetails_ReturnsVoucherUrl() {
     val result =
       mapNextAction(
@@ -112,6 +197,28 @@ class MappersTest {
       "https://payments.stripe.com/multibanco/voucher",
       result?.getString("voucherURL"),
     )
+  }
+
+  @Test
+  fun mapNextAction_AwaitAuthorization_ReturnsNull() {
+    val result =
+      mapNextAction(
+        StripeIntent.NextActionType.AwaitAuthorization,
+        StripeIntent.NextActionData.AwaitAuthorization,
+      )
+
+    assertNull(result)
+  }
+
+  @Test
+  fun mapNextAction_MbWayAwaitAuthorization_ReturnsNull() {
+    val result =
+      mapNextAction(
+        StripeIntent.NextActionType.MbWayAwaitAuthorization,
+        StripeIntent.NextActionData.MbWayAwaitAuthorization,
+      )
+
+    assertNull(result)
   }
 
   // ============================================
@@ -347,65 +454,6 @@ class MappersTest {
     val result = parseCustomPaymentMethods(params)
     assertEquals(1, result.size)
     assertEquals("cpmt_valid", result[0].id)
-  }
-
-  // ============================================
-  // buildCheckoutAddressUpdate Tests
-  // ============================================
-
-  @Test
-  fun buildCheckoutAddressUpdate_TrimsFields() {
-    val update =
-      buildCheckoutAddressUpdate(
-        name = " Jane Doe ",
-        phone = " 5551234567 ",
-        address =
-          readableMapOf(
-            "country" to " US ",
-            "line1" to " 123 Main St ",
-            "line2" to " Apt 4 ",
-            "city" to " San Francisco ",
-            "state" to " CA ",
-            "postalCode" to " 94111 ",
-          ),
-      )
-
-    assertNotNull(update)
-    assertEquals("Jane Doe", update!!.name)
-    assertEquals("5551234567", update.phone)
-    assertEquals("US", update.country)
-    assertEquals("123 Main St", update.line1)
-    assertEquals("Apt 4", update.line2)
-    assertEquals("San Francisco", update.city)
-    assertEquals("CA", update.state)
-    assertEquals("94111", update.postalCode)
-  }
-
-  @Test
-  fun buildCheckoutAddressUpdate_RequiresCountry() {
-    val withoutCountry =
-      buildCheckoutAddressUpdate(
-        name = "Jane Doe",
-        phone = "5551234567",
-        address =
-          readableMapOf(
-            "line1" to "123 Main St",
-            "city" to "San Francisco",
-          ),
-      )
-
-    val blankCountry =
-      buildCheckoutAddressUpdate(
-        name = "Jane Doe",
-        phone = "5551234567",
-        address =
-          readableMapOf(
-            "country" to "   ",
-          ),
-      )
-
-    assertNull(withoutCountry)
-    assertNull(blankCountry)
   }
 
   // ============================================

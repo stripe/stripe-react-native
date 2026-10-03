@@ -333,17 +333,47 @@ class OnrampMappersTests: XCTestCase {
         }
     }
 
-    func test_mapToKycInfo_emptyParamsReturnsAllNil() throws {
+    func test_mapToKycInfo_emptyParamsUsesDefaults() throws {
         let result = try Mappers.mapToKycInfo([:])
 
         XCTAssertNil(result.firstName)
         XCTAssertNil(result.lastName)
         XCTAssertNil(result.idNumber)
+        XCTAssertEqual(result.idType, .socialSecurityNumber)
         XCTAssertNil(result.address)
         XCTAssertNil(result.dateOfBirth)
         XCTAssertNil(result.birthCountry)
         XCTAssertNil(result.birthCity)
         XCTAssertNil(result.nationalities)
+    }
+
+    func test_kycInfo_preservesIdTypes() throws {
+        let cases: [(String, IdType)] = [
+            ("social_security_number", .socialSecurityNumber),
+            ("ca_sin", .canadianSocialInsuranceNumber),
+            ("co_nit", .colombianTaxIdentificationNumber),
+            ("ph_tin", .philippinesTaxpayerIdentificationNumber),
+        ]
+
+        for (value, expectedType) in cases {
+            let kycInfo = try Mappers.mapToKycInfo([
+                "idNumber": "123456789",
+                "idType": value,
+            ])
+
+            XCTAssertEqual(kycInfo.idType, expectedType)
+            let result = Mappers.mapFromKycInfo(kycInfo)
+            XCTAssertEqual(result["idNumber"] as? String, "123456789")
+            XCTAssertEqual(result["idType"] as? String, value)
+        }
+    }
+
+    func test_mapToKycInfo_nullOrUnknownIdTypeUsesDefault() throws {
+        for value: Any in [NSNull(), "unknown"] {
+            let result = try Mappers.mapToKycInfo(["idType": value])
+
+            XCTAssertEqual(result.idType, .socialSecurityNumber)
+        }
     }
 
     func test_mapFromKycInfo_fullInfoMapsNestedValues() {
@@ -370,6 +400,7 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertEqual(result["firstName"] as? String, "Jane")
         XCTAssertEqual(result["lastName"] as? String, "Doe")
         XCTAssertEqual(result["idNumber"] as? String, "123456789")
+        XCTAssertEqual(result["idType"] as? String, "social_security_number")
 
         let address = result["address"] as? [String: String]
         XCTAssertEqual(address?["city"], "San Francisco")
@@ -405,6 +436,7 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertEqual(result["firstName"] as? String, "Jane")
         XCTAssertNil(result["lastName"])
         XCTAssertNil(result["idNumber"])
+        XCTAssertEqual(result["idType"] as? String, "social_security_number")
         XCTAssertNil(result["address"])
         XCTAssertNil(result["dateOfBirth"])
         XCTAssertNil(result["birthCountry"])
@@ -583,6 +615,50 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertEqual(alternatives?.count, 1)
         XCTAssertEqual(alternatives?[0]["originalMissingIdentifiers"], ["mt_nic"])
         XCTAssertEqual(alternatives?[0]["alternativeMissingIdentifiers"], ["mt_pp"])
+    }
+
+    func test_mapFromWalletOwnershipChallenge_mapsAllFields() throws {
+        let data = Data(
+            """
+            {
+              "challenge_id": "cwoc_123",
+              "wallet_address": "0x1234",
+              "network": "solana",
+              "message": "Sign this exact message",
+              "expires_at": "2026-07-15T16:00:00Z"
+            }
+            """.utf8
+        )
+        let challenge = try JSONDecoder().decode(WalletOwnershipChallenge.self, from: data)
+
+        let result = Mappers.mapFromWalletOwnershipChallenge(challenge)
+
+        XCTAssertEqual(result["challengeId"] as? String, "cwoc_123")
+        XCTAssertEqual(result["walletAddress"] as? String, "0x1234")
+        XCTAssertEqual(result["network"] as? String, "solana")
+        XCTAssertEqual(result["message"] as? String, "Sign this exact message")
+        XCTAssertEqual(result["expiresAt"] as? String, "2026-07-15T16:00:00Z")
+    }
+
+    func test_mapFromCryptoConsumerWallet_mapsAllFields() throws {
+        let data = Data(
+            """
+            {
+              "id": "ccw_123",
+              "wallet_address": "0xabcd",
+              "network": "ethereum",
+              "verified_ownership": true
+            }
+            """.utf8
+        )
+        let wallet = try JSONDecoder().decode(CryptoConsumerWallet.self, from: data)
+
+        let result = Mappers.mapFromCryptoConsumerWallet(wallet)
+
+        XCTAssertEqual(result["id"] as? String, "ccw_123")
+        XCTAssertEqual(result["walletAddress"] as? String, "0xabcd")
+        XCTAssertEqual(result["network"] as? String, "ethereum")
+        XCTAssertEqual(result["verifiedOwnership"] as? Bool, true)
     }
 
     func test_paymentMethodDisplayDataToMap_mapsAllSupportedTypes() {

@@ -6,10 +6,12 @@
 //
 
 import Foundation
+import React
 import StripePaymentSheet
 
 @objc(AddressSheetView)
 public class AddressSheetView: UIView {
+
     @objc public var visible = false
     @objc public var presentationStyle: String = "popover"
     @objc public var animationStyle: String = ""
@@ -43,12 +45,6 @@ public class AddressSheetView: UIView {
             addressViewController?.dismiss(animated: true)
             wasVisible = false
         }
-    }
-
-    override public func didSetProps(_ changedProps: [String]!) {
-        // This is only called on old arch, for new arch didSetProps() will be called
-        // by the view component.
-        self.didSetProps()
     }
 
     private func presentAddressSheet() {

@@ -14,6 +14,7 @@ import type {
   HandleNextActionResult,
   HandleNextActionForSetupResult,
   InitPaymentSheetResult,
+  LinkController,
   PaymentMethod,
   PaymentSheet,
   PresentPaymentSheetResult,
@@ -350,33 +351,6 @@ let financialConnectionsEventListener: EventSubscription | null = null;
 let paymentSheetCustomPaymentMethodConfirmCallback: EventSubscription | null =
   null;
 
-type NativeCheckoutSetupParams = Omit<
-  PaymentSheet.CheckoutSetupParams,
-  'checkout'
-> & {
-  checkout: {
-    sessionKey: string;
-  };
-};
-
-const toNativePaymentSheetSetupParams = (
-  params: PaymentSheet.SetupParams
-): PaymentSheet.SetupParams => {
-  if (!('checkout' in params)) {
-    return params;
-  }
-
-  const nativeCheckoutParams: NativeCheckoutSetupParams = {
-    ...params,
-    // The native side already owns the Checkout instance, so only pass its opaque session key.
-    checkout: {
-      sessionKey: params.checkout.sessionKey,
-    },
-  };
-
-  return nativeCheckoutParams as PaymentSheet.SetupParams;
-};
-
 export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
 ): Promise<InitPaymentSheetResult> => {
@@ -458,9 +432,7 @@ export const initPaymentSheet = async (
         `[@stripe/stripe-react-native] You have not provided the 'returnURL' field to 'initPaymentSheet', so payment methods that require redirects will not be shown in your iOS Payment Sheet. Visit https://stripe.com/docs/payments/accept-a-payment?platform=react-native&ui=payment-sheet#react-native-set-up-return-url to learn more.`
       );
     }
-    result = await NativeStripeSdk.initPaymentSheet(
-      toNativePaymentSheetSetupParams(params)
-    );
+    result = await NativeStripeSdk.initPaymentSheet(params);
 
     if (result.error) {
       return {
@@ -957,5 +929,78 @@ export const setFinancialConnectionsForceNativeFlow = async (
     await NativeStripeSdk.setFinancialConnectionsForceNativeFlow(enabled);
   } catch (_) {
     // no-op
+  }
+};
+
+/**
+ * Initializes the LinkController with the provided configuration.
+ * Must be called before `presentLinkController`.
+ *
+ * @PrivatePreview This API is in private preview and may change without notice.
+ * It will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export const initLinkController = async (
+  params: LinkController.Configuration
+): Promise<LinkController.InitResult> => {
+  try {
+    const { error } = await NativeStripeSdk.initLinkController(params);
+    if (error) {
+      return { error };
+    }
+    return {};
+  } catch (error: any) {
+    return { error };
+  }
+};
+
+/**
+ * Presents the Link flow. Must be called after `initLinkController`.
+ *
+ * Handles the full end-to-end flow: consumer lookup, authentication or signup,
+ * wallet display, and payment method creation.
+ *
+ * @PrivatePreview This API is in private preview and may change without notice.
+ * It will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export const presentLinkController =
+  async (): Promise<LinkController.PresentResult> => {
+    try {
+      const { paymentMethod, paymentMethodPreview, error } =
+        await NativeStripeSdk.presentLinkController();
+      if (error) {
+        return { error };
+      }
+      return {
+        paymentMethod: paymentMethod!,
+        paymentMethodPreview,
+      };
+    } catch (error: any) {
+      return { error };
+    }
+  };
+
+/**
+ * Confirms a SetupIntent using the payment method from the most recent
+ * `presentLinkController` call. Must be called after a successful `presentLinkController`.
+ *
+ * Provide a fresh SetupIntent client secret for each confirmation; reusing a
+ * consumed secret will fail.
+ *
+ * @PrivatePreview This API is in private preview and may change without notice.
+ * It will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export const confirmLinkControllerSetupIntent = async (
+  clientSecret: string
+): Promise<LinkController.ConfirmSetupIntentResult> => {
+  try {
+    const { error } = await NativeStripeSdk.confirmLinkControllerSetupIntent({
+      clientSecret,
+    });
+    if (error) {
+      return { error };
+    }
+    return {};
+  } catch (error: any) {
+    return { error };
   }
 };

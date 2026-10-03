@@ -223,16 +223,7 @@ export interface Spec extends TurboModule {
 
 #### 3b. Android Spec
 
-**File:** `android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpec.java`
-
-```java
-@ReactMethod
-@DoNotStrip
-public abstract void clientSecretProviderSetupIntentClientSecretCallback(
-  String setupIntentClientSecret,
-  Promise promise
-);
-```
+Android specs are generated from the TypeScript spec during the native build. No checked-in code additions are needed.
 
 #### 3c. iOS Bridge Declaration
 
@@ -370,7 +361,6 @@ public func clientSecretProviderSetupIntentClientSecretCallback(
 - [ ] Android emitter implemented in `EventEmitterCompat.kt`
 - [ ] iOS emitter declared in `StripeSdkEmitter.swift`
 - [ ] TypeScript callback spec added to `NativeStripeSdkModule.ts`
-- [ ] Android callback spec added to `NativeStripeSdkModuleSpec.java`
 - [ ] iOS bridge method added to `StripeSdk.mm`
 - [ ] JavaScript event listener implemented in component
 - [ ] Android callback completion implemented in `StripeSdkModule.kt`
@@ -384,7 +374,6 @@ public func clientSecretProviderSetupIntentClientSecretCallback(
 - [ ] Code runs without linter errors (`yarn lint`)
 - [ ] TypeScript compiles without errors (`yarn typescript`)
 - [ ] Tested on both iOS and Android
-- [ ] Tested with both Old and New Architecture
 
 ---
 

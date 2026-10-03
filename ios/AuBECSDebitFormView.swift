@@ -1,4 +1,5 @@
 import Foundation
+import React
 import Stripe
 import UIKit
 
@@ -21,12 +22,6 @@ public class AuBECSDebitFormView: UIView, STPAUBECSDebitFormViewDelegate {
             self.addSubview(auBecsFormView)
             setStyles()
         }
-    }
-
-    override public func didSetProps(_ changedProps: [String]!) {
-        // This is only called on old arch, for new arch didSetProps() will be called
-        // by the view component.
-        self.didSetProps()
     }
 
     @objc public var formStyle: NSDictionary = NSDictionary() {

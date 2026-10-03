@@ -1,14 +1,22 @@
-import type { Address } from './Common';
+import type { Address, CardBrand } from './Common';
 import type { StripeError } from './Errors';
 import type {
   ApplePayBaseParams,
   ApplePayPaymentMethodParams,
 } from './PlatformPay';
+import type { LinkAppearance } from './LinkAppearance';
+
+export type {
+  LinkAppearance,
+  LinkColors,
+  LinkStyle,
+  LinkPrimaryButton,
+} from './LinkAppearance';
 
 /**
- * Generic error codes returned by Crypto Onramp APIs.
+ * Generic error statuses returned by Crypto Onramp APIs.
  */
-export enum OnrampError {
+export enum OnrampErrorStatus {
   Failed = 'Failed',
   Canceled = 'Canceled',
   Unknown = 'Unknown',
@@ -29,6 +37,8 @@ export type Configuration = {
   cryptoCustomerId?: string;
   /** Google Pay configuration. Required on Android to enable Google Pay as a payment method. */
   googlePay?: GooglePayConfig;
+  /** Samsung Pay configuration. Required on Android to enable Samsung Pay as a payment method. */
+  samsungPay?: SamsungPayConfig;
 };
 
 /**
@@ -64,6 +74,26 @@ export type GooglePayBillingAddressConfig = {
 };
 
 /**
+ * Configuration for Samsung Pay within the onramp flow.
+ *
+ * The Android application must include Samsung Pay SDK 2.22.00 at runtime.
+ * Stripe Android does not package the Samsung Pay SDK transitively.
+ */
+export type SamsungPayConfig = {
+  /** Samsung Pay in-app service ID assigned to the merchant. */
+  serviceId: string;
+  /** Optional merchant identifier supplied to Samsung Pay. */
+  merchantId?: string;
+  /** Optional merchant name supplied to Samsung Pay. */
+  merchantName?: string;
+  /**
+   * Card brands customers may select in Samsung Pay.
+   * Omitting this or passing an empty array uses the SDK defaults.
+   */
+  allowedCardBrands?: CardBrand[];
+};
+
+/**
  * Google Pay parameters for the onramp collectPaymentMethod call.
  * Only includes the fields passed to GooglePayPaymentMethodLauncher.present().
  * Google Pay config (merchantCountryCode, testEnv, etc.) belongs in GooglePayConfig
@@ -81,6 +111,18 @@ export type OnrampGooglePayParams = {
 };
 
 /**
+ * Samsung Pay parameters for the onramp collectPaymentMethod call.
+ */
+export type OnrampSamsungPayParams = {
+  /** ISO 4217 alphabetic currency code (e.g. "USD"). */
+  currencyCode: string;
+  /** Amount in the currency's smallest unit. */
+  amount: number;
+  /** Unique order number for this transaction. */
+  orderNumber: string;
+};
+
+/**
  * Platform Pay parameters for the onramp collectPaymentMethod call.
  */
 export type OnrampPlatformPayParams = {
@@ -89,55 +131,15 @@ export type OnrampPlatformPayParams = {
    */
   googlePay?: OnrampGooglePayParams;
   /**
+   * Samsung Pay parameters. Android only.
+   */
+  samsungPay?: OnrampSamsungPayParams;
+  /**
    * Apple Pay parameters. iOS only.
    * To receive `kycInfo` back from `collectPaymentMethod`, request Apple Pay billing
    * `.name` and/or `.postalAddress` via `requiredBillingContactFields`.
    */
   applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
-};
-
-/**
- * Customization options for Link/Stripe-provided UI.
- */
-export type LinkAppearance = {
-  /** Color overrides used when the device is in light mode. */
-  lightColors?: LinkColors;
-  /** Color overrides used when the device is in dark mode. */
-  darkColors?: LinkColors;
-  /** UI style preference for Stripe UI. */
-  style?: LinkStyle;
-  /** Primary button appearance overrides. */
-  primaryButton?: LinkPrimaryButton;
-};
-
-/**
- * Color tokens used by Link/Stripe-provided UI.
- */
-export type LinkColors = {
-  /** Primary brand color. */
-  primary: string;
-  /** Foreground content color to render on top of the primary color. */
-  contentOnPrimary: string;
-  /** Color used for selected borders and outlines. */
-  borderSelected: string;
-};
-
-/**
- * UI style preference for Stripe UI.
- * - `AUTOMATIC`: Follow the system appearance.
- * - `ALWAYS_LIGHT`: Always render a light appearance.
- * - `ALWAYS_DARK`: Always render a dark appearance.
- */
-export type LinkStyle = 'AUTOMATIC' | 'ALWAYS_LIGHT' | 'ALWAYS_DARK';
-
-/**
- * Primary button appearance overrides.
- */
-export type LinkPrimaryButton = {
-  /** Corner radius in dp/points. */
-  cornerRadius?: number;
-  /** Button height in dp/points. */
-  height?: number;
 };
 
 /**
@@ -175,7 +177,39 @@ export enum CryptoNetwork {
   worldchain = 'worldchain',
   xrpl = 'xrpl',
   sui = 'sui',
+  arbitrum = 'arbitrum',
+  tempo = 'tempo',
 }
+
+/**
+ * A short-lived server-issued challenge used to prove ownership of a registered wallet.
+ */
+export type WalletOwnershipChallenge = {
+  /** Opaque identifier for this challenge. */
+  challengeId: string;
+  /** The wallet address bound to this challenge. */
+  walletAddress: string;
+  /** The crypto network bound to this challenge. */
+  network: CryptoNetwork;
+  /** The exact opaque message the wallet must sign. */
+  message: string;
+  /** ISO 8601 timestamp indicating when this challenge expires. */
+  expiresAt: string;
+};
+
+/**
+ * A registered crypto consumer wallet.
+ */
+export type CryptoConsumerWallet = {
+  /** The consumer wallet's unique identifier. */
+  id: string;
+  /** The registered wallet address. */
+  walletAddress: string;
+  /** The crypto network for the registered wallet. */
+  network: CryptoNetwork;
+  /** Whether ownership of this wallet has been verified. */
+  verifiedOwnership: boolean;
+};
 
 /**
  * Represents a calendar date using day, month, and year components.
@@ -191,6 +225,15 @@ export type DateOfBirth = {
 };
 
 /**
+ * The type of government identification provided during KYC collection.
+ * - `social_security_number`: United States Social Security Number.
+ * - `ca_sin`: Canadian Social Insurance Number.
+ * - `co_nit`: Colombian Tax Identification Number.
+ * - `ph_tin`: Philippines Taxpayer Identification Number.
+ */
+export type IdType = 'social_security_number' | 'ca_sin' | 'co_nit' | 'ph_tin';
+
+/**
  * Know Your Customer (KYC) information required for crypto operations.
  *
  * Notes:
@@ -204,6 +247,8 @@ export type KycInfo = {
   lastName?: string;
   /** Government ID number (e.g., SSN for US). May be required by region. */
   idNumber?: string;
+  /** Type of the provided ID number. Defaults to 'social_security_number'. */
+  idType?: IdType;
   /** Customer’s date of birth, if collected. */
   dateOfBirth?: DateOfBirth;
   /** Customer’s address, if collected. */
@@ -269,27 +314,87 @@ export type ComplianceIdentifierRequirements = {
 };
 
 /**
+ * Typed Crypto Onramp API error discriminants.
+ */
+export type OnrampApiErrorType =
+  | 'AppAttestationError'
+  | 'InvalidWalletOwnershipSignatureError'
+  | 'WalletOwnershipChallengeExpiredError'
+  | 'InvalidWalletOwnershipChallengeError'
+  | 'WalletNotFoundError'
+  | 'UnsupportedNetworkError'
+  | 'UncategorizedApiError';
+
+/**
  * Typed Crypto Onramp error discriminants returned by newer native SDKs.
  */
-export type OnrampErrorType = 'AppAttestationError' | 'UncategorizedApiError';
+export type OnrampErrorType =
+  | OnrampApiErrorType
+  | 'AppAttestationUnavailableError';
 
-export type OnrampApiError = StripeError<OnrampError> & {
-  onrampErrorType: string;
+/**
+ * Base rich error shape returned by native Crypto Onramp SDK errors.
+ */
+export type OnrampSdkError = StripeError<OnrampErrorStatus> & {
+  onrampErrorType: OnrampErrorType;
   developerMessage: string;
   userMessage: string;
+  docUrl?: string;
+};
+
+/**
+ * API-context fields returned for Crypto Onramp API errors.
+ */
+export type OnrampApiError = OnrampSdkError & {
+  onrampErrorType: OnrampApiErrorType;
   reason?: string;
   requestId?: string;
   apiErrorCode?: string;
   apiErrorType?: string;
   apiErrorMessage?: string;
   apiUserMessage?: string;
-  docUrl?: string;
 };
+
 /**
  * A typed Crypto Onramp app attestation failure.
  */
 export type AppAttestationError = OnrampApiError & {
   onrampErrorType: 'AppAttestationError';
+};
+
+/**
+ * A typed Crypto Onramp API error for an invalid wallet ownership signature.
+ */
+export type InvalidWalletOwnershipSignatureError = OnrampApiError & {
+  onrampErrorType: 'InvalidWalletOwnershipSignatureError';
+};
+
+/**
+ * A typed Crypto Onramp API error for an expired wallet ownership challenge.
+ */
+export type WalletOwnershipChallengeExpiredError = OnrampApiError & {
+  onrampErrorType: 'WalletOwnershipChallengeExpiredError';
+};
+
+/**
+ * A typed Crypto Onramp API error for an invalid wallet ownership challenge.
+ */
+export type InvalidWalletOwnershipChallengeError = OnrampApiError & {
+  onrampErrorType: 'InvalidWalletOwnershipChallengeError';
+};
+
+/**
+ * A typed Crypto Onramp API error when the requested wallet cannot be found.
+ */
+export type WalletNotFoundError = OnrampApiError & {
+  onrampErrorType: 'WalletNotFoundError';
+};
+
+/**
+ * A typed Crypto Onramp API error for a network unsupported by the operation.
+ */
+export type UnsupportedNetworkError = OnrampApiError & {
+  onrampErrorType: 'UnsupportedNetworkError';
 };
 
 /**
@@ -300,6 +405,13 @@ export type UncategorizedApiError = OnrampApiError & {
 };
 
 /**
+ * A typed Crypto Onramp local SDK error for app attestation setup failures.
+ */
+export type AppAttestationUnavailableError = OnrampSdkError & {
+  onrampErrorType: 'AppAttestationUnavailableError';
+};
+
+/**
  * Error returned by Crypto Onramp APIs.
  *
  * Most failures use the generic Stripe error envelope. Newer native SDK
@@ -307,11 +419,19 @@ export type UncategorizedApiError = OnrampApiError & {
  * `onrampErrorType`.
  */
 export type CryptoOnrampError =
-  | (StripeError<OnrampError> & {
-      onrampErrorType?: undefined;
+  | (StripeError<OnrampErrorStatus> & {
+      onrampErrorType?: never;
+      developerMessage?: never;
+      userMessage?: never;
     })
   | AppAttestationError
-  | UncategorizedApiError;
+  | InvalidWalletOwnershipSignatureError
+  | WalletOwnershipChallengeExpiredError
+  | InvalidWalletOwnershipChallengeError
+  | WalletNotFoundError
+  | UnsupportedNetworkError
+  | UncategorizedApiError
+  | AppAttestationUnavailableError;
 
 /**
  * Result of retrieving missing compliance identifiers.
@@ -457,6 +577,36 @@ export type RegisterLinkUserResult =
     };
 
 /**
+ * Result of creating a wallet ownership challenge.
+ */
+export type GetWalletOwnershipChallengeResult =
+  | {
+      /** The short-lived challenge whose message must be signed by the wallet. */
+      challenge: WalletOwnershipChallenge;
+      error?: undefined;
+    }
+  | {
+      challenge?: undefined;
+      /** Present if challenge creation failed with an error. */
+      error: CryptoOnrampError;
+    };
+
+/**
+ * Result of submitting a wallet ownership signature.
+ */
+export type SubmitWalletOwnershipSignatureResult =
+  | {
+      /** The registered wallet after ownership verification. */
+      consumerWallet: CryptoConsumerWallet;
+      error?: undefined;
+    }
+  | {
+      consumerWallet?: undefined;
+      /** Present if signature verification failed with an error. */
+      error: CryptoOnrampError;
+    };
+
+/**
  * Describes the payment method currently selected by the user.
  */
 export type PaymentMethodDisplayData = {
@@ -470,7 +620,7 @@ export type PaymentMethodDisplayData = {
   /** Details about the underlying payment method, e.g., "Visa Credit •••• 4242". */
   sublabel?: string;
   /** The type of payment method */
-  type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay';
+  type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay' | 'SamsungPay';
 };
 
 /**

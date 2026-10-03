@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import React
 @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(STP) @_spi(CustomPaymentMethodsBeta) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 
 @objc(StripeSdkImpl)
@@ -37,7 +38,7 @@ extension StripeSdkImpl {
       resolve(nil)
       return
     }
-    let captureMethodString = intentConfig["captureMethod"] as? String
+    let captureMethodString = modeParams["captureMethod"] as? String
     let intentConfig = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
@@ -64,40 +65,6 @@ extension StripeSdkImpl {
         emitLoadingFailed(error: error)
         // Resolve so the JS hook can finish loading; loading errors are
         // surfaced through the embeddedPaymentElementLoadingFailed event.
-        resolve(nil)
-      }
-    }
-  }
-
-  @objc(createEmbeddedPaymentElementWithCheckout:configuration:resolve:reject:)
-  public func createEmbeddedPaymentElementWithCheckout(
-    sessionKey: String,
-    configuration: NSDictionary,
-    resolve: @escaping RCTPromiseResolveBlock,
-    reject: @escaping RCTPromiseRejectBlock
-  ) {
-    guard let checkout = checkoutInstances[sessionKey] else {
-      emitLoadingFailed(message: "Checkout session not found")
-      resolve(nil)
-      return
-    }
-
-    guard let configuration = buildEmbeddedPaymentElementConfiguration(params: configuration).configuration else {
-      emitLoadingFailed(message: "Invalid configuration")
-      resolve(nil)
-      return
-    }
-
-    Task {
-      do {
-        let embeddedPaymentElement = try await EmbeddedPaymentElement.create(
-          checkout: checkout,
-          configuration: configuration
-        )
-        attachEmbedded(embeddedPaymentElement)
-        resolve(nil)
-      } catch {
-        emitLoadingFailed(error: error)
         resolve(nil)
       }
     }
@@ -191,7 +158,7 @@ extension StripeSdkImpl {
       resolve(Errors.createError(ErrorType.Failed, "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
       return
     }
-    let captureMethodString = intentConfig["captureMethod"] as? String
+    let captureMethodString = modeParams["captureMethod"] as? String
     let intentConfiguration = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],

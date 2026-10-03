@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCryptoOnramp::class)
+@file:OptIn(ExperimentalCryptoOnramp::class, LinkControllerPreview::class)
 
 package com.reactnativestripesdk.mappers
 
@@ -8,19 +8,29 @@ import com.reactnativestripesdk.ComplianceIdentifierFieldException
 import com.reactnativestripesdk.InvalidIdentifiersArrayException
 import com.reactnativestripesdk.mapAppearance
 import com.reactnativestripesdk.mapConfig
+import com.reactnativestripesdk.mapFromCryptoConsumerWallet
 import com.reactnativestripesdk.mapFromKycInfo
+import com.reactnativestripesdk.mapFromWalletOwnershipChallenge
 import com.reactnativestripesdk.mapGooglePayConfig
+import com.reactnativestripesdk.mapOnrampPaymentMethodSelection
 import com.reactnativestripesdk.mapPaymentDetailsType
+import com.reactnativestripesdk.mapSamsungPayConfig
 import com.reactnativestripesdk.mapToComplianceIdentifiers
+import com.reactnativestripesdk.mapToIdType
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
+import com.stripe.android.crypto.onramp.model.CryptoNetwork
+import com.stripe.android.crypto.onramp.model.IdType
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
+import com.stripe.android.crypto.onramp.model.PaymentMethodSelection
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance.Style
+import com.stripe.android.link.LinkControllerPreview
+import com.stripe.android.model.CardBrand
 import com.stripe.android.model.DateOfBirth
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.junit.Assert.assertEquals
@@ -211,6 +221,83 @@ class OnrampMappersTest {
 
     assertNotNull(result)
     assertTrue(result!!.billingAddressConfig.isPhoneNumberRequired)
+  }
+
+  @Test
+  fun mapSamsungPayConfig_NullMap_ReturnsNull() {
+    assertNull(mapSamsungPayConfig(null))
+  }
+
+  @Test
+  fun mapSamsungPayConfig_MissingServiceId_ReturnsNull() {
+    assertNull(mapSamsungPayConfig(readableMapOf("merchantName" to "Test Merchant")))
+  }
+
+  @Test
+  fun mapSamsungPayConfig_DefaultsCardBrands() {
+    val result =
+      mapSamsungPayConfig(
+        readableMapOf(
+          "serviceId" to "service-id",
+          "merchantId" to "merchant-id",
+          "merchantName" to "Test Merchant",
+        ),
+    )
+
+    assertNotNull(result)
+    assertEquals("service-id", result!!.privateField("serviceId"))
+    assertEquals("merchant-id", result.privateField("merchantId"))
+    assertEquals("Test Merchant", result.privateField("merchantName"))
+    assertEquals(
+      listOf(CardBrand.Visa, CardBrand.MasterCard, CardBrand.AmericanExpress, CardBrand.Discover),
+      result.privateField("allowedCardBrands"),
+    )
+  }
+
+  @Test
+  fun mapSamsungPayConfig_EmptyAllowedCardBrands_DefaultsCardBrands() {
+    val result =
+      mapSamsungPayConfig(
+        readableMapOf(
+          "serviceId" to "service-id",
+          "allowedCardBrands" to readableArrayOf(),
+        ),
+      )
+
+    assertEquals(
+      listOf(CardBrand.Visa, CardBrand.MasterCard, CardBrand.AmericanExpress, CardBrand.Discover),
+      result!!.privateField("allowedCardBrands"),
+    )
+  }
+
+  @Test
+  fun mapSamsungPayConfig_MapsAllowedCardBrands() {
+    val result =
+      mapSamsungPayConfig(
+        readableMapOf(
+          "serviceId" to "service-id",
+          "allowedCardBrands" to readableArrayOf(7, 5),
+        ),
+      )
+
+    assertEquals(
+      listOf(CardBrand.Visa, CardBrand.MasterCard),
+      result!!.privateField("allowedCardBrands"),
+    )
+  }
+
+  @Test
+  fun mapConfig_WithSamsungPayConfig() {
+    val config =
+      readableMapOf(
+        "merchantDisplayName" to "Test",
+        "samsungPay" to readableMapOf("serviceId" to "service-id"),
+      )
+
+    val result = mapConfig(config, "pk_test_123")
+    val samsungPayConfig = result.privateField("samsungPayConfig")!!
+
+    assertEquals("service-id", samsungPayConfig.privateField("serviceId"))
   }
 
   @Test
@@ -448,6 +535,77 @@ class OnrampMappersTest {
     assertEquals("Card", mapPaymentDetailsType(PaymentMethodDisplayData.Type.Card))
     assertEquals("BankAccount", mapPaymentDetailsType(PaymentMethodDisplayData.Type.BankAccount))
     assertEquals("GooglePay", mapPaymentDetailsType(PaymentMethodDisplayData.Type.GooglePay))
+    assertEquals("SamsungPay", mapPaymentDetailsType(PaymentMethodDisplayData.Type.SamsungPay))
+  }
+
+  @Test
+  fun mapOnrampPaymentMethodSelection_MapsSamsungPayParams() {
+    val params =
+      readableMapOf(
+        "samsungPay" to
+          readableMapOf(
+            "currencyCode" to "USD",
+            "amount" to 100,
+            "orderNumber" to "order-123",
+          ),
+      )
+
+    val result = mapOnrampPaymentMethodSelection("SamsungPay", params)
+
+    assertTrue(result is PaymentMethodSelection.SamsungPay)
+    assertEquals("USD", result.privateField("currencyCode"))
+    assertEquals(100L, result.privateField("amount"))
+    assertEquals("order-123", result.privateField("orderNumber"))
+  }
+
+  private fun Any.privateField(name: String): Any? =
+    javaClass.getDeclaredField(name).let { field ->
+      field.isAccessible = true
+      field.get(this)
+    }
+
+  @Test
+  fun mapOnrampPaymentMethodSelection_SamsungPayRequiresParams() {
+    val error =
+      assertThrows(IllegalArgumentException::class.java) {
+        mapOnrampPaymentMethodSelection("SamsungPay", readableMapOf())
+      }
+
+    assertEquals("Missing samsungPay params in platformPayParams", error.message)
+  }
+
+  @Test
+  fun kycInfo_PreservesIdTypes() {
+    val cases =
+      mapOf(
+        "social_security_number" to IdType.SocialSecurityNumber,
+        "ca_sin" to IdType.CanadianSocialInsuranceNumber,
+        "co_nit" to IdType.ColombianTaxIdentificationNumber,
+        "ph_tin" to IdType.PhilippinesTaxpayerIdentificationNumber,
+      )
+
+    for ((value, expectedType) in cases) {
+      val kycInfo =
+        KycInfo(
+          firstName = null,
+          lastName = null,
+          idNumber = "123456789",
+          idType = mapToIdType(value),
+          dateOfBirth = null,
+          address = null,
+        )
+
+      assertEquals(expectedType, kycInfo.idType)
+      val result = mapFromKycInfo(kycInfo)
+      assertEquals("123456789", result.getString("idNumber"))
+      assertEquals(value, result.getString("idType"))
+    }
+  }
+
+  @Test
+  fun mapToIdType_NullOrUnknown_UsesDefault() {
+    assertEquals(IdType.SocialSecurityNumber, mapToIdType(null))
+    assertEquals(IdType.SocialSecurityNumber, mapToIdType("unknown"))
   }
 
   @Test
@@ -480,6 +638,7 @@ class OnrampMappersTest {
     assertEquals("Jane", result.getString("firstName"))
     assertEquals("Doe", result.getString("lastName"))
     assertEquals("123456789", result.getString("idNumber"))
+    assertEquals("social_security_number", result.getString("idType"))
 
     val address = result.getMap("address")
     assertNotNull(address)
@@ -523,6 +682,7 @@ class OnrampMappersTest {
     assertFalse(result.hasKey("firstName"))
     assertFalse(result.hasKey("lastName"))
     assertFalse(result.hasKey("idNumber"))
+    assertEquals("social_security_number", result.getString("idType"))
     assertFalse(result.hasKey("address"))
     assertFalse(result.hasKey("dateOfBirth"))
     assertFalse(result.hasKey("birthCountry"))
@@ -591,6 +751,40 @@ class OnrampMappersTest {
     assertFalse(address.hasKey("line2"))
     assertFalse(address.hasKey("postalCode"))
     assertFalse(address.hasKey("state"))
+  }
+
+  @Test
+  fun mapFromWalletOwnershipChallenge_MapsAllFields() {
+    val result =
+      mapFromWalletOwnershipChallenge(
+        challengeId = "cwoc_123",
+        walletAddress = "0x1234",
+        network = CryptoNetwork.Solana,
+        message = "Sign this exact message",
+        expiresAt = "2026-07-15T16:00:00Z",
+      )
+
+    assertEquals("cwoc_123", result.getString("challengeId"))
+    assertEquals("0x1234", result.getString("walletAddress"))
+    assertEquals("solana", result.getString("network"))
+    assertEquals("Sign this exact message", result.getString("message"))
+    assertEquals("2026-07-15T16:00:00Z", result.getString("expiresAt"))
+  }
+
+  @Test
+  fun mapFromCryptoConsumerWallet_MapsAllFields() {
+    val result =
+      mapFromCryptoConsumerWallet(
+        id = "ccw_123",
+        network = CryptoNetwork.Ethereum,
+        walletAddress = "0xabcd",
+        verifiedOwnership = true,
+      )
+
+    assertEquals("ccw_123", result.getString("id"))
+    assertEquals("0xabcd", result.getString("walletAddress"))
+    assertEquals("ethereum", result.getString("network"))
+    assertTrue(result.getBoolean("verifiedOwnership"))
   }
 
   @Test

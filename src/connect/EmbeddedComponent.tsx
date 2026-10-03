@@ -6,15 +6,21 @@ import React, {
   useState,
 } from 'react';
 import {
+  ActivityIndicator,
   AppState,
   AppStateStatus,
   Linking,
   Platform,
   StyleProp,
+  StyleSheet,
+  View,
   ViewStyle,
 } from 'react-native';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
-import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import type {
+  ShouldStartLoadRequest,
+  WebViewOpenWindowEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
@@ -25,7 +31,7 @@ import type {
   LoaderStart,
   StripeConnectInitParams,
 } from './connectTypes';
-import type { FinancialConnections } from '../types';
+import type { FinancialConnections, StripeError } from '../types';
 import { FinancialConnectionsSheetError } from '../types/FinancialConnections';
 import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
 
@@ -78,6 +84,17 @@ export interface CommonComponentProps {
 
   style?: StyleProp<ViewStyle>;
 }
+
+const styles = StyleSheet.create({
+  loadingIndicatorContainer: {
+    position: 'absolute',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    width: '100%',
+  },
+});
 
 type EmbeddedComponentType =
   | 'invoice-history'
@@ -136,11 +153,32 @@ type EmbeddedComponentProps = CommonComponentProps & {
   componentProps?: Record<string, unknown>;
 
   callbacks?: Record<string, ((data: any) => void) | undefined>;
+  sizeToContent?: boolean;
+  onContentHeightChange?: (height: number) => void;
+  onOpenNotificationBannerForm?: (form: Record<string, unknown>) => void;
+  presentExternalLinksInApp?: boolean;
 };
 
 type StripeConnectInitParamsInternal = StripeConnectInitParams & {
   overrides?: Record<string, string>;
 };
+
+type EmbeddedFinancialConnectionsResult =
+  | {
+      session: FinancialConnections.Session;
+      token: ReturnType<typeof toStripeJsBankAccountToken> | null;
+      error?: undefined;
+    }
+  | {
+      session?: undefined;
+      token?: undefined;
+      error: StripeError<string>;
+    }
+  | {
+      session?: undefined;
+      token?: undefined;
+      error?: undefined;
+    };
 
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const [dynamicWebview, setDynamicWebview] = useState<{
@@ -324,6 +362,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     onPageDidLoad,
     callbacks,
     style,
+    sizeToContent,
+    onContentHeightChange,
+    onOpenNotificationBannerForm,
+    presentExternalLinksInApp,
   } = props;
 
   // Initialize component analytics client
@@ -456,31 +498,39 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const handleFinancialConnectionsResult = (
     id: string,
-    result: {
-      session?: FinancialConnections.Session;
-      token?: ReturnType<typeof toStripeJsBankAccountToken> | null;
-      error?: {
-        code: string;
-        message: string;
-        localizedMessage?: string;
-        type?: string;
+    result: EmbeddedFinancialConnectionsResult
+  ) => {
+    let value;
+    if (result.error) {
+      value = {
+        id,
+        financialConnectionsSession: null,
+        token: null,
+        error: result.error,
+      };
+    } else if (result.session) {
+      value = {
+        id,
+        financialConnectionsSession: {
+          accounts: result.session.accounts,
+        },
+        token: result.token,
+        error: null,
+      };
+    } else {
+      value = {
+        id,
+        financialConnectionsSession: null,
+        token: null,
+        error: null,
       };
     }
-  ) => {
+
     ref.current?.injectJavaScript(`
       (function() {
         window.callSetterWithSerializableValue(${JSON.stringify({
           setter: 'setCollectMobileFinancialConnectionsResult',
-          value: {
-            id: id,
-            financialConnectionsSession: result.session
-              ? {
-                  accounts: result.session.accounts,
-                }
-              : null,
-            token: result.token ?? null,
-            error: result.error ?? null,
-          },
+          value,
         })});
         true;
       })();
@@ -523,8 +573,23 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'componentLoaded') {
         // Connect JS fully initialized
         componentAnalytics.logComponentLoaded();
+      } else if (message.type === 'contentHeightChanged') {
+        const height = (message.data as { height?: unknown })?.height;
+        if (
+          typeof height === 'number' &&
+          Number.isFinite(height) &&
+          height >= 0
+        ) {
+          onContentHeightChange?.(height);
+        }
       } else if (message.type === 'accountSessionClaimed') {
         // message.data is of type {elementTagName: string, merchantId: string}
+      } else if (message.type === 'openNotificationBannerForm') {
+        if (message.data && typeof message.data === 'object') {
+          onOpenNotificationBannerForm?.(
+            message.data as Record<string, unknown>
+          );
+        }
       } else if (message.type === 'openFinancialConnections') {
         const messageData = message.data as {
           clientSecret: string;
@@ -571,7 +636,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         }
 
         // Store cleanup function
+        let hasCleanedUp = false;
         const cleanup = () => {
+          if (hasCleanedUp) return;
+          hasCleanedUp = true;
           eventListener?.remove();
           pendingFinancialConnectionsPromise.current = null;
         };
@@ -581,49 +649,45 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
-        NativeStripeSdk.collectBankAccountToken(clientSecret, {
-          connectedAccountId,
-        })
-          .then(({ session, token, error }) => {
-            cleanup();
+        const resultPromise: Promise<FinancialConnections.TokenResult> =
+          NativeStripeSdk.collectBankAccountToken(clientSecret, {
+            connectedAccountId,
+          });
 
-            if (error) {
-              if (error.code === FinancialConnectionsSheetError.Canceled) {
-                handleFinancialConnectionsResult(id, {
-                  session: undefined,
-                  token: undefined,
-                  error: undefined,
-                });
+        resultPromise
+          .then((result) => {
+            if (result.error) {
+              if (
+                result.error.code === FinancialConnectionsSheetError.Canceled
+              ) {
+                handleFinancialConnectionsResult(id, {});
                 return;
               }
+
               handleFinancialConnectionsResult(id, {
-                session: undefined,
-                token: undefined,
-                error: {
-                  code: error.code,
-                  message: error.message,
-                  localizedMessage: error.localizedMessage,
-                  type: error.type,
-                },
+                error: result.error,
               });
-            } else if (token || session) {
-              handleFinancialConnectionsResult(id, {
-                session,
-                token: token ? toStripeJsBankAccountToken(token) : null,
-                error: undefined,
-              });
-            } else {
+              return;
+            }
+
+            if (!result.session) {
               handleFinancialConnectionsResult(id, {
                 error: {
                   code: 'UnexpectedError',
-                  message:
-                    'No session, token, or error returned from Financial Connections',
+                  message: 'Financial Connections completed without a session',
                 },
               });
+              return;
             }
+
+            handleFinancialConnectionsResult(id, {
+              session: result.session,
+              token: result.token
+                ? toStripeJsBankAccountToken(result.token)
+                : null,
+            });
           })
           .catch((unexpectedError) => {
-            cleanup();
             handleUnexpectedError(unexpectedError);
             handleFinancialConnectionsResult(id, {
               error: {
@@ -634,7 +698,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                     : 'An unexpected error occurred during Financial Connections',
               },
             });
-          });
+          })
+          .finally(cleanup);
       } else if (message.type === 'closeWebView') {
         // message.data is empty
         callbacks?.onCloseWebView?.({});
@@ -729,8 +794,29 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       handleUnexpectedError,
       onLoadError,
       onLoaderStart,
+      onContentHeightChange,
+      onOpenNotificationBannerForm,
       onPageDidLoad,
     ]
+  );
+
+  const openUrlOutsideComponent = useCallback(
+    (url: string) => {
+      const result =
+        presentExternalLinksInApp && isValidUrl(url)
+          ? NativeStripeSdk.presentExternalWebPage(url)
+          : Linking.openURL(url);
+
+      result.catch(handleUnexpectedError);
+    },
+    [handleUnexpectedError, presentExternalLinksInApp]
+  );
+
+  const onOpenWindow = useCallback(
+    (event: WebViewOpenWindowEvent) => {
+      openUrlOutsideComponent(event.nativeEvent.targetUrl);
+    },
+    [openUrlOutsideComponent]
   );
 
   const onShouldStartLoadWithRequest = useCallback(
@@ -754,21 +840,19 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       if (navigationType !== 'click') return true;
 
       // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
-      if (ALLOWED_STRIPE_HOSTS.some((host) => url.includes(host))) {
+      if (isAllowedStripeHost(url)) {
         return true; // Allow in-WebView navigation
       }
 
-      // Open external links in system browser
-      Linking.openURL(url).catch((error) => {
-        handleUnexpectedError(error);
-      });
+      openUrlOutsideComponent(url);
 
       return false; // Block in-WebView navigation for external links
     },
-    [handleUnexpectedError]
+    [handleUnexpectedError, openUrlOutsideComponent]
   );
 
   const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
+  const textColor = appearance?.variables?.colorText || '#000000';
 
   const mergedStyle = useMemo(
     () => [{ backgroundColor }, style],
@@ -781,6 +865,13 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     <WebViewComponent
       ref={ref}
       style={mergedStyle}
+      renderLoading={() => {
+        return (
+          <View style={[styles.loadingIndicatorContainer, { backgroundColor }]}>
+            <ActivityIndicator color={textColor} />
+          </View>
+        );
+      }}
       webviewDebuggingEnabled={DEVELOPMENT_MODE}
       source={source}
       userAgent={userAgent}
@@ -795,7 +886,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }}
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
+      injectedJavaScript={
+        sizeToContent ? CONTENT_HEIGHT_OBSERVER_SCRIPT : undefined
+      }
       onMessage={onMessageCallback}
+      onOpenWindow={presentExternalLinksInApp ? onOpenWindow : undefined}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
       onLayout={handleLayout}
       // Camera/Media Permissions - matches iOS SDK behavior
@@ -805,6 +900,26 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     />
   );
 }
+
+const CONTENT_HEIGHT_OBSERVER_SCRIPT = `
+  (function() {
+    if (window.__stripeConnectHeightObserver || !document.body) return;
+    window.__stripeConnectHeightObserver = true;
+    var lastHeight = -1;
+    var reportHeight = function() {
+      var height = document.body.getBoundingClientRect().height;
+      if (Math.abs(height - lastHeight) < 0.5) return;
+      lastHeight = height;
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'contentHeightChanged',
+        data: { height: height }
+      }));
+    };
+    new ResizeObserver(reportHeight).observe(document.body);
+    reportHeight();
+  })();
+  true;
+`;
 
 const DEFAULT_FONT =
   "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'";
@@ -865,12 +980,24 @@ function isValidUrl(url: string): boolean {
   }
 }
 
+export function isAllowedStripeHost(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return ALLOWED_STRIPE_HOSTS.some(
+      (host) => parsedUrl.hostname === host || parsedUrl.host === host
+    );
+  } catch {
+    return false;
+  }
+}
+
 // Detects Stripe CSV export URLs
 function isCsvExportUrl(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
     return (
-      parsedUrl.hostname.includes('stripe-data-exports') ||
+      parsedUrl.hostname === 'stripe-data-exports.com' ||
+      parsedUrl.hostname.endsWith('.stripe-data-exports.com') ||
       parsedUrl.pathname.includes('stripe-data-exports')
     );
   } catch {

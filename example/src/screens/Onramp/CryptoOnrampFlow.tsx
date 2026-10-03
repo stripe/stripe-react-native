@@ -16,6 +16,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import Button from '../../components/Button';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { FormField } from './FormField';
 import { Collapse } from '../../components/Collapse';
 import {
@@ -27,7 +28,9 @@ import {
   saveUser,
   createLinkAuthToken,
   getCryptoCustomerId,
+  fetchCustomerWallets,
 } from '../../api/onrampBackend';
+import type { CustomerWallet } from '../../api/onrampBackend';
 import {
   getDestinationParamsForNetwork,
   formatIdentifierRequirements,
@@ -37,8 +40,7 @@ import {
   showCanceled,
 } from './utils';
 
-import type { StripeError } from '@stripe/stripe-react-native/src/types';
-import type { OnrampError } from '@stripe/stripe-react-native/src/types/Onramp';
+import type { CryptoOnrampError } from '@stripe/stripe-react-native/src/types/Onramp';
 
 import {
   AttachKycInfoSection,
@@ -52,8 +54,12 @@ import {
   OnrampSessionCreationSection,
   RegisterWalletAddressSection,
   OnrampResponseStatusSection,
+  WalletOwnershipSection,
 } from './sections';
+import type { SourceCurrency } from './sections';
 import type { KycInfoInput } from './sections/AttachKycInfoSection';
+import { kycResidences } from './KycResidence';
+import type { KycResidence } from './KycResidence';
 import type { UserInfo } from './sections/PhoneNumberUpdateSection';
 import { colors } from '../../colors';
 import { PaymentMethodDisplayData } from '@stripe/stripe-react-native/src/types/Onramp';
@@ -65,6 +71,7 @@ const createInitialUserInfo = (): UserInfo => ({
 });
 
 const createInitialKycInfoInput = (): KycInfoInput => ({
+  residence: 'US',
   firstName: '',
   lastName: '',
   idNumber: '',
@@ -76,7 +83,7 @@ const createInitialKycInfoInput = (): KycInfoInput => ({
   addressCity: '',
   addressState: '',
   addressPostalCode: '',
-  addressCountry: '',
+  addressCountry: kycResidences.US.countryCode,
   birthCountry: '',
   birthCity: '',
   nationalities: '',
@@ -89,6 +96,9 @@ export default function CryptoOnrampFlow() {
     attachKycInfo,
     retrieveMissingIdentifiers,
     submitIdentifiers,
+    deleteWalletAddress,
+    getWalletOwnershipChallenge,
+    submitWalletOwnershipSignature,
     presentUserAttestation,
     presentKycInfoVerification,
     updatePhoneNumber,
@@ -99,6 +109,7 @@ export default function CryptoOnrampFlow() {
     getCryptoTokenDisplayData,
     logOut,
     isAuthError,
+    isSamsungPaySupported,
     authenticateUserWithToken,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
@@ -144,13 +155,19 @@ export default function CryptoOnrampFlow() {
   );
 
   const [isPlatformPayAvailable, setIsPlatformPayAvailable] = useState(false);
+  const [isSamsungPayAvailable, setIsSamsungPayAvailable] = useState(false);
   const [authInProgress, setAuthInProgress] = useState<
     null | 'login' | 'signup'
   >(null);
 
   // Payment method state used to help determine ACH settlement speed segmented control visibility (only available for bank account payments).
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    'Card' | 'BankAccount' | 'CardAndBankAccount' | 'PlatformPay' | null
+    | 'Card'
+    | 'BankAccount'
+    | 'CardAndBankAccount'
+    | 'PlatformPay'
+    | 'SamsungPay'
+    | null
   >(null);
 
   // ACH settlement speed state
@@ -176,17 +193,33 @@ export default function CryptoOnrampFlow() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [walletNetwork, setWalletNetwork] =
     useState<Onramp.CryptoNetwork | null>(null);
+  const [wallets, setWallets] = useState<CustomerWallet[]>([]);
+  const [isWalletsLoading, setIsWalletsLoading] = useState(false);
+  const [walletOwnershipChallenge, setWalletOwnershipChallenge] =
+    useState<Onramp.WalletOwnershipChallenge | null>(null);
+  const [walletOwnershipVerified, setWalletOwnershipVerified] = useState<
+    boolean | null
+  >(null);
+  const [
+    isGettingWalletOwnershipChallenge,
+    setIsGettingWalletOwnershipChallenge,
+  ] = useState(false);
+  const [
+    isSubmittingWalletOwnershipSignature,
+    setIsSubmittingWalletOwnershipSignature,
+  ] = useState(false);
 
   // Onramp session data
   const [onrampSessionId, setOnrampSessionId] = useState<string | null>(null);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [sourceCurrency, setSourceCurrency] = useState<SourceCurrency>('usd');
 
   // Helper function to handle authentication errors with automatic retry
   const withReauth = useCallback(
-    async <T extends { error?: StripeError<OnrampError> }>(
+    async <T extends { error?: CryptoOnrampError }>(
       f: () => Promise<T>,
-      reauth: () => Promise<{ error?: StripeError<OnrampError> }>
+      reauth: () => Promise<{ error?: CryptoOnrampError }>
     ): Promise<T> => {
       const result = await f();
       if (isAuthError(result.error)) {
@@ -566,20 +599,216 @@ export default function CryptoOnrampFlow() {
     }
   }, [userInfo.phoneNumber, updatePhoneNumber]);
 
+  const handleRefreshWallets = useCallback(async () => {
+    if (!authToken) {
+      showError('Please log in to the demo backend first.');
+      return;
+    }
+
+    setIsWalletsLoading(true);
+
+    try {
+      const result = await fetchCustomerWallets(authToken);
+      if (!result.success) {
+        showError(
+          `Failed to fetch wallets: ${result.error.code} - ${result.error.message}`
+        );
+        return;
+      }
+
+      setWallets(result.data.data);
+    } finally {
+      setIsWalletsLoading(false);
+    }
+  }, [authToken]);
+
+  const handleDeleteWallet = useCallback(
+    async (wallet: CustomerWallet) => {
+      setIsWalletsLoading(true);
+
+      try {
+        const result = await withReauth(
+          () => deleteWalletAddress(wallet.id),
+          () => authorize(linkAuthIntentId)
+        );
+
+        if (result.error) {
+          showError(`Failed to delete wallet: ${result.error.message}.`);
+          return;
+        }
+
+        setWallets((currentWallets) =>
+          currentWallets.filter(
+            (currentWallet) => currentWallet.id !== wallet.id
+          )
+        );
+
+        if (
+          wallet.walletAddress.toLowerCase() === walletAddress?.toLowerCase() &&
+          wallet.network === walletNetwork
+        ) {
+          setWalletAddress(null);
+          setWalletNetwork(null);
+          setWalletOwnershipChallenge(null);
+          setWalletOwnershipVerified(null);
+        }
+
+        showSuccess('Wallet deleted successfully!');
+      } finally {
+        setIsWalletsLoading(false);
+      }
+    },
+    [
+      authorize,
+      deleteWalletAddress,
+      linkAuthIntentId,
+      walletAddress,
+      walletNetwork,
+      withReauth,
+    ]
+  );
+
+  const handleGetWalletOwnershipChallenge = useCallback(async () => {
+    const address = walletAddress?.trim();
+    const network = walletNetwork;
+
+    if (!address || !network) {
+      showError('Please register a wallet address first.');
+      return;
+    }
+
+    setIsGettingWalletOwnershipChallenge(true);
+
+    try {
+      const result = await withReauth(
+        () => getWalletOwnershipChallenge(address, network),
+        () => authorize(linkAuthIntentId)
+      );
+
+      if (result.error) {
+        showError(
+          `Failed to get wallet ownership challenge: ${result.error.message}.`
+        );
+        return;
+      }
+
+      setWalletOwnershipChallenge(result.challenge);
+      setWalletOwnershipVerified(null);
+      showSuccess('Wallet ownership challenge created.');
+    } finally {
+      setIsGettingWalletOwnershipChallenge(false);
+    }
+  }, [
+    walletAddress,
+    walletNetwork,
+    withReauth,
+    getWalletOwnershipChallenge,
+    authorize,
+    linkAuthIntentId,
+  ]);
+
+  const handleSubmitWalletOwnershipSignature = useCallback(
+    async (walletOwnershipSignature: string) => {
+      const challengeId = walletOwnershipChallenge?.challengeId;
+      if (!challengeId) {
+        showError('Please get a wallet ownership challenge first.');
+        return;
+      }
+
+      const signature = walletOwnershipSignature.trim();
+      if (!signature) {
+        showError('Please enter a wallet ownership signature.');
+        return;
+      }
+
+      setIsSubmittingWalletOwnershipSignature(true);
+
+      try {
+        const result = await withReauth(
+          () => submitWalletOwnershipSignature(challengeId, signature),
+          () => authorize(linkAuthIntentId)
+        );
+
+        if (result.error) {
+          setWalletOwnershipVerified(false);
+          showError(result.error.message);
+          return;
+        }
+
+        setWalletAddress(result.consumerWallet.walletAddress);
+        setWalletNetwork(result.consumerWallet.network);
+        setWalletOwnershipVerified(result.consumerWallet.verifiedOwnership);
+        showSuccess(
+          `Wallet ownership verification submitted. Verified ownership: ${result.consumerWallet.verifiedOwnership}`
+        );
+      } finally {
+        setIsSubmittingWalletOwnershipSignature(false);
+      }
+    },
+    [
+      walletOwnershipChallenge,
+      withReauth,
+      submitWalletOwnershipSignature,
+      authorize,
+      linkAuthIntentId,
+    ]
+  );
+
+  const handleSourceCurrencyChange = useCallback(
+    (currency: SourceCurrency) => {
+      if (currency === sourceCurrency) {
+        return;
+      }
+
+      setSourceCurrency(currency);
+      setOnrampSessionId(null);
+    },
+    [sourceCurrency]
+  );
+
+  const handleKycResidenceChange = useCallback(
+    (residence: KycResidence) => {
+      if (residence === kycInfoInput.residence) {
+        return;
+      }
+
+      const configuration = kycResidences[residence];
+      setKycInfoInput((current) => ({
+        ...current,
+        residence,
+        idNumber: '',
+        addressCountry: configuration.countryCode,
+        birthCountry: residence === 'EU' ? current.birthCountry : '',
+        birthCity: residence === 'EU' ? current.birthCity : '',
+        nationalities: residence === 'EU' ? current.nationalities : '',
+      }));
+      handleSourceCurrencyChange(configuration.sourceCurrency);
+    },
+    [handleSourceCurrencyChange, kycInfoInput.residence]
+  );
+
   type CollectPaymentRequest =
     | { type: 'Card' }
     | { type: 'BankAccount' }
     | { type: 'CardAndBankAccount' }
-    | { type: 'PlatformPay'; params: Onramp.OnrampPlatformPayParams };
+    | { type: 'PlatformPay'; params: Onramp.OnrampPlatformPayParams }
+    | { type: 'SamsungPay'; params: Onramp.OnrampPlatformPayParams };
 
   const handleCollectPaymentMethod = useCallback(
     async (request: CollectPaymentRequest) => {
-      const result = await withReauth(
-        () =>
-          request.type === 'PlatformPay'
-            ? collectPaymentMethod(request.type, request.params)
-            : collectPaymentMethod(request.type),
-        () => authorize(linkAuthIntentId)
+      const collectPayment = () => {
+        switch (request.type) {
+          case 'PlatformPay':
+            return collectPaymentMethod('PlatformPay', request.params);
+          case 'SamsungPay':
+            return collectPaymentMethod('SamsungPay', request.params);
+          default:
+            return collectPaymentMethod(request.type);
+        }
+      };
+
+      const result = await withReauth(collectPayment, () =>
+        authorize(linkAuthIntentId)
       );
 
       if (result?.error) {
@@ -631,7 +860,7 @@ export default function CryptoOnrampFlow() {
           },
         ],
         merchantCountryCode: 'US',
-        currencyCode: 'USD',
+        currencyCode: sourceCurrency.toUpperCase(),
         // Optional: request these billing fields if you'd like Platform Pay to return customer KYC information.
         requiredBillingContactFields: [
           PlatformPay.ContactField.Name,
@@ -644,12 +873,12 @@ export default function CryptoOnrampFlow() {
       type: 'PlatformPay',
       params: platformPayParams,
     });
-  }, [handleCollectPaymentMethod]);
+  }, [handleCollectPaymentMethod, sourceCurrency]);
 
   const handleCollectGooglePayPayment = useCallback(async () => {
     const googlePayParams: Onramp.OnrampPlatformPayParams = {
       googlePay: {
-        currencyCode: 'USD',
+        currencyCode: sourceCurrency.toUpperCase(),
         amount: 100,
         label: 'Example',
       },
@@ -659,7 +888,22 @@ export default function CryptoOnrampFlow() {
       type: 'PlatformPay',
       params: googlePayParams,
     });
-  }, [handleCollectPaymentMethod]);
+  }, [handleCollectPaymentMethod, sourceCurrency]);
+
+  const handleCollectSamsungPayPayment = useCallback(async () => {
+    const samsungPayParams: Onramp.OnrampPlatformPayParams = {
+      samsungPay: {
+        currencyCode: sourceCurrency.toUpperCase(),
+        amount: 100,
+        orderNumber: `rn-onramp-${Date.now()}`,
+      },
+    };
+
+    handleCollectPaymentMethod({
+      type: 'SamsungPay',
+      params: samsungPayParams,
+    });
+  }, [handleCollectPaymentMethod, sourceCurrency]);
 
   const validateOnrampSessionParams = useCallback((): {
     isValid: boolean;
@@ -731,7 +975,7 @@ export default function CryptoOnrampFlow() {
         authToken!,
         destinationParams.destinationNetwork,
         10.0, // sourceAmount
-        'usd', // sourceCurrency
+        sourceCurrency,
         destinationParams.destinationCurrency,
         '127.0.0.1', // customerIpAddress
         settlementSpeed
@@ -763,6 +1007,7 @@ export default function CryptoOnrampFlow() {
     authToken,
     achSettlementSpeed,
     selectedPaymentMethod,
+    sourceCurrency,
   ]);
 
   const handlePerformCheckout = useCallback(async () => {
@@ -827,15 +1072,26 @@ export default function CryptoOnrampFlow() {
       setStoredDemoAuth(null);
       setWalletAddress(null);
       setWalletNetwork(null);
+      setWallets([]);
+      setWalletOwnershipChallenge(null);
+      setWalletOwnershipVerified(null);
       setOnrampSessionId(null);
+      setSourceCurrency('usd');
       setSelectedPaymentMethod(null);
       setAchSettlementSpeed('instant');
     }
   }, [logOut]);
 
   useEffect(() => {
+    if (isLinkUser && customerId && authToken) {
+      handleRefreshWallets();
+    }
+  }, [authToken, customerId, handleRefreshWallets, isLinkUser]);
+
+  useEffect(() => {
     let mounted = true;
-    (async () => {
+
+    const checkPlatformPaySupport = async () => {
       try {
         const params =
           Platform.OS === 'android'
@@ -846,11 +1102,26 @@ export default function CryptoOnrampFlow() {
       } catch {
         if (mounted) setIsPlatformPayAvailable(false);
       }
-    })();
+    };
+
+    const checkSamsungPaySupport = async () => {
+      if (Platform.OS !== 'android') return;
+
+      try {
+        const supported = await isSamsungPaySupported();
+        if (mounted) setIsSamsungPayAvailable(supported);
+      } catch {
+        if (mounted) setIsSamsungPayAvailable(false);
+      }
+    };
+
+    checkPlatformPaySupport();
+    checkSamsungPaySupport();
+
     return () => {
       mounted = false;
     };
-  }, [isPlatformPaySupported]);
+  }, [isPlatformPaySupported, isSamsungPaySupported]);
 
   // Load persisted demo auth for seamless sign-in
   useEffect(() => {
@@ -1032,6 +1303,7 @@ export default function CryptoOnrampFlow() {
           <AttachKycInfoSection
             kycInfo={kycInfoInput}
             setKycInfo={setKycInfoInput}
+            onResidenceChange={handleKycResidenceChange}
             handleAttachKycInfo={handleAttachKycInfo}
           />
           <KycRefreshSection
@@ -1058,11 +1330,15 @@ export default function CryptoOnrampFlow() {
           />
           <PaymentCollectionSection
             isPlatformPaySupported={isPlatformPayAvailable}
+            isSamsungPaySupported={isSamsungPayAvailable}
+            sourceCurrency={sourceCurrency}
+            onSourceCurrencyChange={handleSourceCurrencyChange}
             handleCollectPlatformPayPayment={
               Platform.OS === 'ios'
                 ? handleCollectApplePayPayment
                 : handleCollectGooglePayPayment
             }
+            handleCollectSamsungPayPayment={handleCollectSamsungPayPayment}
             handleCollectCardPayment={handleCollectCardPayment}
             handleCollectBankAccountPayment={handleCollectBankAccountPayment}
             handleCollectCardAndBankAccountPayment={
@@ -1073,31 +1349,14 @@ export default function CryptoOnrampFlow() {
           {currentPaymentDisplayData &&
             currentPaymentDisplayData?.type === 'BankAccount' && (
               <Collapse title="ACH Settlement Speed" initialExpanded={true}>
-                <View style={styles.segmentedRow}>
-                  <View style={styles.segment}>
-                    <Button
-                      title="Instant"
-                      variant={
-                        achSettlementSpeed === 'instant' ? 'primary' : 'default'
-                      }
-                      center
-                      onPress={() => setAchSettlementSpeed('instant')}
-                    />
-                  </View>
-                  <View style={{ width: 8 }} />
-                  <View style={styles.segment}>
-                    <Button
-                      title="Standard"
-                      variant={
-                        achSettlementSpeed === 'standard'
-                          ? 'primary'
-                          : 'default'
-                      }
-                      center
-                      onPress={() => setAchSettlementSpeed('standard')}
-                    />
-                  </View>
-                </View>
+                <SegmentedControl<'instant' | 'standard'>
+                  options={[
+                    { value: 'instant', label: 'Instant' },
+                    { value: 'standard', label: 'Standard' },
+                  ]}
+                  value={achSettlementSpeed}
+                  onValueChange={setAchSettlementSpeed}
+                />
               </Collapse>
             )}
           <CryptoOperationsSection
@@ -1106,10 +1365,26 @@ export default function CryptoOnrampFlow() {
             handleCreateCryptoPaymentToken={handleCreateCryptoPaymentToken}
           />
           <RegisterWalletAddressSection
+            wallets={wallets}
+            isWalletsLoading={isWalletsLoading}
+            onDeleteWallet={handleDeleteWallet}
+            onRefreshWallets={handleRefreshWallets}
             onWalletRegistered={(address, network) => {
               setWalletAddress(address);
               setWalletNetwork(network);
+              setWalletOwnershipChallenge(null);
+              setWalletOwnershipVerified(null);
+              handleRefreshWallets();
             }}
+          />
+          <WalletOwnershipSection
+            challenge={walletOwnershipChallenge}
+            verifiedOwnership={walletOwnershipVerified}
+            canGetChallenge={!!walletAddress && !!walletNetwork}
+            isGettingChallenge={isGettingWalletOwnershipChallenge}
+            isSubmittingSignature={isSubmittingWalletOwnershipSignature}
+            onGetChallenge={handleGetWalletOwnershipChallenge}
+            onSubmitSignature={handleSubmitWalletOwnershipSignature}
           />
           <OnrampSessionCreationSection
             isCreatingSession={isCreatingSession}
@@ -1157,8 +1432,10 @@ function buildKycInfoInput(kycInfoInput: KycInfoInput): Onramp.KycInfo | null {
   }
 
   const idNumber = normalizeOptionalString(kycInfoInput.idNumber);
-  if (idNumber) {
+  const nationalId = kycResidences[kycInfoInput.residence].nationalId;
+  if (nationalId && idNumber) {
     result.idNumber = idNumber;
+    result.idType = nationalId.type;
   }
 
   if (hasAnyDateOfBirthValue) {
@@ -1231,19 +1508,21 @@ function buildKycInfoInput(kycInfoInput: KycInfoInput): Onramp.KycInfo | null {
     result.address = address;
   }
 
-  const birthCountry = normalizeCountryCode(kycInfoInput.birthCountry);
-  if (birthCountry) {
-    result.birthCountry = birthCountry;
-  }
+  if (kycInfoInput.residence === 'EU') {
+    const birthCountry = normalizeCountryCode(kycInfoInput.birthCountry);
+    if (birthCountry) {
+      result.birthCountry = birthCountry;
+    }
 
-  const birthCity = normalizeOptionalString(kycInfoInput.birthCity);
-  if (birthCity) {
-    result.birthCity = birthCity;
-  }
+    const birthCity = normalizeOptionalString(kycInfoInput.birthCity);
+    if (birthCity) {
+      result.birthCity = birthCity;
+    }
 
-  const nationalities = normalizeCountryCodeList(kycInfoInput.nationalities);
-  if (nationalities.length > 0) {
-    result.nationalities = nationalities;
+    const nationalities = normalizeCountryCodeList(kycInfoInput.nationalities);
+    if (nationalities.length > 0) {
+      result.nationalities = nationalities;
+    }
   }
 
   return result;
@@ -1323,12 +1602,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     alignSelf: 'center',
     textAlign: 'center',
-  },
-  segmentedRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  segment: {
-    flex: 1,
   },
 });

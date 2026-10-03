@@ -1,30 +1,63 @@
 // Mock dependencies BEFORE imports
 import { mockCreateNativeStripeSdkMock } from '../testUtils';
 
+const mockInjectJavaScript = jest.fn();
+let webViewOnMessage: ((event: any) => void) | undefined;
+let mockLoadWebView = false;
+let mockWebViewComponent: any;
+let mockWebViewProps: any;
+
+jest.mock('react', () => {
+  const React = jest.requireActual('react');
+  return {
+    ...React,
+    useState: (initialState: any) => {
+      let resolvedInitialState = initialState;
+      if (mockLoadWebView && initialState === null) {
+        mockLoadWebView = false;
+        resolvedInitialState = { WebView: mockWebViewComponent };
+      }
+      return React.useState(resolvedInitialState);
+    },
+  };
+});
+
 jest.mock('react-native-webview', () => {
   const React = require('react');
+  mockWebViewComponent = React.forwardRef((props: any, ref: any) => {
+    webViewOnMessage = props.onMessage;
+    mockWebViewProps = props;
+    React.useImperativeHandle(ref, () => ({
+      injectJavaScript: mockInjectJavaScript,
+    }));
+    return null;
+  });
   return {
-    WebView: React.forwardRef((_props: any, ref: any) => {
-      // Expose ref methods for testing
-      React.useImperativeHandle(ref, () => ({
-        injectJavaScript: jest.fn(),
-      }));
-      return null;
-    }),
+    WebView: mockWebViewComponent,
   };
 });
 
 jest.mock('../../specs/NativeStripeSdkModule', () =>
   mockCreateNativeStripeSdkMock({
+    collectBankAccountToken: jest.fn(),
+    collectFinancialConnectionsAccounts: jest.fn(),
     openAuthenticatedWebView: jest.fn(),
   })
 );
 
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
-import { Platform, AppState } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Platform,
+  StyleSheet,
+} from 'react-native';
+import 'react-native-webview';
+import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import {
   EmbeddedComponent,
+  isAllowedStripeHost,
   toStripeJsBankAccountToken,
 } from '../EmbeddedComponent';
 import {
@@ -51,6 +84,9 @@ describe('EmbeddedComponent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    webViewOnMessage = undefined;
+    mockLoadWebView = false;
+    mockWebViewProps = undefined;
     connectInstance = loadConnectAndInitialize(mockInitParams);
   });
 
@@ -88,6 +124,56 @@ describe('EmbeddedComponent', () => {
 
       // Component should render without crashing
       expect(true).toBe(true);
+    });
+
+    it('uses appearance colors for the loading indicator', async () => {
+      connectInstance = loadConnectAndInitialize({
+        ...mockInitParams,
+        appearance: {
+          variables: {
+            colorBackground: '#AABBCC',
+            colorText: '#112233',
+          },
+        },
+      });
+
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => {
+        expect(mockWebViewProps?.renderLoading).toEqual(expect.any(Function));
+      });
+
+      const loadingView = mockWebViewProps.renderLoading();
+      const loadingIndicator = loadingView.props.children;
+
+      expect(StyleSheet.flatten(loadingView.props.style)).toMatchObject({
+        backgroundColor: '#AABBCC',
+      });
+      expect(loadingIndicator.type).toBe(ActivityIndicator);
+      expect(loadingIndicator.props.color).toBe('#112233');
+    });
+
+    it('uses fallback colors for the loading indicator', async () => {
+      connectInstance = loadConnectAndInitialize({
+        publishableKey: 'pk_test_123',
+        fetchClientSecret: jest.fn(async () => 'secret_123'),
+      });
+
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => {
+        expect(mockWebViewProps?.renderLoading).toEqual(expect.any(Function));
+      });
+
+      const loadingView = mockWebViewProps.renderLoading();
+      const loadingIndicator = loadingView.props.children;
+
+      expect(StyleSheet.flatten(loadingView.props.style)).toMatchObject({
+        backgroundColor: '#FFFFFF',
+      });
+      expect(loadingIndicator.props.color).toBe('#000000');
     });
 
     it('SDK version validation rejects invalid formats', () => {
@@ -342,6 +428,204 @@ describe('EmbeddedComponent', () => {
     });
   });
 
+  describe('Financial Connections bridge', () => {
+    const mockSession = {
+      id: 'session',
+      clientSecret: 'client_secret',
+      livemode: false,
+      accounts: [],
+    };
+    const mockToken = {
+      id: 'btok_token',
+      livemode: false,
+      used: false,
+      type: 'BankAccount' as const,
+      created: 1000000,
+      bankAccount: {
+        id: 'bank_account',
+        bankName: 'Test Bank',
+        accountHolderName: null,
+        accountHolderType: null,
+        currency: 'usd',
+        country: 'US',
+        routingNumber: '110000000',
+        status: null,
+        fingerprint: null,
+        last4: '6789',
+      },
+    };
+
+    const openFinancialConnections = async () => {
+      mockLoadWebView = true;
+      renderComponent({ component: 'account-onboarding' });
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      await act(async () => {
+        webViewOnMessage?.({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: 'openFinancialConnections',
+              data: {
+                id: 'request',
+                clientSecret: 'client_secret',
+                connectedAccountId: 'connected_account',
+              },
+            }),
+          },
+        });
+      });
+    };
+
+    const getLastInjectedJavaScript = () =>
+      mockInjectJavaScript.mock.calls[
+        mockInjectJavaScript.mock.calls.length - 1
+      ]?.[0];
+
+    const getLastFinancialConnectionsResult = () => {
+      const injectedJavaScript = getLastInjectedJavaScript();
+      const serializedPayload = injectedJavaScript?.match(
+        /window\.callSetterWithSerializableValue\((.*)\);/
+      )?.[1];
+
+      if (!serializedPayload) {
+        throw new Error(
+          'No Financial Connections result found in the injected JavaScript'
+        );
+      }
+
+      return JSON.parse(serializedPayload).value;
+    };
+
+    const expectUnexpectedError = (message: string) => {
+      expect(getLastFinancialConnectionsResult()).toEqual({
+        id: 'request',
+        financialConnectionsSession: null,
+        token: null,
+        error: {
+          code: 'UnexpectedError',
+          message,
+        },
+      });
+    };
+
+    const expectedToken = {
+      id: 'btok_token',
+      object: 'token',
+      type: 'bank_account',
+      used: false,
+      livemode: false,
+      created: 1000000,
+      bank_account: {
+        id: 'bank_account',
+        object: 'bank_account',
+        account_holder_name: null,
+        account_holder_type: null,
+        bank_name: 'Test Bank',
+        country: 'US',
+        currency: 'usd',
+        fingerprint: null,
+        last4: '6789',
+        routing_number: '110000000',
+        status: null,
+      },
+    };
+
+    it('collects and forwards a bank-account token', async () => {
+      const mockCollectBankAccountToken =
+        NativeStripeSdk.collectBankAccountToken as jest.Mock;
+      const mockCollectFinancialConnectionsAccounts =
+        NativeStripeSdk.collectFinancialConnectionsAccounts as jest.Mock;
+      mockCollectBankAccountToken.mockResolvedValue({
+        session: mockSession,
+        token: mockToken,
+      });
+
+      await openFinancialConnections();
+
+      expect(mockCollectBankAccountToken).toHaveBeenCalledWith(
+        'client_secret',
+        { connectedAccountId: 'connected_account' }
+      );
+      expect(mockCollectFinancialConnectionsAccounts).not.toHaveBeenCalled();
+      expect(getLastFinancialConnectionsResult()).toEqual({
+        id: 'request',
+        financialConnectionsSession: { accounts: [] },
+        token: expectedToken,
+        error: null,
+      });
+    });
+
+    it('forwards a session-only result with a null token', async () => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue({
+        session: mockSession,
+      });
+
+      await openFinancialConnections();
+
+      expect(getLastFinancialConnectionsResult()).toEqual({
+        id: 'request',
+        financialConnectionsSession: { accounts: [] },
+        token: null,
+        error: null,
+      });
+    });
+
+    it.each([
+      ['a token without a session', { token: mockToken }],
+      ['neither a session, token, nor error', {}],
+    ])('reports an unexpected error for %s', async (_description, result) => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue(
+        result
+      );
+
+      await openFinancialConnections();
+
+      expectUnexpectedError(
+        'Financial Connections completed without a session'
+      );
+    });
+
+    it('reports cancellation without an error', async () => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue({
+        error: { code: 'Canceled', message: 'Canceled' },
+      });
+
+      await openFinancialConnections();
+
+      expect(getLastFinancialConnectionsResult()).toEqual({
+        id: 'request',
+        financialConnectionsSession: null,
+        token: null,
+        error: null,
+      });
+    });
+
+    it('forwards native errors', async () => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue({
+        error: { code: 'Failed', message: 'Native error' },
+      });
+
+      await openFinancialConnections();
+
+      expect(getLastFinancialConnectionsResult()).toEqual({
+        id: 'request',
+        financialConnectionsSession: null,
+        token: null,
+        error: { code: 'Failed', message: 'Native error' },
+      });
+    });
+
+    it('reports rejected promises as unexpected errors', async () => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockRejectedValue(
+        new Error('Rejected')
+      );
+
+      await openFinancialConnections();
+
+      expectUnexpectedError('Rejected');
+    });
+  });
+
   describe('toStripeJsBankAccountToken', () => {
     it('maps camelCase token to snake_case Stripe.js shape', () => {
       const result = toStripeJsBankAccountToken({
@@ -438,6 +722,42 @@ describe('EmbeddedComponent', () => {
         routing_number: null,
         status: null,
       });
+    });
+  });
+
+  describe('isAllowedStripeHost', () => {
+    it('allows exact Stripe hosts', () => {
+      expect(
+        isAllowedStripeHost(
+          'https://connect-js.stripe.com/v1.0/react_native_webview.html'
+        )
+      ).toBe(true);
+      expect(isAllowedStripeHost('https://connect.stripe.com/path')).toBe(true);
+      expect(isAllowedStripeHost('https://verify.stripe.com/verify')).toBe(
+        true
+      );
+    });
+
+    it('rejects non-Stripe hosts, including those containing Stripe hostnames in path or query', () => {
+      expect(
+        isAllowedStripeHost(
+          'https://example.com/connect-bridge?next=https%3A%2F%2Fconnect-js.stripe.com'
+        )
+      ).toBe(false);
+      expect(
+        isAllowedStripeHost('https://connect-js.stripe.com.example.com/path')
+      ).toBe(false);
+      expect(
+        isAllowedStripeHost('https://example.com/?redirect=connect.stripe.com')
+      ).toBe(false);
+      expect(
+        isAllowedStripeHost('https://example.com/connect-js.stripe.com/payload')
+      ).toBe(false);
+    });
+
+    it('rejects malformed or empty URLs', () => {
+      expect(isAllowedStripeHost('not-a-url')).toBe(false);
+      expect(isAllowedStripeHost('')).toBe(false);
     });
   });
 });

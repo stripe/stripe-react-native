@@ -56,6 +56,8 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Affirm -> createAffirmParams()
         PaymentMethod.Type.CashAppPay -> createCashAppParams()
         PaymentMethod.Type.RevolutPay -> createRevolutPayParams()
+        PaymentMethod.Type.PayByBank -> createPayByBankParams()
+        PaymentMethod.Type.Twint -> createTwintParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -91,6 +93,18 @@ class PaymentMethodCreateParamsFactory(
   private fun createBancontactParams(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
       return PaymentMethodCreateParams.createBancontact(
+        billingDetails = it,
+        metadata = metadataParams,
+      )
+    }
+
+    throw PaymentMethodCreateParamsException("You must provide billing details")
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createTwintParams(): PaymentMethodCreateParams {
+    billingDetailsParams?.let {
+      return PaymentMethodCreateParams.createTwint(
         billingDetails = it,
         metadata = metadataParams,
       )
@@ -258,6 +272,12 @@ class PaymentMethodCreateParamsFactory(
       metadata = metadataParams,
     )
 
+  private fun createPayByBankParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createPayByBank(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams,
+    )
+
   @Throws(PaymentMethodCreateParamsException::class)
   fun createParams(
     clientSecret: String,
@@ -289,6 +309,8 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.PayPal,
         PaymentMethod.Type.CashAppPay,
         PaymentMethod.Type.RevolutPay,
+        PaymentMethod.Type.PayByBank,
+        PaymentMethod.Type.Twint,
         -> {
           val params = createPaymentMethodParams(paymentMethodType)
 

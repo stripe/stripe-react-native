@@ -1,8 +1,8 @@
 /**
- * Compatibility helper to use new arch events if available and fallback
- * to NativeEventEmitter or DeviceEventEmitter.
+ * Compatibility helper for new architecture events using NativeEventEmitter
+ * or DeviceEventEmitter on React Native versions before 0.80.
  *
- * Can be removed once we no longer need to support the old arch and use
+ * Can be removed once we no longer need to support React Native < 0.80 and use
  * the methods on NativeStripeSdkModule directly.
  */
 
@@ -19,6 +19,7 @@ import { PaymentMethod } from './types';
 import { UnsafeObject } from './specs/utils';
 import { FinancialConnectionsEvent } from './types/FinancialConnections';
 import { Result as ConfirmationTokenResult } from './types/ConfirmationToken';
+import type { CheckoutControllerUpdate } from './checkout/CheckoutControllerEventEmitter';
 
 const compatEventEmitter =
   Platform.OS === 'ios'
@@ -29,6 +30,10 @@ const compatEventEmitter =
 // Versions before RN 0.80 crash sometimes when setting the event emitter callback.
 // Move this back to the NativeStripeSdkModule spec once we drop support for RN < 0.80.
 type Events = {
+  checkoutServerUpdateRequested: EventEmitter<{
+    controllerId: string;
+    operationId: string;
+  }>;
   onConfirmHandlerCallback: EventEmitter<{
     paymentMethod: UnsafeObject<PaymentMethod.Result>;
     shouldSavePaymentMethod: boolean;
@@ -53,7 +58,9 @@ type Events = {
   onCustomerAdapterFetchSelectedPaymentOptionCallback: EventEmitter<void>;
   onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: EventEmitter<void>;
   onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<void>;
-  onCustomerSessionProviderCustomerSessionClientSecret: EventEmitter<void>;
+  onCustomerSessionProviderCustomerSessionClientSecret: EventEmitter<{
+    requestId: string;
+  }>;
   embeddedPaymentElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
   embeddedPaymentElementWillPresent: EventEmitter<void>;
   embeddedPaymentElementDidUpdatePaymentOption: EventEmitter<UnsafeObject<any>>;
@@ -66,16 +73,11 @@ type Events = {
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementConfigureResult: EventEmitter<UnsafeObject<any>>;
-  /**
-   * Fired by native every time a `Checkout` instance's state transitions —
-   * regardless of whether the mutation was JS-driven (e.g. `applyPromotionCode`
-   * via `useCheckout`) or native-driven (e.g. `CurrencySelectorElement`).
-   * `useCheckout` mirrors this into its `state` so the entire React tree
-   * stays in sync with the underlying native session.
-   */
-  checkoutSessionDidChangeState: EventEmitter<{
-    sessionKey: string;
-    state: UnsafeObject<any>;
+  checkoutControllerDidUpdate: EventEmitter<
+    UnsafeObject<CheckoutControllerUpdate>
+  >;
+  checkoutControllerDidSelectPaymentOption: EventEmitter<{
+    controllerId: CheckoutControllerUpdate['controllerId'];
   }>;
 };
 

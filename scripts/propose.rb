@@ -5,8 +5,10 @@ require 'date'
 require 'tmpdir'
 require 'shellwords'
 require_relative 'helpers'
+require_relative 'native_sdk_versions'
 
 @release_type = nil
+@is_dry_run = false
 
 VALID_RELEASE_TYPES = %w[patch minor major].freeze
 
@@ -41,14 +43,33 @@ def bump_version(version)
   execute_or_fail("yarn version --no-git-tag-version --new-version #{version}")
 end
 
-def create_proposal_pr(version)
+def create_proposal_pr(version, native_sdk_updater, native_sdk_versions)
   branch = "release/propose-#{version}"
-  execute_or_fail("git checkout -b #{branch}")
+  execute_or_fail("git checkout -b #{branch}") unless @is_dry_run
 
   bump_version(version)
   update_changelog(version)
+  begin
+    native_sdk_changes = native_sdk_updater.apply(native_sdk_versions)
+  rescue NativeSdkVersions::Error => e
+    abort "Error! #{e.message}"
+  end
+  native_sdk_changes.each do |change|
+    status = change.changed ? "#{change.previous_version} -> #{change.version}" : "already at #{change.version}"
+    puts "#{change.name}: #{status}"
+  end
 
-  execute_or_fail("git add package.json CHANGELOG.md")
+  execute_or_fail("yarn pods")
+
+  if @is_dry_run
+    puts "[dry-run] Local preparation complete. Changes are left in the working tree for inspection."
+    puts "[dry-run] Skipping staging, committing, pushing, and PR creation."
+    return
+  end
+
+  files_to_add = ['package.json', 'CHANGELOG.md', 'example/ios/Podfile.lock']
+  files_to_add.concat(native_sdk_changes.select(&:changed).map(&:path))
+  execute_or_fail("git add #{files_to_add.map(&:shellescape).join(' ')}")
   execute_or_fail("git commit -m 'Propose #{version}'")
   execute_or_fail("git push -u origin #{branch}")
 
@@ -57,6 +78,8 @@ def create_proposal_pr(version)
     - [x] Ensure the CHANGELOG is up to date with all relevant commits since the last release
     - [x] Add the version number for this release & the date to the CHANGELOG, underneath "## Unreleased"
       - e.g. "## 1.2.3 - 2022-02-14"
+    - [x] Update stripe-ios to the latest GitHub release (#{native_sdk_versions.fetch(:ios)})
+    - [x] Update stripe-android to the latest GitHub release (#{native_sdk_versions.fetch(:android)})
     - [x] Update the README if necessary (this is only required when there are breaking changes in the release, such as dropping support for an iOS || Android version)
   BODY
 
@@ -78,14 +101,21 @@ end
 OptionParser.new do |opts|
   opts.banner = <<~BANNER
     USAGE:
-        ./scripts/propose.rb <release_type>
+        ./scripts/propose.rb [OPTIONS] <release_type>
 
     Creates a proposal PR for the next release. Replaces the '## Unreleased'
-    header in CHANGELOG.md with the new version and today's date, then opens a PR.
+    header in CHANGELOG.md with the new version and today's date, updates the
+    native SDK pins to the latest GitHub releases, then opens a PR.
 
     ARGS:
         <release_type>    "patch", "minor", or "major"
+
+    OPTIONS:
   BANNER
+
+  opts.on("--dry-run", "Update local files and install pods; leave changes uncommitted without creating a branch, pushing, or opening a PR") do
+    @is_dry_run = true
+  end
 
   opts.on("-h", "--help", "Show this help message") do
     puts opts
@@ -105,8 +135,20 @@ end
 
 Dir.chdir(`git rev-parse --show-toplevel`.strip)
 
-preflight_checks
+if @is_dry_run
+  puts "[dry-run] Updating version files, CHANGELOG.md, and pods in the current checkout."
+  puts "[dry-run] Changes will remain in the working tree; no branch, commit, push, or PR will be created."
+else
+  preflight_checks
+end
 
 version = next_version
 puts "Proposing #{version} (currently #{current_version})"
-create_proposal_pr(version)
+native_sdk_updater = NativeSdkVersions.new
+puts "Fetching latest native SDK releases"
+begin
+  native_sdk_versions = native_sdk_updater.latest
+rescue NativeSdkVersions::Error => e
+  abort "Error! #{e.message}"
+end
+create_proposal_pr(version, native_sdk_updater, native_sdk_versions)

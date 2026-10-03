@@ -41,7 +41,10 @@ enum OnrampErrors {
                 message: onrampError.userMessage,
                 localizedMessage: onrampError.localizedDescription,
                 stripeErrorCode: onrampError.code,
-                additionalFields: commonOnrampFields(error: onrampError)
+                additionalFields: commonOnrampFields(
+                    error: onrampError,
+                    onrampErrorType: onrampErrorType(for: onrampError)
+                )
             )
         }
 
@@ -66,7 +69,6 @@ enum OnrampErrors {
                 "apiErrorType": error.type,
                 "apiErrorMessage": error.apiMessage,
                 "apiUserMessage": error.apiUserMessage,
-                "docUrl": error.docURL?.absoluteString,
             ]) { _, new in new }
         )
     }
@@ -75,20 +77,44 @@ enum OnrampErrors {
         error: StripeCryptoOnrampError,
         onrampErrorType: String? = nil
     ) -> [String: Any?] {
-        return [
-            "onrampErrorType": onrampErrorType,
+        var fields: [String: Any?] = [
             "developerMessage": error.developerMessage,
             "userMessage": error.userMessage,
+            "docUrl": error.docURL?.absoluteString,
         ]
+
+        if let onrampErrorType {
+            fields["onrampErrorType"] = onrampErrorType
+        }
+
+        return fields
     }
 
     private static func onrampErrorType(for error: StripeCryptoOnrampAPIError) -> String {
-        switch error {
-        case is AppAttestationAPIError:
+        switch error.code {
+        case "link_failed_to_attest_request":
             return "AppAttestationError"
+        case "crypto_onramp_invalid_wallet_ownership_signature":
+            return "InvalidWalletOwnershipSignatureError"
+        case "crypto_onramp_wallet_ownership_challenge_expired":
+            return "WalletOwnershipChallengeExpiredError"
+        case "crypto_onramp_invalid_wallet_ownership_challenge":
+            return "InvalidWalletOwnershipChallengeError"
+        case "crypto_onramp_wallet_not_found":
+            return "WalletNotFoundError"
+        case "crypto_onramp_unsupported_network":
+            return "UnsupportedNetworkError"
         default:
             return "UncategorizedApiError"
         }
+    }
+
+    private static func onrampErrorType(for error: StripeCryptoOnrampError) -> String? {
+        if error.code == "app_attestation_unavailable" {
+            return "AppAttestationUnavailableError"
+        }
+
+        return nil
     }
 
     private static func createOnrampErrorMap(

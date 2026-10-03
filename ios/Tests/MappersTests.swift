@@ -1,3 +1,4 @@
+import PassKit
 import Stripe
 @testable import stripe_react_native
 import StripePaymentSheet
@@ -358,6 +359,7 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .affirm), "Affirm")
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .cashApp), "CashApp")
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .klarna), "Klarna")
+        XCTAssertEqual(Mappers.mapPaymentMethodType(type: .payByBank), "PayByBank")
     }
 
     func test_mapToPaymentMethodType_allValidStrings_returnsCorrectTypes() {
@@ -371,6 +373,7 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "Affirm"), STPPaymentMethodType.affirm)
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "CashApp"), STPPaymentMethodType.cashApp)
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "Klarna"), STPPaymentMethodType.klarna)
+        XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "PayByBank"), STPPaymentMethodType.payByBank)
     }
 
     func test_mapToPaymentMethodType_invalidString_returnsUnknown() {
@@ -535,6 +538,43 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapToUserInterfaceStyle("invalid"), .automatic)
         XCTAssertEqual(Mappers.mapToUserInterfaceStyle(nil), .automatic)
         XCTAssertEqual(Mappers.mapToUserInterfaceStyle(""), .automatic)
+    }
+
+    // MARK: - Financial Connections Consent
+
+    func test_mapToPreCollectedConsent_mapsValues() throws {
+        let result = try FinancialConnections.mapToPreCollectedConsent([
+            "preCollectedConsent": [
+                "consent": "fccons_test",
+                "collectedAt": 1_725_000_123,
+            ],
+        ])
+
+        XCTAssertEqual(result?.consent, "fccons_test")
+        XCTAssertEqual(result?.collectedAt, 1_725_000_123)
+    }
+
+    func test_mapToPreCollectedConsent_returnsNilWhenAbsent() throws {
+        XCTAssertNil(try FinancialConnections.mapToPreCollectedConsent([:]))
+    }
+
+    func test_mapToPreCollectedConsent_throwsWhenConsentMissing() {
+        XCTAssertThrowsError(
+            try FinancialConnections.mapToPreCollectedConsent([
+                "preCollectedConsent": ["collectedAt": 1_725_000_123],
+            ])
+        )
+    }
+
+    func test_mapToPreCollectedConsent_throwsWhenCollectedAtIsNotNumeric() {
+        XCTAssertThrowsError(
+            try FinancialConnections.mapToPreCollectedConsent([
+                "preCollectedConsent": [
+                    "consent": "fccons_test",
+                    "collectedAt": "not-a-number",
+                ],
+            ])
+        )
     }
 
     // MARK: - Return URL Mappers

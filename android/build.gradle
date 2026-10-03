@@ -36,12 +36,12 @@ def getExtOrIntegerDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["StripeSdk_" + name]).toInteger()
 }
 
-def isNewArchitectureEnabled() {
-  // To opt-in for the New Architecture, you can either:
-  // - Set `newArchEnabled` to true inside the `gradle.properties` file
-  // - Invoke gradle with `-newArchEnabled=true`
-  // - Set an environment variable `ORG_GRADLE_PROJECT_newArchEnabled=true`
-  return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
+def isNewArchitectureEnabled =
+  project.findProperty("newArchEnabled")?.toString()?.toBoolean() ||
+    project.findProperty("react.newArchEnabled")?.toString()?.toBoolean()
+
+if (!isNewArchitectureEnabled) {
+  throw new GradleException("stripe-react-native requires the React Native new architecture. Set newArchEnabled=true in android/gradle.properties.")
 }
 
 def isOnrampIncluded() {
@@ -70,9 +70,7 @@ if (kotlinMajor >= 2) {
   apply plugin: "org.jetbrains.kotlin.plugin.compose"
 }
 
-if (isNewArchitectureEnabled()) {
-  apply plugin: "com.facebook.react"
-}
+apply plugin: "com.facebook.react"
 
 android {
   namespace "com.reactnativestripesdk"
@@ -98,7 +96,6 @@ android {
     versionName "1.0"
     vectorDrawables.useSupportLibrary = true
     consumerProguardFiles "proguard-rules.txt"
-    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
     buildConfigField "boolean", "IS_ONRAMP_INCLUDED", isOnrampIncluded().toString()
     buildConfigField "String", "STRIPE_ANDROID_SDK_VERSION", "\"${getExtOrDefault("stripeVersion")}\""
 
@@ -129,9 +126,6 @@ android {
 
   sourceSets.main {
     java {
-      if (!isNewArchitectureEnabled()) {
-        srcDirs += ["src/oldarch/java"]
-      }
       if (isOnrampIncluded()) {
         srcDirs += ["src/onramp/java"]
       }
@@ -176,13 +170,16 @@ dependencies {
   implementation "androidx.browser:browser:1.8.0"
 
   // play-services-wallet is already included in stripe-android
-  compileOnly "com.google.android.gms:play-services-wallet:19.3.0"
+  compileOnly "com.google.android.gms:play-services-wallet:20.0.0"
+  testImplementation "com.google.android.gms:play-services-wallet:20.0.0"
 
   // Users need to declare this dependency on their own, otherwise all methods are a no-op
   compileOnly "com.stripe:stripe-android-issuing-push-provisioning:1.3.0"
 
   testImplementation "junit:junit:4.13"
-  testImplementation "org.mockito:mockito-core:3.+"
+  testImplementation "com.google.truth:truth:1.4.5"
+  testImplementation "app.cash.turbine:turbine:1.2.1"
+  testImplementation "org.mockito:mockito-inline:3.+"
   testImplementation "org.robolectric:robolectric:4.10"
   testImplementation "androidx.test:core:1.4.0"
   testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0"
@@ -197,4 +194,3 @@ if (lintRulesJar.exists()) {
     lintChecks files(lintRulesJar)
   }
 }
-

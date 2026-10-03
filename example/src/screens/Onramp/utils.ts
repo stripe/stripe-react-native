@@ -11,6 +11,7 @@ export function getDefaultAddressForNetwork(
     case Onramp.CryptoNetwork.base:
     case Onramp.CryptoNetwork.optimism:
     case Onramp.CryptoNetwork.worldchain:
+    case Onramp.CryptoNetwork.tempo:
       return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
     case Onramp.CryptoNetwork.solana:
       return '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
@@ -58,6 +59,8 @@ export function getDestinationParamsForNetwork(network: Onramp.CryptoNetwork): {
       return { destinationNetwork: 'xrpl', destinationCurrency: 'xrp' };
     case Onramp.CryptoNetwork.sui:
       return { destinationNetwork: 'sui', destinationCurrency: 'sui' };
+    case Onramp.CryptoNetwork.tempo:
+      return { destinationNetwork: 'tempo', destinationCurrency: 'usdc' };
     default:
       return { destinationNetwork: 'ethereum', destinationCurrency: 'eth' };
   }
