@@ -29,6 +29,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.LooperMode
 
@@ -38,7 +39,7 @@ class StripeSdkModuleCheckoutTest {
   @OptIn(CheckoutSessionPreview::class)
   @Test
   fun `sheet requests resolve after native invocation and reuse the payment element`() {
-    val context = mock(ReactApplicationContext::class.java)
+    val context = reactContext()
     val module = StripeSdkModule(context)
     val controller = mock(CheckoutController::class.java)
     val presenter = mock(CheckoutPresenter::class.java)
@@ -87,7 +88,7 @@ class StripeSdkModuleCheckoutTest {
   @OptIn(CheckoutSessionPreview::class)
   @Test
   fun `confirmation invokes native and resolves from the controller callback`() {
-    val context = mock(ReactApplicationContext::class.java)
+    val context = reactContext()
     val module = StripeSdkModule(context)
     val controller = mock(CheckoutController::class.java)
     val presenter = mock(CheckoutPresenter::class.java)
@@ -134,7 +135,7 @@ class StripeSdkModuleCheckoutTest {
 
   @Test
   fun `creation queued before invalidation cannot register afterward`() {
-    val module = StripeSdkModule(mock(ReactApplicationContext::class.java))
+    val module = StripeSdkModule(reactContext())
     val promise = mock(Promise::class.java)
     val caller = Thread {
       module.createCheckout(JavaOnlyMap.of("clientSecret", "cs_test_secret_123"), "controller", promise)
@@ -147,5 +148,9 @@ class StripeSdkModuleCheckoutTest {
 
     verify(promise).reject("Failed", "Stripe SDK was invalidated.")
     assertEquals(0, module.checkoutControllers.size)
+  }
+
+  private fun reactContext() = mock(ReactApplicationContext::class.java).apply {
+    `when`(applicationContext).thenReturn(RuntimeEnvironment.getApplication())
   }
 }

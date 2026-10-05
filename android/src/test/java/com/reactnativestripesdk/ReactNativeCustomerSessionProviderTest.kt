@@ -31,6 +31,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.shadows.ShadowLooper
 import org.robolectric.util.ReflectionHelpers
 import kotlin.time.Duration.Companion.seconds
@@ -214,7 +215,9 @@ class ReactNativeCustomerSessionProviderTest {
   private fun fixture() = Fixture().also { fixtures.add(it) }
 
   private class Fixture {
-    val context = mock(ReactApplicationContext::class.java)
+    val context = mock(ReactApplicationContext::class.java).apply {
+      `when`(applicationContext).thenReturn(RuntimeEnvironment.getApplication())
+    }
     val module = StripeSdkModule(context)
     val ids = mutableListOf<String>()
     var onEmit: (String) -> Unit = {}
