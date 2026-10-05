@@ -1,8 +1,8 @@
 package com.reactnativestripesdk
 
+import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
@@ -26,10 +26,11 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
-import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.shadows.ShadowLooper
@@ -209,15 +210,14 @@ class ReactNativeCustomerSessionProviderTest {
     } finally {
       fixtures.forEach { it.provider.invalidate() }
       runCurrent()
+      fixtures.forEach { it.context.destroy() }
     }
   }
 
   private fun fixture() = Fixture().also { fixtures.add(it) }
 
   private class Fixture {
-    val context = mock(ReactApplicationContext::class.java).apply {
-      `when`(applicationContext).thenReturn(RuntimeEnvironment.getApplication())
-    }
+    val context = spy(BridgeReactContext(RuntimeEnvironment.getApplication()))
     val module = StripeSdkModule(context)
     val ids = mutableListOf<String>()
     var onEmit: (String) -> Unit = {}
@@ -226,8 +226,8 @@ class ReactNativeCustomerSessionProviderTest {
 
     init {
       val emitter = mock(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      `when`(context.getNativeModule(StripeSdkModule::class.java)).thenReturn(module)
-      `when`(context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)).thenReturn(emitter)
+      doReturn(module).`when`(context).getNativeModule(StripeSdkModule::class.java)
+      doReturn(emitter).`when`(context).getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       doAnswer {
         assertEquals("onCustomerSessionProviderCustomerSessionClientSecret", it.getArgument<String>(0))
         val id = it.getArgument<ReadableMap>(1).getString("requestId")!!

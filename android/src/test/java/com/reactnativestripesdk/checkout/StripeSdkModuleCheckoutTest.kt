@@ -2,9 +2,9 @@ package com.reactnativestripesdk.checkout
 
 import android.os.Looper
 import androidx.activity.ComponentActivity
+import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.EventEmitterCompat
 import com.reactnativestripesdk.StripeSdkModule
@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
@@ -36,6 +37,17 @@ import org.robolectric.annotation.LooperMode
 @RunWith(RobolectricTestRunner::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class StripeSdkModuleCheckoutTest {
+  private val contexts = mutableListOf<BridgeReactContext>()
+
+  @After
+  fun tearDown() {
+    contexts.forEach {
+      it.onHostPause()
+      it.onHostDestroy()
+      it.destroy()
+    }
+  }
+
   @OptIn(CheckoutSessionPreview::class)
   @Test
   fun `sheet requests resolve after native invocation and reuse the payment element`() {
@@ -61,7 +73,7 @@ class StripeSdkModuleCheckoutTest {
 
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     try {
-      `when`(context.currentActivity).thenReturn(activity.get())
+      context.onHostResume(activity.get())
       `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
       `when`(presenter.paymentElement()).thenReturn(element)
       val promise = mock(Promise::class.java)
@@ -108,7 +120,7 @@ class StripeSdkModuleCheckoutTest {
     verify(missingActivity).reject("Failed", "Checkout requires a resumed activity to confirm.")
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     try {
-      `when`(context.currentActivity).thenReturn(activity.get())
+      context.onHostResume(activity.get())
       `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
       doAnswer {
         instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
@@ -150,7 +162,5 @@ class StripeSdkModuleCheckoutTest {
     assertEquals(0, module.checkoutControllers.size)
   }
 
-  private fun reactContext() = mock(ReactApplicationContext::class.java).apply {
-    `when`(applicationContext).thenReturn(RuntimeEnvironment.getApplication())
-  }
+  private fun reactContext() = BridgeReactContext(RuntimeEnvironment.getApplication()).also { contexts.add(it) }
 }
