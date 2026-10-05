@@ -3,18 +3,17 @@ package com.reactnativestripesdk
 import android.app.Activity
 import android.os.Bundle
 import android.os.Looper
+import android.view.View
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
-import com.facebook.react.bridge.Promise
 import com.google.common.truth.Truth.assertThat
 import com.stripe.android.Stripe
+import com.stripe.android.testing.FakeStripeActivity
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
@@ -32,10 +31,10 @@ class StripeSdkModuleLifecycleTest {
     fixture.initialize()
 
     val stripeActivity = stripeActivity()
-    dispatchCreated(reactActivity(), Bundle())
-    dispatchCreated(stripeActivity)
+    dispatchActivityCreated(reactActivity(), Bundle())
+    dispatchActivityCreated(stripeActivity)
 
-    verify(stripeActivity).finish()
+    stripeActivity.finishCalls.awaitItem()
   }
 
   @Test
@@ -46,10 +45,10 @@ class StripeSdkModuleLifecycleTest {
 
     fixture.initialize()
     val stripeActivity = stripeActivity()
-    dispatchCreated(reactActivity(), Bundle())
-    dispatchCreated(stripeActivity)
+    dispatchActivityCreated(reactActivity(), Bundle())
+    dispatchActivityCreated(stripeActivity)
 
-    verify(stripeActivity).finish()
+    stripeActivity.finishCalls.awaitItem()
   }
 
   @Test
@@ -60,10 +59,10 @@ class StripeSdkModuleLifecycleTest {
 
     fixture.module.invalidate()
     val stripeActivity = stripeActivity()
-    dispatchCreated(reactActivity(), Bundle())
-    dispatchCreated(stripeActivity)
+    dispatchActivityCreated(reactActivity(), Bundle())
+    dispatchActivityCreated(stripeActivity)
 
-    verify(stripeActivity, never()).finish()
+    stripeActivity.finishCalls.expectNoEvents()
   }
 
   @Test
@@ -78,14 +77,14 @@ class StripeSdkModuleLifecycleTest {
     replacement.initialize()
     replacement.clearHost()
     val restoredHost = reactActivity()
-    dispatchCreated(restoredHost, Bundle())
+    dispatchActivityCreated(restoredHost, Bundle())
     replacement.context.onHostResume(restoredHost)
     replacement.initialize()
 
     val stripeActivity = stripeActivity()
-    dispatchCreated(stripeActivity)
+    dispatchActivityCreated(stripeActivity)
 
-    verify(stripeActivity, never()).finish()
+    stripeActivity.finishCalls.expectNoEvents()
   }
 
   @Test
@@ -93,10 +92,10 @@ class StripeSdkModuleLifecycleTest {
     newModule(reactActivity()).initialize()
 
     val stripeActivity = stripeActivity()
-    dispatchCreated(reactActivity(), Bundle())
-    dispatchCreated(stripeActivity)
+    dispatchActivityCreated(reactActivity(), Bundle())
+    dispatchActivityCreated(stripeActivity)
 
-    verify(stripeActivity).finish()
+    stripeActivity.finishCalls.awaitItem()
   }
 
   @Test
@@ -104,13 +103,13 @@ class StripeSdkModuleLifecycleTest {
     newModule(reactActivity()).initialize()
 
     val stripeActivity = stripeActivity()
-    dispatchCreated(reactActivity())
-    dispatchCreated(stripeActivity)
+    dispatchActivityCreated(reactActivity())
+    dispatchActivityCreated(stripeActivity)
 
-    verify(stripeActivity, never()).finish()
+    stripeActivity.finishCalls.expectNoEvents()
   }
 
-  private fun runScenario(block: Scenario.() -> Unit) {
+  private fun runScenario(block: suspend Scenario.() -> Unit) = runTest {
     val scenario = Scenario()
     val advancedFraudSignalsEnabled = Stripe.advancedFraudSignalsEnabled
     try {
@@ -123,11 +122,13 @@ class StripeSdkModuleLifecycleTest {
         Stripe.advancedFraudSignalsEnabled = advancedFraudSignalsEnabled
       }
     }
+    scenario.ensureAllEventsConsumed()
   }
 
   private class Scenario {
     private val application = RuntimeEnvironment.getApplication()
     private val fixtures = mutableListOf<ModuleFixture>()
+    private val stripeActivities = mutableListOf<FakeStripeActivity>()
 
     fun newModule(host: ReactActivity? = null): ModuleFixture {
       val context = BridgeReactContext(application)
@@ -137,15 +138,11 @@ class StripeSdkModuleLifecycleTest {
       }
     }
 
-    fun reactActivity() = mock(ReactActivity::class.java).apply {
-      `when`(this.application).thenReturn(this@Scenario.application)
-    }
+    fun reactActivity(): ReactActivity = Robolectric.buildActivity(FakeReactActivity::class.java).get()
 
-    fun stripeActivity(): Activity = mock(
-      Class.forName("com.stripe.android.paymentsheet.PaymentSheetActivity").asSubclass(Activity::class.java),
-    )
+    fun stripeActivity() = FakeStripeActivity().also { stripeActivities.add(it) }
 
-    fun dispatchCreated(activity: Activity, savedInstanceState: Bundle? = null) {
+    fun dispatchActivityCreated(activity: Activity, savedInstanceState: Bundle? = null) {
       ReflectionHelpers.callInstanceMethod<Unit>(
         application,
         "dispatchActivityCreated",
@@ -162,19 +159,24 @@ class StripeSdkModuleLifecycleTest {
         it.context.destroy()
       }
     }
+
+    fun ensureAllEventsConsumed() {
+      stripeActivities.forEach { it.finishCalls.ensureAllEventsConsumed() }
+    }
   }
 
   private class ModuleFixture(
     val context: BridgeReactContext,
     val module: StripeSdkModule,
   ) {
-    fun initialize() {
-      val promise = mock(Promise::class.java)
+    suspend fun initialize() {
+      val promise = FakePromise()
       module.initialise(
         JavaOnlyMap.of("publishableKey", "pk_test_lifecycle", "appInfo", JavaOnlyMap()),
         promise,
       )
-      verify(promise).resolve(null)
+      assertThat(promise.resolveCalls.awaitItem().value).isNull()
+      promise.ensureAllEventsConsumed()
     }
 
     fun clearHost() {
@@ -182,5 +184,10 @@ class StripeSdkModuleLifecycleTest {
       context.onHostDestroy()
       assertThat(context.currentActivity).isNull()
     }
+  }
+
+  private class FakeReactActivity : ReactActivity() {
+    // These callback tests do not mount React content or initialize its UI.
+    override fun <T : View> findViewById(id: Int): T? = null
   }
 }
