@@ -1,1041 +1,932 @@
-import React, { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import { initStripe } from '@stripe/stripe-react-native';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
+  Modal,
   Pressable,
+  Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import {
-  CheckoutPaymentElementView,
-  initStripe,
-  useCheckout,
-} from '@stripe/stripe-react-native';
-import type { Checkout } from '@stripe/stripe-react-native';
 import { colors } from '../../colors';
 import {
+  createCheckoutCustomer,
   createCheckoutSession,
-  defaultSessionParameters,
   fetchCheckoutPublishableKey,
 } from './backend';
+import {
+  backendURLForOption,
+  buildSessionParameters,
+  checkoutPlaygroundSettingsKey,
+  defaultPlaygroundSettings,
+  resolvedEmail,
+  usTestAddress,
+  validateSettings,
+} from './playgroundConfig';
+import type {
+  BackendOption,
+  CartScenario,
+  Currency,
+  DefaultShippingAddressOption,
+  EmailSource,
+  PaymentElementMode,
+  PlaygroundSettings,
+} from './playgroundConfig';
 
-const defaultConfiguration: Omit<Checkout.CreateOptions, 'clientSecret'> = {
-  returnURL: 'com.stripe.react.native://safepay',
-  merchantDisplayName: 'Checkout playground',
-  paymentElement: { link: { display: 'never' } },
+type Choice<T extends string> = { label: string; value: T };
+
+const currencies: Choice<Currency>[] = [
+  { label: 'USD', value: 'usd' },
+  { label: 'EUR', value: 'eur' },
+  { label: 'GBP', value: 'gbp' },
+  { label: 'CAD', value: 'cad' },
+  { label: 'AUD', value: 'aud' },
+  { label: 'JPY', value: 'jpy' },
+];
+
+const emailSources: Choice<EmailSource>[] = [
+  { label: 'None', value: 'none' },
+  { label: 'Server - Checkout Session', value: 'checkoutSession' },
+  { label: 'Server - Customer', value: 'customer' },
+  { label: 'Local', value: 'local' },
+];
+
+const currencySymbols: Record<Currency, string> = {
+  usd: '$',
+  eur: '€',
+  gbp: '£',
+  cad: '$',
+  aud: '$',
+  jpy: '¥',
 };
-
-export default function CheckoutPlaygroundScreen() {
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    let active = true;
-    fetchCheckoutPublishableKey()
-      .then(async (publishableKey) => {
-        if (!active) {
-          return;
-        }
-        await initStripe({
-          publishableKey,
-          merchantIdentifier: 'merchant.com.stripe.react.native',
-          urlScheme: 'com.stripe.react.native',
-        });
-        if (active) {
-          setReady(true);
-        }
-      })
-      .catch((failure: Error) => {
-        if (active) {
-          setError(failure.message);
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-  return (
-    <ScrollView
-      contentContainerStyle={styles.screen}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.intro}>
-        <Text style={styles.eyebrow}>CHECKOUT ELEMENTS</Text>
-        <Text style={styles.heading}>Checkout Playground</Text>
-        <Text style={styles.introCopy}>
-          Configure a session, preview the cart, and exercise the native
-          Checkout flow.
-        </Text>
-      </View>
-      {!!error && (
-        <View style={[styles.banner, styles.errorBanner]}>
-          <Text style={styles.errorTitle}>Could not connect</Text>
-          <Text style={styles.errorText} selectable>
-            {error}
-          </Text>
-        </View>
-      )}
-      {!ready && !error && (
-        <View style={styles.loadingState}>
-          <ActivityIndicator color={colors.blurple} />
-          <Text style={styles.loadingText}>
-            Connecting to the test backend…
-          </Text>
-        </View>
-      )}
-      {ready && <CheckoutForm />}
-    </ScrollView>
-  );
-}
-
-type PlaygroundButtonProps = {
-  title: string;
-  onPress: () => void;
-  disabled?: boolean;
-  variant?: 'primary' | 'secondary' | 'danger' | 'quiet';
-  testID?: string;
-};
-
-function PlaygroundButton({
-  title,
-  onPress,
-  disabled = false,
-  variant = 'secondary',
-  testID,
-}: PlaygroundButtonProps) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={disabled}
-      onPress={onPress}
-      testID={testID}
-      style={({ pressed }) => [
-        styles.button,
-        styles[`${variant}Button`],
-        disabled && styles.buttonDisabled,
-        pressed && !disabled && styles.buttonPressed,
-      ]}
-    >
-      <Text style={[styles.buttonText, styles[`${variant}ButtonText`]]}>
-        {title}
-      </Text>
-    </Pressable>
-  );
-}
 
 function Section({
   title,
-  description,
+  action,
   children,
 }: {
   title: string;
-  description?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        {!!description && (
-          <Text style={styles.sectionDescription}>{description}</Text>
-        )}
+      <View style={styles.sectionHeadingRow}>
+        <Text style={styles.sectionHeading}>{title.toUpperCase()}</Text>
+        {action}
       </View>
-      <View style={styles.sectionBody}>{children}</View>
+      {children}
     </View>
   );
 }
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <Text style={styles.fieldLabel}>{children}</Text>;
-}
-
-function SummaryRow({
+function PickerRow<T extends string>({
   label,
   value,
-  emphasis,
+  choices,
+  onChange,
+  testID,
 }: {
   label: string;
-  value: string;
-  emphasis?: 'success';
+  value: T;
+  choices: Choice<T>[];
+  onChange: (value: T) => void;
+  testID?: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selected = choices.find((choice) => choice.value === value);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityValue={{ text: selected?.label ?? value }}
+      testID={testID}
+      onPress={() => setIsOpen(true)}
+      style={({ pressed }) => [styles.controlRow, pressed && styles.rowPressed]}
+    >
+      <Text style={styles.controlLabel}>{label}</Text>
+      <View style={styles.selectionValue}>
+        <Text style={styles.selectionText}>{selected?.label ?? value}</Text>
+        <Text style={styles.selectionChevron}>›</Text>
+      </View>
+      <ChoiceSheet
+        title={label}
+        choices={choices}
+        value={value}
+        visible={isOpen}
+        onClose={() => setIsOpen(false)}
+        onChange={onChange}
+      />
+    </Pressable>
+  );
+}
+
+function ChoiceSheet<T extends string>({
+  title,
+  choices,
+  value,
+  visible,
+  onClose,
+  onChange,
+}: {
+  title: string;
+  choices: Choice<T>[];
+  value: T;
+  visible: boolean;
+  onClose: () => void;
+  onChange: (value: T) => void;
 }) {
   return (
-    <View style={styles.summaryRow}>
-      <Text
-        style={[
-          styles.summaryLabel,
-          emphasis === 'success' && styles.successText,
-        ]}
+    <Modal
+      transparent
+      visible={visible}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <Pressable style={styles.sheetBackdrop} onPress={onClose}>
+        <Pressable style={styles.choiceSheet}>
+          <View style={styles.choiceSheetHeader}>
+            <Text style={styles.choiceSheetTitle}>{title}</Text>
+            <Pressable accessibilityRole="button" onPress={onClose}>
+              <Text style={styles.choiceSheetDone}>Done</Text>
+            </Pressable>
+          </View>
+          <ScrollView style={styles.choiceList}>
+            {choices.map((choice) => (
+              <Pressable
+                key={choice.value}
+                accessibilityRole="button"
+                onPress={() => {
+                  onChange(choice.value);
+                  onClose();
+                }}
+                style={({ pressed }) => [
+                  styles.choiceRow,
+                  pressed && styles.rowPressed,
+                ]}
+              >
+                <Text style={styles.choiceText}>{choice.label}</Text>
+                {choice.value === value && (
+                  <Text style={styles.choiceCheck}>✓</Text>
+                )}
+              </Pressable>
+            ))}
+          </ScrollView>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+function CompactPicker<T extends string>({
+  label,
+  value,
+  choices,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  choices: Choice<T>[];
+  onChange: (value: T) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selected = choices.find((choice) => choice.value === value);
+  return (
+    <>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        onPress={() => setIsOpen(true)}
+        style={styles.compactSelector}
       >
-        {label}
-      </Text>
-      <Text
-        style={[
-          styles.summaryValue,
-          emphasis === 'success' && styles.successText,
-        ]}
-      >
-        {value}
-      </Text>
+        <Text style={styles.compactSelectorText}>{selected?.label}</Text>
+        <Text style={styles.compactSelectorChevron}>⌄</Text>
+      </Pressable>
+      <ChoiceSheet
+        title={label}
+        choices={choices}
+        value={value}
+        visible={isOpen}
+        onClose={() => setIsOpen(false)}
+        onChange={onChange}
+      />
+    </>
+  );
+}
+
+function ToggleRow({
+  label,
+  value,
+  onChange,
+  disabled,
+  testID,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+  disabled?: boolean;
+  testID?: string;
+}) {
+  return (
+    <View style={[styles.controlRow, disabled && styles.disabled]}>
+      <Text style={styles.controlLabel}>{label}</Text>
+      <Switch
+        accessibilityLabel={label}
+        testID={testID}
+        disabled={disabled}
+        value={value}
+        onValueChange={onChange}
+        trackColor={{ true: colors.blurple }}
+      />
     </View>
   );
 }
 
-function formatAddress(shippingAddress: Checkout.ShippingAddress): string {
-  const { address, name } = shippingAddress;
-  const locality = [address.city, address.state, address.postalCode]
-    .filter(Boolean)
-    .join(', ');
-  return [name, address.line1, address.line2, locality, address.country]
-    .filter(Boolean)
-    .join('\n');
+function formatUnitAmount(amount: number, currency: Currency): string {
+  const value = currency === 'jpy' ? amount : amount / 100;
+  return `${currencySymbols[currency]}${
+    currency === 'jpy' ? value : value.toFixed(2)
+  }`;
 }
 
-function CheckoutForm() {
-  const [enabled, setEnabled] = useState(false);
-  const [inline, setInline] = useState(false);
-  const [editConfiguration, setEditConfiguration] = useState(false);
-  const [configuration, setConfiguration] = useState(
-    JSON.stringify(defaultConfiguration, null, 2)
-  );
-  const [sessionParameters, setSessionParameters] = useState(
-    JSON.stringify(defaultSessionParameters, null, 2)
-  );
-  const [email, setEmail] = useState('updated@example.com');
-  const [promotionCode, setPromotionCode] = useState('SAVE10');
-  const [address, setAddress] = useState(
-    JSON.stringify(
-      {
-        name: 'Jenny Rosen',
-        address: {
-          country: 'US',
-          postalCode: '94107',
-          line1: '510 Townsend St',
-          city: 'San Francisco',
-          state: 'CA',
-        },
-      },
-      null,
-      2
-    )
-  );
-  const [serverURL, setServerURL] = useState('');
-  const [lastAction, setLastAction] = useState('');
-  const [snapshotVisible, setSnapshotVisible] = useState(false);
-  const [showUpdates, setShowUpdates] = useState(false);
-  const checkout = useCheckout({
-    enabled,
-    getConfiguration: async () => {
-      const params = JSON.parse(configuration) as Checkout.CreateOptions;
-      if (
-        params.paymentElement?.rowSelectionBehavior?.type === 'immediateAction'
-      ) {
-        params.paymentElement.rowSelectionBehavior.onSelectPaymentOption = () =>
-          setLastAction('Native payment option selected');
-      }
-      const clientSecret =
-        params.clientSecret ||
-        (await createCheckoutSession(JSON.parse(sessionParameters)));
-      return { ...params, clientSecret };
-    },
-  });
-  const run = (label: string, operation: () => Promise<unknown>) => {
-    setLastAction(`${label}: pending`);
-    operation()
-      .then((result) => {
-        setLastAction(`${label}: ${result ? JSON.stringify(result) : 'done'}`);
+export default function CheckoutPlaygroundScreen() {
+  const navigation = useNavigation();
+  const [settings, setSettings] = useState(defaultPlaygroundSettings);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(checkoutPlaygroundSettingsKey)
+      .then((stored) => {
+        if (stored) {
+          const parsed = JSON.parse(stored) as Partial<PlaygroundSettings>;
+          setSettings({
+            ...defaultPlaygroundSettings,
+            ...parsed,
+            customShippingAddress: {
+              ...usTestAddress,
+              ...parsed.customShippingAddress,
+            },
+          });
+        }
       })
-      .catch((failure: unknown) => {
-        setLastAction(
-          `${label}: ${failure instanceof Error ? failure.message : String(failure)}`
-        );
-      });
-  };
-  const action = (
-    label: string,
-    operation: () => Promise<unknown>,
-    variant: PlaygroundButtonProps['variant'] = 'secondary'
-  ) => (
-    <PlaygroundButton
-      title={label}
-      disabled={!checkout.session}
-      onPress={() => run(label, operation)}
-      variant={variant}
-    />
-  );
+      .catch(() => {})
+      .finally(() => setIsHydrated(true));
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated) {
+      AsyncStorage.setItem(
+        checkoutPlaygroundSettingsKey,
+        JSON.stringify(settings)
+      ).catch(() => {});
+    }
+  }, [isHydrated, settings]);
+
+  const validationError = useMemo(() => validateSettings(settings), [settings]);
+  const usesLocationEmail =
+    settings.adaptivePricingCountry !== 'none' &&
+    ['checkoutSession', 'customer'].includes(settings.emailSource);
+  const items =
+    settings.cartScenario === 'zeroAmount'
+      ? [{ name: 'Free T-Shirt', unitAmount: 0, quantity: 1 }]
+      : [
+          { name: 'Classic T-Shirt', unitAmount: 3500, quantity: 2 },
+          { name: 'Zip-Up Hoodie', unitAmount: 5000, quantity: 1 },
+        ];
+
+  const set = <K extends keyof PlaygroundSettings>(
+    key: K,
+    value: PlaygroundSettings[K]
+  ) => setSettings((current) => ({ ...current, [key]: value }));
+
   const reset = () => {
-    setEnabled(false);
-    setInline(false);
-    setShowUpdates(false);
-    setSnapshotVisible(false);
-    setLastAction('');
+    setSettings(defaultPlaygroundSettings);
+    setError(null);
   };
-  const actionPending = lastAction.endsWith(': pending');
-  const session = checkout.session;
-  const lineItems =
-    session?.orderSummaryItems.flatMap((summaryItem) => summaryItem.items) ??
-    [];
-  const shippingAddress = session?.shippingAddress;
-  return (
-    <View style={styles.panel}>
-      <View style={styles.statusCard}>
-        <View style={styles.statusHeader}>
-          <View style={styles.statusLabelRow}>
-            <View
-              style={[
-                styles.statusDot,
-                checkout.status === 'ready' && styles.statusDotReady,
-                checkout.status === 'updating' && styles.statusDotUpdating,
-              ]}
-            />
-            <Text style={styles.statusLabel} testID="checkout-status">
-              Status: {checkout.status}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.sessionLabel}>SESSION</Text>
-        <Text
-          style={styles.sessionValue}
-          testID="checkout-session"
-          selectable
-          numberOfLines={1}
-        >
-          Session: {checkout.session?.id ?? 'none'}
-        </Text>
-        {!!checkout.error && (
-          <View style={[styles.banner, styles.errorBanner, styles.statusError]}>
-            <Text selectable testID="checkout-error" style={styles.errorText}>
-              {checkout.error.message}
-            </Text>
-          </View>
-        )}
-        <View style={styles.activityRow}>
-          {actionPending && (
-            <ActivityIndicator size="small" color={colors.blurple} />
-          )}
-          <Text
-            testID="checkout-action"
-            selectable
-            style={[
-              styles.activityText,
-              !lastAction && styles.activityPlaceholder,
-            ]}
-          >
-            {lastAction || 'No actions yet'}
-          </Text>
-        </View>
-        {enabled && (
-          <View style={styles.lifecycleActions}>
-            <View style={styles.buttonRowItem}>
-              <PlaygroundButton
-                title="Reload"
-                variant="quiet"
-                onPress={() => run('Reload', checkout.reload)}
-              />
-            </View>
-            <View style={styles.buttonRowItem}>
-              <PlaygroundButton
-                title="Reset"
-                variant="danger"
-                onPress={reset}
-              />
-            </View>
-          </View>
-        )}
+
+  const createSession = async () => {
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setIsCreating(true);
+    setError(null);
+    try {
+      const publishableKey = await fetchCheckoutPublishableKey(
+        settings.backendURL
+      );
+      await initStripe({
+        publishableKey,
+        merchantIdentifier: 'merchant.com.stripe.react.native',
+        urlScheme: 'com.stripe.react.native',
+      });
+      const customerID =
+        settings.customerType === 'guest'
+          ? undefined
+          : await createCheckoutCustomer(
+              settings.emailSource === 'customer' && resolvedEmail(settings)
+                ? { email: resolvedEmail(settings) }
+                : {},
+              settings.backendURL
+            );
+      const clientSecret = await createCheckoutSession(
+        buildSessionParameters(
+          settings,
+          customerID,
+          Platform.OS === 'android' ? 'android' : 'ios'
+        ),
+        settings.backendURL
+      );
+      navigation.navigate('CheckoutCartScreen', { clientSecret, settings });
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : String(failure));
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  if (!isHydrated) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.blurple} />
+        <Text style={styles.secondaryText}>Loading playground settings...</Text>
       </View>
+    );
+  }
 
-      <Section
-        title="Setup"
-        description="Configuration changes apply when a session is created or reloaded."
+  return (
+    <View style={styles.screen}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.actionStack}>
-          <PlaygroundButton
-            title={
-              editConfiguration ? 'Hide configuration' : 'Edit configuration'
-            }
-            variant="quiet"
-            onPress={() => setEditConfiguration(!editConfiguration)}
-          />
-        </View>
-        {editConfiguration && (
-          <View style={styles.disclosureContent}>
-            <Text style={styles.helperText}>
-              Edit any CreateOptions field. Providing a clientSecret skips
-              session creation.
+        {!!error && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorTitle}>Unable to create session</Text>
+            <Text selectable style={styles.errorText}>
+              {error}
             </Text>
-            <FieldLabel>Native configuration</FieldLabel>
-            <TextInput
-              style={styles.json}
-              multiline
-              scrollEnabled={false}
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={configuration}
-              onChangeText={setConfiguration}
-              accessibilityLabel="Configuration"
-            />
-            <FieldLabel>Session creation parameters</FieldLabel>
-            <TextInput
-              style={styles.json}
-              multiline
-              scrollEnabled={false}
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={sessionParameters}
-              onChangeText={setSessionParameters}
-              accessibilityLabel="Session parameters"
-            />
           </View>
         )}
-        <View style={styles.primaryAction}>
-          <PlaygroundButton
-            title="Create session"
-            variant="primary"
-            disabled={enabled}
-            onPress={() => setEnabled(true)}
-          />
-        </View>
-      </Section>
 
-      {!!session && (
-        <>
-          <Section title="Items">
-            {lineItems.length === 0 ? (
-              <Text style={styles.emptyText}>No items</Text>
-            ) : (
-              lineItems.map((item, index) => (
-                <View
-                  key={item.key}
-                  style={[styles.lineItem, index > 0 && styles.dividedRow]}
-                >
-                  {item.images[0] ? (
-                    <Image
-                      source={{ uri: item.images[0] }}
-                      style={styles.itemImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={styles.itemImagePlaceholder}>
-                      <Text style={styles.itemImagePlaceholderText}>RN</Text>
-                    </View>
-                  )}
-                  <View style={styles.lineItemDetails}>
-                    <Text style={styles.lineItemName}>{item.displayName}</Text>
-                    <Text style={styles.lineItemMeta}>
-                      {item.unitAmountDecimal?.amount ?? item.unitAmount.amount}{' '}
-                      × {item.quantity}
-                    </Text>
-                  </View>
-                  <Text style={styles.lineItemAmount}>
-                    {item.amountDetails.total.amount}
+        <Section
+          title="Configuration"
+          action={
+            <Pressable accessibilityRole="button" onPress={reset}>
+              <Text style={styles.sectionAction}>Reset</Text>
+            </Pressable>
+          }
+        >
+          <View style={styles.card}>
+            <PickerRow<PaymentElementMode>
+              label="PaymentElement"
+              value={settings.paymentElementMode}
+              choices={[
+                { label: 'sheet', value: 'sheet' },
+                { label: 'view', value: 'view' },
+              ]}
+              onChange={(value) => set('paymentElementMode', value)}
+              testID="checkout-payment-element-picker"
+            />
+            <PickerRow
+              label="Currency"
+              value={settings.currency}
+              choices={currencies}
+              onChange={(value) => set('currency', value)}
+            />
+            <PickerRow
+              label="Customer"
+              value={settings.customerType}
+              choices={[
+                { label: 'Guest', value: 'guest' },
+                { label: 'New', value: 'new' },
+                { label: 'Returning', value: 'returning' },
+              ]}
+              onChange={(value) => set('customerType', value)}
+            />
+            <PickerRow<BackendOption>
+              label="Backend Endpoint"
+              value={settings.backendOption}
+              choices={[
+                { label: 'Hosted', value: 'hosted' },
+                { label: 'Localhost', value: 'localhost' },
+                { label: 'Manual', value: 'manual' },
+              ]}
+              onChange={(value) => {
+                const backendURL = backendURLForOption(value);
+                setSettings((current) => ({
+                  ...current,
+                  backendOption: value,
+                  backendURL: backendURL ?? current.backendURL,
+                }));
+              }}
+            />
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>Backend URL</Text>
+              <TextInput
+                accessibilityLabel="Backend URL"
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={styles.textInput}
+                value={settings.backendURL}
+                onChangeText={(value) =>
+                  setSettings((current) => ({
+                    ...current,
+                    backendOption: 'manual',
+                    backendURL: value,
+                  }))
+                }
+              />
+            </View>
+          </View>
+        </Section>
+
+        <Section title="Email">
+          <View style={styles.card}>
+            <PickerRow
+              label="Email source"
+              value={settings.emailSource}
+              choices={emailSources}
+              onChange={(value) => set('emailSource', value)}
+            />
+            {settings.emailSource !== 'none' && (
+              <View style={styles.inputRow}>
+                <Text style={styles.inputLabel}>Email address</Text>
+                <TextInput
+                  accessibilityLabel="Email address"
+                  testID="checkout-email-value"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!usesLocationEmail}
+                  style={[
+                    styles.textInput,
+                    usesLocationEmail && styles.readOnlyInput,
+                  ]}
+                  value={resolvedEmail(settings) ?? ''}
+                  onChangeText={(value) => set('email', value)}
+                />
+              </View>
+            )}
+          </View>
+          <Text style={styles.helperText}>
+            {usesLocationEmail
+              ? 'Email is controlled by the Adaptive Pricing country override.'
+              : settings.emailSource === 'local'
+                ? 'Used as the local default. It can be updated in checkout.'
+                : settings.emailSource === 'none'
+                  ? 'Checkout starts without an email address.'
+                  : 'The server email cannot be changed in checkout.'}
+          </Text>
+          {!!validationError &&
+            validationError.toLowerCase().includes('email') && (
+              <Text
+                testID="checkout-email-configuration-error"
+                style={styles.validationText}
+              >
+                {validationError}
+              </Text>
+            )}
+        </Section>
+
+        <Section
+          title="Line Items"
+          action={
+            <CompactPicker<CartScenario>
+              label="Cart Scenario"
+              value={settings.cartScenario}
+              choices={[
+                { label: 'Standard cart', value: 'standard' },
+                { label: '$0 cart', value: 'zeroAmount' },
+              ]}
+              onChange={(value) => set('cartScenario', value)}
+            />
+          }
+        >
+          <View style={styles.itemStack}>
+            {items.map((item) => (
+              <View key={item.name} style={styles.itemCard}>
+                <View style={styles.itemArtwork}>
+                  <Text style={styles.itemArtworkText}>RN</Text>
+                </View>
+                <View style={styles.itemDetails}>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemMeta}>
+                    Qty {item.quantity} Price{' '}
+                    {formatUnitAmount(item.unitAmount, settings.currency)}
                   </Text>
                 </View>
-              ))
-            )}
-          </Section>
-
-          <Section title="Contact">
-            <View style={styles.detailRow}>
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Email</Text>
-                <Text style={styles.detailValue}>
-                  {session.email ?? 'No email'}
-                </Text>
               </View>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setShowUpdates(true)}
-                hitSlop={8}
-              >
-                <Text style={styles.inlineAction}>Edit</Text>
-              </Pressable>
-            </View>
-            <View style={[styles.detailRow, styles.dividedRow]}>
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Shipping address</Text>
-                <Text style={styles.detailValue}>
-                  {shippingAddress
-                    ? formatAddress(shippingAddress)
-                    : 'No shipping address'}
-                </Text>
-              </View>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setShowUpdates(true)}
-                hitSlop={8}
-              >
-                <Text style={styles.inlineAction}>
-                  {shippingAddress ? 'Edit' : 'Add'}
-                </Text>
-              </Pressable>
-            </View>
-          </Section>
-
-          <Section
-            title="Payment method"
-            description="Present the native sheet or render PaymentElement inline."
-          >
-            <View style={styles.paymentOptionRow}>
-              <View style={styles.paymentOptionCopy}>
-                <Text style={styles.detailLabel}>Selected payment method</Text>
-                <Text style={styles.paymentOptionValue}>
-                  {session.paymentOption?.label ?? 'None selected'}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.paymentActions}>
-              {action(
-                'Present sheet',
-                async () => checkout.paymentElement?.present(),
-                'secondary'
-              )}
-              <PlaygroundButton
-                title={inline ? 'Hide inline element' : 'Show inline element'}
-                variant="quiet"
-                onPress={() => setInline(!inline)}
-              />
-            </View>
-            {inline && checkout.paymentElement && (
-              <View style={styles.nativeElement}>
-                <CheckoutPaymentElementView element={checkout.paymentElement} />
-              </View>
-            )}
-          </Section>
-
-          <Section title="Order summary">
-            <SummaryRow
-              label="Subtotal"
-              value={session.totals.subtotal.amount}
-            />
-            {session.totals.discount.minorUnitsAmount > 0 && (
-              <SummaryRow
-                label="Discount"
-                value={`-${session.totals.discount.amount}`}
-                emphasis="success"
-              />
-            )}
-            {session.tax?.status === 'requiresShippingAddress' && (
-              <Text style={styles.taxPrompt}>
-                Enter a shipping address to calculate tax.
-              </Text>
-            )}
-            {session.tax?.status === 'requiresBillingAddress' && (
-              <Text style={styles.taxPrompt}>
-                Enter a billing address to calculate tax.
-              </Text>
-            )}
-            {session.tax?.status === 'ready' &&
-              session.totals.taxExclusive.minorUnitsAmount > 0 && (
-                <SummaryRow
-                  label="Tax"
-                  value={session.totals.taxExclusive.amount}
-                />
-              )}
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>
-                {session.totals.total.amount}
-              </Text>
-            </View>
-            {session.totals.taxInclusive.minorUnitsAmount > 0 && (
-              <Text style={styles.inclusiveTaxText}>
-                Includes {session.totals.taxInclusive.amount} in tax
-              </Text>
-            )}
-            <View style={styles.confirmAction}>
-              {action('Confirm', checkout.confirm, 'primary')}
-            </View>
-          </Section>
-        </>
-      )}
-
-      <Section
-        title="Developer tools"
-        description="Mutate the active session and inspect lifecycle state."
-      >
-        <PlaygroundButton
-          title={showUpdates ? 'Hide session updates' : 'Session updates'}
-          variant="quiet"
-          disabled={!checkout.session}
-          onPress={() => setShowUpdates(!showUpdates)}
-        />
-        {showUpdates && (
-          <View style={styles.disclosureContent}>
-            <FieldLabel>Email</FieldLabel>
-            <TextInput
-              style={styles.input}
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-              accessibilityLabel="Email"
-            />
-            <View style={styles.buttonRow}>
-              <View style={styles.buttonRowItem}>
-                {action('Update email', () => checkout.updateEmail(email))}
-              </View>
-              <View style={styles.buttonRowItem}>
-                {action(
-                  'Clear email',
-                  () => checkout.updateEmail(null),
-                  'quiet'
-                )}
-              </View>
-            </View>
-            <FieldLabel>Shipping address</FieldLabel>
-            <TextInput
-              style={styles.json}
-              multiline
-              scrollEnabled={false}
-              autoCapitalize="none"
-              value={address}
-              onChangeText={setAddress}
-              accessibilityLabel="Shipping address"
-            />
-            <View style={styles.buttonRow}>
-              <View style={styles.buttonRowItem}>
-                {action('Update shipping', async () =>
-                  checkout.updateShippingAddress(JSON.parse(address))
-                )}
-              </View>
-              <View style={styles.buttonRowItem}>
-                {action(
-                  'Clear shipping',
-                  () => checkout.updateShippingAddress({ address: null }),
-                  'quiet'
-                )}
-              </View>
-            </View>
-            <FieldLabel>Promotion code</FieldLabel>
-            <TextInput
-              style={styles.input}
-              autoCapitalize="none"
-              value={promotionCode}
-              onChangeText={setPromotionCode}
-              accessibilityLabel="Promotion code"
-            />
-            {action('Apply promotion', () =>
-              checkout.applyPromotionCode(promotionCode)
-            )}
-            {action('Remove promotion', checkout.removePromotionCode, 'quiet')}
-            {action(
-              'Clear payment option',
-              checkout.clearPaymentOption,
-              'quiet'
-            )}
-            <FieldLabel>Server update URL</FieldLabel>
-            <Text style={styles.helperText}>
-              Leave empty to refresh without a server mutation.
-            </Text>
-            <TextInput
-              style={styles.input}
-              autoCapitalize="none"
-              value={serverURL}
-              onChangeText={setServerURL}
-              accessibilityLabel="Server update URL"
-            />
-            {action('Server refresh', () =>
-              checkout.runServerUpdate(async () => {
-                if (serverURL) {
-                  const response = await fetch(serverURL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      session_id: checkout.session?.id,
-                    }),
-                  });
-                  if (!response.ok) {
-                    throw new Error(
-                      `Server update failed (${response.status})`
-                    );
-                  }
-                }
-              })
-            )}
-            {action('Slow server update', () =>
-              checkout.runServerUpdate(
-                () =>
-                  new Promise<void>((resolve) => setTimeout(resolve, 10_000))
-              )
-            )}
-            {action(
-              'Fail server update',
-              () =>
-                checkout.runServerUpdate(async () => {
-                  throw new Error('Server rejected update');
-                }),
-              'danger'
-            )}
+            ))}
           </View>
-        )}
-      </Section>
+        </Section>
 
-      <Section
-        title="Diagnostics"
-        description="Inspect the latest result and raw Checkout session."
-      >
-        <View style={styles.activityFooter}>
-          <Text style={styles.activityFooterLabel}>LATEST RESULT</Text>
-          <Text
-            testID="checkout-action-footer"
-            selectable
-            style={[
-              styles.activityText,
-              !lastAction && styles.activityPlaceholder,
-            ]}
-          >
-            {lastAction || 'No actions yet'}
+        <Section title="Features">
+          <View style={styles.card}>
+            <ToggleRow
+              label="Collect Shipping Address"
+              value={settings.collectShippingAddress}
+              onChange={(value) => set('collectShippingAddress', value)}
+            />
+            <PickerRow<DefaultShippingAddressOption>
+              label="Default Shipping Address"
+              value={settings.defaultShippingAddressOption}
+              choices={[
+                { label: 'No address', value: 'none' },
+                { label: 'US test address', value: 'usTestAddress' },
+                { label: 'Custom', value: 'custom' },
+              ]}
+              onChange={(value) => set('defaultShippingAddressOption', value)}
+            />
+            {settings.defaultShippingAddressOption === 'usTestAddress' && (
+              <View style={styles.addressPreview}>
+                <Text style={styles.addressName}>{usTestAddress.name}</Text>
+                <Text style={styles.secondaryText}>{usTestAddress.line1}</Text>
+                <Text style={styles.secondaryText}>
+                  {usTestAddress.city}, {usTestAddress.state}{' '}
+                  {usTestAddress.postalCode}
+                </Text>
+                <Text style={styles.secondaryText}>
+                  {usTestAddress.country}
+                </Text>
+              </View>
+            )}
+            {settings.defaultShippingAddressOption === 'custom' && (
+              <View style={styles.addressEditor}>
+                {(
+                  [
+                    ['name', 'Name'],
+                    ['line1', 'Address line 1'],
+                    ['line2', 'Address line 2'],
+                    ['city', 'City'],
+                    ['state', 'State'],
+                    ['postalCode', 'ZIP / postal code'],
+                    ['country', 'Country'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <View key={key} style={styles.addressField}>
+                    <Text style={styles.inputLabel}>{label}</Text>
+                    <TextInput
+                      accessibilityLabel={label}
+                      style={styles.textInput}
+                      value={settings.customShippingAddress[key]}
+                      onChangeText={(value) =>
+                        set('customShippingAddress', {
+                          ...settings.customShippingAddress,
+                          [key]: value,
+                        })
+                      }
+                    />
+                  </View>
+                ))}
+              </View>
+            )}
+            <PickerRow
+              label="Billing Address"
+              value={settings.billingAddressCollection}
+              choices={[
+                { label: 'Auto', value: 'automatic' },
+                { label: 'Required', value: 'required' },
+              ]}
+              onChange={(value) => set('billingAddressCollection', value)}
+            />
+            <ToggleRow
+              label="Automatic Payment Methods"
+              value={settings.automaticPaymentMethods}
+              onChange={(value) => set('automaticPaymentMethods', value)}
+            />
+            <PickerRow
+              label="Link Display"
+              value={settings.linkMode}
+              choices={[
+                { label: 'Automatic', value: 'automatic' },
+                { label: 'Never', value: 'never' },
+              ]}
+              onChange={(value) => set('linkMode', value)}
+            />
+            <ToggleRow
+              label="Automatic Tax"
+              value={settings.automaticTax}
+              onChange={(value) => set('automaticTax', value)}
+              disabled={settings.customerType === 'new'}
+            />
+            <ToggleRow
+              label="Payment Method Offer Save"
+              value={settings.paymentMethodSave}
+              onChange={(value) => set('paymentMethodSave', value)}
+            />
+            <ToggleRow
+              label="Payment Method Remove"
+              value={settings.paymentMethodRemove}
+              onChange={(value) => set('paymentMethodRemove', value)}
+            />
+          </View>
+        </Section>
+
+        <Section title="Currency Selector">
+          <View style={styles.card}>
+            <PickerRow
+              label="Adaptive Pricing Location"
+              value={settings.adaptivePricingCountry}
+              choices={[
+                { label: 'No Override', value: 'none' },
+                { label: 'United States (US)', value: 'US' },
+                { label: 'France (FR)', value: 'FR' },
+                { label: 'Germany (DE)', value: 'DE' },
+                { label: 'Japan (JP)', value: 'JP' },
+                { label: 'United Kingdom (GB)', value: 'GB' },
+                { label: 'Brazil (BR)', value: 'BR' },
+              ]}
+              onChange={(value) => set('adaptivePricingCountry', value)}
+            />
+            <View style={styles.availabilityRow}>
+              <Text style={styles.controlLabel}>Currency Selector Element</Text>
+              <Text style={styles.unavailableText}>Not bridged in RN</Text>
+            </View>
+          </View>
+          <Text style={styles.helperText}>
+            The country override still exercises Adaptive Pricing through the
+            test email convention.
           </Text>
-        </View>
-        <PlaygroundButton
-          title={snapshotVisible ? 'Hide session' : 'Show session'}
-          variant="quiet"
-          disabled={!checkout.session}
-          onPress={() => setSnapshotVisible(!snapshotVisible)}
-        />
-        {snapshotVisible && (
-          <View style={styles.snapshot}>
-            <Text style={styles.snapshotTitle}>Session snapshot</Text>
-            <Text
-              selectable
-              testID="checkout-snapshot"
-              style={styles.snapshotText}
-            >
-              {JSON.stringify(
-                checkout.session,
-                (key, value) => (key === 'image' ? '[Base64 image]' : value),
-                2
-              )}
+        </Section>
+
+        {!settings.automaticPaymentMethods && (
+          <Section title="Payment Methods">
+            <View style={styles.card}>
+              {['card', 'link'].map((method) => (
+                <ToggleRow
+                  key={method}
+                  label={method === 'card' ? 'Card' : 'Link'}
+                  value={settings.paymentMethodTypes.includes(method)}
+                  onChange={(enabled) =>
+                    set(
+                      'paymentMethodTypes',
+                      enabled
+                        ? [...settings.paymentMethodTypes, method]
+                        : settings.paymentMethodTypes.filter(
+                            (candidate) => candidate !== method
+                          )
+                    )
+                  }
+                />
+              ))}
+            </View>
+          </Section>
+        )}
+
+        <Section title="Express Checkout Element">
+          <View style={styles.availabilityCard}>
+            <Text style={styles.availabilityTitle}>Not bridged in RN</Text>
+            <Text style={styles.helperText}>
+              Apple Pay and Link Express Checkout controls will appear here when
+              the React Native Checkout API exposes the element.
             </Text>
           </View>
-        )}
-      </Section>
+        </Section>
+      </ScrollView>
+
+      <View style={styles.createBar}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Create Checkout Session"
+          testID="checkout-create-session"
+          disabled={isCreating || !!validationError}
+          onPress={createSession}
+          style={({ pressed }) => [
+            styles.createButton,
+            (isCreating || !!validationError) && styles.createButtonDisabled,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          {isCreating && <ActivityIndicator color={colors.white} />}
+          <Text style={styles.createButtonText}>
+            {isCreating ? 'Creating Session...' : 'Create Checkout Session'}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  screen: { flex: 1, backgroundColor: colors.light_gray },
+  content: {
     paddingHorizontal: 16,
     paddingTop: 20,
-    paddingBottom: 48,
+    paddingBottom: 116,
+    gap: 24,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
     backgroundColor: colors.light_gray,
   },
-  intro: { marginBottom: 20 },
-  eyebrow: {
-    color: colors.blurple,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginBottom: 6,
-  },
-  heading: { color: colors.slate, fontSize: 28, fontWeight: '700' },
-  introCopy: {
-    color: colors.dark_gray,
-    fontSize: 15,
-    lineHeight: 21,
-    marginTop: 6,
-  },
-  panel: { gap: 24 },
-  loadingState: {
-    minHeight: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  loadingText: { color: colors.dark_gray, fontSize: 15 },
-  banner: { borderRadius: 12, padding: 14 },
-  errorBanner: { backgroundColor: '#FFF0F0' },
-  errorTitle: {
-    color: '#8B1A1A',
-    fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  errorText: { color: '#8B1A1A', fontSize: 14, lineHeight: 20 },
-  statusCard: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#D9E2EC',
-  },
-  statusHeader: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  statusLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  statusDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: '#8795A1',
-  },
-  statusDotReady: { backgroundColor: '#0E8A5F' },
-  statusDotUpdating: { backgroundColor: '#D97706' },
-  statusLabel: { color: colors.slate, fontSize: 16, fontWeight: '700' },
-  sessionLabel: {
-    color: '#697386',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.7,
-    marginTop: 8,
-  },
-  sessionValue: {
-    color: colors.slate,
-    fontFamily: 'Courier',
-    fontSize: 13,
-    marginTop: 5,
-  },
-  statusError: { marginTop: 14 },
-  activityRow: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#D9E2EC',
-    marginTop: 14,
-    paddingTop: 12,
-  },
-  lifecycleActions: {
-    flexDirection: 'row',
-    gap: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#D9E2EC',
-    marginTop: 4,
-    paddingTop: 8,
-  },
-  activityText: {
-    color: colors.slate,
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 19,
-    fontFamily: 'Courier',
-  },
-  activityPlaceholder: { color: '#8795A1', fontFamily: undefined },
   section: { gap: 10 },
-  sectionHeader: { paddingHorizontal: 4 },
-  sectionTitle: { color: colors.slate, fontSize: 18, fontWeight: '700' },
-  sectionDescription: {
-    color: colors.dark_gray,
-    fontSize: 13,
-    lineHeight: 18,
-    marginTop: 3,
+  sectionHeadingRow: {
+    minHeight: 30,
+    paddingHorizontal: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  sectionBody: {
+  sectionHeading: {
+    color: '#697386',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  sectionAction: { color: colors.blurple, fontSize: 14, fontWeight: '700' },
+  card: {
+    overflow: 'hidden',
+    borderRadius: 14,
     backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 14,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#D9E2EC',
   },
-  emptyText: {
-    color: colors.dark_gray,
-    fontSize: 15,
-    paddingVertical: 8,
-  },
-  lineItem: {
+  controlRow: {
+    minHeight: 56,
+    paddingLeft: 16,
+    paddingRight: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 4,
+    justifyContent: 'space-between',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E3E8EE',
   },
-  dividedRow: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#D9E2EC',
-    marginTop: 12,
-    paddingTop: 14,
-  },
-  itemImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: '#F0F3F7',
-  },
-  itemImagePlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
+  controlLabel: { color: colors.slate, fontSize: 15, flexShrink: 1 },
+  selectionValue: {
+    maxWidth: 200,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#EEF0FF',
+    gap: 7,
   },
-  itemImagePlaceholderText: {
+  selectionText: { color: colors.dark_gray, fontSize: 14, textAlign: 'right' },
+  selectionChevron: { color: '#8795A1', fontSize: 22, lineHeight: 22 },
+  inputRow: { padding: 14, gap: 7 },
+  inputLabel: { color: '#697386', fontSize: 12, fontWeight: '600' },
+  textInput: {
+    minHeight: 42,
+    borderRadius: 9,
+    backgroundColor: '#F1F4F8',
+    color: colors.slate,
+    paddingHorizontal: 11,
+    paddingVertical: 9,
+    fontSize: 15,
+  },
+  readOnlyInput: { color: '#697386' },
+  helperText: { color: colors.dark_gray, fontSize: 13, lineHeight: 18 },
+  validationText: { color: '#B42318', fontSize: 13, lineHeight: 18 },
+  compactSelector: {
+    minHeight: 38,
+    maxWidth: 190,
+    paddingHorizontal: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 9,
+    backgroundColor: colors.white,
+  },
+  compactSelectorText: {
     color: colors.blurple,
     fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-  },
-  lineItemDetails: { flex: 1, gap: 4 },
-  lineItemName: { color: colors.slate, fontSize: 16, fontWeight: '700' },
-  lineItemMeta: { color: colors.dark_gray, fontSize: 14 },
-  lineItemAmount: { color: colors.slate, fontSize: 15, fontWeight: '600' },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    paddingVertical: 4,
-  },
-  detailContent: { flex: 1, gap: 4 },
-  detailLabel: {
-    color: '#697386',
-    fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
   },
-  detailValue: { color: colors.slate, fontSize: 15, lineHeight: 21 },
-  inlineAction: { color: colors.blurple, fontSize: 15, fontWeight: '700' },
-  paymentOptionRow: {
+  compactSelectorChevron: { color: colors.blurple, fontSize: 16 },
+  sheetBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(14, 30, 49, 0.32)',
+  },
+  choiceSheet: {
+    maxHeight: '72%',
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    backgroundColor: colors.white,
+    overflow: 'hidden',
+  },
+  choiceSheetHeader: {
+    minHeight: 58,
+    paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  paymentOptionCopy: { flex: 1, gap: 4 },
-  paymentOptionValue: { color: colors.slate, fontSize: 16 },
-  paymentActions: { gap: 2, marginTop: 10 },
-  summaryRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16,
-    paddingVertical: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#D9E2EC',
   },
-  summaryLabel: { color: colors.dark_gray, fontSize: 15 },
-  summaryValue: { color: colors.slate, fontSize: 15, fontWeight: '600' },
-  successText: { color: '#0E8A5F' },
-  taxPrompt: {
-    color: colors.dark_gray,
-    fontSize: 13,
-    lineHeight: 18,
-    paddingVertical: 6,
-  },
-  totalRow: {
+  choiceSheetTitle: { color: colors.slate, fontSize: 17, fontWeight: '800' },
+  choiceSheetDone: { color: colors.blurple, fontSize: 15, fontWeight: '700' },
+  choiceList: { flexGrow: 0 },
+  choiceRow: {
+    minHeight: 54,
+    paddingHorizontal: 18,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#D9E2EC',
-    marginTop: 8,
-    paddingTop: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E3E8EE',
   },
-  totalLabel: { color: colors.slate, fontSize: 18, fontWeight: '700' },
-  totalValue: { color: colors.slate, fontSize: 18, fontWeight: '700' },
-  inclusiveTaxText: {
-    color: colors.dark_gray,
-    fontSize: 13,
-    marginTop: 6,
-    textAlign: 'right',
-  },
-  confirmAction: { marginTop: 14 },
-  actionStack: { gap: 4 },
-  disclosureContent: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#D9E2EC',
-    marginTop: 10,
-    paddingTop: 16,
-  },
-  fieldLabel: {
-    color: colors.slate,
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 6,
-    marginTop: 12,
-  },
-  helperText: { color: colors.dark_gray, fontSize: 13, lineHeight: 18 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#C7D0D9',
-    borderRadius: 10,
-    minHeight: 46,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    color: colors.slate,
-    backgroundColor: colors.white,
-    fontSize: 15,
-  },
-  json: {
-    borderWidth: 1,
-    borderColor: '#C7D0D9',
-    borderRadius: 10,
+  choiceText: { color: colors.slate, fontSize: 16 },
+  choiceCheck: { color: colors.blurple, fontSize: 18, fontWeight: '800' },
+  rowPressed: { backgroundColor: '#F6F8FA' },
+  itemStack: { gap: 10 },
+  itemCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     padding: 12,
-    minHeight: 112,
-    textAlignVertical: 'top',
-    color: colors.slate,
-    backgroundColor: '#FBFCFE',
-    fontFamily: 'Courier',
-    fontSize: 13,
-    lineHeight: 18,
+    borderRadius: 14,
+    backgroundColor: colors.white,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#D9E2EC',
   },
-  primaryAction: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#D9E2EC',
-    marginTop: 12,
-    paddingTop: 12,
-  },
-  button: {
-    minHeight: 48,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+  itemArtwork: {
+    width: 48,
+    height: 48,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  primaryButton: { backgroundColor: colors.blurple },
-  secondaryButton: {
     backgroundColor: '#EEF0FF',
-    borderWidth: 1,
-    borderColor: '#D8D9FF',
   },
-  quietButton: { backgroundColor: 'transparent' },
-  dangerButton: { backgroundColor: '#FFF0F0' },
-  buttonText: { fontSize: 15, fontWeight: '700', textAlign: 'center' },
-  primaryButtonText: { color: colors.white },
-  secondaryButtonText: { color: '#4B45C6' },
-  quietButtonText: { color: colors.blurple },
-  dangerButtonText: { color: '#B42318' },
-  buttonDisabled: { opacity: 0.35 },
-  buttonPressed: { opacity: 0.72, transform: [{ scale: 0.99 }] },
-  buttonRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
-  buttonRowItem: { flex: 1 },
-  nativeElement: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#D9E2EC',
-    marginTop: 8,
+  itemArtworkText: { color: colors.blurple, fontSize: 12, fontWeight: '800' },
+  itemDetails: { flex: 1, gap: 6 },
+  itemName: { color: colors.slate, fontSize: 16, fontWeight: '600' },
+  itemMeta: { color: colors.dark_gray, fontSize: 13 },
+  addressPreview: {
+    padding: 16,
+    gap: 3,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E3E8EE',
+  },
+  addressName: { color: colors.slate, fontSize: 14, fontWeight: '700' },
+  secondaryText: { color: colors.dark_gray, fontSize: 14, lineHeight: 19 },
+  addressEditor: {
+    padding: 14,
+    gap: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E3E8EE',
+  },
+  addressField: { gap: 6 },
+  availabilityRow: {
+    minHeight: 56,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  unavailableText: { color: '#697386', fontSize: 13, fontWeight: '600' },
+  availabilityCard: {
+    borderRadius: 14,
+    padding: 16,
+    gap: 5,
+    backgroundColor: colors.white,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#D9E2EC',
+  },
+  availabilityTitle: { color: colors.slate, fontSize: 15, fontWeight: '700' },
+  createBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 16,
     paddingTop: 12,
-  },
-  activityFooter: {
-    backgroundColor: '#F7F9FC',
-    borderRadius: 10,
-    minHeight: 64,
-    padding: 12,
-    marginBottom: 6,
-  },
-  activityFooterLabel: {
-    color: '#697386',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.7,
-    marginBottom: 6,
-  },
-  snapshot: {
+    paddingBottom: 16,
+    backgroundColor: colors.light_gray,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#D9E2EC',
-    marginTop: 8,
-    paddingTop: 14,
   },
-  snapshotTitle: {
-    color: colors.slate,
-    fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 8,
+  createButton: {
+    minHeight: 52,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 9,
+    backgroundColor: colors.blurple,
   },
-  snapshotText: {
-    color: colors.slate,
-    fontFamily: 'Courier',
-    fontSize: 12,
-    lineHeight: 17,
+  createButtonDisabled: { backgroundColor: '#8795A1' },
+  createButtonText: { color: colors.white, fontSize: 16, fontWeight: '800' },
+  buttonPressed: { opacity: 0.75, transform: [{ scale: 0.99 }] },
+  disabled: { opacity: 0.45 },
+  errorBanner: {
+    borderRadius: 14,
+    padding: 15,
+    gap: 4,
+    backgroundColor: '#FFF0F0',
+    borderWidth: 1,
+    borderColor: '#F7C5C5',
   },
+  errorTitle: { color: '#8B1A1A', fontSize: 15, fontWeight: '800' },
+  errorText: { color: '#8B1A1A', fontSize: 13, lineHeight: 18 },
 });

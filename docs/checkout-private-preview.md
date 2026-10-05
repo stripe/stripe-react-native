@@ -4,7 +4,7 @@ The Checkout bridge forwards configuration, mutations, and session snapshots to 
 
 `useCheckout` owns its controller. It destroys the controller on disable, reload, and unmount. `reload()` uses the latest configuration callback. Stale configuration and creation results cannot replace the current controller.
 
-After Checkout completes, start another payment with a new Checkout Session and controller. The controller's `ready` status means no operation is running; check `session.status` for the session's lifecycle. In the playground, **Reload** creates a new session and controller unless the configuration supplies a `clientSecret`.
+After Checkout completes, start another payment with a new Checkout Session and controller. The controller's `ready` status means that no operation is active. Read `session.status` for the session lifecycle.
 
 `runServerUpdate` starts the native update before it calls the merchant callback. Each completion includes a controller ID and an operation ID. Native SDKs enforce the callback timeout and refresh the session. Destruction releases pending callbacks. Late and duplicate completions have no effect.
 
@@ -12,17 +12,21 @@ After Checkout completes, start another payment with a new Checkout Session and 
 
 1. Build the example app.
 2. Open **Accept a payment → Checkout Sessions (private preview)**.
-3. Select **Create session**.
-4. Use **Edit configuration** to change any configuration field or session creation parameter.
-5. Select **Reload** to apply the configuration.
-6. Open **Session updates** for mutations and server updates.
-7. Select **Show inline element** to render the native Payment Element.
-8. Select **Present sheet** to open the native sheet.
-9. Select **Reset** to destroy the controller.
+3. Set the Checkout Session configuration.
+4. Select **Create Checkout Session**.
+5. Select **Select payment method** to open the Payment Element.
+6. Add a shipping address if the configuration collects one.
+7. Select **Buy** to confirm the Checkout Session.
+8. Open **Session diagnostics** to examine the session snapshot.
+9. Close the cart to return to the configuration.
 
-The playground uses the shared native test backend. Its default UI mode matches each native playground: `elements` on Android and `mobile_elements` on iOS. An explicit `clientSecret` in the configuration skips session creation. A server update URL receives a POST request with `session_id`. An empty URL exercises native refresh without a server mutation.
+The playground uses the shared native test backend. Its default UI mode is `elements` on Android and `mobile_elements` on iOS. The playground saves its configuration on the device.
 
-The screen shows the native status, last operation, and session snapshot. It replaces Base64 images with a label in the snapshot display.
+The playground follows the stripe-ios flow. The configuration screen creates the session, and a separate cart screen owns the Checkout controller.
+
+The cart supports Payment Element sheet and view modes. It also supports local email changes, shipping address changes, confirmation, and session diagnostics.
+
+The React Native API does not expose Express Checkout Element or Currency Selector Element. The configuration screen identifies these unavailable elements.
 
 ## Native dependencies still required
 

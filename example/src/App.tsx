@@ -30,6 +30,8 @@ import EmbeddedPaymentElementConfirmScreen from './screens/EmbeddedPaymentElemen
 import EmbeddedPaymentElementImmediateActionScreen from './screens/EmbeddedPaymentElementImmediateActionScreen';
 import EmbeddedPaymentElementScreen from './screens/EmbeddedPaymentElementScreen';
 import CheckoutPlaygroundScreen from './screens/Checkout/CheckoutPlaygroundScreen';
+import CheckoutCartScreen from './screens/Checkout/CheckoutCartScreen';
+import type { CheckoutCartParams } from './screens/Checkout/playgroundConfig';
 import EPSPaymentScreen from './screens/EPSPaymentScreen';
 import GooglePayScreen from './screens/GooglePayScreen';
 import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
@@ -111,6 +113,7 @@ export type RootStackParamList = {
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
   EmbeddedPaymentElementScreen: undefined;
   CheckoutPlaygroundScreen: undefined;
+  CheckoutCartScreen: CheckoutCartParams;
   EmbeddedPaymentElementImmediateActionScreen: undefined;
   EmbeddedPaymentElementConfirmScreen: {
     confirm: () => Promise<EmbeddedPaymentElementResult>;
@@ -218,6 +221,11 @@ export default function App() {
             name="CheckoutPlaygroundScreen"
             component={CheckoutPlaygroundScreen}
             options={{ title: 'Checkout Playground' }}
+          />
+          <Stack.Screen
+            name="CheckoutCartScreen"
+            component={CheckoutCartScreen}
+            options={{ title: 'Your Cart', presentation: 'modal' }}
           />
           <Stack.Screen
             name="EmbeddedPaymentElementScreen"

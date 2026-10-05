@@ -1,8 +1,8 @@
-import { Platform } from 'react-native';
-
-const backendURL = 'https://stp-mobile-playground-backend-v7.stripedemos.com';
+export const hostedBackendURL =
+  'https://stp-mobile-playground-backend-v7.stripedemos.com';
 
 async function request(
+  backendURL: string,
   path: string,
   body?: object
 ): Promise<Record<string, unknown>> {
@@ -20,8 +20,10 @@ async function request(
   return result;
 }
 
-export async function fetchCheckoutPublishableKey(): Promise<string> {
-  const result = await request('publishable_key?merchant=us_tax');
+export async function fetchCheckoutPublishableKey(
+  backendURL = hostedBackendURL
+): Promise<string> {
+  const result = await request(backendURL, 'publishable_key?merchant=us_tax');
   if (
     typeof result.publishable_key !== 'string' ||
     !result.publishable_key.startsWith('pk_test_')
@@ -32,9 +34,10 @@ export async function fetchCheckoutPublishableKey(): Promise<string> {
 }
 
 export async function createCheckoutSession(
-  requestParams: object
+  requestParams: object,
+  backendURL = hostedBackendURL
 ): Promise<string> {
-  const result = await request('create_checkout_session', {
+  const result = await request(backendURL, 'create_checkout_session', {
     merchant: 'us_tax',
     stripe_version: '2026-08-26.preview',
     request_params: requestParams,
@@ -47,27 +50,16 @@ export async function createCheckoutSession(
   return result.client_secret;
 }
 
-export const defaultSessionParameters = {
-  // TODO: Use mobile_elements on Android once the native SDK accepts it.
-  ui_mode: Platform.OS === 'android' ? 'elements' : 'mobile_elements',
-  currency: 'usd',
-  customer_email: 'jenny@example.com',
-  payment_method_types: ['card'],
-  items: [
-    {
-      type: 'one_time_price',
-      one_time_price: {
-        items: [
-          {
-            price_data: {
-              currency: 'usd',
-              unit_amount: 1000,
-              product_data: { name: 'Test shirt' },
-            },
-            quantity: 1,
-          },
-        ],
-      },
-    },
-  ],
-};
+export async function createCheckoutCustomer(
+  requestParams: object,
+  backendURL = hostedBackendURL
+): Promise<string> {
+  const result = await request(backendURL, 'create_customer', {
+    merchant: 'us_tax',
+    request_params: requestParams,
+  });
+  if (typeof result.id !== 'string') {
+    throw new Error('The backend did not return a Customer ID.');
+  }
+  return result.id;
+}
