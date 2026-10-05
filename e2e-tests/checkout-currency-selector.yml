@@ -9,10 +9,15 @@ appId: ${APP_ID}
       text: 'Checkout Sessions.*'
 - tapOn: 'Checkout Sessions.*'
 - extendedWaitUntil:
-    visible: 'Create session'
+    visible: 'Create Checkout Session'
     timeout: 60000
-- tapOn: 'Use Adaptive Pricing'
-- tapOn: 'Create session'
+- scrollUntilVisible:
+    element:
+      text: 'Adaptive Pricing Location'
+    centerElement: true
+- tapOn: 'Adaptive Pricing Location'
+- tapOn: 'Germany (DE)'
+- tapOn: 'Create Checkout Session'
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
@@ -23,6 +28,14 @@ appId: ${APP_ID}
 - assertVisible:
     id: 'checkout-currency-selector'
 - tapOn:
+    text: '.*Show details'
+    point: '90%,50%'
+- assertVisible: '.*Hide details'
+- tapOn:
+    text: '.*Hide details'
+    point: '90%,25%'
+- assertVisible: '.*Show details'
+- tapOn:
     text: '.*\$.*'
 - scrollUntilVisible:
     element:
@@ -32,9 +45,10 @@ appId: ${APP_ID}
     timeout: 60000
 - scrollUntilVisible:
     element:
-      text: 'Show session'
-- tapOn: 'Show session'
-- scrollUntilVisible:
-    element:
-      text: 'Currency: USD'
+      text: 'Session diagnostics'
+    direction: UP
+    centerElement: true
+- tapOn: 'Session diagnostics'
+- extendedWaitUntil:
+    visible: 'Currency: USD'
     timeout: 30000

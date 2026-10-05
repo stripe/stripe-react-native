@@ -205,6 +205,9 @@ export function buildSessionParameters(
       allowed_countries: ['US', 'CA', 'IE', 'GB'],
     };
   }
+  if (settings.adaptivePricingCountry !== 'none') {
+    params.adaptive_pricing = { enabled: true };
+  }
   if (customerID) {
     params.customer = customerID;
     if (settings.automaticTax) {
@@ -273,5 +276,8 @@ export function checkoutConfiguration(
       },
       link: { display: settings.linkMode },
     },
+    ...(settings.adaptivePricingCountry !== 'none'
+      ? { currencySelectorElement: {} }
+      : {}),
   };
 }

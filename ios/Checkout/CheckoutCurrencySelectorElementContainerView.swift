@@ -19,6 +19,7 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
     private var destruction: AnyCancellable?
     private var sessionObservation: AnyCancellable?
     private var reportedHeight: CGFloat?
+    private lazy var nativeDelegate = ElementDelegate(view: self)
 
     override public func didMoveToWindow() {
         super.didMoveToWindow()
@@ -45,6 +46,7 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
             view.trailingAnchor.constraint(equalTo: trailingAnchor),
             view.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
+        element.delegate = nativeDelegate
         destruction = instance.observeDestruction { [weak self] in self?.detach() }
         sessionObservation = instance.checkout.$session
             .dropFirst()
@@ -60,6 +62,7 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
         destruction = nil
         sessionObservation?.cancel()
         sessionObservation = nil
+        element?.delegate = nil
         element?.uiView.removeFromSuperview()
         element = nil
         reportedHeight = nil
@@ -78,5 +81,18 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
             reportedHeight = height
             onHeightChanged?(["height": height])
         }
+    }
+}
+
+// Keep Stripe SPI types out of the public Objective-C view interface.
+@MainActor
+private final class ElementDelegate: CurrencySelectorElementDelegate {
+    private weak var view: CheckoutCurrencySelectorElementContainerView?
+
+    init(view: CheckoutCurrencySelectorElementContainerView) { self.view = view }
+
+    func currencySelectorElementDidUpdateHeight(currencySelectorElement: CurrencySelectorElement) {
+        view?.setNeedsLayout()
+        view?.layoutIfNeeded()
     }
 }
