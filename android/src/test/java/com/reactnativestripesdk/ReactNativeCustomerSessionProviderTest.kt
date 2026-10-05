@@ -2,6 +2,8 @@ package com.reactnativestripesdk
 
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
+import com.facebook.react.bridge.JavaScriptModule
+import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
@@ -24,11 +26,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
@@ -217,24 +216,27 @@ class ReactNativeCustomerSessionProviderTest {
   private fun fixture() = Fixture().also { fixtures.add(it) }
 
   private class Fixture {
-    val context = spy(BridgeReactContext(RuntimeEnvironment.getApplication()))
+    val context = object : BridgeReactContext(RuntimeEnvironment.getApplication()) {
+      override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
+        nativeModuleInterface.cast(module)
+
+      override fun <T : JavaScriptModule> getJSModule(jsInterface: Class<T>): T = jsInterface.cast(emitter)
+    }
     val module = StripeSdkModule(context)
     val ids = mutableListOf<String>()
     var onEmit: (String) -> Unit = {}
+    private val emitter = object : DeviceEventManagerModule.RCTDeviceEventEmitter {
+      override fun emit(eventName: String, data: Any?) {
+        assertEquals("onCustomerSessionProviderCustomerSessionClientSecret", eventName)
+        val id = (data as ReadableMap).getString("requestId")!!
+        ids.add(id)
+        onEmit(id)
+      }
+    }
     val provider: ReactNativeCustomerSessionProvider
     val manager: CustomerSheetManager
 
     init {
-      val emitter = mock(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      doReturn(module).`when`(context).getNativeModule(StripeSdkModule::class.java)
-      doReturn(emitter).`when`(context).getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      doAnswer {
-        assertEquals("onCustomerSessionProviderCustomerSessionClientSecret", it.getArgument<String>(0))
-        val id = it.getArgument<ReadableMap>(1).getString("requestId")!!
-        ids.add(id)
-        onEmit(id)
-        null
-      }.`when`(emitter).emit(anyString(), any())
       provider = ReactNativeCustomerSessionProvider(context, CustomerSheet.IntentConfiguration.Builder().build())
       manager = CustomerSheetManager(context, JavaOnlyMap(), JavaOnlyMap(), mock(Promise::class.java))
       manager.customerSessionProvider = provider

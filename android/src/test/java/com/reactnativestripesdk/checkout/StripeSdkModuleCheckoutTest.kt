@@ -2,11 +2,11 @@ package com.reactnativestripesdk.checkout
 
 import android.os.Looper
 import androidx.activity.ComponentActivity
-import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.EventEmitterCompat
+import com.reactnativestripesdk.ReactContextRule
 import com.reactnativestripesdk.StripeSdkModule
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutPresenter
@@ -16,9 +16,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
@@ -30,28 +30,19 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.LooperMode
 
 @RunWith(RobolectricTestRunner::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class StripeSdkModuleCheckoutTest {
-  private val contexts = mutableListOf<BridgeReactContext>()
-
-  @After
-  fun tearDown() {
-    contexts.forEach {
-      it.onHostPause()
-      it.onHostDestroy()
-      it.destroy()
-    }
-  }
+  @get:Rule
+  internal val contextRule = ReactContextRule()
 
   @OptIn(CheckoutSessionPreview::class)
   @Test
   fun `sheet requests resolve after native invocation and reuse the payment element`() {
-    val context = reactContext()
+    val context = contextRule.context
     val module = StripeSdkModule(context)
     val controller = mock(CheckoutController::class.java)
     val presenter = mock(CheckoutPresenter::class.java)
@@ -100,7 +91,7 @@ class StripeSdkModuleCheckoutTest {
   @OptIn(CheckoutSessionPreview::class)
   @Test
   fun `confirmation invokes native and resolves from the controller callback`() {
-    val context = reactContext()
+    val context = contextRule.context
     val module = StripeSdkModule(context)
     val controller = mock(CheckoutController::class.java)
     val presenter = mock(CheckoutPresenter::class.java)
@@ -147,7 +138,7 @@ class StripeSdkModuleCheckoutTest {
 
   @Test
   fun `creation queued before invalidation cannot register afterward`() {
-    val module = StripeSdkModule(reactContext())
+    val module = StripeSdkModule(contextRule.context)
     val promise = mock(Promise::class.java)
     val caller = Thread {
       module.createCheckout(JavaOnlyMap.of("clientSecret", "cs_test_secret_123"), "controller", promise)
@@ -161,6 +152,4 @@ class StripeSdkModuleCheckoutTest {
     verify(promise).reject("Failed", "Stripe SDK was invalidated.")
     assertEquals(0, module.checkoutControllers.size)
   }
-
-  private fun reactContext() = BridgeReactContext(RuntimeEnvironment.getApplication()).also { contexts.add(it) }
 }
