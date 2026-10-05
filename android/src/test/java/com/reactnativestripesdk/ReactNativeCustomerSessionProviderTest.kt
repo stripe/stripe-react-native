@@ -216,13 +216,14 @@ class ReactNativeCustomerSessionProviderTest {
   private fun fixture() = Fixture().also { fixtures.add(it) }
 
   private class Fixture {
-    val context = object : BridgeReactContext(RuntimeEnvironment.getApplication()) {
+    val context: BridgeReactContext = object : BridgeReactContext(RuntimeEnvironment.getApplication()) {
       override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
         nativeModuleInterface.cast(module)
 
-      override fun <T : JavaScriptModule> getJSModule(jsInterface: Class<T>): T = jsInterface.cast(emitter)
+      override fun <T : JavaScriptModule> getJSModule(jsInterface: Class<T>): T =
+        requireNotNull(jsInterface.cast(emitter))
     }
-    val module = StripeSdkModule(context)
+    val module: StripeSdkModule = StripeSdkModule(context)
     val ids = mutableListOf<String>()
     var onEmit: (String) -> Unit = {}
     private val emitter = object : DeviceEventManagerModule.RCTDeviceEventEmitter {

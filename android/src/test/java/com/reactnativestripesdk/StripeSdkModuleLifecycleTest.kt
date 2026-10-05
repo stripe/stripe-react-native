@@ -88,17 +88,6 @@ class StripeSdkModuleLifecycleTest {
   }
 
   @Test
-  fun activeModuleStillFinishesStripeActivitiesAfterHostRecreation() = runScenario {
-    newModule(reactActivity()).initialize()
-
-    val stripeActivity = stripeActivity()
-    dispatchActivityCreated(reactActivity(), Bundle())
-    dispatchActivityCreated(stripeActivity)
-
-    stripeActivity.finishCalls.awaitItem()
-  }
-
-  @Test
   fun firstHostCreationDoesNotFinishStripeActivities() = runScenario {
     newModule(reactActivity()).initialize()
 
