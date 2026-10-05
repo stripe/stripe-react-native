@@ -2,11 +2,12 @@ appId: ${APP_ID}
 ---
 - scrollUntilVisible:
     element:
-      text: 'Show inline element'
-- tapOn: 'Show inline element'
-- scrollUntilVisible:
-    element:
-      text: 'Card'
+      text: 'Select payment method'
+    centerElement: true
+- tapOn: 'Select payment method'
+- extendedWaitUntil:
+    visible: 'Card'
+    timeout: 60000
 - tapOn: 'Card'
 - tapOn: 'Card number. Supported cards include.*'
 - inputText: ${CARD_NUMBER}
@@ -14,16 +15,20 @@ appId: ${APP_ID}
 - inputText: '123'
 - tapOn: 'ZIP.*'
 - inputText: '94107'
+- hideKeyboard
 - scrollUntilVisible:
     element:
       text: 'Continue'
 - tapOn: 'Continue'
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: 'Close'
+    timeout: 60000
+- tapOn: 'Close'
+- extendedWaitUntil:
+    visible: 'Your Cart'
+    timeout: 30000
 - scrollUntilVisible:
     element:
-      text: 'Hide inline element'
-    direction: UP
+      text: 'Buy.*'
     centerElement: true
-- tapOn: 'Hide inline element'
-- scrollUntilVisible:
-    element:
-      text: 'Confirm'

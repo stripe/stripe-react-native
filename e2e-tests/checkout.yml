@@ -9,129 +9,47 @@ appId: ${APP_ID}
       text: 'Checkout Sessions.*'
 - tapOn: 'Checkout Sessions.*'
 - extendedWaitUntil:
-    visible: 'Create session'
+    visible: 'Create Checkout Session'
     timeout: 60000
-- tapOn: 'Create session'
+- assertVisible: 'CONFIGURATION'
+- assertVisible: 'PaymentElement'
+- assertVisible: 'Email source'
+- scrollUntilVisible:
+    element:
+      text: 'LINE ITEMS'
+    centerElement: true
+- assertVisible: 'Classic T-Shirt'
+- assertVisible: 'Zip-Up Hoodie'
+- tapOn: 'Create Checkout Session'
+- extendedWaitUntil:
+    visible: 'Your Cart'
+    timeout: 150000
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
+- assertVisible: 'Classic T-Shirt'
+- assertVisible: 'Zip-Up Hoodie'
 - scrollUntilVisible:
     element:
-      text: 'Show inline element'
+      text: 'Select payment method'
     centerElement: true
-- tapOn: 'Show inline element'
-- scrollUntilVisible:
-    element:
-      text: 'Card'
+- tapOn: 'Select payment method'
+- extendedWaitUntil:
+    visible: 'Card'
+    timeout: 60000
 - tapOn: 'Card'
 - assertVisible: 'Card number. Supported cards include.*'
 - tapOn: 'Close'
 - scrollUntilVisible:
     element:
-      text: 'Hide inline element'
+      text: 'Session diagnostics'
     direction: UP
     centerElement: true
-- tapOn: 'Hide inline element'
-- tapOn: 'Present sheet'
-- waitForAnimationToEnd
-- tapOn: 'Close'
-- tapOn: 'Present sheet'
-- waitForAnimationToEnd
-- tapOn: 'Close'
-- scrollUntilVisible:
-    element:
-      text: 'Session updates'
-    centerElement: true
-- tapOn: 'Session updates'
-- scrollUntilVisible:
-    element:
-      text: 'Server refresh'
-    centerElement: true
-- tapOn: 'Server refresh'
-- extendedWaitUntil:
-    visible: 'Server refresh: done'
-    timeout: 30000
-- scrollUntilVisible:
-    element:
-      text: 'Fail server update'
-    direction: UP
-    centerElement: true
-- tapOn: 'Fail server update'
-- extendedWaitUntil:
-    visible: 'Fail server update: Server rejected update'
-    timeout: 30000
-- scrollUntilVisible:
-    element:
-      text: 'Promotion code'
-    direction: UP
-    centerElement: true
-- tapOn: 'Promotion code'
-- eraseText
-- inputText: 'INVALID_CHECKOUT_TEST_PROMO'
-- hideKeyboard
-- tapOn: 'Apply promotion'
-- scrollUntilVisible:
-    element:
-      text: 'Apply promotion: .*'
-    direction: DOWN
-    centerElement: true
-    timeout: 30000
-- extendedWaitUntil:
-    notVisible: 'Apply promotion: pending'
-    timeout: 30000
-- assertNotVisible: 'Apply promotion: done'
-- scrollUntilVisible:
-    element:
-      text: 'Reload'
-    direction: UP
-    centerElement: true
-- tapOn: 'Reload'
-- scrollUntilVisible:
-    element:
-      text: 'Reload: done'
-    direction: UP
-    centerElement: true
-    timeout: 150000
+- tapOn: 'Session diagnostics'
+- assertVisible: 'CHECKOUT SESSION'
+- assertVisible: 'Checkout Session'
+- assertVisible:
+    id: 'checkout-snapshot'
+- tapOn: 'Cancel'
+- assertVisible: 'Your Cart'
 - assertVisible: 'Status: ready'
-- scrollUntilVisible:
-    element:
-      text: 'Show inline element'
-    centerElement: true
-- tapOn: 'Show inline element'
-- scrollUntilVisible:
-    element:
-      text: 'Card'
-- scrollUntilVisible:
-    element:
-      text: 'Hide inline element'
-    direction: UP
-    centerElement: true
-- tapOn: 'Hide inline element'
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - back
-- runFlow:
-    when:
-      platform: iOS
-    commands:
-      - tapOn: 'HomeScreen'
-- scrollUntilVisible:
-    element:
-      text: 'Checkout Sessions.*'
-- tapOn: 'Checkout Sessions.*'
-- extendedWaitUntil:
-    visible: 'Create session'
-    timeout: 60000
-- tapOn: 'Create session'
-- extendedWaitUntil:
-    visible: 'Status: ready'
-    timeout: 150000
-- scrollUntilVisible:
-    element:
-      text: 'Reset'
-    direction: UP
-    centerElement: true
-- tapOn: 'Reset'
-- assertVisible: 'Session: none'
