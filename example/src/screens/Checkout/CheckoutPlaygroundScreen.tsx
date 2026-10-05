@@ -149,8 +149,12 @@ function ChoiceSheet<T extends string>({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.sheetBackdrop} onPress={onClose}>
-        <Pressable style={styles.choiceSheet}>
+      <Pressable
+        accessible={false}
+        style={styles.sheetBackdrop}
+        onPress={onClose}
+      >
+        <Pressable accessible={false} style={styles.choiceSheet}>
           <View style={styles.choiceSheetHeader}>
             <Text style={styles.choiceSheetTitle}>{title}</Text>
             <Pressable accessibilityRole="button" onPress={onClose}>
