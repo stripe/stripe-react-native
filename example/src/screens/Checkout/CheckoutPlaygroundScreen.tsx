@@ -162,6 +162,7 @@ function ChoiceSheet<T extends string>({
               <Pressable
                 key={choice.value}
                 accessibilityRole="button"
+                accessibilityLabel={choice.label}
                 onPress={() => {
                   onChange(choice.value);
                   onClose();

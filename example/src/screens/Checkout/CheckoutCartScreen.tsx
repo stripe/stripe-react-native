@@ -3,7 +3,7 @@ import {
   useCheckout,
 } from '@stripe/stripe-react-native';
 import type { Checkout } from '@stripe/stripe-react-native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 import type { RootStackParamList } from '../../App';
 import { colors } from '../../colors';
 import { checkoutConfiguration } from './playgroundConfig';
@@ -65,6 +66,20 @@ function TextButton({
       <Text style={[styles.textButton, disabled && styles.disabled]}>
         {title}
       </Text>
+    </Pressable>
+  );
+}
+
+function CloseCartButton() {
+  const navigation = useNavigation();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Close cart"
+      onPress={() => navigation.goBack()}
+      hitSlop={10}
+    >
+      <Text style={styles.headerClose}>×</Text>
     </Pressable>
   );
 }
@@ -134,6 +149,12 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
         }
   );
   const [actionError, setActionError] = useState<string | null>(null);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: CloseCartButton,
+    });
+  }, [navigation]);
 
   const session = checkout.session;
   const isBusy = ['loading', 'updating', 'confirming'].includes(
@@ -660,6 +681,7 @@ const styles = StyleSheet.create({
   },
   statusText: { color: '#697386', fontSize: 12, fontWeight: '700' },
   textButton: { color: colors.blurple, fontSize: 14, fontWeight: '700' },
+  headerClose: { color: colors.white, fontSize: 30, lineHeight: 30 },
   disabled: { opacity: 0.4 },
   itemRow: {
     flexDirection: 'row',
