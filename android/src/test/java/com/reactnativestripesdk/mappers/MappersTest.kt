@@ -517,11 +517,11 @@ class MappersTest {
     assertEquals(1, result.size)
     assertEquals("cpmt_valid", result[0].id)
   }
+}
 
-  // ============================================
-  // mapToAddress Tests
-  // ============================================
-
+@SuppressLint("RestrictedApi")
+@RunWith(RobolectricTestRunner::class)
+class AddressMappersTest {
   @Test
   fun mapToAddress_NullInputs_ReturnsEmptyAddress() {
     val result = mapToAddress(null, null)
@@ -618,11 +618,11 @@ class MappersTest {
     assertEquals("12345", result.postalCode)
     assertEquals("CA", result.country)
   }
+}
 
-  // ============================================
-  // mapToBillingDetails Tests
-  // ============================================
-
+@SuppressLint("RestrictedApi")
+@RunWith(RobolectricTestRunner::class)
+class BillingDetailsMappersTest {
   @Test
   fun mapToBillingDetails_NullInputs_ReturnsNull() {
     val result = mapToBillingDetails(null, null)
