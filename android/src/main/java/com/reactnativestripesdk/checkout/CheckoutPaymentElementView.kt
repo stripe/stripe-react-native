@@ -45,6 +45,22 @@ class CheckoutPaymentElementView(
     attach()
   }
 
+  // React Native does not run a parent layout pass for Compose's child layout requests.
+  override fun requestLayout() {
+    super.requestLayout()
+    if (isAttachedToWindow) {
+      post {
+        if (isAttachedToWindow) {
+          measure(
+            MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
+          )
+          layout(left, top, right, bottom)
+        }
+      }
+    }
+  }
+
   override fun onDetachedFromWindow() {
     detach()
     super.onDetachedFromWindow()
