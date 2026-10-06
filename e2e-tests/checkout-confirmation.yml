@@ -70,7 +70,16 @@ appId: ${APP_ID}
       text: 'Status: ready'
     direction: UP
     centerElement: true
-- tapOn: 'Close cart'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Close cart'
 - extendedWaitUntil:
     visible: 'Create Checkout Session'
     timeout: 60000
