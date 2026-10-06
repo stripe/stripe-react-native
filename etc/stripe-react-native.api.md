@@ -949,6 +949,7 @@ export namespace Checkout {
         state?: string;
     }
     export interface AdjustableQuantity {
+        enabled: boolean;
         maximum: number;
         minimum: number;
     }
@@ -957,7 +958,6 @@ export namespace Checkout {
         minorUnitsAmount: number;
     }
     export interface AmountDetails {
-        discount: Amount;
         subtotal: Amount;
         taxAmounts?: TaxAmount[];
         taxExclusive: Amount;
@@ -970,7 +970,7 @@ export namespace Checkout {
         merchantCountryCode: string;
     }
     export interface BillingDetails {
-        address?: Address;
+        address?: Partial<Address>;
         email?: string;
         name?: string;
         phone?: string;
@@ -1017,6 +1017,7 @@ export namespace Checkout {
     }
     export interface OneTimePriceItem {
         adjustableQuantity?: AdjustableQuantity;
+        amountDetails: AmountDetails;
         displayName: string;
         images: string[];
         key: string;
@@ -1026,7 +1027,6 @@ export namespace Checkout {
         unitLabel?: string;
     }
     export interface OneTimePriceOrderSummaryItem {
-        amountDetails: AmountDetails;
         description?: string;
         items: OneTimePriceItem[];
         key: string;
@@ -1049,7 +1049,6 @@ export namespace Checkout {
         rowSelectionBehavior?: RowSelectionBehavior;
         savePaymentMethodOptInBehavior?: SavePaymentMethodOptInBehavior;
         termsDisplay?: Record<string, TermsDisplay>;
-        useAutocompleteEndpoints?: boolean;
     }
     export interface PaymentOptionDisplayData {
         billingDetails?: BillingDetails;
@@ -1079,7 +1078,6 @@ export namespace Checkout {
         discountAmounts: DiscountAmount[];
         email?: string;
         id: string;
-        lastPaymentError?: StripeError<ErrorCode>;
         livemode: boolean;
         minorUnitsAmountDivisor?: number;
         orderSummaryItems: OrderSummaryItem[];
@@ -1164,7 +1162,7 @@ export interface CheckoutPaymentElement {
 }
 
 // @public
-export function CheckoutPaymentElementView(_props: CheckoutPaymentElementViewProps): React_2.JSX.Element;
+export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProps): React_2.JSX.Element;
 
 // @public
 export interface CheckoutPaymentElementViewProps extends ViewProps {
@@ -1222,6 +1220,7 @@ type CollectBankAccountParams = {
     };
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public (undocumented)
@@ -1245,6 +1244,7 @@ type CollectBankAccountTokenParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
     connectedAccountId?: string;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public
@@ -1255,6 +1255,7 @@ type CollectFinancialConnectionsAccountsParams = {
     style?: UserInterfaceStyle;
     onEvent?: (event: FinancialConnectionsEvent) => void;
     connectedAccountId?: string;
+    preCollectedConsent?: PreCollectedConsent;
 };
 
 // @public (undocumented)
@@ -1556,7 +1557,7 @@ type CreateCardTokenParams = {
 };
 
 // @public
-export function createCheckout(_options: Checkout.CreateOptions): Promise<CheckoutController>;
+export function createCheckout(options: Checkout.CreateOptions): Promise<CheckoutController>;
 
 // @public
 type CreateCryptoPaymentTokenResult = {
@@ -2007,6 +2008,7 @@ type FieldName_2 = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
 declare namespace FinancialConnections {
     export {
+        PreCollectedConsent,
         CollectFinancialConnectionsAccountsParams,
         SessionResult,
         TokenResult,
@@ -2047,8 +2049,10 @@ enum FinancialConnectionsEventErrorCode {
     InstitutionUnavailablePlanned = "institution_unavailable_planned",
     InstitutionUnavailableUnplanned = "institution_unavailable_unplanned",
     NoDebitableAccount = "no_debitable_account",
+    NoEligibleAccounts = "no_eligible_accounts",
     SessionExpired = "session_expired",
-    UnexpectedError = "unexpected_error"
+    UnexpectedError = "unexpected_error",
+    WebBrowserUnavailable = "web_browser_unavailable"
 }
 
 // @public (undocumented)
@@ -2377,6 +2381,9 @@ interface IdealResult {
 }
 
 // @public
+type IdType = 'social_security_number' | 'ca_sin' | 'co_nit' | 'ph_tin';
+
+// @public
 type ImmediateCartSummaryItem = {
     paymentType: 'Immediate';
     isPending?: boolean;
@@ -2589,6 +2596,7 @@ type KycInfo = {
     firstName?: string;
     lastName?: string;
     idNumber?: string;
+    idType?: IdType;
     dateOfBirth?: DateOfBirth;
     address?: Address;
     birthCountry?: string;
@@ -2913,6 +2921,7 @@ declare namespace Onramp {
         WalletOwnershipChallenge,
         CryptoConsumerWallet,
         DateOfBirth,
+        IdType,
         KycInfo,
         ComplianceIdentifierType,
         ComplianceRegulation,
@@ -3519,6 +3528,12 @@ export enum PlatformPayError {
     // (undocumented)
     Unknown = "Unknown"
 }
+
+// @public
+type PreCollectedConsent = {
+    consent: string;
+    collectedAt: number;
+};
 
 // @public
 export const presentLinkController: () => Promise<LinkController.PresentResult>;
@@ -4686,15 +4701,15 @@ interface WeChatPayParams_2 {
 
 // Warnings were encountered during analysis:
 //
-// src/components/CustomerSheet.tsx:374:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:75:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:79:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:253:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
+// src/components/CustomerSheet.tsx:383:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:90:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:94:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:274:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:208:3 - (ae-forgotten-export) The symbol "AppearanceOptions" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
 // src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
-// src/types/PaymentMethod.ts:298:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:301:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

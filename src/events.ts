@@ -1,8 +1,8 @@
 /**
- * Compatibility helper to use new arch events if available and fallback
- * to NativeEventEmitter or DeviceEventEmitter.
+ * Compatibility helper for new architecture events using NativeEventEmitter
+ * or DeviceEventEmitter on React Native versions before 0.80.
  *
- * Can be removed once we no longer need to support the old arch and use
+ * Can be removed once we no longer need to support React Native < 0.80 and use
  * the methods on NativeStripeSdkModule directly.
  */
 
@@ -30,6 +30,10 @@ const compatEventEmitter =
 // Versions before RN 0.80 crash sometimes when setting the event emitter callback.
 // Move this back to the NativeStripeSdkModule spec once we drop support for RN < 0.80.
 type Events = {
+  checkoutServerUpdateRequested: EventEmitter<{
+    controllerId: string;
+    operationId: string;
+  }>;
   onConfirmHandlerCallback: EventEmitter<{
     paymentMethod: UnsafeObject<PaymentMethod.Result>;
     shouldSavePaymentMethod: boolean;
@@ -54,7 +58,9 @@ type Events = {
   onCustomerAdapterFetchSelectedPaymentOptionCallback: EventEmitter<void>;
   onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: EventEmitter<void>;
   onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<void>;
-  onCustomerSessionProviderCustomerSessionClientSecret: EventEmitter<void>;
+  onCustomerSessionProviderCustomerSessionClientSecret: EventEmitter<{
+    requestId: string;
+  }>;
   embeddedPaymentElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
   embeddedPaymentElementWillPresent: EventEmitter<void>;
   embeddedPaymentElementDidUpdatePaymentOption: EventEmitter<UnsafeObject<any>>;
@@ -70,6 +76,9 @@ type Events = {
   checkoutControllerDidUpdate: EventEmitter<
     UnsafeObject<CheckoutControllerUpdate>
   >;
+  checkoutControllerDidSelectPaymentOption: EventEmitter<{
+    controllerId: CheckoutControllerUpdate['controllerId'];
+  }>;
 };
 
 export function addListener<EventT extends keyof Events>(

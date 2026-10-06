@@ -1,5 +1,65 @@
 # CHANGELOG
 
+## Unreleased
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.12.1 to 26.13.0.
+* Updated Stripe Android SDK from 23.21.0 to 23.22.0.
+
+**Fixes**
+
+* [Fixed] Android: Fixed PaymentSheet presentation failures after the host Activity changes. ([#2705](https://github.com/stripe/stripe-react-native/pull/2705))
+* [Fixed] Fixed an issue where CustomerSheet could crash on iOS or remain stuck loading on Android when using CustomerSession.
+* [Fixed] Android: ConfirmationToken `setupFutureUsage` now returns the `FutureUsage` values (`OffSession` / `OnSession` / `None`), matching iOS. ([#2697](https://github.com/stripe/stripe-react-native/pull/2697))
+
+## 0.80.0 - 2026-09-30
+
+**Features**
+
+* [Added] Added support for pre-collected consent in Financial Connections flows. (private preview)
+
+## 0.79.0 - 2026-09-29
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.12.0 to 26.12.1.
+* Updated Stripe Android SDK from 23.20.0 to 23.21.0.
+
+**Fixes**
+
+* [Fixed] Connect embedded components now use the configured appearance background and text colors for their loading indicator. ([#2665](https://github.com/stripe/stripe-react-native/pull/2665))
+
+## 0.78.0 - 2026-09-23
+**Changes**
+* [Changed] React Native versions < 0.75 are deprecated.
+* [Changed] iOS: By default, the Stripe iOS SDK is now resolved through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.
+
+## 0.77.0 - 2026-09-16
+
+**Changes**
+* Updated Stripe iOS SDK from 26.9.0 to 26.11.0.
+* Updated Stripe Android SDK from 23.17.1 to 23.19.0.
+
+**Features**
+
+* [Added] Added `idType` to Crypto Onramp `KycInfo`, supporting US SSN, Canada SIN, Colombia NIT, and Philippines TIN.
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.9.0 to 26.11.0.
+* Updated Stripe Android SDK from 23.17.1 to 23.19.0.
+* [Changed] Android: Migrated Google Pay payment method and token creation to the Activity Result API.
+* [Changed] Android: Checkout billing details collection is now controlled by the Checkout Session; `paymentElement.billingDetailsCollectionConfiguration` applies only to iOS.
+
+**Breaking changes**
+
+* [Removed] Removed support for the React Native old architecture. Enable the new architecture with `newArchEnabled=true` in `gradle.properties` for Android, `RCT_NEW_ARCH_ENABLED=1` in your `Podfile` for iOS, or `newArchEnabled: true` in your app configuration for Expo.
+
+**Fixes**
+
+* [Fixed] Android: Fixed Crypto Onramp presentation failures after Activity recreation by recreating the presenter for the current Activity.
+
 ## 0.76.0 - 2026-09-01
 **Features**
 * [Added] Added `deleteWalletAddress` to Crypto Onramp for deleting a registered wallet from the current Link account.

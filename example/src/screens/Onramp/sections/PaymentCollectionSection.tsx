@@ -4,9 +4,9 @@ import Button from '../../../components/Button';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { PlatformPayButton } from '@stripe/stripe-react-native';
 import { colors } from '../../../colors';
-import { SegmentedControl } from '../../../components/SegmentedControl';
+import { Picker } from '@react-native-picker/picker';
 
-export type SourceCurrency = 'usd' | 'eur';
+export type SourceCurrency = 'usd' | 'eur' | 'cad' | 'cop' | 'php';
 
 interface PaymentCollectionSectionProps {
   isPlatformPaySupported: boolean;
@@ -34,16 +34,18 @@ export function PaymentCollectionSection({
   return (
     <Collapse title="Payment Collection" initialExpanded={true}>
       <Text style={styles.sourceCurrencyLabel}>Source Currency</Text>
-      <View style={styles.sourceCurrencyOptions}>
-        <SegmentedControl<SourceCurrency>
-          options={[
-            { value: 'usd', label: '$ USD' },
-            { value: 'eur', label: '€ EUR' },
-          ]}
-          value={sourceCurrency}
-          onValueChange={onSourceCurrencyChange}
-        />
-      </View>
+      <Picker<SourceCurrency>
+        accessibilityLabel="Source Currency"
+        selectedValue={sourceCurrency}
+        onValueChange={onSourceCurrencyChange}
+        style={styles.sourceCurrencyOptions}
+      >
+        <Picker.Item label="$ USD" value="usd" />
+        <Picker.Item label="€ EUR" value="eur" />
+        <Picker.Item label="CAD" value="cad" />
+        <Picker.Item label="COP" value="cop" />
+        <Picker.Item label="PHP" value="php" />
+      </Picker>
       {isPlatformPaySupported && (
         <View style={{ marginBottom: 12 }}>
           <PlatformPayButton
@@ -97,6 +99,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sourceCurrencyOptions: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
     marginBottom: 12,
   },
   samsungPayContainer: {

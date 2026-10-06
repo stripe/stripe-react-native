@@ -1,4 +1,5 @@
 import Contacts
+import PassKit
 import Stripe
 @_spi(ConfirmationTokensPublicPreview) import StripePayments
 #if canImport(StripeCryptoOnramp)
@@ -1275,6 +1276,7 @@ class Mappers {
             firstName: normalizedString(params["firstName"]),
             lastName: normalizedString(params["lastName"]),
             idNumber: normalizedString(params["idNumber"]),
+            idType: IdType(rawValue: params["idType"] as? String ?? "") ?? .socialSecurityNumber,
             address: address,
             dateOfBirth: dateOfBirth,
             birthCountry: normalizedString(params["birthCountry"]),
@@ -1297,6 +1299,8 @@ class Mappers {
         if let idNumber = kycInfo.idNumber {
             result["idNumber"] = idNumber
         }
+
+        result["idType"] = kycInfo.idType.rawValue
 
         if let address = kycInfo.address {
             result["address"] = mapFromKycAddress(address)

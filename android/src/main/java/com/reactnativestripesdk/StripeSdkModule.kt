@@ -2,18 +2,21 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
+import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.SavedStateHandle
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
@@ -25,7 +28,10 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
-import com.reactnativestripesdk.checkout.CheckoutControllerRegistry
+import com.reactnativestripesdk.checkout.CheckoutConfigurationMapper
+import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
+import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
+import com.reactnativestripesdk.checkout.checkoutErrorCode
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
@@ -53,6 +59,7 @@ import com.reactnativestripesdk.utils.mapFromToken
 import com.reactnativestripesdk.utils.mapToAddress
 import com.reactnativestripesdk.utils.mapToBankAccountType
 import com.reactnativestripesdk.utils.mapToPaymentMethodType
+import com.reactnativestripesdk.utils.mapToPreCollectedConsent
 import com.reactnativestripesdk.utils.mapToReturnURL
 import com.reactnativestripesdk.utils.mapToShippingDetails
 import com.reactnativestripesdk.utils.mapToUICustomization
@@ -61,11 +68,11 @@ import com.stripe.android.GooglePayJsonFactory
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
+import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
 import com.stripe.android.core.reactnative.ReactNativeAnalytics
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
-import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.BankAccountTokenParams
 import com.stripe.android.model.CardParams
@@ -76,19 +83,26 @@ import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.RadarSession
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
+import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 @ReactModule(name = StripeSdkModule.NAME)
-@OptIn(ReactNativeSdkInternal::class)
+@OptIn(ReactNativeSdkInternal::class, CheckoutSessionPreview::class)
 class StripeSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeStripeSdkModuleSpec(reactContext) {
+
   var cardFieldView: CardFieldView? = null
   var cardFormView: CardFormView? = null
 
@@ -98,7 +112,7 @@ class StripeSdkModule(
   private var urlScheme: String? = null
 
   private var createPlatformPayPaymentMethodPromise: Promise? = null
-  private var platformPayUsesDeprecatedTokenFlow = false
+  private var platformPayLauncher: GooglePayRequestLauncher? = null
 
   private val stripeUIManagers = mutableListOf<StripeUIManager>()
   private var paymentSheetManager: PaymentSheetManager? = null
@@ -109,7 +123,10 @@ class StripeSdkModule(
   private var googlePayPaymentMethodLauncherManager: GooglePayPaymentMethodLauncherManager? = null
   private var customerSheetManager: CustomerSheetManager? = null
   private var linkControllerManager: LinkControllerManager? = null
-  internal val checkoutControllerRegistry = CheckoutControllerRegistry()
+  internal val checkoutControllers = mutableMapOf<String, NativeCheckoutControllerInstance>()
+  private val pendingCheckoutCreationScopes = mutableSetOf<CoroutineScope>()
+
+  @Volatile private var checkoutControllersInvalidated = false
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
   internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
@@ -124,44 +141,22 @@ class StripeSdkModule(
 
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
 
-  private val mActivityEventListener =
-    object : BaseActivityEventListener() {
-      override fun onActivityResult(
-        activity: Activity,
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-      ) {
-        if (::stripe.isInitialized) {
-          when (requestCode) {
-            GooglePayRequestHelper.LOAD_PAYMENT_DATA_REQUEST_CODE -> {
-              createPlatformPayPaymentMethodPromise?.let {
-                GooglePayRequestHelper.handleGooglePaymentMethodResult(
-                  resultCode,
-                  data,
-                  stripe,
-                  platformPayUsesDeprecatedTokenFlow,
-                  it,
-                )
-                createPlatformPayPaymentMethodPromise = null
-              }
-            }
-          }
-        }
-      }
-    }
-
-  init {
-    reactContext.addActivityEventListener(mActivityEventListener)
-  }
-
   override fun invalidate() {
+    checkoutControllersInvalidated = true
     super.invalidate()
 
     stripeUIManagers.forEach { it.destroy() }
     stripeUIManagers.clear()
     UiThreadUtil.runOnUiThread {
-      checkoutControllerRegistry.clear()
+      platformPayLauncher?.destroy()
+      platformPayLauncher = null
+      createPlatformPayPaymentMethodPromise = null
+      val pendingScopes = pendingCheckoutCreationScopes.toList()
+      pendingCheckoutCreationScopes.clear()
+      pendingScopes.forEach { it.cancel() }
+      val controllers = checkoutControllers.values.toList()
+      checkoutControllers.clear()
+      controllers.forEach { it.destroy() }
     }
     linkControllerManager?.destroy()
     linkControllerManager = null
@@ -224,7 +219,7 @@ class StripeSdkModule(
               ).toString()
           ),
           "appVersion" to (packageInfo?.versionName ?: ""),
-          "isNewArchitecture" to BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+          "isNewArchitecture" to true,
           "reactNativeVersion" to
             with(ReactNativeVersion.VERSION) {
               "${get("major")}.${get("minor")}.${get("patch")}"
@@ -263,7 +258,7 @@ class StripeSdkModule(
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
-    ReactNativeAnalytics.isNewArchitecture = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+    ReactNativeAnalytics.isNewArchitecture = true
     ReactNativeAnalytics.reactNativeVersion =
       with(ReactNativeVersion.VERSION) {
         "${get("major")}.${get("minor")}.${get("patch")}"
@@ -903,6 +898,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  @Suppress("TooGenericExceptionCaught") // Convert SDK and Activity launch failures to bridge errors.
   override fun createPlatformPayPaymentMethod(
     params: ReadableMap,
     usesDeprecatedTokenFlow: Boolean,
@@ -918,16 +914,34 @@ class StripeSdkModule(
         )
         return
       }
-    platformPayUsesDeprecatedTokenFlow = usesDeprecatedTokenFlow
-    createPlatformPayPaymentMethodPromise = promise
-    getCurrentActivityOrResolveWithError(promise)?.let {
-      val request =
-        GooglePayRequestHelper.createPaymentRequest(
-          it,
+    UiThreadUtil.runOnUiThread {
+      if (createPlatformPayPaymentMethodPromise != null) {
+        promise.resolve(createError("Failed", "A Google Pay request is already in progress."))
+        return@runOnUiThread
+      }
+      val activity = getCurrentActivityOrResolveWithError(promise) ?: return@runOnUiThread
+      createPlatformPayPaymentMethodPromise = promise
+      try {
+        platformPayLauncher = GooglePayRequestLauncher(reactApplicationContext) { result ->
+          platformPayLauncher?.destroy()
+          platformPayLauncher = null
+          createPlatformPayPaymentMethodPromise = null
+          GooglePayRequestHelper.handleGooglePaymentMethodResult(
+            result, stripe, usesDeprecatedTokenFlow, promise,
+          )
+        }
+        val request = GooglePayRequestHelper.createPaymentRequest(
+          activity,
           GooglePayJsonFactory(reactApplicationContext),
           googlePayParams,
         )
-      GooglePayRequestHelper.createPaymentMethod(request, it)
+        platformPayLauncher?.launch(activity, request)
+      } catch (error: Exception) {
+        platformPayLauncher?.destroy()
+        platformPayLauncher = null
+        createPlatformPayPaymentMethodPromise = null
+        promise.resolve(createError("Failed", error))
+      }
     }
   }
 
@@ -1033,15 +1047,22 @@ class StripeSdkModule(
         billingDetails.getString("email"),
       )
 
+    val preCollectedConsent =
+      mapToPreCollectedConsent(params).getOrElse {
+        promise.resolve(createError(ErrorType.Failed.toString(), it.message))
+        return
+      }
+
     unregisterStripeUIManager(collectBankAccountLauncherManager)
     collectBankAccountLauncherManager =
       CollectBankAccountLauncherManager(
-        reactApplicationContext,
-        publishableKey,
-        stripeAccountId,
-        clientSecret,
-        isPaymentIntent,
-        collectParams,
+        context = reactApplicationContext,
+        publishableKey = publishableKey,
+        stripeAccountId = stripeAccountId,
+        clientSecret = clientSecret,
+        isPaymentIntent = isPaymentIntent,
+        collectParams = collectParams,
+        preCollectedConsent = preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1147,14 +1168,21 @@ class StripeSdkModule(
     // Use connectedAccountId from params if provided, otherwise fall back to global stripeAccountId
     val accountId = getValOr(params, "connectedAccountId", null) ?: stripeAccountId
 
+    val preCollectedConsent =
+      mapToPreCollectedConsent(params).getOrElse {
+        promise.resolve(createError(ErrorType.Failed.toString(), it.message))
+        return
+      }
+
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
-        reactApplicationContext,
-        clientSecret,
-        FinancialConnectionsSheetManager.Mode.ForToken,
-        publishableKey,
-        accountId,
+        context = reactApplicationContext,
+        clientSecret = clientSecret,
+        mode = FinancialConnectionsSheetManager.Mode.ForToken,
+        publishableKey = publishableKey,
+        stripeAccountId = accountId,
+        preCollectedConsent = preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1175,14 +1203,21 @@ class StripeSdkModule(
     // Use connectedAccountId from params if provided, otherwise fall back to global stripeAccountId
     val accountId = getValOr(params, "connectedAccountId", null) ?: stripeAccountId
 
+    val preCollectedConsent =
+      mapToPreCollectedConsent(params).getOrElse {
+        promise.resolve(createError(ErrorType.Failed.toString(), it.message))
+        return
+      }
+
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
-        reactApplicationContext,
-        clientSecret,
-        FinancialConnectionsSheetManager.Mode.ForSession,
-        publishableKey,
-        accountId,
+        context = reactApplicationContext,
+        clientSecret = clientSecret,
+        mode = FinancialConnectionsSheetManager.Mode.ForSession,
+        publishableKey = publishableKey,
+        stripeAccountId = accountId,
+        preCollectedConsent = preCollectedConsent,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1347,28 +1382,23 @@ class StripeSdkModule(
     customerSessionClientSecretJson: ReadableMap,
     promise: Promise,
   ) {
-    val clientSecret = customerSessionClientSecretJson.getString("clientSecret")
-    val customerId = customerSessionClientSecretJson.getString("customerId")
-
-    if (clientSecret.isNullOrEmpty() || customerId.isNullOrEmpty()) {
-      Log.e(
-        "StripeReactNative",
-        "Invalid CustomerSessionClientSecret format",
-      )
+    val requestId = runCatching { customerSessionClientSecretJson.getString("requestId") }.getOrNull()
+    if (requestId == null) {
+      promise.resolve(createError(ErrorType.Failed.toString(), "Missing CustomerSession request ID"))
       return
     }
 
-    customerSheetManager?.let {
-      it.customerSessionProvider?.providesCustomerSessionClientSecretCallback?.complete(
-        CustomerSheet.CustomerSessionClientSecret.create(
-          customerId = customerId,
-          clientSecret = clientSecret,
-        ),
+    val completed = customerSheetManager?.customerSessionProvider?.completeCustomerSessionRequest(
+      requestId,
+      customerSessionClientSecretJson,
+    )
+    if (completed != true) {
+      promise.resolve(
+        createError(ErrorType.Failed.toString(), "Unknown or completed CustomerSession request ID"),
       )
-    } ?: run {
-      promise.resolve(CustomerSheetManager.createMissingInitError())
       return
     }
+    promise.resolve(Arguments.createMap())
   }
 
   @ReactMethod
@@ -1394,6 +1424,294 @@ class StripeSdkModule(
         },
       activity = getCurrentActivityOrResolveWithError(promise) as? AppCompatActivity,
     )
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun createCheckout(
+    params: ReadableMap,
+    controllerId: String,
+    promise: Promise,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      if (checkoutControllersInvalidated) {
+        return@runOnUiThread promise.reject("Failed", "Stripe SDK was invalidated.")
+      }
+      val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+      pendingCheckoutCreationScopes.add(scope)
+      scope.launch {
+        var controller: CheckoutController? = null
+        try {
+          val mapped = CheckoutConfigurationMapper.map(
+            params = params,
+            context = reactApplicationContext,
+            didSelectPaymentOption = { emitCheckoutPaymentOptionSelection(controllerId) },
+          )
+          controller = CheckoutController.Builder(
+            reactApplicationContext.applicationContext as Application,
+            SavedStateHandle(),
+          ).resultCallback { result ->
+            UiThreadUtil.runOnUiThread { checkoutControllers[controllerId]?.onConfirmationResult(result) }
+          }.rowSelectionBehavior(mapped.rowSelectionBehavior)
+            // Native uses this name as its Payment Element callback identifier.
+            .integrationName("stripe-react-native-$controllerId")
+            .build()
+
+          controller.configure(mapped.clientSecret, mapped.configuration).getOrThrow()
+          val nativeSession = requireNotNull(controller.session.value) {
+            "Checkout did not return a session after configuration."
+          }
+          val serializedSession = CheckoutSessionSerializer.serialize(nativeSession)
+          val instance = NativeCheckoutControllerInstance(
+            controller = controller,
+            eventEmitter = eventEmitter,
+            scope = scope,
+            initialSession = serializedSession,
+          )
+          check(!checkoutControllersInvalidated) { "Stripe SDK was invalidated." }
+          scope.coroutineContext.ensureActive()
+          checkoutControllers[controllerId] = instance
+          instance.start(controllerId)
+          promise.resolve(
+            Arguments.createMap().apply {
+              putMap("session", serializedSession.copy())
+            },
+          )
+        } catch (error: Exception) {
+          checkoutControllers.remove(controllerId)
+          controller?.destroy()
+          scope.cancel()
+          promise.reject("Failed", error.message, error)
+        } finally {
+          pendingCheckoutCreationScopes.remove(scope)
+        }
+      }
+    }
+  }
+
+  private fun emitCheckoutPaymentOptionSelection(controllerId: String) {
+    if (checkoutControllers[controllerId] != null) {
+      eventEmitter.emitCheckoutControllerDidSelectPaymentOption(
+        Arguments.createMap().apply { putString("controllerId", controllerId) },
+      )
+    }
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun destroyCheckout(
+    controllerId: String,
+    promise: Promise,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers.remove(controllerId)
+      if (instance == null) {
+        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        return@runOnUiThread
+      }
+
+      try {
+        instance.destroy()
+      } catch (error: Exception) {
+        promise.reject("Failed", error.message, error)
+        return@runOnUiThread
+      }
+      promise.resolve(null)
+    }
+  }
+
+  @ReactMethod
+  override fun updateCheckoutEmail(
+    controllerId: String,
+    email: String?,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.updateEmail(email)
+    }
+  }
+
+  @ReactMethod
+  override fun updateCheckoutShippingAddress(
+    controllerId: String,
+    params: ReadableMap,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      val name = params.getString("name")
+      val address = params.getMap("address")?.let {
+        CheckoutConfigurationMapper.mapAddress(it)
+      }
+      // Native Checkout currently requires an address and has no clearing API.
+      // TODO(porter): Forward null addresses once the Android SDK supports clearing shipping details.
+      if (address == null) {
+        Result.failure(
+          IllegalStateException(
+            "The installed Stripe Android SDK does not support " +
+              "CheckoutController.updateShippingAddress(name, address) yet.",
+          ),
+        )
+      } else {
+        controller.updateShippingAddress(name, address)
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun applyCheckoutPromotionCode(
+    controllerId: String,
+    promotionCode: String,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.applyPromotionCode(promotionCode)
+    }
+  }
+
+  @ReactMethod
+  override fun removeCheckoutPromotionCode(
+    controllerId: String,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.removePromotionCode()
+    }
+  }
+
+  @ReactMethod
+  override fun clearCheckoutPaymentOption(
+    controllerId: String,
+    promise: Promise,
+  ) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      controller.clearPaymentOption()
+    }
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun confirmCheckout(controllerId: String, promise: Promise) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      if (instance == null) {
+        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        return@runOnUiThread
+      }
+      val activity = reactApplicationContext.currentActivity as? ComponentActivity
+      if (activity == null || activity.isFinishing ||
+        !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+      ) {
+        promise.reject("Failed", "Checkout requires a resumed activity to confirm.")
+        return@runOnUiThread
+      }
+      instance.launchMutation {
+        try {
+          val result = instance.confirm(activity)
+          promise.resolve(CheckoutSessionSerializer.serialize(result, instance.controller.session.value?.status))
+        } catch (error: Exception) {
+          promise.reject(checkoutErrorCode(error), error.message, error)
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun presentCheckoutPaymentElement(controllerId: String, promise: Promise) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      if (instance == null) {
+        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        return@runOnUiThread
+      }
+      val activity = reactApplicationContext.currentActivity as? ComponentActivity
+      if (activity == null || activity.isFinishing ||
+        !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+      ) {
+        promise.reject("Failed", "Checkout requires a resumed activity to present Payment Element.")
+        return@runOnUiThread
+      }
+      try {
+        instance.paymentElement(activity).present()
+        promise.resolve(null)
+      } catch (error: Exception) {
+        promise.reject("Failed", error.message, error)
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun runCheckoutServerUpdate(controllerId: String, operationId: String, promise: Promise) {
+    performCheckoutMutation(controllerId, promise) { controller ->
+      val instance = checkoutControllers.getValue(controllerId)
+      controller.runServerUpdate {
+        instance.requestServerUpdate(operationId) {
+          eventEmitter.emitCheckoutServerUpdateRequested(
+            Arguments.createMap().apply {
+              putString("controllerId", controllerId)
+              putString("operationId", operationId)
+            },
+          )
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun completeCheckoutServerUpdate(
+    controllerId: String,
+    operationId: String,
+    error: String?,
+    promise: Promise,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      instance?.completeServerUpdate(operationId, error)
+      promise.resolve(null)
+    }
+  }
+
+  @Suppress("TooGenericExceptionCaught")
+  private fun performCheckoutMutation(
+    controllerId: String,
+    promise: Promise,
+    operation: suspend (CheckoutController) -> Result<Unit>,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      if (instance == null) {
+        promise.reject(
+          "Failed",
+          "Checkout controller `$controllerId` does not exist.",
+        )
+        return@runOnUiThread
+      }
+      instance.launchMutation {
+        try {
+          operation(instance.controller).getOrThrow()
+          instance.publishCurrentState()
+          if (checkoutControllers[controllerId] !== instance) {
+            promise.reject(
+              "Canceled",
+              "The Checkout controller was destroyed before the operation completed.",
+            )
+            return@launchMutation
+          }
+          promise.resolve(null)
+        } catch (error: Exception) {
+          val code = when (error) {
+            is TimeoutCancellationException -> "Timeout"
+            is CancellationException -> "Canceled"
+            else -> "Failed"
+          }
+          promise.reject(
+            code,
+            error.message,
+            error,
+          )
+        }
+      }
+    }
   }
 
   // Android owns EmbeddedPaymentElement through its native view. Configuration,

@@ -333,17 +333,47 @@ class OnrampMappersTests: XCTestCase {
         }
     }
 
-    func test_mapToKycInfo_emptyParamsReturnsAllNil() throws {
+    func test_mapToKycInfo_emptyParamsUsesDefaults() throws {
         let result = try Mappers.mapToKycInfo([:])
 
         XCTAssertNil(result.firstName)
         XCTAssertNil(result.lastName)
         XCTAssertNil(result.idNumber)
+        XCTAssertEqual(result.idType, .socialSecurityNumber)
         XCTAssertNil(result.address)
         XCTAssertNil(result.dateOfBirth)
         XCTAssertNil(result.birthCountry)
         XCTAssertNil(result.birthCity)
         XCTAssertNil(result.nationalities)
+    }
+
+    func test_kycInfo_preservesIdTypes() throws {
+        let cases: [(String, IdType)] = [
+            ("social_security_number", .socialSecurityNumber),
+            ("ca_sin", .canadianSocialInsuranceNumber),
+            ("co_nit", .colombianTaxIdentificationNumber),
+            ("ph_tin", .philippinesTaxpayerIdentificationNumber),
+        ]
+
+        for (value, expectedType) in cases {
+            let kycInfo = try Mappers.mapToKycInfo([
+                "idNumber": "123456789",
+                "idType": value,
+            ])
+
+            XCTAssertEqual(kycInfo.idType, expectedType)
+            let result = Mappers.mapFromKycInfo(kycInfo)
+            XCTAssertEqual(result["idNumber"] as? String, "123456789")
+            XCTAssertEqual(result["idType"] as? String, value)
+        }
+    }
+
+    func test_mapToKycInfo_nullOrUnknownIdTypeUsesDefault() throws {
+        for value: Any in [NSNull(), "unknown"] {
+            let result = try Mappers.mapToKycInfo(["idType": value])
+
+            XCTAssertEqual(result.idType, .socialSecurityNumber)
+        }
     }
 
     func test_mapFromKycInfo_fullInfoMapsNestedValues() {
@@ -370,6 +400,7 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertEqual(result["firstName"] as? String, "Jane")
         XCTAssertEqual(result["lastName"] as? String, "Doe")
         XCTAssertEqual(result["idNumber"] as? String, "123456789")
+        XCTAssertEqual(result["idType"] as? String, "social_security_number")
 
         let address = result["address"] as? [String: String]
         XCTAssertEqual(address?["city"], "San Francisco")
@@ -405,6 +436,7 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertEqual(result["firstName"] as? String, "Jane")
         XCTAssertNil(result["lastName"])
         XCTAssertNil(result["idNumber"])
+        XCTAssertEqual(result["idType"] as? String, "social_security_number")
         XCTAssertNil(result["address"])
         XCTAssertNil(result["dateOfBirth"])
         XCTAssertNil(result["birthCountry"])

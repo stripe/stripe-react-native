@@ -1,17 +1,15 @@
 package com.reactnativestripesdk
 
-import android.app.Activity
-import android.content.Intent
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.google.android.gms.tasks.Task
-import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.PaymentData
 import com.google.android.gms.wallet.PaymentDataRequest
 import com.google.android.gms.wallet.Wallet
 import com.google.android.gms.wallet.WalletConstants
+import com.google.android.gms.wallet.contract.ApiTaskResult
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.getBooleanOr
@@ -30,8 +28,6 @@ import java.util.Locale
 
 class GooglePayRequestHelper {
   companion object {
-    internal const val LOAD_PAYMENT_DATA_REQUEST_CODE = 414243
-
     internal fun createPaymentRequest(
       activity: FragmentActivity,
       factory: GooglePayJsonFactory,
@@ -121,42 +117,30 @@ class GooglePayRequestHelper {
       )
     }
 
-    internal fun createPaymentMethod(
-      request: Task<PaymentData>,
-      activity: FragmentActivity,
-    ) {
-      @Suppress("DEPRECATION")
-      AutoResolveHelper.resolveTask(request, activity, LOAD_PAYMENT_DATA_REQUEST_CODE)
-    }
-
     internal fun handleGooglePaymentMethodResult(
-      resultCode: Int,
-      data: Intent?,
+      result: ApiTaskResult<PaymentData>,
       stripe: Stripe,
       forToken: Boolean,
       promise: Promise,
     ) {
-      when (resultCode) {
-        Activity.RESULT_OK -> {
-          data?.let { intent ->
-            PaymentData.getFromIntent(intent)?.let {
-              if (forToken) {
-                resolveWithToken(it, promise)
-              } else {
-                resolveWithPaymentMethod(it, stripe, promise)
-              }
-            }
+      val paymentData = result.result
+      when {
+        result.status.isSuccess -> {
+          if (paymentData == null) {
+            promise.resolve(createError(ErrorType.Failed.toString(), "Google Pay returned no payment data."))
+          } else if (forToken) {
+            resolveWithToken(paymentData, promise)
+          } else {
+            resolveWithPaymentMethod(paymentData, stripe, promise)
           }
         }
-        Activity.RESULT_CANCELED -> {
+        result.status.isCanceled -> {
           promise.resolve(
             createError(ErrorType.Canceled.toString(), "The payment has been canceled"),
           )
         }
-        AutoResolveHelper.RESULT_ERROR -> {
-          AutoResolveHelper.getStatusFromIntent(data)?.let {
-            promise.resolve(createError(ErrorType.Failed.toString(), it.statusMessage))
-          }
+        else -> {
+          promise.resolve(createError(ErrorType.Failed.toString(), result.status.statusMessage ?: "Google Pay failed."))
         }
       }
     }

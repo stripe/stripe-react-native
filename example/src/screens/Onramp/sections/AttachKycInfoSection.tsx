@@ -1,11 +1,15 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { Collapse } from '../../../components/Collapse';
 import Button from '../../../components/Button';
 import { FormField } from '../FormField';
 import { colors } from '../../../colors';
+import { kycResidences } from '../KycResidence';
+import type { KycResidence } from '../KycResidence';
 
 export interface KycInfoInput {
+  residence: KycResidence;
   firstName: string;
   lastName: string;
   idNumber: string;
@@ -26,14 +30,18 @@ export interface KycInfoInput {
 interface AttachKycInfoSectionProps {
   kycInfo: KycInfoInput;
   setKycInfo: React.Dispatch<React.SetStateAction<KycInfoInput>>;
+  onResidenceChange: (residence: KycResidence) => void;
   handleAttachKycInfo: () => void;
 }
 
 export function AttachKycInfoSection({
   kycInfo,
   setKycInfo,
+  onResidenceChange,
   handleAttachKycInfo,
 }: AttachKycInfoSectionProps) {
+  const residence = kycResidences[kycInfo.residence];
+  const isEuResidence = kycInfo.residence === 'EU';
   const updateField =
     (field: keyof KycInfoInput) =>
     (text: string): void => {
@@ -43,9 +51,21 @@ export function AttachKycInfoSection({
   return (
     <Collapse title="KYC Information" initialExpanded={false}>
       <Text style={styles.note}>
-        Enter any KYC details you want to attach. Birth country, birth city, and
-        nationalities are used by the newer EU compliance flows.
+        Select a residence, then enter any KYC details you want to attach. Birth
+        country, birth city, and nationalities are used by the newer EU
+        compliance flows.
       </Text>
+      <Text style={styles.groupLabel}>Residence</Text>
+      <Picker<KycResidence>
+        accessibilityLabel="Residence"
+        selectedValue={kycInfo.residence}
+        onValueChange={onResidenceChange}
+        style={styles.residencePicker}
+      >
+        {Object.entries(kycResidences).map(([value, configuration]) => (
+          <Picker.Item key={value} label={configuration.label} value={value} />
+        ))}
+      </Picker>
       <FormField
         label="First Name"
         value={kycInfo.firstName}
@@ -60,13 +80,17 @@ export function AttachKycInfoSection({
         placeholder="Doe"
         autoCapitalize="words"
       />
-      <FormField
-        label="ID Number"
-        value={kycInfo.idNumber}
-        onChangeText={updateField('idNumber')}
-        placeholder="123456789"
-        autoCorrect={false}
-      />
+      {residence.nationalId && (
+        <FormField
+          label={residence.nationalId.label}
+          value={kycInfo.idNumber}
+          onChangeText={updateField('idNumber')}
+          placeholder={residence.nationalId.placeholder}
+          keyboardType="ascii-capable"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+      )}
       <Text style={styles.groupLabel}>Date of Birth</Text>
       <View style={styles.dateOfBirthRow}>
         <FormField
@@ -116,7 +140,7 @@ export function AttachKycInfoSection({
         autoCapitalize="words"
       />
       <FormField
-        label="State / Region"
+        label={isEuResidence ? 'State / Province' : 'State / Province *'}
         value={kycInfo.addressState}
         onChangeText={updateField('addressState')}
         placeholder="CA"
@@ -133,33 +157,37 @@ export function AttachKycInfoSection({
         label="Country"
         value={kycInfo.addressCountry}
         onChangeText={updateField('addressCountry')}
-        placeholder="US"
+        placeholder={residence.countryCode || 'FR'}
         autoCapitalize="characters"
         autoCorrect={false}
       />
-      <FormField
-        label="Birth Country"
-        value={kycInfo.birthCountry}
-        onChangeText={updateField('birthCountry')}
-        placeholder="FR"
-        autoCapitalize="characters"
-        autoCorrect={false}
-      />
-      <FormField
-        label="Birth City"
-        value={kycInfo.birthCity}
-        onChangeText={updateField('birthCity')}
-        placeholder="Paris"
-        autoCapitalize="words"
-      />
-      <FormField
-        label="Nationalities"
-        value={kycInfo.nationalities}
-        onChangeText={updateField('nationalities')}
-        placeholder="FR, DE"
-        autoCapitalize="characters"
-        autoCorrect={false}
-      />
+      {isEuResidence && (
+        <>
+          <FormField
+            label="Birth Country"
+            value={kycInfo.birthCountry}
+            onChangeText={updateField('birthCountry')}
+            placeholder="FR"
+            autoCapitalize="characters"
+            autoCorrect={false}
+          />
+          <FormField
+            label="Birth City"
+            value={kycInfo.birthCity}
+            onChangeText={updateField('birthCity')}
+            placeholder="Paris"
+            autoCapitalize="words"
+          />
+          <FormField
+            label="Nationalities"
+            value={kycInfo.nationalities}
+            onChangeText={updateField('nationalities')}
+            placeholder="FR, DE"
+            autoCapitalize="characters"
+            autoCorrect={false}
+          />
+        </>
+      )}
       <Button
         title="Attach KYC Info"
         onPress={handleAttachKycInfo}
@@ -178,6 +206,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontWeight: 'bold',
     color: colors.slate,
+  },
+  residencePicker: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    marginBottom: 12,
   },
   dateOfBirthRow: {
     flexDirection: 'row',
