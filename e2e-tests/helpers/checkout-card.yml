@@ -1,0 +1,40 @@
+appId: ${APP_ID}
+---
+- scrollUntilVisible:
+    element:
+      text: 'Select payment method'
+    centerElement: true
+- tapOn: 'Select payment method'
+- extendedWaitUntil:
+    visible: 'Card'
+    timeout: 60000
+- tapOn: 'Card'
+- tapOn: 'Card number. Supported cards include.*'
+- inputText: ${CARD_NUMBER}
+- inputText: '0145'
+- inputText: '123'
+- tapOn: 'ZIP.*'
+- inputText: '94107'
+- scrollUntilVisible:
+    element:
+      text: 'Continue'
+- tapOn: 'Continue'
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    notVisible: 'Card number. Supported cards include.*'
+    timeout: 60000
+# Some SDK versions dismiss directly; others return to the payment method list.
+- runFlow:
+    when:
+      visible: 'Close'
+    commands:
+      - tapOn: 'Close'
+- extendedWaitUntil:
+    visible:
+      id: 'checkout-select-payment-method'
+      text: '.*${CARD_NUMBER.slice(-4)}.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Buy.*'
+    centerElement: true

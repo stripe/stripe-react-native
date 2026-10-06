@@ -1,0 +1,139 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn: 'Reset'
+- tapOn: 'PaymentElement'
+- tapOn: 'view'
+- tapOn: 'Email source'
+- tapOn: 'Local'
+- tapOn:
+    id: 'checkout-create-session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- scrollUntilVisible:
+    element:
+      text: 'Edit email'
+    centerElement: true
+- tapOn: 'Edit email'
+- tapOn: 'Email address'
+- eraseText
+- inputText: 'updated@example.com'
+- hideKeyboard
+- tapOn: 'Save email'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - extendedWaitUntil:
+          visible: 'updated@example.com'
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: 'The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.'
+          timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Status: ready'
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Add shipping address'
+    centerElement: true
+- tapOn: 'Add shipping address'
+- extendedWaitUntil:
+    visible: 'Shipping address'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Save Address'
+- tapOn: 'Save Address'
+- extendedWaitUntil:
+    notVisible: 'Save Address'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: '(?s).*510 Townsend St.*'
+    centerElement: true
+    timeout: 30000
+- tapOn: '(?s)Edit shipping address.*'
+- scrollUntilVisible:
+    element:
+      text: 'Clear address'
+- tapOn: 'Clear address'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: 'Add shipping address'
+          timeout: 30000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: 'The installed Stripe Android SDK does not support CheckoutController.updateShippingAddress\(name, address\) yet.'
+          direction: UP
+          centerElement: true
+          timeout: 30000
+      - scrollUntilVisible:
+          element:
+            text: '(?s).*510 Townsend St.*'
+          centerElement: true
+          timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Select payment method'
+    centerElement: true
+- tapOn: 'Select payment method'
+- scrollUntilVisible:
+    element:
+      text: 'Card'
+- tapOn: 'Card'
+- tapOn: 'Card number. Supported cards include.*'
+- inputText: '4242424242424242'
+- inputText: '0145'
+- inputText: '123'
+- tapOn: 'ZIP.*'
+- inputText: '94107'
+- scrollUntilVisible:
+    element:
+      text: 'Continue'
+- tapOn: 'Continue'
+- extendedWaitUntil:
+    notVisible: 'Continue'
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      text: 'Done'
+- tapOn: 'Done'
+- extendedWaitUntil:
+    visible: 'Clear payment option'
+    timeout: 30000
+- tapOn: 'Clear payment option'
+- extendedWaitUntil:
+    visible: 'Select payment method'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Status: ready'
+    direction: UP
+    centerElement: true
+    timeout: 30000

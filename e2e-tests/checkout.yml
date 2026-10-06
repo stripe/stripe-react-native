@@ -1,0 +1,56 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn: 'Reset'
+- assertVisible: 'CONFIGURATION'
+- assertVisible: 'PaymentElement'
+- assertVisible: 'Email source'
+- scrollUntilVisible:
+    element:
+      text: 'LINE ITEMS'
+    centerElement: true
+- assertVisible: 'Classic T-Shirt'
+- assertVisible: 'Zip-Up Hoodie'
+- waitForAnimationToEnd
+- tapOn:
+    id: 'checkout-create-session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- assertVisible: 'Classic T-Shirt'
+- assertVisible: 'Zip-Up Hoodie'
+- scrollUntilVisible:
+    element:
+      text: 'Select payment method'
+    centerElement: true
+- tapOn: 'Select payment method'
+- extendedWaitUntil:
+    visible: 'Card'
+    timeout: 60000
+- tapOn: 'Card'
+- assertVisible: 'Card number. Supported cards include.*'
+- tapOn: 'Close'
+- scrollUntilVisible:
+    element:
+      text: 'Session diagnostics'
+    direction: UP
+    centerElement: true
+- tapOn: 'Session diagnostics'
+- assertVisible: 'CHECKOUT SESSION'
+- assertVisible: 'Checkout Session'
+- assertVisible:
+    id: 'checkout-snapshot'
+- tapOn: 'Cancel'
+- assertVisible:
+    id: 'checkout-status'
+- assertVisible: 'Status: ready'

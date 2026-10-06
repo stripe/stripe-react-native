@@ -22,6 +22,7 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -29,6 +30,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -147,6 +149,23 @@ class NativeCheckoutControllerInstanceTest {
     fixture.instance.publishCurrentState()
 
     assertEquals("updated@example.com", fixture.events.last().getMap("session")!!.getString("email"))
+    assertEquals("ready", fixture.events.last().getString("status"))
+  }
+
+  @Test
+  fun `snapshot publication does not restore an updating status after native completion`() = withFixture { fixture ->
+    fixture.start()
+    advanceUntilIdle()
+    fixture.updating.value = true
+    val publication = async { fixture.instance.publishCurrentState() }
+    launch {
+      // Complete the operation after its busy snapshot is queued, before it is published.
+      repeat(2) { yield() }
+      fixture.updating.value = false
+    }
+    advanceUntilIdle()
+    publication.await()
+
     assertEquals("ready", fixture.events.last().getString("status"))
   }
 
