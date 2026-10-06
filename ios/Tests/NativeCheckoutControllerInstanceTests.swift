@@ -52,6 +52,110 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertTrue(sdk.pendingCheckoutCreations.isEmpty)
     }
 
+    func test_inlineViewReleasesReplacedAndDestroyedControllers() async throws {
+        let sdk = StripeSdkImpl.shared
+        let first = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let second = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let firstElement = first.checkout.getPaymentElement()
+        let secondElement = second.checkout.getPaymentElement()
+        let firstId = "first"
+        let secondId = "second"
+        sdk.checkoutControllers[firstId] = first
+        sdk.checkoutControllers[secondId] = second
+        defer {
+            sdk.checkoutControllers.removeValue(forKey: firstId)?.destroy()
+            sdk.checkoutControllers.removeValue(forKey: secondId)?.destroy()
+        }
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+        let view = CheckoutPaymentElementContainerView(frame: CGRect(x: 0, y: 0, width: 320, height: 1))
+        view.controllerId = firstId
+        var heights: [CGFloat] = []
+        view.onHeightChanged = { event in heights.append(event?["height"] as? CGFloat ?? 0) }
+        window.addSubview(view)
+        view.layoutIfNeeded()
+        XCTAssertTrue(view.subviews.first === firstElement.uiView)
+        XCTAssertGreaterThan(heights.first ?? 0, 0)
+        let measurements = heights.count
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        XCTAssertEqual(heights.count, measurements)
+
+        view.controllerId = secondId
+        XCTAssertNil(firstElement.uiView.superview)
+        XCTAssertNil(firstElement.uiView.delegate)
+        sdk.checkoutControllers.removeValue(forKey: firstId)?.destroy()
+        XCTAssertTrue(view.subviews.first === secondElement.uiView)
+        sdk.checkoutControllers.removeValue(forKey: secondId)?.destroy()
+        XCTAssertTrue(view.subviews.isEmpty)
+        XCTAssertNil(secondElement.uiView.delegate)
+        view.removeFromSuperview()
+    }
+
+    func test_sheetRejectsMissingPresenterAndDestroyedController() async throws {
+        let sdk = StripeSdkImpl()
+        sdk.checkoutPresentingViewControllerProvider = { nil }
+        let instance = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let controllerId = "controller-1"
+        sdk.checkoutControllers[controllerId] = instance
+        defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+
+        let confirmationRejected = expectation(description: "Confirmation without a presenter rejects")
+        sdk.confirmCheckout(controllerId: controllerId, resolver: { _ in
+            XCTFail("Invalid confirmation should reject")
+            confirmationRejected.fulfill()
+        }, rejecter: { code, message, _ in
+            XCTAssertEqual(code, "Failed")
+            XCTAssertEqual(message, "Checkout requires a visible presenting view controller.")
+            confirmationRejected.fulfill()
+        })
+        await fulfillment(of: [confirmationRejected], timeout: 2)
+
+        for destroyed in [false, true] {
+            if destroyed { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+            let rejected = expectation(description: "Invalid presentation rejects")
+            sdk.presentCheckoutPaymentElement(controllerId: controllerId, resolver: { _ in
+                XCTFail("Invalid presentation should reject")
+                rejected.fulfill()
+            }, rejecter: { code, message, _ in
+                XCTAssertEqual(code, "Failed")
+                XCTAssertEqual(message, destroyed
+                    ? "Checkout controller `\(controllerId)` does not exist."
+                    : "Checkout requires a presenting view controller.")
+                rejected.fulfill()
+            })
+            await fulfillment(of: [rejected], timeout: 2)
+        }
+    }
+
+    func test_confirmationRejectsConcurrentAttemptsAndSettlesOnDestruction() async throws {
+        let checkout = try await makeCheckout()
+        var statuses: [String] = []
+        let instance = NativeCheckoutControllerInstance(checkout: checkout) { event in
+            statuses.append(event["status"] as! String)
+        }
+        instance.start(controllerId: "confirming")
+        var results: [Result<CheckoutController.ConfirmResult, Error>] = []
+        let presenter = UIViewController()
+
+        try instance.confirm(from: presenter) { results.append($0) }
+        XCTAssertEqual(statuses.last, "confirming")
+        XCTAssertThrowsError(try instance.confirm(from: presenter) { _ in
+            XCTFail("A second confirmation must not start.")
+        })
+        instance.destroy()
+        await Task.yield()
+
+        XCTAssertEqual(results.count, 1)
+        guard case .failure(let error) = results.first else {
+            return XCTFail("Destruction must reject pending confirmation.")
+        }
+        XCTAssertTrue(error is CancellationError)
+        XCTAssertEqual(statuses, ["ready", "confirming"])
+        XCTAssertThrowsError(try instance.confirm(from: presenter) { _ in
+            XCTFail("A destroyed controller must not confirm.")
+        })
+    }
+
     private func makeCheckout() async throws -> CheckoutController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]
@@ -63,6 +167,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
             returnURL: "https://example.com/checkout"
         )
         configuration.apiClient = apiClient
+        configuration.paymentElement = .init()
         return try await CheckoutController(configuration: configuration)
     }
 }

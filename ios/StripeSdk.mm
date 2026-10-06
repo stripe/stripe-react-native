@@ -30,6 +30,7 @@ RCT_EXPORT_MODULE()
 
 - (void)invalidate
 {
+  [StripeSdkImpl.shared invalidateCustomerSessionRequests];
   [StripeSdkImpl.shared invalidateCheckoutControllers];
   [super invalidate];
 }
@@ -267,6 +268,37 @@ RCT_EXPORT_METHOD(clearCheckoutPaymentOption:(nonnull NSString *)controllerId
   [StripeSdkImpl.shared clearCheckoutPaymentOption:controllerId resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(confirmCheckout:(nonnull NSString *)controllerId
+                           resolve:(nonnull RCTPromiseResolveBlock)resolve
+                            reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared confirmCheckout:controllerId resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(presentCheckoutPaymentElement:(nonnull NSString *)controllerId
+                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                        reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentCheckoutPaymentElement:controllerId resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(runCheckoutServerUpdate:(nonnull NSString *)controllerId
+                              operationId:(nonnull NSString *)operationId
+                                  resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                   reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared runCheckoutServerUpdate:controllerId operationId:operationId resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(completeCheckoutServerUpdate:(nonnull NSString *)controllerId
+                                   operationId:(nonnull NSString *)operationId
+                                         error:(nullable NSString *)error
+                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                        reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared completeCheckoutServerUpdate:controllerId operationId:operationId error:error resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSString *)setupIntentClientSecret
                                                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
                                                                        reject:(nonnull RCTPromiseRejectBlock)reject)
@@ -278,7 +310,9 @@ RCT_EXPORT_METHOD(clientSecretProviderCustomerSessionClientSecretCallback:(nonnu
                                                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
                                                                        reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared clientSecretProviderCustomerSessionClientSecretCallback:customerSessionClientSecret resolver:resolve rejecter:reject];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [StripeSdkImpl.shared clientSecretProviderCustomerSessionClientSecretCallback:customerSessionClientSecret resolver:resolve rejecter:reject];
+  });
 }
 
 RCT_EXPORT_METHOD(dismissPlatformPay:(nonnull RCTPromiseResolveBlock)resolve
@@ -321,10 +355,12 @@ RCT_EXPORT_METHOD(initCustomerSheet:(nonnull NSDictionary *)params
                            resolve:(nonnull RCTPromiseResolveBlock)resolve
                             reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared initCustomerSheet:params
-                 customerAdapterOverrides:customerAdapterOverrides
-                                 resolver:resolve
-                                 rejecter:reject];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [StripeSdkImpl.shared initCustomerSheet:params
+                   customerAdapterOverrides:customerAdapterOverrides
+                                   resolver:resolve
+                                   rejecter:reject];
+  });
 }
 
 RCT_EXPORT_METHOD(initPaymentSheet:(nonnull NSDictionary *)params

@@ -1,0 +1,124 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn: 'Reset'
+- tapOn:
+    id: 'checkout-create-session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- runFlow:
+    file: helpers/checkout-shipping.yml
+# Android's native presenter ignores confirm without a selected payment option.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: 'Buy.*'
+          centerElement: true
+      - tapOn:
+          id: 'checkout-buy-button'
+      - extendedWaitUntil:
+          visible: 'Unable to complete checkout'
+          timeout: 30000
+      - tapOn: 'OK'
+- runFlow:
+    file: helpers/checkout-card.yml
+    env:
+      CARD_NUMBER: '4242424242424242'
+- tapOn:
+    id: 'checkout-buy-button'
+- extendedWaitUntil:
+    visible: 'Success'
+    timeout: 150000
+- assertVisible: 'Payment status: paid'
+- tapOn: 'OK'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn:
+    id: 'checkout-create-session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- runFlow:
+    file: helpers/checkout-shipping.yml
+- runFlow:
+    file: helpers/checkout-card.yml
+    env:
+      CARD_NUMBER: '4000000000000002'
+- tapOn:
+    id: 'checkout-buy-button'
+- extendedWaitUntil:
+    visible: 'Unable to complete checkout'
+    timeout: 90000
+- tapOn: 'OK'
+- scrollUntilVisible:
+    element:
+      text: 'Status: ready'
+    direction: UP
+    centerElement: true
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Close cart'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn:
+    id: 'checkout-create-session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- runFlow:
+    file: helpers/checkout-shipping.yml
+- runFlow:
+    file: helpers/checkout-card.yml
+    env:
+      CARD_NUMBER: '4000000000003220'
+- tapOn:
+    id: 'checkout-buy-button'
+- extendedWaitUntil:
+    notVisible:
+      id: 'checkout-buy-button'
+    timeout: 90000
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Safari's remote authentication view does not expose its close button to Maestro.
+      - tapOn:
+          point: '10%,9%'
+- extendedWaitUntil:
+    visible: 'Canceled'
+    timeout: 90000
+- tapOn: 'OK'
+- scrollUntilVisible:
+    element:
+      text: 'Status: ready'
+    direction: UP
+    centerElement: true

@@ -57,7 +57,10 @@ export interface CheckoutController {
  * @CheckoutSessionPrivatePreview
  */
 export interface CheckoutPaymentElement {
-  /** Presents Payment Element in a sheet and resolves when it is dismissed. */
+  /**
+   * Requests native Payment Element sheet presentation and resolves immediately.
+   * The promise does not wait for dismissal or report the customer's selection.
+   */
   present(): Promise<void>;
 }
 

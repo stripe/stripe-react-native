@@ -5,6 +5,8 @@ import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.convertDrawableToBase64
 import com.reactnativestripesdk.toHtmlString
+import com.reactnativestripesdk.utils.createError
+import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutController.Session
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CancellationException
@@ -41,6 +43,21 @@ internal object CheckoutSessionSerializer {
       session.taxAmounts?.let { putArray("taxAmounts", serializeList(it, ::serialize)) }
       putMap("totals", serialize(session.totals))
     }
+
+  fun serialize(result: CheckoutController.Result, sessionStatus: Session.Status?): WritableMap = when (result) {
+    is CheckoutController.Result.Completed -> Arguments.createMap().apply {
+      val completeStatus = checkNotNull(sessionStatus as? Session.Status.Complete) {
+        "Checkout completed without a complete session."
+      }
+      putString("status", "completed")
+      putString("paymentStatus", serializePaymentStatus(completeStatus.paymentStatus))
+    }
+    is CheckoutController.Result.Canceled -> Arguments.createMap().apply { putString("status", "canceled") }
+    is CheckoutController.Result.Failed ->
+      createError(checkoutErrorCode(result.error), result.error).apply {
+        putString("status", "failed")
+      }
+  }
 
   private fun serializeTax(tax: Session.Tax): WritableMap {
     val status = when (tax.status) {

@@ -142,6 +142,94 @@ extension StripeSdkImpl {
         }
     }
 
+    @objc(confirmCheckout:resolver:rejecter:)
+    public func confirmCheckout(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self, let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            guard let presenter = checkoutPresentingViewControllerProvider(),
+                  presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
+                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                return
+            }
+            do {
+                try instance.confirm(from: presenter) { result in
+                    switch result {
+                    case .success(let result):
+                        resolve(CheckoutSessionSerializer.serialize(result))
+                    case .failure(let error):
+                        reject(checkoutErrorCode(for: error), error.localizedDescription, error)
+                    }
+                }
+            } catch {
+                reject(checkoutErrorCode(for: error), error.localizedDescription, error)
+            }
+        }
+    }
+
+    @objc(presentCheckoutPaymentElement:resolver:rejecter:)
+    public func presentCheckoutPaymentElement(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self,
+                  let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            guard let presenter = checkoutPresentingViewControllerProvider() else {
+                reject("Failed", "Checkout requires a presenting view controller.", nil)
+                return
+            }
+            guard presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
+                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                return
+            }
+            instance.checkout.getPaymentElement().present(from: presenter, completion: nil)
+            resolve(nil)
+        }
+    }
+
+    @objc(runCheckoutServerUpdate:operationId:resolver:rejecter:)
+    public func runCheckoutServerUpdate(
+        controllerId: String,
+        operationId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { [weak self] instance in
+            try await instance.runServerUpdate(operationId: operationId) { [weak self] in
+                self?.emitter?.emitCheckoutServerUpdateRequested([
+                    "controllerId": controllerId,
+                    "operationId": operationId,
+                ])
+            }
+        }
+    }
+
+    @objc(completeCheckoutServerUpdate:operationId:error:resolver:rejecter:)
+    public func completeCheckoutServerUpdate(
+        controllerId: String,
+        operationId: String,
+        error: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            let instance = self?.checkoutControllers[controllerId]
+            instance?.completeServerUpdate(operationId: operationId, error: error)
+            resolve(nil)
+        }
+    }
+
     private func performCheckoutMutation(
         controllerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,

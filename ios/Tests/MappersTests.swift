@@ -1,10 +1,48 @@
 import PassKit
 import Stripe
 @testable import stripe_react_native
+@_spi(STP) import StripeCore
 import StripePaymentSheet
 import XCTest
 
 class MappersTests: XCTestCase {
+
+    func test_financialConnectionsEventToMap_preservesSessionIdWithoutMetadata() {
+        let eventNames: [FinancialConnectionsEvent.Name] = [.open, .cancel, .flowLaunchedInBrowser]
+
+        for name in eventNames {
+            let event = FinancialConnectionsEvent(
+                name: name,
+                financialConnectionsSessionId: "fcsess_test"
+            )
+
+            let result = Mappers.financialConnectionsEventToMap(event)
+
+            let expected: [String: Any] = [
+                "name": name.rawValue,
+                "financialConnectionsSessionId": "fcsess_test",
+                "metadata": [String: Any](),
+            ]
+            XCTAssertEqual(result as NSDictionary, expected as NSDictionary)
+        }
+    }
+
+    func test_financialConnectionsEventToMap_preservesSessionIdAndErrorMetadata() {
+        let event = FinancialConnectionsEvent(
+            name: .error,
+            financialConnectionsSessionId: "fcsess_test",
+            metadata: FinancialConnectionsEvent.Metadata(errorCode: .noEligibleAccounts)
+        )
+
+        let result = Mappers.financialConnectionsEventToMap(event)
+
+        let expected: [String: Any] = [
+            "name": "error",
+            "financialConnectionsSessionId": "fcsess_test",
+            "metadata": ["errorCode": "no_eligible_accounts"],
+        ]
+        XCTAssertEqual(result as NSDictionary, expected as NSDictionary)
+    }
 
     // MARK: - mapToAddress Tests
 
@@ -538,6 +576,43 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapToUserInterfaceStyle("invalid"), .automatic)
         XCTAssertEqual(Mappers.mapToUserInterfaceStyle(nil), .automatic)
         XCTAssertEqual(Mappers.mapToUserInterfaceStyle(""), .automatic)
+    }
+
+    // MARK: - Financial Connections Consent
+
+    func test_mapToPreCollectedConsent_mapsValues() throws {
+        let result = try FinancialConnections.mapToPreCollectedConsent([
+            "preCollectedConsent": [
+                "consent": "fccons_test",
+                "collectedAt": 1_725_000_123,
+            ],
+        ])
+
+        XCTAssertEqual(result?.consent, "fccons_test")
+        XCTAssertEqual(result?.collectedAt, 1_725_000_123)
+    }
+
+    func test_mapToPreCollectedConsent_returnsNilWhenAbsent() throws {
+        XCTAssertNil(try FinancialConnections.mapToPreCollectedConsent([:]))
+    }
+
+    func test_mapToPreCollectedConsent_throwsWhenConsentMissing() {
+        XCTAssertThrowsError(
+            try FinancialConnections.mapToPreCollectedConsent([
+                "preCollectedConsent": ["collectedAt": 1_725_000_123],
+            ])
+        )
+    }
+
+    func test_mapToPreCollectedConsent_throwsWhenCollectedAtIsNotNumeric() {
+        XCTAssertThrowsError(
+            try FinancialConnections.mapToPreCollectedConsent([
+                "preCollectedConsent": [
+                    "consent": "fccons_test",
+                    "collectedAt": "not-a-number",
+                ],
+            ])
+        )
     }
 
     // MARK: - Return URL Mappers
