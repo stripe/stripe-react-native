@@ -2036,6 +2036,7 @@ export { FinancialConnections }
 // @public (undocumented)
 type FinancialConnectionsEvent = {
     name: FinancialConnectionsEventName;
+    financialConnectionsSessionId: string;
     metadata: FinancialConnectionsEventMetadata;
 };
 

@@ -1,10 +1,48 @@
 import PassKit
 import Stripe
 @testable import stripe_react_native
+@_spi(STP) import StripeCore
 import StripePaymentSheet
 import XCTest
 
 class MappersTests: XCTestCase {
+
+    func test_financialConnectionsEventToMap_preservesSessionIdWithoutMetadata() {
+        let eventNames: [FinancialConnectionsEvent.Name] = [.open, .cancel, .flowLaunchedInBrowser]
+
+        for name in eventNames {
+            let event = FinancialConnectionsEvent(
+                name: name,
+                financialConnectionsSessionId: "fcsess_test"
+            )
+
+            let result = Mappers.financialConnectionsEventToMap(event)
+
+            let expected: [String: Any] = [
+                "name": name.rawValue,
+                "financialConnectionsSessionId": "fcsess_test",
+                "metadata": [String: Any](),
+            ]
+            XCTAssertEqual(result as NSDictionary, expected as NSDictionary)
+        }
+    }
+
+    func test_financialConnectionsEventToMap_preservesSessionIdAndErrorMetadata() {
+        let event = FinancialConnectionsEvent(
+            name: .error,
+            financialConnectionsSessionId: "fcsess_test",
+            metadata: FinancialConnectionsEvent.Metadata(errorCode: .noEligibleAccounts)
+        )
+
+        let result = Mappers.financialConnectionsEventToMap(event)
+
+        let expected: [String: Any] = [
+            "name": "error",
+            "financialConnectionsSessionId": "fcsess_test",
+            "metadata": ["errorCode": "no_eligible_accounts"],
+        ]
+        XCTAssertEqual(result as NSDictionary, expected as NSDictionary)
+    }
 
     // MARK: - mapToAddress Tests
 
