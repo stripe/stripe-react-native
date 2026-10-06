@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Features**
+
+* [Added] Added `financialConnectionsSessionId` to Financial Connections `FinancialConnectionsEvent`. Events are now emitted once the session identifier is available.
+
 **Changes**
 
 * Updated Stripe iOS SDK from 26.12.1 to 26.13.0.
