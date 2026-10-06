@@ -15,7 +15,6 @@ appId: ${APP_ID}
 - inputText: '123'
 - tapOn: 'ZIP.*'
 - inputText: '94107'
-- hideKeyboard
 - scrollUntilVisible:
     element:
       text: 'Continue'

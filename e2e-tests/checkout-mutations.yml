@@ -11,11 +11,13 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Create Checkout Session'
     timeout: 60000
+- tapOn: 'Reset'
 - tapOn: 'PaymentElement'
 - tapOn: 'view'
 - tapOn: 'Email source'
 - tapOn: 'Local'
-- tapOn: 'Create Checkout Session'
+- tapOn:
+    id: 'checkout-create-session'
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
@@ -45,24 +47,55 @@ appId: ${APP_ID}
           timeout: 30000
 - scrollUntilVisible:
     element:
+      text: 'Status: ready'
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- scrollUntilVisible:
+    element:
       text: 'Add shipping address'
     centerElement: true
 - tapOn: 'Add shipping address'
+- extendedWaitUntil:
+    visible: 'Shipping address'
+    timeout: 30000
 - scrollUntilVisible:
     element:
       text: 'Save Address'
 - tapOn: 'Save Address'
 - extendedWaitUntil:
-    visible: '510 Townsend St'
+    notVisible: 'Save Address'
+    timeout: 30000
+- extendedWaitUntil:
+    visible: '(?s).*510 Townsend St.*'
     timeout: 30000
 - tapOn: 'Edit shipping address'
 - scrollUntilVisible:
     element:
       text: 'Clear address'
 - tapOn: 'Clear address'
-- extendedWaitUntil:
-    visible: 'Add shipping address'
-    timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: 'Add shipping address'
+          timeout: 30000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: 'The installed Stripe Android SDK does not support CheckoutController.updateShippingAddress\(name, address\) yet.'
+          direction: UP
+          centerElement: true
+          timeout: 30000
+      - scrollUntilVisible:
+          element:
+            text: '(?s).*510 Townsend St.*'
+          centerElement: true
+          timeout: 30000
 - scrollUntilVisible:
     element:
       text: 'Select payment method'
@@ -78,7 +111,6 @@ appId: ${APP_ID}
 - inputText: '123'
 - tapOn: 'ZIP.*'
 - inputText: '94107'
-- hideKeyboard
 - scrollUntilVisible:
     element:
       text: 'Continue'

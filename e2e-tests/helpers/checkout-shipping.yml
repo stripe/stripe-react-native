@@ -14,5 +14,8 @@ appId: ${APP_ID}
     centerElement: true
 - tapOn: 'Save Address'
 - extendedWaitUntil:
-    visible: '510 Townsend St'
+    notVisible: 'Save Address'
+    timeout: 30000
+- extendedWaitUntil:
+    visible: '(?s).*510 Townsend St.*'
     timeout: 30000

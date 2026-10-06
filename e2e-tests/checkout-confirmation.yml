@@ -11,26 +11,35 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Create Checkout Session'
     timeout: 60000
-- tapOn: 'Create Checkout Session'
+- tapOn: 'Reset'
+- tapOn:
+    id: 'checkout-create-session'
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
 - runFlow:
     file: helpers/checkout-shipping.yml
-- scrollUntilVisible:
-    element:
-      text: 'Buy.*'
-    centerElement: true
-- tapOn: 'Buy.*'
-- extendedWaitUntil:
-    visible: 'Unable to complete checkout'
-    timeout: 30000
-- tapOn: 'OK'
+# Android's native presenter ignores confirm without a selected payment option.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: 'Buy.*'
+          centerElement: true
+      - tapOn:
+          id: 'checkout-buy-button'
+      - extendedWaitUntil:
+          visible: 'Unable to complete checkout'
+          timeout: 30000
+      - tapOn: 'OK'
 - runFlow:
     file: helpers/checkout-card.yml
     env:
       CARD_NUMBER: '4242424242424242'
-- tapOn: 'Buy.*'
+- tapOn:
+    id: 'checkout-buy-button'
 - extendedWaitUntil:
     visible: 'Success'
     timeout: 150000
@@ -39,7 +48,8 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Create Checkout Session'
     timeout: 60000
-- tapOn: 'Create Checkout Session'
+- tapOn:
+    id: 'checkout-create-session'
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
@@ -49,7 +59,8 @@ appId: ${APP_ID}
     file: helpers/checkout-card.yml
     env:
       CARD_NUMBER: '4000000000000002'
-- tapOn: 'Buy.*'
+- tapOn:
+    id: 'checkout-buy-button'
 - extendedWaitUntil:
     visible: 'Unable to complete checkout'
     timeout: 90000
@@ -63,7 +74,8 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Create Checkout Session'
     timeout: 60000
-- tapOn: 'Create Checkout Session'
+- tapOn:
+    id: 'checkout-create-session'
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
@@ -73,7 +85,8 @@ appId: ${APP_ID}
     file: helpers/checkout-card.yml
     env:
       CARD_NUMBER: '4000000000003220'
-- tapOn: 'Buy.*'
+- tapOn:
+    id: 'checkout-buy-button'
 - extendedWaitUntil:
     notVisible: 'Your Cart'
     timeout: 90000

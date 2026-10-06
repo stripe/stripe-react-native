@@ -11,6 +11,7 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Create Checkout Session'
     timeout: 60000
+- tapOn: 'Reset'
 - assertVisible: 'CONFIGURATION'
 - assertVisible: 'PaymentElement'
 - assertVisible: 'Email source'
@@ -20,7 +21,9 @@ appId: ${APP_ID}
     centerElement: true
 - assertVisible: 'Classic T-Shirt'
 - assertVisible: 'Zip-Up Hoodie'
-- tapOn: 'Create Checkout Session'
+- waitForAnimationToEnd
+- tapOn:
+    id: 'checkout-create-session'
 - extendedWaitUntil:
     visible: 'Your Cart'
     timeout: 150000
