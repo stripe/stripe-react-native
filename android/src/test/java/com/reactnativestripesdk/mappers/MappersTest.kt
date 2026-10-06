@@ -221,6 +221,23 @@ class MappersTest {
     assertNull(result)
   }
 
+  @Test
+  fun mapNextAction_DisplayPixDetails_ReturnsNull() {
+    val result =
+      mapNextAction(
+        StripeIntent.NextActionType.DisplayPixDetails,
+        StripeIntent.NextActionData.DisplayPixDetails(
+          data = "pix-qr-code-data",
+          imageUrlPng = "https://payments.stripe.com/pix/qr.png",
+          imageUrlSvg = "https://payments.stripe.com/pix/qr.svg",
+          expiresAt = 1_800_000_000L,
+          hostedInstructionsUrl = "https://payments.stripe.com/pix/instructions",
+        ),
+      )
+
+    assertNull(result)
+  }
+
   // ============================================
   // mapToPreferredNetworks Tests
   // ============================================

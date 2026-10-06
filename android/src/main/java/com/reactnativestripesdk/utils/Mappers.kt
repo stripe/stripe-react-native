@@ -568,6 +568,7 @@ internal fun mapNextAction(
     NextActionType.MbWayAwaitAuthorization,
     NextActionType.DisplayPayNowDetails,
     NextActionType.DisplayPromptPayDetails,
+    NextActionType.DisplayPixDetails,
     null,
     -> {
       return null
