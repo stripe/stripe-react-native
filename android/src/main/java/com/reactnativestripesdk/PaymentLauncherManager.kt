@@ -348,6 +348,7 @@ class PaymentLauncherManager(
       StripeIntent.NextActionType.DisplayMultibancoDetails,
       StripeIntent.NextActionType.DisplayPayNowDetails,
       StripeIntent.NextActionType.DisplayPromptPayDetails,
+      StripeIntent.NextActionType.DisplayPixDetails,
       -> true
       StripeIntent.NextActionType.RedirectToUrl,
       StripeIntent.NextActionType.UseStripeSdk,

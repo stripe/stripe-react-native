@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+**Changes**
+
+* Updated Stripe iOS SDK from 26.12.1 to 26.13.0.
+* Updated Stripe Android SDK from 23.21.0 to 23.22.0.
+
 **Fixes**
 
 * [Fixed] Android: Fixed PaymentSheet presentation failures after the host Activity changes. ([#2705](https://github.com/stripe/stripe-react-native/pull/2705))
