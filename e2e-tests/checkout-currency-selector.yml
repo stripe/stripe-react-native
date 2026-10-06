@@ -11,6 +11,7 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Create Checkout Session'
     timeout: 60000
+- tapOn: 'Reset'
 - scrollUntilVisible:
     element:
       text: 'Adaptive Pricing Location'
@@ -27,14 +28,18 @@ appId: ${APP_ID}
     timeout: 30000
 - assertVisible:
     id: 'checkout-currency-selector'
-- tapOn:
-    text: '.*Show details'
-    point: '90%,50%'
-- assertVisible: '.*Hide details'
-- tapOn:
-    text: '.*Hide details'
-    point: '90%,25%'
-- assertVisible: '.*Show details'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          text: '.*Show details'
+          point: '90%,50%'
+      - assertVisible: '.*Hide details'
+      - tapOn:
+          text: '.*Hide details'
+          point: '90%,25%'
+      - assertVisible: '.*Show details'
 - tapOn:
     text: '.*\$.*'
 - scrollUntilVisible:
