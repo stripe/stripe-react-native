@@ -108,28 +108,28 @@ internal class NativeCheckoutControllerInstance(
     this.controllerId = controllerId
 
     scope.launch {
-      sessionStates().collect { (session, isUpdating) -> publish(session, isUpdating) }
+      sessionStates().collect { session -> publish(session) }
     }
   }
 
   private fun sessionStates() =
-    controller.session.combine(controller.isUpdating) { session, isUpdating -> session to isUpdating }
-      .mapLatest { (session, isUpdating) ->
-        session?.let { CheckoutSessionSerializer.serialize(it) to isUpdating }
+    controller.session.combine(controller.isUpdating) { session, _ -> session }
+      .mapLatest { session ->
+        session?.let { CheckoutSessionSerializer.serialize(it) }
       }.filterNotNull()
 
   /** Publishes the current native snapshot before its status or operation result reaches JS. */
   suspend fun publishCurrentState() {
-    val (session, isUpdating) = sessionStates().first()
-    publish(session, isUpdating)
+    publish(sessionStates().first())
   }
 
-  private fun publish(session: WritableMap, isUpdating: Boolean) {
+  private fun publish(session: WritableMap) {
     if (!destroyed) {
       latestSession = session
+      // A serialized snapshot can arrive after the native busy state has changed.
       val status = when {
         confirmation != null -> "confirming"
-        isUpdating -> "updating"
+        controller.isUpdating.value -> "updating"
         else -> "ready"
       }
       emit(status)

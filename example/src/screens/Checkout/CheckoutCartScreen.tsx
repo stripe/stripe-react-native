@@ -358,7 +358,7 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel={
                 session.shippingAddress
-                  ? 'Edit shipping address'
+                  ? `Edit shipping address, ${formatAddress(session.shippingAddress)}`
                   : 'Add shipping address'
               }
               disabled={isBusy}
@@ -398,7 +398,11 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
         >
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Select payment method"
+            accessibilityLabel={
+              session.paymentOption
+                ? `Select payment method, ${session.paymentOption.label}`
+                : 'Select payment method'
+            }
             testID="checkout-select-payment-method"
             disabled={isBusy}
             onPress={presentPaymentElement}

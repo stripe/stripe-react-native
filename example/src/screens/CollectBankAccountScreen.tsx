@@ -52,6 +52,15 @@ type IssuedConsent = {
   expiresAt: number;
 };
 
+type EventLog = {
+  flow: 'token' | 'session';
+  events: FinancialConnectionsEvent[];
+  // Session ID returned at the end of the flow, used to check that every
+  // event's financialConnectionsSessionId matches it.
+  resultSessionId?: string;
+  outcome: string;
+};
+
 type PendingConsent = {
   accountHolder: AccountHolder;
   consent: IssuedConsent;
@@ -85,6 +94,7 @@ export default function CollectBankAccountScreen() {
   const [pendingConsent, setPendingConsent] =
     React.useState<PendingConsent | null>(null);
   const [consentLoading, setConsentLoading] = React.useState(false);
+  const [eventLog, setEventLog] = React.useState<EventLog | null>(null);
   const [defaultPublishableKey, setDefaultPublishableKey] = React.useState<
     string | null
   >(null);
@@ -135,11 +145,20 @@ export default function CollectBankAccountScreen() {
     secret: string,
     preCollectedConsent?: FinancialConnections.PreCollectedConsent
   ) => {
+    setEventLog(null);
+    const events: FinancialConnectionsEvent[] = [];
     const { session, token, error } = await collectBankAccountToken(secret, {
       preCollectedConsent,
       onEvent: (event: FinancialConnectionsEvent) => {
         console.log('Event received:', event);
+        events.push(event);
       },
+    });
+    setEventLog({
+      flow: 'token',
+      events,
+      resultSessionId: session?.id,
+      outcome: error ? `Error: ${error.code}` : 'Success',
     });
 
     if (error) {
@@ -162,6 +181,8 @@ export default function CollectBankAccountScreen() {
     secret: string,
     preCollectedConsent?: FinancialConnections.PreCollectedConsent
   ) => {
+    setEventLog(null);
+    const events: FinancialConnectionsEvent[] = [];
     const { session, error } = await collectFinancialConnectionsAccounts(
       secret,
       {
@@ -169,9 +190,16 @@ export default function CollectBankAccountScreen() {
         onEvent: (event: FinancialConnectionsEvent) => {
           console.log('Event received:', event);
           console.log('Institution name:', event.metadata.institutionName);
+          events.push(event);
         },
       }
     );
+    setEventLog({
+      flow: 'session',
+      events,
+      resultSessionId: session?.id,
+      outcome: error ? `Error: ${error.code}` : 'Success',
+    });
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
@@ -368,6 +396,7 @@ export default function CollectBankAccountScreen() {
           loading={loading || consentLoading}
           disabled={!clientSecret || consentLoading}
         />
+        {eventLog && <EventLogView log={eventLog} />}
       </PaymentScreen>
       {pendingConsent && (
         // Rendered as a sibling of PaymentScreen (not inside its ScrollView,
@@ -399,7 +428,70 @@ export default function CollectBankAccountScreen() {
   );
 }
 
+function EventLogView({ log }: { log: EventLog }) {
+  const sessionIds = new Set(
+    log.events.map((event) => event.financialConnectionsSessionId)
+  );
+  return (
+    <View style={styles.eventLog} testID="fc_event_log">
+      <Text style={styles.eventLogTitle}>
+        Events ({log.events.length}) - collect {log.flow}: {log.outcome}
+      </Text>
+      <Text selectable style={styles.eventMeta}>
+        Result session: {log.resultSessionId ?? '(none)'}
+      </Text>
+      <Text style={styles.eventMeta}>
+        Distinct event session IDs: {sessionIds.size}
+      </Text>
+      {log.events.map((event, index) => {
+        const matches =
+          log.resultSessionId === undefined
+            ? null
+            : event.financialConnectionsSessionId === log.resultSessionId;
+        return (
+          <View key={index} style={styles.eventRow}>
+            <Text style={styles.eventName}>
+              {index + 1}. {event.name}
+              {matches === null ? '' : matches ? '  ✅' : '  ❌'}
+            </Text>
+            <Text selectable style={styles.eventMeta}>
+              sessionId: {String(event.financialConnectionsSessionId)}
+            </Text>
+            <Text selectable style={styles.eventMeta}>
+              metadata: {JSON.stringify(event.metadata)}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  eventLog: {
+    marginTop: 24,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+  },
+  eventLogTitle: {
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  eventRow: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#d1d5db',
+  },
+  eventName: {
+    fontWeight: '500',
+  },
+  eventMeta: {
+    fontSize: 12,
+    color: '#4b5563',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
   screen: {
     flex: 1,
   },

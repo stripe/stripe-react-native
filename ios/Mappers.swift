@@ -1173,6 +1173,7 @@ class Mappers {
 
         let mappedEvent: [String: Any] = [
             "name": event.name.rawValue,
+            "financialConnectionsSessionId": event.financialConnectionsSessionId,
             "metadata": metadata,
         ]
 
