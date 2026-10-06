@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Features**
+
+* [Added] Onramp: Expose Platform Pay email, E.164 phone, and raw phone for Link registration prefill on iOS and Android, and add Samsung Pay contact collection configuration.
+
 **Changes**
 
 * Updated Stripe iOS SDK from 26.12.1 to 26.13.0.

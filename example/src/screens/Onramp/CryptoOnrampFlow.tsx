@@ -825,6 +825,30 @@ export default function CryptoOnrampFlow() {
         }
 
         if (result.kycInfo) {
+          const info = result.kycInfo;
+          setKycInfoInput((previous) => ({
+            ...previous,
+            firstName: info.firstName ?? previous.firstName,
+            lastName: info.lastName ?? previous.lastName,
+            addressLine1: info.address?.line1 ?? previous.addressLine1,
+            addressLine2: info.address?.line2 ?? previous.addressLine2,
+            addressCity: info.address?.city ?? previous.addressCity,
+            addressState: info.address?.state ?? previous.addressState,
+            addressPostalCode:
+              info.address?.postalCode ?? previous.addressPostalCode,
+            addressCountry: info.address?.country ?? previous.addressCountry,
+          }));
+          if (info.address) {
+            const address = info.address;
+            setKycUpdatedAddress((previous) => ({
+              line1: address.line1 ?? previous.line1,
+              line2: address.line2 ?? previous.line2,
+              city: address.city ?? previous.city,
+              state: address.state ?? previous.state,
+              postalCode: address.postalCode ?? previous.postalCode,
+              country: address.country ?? previous.country,
+            }));
+          }
           Alert.alert(
             'KYC Info From Platform Pay',
             formatKycInfoForAlert(result.kycInfo)
@@ -862,6 +886,10 @@ export default function CryptoOnrampFlow() {
         merchantCountryCode: 'US',
         currencyCode: sourceCurrency.toUpperCase(),
         // Optional: request these billing fields if you'd like Platform Pay to return customer KYC information.
+        requiredShippingAddressFields: [
+          PlatformPay.ContactField.EmailAddress,
+          PlatformPay.ContactField.PhoneNumber,
+        ],
         requiredBillingContactFields: [
           PlatformPay.ContactField.Name,
           PlatformPay.ContactField.PostalAddress,
@@ -1547,7 +1575,7 @@ function normalizeCountryCodeList(value: string): string[] {
 
 function formatKycInfoForAlert(kycInfo: Onramp.KycInfo): string {
   const lines: string[] = [
-    "The following information was gathered from Platform Pay details. In your app, you could use this information to attach KYC details to the user with `attachKYCInfo` if it hasn't already been collected, or pre-fill KYC collection fields in your UI.",
+    'Wallet details have been used to prefill the KYC and address update forms. Review them and complete any missing fields before submitting.',
     '',
   ];
 

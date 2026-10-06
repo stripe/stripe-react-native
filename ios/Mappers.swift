@@ -1288,6 +1288,16 @@ class Mappers {
     class func mapFromKycInfo(_ kycInfo: KycInfo) -> [String: Any] {
         var result: [String: Any] = [:]
 
+        if let email = kycInfo.email {
+            result["email"] = email
+        }
+        if let phone = kycInfo.phone {
+            result["phone"] = phone
+        }
+        if let rawPhone = kycInfo.rawPhone {
+            result["rawPhone"] = rawPhone
+        }
+
         if let firstName = kycInfo.firstName {
             result["firstName"] = firstName
         }
