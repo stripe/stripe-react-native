@@ -103,6 +103,8 @@ class StripeSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeStripeSdkModuleSpec(reactContext) {
 
+  private val application = reactContext.applicationContext as Application
+
   var cardFieldView: CardFieldView? = null
   var cardFormView: CardFormView? = null
 
@@ -142,6 +144,7 @@ class StripeSdkModule(
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
 
   override fun invalidate() {
+    application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
     checkoutControllersInvalidated = true
     super.invalidate()
 
@@ -2158,10 +2161,8 @@ class StripeSdkModule(
    */
   private fun preventActivityRecreation() {
     isRecreatingReactActivity = false
-    reactApplicationContext.currentActivity?.application?.unregisterActivityLifecycleCallbacks(
-      activityLifecycleCallbacks
-    )
-    reactApplicationContext.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    application.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   private fun setupComposeCompatView() {

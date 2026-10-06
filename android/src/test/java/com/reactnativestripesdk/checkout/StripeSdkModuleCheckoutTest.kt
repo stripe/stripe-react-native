@@ -4,9 +4,9 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.EventEmitterCompat
+import com.reactnativestripesdk.ReactContextRule
 import com.reactnativestripesdk.StripeSdkModule
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutPresenter
@@ -18,6 +18,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
@@ -35,10 +36,13 @@ import org.robolectric.annotation.LooperMode
 @RunWith(RobolectricTestRunner::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class StripeSdkModuleCheckoutTest {
+  @get:Rule
+  internal val contextRule = ReactContextRule()
+
   @OptIn(CheckoutSessionPreview::class)
   @Test
   fun `sheet requests resolve after native invocation and reuse the payment element`() {
-    val context = mock(ReactApplicationContext::class.java)
+    val context = contextRule.context
     val module = StripeSdkModule(context)
     val controller = mock(CheckoutController::class.java)
     val presenter = mock(CheckoutPresenter::class.java)
@@ -60,7 +64,7 @@ class StripeSdkModuleCheckoutTest {
 
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     try {
-      `when`(context.currentActivity).thenReturn(activity.get())
+      context.onHostResume(activity.get())
       `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
       `when`(presenter.paymentElement()).thenReturn(element)
       val promise = mock(Promise::class.java)
@@ -87,7 +91,7 @@ class StripeSdkModuleCheckoutTest {
   @OptIn(CheckoutSessionPreview::class)
   @Test
   fun `confirmation invokes native and resolves from the controller callback`() {
-    val context = mock(ReactApplicationContext::class.java)
+    val context = contextRule.context
     val module = StripeSdkModule(context)
     val controller = mock(CheckoutController::class.java)
     val presenter = mock(CheckoutPresenter::class.java)
@@ -107,7 +111,7 @@ class StripeSdkModuleCheckoutTest {
     verify(missingActivity).reject("Failed", "Checkout requires a resumed activity to confirm.")
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     try {
-      `when`(context.currentActivity).thenReturn(activity.get())
+      context.onHostResume(activity.get())
       `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
       doAnswer {
         instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
@@ -134,7 +138,7 @@ class StripeSdkModuleCheckoutTest {
 
   @Test
   fun `creation queued before invalidation cannot register afterward`() {
-    val module = StripeSdkModule(mock(ReactApplicationContext::class.java))
+    val module = StripeSdkModule(contextRule.context)
     val promise = mock(Promise::class.java)
     val caller = Thread {
       module.createCheckout(JavaOnlyMap.of("clientSecret", "cs_test_secret_123"), "controller", promise)

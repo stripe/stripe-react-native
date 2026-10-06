@@ -1,8 +1,10 @@
 package com.reactnativestripesdk
 
+import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
+import com.facebook.react.bridge.JavaScriptModule
+import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
@@ -24,13 +26,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
-import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.shadows.ShadowLooper
 import org.robolectric.util.ReflectionHelpers
 import kotlin.time.Duration.Companion.seconds
@@ -208,30 +209,35 @@ class ReactNativeCustomerSessionProviderTest {
     } finally {
       fixtures.forEach { it.provider.invalidate() }
       runCurrent()
+      fixtures.forEach { it.context.destroy() }
     }
   }
 
   private fun fixture() = Fixture().also { fixtures.add(it) }
 
   private class Fixture {
-    val context = mock(ReactApplicationContext::class.java)
-    val module = StripeSdkModule(context)
+    val context: BridgeReactContext = object : BridgeReactContext(RuntimeEnvironment.getApplication()) {
+      override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
+        nativeModuleInterface.cast(module)
+
+      override fun <T : JavaScriptModule> getJSModule(jsInterface: Class<T>): T =
+        requireNotNull(jsInterface.cast(emitter))
+    }
+    val module: StripeSdkModule = StripeSdkModule(context)
     val ids = mutableListOf<String>()
     var onEmit: (String) -> Unit = {}
+    private val emitter = object : DeviceEventManagerModule.RCTDeviceEventEmitter {
+      override fun emit(eventName: String, data: Any?) {
+        assertEquals("onCustomerSessionProviderCustomerSessionClientSecret", eventName)
+        val id = (data as ReadableMap).getString("requestId")!!
+        ids.add(id)
+        onEmit(id)
+      }
+    }
     val provider: ReactNativeCustomerSessionProvider
     val manager: CustomerSheetManager
 
     init {
-      val emitter = mock(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      `when`(context.getNativeModule(StripeSdkModule::class.java)).thenReturn(module)
-      `when`(context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)).thenReturn(emitter)
-      doAnswer {
-        assertEquals("onCustomerSessionProviderCustomerSessionClientSecret", it.getArgument<String>(0))
-        val id = it.getArgument<ReadableMap>(1).getString("requestId")!!
-        ids.add(id)
-        onEmit(id)
-        null
-      }.`when`(emitter).emit(anyString(), any())
       provider = ReactNativeCustomerSessionProvider(context, CustomerSheet.IntentConfiguration.Builder().build())
       manager = CustomerSheetManager(context, JavaOnlyMap(), JavaOnlyMap(), mock(Promise::class.java))
       manager.customerSessionProvider = provider
