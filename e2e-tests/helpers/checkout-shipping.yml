@@ -16,6 +16,8 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     notVisible: 'Save Address'
     timeout: 30000
-- extendedWaitUntil:
-    visible: '(?s).*510 Townsend St.*'
+- scrollUntilVisible:
+    element:
+      text: '(?s).*510 Townsend St.*'
+    centerElement: true
     timeout: 30000

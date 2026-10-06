@@ -25,9 +25,6 @@ appId: ${APP_ID}
 - tapOn:
     id: 'checkout-create-session'
 - extendedWaitUntil:
-    visible: 'Your Cart'
-    timeout: 150000
-- extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 150000
 - assertVisible: 'Classic T-Shirt'
@@ -54,5 +51,6 @@ appId: ${APP_ID}
 - assertVisible:
     id: 'checkout-snapshot'
 - tapOn: 'Cancel'
-- assertVisible: 'Your Cart'
+- assertVisible:
+    id: 'checkout-status'
 - assertVisible: 'Status: ready'
