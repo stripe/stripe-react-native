@@ -20,10 +20,15 @@ appId: ${APP_ID}
       text: 'Continue'
 - tapOn: 'Continue'
 - waitForAnimationToEnd
-- extendedWaitUntil:
-    visible: 'Close'
-    timeout: 60000
-- tapOn: 'Close'
+# Android dismisses the sheet when a card is selected; iOS returns to its payment method list.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: 'Close'
+          timeout: 60000
+      - tapOn: 'Close'
 - extendedWaitUntil:
     visible: 'Your Cart'
     timeout: 30000
