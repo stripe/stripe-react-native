@@ -135,6 +135,7 @@ android {
   // When running tests on bitrise we need to make sure that the test artifacts are inside
   // the root project directory (in that case example/android), or it won't be picked up.
   testOptions {
+    unitTests.includeAndroidResources = true
     unitTests.all { Test test ->
       def outputRoot = rootProject.layout.buildDirectory.get().asFile
       test.reports.junitXml.outputLocation.set(new File(outputRoot, "test-results/${test.name}"))
