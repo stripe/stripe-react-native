@@ -393,10 +393,16 @@ class OnrampMappersTests: XCTestCase {
                 dateOfBirth: KycInfo.DateOfBirth(day: 15, month: 6, year: 1990),
                 birthCountry: "FR",
                 birthCity: "Paris",
-                nationalities: ["FR", "DE"]
+                nationalities: ["FR", "DE"],
+                email: "jane@example.com",
+                phone: "+14155552671",
+                rawPhone: "(415) 555-2671"
             )
         )
 
+        XCTAssertEqual(result["email"] as? String, "jane@example.com")
+        XCTAssertEqual(result["phone"] as? String, "+14155552671")
+        XCTAssertEqual(result["rawPhone"] as? String, "(415) 555-2671")
         XCTAssertEqual(result["firstName"] as? String, "Jane")
         XCTAssertEqual(result["lastName"] as? String, "Doe")
         XCTAssertEqual(result["idNumber"] as? String, "123456789")
@@ -442,6 +448,25 @@ class OnrampMappersTests: XCTestCase {
         XCTAssertNil(result["birthCountry"])
         XCTAssertNil(result["birthCity"])
         XCTAssertNil(result["nationalities"])
+        XCTAssertNil(result["email"])
+        XCTAssertNil(result["phone"])
+        XCTAssertNil(result["rawPhone"])
+    }
+
+    func test_mapFromKycInfo_preservesRawPhoneWithoutNormalizedPhone() {
+        let result = Mappers.mapFromKycInfo(KycInfo(
+            firstName: nil,
+            lastName: nil,
+            idNumber: nil,
+            address: nil,
+            dateOfBirth: nil,
+            email: "jane@example.com",
+            rawPhone: "555-2671"
+        ))
+
+        XCTAssertEqual(result["email"] as? String, "jane@example.com")
+        XCTAssertEqual(result["rawPhone"] as? String, "555-2671")
+        XCTAssertNil(result["phone"])
     }
 
     func test_mapFromKycInfo_partialAddressOmitsNilFields() {

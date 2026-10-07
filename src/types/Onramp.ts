@@ -80,6 +80,8 @@ export type GooglePayBillingAddressConfig = {
  * Stripe Android does not package the Samsung Pay SDK transitively.
  */
 export type SamsungPayConfig = {
+  /** Request billing address and available name, email, and phone for prefill. Defaults to false. */
+  collectContactInformation?: boolean;
   /** Samsung Pay in-app service ID assigned to the merchant. */
   serviceId: string;
   /** Optional merchant identifier supplied to Samsung Pay. */
@@ -138,6 +140,8 @@ export type OnrampPlatformPayParams = {
    * Apple Pay parameters. iOS only.
    * To receive `kycInfo` back from `collectPaymentMethod`, request Apple Pay billing
    * `.name` and/or `.postalAddress` via `requiredBillingContactFields`.
+   * Request `.emailAddress` and `.phoneNumber` via `requiredShippingAddressFields`
+   * for optional Link registration prefill details.
    */
   applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
 };
@@ -241,6 +245,12 @@ export type IdType = 'social_security_number' | 'ca_sin' | 'co_nit' | 'ph_tin';
  * - `idNumber` may be required depending on region/regulatory requirements (for US, this is SSN).
  */
 export type KycInfo = {
+  /** Wallet email for Link registration or UI prefill. Not submitted by attachKycInfo. */
+  email?: string;
+  /** Wallet phone normalized to E.164, when possible. Suitable for Link registration; not submitted by attachKycInfo. */
+  phone?: string;
+  /** Original wallet phone for display or correction. Do not pass to registration without validating E.164. Not submitted by attachKycInfo. */
+  rawPhone?: string;
   /** Customer’s first name, if collected. */
   firstName?: string;
   /** Customer’s last name, if collected. */
@@ -630,7 +640,7 @@ export type CollectPaymentMethodResult =
   | {
       /** Display data for the selected payment method. */
       displayData: PaymentMethodDisplayData;
-      /** Partial KYC data returned from Platform Pay billing details, when requested. */
+      /** Partial KYC and registration prefill data returned from Platform Pay, when requested. */
       kycInfo?: KycInfo;
       error?: undefined;
     }

@@ -2594,6 +2594,9 @@ type KlarnaParams_2 = {
 
 // @public
 type KycInfo = {
+    email?: string;
+    phone?: string;
+    rawPhone?: string;
     firstName?: string;
     lastName?: string;
     idNumber?: string;
@@ -3860,6 +3863,7 @@ export enum RowStyle {
 
 // @public
 type SamsungPayConfig = {
+    collectContactInformation?: boolean;
     serviceId: string;
     merchantId?: string;
     merchantName?: string;

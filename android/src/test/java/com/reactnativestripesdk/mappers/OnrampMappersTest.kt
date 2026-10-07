@@ -287,6 +287,25 @@ class OnrampMappersTest {
   }
 
   @Test
+  fun mapSamsungPayConfig_ContactCollectionOptIn() {
+    for (enabled in listOf(false, true)) {
+      for (brands in listOf(readableArrayOf(), readableArrayOf(7, 5))) {
+        val result =
+          mapSamsungPayConfig(
+            readableMapOf(
+              "serviceId" to "service-id",
+              "allowedCardBrands" to brands,
+              "collectContactInformation" to enabled,
+            ),
+          )
+        assertEquals(enabled, result!!.privateField("collectContactInformation"))
+      }
+    }
+    val defaults = mapSamsungPayConfig(readableMapOf("serviceId" to "service-id"))
+    assertEquals(false, defaults!!.privateField("collectContactInformation"))
+  }
+
+  @Test
   fun mapConfig_WithSamsungPayConfig() {
     val config =
       readableMapOf(
@@ -615,6 +634,10 @@ class OnrampMappersTest {
         firstName = "Jane",
         lastName = "Doe",
         idNumber = "123456789",
+        idType = IdType.SocialSecurityNumber,
+        email = "jane@example.com",
+        phone = "+14155552671",
+        rawPhone = "(415) 555-2671",
         address =
           PaymentSheet.Address(
             city = "San Francisco",
@@ -635,6 +658,9 @@ class OnrampMappersTest {
       )
     val result = mapFromKycInfo(kycInfo)
 
+    assertEquals("jane@example.com", result.getString("email"))
+    assertEquals("+14155552671", result.getString("phone"))
+    assertEquals("(415) 555-2671", result.getString("rawPhone"))
     assertEquals("Jane", result.getString("firstName"))
     assertEquals("Doe", result.getString("lastName"))
     assertEquals("123456789", result.getString("idNumber"))
@@ -688,6 +714,28 @@ class OnrampMappersTest {
     assertFalse(result.hasKey("birthCountry"))
     assertFalse(result.hasKey("birthCity"))
     assertFalse(result.hasKey("nationalities"))
+    assertFalse(result.hasKey("email"))
+    assertFalse(result.hasKey("phone"))
+    assertFalse(result.hasKey("rawPhone"))
+  }
+
+  @Test
+  fun mapFromKycInfo_RawPhoneWithoutNormalizedPhone() {
+    val result = mapFromKycInfo(
+      KycInfo(
+        firstName = null,
+        lastName = null,
+        idNumber = null,
+        idType = IdType.SocialSecurityNumber,
+        dateOfBirth = null,
+        address = null,
+        email = "jane@example.com",
+        rawPhone = "555-2671",
+      ),
+    )
+    assertEquals("jane@example.com", result.getString("email"))
+    assertEquals("555-2671", result.getString("rawPhone"))
+    assertFalse(result.hasKey("phone"))
   }
 
   @Test

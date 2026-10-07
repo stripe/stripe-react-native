@@ -1,11 +1,20 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, ScrollView, Text, TextInput } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  Text,
+  TextInput,
+  Platform,
+  Alert,
+} from 'react-native';
 import { colors } from '../../colors';
 import Button from '../../components/Button';
-import { useOnramp } from '@stripe/stripe-react-native';
+import { useOnramp, useStripe, PlatformPay } from '@stripe/stripe-react-native';
 
 export default function RegisterCryptoOnrampScreen() {
-  const { registerLinkUser, updatePhoneNumber } = useOnramp();
+  const { registerLinkUser, updatePhoneNumber, collectPaymentMethod } =
+    useOnramp();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('US');
@@ -13,6 +22,75 @@ export default function RegisterCryptoOnrampScreen() {
   const [response, setResponse] = useState<string | null>(null);
   const [newPhone, setNewPhone] = useState('');
   const [didRegister, setDidRegister] = useState(false);
+  const { isPlatformPaySupported } = useStripe();
+  const [collectingContact, setCollectingContact] = useState(false);
+
+  const collectContact = async () => {
+    setCollectingContact(true);
+    try {
+      if (!(await isPlatformPaySupported({ googlePay: { testEnv: true } }))) {
+        setResponse('Platform Pay is unavailable on this device.');
+        return;
+      }
+      const result = await collectPaymentMethod(
+        'PlatformPay',
+        Platform.OS === 'ios'
+          ? {
+              applePay: {
+                merchantCountryCode: 'US',
+                currencyCode: 'USD',
+                cartItems: [
+                  {
+                    label: 'Example',
+                    amount: '1.00',
+                    paymentType: PlatformPay.PaymentType.Immediate,
+                  },
+                ],
+                requiredBillingContactFields: [
+                  PlatformPay.ContactField.Name,
+                  PlatformPay.ContactField.PostalAddress,
+                ],
+                requiredShippingAddressFields: [
+                  PlatformPay.ContactField.EmailAddress,
+                  PlatformPay.ContactField.PhoneNumber,
+                ],
+              },
+            }
+          : {
+              googlePay: { currencyCode: 'USD', amount: 100, label: 'Example' },
+            }
+      );
+      if (result.error) {
+        setResponse(result.error.message);
+        return;
+      }
+      const info = result.kycInfo;
+      if (!info) {
+        setResponse(
+          'No contact details were returned. Enter your details below.'
+        );
+        return;
+      }
+      if (info.email) setEmail(info.email);
+      if (info.phone) setPhone(info.phone);
+      if (info.address?.country) setCountry(info.address.country);
+      const name = [info.firstName, info.lastName].filter(Boolean).join(' ');
+      if (name) setFullName(name);
+      if (!info.phone && info.rawPhone) {
+        Alert.alert(
+          'Check phone number',
+          `Wallet phone: ${info.rawPhone}. Enter this number in E.164 format, including its country code.`
+        );
+      }
+      setResponse(
+        'Review the collected details and complete any missing fields before registering.'
+      );
+    } catch (error) {
+      setResponse(String(error));
+    } finally {
+      setCollectingContact(false);
+    }
+  };
 
   const registerUser = useCallback(async () => {
     setResponse(null);
@@ -57,6 +135,15 @@ export default function RegisterCryptoOnrampScreen() {
       style={styles.container}
     >
       <View style={styles.infoContainer}>
+        <Button
+          title={
+            collectingContact
+              ? 'Collecting details...'
+              : 'Prefill from Platform Pay'
+          }
+          onPress={collectContact}
+          disabled={collectingContact}
+        />
         <Text style={styles.infoText}>Enter your user information:</Text>
         <TextInput
           style={styles.textInput}

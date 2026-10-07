@@ -10,6 +10,7 @@
 
 **Features**
 
+* [Added] Onramp: Expose Platform Pay email, E.164 phone, and raw phone for Link registration prefill on iOS and Android, and add Samsung Pay contact collection configuration.
 * [Added] Added `financialConnectionsSessionId` to Financial Connections `FinancialConnectionsEvent`. Events are now emitted once the session identifier is available.
 
 **Changes**
