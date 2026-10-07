@@ -5,6 +5,7 @@
 **Fixes**
 
 * [Fixed] Fixed an issue where PaymentSheet could close immediately on Android after a JavaScript reload and Activity recreation.
+* [Fixed] Android: Fixed R8 build failures when the optional push provisioning dependency is not included. ([#2715](https://github.com/stripe/stripe-react-native/pull/2715))
 
 ## 0.81.0 - 2026-10-06
 
