@@ -5,9 +5,12 @@ import android.graphics.Color
 import androidx.test.core.app.ApplicationProvider
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
+import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -676,6 +679,66 @@ class PaymentSheetAppearanceTest {
     val expectedAppearance = appearanceBuilder.build()
 
     assertEquals(expectedAppearance, appearanceFromJson)
+  }
+
+  @Test
+  fun testFontFamilyWithUnderscores() {
+    val fontFileName = "nunito_400regular"
+    val fontResId = context.resources.getIdentifier(fontFileName, "font", context.packageName)
+    assertTrue(fontResId != 0)
+
+    val appearanceFromJson = buildAppearanceWithFontFamily(fontFileName)
+
+    val typographyBuilder = PaymentSheet.Typography.Builder()
+    typographyBuilder.fontResId(fontResId)
+
+    val appearanceBuilder = PaymentSheet.Appearance.Builder()
+    appearanceBuilder.typography(typographyBuilder.build())
+
+    assertEquals(appearanceBuilder.build(), appearanceFromJson)
+  }
+
+  @Test
+  fun testFontFamilyMissingResource() {
+    val fontFileName = "missing_font"
+    val error =
+      assertThrows(PaymentSheetAppearanceException::class.java) {
+        buildAppearanceWithFontFamily(fontFileName)
+      }
+
+    assertEquals(
+      "Encountered an error when setting a custom font: Failed to find font: $fontFileName",
+      error.message,
+    )
+  }
+
+  @Test
+  fun testFontFamilyInvalidName() {
+    val fontFileName = "inter-bold"
+    val error =
+      assertThrows(PaymentSheetAppearanceException::class.java) {
+        buildAppearanceWithFontFamily(fontFileName)
+      }
+
+    assertEquals(
+      "Encountered an error when setting a custom font: appearance.font.family should only contain " +
+        "alphanumeric characters and underscores on Android, but received '$fontFileName'. " +
+        "This value must match the filename in android/app/src/main/res/font",
+      error.message,
+    )
+  }
+
+  private fun buildAppearanceWithFontFamily(family: String): PaymentSheet.Appearance {
+    val json =
+      """
+      {
+        "font": {
+          "family": "$family"
+        }
+      }
+      """.trimIndent()
+
+    return buildPaymentSheetAppearance(jsonToMap(json), context)
   }
 
   private fun jsonToMap(json: String): ReadableMap {
