@@ -37,9 +37,11 @@ type Events = {
   onConfirmHandlerCallback: EventEmitter<{
     paymentMethod: UnsafeObject<PaymentMethod.Result>;
     shouldSavePaymentMethod: boolean;
+    requestId?: string;
   }>;
   onConfirmationTokenHandlerCallback: EventEmitter<{
     confirmationToken: UnsafeObject<ConfirmationTokenResult>;
+    requestId?: string;
   }>;
   onFinancialConnectionsEvent: EventEmitter<
     UnsafeObject<FinancialConnectionsEvent>

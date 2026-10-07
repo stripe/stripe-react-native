@@ -38,6 +38,7 @@ import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 import { addListener } from './events';
+import { createIntentCreationCallback } from './internal/intentCreationCallback';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -360,11 +361,14 @@ export const initPaymentSheet = async (
     confirmHandlerCallback?.remove();
     confirmHandlerCallback = addListener(
       'onConfirmHandlerCallback',
-      ({ paymentMethod, shouldSavePaymentMethod }) => {
+      ({ paymentMethod, shouldSavePaymentMethod, requestId }) => {
         confirmHandler(
           paymentMethod,
           shouldSavePaymentMethod,
-          NativeStripeSdk.intentCreationCallback
+          createIntentCreationCallback(
+            NativeStripeSdk.intentCreationCallback,
+            requestId
+          )
         );
       }
     );
@@ -376,10 +380,13 @@ export const initPaymentSheet = async (
     confirmationTokenHandlerCallback?.remove();
     confirmationTokenHandlerCallback = addListener(
       'onConfirmationTokenHandlerCallback',
-      ({ confirmationToken }) => {
+      ({ confirmationToken, requestId }) => {
         confirmationTokenHandler(
           confirmationToken,
-          NativeStripeSdk.confirmationTokenCreationCallback
+          createIntentCreationCallback(
+            NativeStripeSdk.confirmationTokenCreationCallback,
+            requestId
+          )
         );
       }
     );

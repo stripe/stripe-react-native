@@ -32,10 +32,10 @@ import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.rememberEmbeddedPaymentElement
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.PaymentSheet
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
 enum class RowSelectionBehaviorType {
@@ -215,13 +215,17 @@ class EmbeddedPaymentElementView(
                     putMap("confirmationToken", mapFromConfirmationToken(confirmationToken))
                   }
 
-                stripeSdkModule.eventEmitter.emitOnConfirmationTokenHandlerCallback(params)
-
-                val resultFromJavascript = stripeSdkModule.embeddedConfirmationTokenCreationCallback.await()
-                // reset the completable
-                stripeSdkModule.embeddedConfirmationTokenCreationCallback = CompletableDeferred()
-
-                keepJsAwakeTask.stop()
+                val resultFromJavascript =
+                  try {
+                    stripeSdkModule.intentCreationCallbacks.awaitResult(
+                      coroutineScope.coroutineContext.job,
+                    ) { requestId ->
+                      params.putString("requestId", requestId)
+                      stripeSdkModule.eventEmitter.emitOnConfirmationTokenHandlerCallback(params)
+                    }
+                  } finally {
+                    keepJsAwakeTask.stop()
+                  }
 
                 resultFromJavascript.getString("clientSecret")?.let {
                   CreateIntentResult.Success(clientSecret = it)
@@ -263,13 +267,17 @@ class EmbeddedPaymentElementView(
                     putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
                   }
 
-                stripeSdkModule.eventEmitter.emitOnConfirmHandlerCallback(params)
-
-                val resultFromJavascript = stripeSdkModule.embeddedIntentCreationCallback.await()
-                // reset the completable
-                stripeSdkModule.embeddedIntentCreationCallback = CompletableDeferred()
-
-                keepJsAwakeTask.stop()
+                val resultFromJavascript =
+                  try {
+                    stripeSdkModule.intentCreationCallbacks.awaitResult(
+                      coroutineScope.coroutineContext.job,
+                    ) { requestId ->
+                      params.putString("requestId", requestId)
+                      stripeSdkModule.eventEmitter.emitOnConfirmHandlerCallback(params)
+                    }
+                  } finally {
+                    keepJsAwakeTask.stop()
+                  }
 
                 resultFromJavascript.getString("clientSecret")?.let {
                   CreateIntentResult.Success(clientSecret = it)
