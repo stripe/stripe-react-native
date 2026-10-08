@@ -358,8 +358,6 @@ export namespace Checkout {
    * @CheckoutSessionPrivatePreview
    */
   export interface GooglePayConfiguration {
-    /** Whether to use the Google Pay test environment. Defaults to `false`. */
-    testEnv?: boolean;
     /** An optional label to display with the amount. */
     label?: string;
     /** The Google Pay button type. Defaults to `pay`. */

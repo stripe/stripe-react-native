@@ -253,10 +253,6 @@ internal object CheckoutConfigurationMapper {
       params.getString("label")?.let(::label)
       params.getString("buttonType")?.let { buttonType(mapGooglePayButtonType(it)) }
       params.getStringList("additionalEnabledNetworks")?.let(::additionalEnabledNetworks)
-      // TODO(porter): Uncomment when the reviewed native environment initializer ships.
-      // environment(
-      //   if (params.getBooleanOr("testEnv", false)) Environment.Test else Environment.Production,
-      // )
     }
 
   internal fun mapGooglePayButtonType(
