@@ -1181,6 +1181,26 @@ class Mappers {
     }
 
 #if canImport(StripeCryptoOnramp)
+    struct OnrampConfiguration {
+        let appearance: LinkAppearance
+        let cryptoCustomerId: String?
+        let countryHint: String?
+    }
+
+    class func mapToOnrampConfiguration(_ params: NSDictionary) -> OnrampConfiguration {
+        let appearance: LinkAppearance = if let appearanceParams = params["appearance"] as? [String: Any?] {
+            mapToLinkAppearance(appearanceParams)
+        } else {
+            LinkAppearance()
+        }
+
+        return OnrampConfiguration(
+            appearance: appearance,
+            cryptoCustomerId: params["cryptoCustomerId"] as? String,
+            countryHint: params["countryHint"] as? String
+        )
+    }
+
     class func mapToLinkAppearance(_ params: [String: Any?]) -> LinkAppearance {
         let darkColors = params["darkColors"] as? [String: Any?]
         let lightColors = params["lightColors"] as? [String: Any?]
