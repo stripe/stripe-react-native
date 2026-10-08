@@ -253,3 +253,139 @@ describe('useConnectComponents', () => {
     expect(hasContext).toBe(true);
   });
 });
+
+describe('connectInstance.update() persistence', () => {
+  const initParams: StripeConnectInitParams = {
+    publishableKey: 'pk_test_123',
+    fetchClientSecret: jest.fn(async () => 'secret_123'),
+    appearance: { variables: { colorPrimary: '#000000' } },
+    locale: 'en',
+  };
+  const newAppearance = { variables: { colorPrimary: '#FF0000' } };
+
+  const renderProvider = (connectInstance: any) => {
+    const seen: { current: any } = { current: undefined };
+    const Consumer = () => {
+      seen.current = useConnectComponents();
+      return null;
+    };
+    const utils = render(
+      <ConnectComponentsProvider connectInstance={connectInstance}>
+        <Consumer />
+      </ConnectComponentsProvider>
+    );
+    return { seen, ...utils };
+  };
+
+  it('applies an update made before any provider has mounted', () => {
+    const connectInstance = loadConnectAndInitialize(initParams);
+
+    connectInstance.update({ appearance: newAppearance, locale: 'fr' });
+    const { seen } = renderProvider(connectInstance);
+
+    expect(seen.current.appearance).toEqual(newAppearance);
+    expect(seen.current.locale).toBe('fr');
+  });
+
+  it('applies an update made while no provider was mounted to a later provider', () => {
+    const connectInstance = loadConnectAndInitialize(initParams);
+    const first = renderProvider(connectInstance);
+    first.unmount();
+
+    connectInstance.update({ appearance: newAppearance });
+    const second = renderProvider(connectInstance);
+
+    expect(second.seen.current.appearance).toEqual(newAppearance);
+  });
+
+  it('keeps updating a provider that mounts after another one unmounted', async () => {
+    const connectInstance = loadConnectAndInitialize(initParams);
+    renderProvider(connectInstance).unmount();
+    const second = renderProvider(connectInstance);
+
+    connectInstance.update({ locale: 'de' });
+
+    await waitFor(() => {
+      expect(second.seen.current.locale).toBe('de');
+    });
+  });
+
+  it('updates every provider that is mounted on the same instance', async () => {
+    const connectInstance = loadConnectAndInitialize(initParams);
+    const a = renderProvider(connectInstance);
+    const b = renderProvider(connectInstance);
+
+    connectInstance.update({ appearance: newAppearance });
+
+    await waitFor(() => {
+      expect(a.seen.current.appearance).toEqual(newAppearance);
+      expect(b.seen.current.appearance).toEqual(newAppearance);
+    });
+  });
+
+  it('keeps the other value when only one of appearance and locale is updated', () => {
+    const connectInstance = loadConnectAndInitialize(initParams);
+
+    connectInstance.update({ locale: 'fr' });
+    const { seen } = renderProvider(connectInstance);
+
+    expect(seen.current.appearance).toEqual(initParams.appearance);
+    expect(seen.current.locale).toBe('fr');
+  });
+
+  it('does not change the init params object the caller passed in', () => {
+    const params = {
+      ...initParams,
+      appearance: { variables: { colorPrimary: '#000000' } },
+    };
+    const connectInstance = loadConnectAndInitialize(params);
+
+    connectInstance.update({ appearance: newAppearance, locale: 'fr' });
+
+    expect(params.appearance).toEqual({
+      variables: { colorPrimary: '#000000' },
+    });
+    expect(params.locale).toBe('en');
+  });
+
+  it('stops listening for updates once a provider has unmounted', () => {
+    const connectInstance = loadConnectAndInitialize(initParams);
+    const { unmount } = renderProvider(connectInstance);
+    expect((connectInstance as any).listeners.size).toBe(1);
+
+    unmount();
+
+    expect((connectInstance as any).listeners.size).toBe(0);
+    expect(() =>
+      connectInstance.update({ appearance: newAppearance })
+    ).not.toThrow();
+  });
+
+  it('follows a different instance when the connectInstance prop changes', () => {
+    const first = loadConnectAndInitialize(initParams);
+    const second = loadConnectAndInitialize({
+      ...initParams,
+      appearance: newAppearance,
+      locale: 'es',
+    });
+    const seen: { current: any } = { current: undefined };
+    const Consumer = () => {
+      seen.current = useConnectComponents();
+      return null;
+    };
+    const { rerender } = render(
+      <ConnectComponentsProvider connectInstance={first}>
+        <Consumer />
+      </ConnectComponentsProvider>
+    );
+
+    rerender(
+      <ConnectComponentsProvider connectInstance={second}>
+        <Consumer />
+      </ConnectComponentsProvider>
+    );
+
+    expect(seen.current.appearance).toEqual(newAppearance);
+    expect(seen.current.locale).toBe('es');
+  });
+});
