@@ -1312,6 +1312,7 @@ type Configuration = {
     merchantDisplayName: string;
     appearance: LinkAppearance;
     cryptoCustomerId?: string;
+    countryHint?: string;
     googlePay?: GooglePayConfig;
     samsungPay?: SamsungPayConfig;
 };
