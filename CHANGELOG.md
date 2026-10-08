@@ -7,7 +7,7 @@
 * [Fixed] Android: Fixed custom font validation rejecting font resource names containing underscores in PaymentSheet and PaymentMethodMessagingElement. ([#2573](https://github.com/stripe/stripe-react-native/pull/2573))
 * [Fixed] Fixed an issue where PaymentSheet could close immediately on Android after a JavaScript reload and Activity recreation.
 * [Fixed] Android: Fixed R8 build failures when the optional push provisioning dependency is not included. ([#2715](https://github.com/stripe/stripe-react-native/pull/2715))
-* [Fixed] Android: The `ConnectAccountOnboarding` navigation bar and the area behind the status bar now follow the `colorBackground` and `colorText` appearance variables, instead of always being white with black text.
+* [Fixed] Android: The `ConnectAccountOnboarding` navigation bar and the area behind the status bar now use the `colorBackground` appearance variable, and the bar's title and close icon switch between black and white to stay readable, instead of always being white with black text.
 
 ## 0.81.0 - 2026-10-06
 

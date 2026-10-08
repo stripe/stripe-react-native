@@ -1,8 +1,10 @@
 package com.reactnativestripesdk
 
+import android.graphics.Color
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.ViewProps
 import com.facebook.react.uimanager.annotations.ReactProp
 
 @ReactModule(name = NavigationBarManager.REACT_CLASS)
@@ -22,20 +24,16 @@ class NavigationBarManager : SimpleViewManager<NavigationBarView>() {
     view.setTitle(title)
   }
 
-  @ReactProp(name = "toolbarBackgroundColor", customType = "Color")
-  fun setToolbarBackgroundColor(
+  // Keeps React Native's own background handling and also tells the bar, which draws its own
+  // toolbar background. The annotation has to be repeated, as annotations are not inherited by
+  // overriding methods.
+  @ReactProp(name = ViewProps.BACKGROUND_COLOR, defaultInt = Color.TRANSPARENT, customType = "Color")
+  override fun setBackgroundColor(
     view: NavigationBarView,
-    color: Int?,
+    backgroundColor: Int,
   ) {
-    view.setToolbarBackgroundColor(color)
-  }
-
-  @ReactProp(name = "toolbarContentColor", customType = "Color")
-  fun setToolbarContentColor(
-    view: NavigationBarView,
-    color: Int?,
-  ) {
-    view.setToolbarContentColor(color)
+    super.setBackgroundColor(view, backgroundColor)
+    view.setBarBackgroundColor(backgroundColor)
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): NavigationBarView = NavigationBarView(reactContext)
