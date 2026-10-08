@@ -11,6 +11,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.graphics.ColorUtils
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
@@ -90,14 +91,20 @@ class NavigationBarView(
     applyContentColor(DEFAULT_CONTENT_COLOR)
   }
 
-  /** Sets the toolbar background. Passing null restores the default (white). */
-  fun setToolbarBackgroundColor(color: Int?) {
-    toolbar.setBackgroundColor(color ?: DEFAULT_BACKGROUND_COLOR)
-  }
-
-  /** Sets the color of the title and the close icon. Passing null restores the default (black). */
-  fun setToolbarContentColor(color: Int?) {
-    applyContentColor(color ?: DEFAULT_CONTENT_COLOR)
+  /**
+   * Called with the `backgroundColor` of the view's style. The toolbar draws its own background,
+   * so it has to follow this color or it would cover it. The title and close icon switch between
+   * black and white to stay readable. A transparent color (the default when the style is unset)
+   * restores the white bar with black content.
+   */
+  fun setBarBackgroundColor(color: Int) {
+    if (Color.alpha(color) == 0) {
+      toolbar.setBackgroundColor(DEFAULT_BACKGROUND_COLOR)
+      applyContentColor(DEFAULT_CONTENT_COLOR)
+    } else {
+      toolbar.setBackgroundColor(color)
+      applyContentColor(contentColorFor(color))
+    }
   }
 
   private fun applyContentColor(color: Int) {
@@ -147,12 +154,19 @@ class NavigationBarView(
     override fun getEventData() = Arguments.createMap()
   }
 
-  private companion object {
-    const val DEFAULT_BACKGROUND_COLOR = Color.WHITE
-    const val DEFAULT_CONTENT_COLOR = Color.BLACK
-    const val TOOLBAR_ELEVATION = 4f
-    const val TITLE_TEXT_SIZE = 17f
-    const val CLOSE_BUTTON_MARGIN_END = 16
-    const val NAV_BAR_HEIGHT_DP = 56
+  internal companion object {
+    private const val DEFAULT_BACKGROUND_COLOR = Color.WHITE
+    private const val DEFAULT_CONTENT_COLOR = Color.BLACK
+    private const val TOOLBAR_ELEVATION = 4f
+    private const val TITLE_TEXT_SIZE = 17f
+    private const val CLOSE_BUTTON_MARGIN_END = 16
+    private const val NAV_BAR_HEIGHT_DP = 56
+
+    // Relative luminance at which black and white text have the same contrast ratio (WCAG).
+    private const val LUMINANCE_CROSSOVER = 0.179
+
+    /** Black or white, whichever is more readable on [background]. */
+    fun contentColorFor(background: Int): Int =
+      if (ColorUtils.calculateLuminance(background) > LUMINANCE_CROSSOVER) Color.BLACK else Color.WHITE
   }
 }

@@ -61,7 +61,7 @@ jest.mock('../EmbeddedComponent', () => {
 
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import {
   ConnectAccountOnboarding,
   ConnectPayments,
@@ -167,12 +167,10 @@ describe('ConnectAccountOnboarding', () => {
       expect(() => renderComponent()).not.toThrow();
     });
 
-    it('themes the navigation bar from the appearance variables', () => {
+    it('gives the navigation bar the appearance background color', () => {
       const instance = loadConnectAndInitialize({
         ...mockInitParams,
-        appearance: {
-          variables: { colorBackground: '#112233', colorText: '#EEDDCC' },
-        },
+        appearance: { variables: { colorBackground: '#112233' } },
       });
 
       const { getByTestId } = render(
@@ -182,11 +180,12 @@ describe('ConnectAccountOnboarding', () => {
       );
 
       const navigationBar = getByTestId('native-navigation-bar');
-      expect(navigationBar.props.toolbarBackgroundColor).toBe('#112233');
-      expect(navigationBar.props.toolbarContentColor).toBe('#EEDDCC');
+      expect(
+        StyleSheet.flatten(navigationBar.props.style).backgroundColor
+      ).toBe('#112233');
     });
 
-    it('uses a white bar with dark content when the appearance sets no colors', () => {
+    it('uses a white navigation bar when the appearance sets no background', () => {
       const instance = loadConnectAndInitialize({
         ...mockInitParams,
         appearance: undefined,
@@ -199,8 +198,9 @@ describe('ConnectAccountOnboarding', () => {
       );
 
       const navigationBar = getByTestId('native-navigation-bar');
-      expect(navigationBar.props.toolbarBackgroundColor).toBe('#FFFFFF');
-      expect(navigationBar.props.toolbarContentColor).toBe('#000000');
+      expect(
+        StyleSheet.flatten(navigationBar.props.style).backgroundColor
+      ).toBe('#FFFFFF');
     });
   });
 
