@@ -22,6 +22,22 @@ class NavigationBarManager : SimpleViewManager<NavigationBarView>() {
     view.setTitle(title)
   }
 
+  @ReactProp(name = "toolbarBackgroundColor", customType = "Color")
+  fun setToolbarBackgroundColor(
+    view: NavigationBarView,
+    color: Int?,
+  ) {
+    view.setToolbarBackgroundColor(color)
+  }
+
+  @ReactProp(name = "toolbarContentColor", customType = "Color")
+  fun setToolbarContentColor(
+    view: NavigationBarView,
+    color: Int?,
+  ) {
+    view.setToolbarContentColor(color)
+  }
+
   override fun createViewInstance(reactContext: ThemedReactContext): NavigationBarView = NavigationBarView(reactContext)
 
   companion object {

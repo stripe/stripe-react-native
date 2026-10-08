@@ -33,6 +33,20 @@ jest.mock('../../specs/NativeConnectAccountOnboardingView', () => {
   };
 });
 
+jest.mock('../../specs/NativeNavigationBar', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: React.forwardRef((props: any, _ref: any) => {
+      return React.createElement(View, {
+        testID: 'native-navigation-bar',
+        ...props,
+      });
+    }),
+  };
+});
+
 // Lets us inspect exactly what componentProps/callbacks ConnectAccountOnboarding
 // forwards down, including the internal-only props (kycRecipientAccountId,
 // authChallenge, onAuthChallengeRequired) that aren't in its public prop types.
@@ -151,6 +165,42 @@ describe('ConnectAccountOnboarding', () => {
     it('renders Modal on Android', () => {
       // Component should render without error
       expect(() => renderComponent()).not.toThrow();
+    });
+
+    it('themes the navigation bar from the appearance variables', () => {
+      const instance = loadConnectAndInitialize({
+        ...mockInitParams,
+        appearance: {
+          variables: { colorBackground: '#112233', colorText: '#EEDDCC' },
+        },
+      });
+
+      const { getByTestId } = render(
+        <ConnectComponentsProvider connectInstance={instance}>
+          <ConnectAccountOnboarding onExit={jest.fn()} />
+        </ConnectComponentsProvider>
+      );
+
+      const navigationBar = getByTestId('native-navigation-bar');
+      expect(navigationBar.props.toolbarBackgroundColor).toBe('#112233');
+      expect(navigationBar.props.toolbarContentColor).toBe('#EEDDCC');
+    });
+
+    it('uses a white bar with dark content when the appearance sets no colors', () => {
+      const instance = loadConnectAndInitialize({
+        ...mockInitParams,
+        appearance: undefined,
+      });
+
+      const { getByTestId } = render(
+        <ConnectComponentsProvider connectInstance={instance}>
+          <ConnectAccountOnboarding onExit={jest.fn()} />
+        </ConnectComponentsProvider>
+      );
+
+      const navigationBar = getByTestId('native-navigation-bar');
+      expect(navigationBar.props.toolbarBackgroundColor).toBe('#FFFFFF');
+      expect(navigationBar.props.toolbarContentColor).toBe('#000000');
     });
   });
 

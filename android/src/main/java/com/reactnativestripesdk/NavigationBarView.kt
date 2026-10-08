@@ -34,7 +34,7 @@ class NavigationBarView(
             LayoutParams.MATCH_PARENT,
             LayoutParams.WRAP_CONTENT,
           )
-        setBackgroundColor(Color.WHITE)
+        setBackgroundColor(DEFAULT_BACKGROUND_COLOR)
         elevation = TOOLBAR_ELEVATION
       }
 
@@ -42,7 +42,7 @@ class NavigationBarView(
     titleTextView =
       TextView(context).apply {
         textSize = TITLE_TEXT_SIZE
-        setTextColor(Color.BLACK)
+        setTextColor(DEFAULT_CONTENT_COLOR)
         gravity = Gravity.CENTER
       }
 
@@ -66,14 +66,6 @@ class NavigationBarView(
             null,
           ),
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          drawable?.setColorFilter(
-            android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN)
-          )
-        } else {
-          @Suppress("DEPRECATION")
-          drawable?.setColorFilter(PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN))
-        }
         setBackgroundColor(Color.TRANSPARENT)
         setOnClickListener {
           dispatchCloseButtonPress()
@@ -94,6 +86,30 @@ class NavigationBarView(
 
     // Add toolbar to this view
     addView(toolbar)
+
+    applyContentColor(DEFAULT_CONTENT_COLOR)
+  }
+
+  /** Sets the toolbar background. Passing null restores the default (white). */
+  fun setToolbarBackgroundColor(color: Int?) {
+    toolbar.setBackgroundColor(color ?: DEFAULT_BACKGROUND_COLOR)
+  }
+
+  /** Sets the color of the title and the close icon. Passing null restores the default (black). */
+  fun setToolbarContentColor(color: Int?) {
+    applyContentColor(color ?: DEFAULT_CONTENT_COLOR)
+  }
+
+  private fun applyContentColor(color: Int) {
+    titleTextView.setTextColor(color)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      closeButton.drawable?.setColorFilter(
+        android.graphics.BlendModeColorFilter(color, android.graphics.BlendMode.SRC_IN),
+      )
+    } else {
+      @Suppress("DEPRECATION")
+      closeButton.drawable?.setColorFilter(PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN))
+    }
   }
 
   fun setTitle(title: String?) {
@@ -132,6 +148,8 @@ class NavigationBarView(
   }
 
   private companion object {
+    const val DEFAULT_BACKGROUND_COLOR = Color.WHITE
+    const val DEFAULT_CONTENT_COLOR = Color.BLACK
     const val TOOLBAR_ELEVATION = 4f
     const val TITLE_TEXT_SIZE = 17f
     const val CLOSE_BUTTON_MARGIN_END = 16
