@@ -1,0 +1,59 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn: 'Reset'
+- scrollUntilVisible:
+    element:
+      text: 'Adaptive Pricing Location'
+    centerElement: true
+- tapOn: 'Adaptive Pricing Location'
+- tapOn: 'Germany (DE)'
+- tapOn: 'Create Checkout Session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- scrollUntilVisible:
+    element:
+      id: 'checkout-currency-selector'
+    timeout: 30000
+- assertVisible:
+    id: 'checkout-currency-selector'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          text: '.*Show details'
+          point: '90%,50%'
+      - assertVisible: '.*Hide details'
+      - tapOn:
+          text: '.*Hide details'
+          point: '90%,25%'
+      - assertVisible: '.*Show details'
+- tapOn:
+    text: '.*\$.*'
+- scrollUntilVisible:
+    element:
+      text: 'Status: ready'
+    direction: UP
+    centerElement: true
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      text: 'Session diagnostics'
+    direction: UP
+    centerElement: true
+- tapOn: 'Session diagnostics'
+- extendedWaitUntil:
+    visible: 'Currency: USD'
+    timeout: 30000
