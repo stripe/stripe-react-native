@@ -45,6 +45,8 @@ appId: ${APP_ID}
     direction: UP
     centerElement: true
     timeout: 30000
+- swipe:
+    direction: DOWN
 - runFlow:
     when:
       visible:
