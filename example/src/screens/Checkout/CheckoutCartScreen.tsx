@@ -274,7 +274,11 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
         {!!(actionError || checkout.error) && (
           <View style={styles.errorBanner}>
             <Text style={styles.errorTitle}>Error</Text>
-            <Text selectable style={styles.errorText}>
+            <Text
+              testID="checkout-action-error"
+              selectable
+              style={styles.errorText}
+            >
               {actionError ?? checkout.error?.message}
             </Text>
           </View>

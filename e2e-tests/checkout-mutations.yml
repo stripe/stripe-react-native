@@ -31,17 +31,29 @@ appId: ${APP_ID}
 - inputText: 'updated@example.com'
 - hideKeyboard
 - tapOn: 'Save email'
+- waitForAnimationToEnd
 - scrollUntilVisible:
     element:
-      text: 'updated@example.com'
+      id: 'checkout-session-email'
     centerElement: true
     timeout: 30000
+- copyTextFrom:
+    id: 'checkout-session-email'
 - scrollUntilVisible:
     element:
       text: 'Status: ready'
     direction: UP
     centerElement: true
     timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: 'checkout-action-error'
+    commands:
+      - copyTextFrom:
+          id: 'checkout-action-error'
+      - evalScript: "${(() => { throw new Error('Checkout email update failed: ' + maestro.copiedText) })()}"
+- evalScript: "${(() => { if (maestro.copiedText !== 'updated@example.com') throw new Error('Checkout session email: ' + maestro.copiedText) })()}"
 - scrollUntilVisible:
     element:
       text: 'Add shipping address'
