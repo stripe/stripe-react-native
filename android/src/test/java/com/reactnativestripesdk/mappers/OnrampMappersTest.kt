@@ -320,6 +320,28 @@ class OnrampMappersTest {
   }
 
   @Test
+  fun mapConfig_WithCountryHint() {
+    val config =
+      readableMapOf(
+        "merchantDisplayName" to "Test",
+        "countryHint" to "DE",
+      )
+
+    val result = mapConfig(config, "pk_test_123")
+
+    assertEquals("DE", result.privateField("countryHint"))
+  }
+
+  @Test
+  fun mapConfig_WithoutCountryHint() {
+    val config = readableMapOf("merchantDisplayName" to "Test")
+
+    val result = mapConfig(config, "pk_test_123")
+
+    assertNull(result.privateField("countryHint"))
+  }
+
+  @Test
   fun mapConfig_WithAppearance() {
     val appearance =
       readableMapOf(
