@@ -201,10 +201,6 @@ enum CheckoutConfigurationMapper {
             configuration.linkConfiguration = linkConfiguration
         }
 
-        if let behavior = params["savePaymentMethodOptInBehavior"] as? String {
-            configuration.savePaymentMethodOptInBehavior = try mapSavePaymentMethodOptInBehavior(behavior)
-        }
-
         if let appearance = params["appearance"] as? NSDictionary {
             configuration.appearance = try PaymentSheetAppearance.buildAppearanceFromParams(
                 userParams: appearance
@@ -265,17 +261,6 @@ enum CheckoutConfigurationMapper {
         case "automatic": return .automatic
         case "full": return .full
         default: throw unsupported(value, at: "paymentElement.billingDetailsCollectionConfiguration.address")
-        }
-    }
-
-    private static func mapSavePaymentMethodOptInBehavior(
-        _ value: String
-    ) throws -> PaymentElement.SavePaymentMethodOptInBehavior {
-        switch value {
-        case "automatic": return .automatic
-        case "requiresOptIn": return .requiresOptIn
-        case "requiresOptOut": return .requiresOptOut
-        default: throw unsupported(value, at: "paymentElement.savePaymentMethodOptInBehavior")
         }
     }
 
