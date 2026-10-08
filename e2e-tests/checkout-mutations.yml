@@ -76,28 +76,9 @@ appId: ${APP_ID}
     element:
       text: 'Clear address'
 - tapOn: 'Clear address'
-- runFlow:
-    when:
-      platform: iOS
-    commands:
-      - extendedWaitUntil:
-          visible: 'Add shipping address'
-          timeout: 30000
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - scrollUntilVisible:
-          element:
-            text: 'The installed Stripe Android SDK does not support CheckoutController.updateShippingAddress\(name, address\) yet.'
-          direction: UP
-          centerElement: true
-          timeout: 30000
-      - scrollUntilVisible:
-          element:
-            text: '(?s).*510 Townsend St.*'
-          centerElement: true
-          timeout: 30000
+- extendedWaitUntil:
+    visible: 'Add shipping address'
+    timeout: 30000
 - scrollUntilVisible:
     element:
       text: 'Select payment method'
