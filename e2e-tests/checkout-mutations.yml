@@ -26,25 +26,22 @@ appId: ${APP_ID}
       text: 'Edit email'
     centerElement: true
 - tapOn: 'Edit email'
-- tapOn: 'Email address'
+- tapOn:
+    id: 'checkout-email-input'
 - eraseText
 - inputText: 'updated@example.com'
-- hideKeyboard
-- tapOn: 'Save email'
 - runFlow:
     when:
       platform: Android
     commands:
-      - extendedWaitUntil:
-          visible: 'updated@example.com'
-          timeout: 30000
-- runFlow:
-    when:
-      platform: iOS
-    commands:
-      - extendedWaitUntil:
-          visible: 'The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.'
-          timeout: 30000
+      - hideKeyboard
+- tapOn: 'Save email'
+- extendedWaitUntil:
+    notVisible: 'Save email'
+    timeout: 30000
+- extendedWaitUntil:
+    visible: 'updated@example.com'
+    timeout: 30000
 - scrollUntilVisible:
     element:
       text: 'Status: ready'

@@ -87,15 +87,8 @@ extension StripeSdkImpl {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { _ in
-            // TODO(porter): Forward email updates once the iOS SDK exposes CheckoutController.updateEmail.
-            throw NSError(
-                domain: "StripeReactNativeCheckout",
-                code: 0,
-                userInfo: [
-                    NSLocalizedDescriptionKey: "The installed Stripe iOS SDK does not support CheckoutController.updateEmail yet.",
-                ]
-            )
+        performCheckoutMutation(controllerId: controllerId, resolver: resolve, rejecter: reject) { instance in
+            try await instance.checkout.updateEmail(email)
         }
     }
 
