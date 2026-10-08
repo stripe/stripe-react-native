@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Rule
@@ -38,6 +39,34 @@ import org.robolectric.annotation.LooperMode
 class StripeSdkModuleCheckoutTest {
   @get:Rule
   internal val contextRule = ReactContextRule()
+
+  @OptIn(CheckoutSessionPreview::class)
+  @Test
+  fun `shipping address updates forward null addresses`() = runBlocking {
+    val module = StripeSdkModule(contextRule.context)
+    val controller = mock(CheckoutController::class.java)
+    `when`(controller.session).thenReturn(MutableStateFlow(checkoutSession()))
+    `when`(controller.isUpdating).thenReturn(MutableStateFlow(false))
+    `when`(controller.updateShippingAddress("Jenny", null)).thenReturn(Result.success(Unit))
+    val controllerId = "controller"
+    module.checkoutControllers[controllerId] = NativeCheckoutControllerInstance(
+      controller,
+      mock(EventEmitterCompat::class.java),
+      CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
+      JavaOnlyMap(),
+    )
+    val promise = mock(Promise::class.java)
+
+    module.updateCheckoutShippingAddress(
+      controllerId,
+      JavaOnlyMap.of("name", "Jenny", "address", null),
+      promise,
+    )
+    shadowOf(Looper.getMainLooper()).idle()
+
+    verify(controller).updateShippingAddress("Jenny", null)
+    verify(promise).resolve(null)
+  }
 
   @OptIn(CheckoutSessionPreview::class)
   @Test
