@@ -26,7 +26,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                     ],
                 ],
                 "paymentElement": [
-                    "savePaymentMethodOptInBehavior": "requiresOptOut",
                     "appearance": ["shapes": ["borderRadius": 12.0]],
                     "preferredNetworks": [7, 5],
                     "billingDetailsCollectionConfiguration": [
@@ -78,11 +77,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(paymentElement.applePayConfiguration?.buttonType, .checkout)
         XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
 
-        if case .requiresOptOut = paymentElement.savePaymentMethodOptInBehavior {
-            // Expected.
-        } else {
-            XCTFail("Expected requiresOptOut")
-        }
         if case .vertical = paymentElement.paymentMethodLayout {
             // Expected.
         } else {

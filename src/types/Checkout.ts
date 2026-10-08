@@ -306,15 +306,6 @@ export namespace Checkout {
   }
 
   /**
-   * Controls the default state of save-payment-method controls.
-   * @CheckoutSessionPrivatePreview
-   */
-  export type SavePaymentMethodOptInBehavior =
-    | 'automatic'
-    | 'requiresOptIn'
-    | 'requiresOptOut';
-
-  /**
    * Appearance configuration for Checkout Payment Element.
    * @CheckoutSessionPrivatePreview
    */
@@ -346,8 +337,6 @@ export namespace Checkout {
    * @CheckoutSessionPrivatePreview
    */
   export interface PaymentElementConfiguration {
-    /** Controls how Payment Element asks customers to save payment methods. */
-    savePaymentMethodOptInBehavior?: SavePaymentMethodOptInBehavior;
     /** Customizes the appearance of Payment Element. */
     appearance?: PaymentElementAppearance;
     /** Preferred networks for co-branded cards. */

@@ -109,10 +109,6 @@ internal object CheckoutConfigurationMapper {
       configuration.embeddedViewDisplaysMandateText(params.getBoolean("displaysMandateText"))
     }
 
-    // TODO(porter): Uncomment when the reviewed native setter ships.
-    // configuration.savePaymentMethodOptInBehavior(
-    //   mapSavePaymentMethodOptInBehavior(params.getString("savePaymentMethodOptInBehavior")),
-    // )
     params.getIntegerList("preferredNetworks")?.let {
       configuration.preferredNetworks(mapPreferredNetworks(it))
     }

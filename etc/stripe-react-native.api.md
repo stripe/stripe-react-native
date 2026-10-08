@@ -1047,7 +1047,6 @@ export namespace Checkout {
         preferredNetworks?: CardBrand[];
         removeSavedPaymentMethodMessage?: string;
         rowSelectionBehavior?: RowSelectionBehavior;
-        savePaymentMethodOptInBehavior?: SavePaymentMethodOptInBehavior;
         termsDisplay?: Record<string, TermsDisplay>;
     }
     export interface PaymentOptionDisplayData {
@@ -1071,7 +1070,6 @@ export namespace Checkout {
         error: StripeError<ErrorCode>;
     };
     export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
-    export type SavePaymentMethodOptInBehavior = 'automatic' | 'requiresOptIn' | 'requiresOptOut';
     export interface Session {
         businessName?: string;
         currency: string;
