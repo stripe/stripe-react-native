@@ -5,6 +5,7 @@
 ```ts
 
 import { AccessibilityProps } from 'react-native';
+import type { ColorValue } from 'react-native';
 import { ImageSourcePropType } from 'react-native';
 import { JSX } from 'react';
 import { NativeSyntheticEvent } from 'react-native';
@@ -2856,6 +2857,8 @@ export interface NavigationBarProps extends ViewProps {
     onCloseButtonPress?: () => void;
     // (undocumented)
     title?: string;
+    toolbarBackgroundColor?: ColorValue;
+    toolbarContentColor?: ColorValue;
 }
 
 // @public (undocumented)
@@ -4709,7 +4712,7 @@ interface WeChatPayParams_2 {
 // src/components/CustomerSheet.tsx:383:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
 // src/connect/Components.tsx:90:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
 // src/connect/Components.tsx:94:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
-// src/connect/Components.tsx:274:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
+// src/connect/Components.tsx:280:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:208:3 - (ae-forgotten-export) The symbol "AppearanceOptions" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts

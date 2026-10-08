@@ -112,6 +112,10 @@ export function ConnectAccountOnboarding({
     return appearance?.variables?.colorBackground || '#FFFFFF';
   }, [appearance]);
 
+  const textColor = useMemo(() => {
+    return appearance?.variables?.colorText || '#000000';
+  }, [appearance]);
+
   const loadingIndicatorColor = useMemo(() => {
     return appearance?.variables?.colorSecondaryText || '#888888';
   }, [appearance]);
@@ -205,7 +209,7 @@ export function ConnectAccountOnboarding({
       animationType="slide"
       presentationStyle="fullScreen"
     >
-      <SafeAreaView style={styles.flex1}>
+      <SafeAreaView style={[styles.flex1, { backgroundColor }]}>
         <View
           style={[
             Platform.OS === 'android' && {
@@ -215,6 +219,8 @@ export function ConnectAccountOnboarding({
         >
           <NavigationBar
             title={title}
+            toolbarBackgroundColor={backgroundColor}
+            toolbarContentColor={textColor}
             onCloseButtonPress={onExitCallback}
             style={styles.navBar}
           />

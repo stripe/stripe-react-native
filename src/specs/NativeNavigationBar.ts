@@ -1,4 +1,4 @@
-import type { HostComponent, ViewProps } from 'react-native';
+import type { ColorValue, HostComponent, ViewProps } from 'react-native';
 import type { DirectEventHandler } from 'react-native/Libraries/Types/CodegenTypes';
 import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
 
@@ -6,6 +6,8 @@ export type CloseButtonPressEvent = Readonly<{}>;
 
 export interface NativeProps extends ViewProps {
   title?: string;
+  toolbarBackgroundColor?: ColorValue;
+  toolbarContentColor?: ColorValue;
   onCloseButtonPress?: DirectEventHandler<CloseButtonPressEvent>;
 }
 
