@@ -1544,18 +1544,7 @@ class StripeSdkModule(
       val address = params.getMap("address")?.let {
         CheckoutConfigurationMapper.mapAddress(it)
       }
-      // Native Checkout currently requires an address and has no clearing API.
-      // TODO(porter): Forward null addresses once the Android SDK supports clearing shipping details.
-      if (address == null) {
-        Result.failure(
-          IllegalStateException(
-            "The installed Stripe Android SDK does not support " +
-              "CheckoutController.updateShippingAddress(name, address) yet.",
-          ),
-        )
-      } else {
-        controller.updateShippingAddress(name, address)
-      }
+      controller.updateShippingAddress(name, address)
     }
   }
 
