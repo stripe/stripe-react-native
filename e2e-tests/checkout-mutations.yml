@@ -30,7 +30,11 @@ appId: ${APP_ID}
     id: 'checkout-email-input'
 - eraseText
 - inputText: 'updated@example.com'
-- hideKeyboard
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - tapOn: 'Save email'
 - extendedWaitUntil:
     notVisible: 'Save email'
