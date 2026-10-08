@@ -1038,7 +1038,6 @@ export namespace Checkout {
         additionalEnabledNetworks?: string[];
         buttonType?: GooglePayButtonType;
         label?: string;
-        testEnv?: boolean;
     }
     export interface LinkConfiguration {
         display?: 'automatic' | 'never';
