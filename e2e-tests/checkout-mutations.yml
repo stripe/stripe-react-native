@@ -31,8 +31,10 @@ appId: ${APP_ID}
 - inputText: 'updated@example.com'
 - hideKeyboard
 - tapOn: 'Save email'
-- extendedWaitUntil:
-    visible: 'updated@example.com'
+- scrollUntilVisible:
+    element:
+      text: 'updated@example.com'
+    centerElement: true
     timeout: 30000
 - scrollUntilVisible:
     element:
