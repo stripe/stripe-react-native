@@ -1,4 +1,5 @@
 import {
+  CheckoutCurrencySelectorElementView,
   CheckoutPaymentElementView,
   useCheckout,
 } from '@stripe/stripe-react-native';
@@ -288,6 +289,17 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
             onPress={() => setDiagnosticsVisible(true)}
           />
         </View>
+
+        {checkout.currencySelectorElement && (
+          <View
+            testID="checkout-currency-selector"
+            style={styles.currencySelector}
+          >
+            <CheckoutCurrencySelectorElementView
+              element={checkout.currencySelectorElement}
+            />
+          </View>
+        )}
 
         <CartSection title="Items">
           <View style={styles.card}>
@@ -624,6 +636,12 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
             <Text selectable numberOfLines={1} style={styles.monospaceText}>
               {session.id}
             </Text>
+            <Text
+              testID="checkout-snapshot-currency"
+              style={styles.diagnosticsMetadata}
+            >
+              Currency: {session.currency.toUpperCase()}
+            </Text>
           </View>
           <Text
             selectable
@@ -684,6 +702,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   statusText: { color: '#697386', fontSize: 12, fontWeight: '700' },
+  currencySelector: { marginHorizontal: 1 },
   textButton: { color: colors.blurple, fontSize: 14, fontWeight: '700' },
   headerClose: { color: colors.white, fontSize: 30, lineHeight: 30 },
   disabled: { opacity: 0.4 },
@@ -865,6 +884,11 @@ const styles = StyleSheet.create({
     borderColor: '#D9E2EC',
   },
   diagnosticsTitle: { color: colors.slate, fontSize: 15, fontWeight: '700' },
+  diagnosticsMetadata: {
+    color: colors.dark_gray,
+    fontSize: 13,
+    fontWeight: '600',
+  },
   monospaceText: {
     color: colors.dark_gray,
     fontFamily: 'Courier',

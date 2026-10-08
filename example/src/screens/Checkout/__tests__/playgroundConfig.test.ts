@@ -46,12 +46,22 @@ describe('Checkout playground configuration', () => {
   });
 
   it('uses the Adaptive Pricing test email convention', () => {
+    const settings = {
+      ...defaultPlaygroundSettings,
+      adaptivePricingCountry: 'FR' as const,
+    };
+
+    expect(resolvedEmail(settings)).toBe('test+location_FR@example.com');
+    expect(buildSessionParameters(settings)).toMatchObject({
+      adaptive_pricing: { enabled: true },
+      customer_email: 'test+location_FR@example.com',
+    });
     expect(
-      resolvedEmail({
-        ...defaultPlaygroundSettings,
-        adaptivePricingCountry: 'FR',
+      checkoutConfiguration({
+        clientSecret: 'cs_test_secret',
+        settings,
       })
-    ).toBe('test+location_FR@example.com');
+    ).toMatchObject({ currencySelectorElement: {} });
   });
 
   it('rejects incompatible server email and customer settings', () => {

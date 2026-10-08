@@ -654,12 +654,22 @@ export default function CheckoutPlaygroundScreen() {
             />
             <View style={styles.availabilityRow}>
               <Text style={styles.controlLabel}>Currency Selector Element</Text>
-              <Text style={styles.unavailableText}>Not bridged in RN</Text>
+              <Text
+                style={
+                  settings.adaptivePricingCountry === 'none'
+                    ? styles.unavailableText
+                    : styles.availableText
+                }
+              >
+                {settings.adaptivePricingCountry === 'none'
+                  ? 'Choose a location'
+                  : 'Shown in cart'}
+              </Text>
             </View>
           </View>
           <Text style={styles.helperText}>
-            The country override still exercises Adaptive Pricing through the
-            test email convention.
+            Choose a location to enable Adaptive Pricing and show the native
+            Currency Selector Element in the cart.
           </Text>
         </Section>
 
@@ -890,6 +900,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   unavailableText: { color: '#697386', fontSize: 13, fontWeight: '600' },
+  availableText: { color: colors.blurple, fontSize: 13, fontWeight: '700' },
   availabilityCard: {
     borderRadius: 14,
     padding: 16,
