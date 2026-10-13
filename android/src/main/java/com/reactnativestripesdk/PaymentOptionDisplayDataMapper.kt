@@ -23,7 +23,7 @@ import kotlinx.coroutines.withTimeout
  * that can be sent over the RN bridge.
  */
 @OptIn(ReactNativeSdkInternal::class)
-suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap =
+suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(isSystemDarkTheme: Boolean): WritableMap =
   Arguments.createMap().apply {
     putString("label", label)
     putString("paymentMethodType", paymentMethodType)
@@ -43,7 +43,7 @@ suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): Wri
           val drawable =
             withTimeout(IMAGE_LOAD_TIMEOUT_MS) {
               withContext(Dispatchers.IO) {
-                loadIcon(isSystemDarkTheme = false)
+                loadIcon(isSystemDarkTheme)
               }
             }
           getBitmapFromDrawable(drawable)?.let { bitmap ->

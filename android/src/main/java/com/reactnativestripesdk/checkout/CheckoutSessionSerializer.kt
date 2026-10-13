@@ -1,5 +1,7 @@
 package com.reactnativestripesdk.checkout
 
+import android.content.Context
+import android.content.res.Configuration
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
@@ -17,7 +19,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 @OptIn(CheckoutSessionPreview::class, ReactNativeSdkInternal::class)
 internal object CheckoutSessionSerializer {
-  suspend fun serialize(session: Session): WritableMap =
+  suspend fun serialize(session: Session, context: Context): WritableMap =
     Arguments.createMap().apply {
       putString("id", session.id)
       putBoolean("livemode", session.livemode)
@@ -26,7 +28,7 @@ internal object CheckoutSessionSerializer {
       session.tax?.let { putMap("tax", serializeTax(it)) }
       putMap("status", serializeStatus(session.status))
       session.paymentOption?.let {
-        putMap("paymentOption", serializePaymentOption(it))
+        putMap("paymentOption", serializePaymentOption(it, context))
       }
       putInt("minorUnitsAmountDivisor", session.minorUnitsAmountDivisor)
       session.businessName?.let { putString("businessName", it) }
@@ -175,6 +177,7 @@ internal object CheckoutSessionSerializer {
 
   private suspend fun serializePaymentOption(
     paymentOption: Session.PaymentOptionDisplayData,
+    context: Context,
   ): WritableMap = Arguments.createMap().apply {
     putString("label", paymentOption.label)
     putString("paymentMethodType", paymentOption.paymentMethodType)
@@ -183,7 +186,10 @@ internal object CheckoutSessionSerializer {
     val imageBase64 = try {
       withContext(Dispatchers.Default) {
         withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) {
-          val image = withContext(Dispatchers.IO) { paymentOption.loadIcon(isSystemDarkTheme = false) }
+          val isSystemDarkTheme =
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+              Configuration.UI_MODE_NIGHT_YES
+          val image = withContext(Dispatchers.IO) { paymentOption.loadIcon(isSystemDarkTheme) }
           convertDrawableToBase64(image)
         }
       }

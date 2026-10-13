@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.checkout
 
+import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
 import androidx.lifecycle.Lifecycle
@@ -31,6 +32,7 @@ internal class NativeCheckoutControllerInstance(
   private val eventEmitter: EventEmitterCompat,
   private val scope: CoroutineScope,
   initialSession: WritableMap,
+  private val context: Context,
 ) {
   private val serverUpdateCompletions = mutableMapOf<String, CompletableDeferred<Result<Unit>>>()
   private var controllerId: String? = null
@@ -120,7 +122,7 @@ internal class NativeCheckoutControllerInstance(
   private fun sessionStates() =
     controller.session.combine(controller.isUpdating) { session, _ -> session }
       .mapLatest { session ->
-        session?.let { CheckoutSessionSerializer.serialize(it) }
+        session?.let { CheckoutSessionSerializer.serialize(it, context) }
       }.filterNotNull()
 
   /** Publishes the current native snapshot before its status or operation result reaches JS. */

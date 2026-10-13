@@ -8,6 +8,7 @@ import com.stripe.android.checkout.CheckoutController;
 import com.stripe.android.checkout.CheckoutController.Session;
 import com.stripe.android.paymentsheet.model.PaymentOptionResource;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
 
@@ -46,10 +47,14 @@ final class NativeCheckoutFixtures {
   static Session.PaymentOptionDisplayData paymentOption(
       Function1<? super Continuation<? super Drawable>, ? extends Object> imageLoader,
       Session.PaymentOptionDisplayData.BillingDetails billingDetails,
-      AnnotatedString mandateText) {
+      AnnotatedString mandateText,
+      AtomicReference<Boolean> requestedDarkTheme) {
     PaymentOptionResource resource = new PaymentOptionResource() {
       @Override
       public Object load(Boolean isSystemDarkTheme, Continuation<? super Drawable> continuation) {
+        if (requestedDarkTheme != null) {
+          requestedDarkTheme.set(isSystemDarkTheme);
+        }
         return imageLoader.invoke(continuation);
       }
 

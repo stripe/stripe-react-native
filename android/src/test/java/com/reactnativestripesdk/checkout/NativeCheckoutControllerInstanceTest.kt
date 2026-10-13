@@ -2,6 +2,7 @@ package com.reactnativestripesdk.checkout
 
 import android.graphics.drawable.ColorDrawable
 import androidx.activity.ComponentActivity
+import androidx.test.core.app.ApplicationProvider
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
@@ -282,6 +283,7 @@ class NativeCheckoutControllerInstanceTest {
         EventEmitterCompat(context),
         scope,
         com.facebook.react.bridge.JavaOnlyMap.of("id", "cs_test", "email", "jenny@example.com"),
+        ApplicationProvider.getApplicationContext(),
       )
     }
 

@@ -1463,12 +1463,13 @@ class StripeSdkModule(
           val nativeSession = requireNotNull(controller.session.value) {
             "Checkout did not return a session after configuration."
           }
-          val serializedSession = CheckoutSessionSerializer.serialize(nativeSession)
+          val serializedSession = CheckoutSessionSerializer.serialize(nativeSession, reactApplicationContext)
           val instance = NativeCheckoutControllerInstance(
             controller = controller,
             eventEmitter = eventEmitter,
             scope = scope,
             initialSession = serializedSession,
+            context = reactApplicationContext,
           )
           check(!checkoutControllersInvalidated) { "Stripe SDK was invalidated." }
           scope.coroutineContext.ensureActive()

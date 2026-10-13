@@ -1,6 +1,8 @@
 package com.reactnativestripesdk.checkout
 
+import android.content.Context
 import androidx.compose.ui.text.AnnotatedString
+import androidx.test.core.app.ApplicationProvider
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CompletableDeferred
@@ -15,10 +17,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import java.util.concurrent.atomic.AtomicReference
 
 @OptIn(CheckoutSessionPreview::class)
 @RunWith(RobolectricTestRunner::class)
 class CheckoutSessionSerializerTest {
+  private val context = ApplicationProvider.getApplicationContext<Context>()
+
   @Test
   fun `confirmation results preserve native outcomes and completed payment status`() {
     val completed = NativeCheckoutFixtures.completedResult()
@@ -47,7 +53,7 @@ class CheckoutSessionSerializerTest {
       NativeCheckoutFixtures.completeStatus() to "complete",
     )
     for ((status, expected) in statuses) {
-      val result = CheckoutSessionSerializer.serialize(checkoutSession(status = status))
+      val result = CheckoutSessionSerializer.serialize(checkoutSession(status = status), context)
       assertEquals("cs_test", result.getString("id"))
       assertEquals("usd", result.getString("currency"))
       assertEquals("jenny@example.com", result.getString("email"))
@@ -74,6 +80,7 @@ class CheckoutSessionSerializerTest {
   fun `serialize omits unavailable tax`() = runTest {
     val result = CheckoutSessionSerializer.serialize(
       checkoutSession(taxStatus = null),
+      context,
     )
     assertFalse(result.hasKey("tax"))
   }
@@ -85,7 +92,7 @@ class CheckoutSessionSerializerTest {
       billingDetails = NativeCheckoutFixtures.postalBillingDetails("94103"),
       mandateText = AnnotatedString("Terms & conditions"),
     )
-    val result = CheckoutSessionSerializer.serialize(checkoutSession(paymentOption = option))
+    val result = CheckoutSessionSerializer.serialize(checkoutSession(paymentOption = option), context)
     val paymentOption = result.getMap("paymentOption")!!
     val address = paymentOption.getMap("billingDetails")!!.getMap("address")!!
 
@@ -94,6 +101,20 @@ class CheckoutSessionSerializerTest {
     assertEquals("", paymentOption.getString("image"))
     assertEquals("Visa 4242", paymentOption.getString("label"))
     assertTrue(paymentOption.getString("mandateHTML")!!.contains("&amp;"))
+  }
+
+  @Test
+  @Config(qualifiers = "night")
+  fun `serialize requests a dark icon in dark mode`() = runTest {
+    val requestedDarkTheme = AtomicReference<Boolean>()
+    val option = checkoutPaymentOption(
+      imageLoader = { error("Image unavailable") },
+      requestedDarkTheme = requestedDarkTheme,
+    )
+
+    CheckoutSessionSerializer.serialize(checkoutSession(paymentOption = option), context)
+
+    assertEquals(true, requestedDarkTheme.get())
   }
 
   @Test
@@ -107,7 +128,7 @@ class CheckoutSessionSerializerTest {
     )
     var returnedSnapshot = false
     val serialization = async {
-      CheckoutSessionSerializer.serialize(checkoutSession(paymentOption = option))
+      CheckoutSessionSerializer.serialize(checkoutSession(paymentOption = option), context)
       returnedSnapshot = true
     }
     imageStarted.await()

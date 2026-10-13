@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredHeight
@@ -16,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -334,9 +336,11 @@ class EmbeddedPaymentElementView(
       }
     }
 
-    LaunchedEffect(embedded) {
+    val isSystemDarkTheme =
+      (LocalConfiguration.current.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    LaunchedEffect(embedded, isSystemDarkTheme) {
       embedded.paymentOption.collect { opt ->
-        val optMap = opt?.toWritableMap()
+        val optMap = opt?.toWritableMap(isSystemDarkTheme)
         val payload =
           Arguments.createMap().apply {
             putMap("paymentOption", optMap)
