@@ -176,7 +176,7 @@ dependencies {
 
   // Users need to declare this dependency on their own, otherwise all methods are a no-op
   compileOnly("com.stripe:stripe-android-issuing-push-provisioning:1.3.0") {
-    exclude group: "com.google.android.gms", module: "play-services-tapandpay"
+    transitive = false
   }
 
   testImplementation "junit:junit:4.13"
