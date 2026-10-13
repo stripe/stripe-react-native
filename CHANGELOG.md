@@ -2,22 +2,32 @@
 
 ## 0.82.0 - 2026-10-13
 
+**Features**
+
+* [Added] Onramp: Expose Platform Pay email, E.164 phone, and raw phone for Link registration prefill on iOS and Android, and add Samsung Pay contact collection configuration. ([#2712](https://github.com/stripe/stripe-react-native/pull/2712))
+* [Added] Crypto Onramp: Add `countryHint` to the configuration to help select a merchant of record before the customer has an established KYC region. ([#2725](https://github.com/stripe/stripe-react-native/pull/2725))
+* [Added] Checkout Currency Selector Element (private preview). ([#2669](https://github.com/stripe/stripe-react-native/pull/2669))
+
 **Changes**
 
 * Updated Stripe iOS SDK from 26.13.0 to 26.14.0.
 * Updated Stripe Android SDK from 23.22.0 to 23.23.0.
+* [Changed] Checkout (private preview): Removed `paymentElement.googlePay.testEnv`; Google Pay now selects its environment automatically. ([#2726](https://github.com/stripe/stripe-react-native/pull/2726))
+* [Removed] Checkout (private preview): Removed `paymentElement.savePaymentMethodOptInBehavior`. ([#2720](https://github.com/stripe/stripe-react-native/pull/2720))
 
 **Fixes**
 
 * [Fixed] Android: Fixed custom font validation rejecting font resource names containing underscores in PaymentSheet and PaymentMethodMessagingElement. ([#2573](https://github.com/stripe/stripe-react-native/pull/2573))
 * [Fixed] Fixed an issue where PaymentSheet could close immediately on Android after a JavaScript reload and Activity recreation.
 * [Fixed] Android: Fixed R8 build failures when the optional push provisioning dependency is not included. ([#2715](https://github.com/stripe/stripe-react-native/pull/2715))
+* [Fixed] Android: Fixed release builds with AGP 9 failing to resolve the private TapAndPay dependency when optional Issuing push provisioning is not included. ([#2704](https://github.com/stripe/stripe-react-native/pull/2704))
+* [Fixed] Checkout (private preview): Support updating email on iOS and clearing shipping addresses on Android. ([#2722](https://github.com/stripe/stripe-react-native/pull/2722), [#2721](https://github.com/stripe/stripe-react-native/pull/2721))
+* [Fixed] Android Checkout: Payment option icons now follow the current Activity theme. ([#2727](https://github.com/stripe/stripe-react-native/pull/2727))
 
 ## 0.81.0 - 2026-10-06
 
 **Features**
 
-* [Added] Onramp: Expose Platform Pay email, E.164 phone, and raw phone for Link registration prefill on iOS and Android, and add Samsung Pay contact collection configuration.
 * [Added] Added `financialConnectionsSessionId` to Financial Connections `FinancialConnectionsEvent`. Events are now emitted once the session identifier is available.
 
 **Changes**
