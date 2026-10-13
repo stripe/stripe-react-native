@@ -970,12 +970,6 @@ export namespace Checkout {
         name?: string;
         phone?: string;
     }
-    export interface BillingDetailsCollectionConfiguration {
-        address?: 'automatic' | 'full';
-        attachDefaultsToPaymentMethod?: boolean;
-        name?: 'automatic' | 'always';
-        phone?: 'automatic' | 'always';
-    }
     export interface ContactDetails {
         address?: Address;
         name?: string;
@@ -989,32 +983,34 @@ export namespace Checkout {
         returnURL: string;
         style?: UserInterfaceStyle;
     }
-    export interface CurrencySelectorElementAppearance {
-        colors?: CurrencySelectorElementColorConfiguration | {
-            light: CurrencySelectorElementColorConfiguration;
-            dark: CurrencySelectorElementColorConfiguration;
-        };
-        contentVerticalPadding?: number;
-        font?: Partial<FontConfig>;
-        labelContent?: CurrencySelectorElementLabelContent;
-        shapes?: CurrencySelectorElementShapeConfiguration;
-    }
-    export interface CurrencySelectorElementColorConfiguration {
-        background?: ThemedColor;
-        border?: ThemedColor;
-        danger?: ThemedColor;
-        selectedBackground?: ThemedColor;
-        selectedText?: ThemedColor;
-        text?: ThemedColor;
-        textSecondary?: ThemedColor;
-    }
     export interface CurrencySelectorElementConfiguration {
-        appearance?: CurrencySelectorElementAppearance;
+        appearance?: CurrencySelectorElementConfiguration.Appearance;
     }
-    export type CurrencySelectorElementLabelContent = 'automatic' | 'currencyCode' | 'amount';
-    export interface CurrencySelectorElementShapeConfiguration {
-        borderWidth?: number;
-        cornerRadius?: number;
+    export namespace CurrencySelectorElementConfiguration {
+        export interface Appearance {
+            colors?: ColorConfiguration | {
+                light: ColorConfiguration;
+                dark: ColorConfiguration;
+            };
+            contentVerticalPadding?: number;
+            font?: Partial<FontConfig>;
+            labelContent?: LabelContent;
+            shapes?: ShapeConfiguration;
+        }
+        export interface ColorConfiguration {
+            background?: ThemedColor;
+            border?: ThemedColor;
+            danger?: ThemedColor;
+            selectedBackground?: ThemedColor;
+            selectedText?: ThemedColor;
+            text?: ThemedColor;
+            textSecondary?: ThemedColor;
+        }
+        export type LabelContent = 'automatic' | 'currencyCode' | 'amount';
+        export interface ShapeConfiguration {
+            borderWidth?: number;
+            cornerRadius?: number;
+        }
     }
     export interface Defaults {
         billingDetails?: ContactDetails;
@@ -1046,11 +1042,10 @@ export namespace Checkout {
         type: 'one_time_price';
     }
     export type OrderSummaryItem = OneTimePriceOrderSummaryItem;
-    export type PaymentElementAppearance = AppearanceParams;
     export interface PaymentElementConfiguration {
-        appearance?: PaymentElementAppearance;
+        appearance?: PaymentElementConfiguration.Appearance;
         applePay?: PaymentElementConfiguration.ApplePayConfiguration;
-        billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
+        billingDetailsCollectionConfiguration?: PaymentElementConfiguration.BillingDetailsCollectionConfiguration;
         displaysMandateText?: boolean;
         googlePay?: PaymentElementConfiguration.GooglePayConfiguration;
         link?: PaymentElementConfiguration.LinkConfiguration;
@@ -1059,14 +1054,21 @@ export namespace Checkout {
         paymentMethodOrder?: string[];
         preferredNetworks?: CardBrand[];
         removeSavedPaymentMethodMessage?: string;
-        rowSelectionBehavior?: RowSelectionBehavior;
+        rowSelectionBehavior?: PaymentElementConfiguration.RowSelectionBehavior;
         termsDisplay?: Record<string, TermsDisplay>;
     }
     export namespace PaymentElementConfiguration {
+        export type Appearance = AppearanceParams;
         export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
         export interface ApplePayConfiguration {
             buttonType?: ApplePayButtonType;
             merchantCountryCode: string;
+        }
+        export interface BillingDetailsCollectionConfiguration {
+            address?: 'automatic' | 'full';
+            attachDefaultsToPaymentMethod?: boolean;
+            name?: 'automatic' | 'always';
+            phone?: 'automatic' | 'always';
         }
         export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
         export interface GooglePayConfiguration {
@@ -1077,6 +1079,7 @@ export namespace Checkout {
         export interface LinkConfiguration {
             display?: 'automatic' | 'never';
         }
+        export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
     }
     export interface PaymentOptionDisplayData {
         billingDetails?: BillingDetails;
@@ -1098,7 +1101,6 @@ export namespace Checkout {
         status: 'failed';
         error: StripeError<ErrorCode>;
     };
-    export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
     export interface Session {
         businessName?: string;
         currency: string;

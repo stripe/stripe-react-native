@@ -239,59 +239,59 @@ export namespace Checkout {
   /** Configuration for Currency Selector Element. */
   export interface CurrencySelectorElementConfiguration {
     /** Customizes the appearance of Currency Selector Element. */
-    appearance?: CurrencySelectorElementAppearance;
+    appearance?: CurrencySelectorElementConfiguration.Appearance;
   }
 
-  /** Appearance configuration for Currency Selector Element. */
-  export interface CurrencySelectorElementAppearance {
-    /** Vertical padding inside each currency option, in density-independent pixels. */
-    contentVerticalPadding?: number;
-    /** Font family and scale used throughout the selector. */
-    font?: Partial<FontConfig>;
-    /** Colors used by the selector. */
-    colors?:
-      | CurrencySelectorElementColorConfiguration
-      | {
-          light: CurrencySelectorElementColorConfiguration;
-          dark: CurrencySelectorElementColorConfiguration;
-        };
-    /** Shape configuration for the selector track and selected pill. */
-    shapes?: CurrencySelectorElementShapeConfiguration;
-    /** Content displayed in each currency option. Defaults to `automatic`. */
-    labelContent?: CurrencySelectorElementLabelContent;
-  }
+  /** Appearance types used by Currency Selector Element. */
+  export namespace CurrencySelectorElementConfiguration {
+    /** Appearance configuration for Currency Selector Element. */
+    export interface Appearance {
+      /** Vertical padding inside each currency option, in density-independent pixels. */
+      contentVerticalPadding?: number;
+      /** Font family and scale used throughout the selector. */
+      font?: Partial<FontConfig>;
+      /** Colors used by the selector. */
+      colors?:
+        | ColorConfiguration
+        | {
+            light: ColorConfiguration;
+            dark: ColorConfiguration;
+          };
+      /** Shape configuration for the selector track and selected pill. */
+      shapes?: ShapeConfiguration;
+      /** Content displayed in each currency option. Defaults to `automatic`. */
+      labelContent?: LabelContent;
+    }
 
-  /** Colors used by Currency Selector Element. */
-  export interface CurrencySelectorElementColorConfiguration {
-    /** Border color for the selector track and selected pill. */
-    border?: ThemedColor;
-    /** Background color of the selector track. */
-    background?: ThemedColor;
-    /** Background color of the selected currency pill. */
-    selectedBackground?: ThemedColor;
-    /** Text color used for unselected currency options. */
-    text?: ThemedColor;
-    /** Text color used for the selected currency option. */
-    selectedText?: ThemedColor;
-    /** Text color used for exchange-rate disclosure. */
-    textSecondary?: ThemedColor;
-    /** Color used for errors shown below the selector. */
-    danger?: ThemedColor;
-  }
+    /** Colors used by Currency Selector Element. */
+    export interface ColorConfiguration {
+      /** Border color for the selector track and selected pill. */
+      border?: ThemedColor;
+      /** Background color of the selector track. */
+      background?: ThemedColor;
+      /** Background color of the selected currency pill. */
+      selectedBackground?: ThemedColor;
+      /** Text color used for unselected currency options. */
+      text?: ThemedColor;
+      /** Text color used for the selected currency option. */
+      selectedText?: ThemedColor;
+      /** Text color used for exchange-rate disclosure. */
+      textSecondary?: ThemedColor;
+      /** Color used for errors shown below the selector. */
+      danger?: ThemedColor;
+    }
 
-  /** Shape configuration for Currency Selector Element. */
-  export interface CurrencySelectorElementShapeConfiguration {
-    /** Corner radius in density-independent pixels. Omit for a capsule shape. */
-    cornerRadius?: number;
-    /** Border width in density-independent pixels. */
-    borderWidth?: number;
-  }
+    /** Shape configuration for Currency Selector Element. */
+    export interface ShapeConfiguration {
+      /** Corner radius in density-independent pixels. Omit for a capsule shape. */
+      cornerRadius?: number;
+      /** Border width in density-independent pixels. */
+      borderWidth?: number;
+    }
 
-  /** Content displayed in each currency option label. */
-  export type CurrencySelectorElementLabelContent =
-    | 'automatic'
-    | 'currencyCode'
-    | 'amount';
+    /** Content displayed in each currency option label. */
+    export type LabelContent = 'automatic' | 'currencyCode' | 'amount';
+  }
 
   /**
    * Known customer details used to prefill Checkout and its elements.
@@ -320,46 +320,19 @@ export namespace Checkout {
   }
 
   /**
-   * Appearance configuration for Checkout Payment Element.
-   * @CheckoutSessionPrivatePreview
-   */
-  export type PaymentElementAppearance = AppearanceParams;
-
-  /**
-   * Controls how the inline Payment Element handles row selection.
-   * @CheckoutSessionPrivatePreview
-   */
-  export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
-
-  /**
-   * Controls how billing details are collected during checkout.
-   * @CheckoutSessionPrivatePreview
-   */
-  export interface BillingDetailsCollectionConfiguration {
-    /** How to collect the name field. Defaults to `automatic`. */
-    name?: 'automatic' | 'always';
-    /** How to collect the phone field. Defaults to `automatic`. */
-    phone?: 'automatic' | 'always';
-    /** How to collect the billing address. Defaults to `automatic`. */
-    address?: 'automatic' | 'full';
-    /** Whether default billing details are attached to the payment method. */
-    attachDefaultsToPaymentMethod?: boolean;
-  }
-
-  /**
    * Configuration for the Checkout-owned Payment Element.
    * @CheckoutSessionPrivatePreview
    */
   export interface PaymentElementConfiguration {
     /** Customizes the appearance of Payment Element. */
-    appearance?: PaymentElementAppearance;
+    appearance?: PaymentElementConfiguration.Appearance;
     /** Preferred networks for co-branded cards. */
     preferredNetworks?: CardBrand[];
     /**
      * Controls how billing details are collected during checkout. iOS only.
      * On Android, configure billing collection on the Checkout Session.
      */
-    billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
+    billingDetailsCollectionConfiguration?: PaymentElementConfiguration.BillingDetailsCollectionConfiguration;
     /** A custom message shown when a saved payment method is removed. iOS only. */
     removeSavedPaymentMethodMessage?: string;
     /** Overrides the default order of payment method types. */
@@ -373,7 +346,7 @@ export namespace Checkout {
     /** Whether the embedded view displays mandate text. Defaults to `false`. */
     displaysMandateText?: boolean;
     /** Controls selection in the embedded view. */
-    rowSelectionBehavior?: RowSelectionBehavior;
+    rowSelectionBehavior?: PaymentElementConfiguration.RowSelectionBehavior;
     /** Apple Pay configuration for Payment Element. iOS only. */
     applePay?: PaymentElementConfiguration.ApplePayConfiguration;
     /** Google Pay configuration for Payment Element. Android only. */
@@ -382,8 +355,35 @@ export namespace Checkout {
     link?: PaymentElementConfiguration.LinkConfiguration;
   }
 
-  /** Wallet configuration types used by Checkout Payment Element. */
+  /** Configuration types used by Checkout Payment Element. */
   export namespace PaymentElementConfiguration {
+    /**
+     * Appearance configuration for Checkout Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type Appearance = AppearanceParams;
+
+    /**
+     * Controls how the inline Payment Element handles row selection.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
+
+    /**
+     * Controls how billing details are collected during checkout.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface BillingDetailsCollectionConfiguration {
+      /** How to collect the name field. Defaults to `automatic`. */
+      name?: 'automatic' | 'always';
+      /** How to collect the phone field. Defaults to `automatic`. */
+      phone?: 'automatic' | 'always';
+      /** How to collect the billing address. Defaults to `automatic`. */
+      address?: 'automatic' | 'full';
+      /** Whether default billing details are attached to the payment method. */
+      attachDefaultsToPaymentMethod?: boolean;
+    }
+
     /**
      * Apple Pay configuration for Payment Element.
      * @CheckoutSessionPrivatePreview
