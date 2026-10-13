@@ -48,6 +48,22 @@ beforeEach(() => {
   create.mockImplementation(async () => ({ session }));
 });
 
+it('displays mandate text by default and accepts an explicit false', async () => {
+  const defaultController = await createCheckout(options);
+  expect(create.mock.calls[0][0].paymentElement.displaysMandateText).toBe(true);
+
+  const hiddenController = await createCheckout({
+    ...options,
+    paymentElement: { displaysMandateText: false },
+  });
+  expect(create.mock.calls[1][0].paymentElement.displaysMandateText).toBe(
+    false
+  );
+
+  await defaultController.destroy();
+  await hiddenController.destroy();
+});
+
 it('keeps one nullable Currency Selector handle for the controller lifetime', async () => {
   create.mockResolvedValueOnce({ session, isCurrencySelectorAvailable: true });
   const controller = await createCheckout({
