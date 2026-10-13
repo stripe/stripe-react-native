@@ -144,8 +144,9 @@ internal object CheckoutConfigurationMapper {
     if (params.hasKey("email")) {
       defaults.email(params.getString("email"))
     }
-    // TODO(porter): Uncomment when the reviewed native setter ships.
-    // defaults.phone(params.getString("phone"))
+    if (params.hasKey("phone")) {
+      defaults.phone(params.getString("phone"))
+    }
     return defaults
   }
 
