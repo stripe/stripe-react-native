@@ -44,6 +44,8 @@ appId: ${APP_ID}
       platform: iOS
     commands:
       - tapOn:
+          id: 'UIButton.Back'
+      - tapOn:
           id: 'UIButton.Close'
 - runFlow:
     when:
