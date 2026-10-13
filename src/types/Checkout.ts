@@ -320,76 +320,6 @@ export namespace Checkout {
   }
 
   /**
-   * Configuration for Apple Pay in Checkout.
-   * @CheckoutSessionPrivatePreview
-   */
-  export interface ApplePayConfiguration {
-    /** ISO 3166-1 alpha-2 country code where the transaction is processed. */
-    merchantCountryCode: string;
-    /** The type of Apple Pay button to display. */
-    buttonType?: ApplePayButtonType;
-  }
-
-  /**
-   * Apple Pay button type options.
-   * @CheckoutSessionPrivatePreview
-   */
-  export type ApplePayButtonType =
-    | 'plain'
-    | 'buy'
-    | 'setUp'
-    | 'inStore'
-    | 'donate'
-    | 'checkout'
-    | 'book'
-    | 'subscribe'
-    | 'reload'
-    | 'addMoney'
-    | 'topUp'
-    | 'order'
-    | 'rent'
-    | 'support'
-    | 'contribute'
-    | 'tip'
-    | 'continue';
-
-  /**
-   * Configuration for Google Pay in Checkout.
-   * @CheckoutSessionPrivatePreview
-   */
-  export interface GooglePayConfiguration {
-    /** An optional label to display with the amount. */
-    label?: string;
-    /** The Google Pay button type. Defaults to `pay`. */
-    buttonType?: GooglePayButtonType;
-    /** Additional card networks to enable, for example `INTERAC`. */
-    additionalEnabledNetworks?: string[];
-  }
-
-  /**
-   * Google Pay button type options.
-   * @CheckoutSessionPrivatePreview
-   */
-  export type GooglePayButtonType =
-    | 'buy'
-    | 'book'
-    | 'checkout'
-    | 'donate'
-    | 'order'
-    | 'pay'
-    | 'subscribe'
-    | 'plain';
-
-  /**
-   * Configuration for Link in Checkout.
-   * @CheckoutSessionPrivatePreview
-   */
-  export interface LinkConfiguration {
-    /** Controls when Link is displayed. Defaults to `automatic`. */
-    display?: 'automatic' | 'never';
-  }
-
-  /**
    * Appearance configuration for Checkout Payment Element.
    * @CheckoutSessionPrivatePreview
    */
@@ -444,12 +374,85 @@ export namespace Checkout {
     displaysMandateText?: boolean;
     /** Controls selection in the embedded view. */
     rowSelectionBehavior?: RowSelectionBehavior;
-    /** Apple Pay configuration. iOS only. */
-    applePay?: ApplePayConfiguration;
-    /** Google Pay configuration. Android only. */
-    googlePay?: GooglePayConfiguration;
-    /** Link display configuration. */
-    link?: LinkConfiguration;
+    /** Apple Pay configuration for Payment Element. iOS only. */
+    applePay?: PaymentElementConfiguration.ApplePayConfiguration;
+    /** Google Pay configuration for Payment Element. Android only. */
+    googlePay?: PaymentElementConfiguration.GooglePayConfiguration;
+    /** Link display configuration for Payment Element. */
+    link?: PaymentElementConfiguration.LinkConfiguration;
+  }
+
+  /** Wallet configuration types used by Checkout Payment Element. */
+  export namespace PaymentElementConfiguration {
+    /**
+     * Apple Pay configuration for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface ApplePayConfiguration {
+      /** ISO 3166-1 alpha-2 country code where the transaction is processed. */
+      merchantCountryCode: string;
+      /** The type of Apple Pay button to display. */
+      buttonType?: ApplePayButtonType;
+    }
+
+    /**
+     * Apple Pay button type options for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type ApplePayButtonType =
+      | 'plain'
+      | 'buy'
+      | 'setUp'
+      | 'inStore'
+      | 'donate'
+      | 'checkout'
+      | 'book'
+      | 'subscribe'
+      | 'reload'
+      | 'addMoney'
+      | 'topUp'
+      | 'order'
+      | 'rent'
+      | 'support'
+      | 'contribute'
+      | 'tip'
+      | 'continue';
+
+    /**
+     * Google Pay configuration for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface GooglePayConfiguration {
+      /** An optional label to display with the amount. */
+      label?: string;
+      /** The Google Pay button type. Defaults to `pay`. */
+      buttonType?: GooglePayButtonType;
+      /** Additional card networks to enable, for example `INTERAC`. */
+      additionalEnabledNetworks?: string[];
+    }
+
+    /**
+     * Google Pay button type options for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type GooglePayButtonType =
+      | 'buy'
+      | 'book'
+      | 'checkout'
+      | 'donate'
+      | 'order'
+      | 'pay'
+      | 'subscribe'
+      | 'plain';
+
+    /**
+     * Link configuration for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface LinkConfiguration {
+      /** Controls when Link is displayed. Defaults to `automatic`. */
+      display?: 'automatic' | 'never';
+    }
   }
 
   /**

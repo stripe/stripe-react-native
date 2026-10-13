@@ -964,11 +964,6 @@ export namespace Checkout {
         taxInclusive: Amount;
         total: Amount;
     }
-    export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
-    export interface ApplePayConfiguration {
-        buttonType?: ApplePayButtonType;
-        merchantCountryCode: string;
-    }
     export interface BillingDetails {
         address?: Partial<Address>;
         email?: string;
@@ -1033,15 +1028,6 @@ export namespace Checkout {
         promotionCode?: string;
     }
     export type ErrorCode = 'Failed' | 'InvalidClientSecret' | 'SessionNotOpen' | 'SheetCurrentlyPresented' | 'Timeout' | 'Canceled';
-    export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
-    export interface GooglePayConfiguration {
-        additionalEnabledNetworks?: string[];
-        buttonType?: GooglePayButtonType;
-        label?: string;
-    }
-    export interface LinkConfiguration {
-        display?: 'automatic' | 'never';
-    }
     export interface OneTimePriceItem {
         adjustableQuantity?: AdjustableQuantity;
         amountDetails: AmountDetails;
@@ -1063,11 +1049,11 @@ export namespace Checkout {
     export type PaymentElementAppearance = AppearanceParams;
     export interface PaymentElementConfiguration {
         appearance?: PaymentElementAppearance;
-        applePay?: ApplePayConfiguration;
+        applePay?: PaymentElementConfiguration.ApplePayConfiguration;
         billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
         displaysMandateText?: boolean;
-        googlePay?: GooglePayConfiguration;
-        link?: LinkConfiguration;
+        googlePay?: PaymentElementConfiguration.GooglePayConfiguration;
+        link?: PaymentElementConfiguration.LinkConfiguration;
         opensCardScannerAutomatically?: boolean;
         paymentMethodLayout?: PaymentMethodLayout;
         paymentMethodOrder?: string[];
@@ -1075,6 +1061,22 @@ export namespace Checkout {
         removeSavedPaymentMethodMessage?: string;
         rowSelectionBehavior?: RowSelectionBehavior;
         termsDisplay?: Record<string, TermsDisplay>;
+    }
+    export namespace PaymentElementConfiguration {
+        export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
+        export interface ApplePayConfiguration {
+            buttonType?: ApplePayButtonType;
+            merchantCountryCode: string;
+        }
+        export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
+        export interface GooglePayConfiguration {
+            additionalEnabledNetworks?: string[];
+            buttonType?: GooglePayButtonType;
+            label?: string;
+        }
+        export interface LinkConfiguration {
+            display?: 'automatic' | 'never';
+        }
     }
     export interface PaymentOptionDisplayData {
         billingDetails?: BillingDetails;
