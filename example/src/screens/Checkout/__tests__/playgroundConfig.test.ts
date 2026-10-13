@@ -13,6 +13,7 @@ describe('Checkout playground configuration', () => {
       customer_email: 'jenny@example.com',
       customer_creation: 'always',
       automatic_tax: { enabled: true },
+      allowed_payment_method_types: ['card'],
       shipping_address_collection: {
         allowed_countries: ['US', 'CA', 'IE', 'GB'],
       },
@@ -31,6 +32,19 @@ describe('Checkout playground configuration', () => {
     expect(
       buildSessionParameters(defaultPlaygroundSettings)
     ).not.toHaveProperty('payment_method_types');
+    expect(buildSessionParameters(defaultPlaygroundSettings)).toMatchObject({
+      ui_mode: 'mobile_elements',
+      allowed_payment_method_types: ['card'],
+    });
+  });
+
+  it('omits the payment method allowlist for automatic payment methods', () => {
+    expect(
+      buildSessionParameters({
+        ...defaultPlaygroundSettings,
+        automaticPaymentMethods: true,
+      })
+    ).not.toHaveProperty('allowed_payment_method_types');
   });
 
   it('builds the zero-amount cart scenario', () => {

@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -343,11 +342,7 @@ export default function CheckoutPlaygroundScreen() {
               settings.backendURL
             );
       const clientSecret = await createCheckoutSession(
-        buildSessionParameters(
-          settings,
-          customerID,
-          Platform.OS === 'android' ? 'android' : 'ios'
-        ),
+        buildSessionParameters(settings, customerID),
         settings.backendURL
       );
       navigation.navigate('CheckoutCartScreen', { clientSecret, settings });
@@ -603,6 +598,11 @@ export default function CheckoutPlaygroundScreen() {
               ]}
               onChange={(value) => set('billingAddressCollection', value)}
             />
+            <ToggleRow
+              label="Automatic Payment Methods"
+              value={settings.automaticPaymentMethods}
+              onChange={(value) => set('automaticPaymentMethods', value)}
+            />
             <PickerRow
               label="Link Display"
               value={settings.linkMode}
@@ -667,6 +667,30 @@ export default function CheckoutPlaygroundScreen() {
             Currency Selector Element in the cart.
           </Text>
         </Section>
+
+        {!settings.automaticPaymentMethods && (
+          <Section title="Payment Methods">
+            <View style={styles.card}>
+              {['card', 'link'].map((method) => (
+                <ToggleRow
+                  key={method}
+                  label={method === 'card' ? 'Card' : 'Link'}
+                  value={settings.paymentMethodTypes.includes(method)}
+                  onChange={(enabled) =>
+                    set(
+                      'paymentMethodTypes',
+                      enabled
+                        ? [...settings.paymentMethodTypes, method]
+                        : settings.paymentMethodTypes.filter(
+                            (candidate) => candidate !== method
+                          )
+                    )
+                  }
+                />
+              ))}
+            </View>
+          </Section>
+        )}
 
         <Section title="Express Checkout Element">
           <View style={styles.availabilityCard}>

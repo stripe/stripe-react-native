@@ -41,11 +41,13 @@ export type PlaygroundSettings = {
   defaultShippingAddressOption: DefaultShippingAddressOption;
   customShippingAddress: ShippingAddressDraft;
   billingAddressCollection: BillingAddressCollection;
+  automaticPaymentMethods: boolean;
   automaticTax: boolean;
   paymentMethodSave: boolean;
   paymentMethodRemove: boolean;
   linkMode: 'automatic' | 'never';
   adaptivePricingCountry: AdaptivePricingCountry;
+  paymentMethodTypes: string[];
 };
 
 export type CheckoutCartParams = {
@@ -79,11 +81,13 @@ export const defaultPlaygroundSettings: PlaygroundSettings = {
   defaultShippingAddressOption: 'none',
   customShippingAddress: usTestAddress,
   billingAddressCollection: 'automatic',
+  automaticPaymentMethods: false,
   automaticTax: true,
   paymentMethodSave: true,
   paymentMethodRemove: true,
   linkMode: 'automatic',
   adaptivePricingCountry: 'none',
+  paymentMethodTypes: ['card'],
 };
 
 export const backendURLForOption = (option: BackendOption): string | null => {
@@ -137,6 +141,12 @@ export function validateSettings(settings: PlaygroundSettings): string | null {
   ) {
     return 'Enter a server email, or choose None for no email.';
   }
+  if (
+    !settings.automaticPaymentMethods &&
+    settings.paymentMethodTypes.length === 0
+  ) {
+    return 'Select at least one payment method.';
+  }
   if (!/^https?:\/\/[^\s]+$/i.test(settings.backendURL)) {
     return 'Enter a valid backend URL.';
   }
@@ -153,12 +163,10 @@ const lineItems = (settings: PlaygroundSettings) =>
 
 export function buildSessionParameters(
   settings: PlaygroundSettings,
-  customerID?: string,
-  platform: 'ios' | 'android' = 'ios'
+  customerID?: string
 ): object {
   const params: Record<string, unknown> = {
-    // Android currently accepts `elements`; iOS uses the preview UI mode.
-    ui_mode: platform === 'android' ? 'elements' : 'mobile_elements',
+    ui_mode: 'mobile_elements',
     currency: settings.currency,
     items: [
       {
@@ -181,6 +189,11 @@ export function buildSessionParameters(
     ],
   };
 
+  if (!settings.automaticPaymentMethods) {
+    params.allowed_payment_method_types = [
+      ...settings.paymentMethodTypes,
+    ].sort();
+  }
   if (settings.automaticTax) {
     params.automatic_tax = { enabled: true };
   }
