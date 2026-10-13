@@ -7,6 +7,33 @@ import XCTest
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
 class OnrampMappersTests: XCTestCase {
 
+    func test_mapToOnrampConfiguration_mapsCustomerIdAndCountryHint() {
+        let configuration = Mappers.mapToOnrampConfiguration([
+            "cryptoCustomerId": "ccus_123",
+            "countryHint": "DE",
+        ])
+
+        XCTAssertEqual(configuration.cryptoCustomerId, "ccus_123")
+        XCTAssertEqual(configuration.countryHint, "DE")
+    }
+
+    func test_mapToOnrampConfiguration_omittedPropertiesAreNil() {
+        let configuration = Mappers.mapToOnrampConfiguration([:])
+
+        XCTAssertNil(configuration.cryptoCustomerId)
+        XCTAssertNil(configuration.countryHint)
+    }
+
+    func test_mapToOnrampConfiguration_nullPropertiesAreNil() {
+        let configuration = Mappers.mapToOnrampConfiguration([
+            "cryptoCustomerId": NSNull(),
+            "countryHint": NSNull(),
+        ])
+
+        XCTAssertNil(configuration.cryptoCustomerId)
+        XCTAssertNil(configuration.countryHint)
+    }
+
     func test_mapToLinkAppearance_fullConfigurationMapsDynamicColorsAndPrimaryButton() {
         let params: [String: Any?] = [
             "style": "ALWAYS_DARK",

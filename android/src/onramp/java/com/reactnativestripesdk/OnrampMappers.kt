@@ -54,6 +54,7 @@ internal fun mapConfig(
 
   val displayName = configMap.getString("merchantDisplayName") ?: ""
   val cryptoCustomerId = configMap.getString("cryptoCustomerId")
+  val countryHint = configMap.getString("countryHint")
   val googlePayConfig = mapGooglePayConfig(configMap.getMap("googlePay"))
   val samsungPayConfig = mapSamsungPayConfig(configMap.getMap("samsungPay"))
 
@@ -62,6 +63,7 @@ internal fun mapConfig(
     .publishableKey(publishableKey)
     .appearance(appearance)
     .cryptoCustomerId(cryptoCustomerId)
+    .countryHint(countryHint)
     .apply { googlePayConfig?.let { googlePayConfig(it) } }
     .apply { samsungPayConfig?.let { samsungPayConfig(it) } }
     .apply {

@@ -35,6 +35,12 @@ export type Configuration = {
   appearance: LinkAppearance;
   /** The identifier of the Stripe crypto customer object. */
   cryptoCustomerId?: string;
+  /**
+   * Merchant-provided ISO 3166-1 alpha-2 country code used to help select a merchant
+   * of record before the customer has an established KYC region. An established
+   * KYC region takes precedence. Omit when the country is unknown.
+   */
+  countryHint?: string;
   /** Google Pay configuration. Required on Android to enable Google Pay as a payment method. */
   googlePay?: GooglePayConfig;
   /** Samsung Pay configuration. Required on Android to enable Samsung Pay as a payment method. */
