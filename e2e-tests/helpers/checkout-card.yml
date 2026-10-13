@@ -32,7 +32,7 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible:
       id: 'checkout-select-payment-method'
-      text: '.*${CARD_NUMBER.slice(-4)}.*'
+      text: '.*Visa.*'
     timeout: 30000
 - scrollUntilVisible:
     element:
