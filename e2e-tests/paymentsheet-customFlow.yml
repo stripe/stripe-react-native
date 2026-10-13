@@ -9,12 +9,12 @@ appId: ${APP_ID}
     timeout: 150000
 - tapOn:
     text: "Choose payment method"
-- extendedWaitUntil:
-    visible: "TEST"
-    timeout: 150000
 - tapOn:
     text: "Card"
     optional: true
+- extendedWaitUntil:
+    visible: "Card number. Supported cards include.*"
+    timeout: 150000
 - tapOn:
     text: "Card number. Supported cards include.*"
 - inputText: "4242424242424242"

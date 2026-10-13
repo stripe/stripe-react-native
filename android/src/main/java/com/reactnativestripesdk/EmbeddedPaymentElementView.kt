@@ -16,12 +16,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
+import com.reactnativestripesdk.utils.isDarkTheme
 import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -334,9 +336,10 @@ class EmbeddedPaymentElementView(
       }
     }
 
-    LaunchedEffect(embedded) {
+    val isSystemDarkTheme = LocalConfiguration.current.isDarkTheme()
+    LaunchedEffect(embedded, isSystemDarkTheme) {
       embedded.paymentOption.collect { opt ->
-        val optMap = opt?.toWritableMap()
+        val optMap = opt?.toWritableMap(isSystemDarkTheme)
         val payload =
           Arguments.createMap().apply {
             putMap("paymentOption", optMap)

@@ -1,7 +1,12 @@
 package com.reactnativestripesdk.checkout
 
+import android.app.Activity
+import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.drawable.ColorDrawable
 import androidx.activity.ComponentActivity
+import androidx.test.core.app.ApplicationProvider
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
@@ -45,6 +50,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import java.util.concurrent.atomic.AtomicReference
 
 @OptIn(CheckoutSessionPreview::class, ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -133,6 +139,47 @@ class NativeCheckoutControllerInstanceTest {
 
     assertEquals("ready", fixture.events.last().getString("status"))
     assertEquals("jenny@example.com", fixture.events.last().getMap("session")!!.getString("email"))
+  }
+
+  @Test
+  fun `session icons follow the current activity across activity changes`() = withFixture { fixture ->
+    fixture.start()
+    advanceUntilIdle()
+    val requestedDarkTheme = AtomicReference<Boolean>()
+    fun activityWithNightMode(nightMode: Int): Activity {
+      val activity = mock(Activity::class.java)
+      val resources = mock(Resources::class.java)
+      `when`(resources.configuration).thenReturn(Configuration().apply { uiMode = nightMode })
+      `when`(activity.resources).thenReturn(resources)
+      return activity
+    }
+
+    assertEquals(
+      Configuration.UI_MODE_NIGHT_NO,
+      fixture.context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK,
+    )
+    val darkActivity = activityWithNightMode(Configuration.UI_MODE_NIGHT_YES)
+    `when`(fixture.context.currentActivity).thenReturn(darkActivity)
+    fixture.sessions.value = checkoutSession(
+      paymentOption = checkoutPaymentOption(
+        imageLoader = { ColorDrawable() },
+        requestedDarkTheme = requestedDarkTheme,
+      ),
+    )
+    fixture.instance.publishCurrentState()
+    assertEquals(true, requestedDarkTheme.get())
+
+    val lightActivity = activityWithNightMode(Configuration.UI_MODE_NIGHT_NO)
+    `when`(fixture.context.currentActivity).thenReturn(lightActivity)
+    fixture.sessions.value = checkoutSession(
+      email = "new@example.com",
+      paymentOption = checkoutPaymentOption(
+        imageLoader = { ColorDrawable() },
+        requestedDarkTheme = requestedDarkTheme,
+      ),
+    )
+    fixture.instance.publishCurrentState()
+    assertEquals(false, requestedDarkTheme.get())
   }
 
   @Test
@@ -262,13 +309,14 @@ class NativeCheckoutControllerInstanceTest {
     val sessions = MutableStateFlow<CheckoutController.Session?>(checkoutSession())
     val updating = MutableStateFlow(false)
     val events = mutableListOf<ReadableMap>()
+    val context = mock(ReactApplicationContext::class.java)
     val instance: NativeCheckoutControllerInstance
 
     init {
       `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
       `when`(controller.session).thenReturn(sessions)
       `when`(controller.isUpdating).thenReturn(updating)
-      val context = mock(ReactApplicationContext::class.java)
+      `when`(context.resources).thenReturn(ApplicationProvider.getApplicationContext<Context>().resources)
       val emitter = mock(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       `when`(context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)).thenReturn(emitter)
       doAnswer { invocation ->
@@ -282,6 +330,7 @@ class NativeCheckoutControllerInstanceTest {
         EventEmitterCompat(context),
         scope,
         com.facebook.react.bridge.JavaOnlyMap.of("id", "cs_test", "email", "jenny@example.com"),
+        context,
       )
     }
 

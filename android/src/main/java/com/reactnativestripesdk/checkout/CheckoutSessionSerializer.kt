@@ -1,22 +1,26 @@
 package com.reactnativestripesdk.checkout
 
+import android.content.Context
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.convertDrawableToBase64
 import com.reactnativestripesdk.toHtmlString
 import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.isDarkTheme
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutController.Session
+import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
-@OptIn(CheckoutSessionPreview::class)
+@OptIn(CheckoutSessionPreview::class, ReactNativeSdkInternal::class)
 internal object CheckoutSessionSerializer {
-  suspend fun serialize(session: Session): WritableMap =
+  suspend fun serialize(session: Session, context: Context): WritableMap =
     Arguments.createMap().apply {
       putString("id", session.id)
       putBoolean("livemode", session.livemode)
@@ -25,7 +29,7 @@ internal object CheckoutSessionSerializer {
       session.tax?.let { putMap("tax", serializeTax(it)) }
       putMap("status", serializeStatus(session.status))
       session.paymentOption?.let {
-        putMap("paymentOption", serializePaymentOption(it))
+        putMap("paymentOption", serializePaymentOption(it, context))
       }
       putInt("minorUnitsAmountDivisor", session.minorUnitsAmountDivisor)
       session.businessName?.let { putString("businessName", it) }
@@ -174,15 +178,17 @@ internal object CheckoutSessionSerializer {
 
   private suspend fun serializePaymentOption(
     paymentOption: Session.PaymentOptionDisplayData,
+    context: Context,
   ): WritableMap = Arguments.createMap().apply {
     putString("label", paymentOption.label)
     putString("paymentMethodType", paymentOption.paymentMethodType)
     paymentOption.mandateText?.let { putString("mandateHTML", it.toHtmlString()) }
     paymentOption.billingDetails?.let { putMap("billingDetails", serializeBillingDetails(it)) }
+    val isSystemDarkTheme = context.resources.configuration.isDarkTheme()
     val imageBase64 = try {
       withContext(Dispatchers.Default) {
         withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) {
-          val image = withContext(Dispatchers.IO) { paymentOption.imageLoader() }
+          val image = withContext(Dispatchers.IO) { paymentOption.loadIcon(isSystemDarkTheme) }
           convertDrawableToBase64(image)
         }
       }
@@ -217,3 +223,7 @@ internal object CheckoutSessionSerializer {
 }
 
 private const val IMAGE_TIMEOUT_MILLIS = 5_000L
+
+/** Use the current host's configuration, or the application's while no activity is available. */
+internal fun ReactApplicationContext.checkoutIconContext(): Context =
+  currentActivity?.takeUnless { it.isDestroyed } ?: this

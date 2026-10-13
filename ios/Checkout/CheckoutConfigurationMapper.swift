@@ -187,14 +187,14 @@ enum CheckoutConfigurationMapper {
             guard let merchantIdentifier, !merchantIdentifier.isEmpty else {
                 throw CheckoutConfigurationMapperError.missingMerchantIdentifier
             }
-            configuration.applePayConfiguration = PaymentElement.ApplePayConfiguration(
+            configuration.applePayConfiguration = PaymentElement.Configuration.ApplePayConfiguration(
                 merchantId: merchantIdentifier,
                 buttonType: try mapApplePayButtonType(applePayParams["buttonType"] as? String)
             )
         }
 
         if let linkParams = params["link"] as? NSDictionary {
-            var linkConfiguration = PaymentElement.LinkConfiguration()
+            var linkConfiguration = PaymentElement.Configuration.LinkConfiguration()
             if let display = linkParams["display"] as? String {
                 linkConfiguration.display = try mapLinkDisplay(display)
             }
@@ -288,7 +288,7 @@ enum CheckoutConfigurationMapper {
 
     private static func mapLinkDisplay(
         _ value: String
-    ) throws -> PaymentElement.LinkConfiguration.Display {
+    ) throws -> PaymentElement.Configuration.LinkConfiguration.Display {
         switch value {
         case "automatic": return .automatic
         case "never": return .never

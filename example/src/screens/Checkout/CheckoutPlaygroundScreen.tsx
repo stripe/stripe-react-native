@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -343,11 +342,7 @@ export default function CheckoutPlaygroundScreen() {
               settings.backendURL
             );
       const clientSecret = await createCheckoutSession(
-        buildSessionParameters(
-          settings,
-          customerID,
-          Platform.OS === 'android' ? 'android' : 'ios'
-        ),
+        buildSessionParameters(settings, customerID),
         settings.backendURL
       );
       navigation.navigate('CheckoutCartScreen', { clientSecret, settings });

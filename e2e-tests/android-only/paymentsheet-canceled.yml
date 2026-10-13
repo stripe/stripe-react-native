@@ -8,7 +8,7 @@ appId: ${APP_ID}
     text: "Checkout"
 - tapOn: "Checkout"
 - extendedWaitUntil:
-    visible: "TEST"
+    visible: "Close"
     timeout: 150000
 - tapOn: "Close"
 - assertVisible:

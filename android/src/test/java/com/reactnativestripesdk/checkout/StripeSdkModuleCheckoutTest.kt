@@ -54,6 +54,7 @@ class StripeSdkModuleCheckoutTest {
       mock(EventEmitterCompat::class.java),
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
+      contextRule.context,
     )
     val promise = mock(Promise::class.java)
 
@@ -83,6 +84,7 @@ class StripeSdkModuleCheckoutTest {
       mock(EventEmitterCompat::class.java),
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
+      context,
     )
     val controllerId = "controller"
     module.checkoutControllers[controllerId] = instance
@@ -132,6 +134,7 @@ class StripeSdkModuleCheckoutTest {
       mock(EventEmitterCompat::class.java),
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
+      context,
     )
     module.checkoutControllers["controller"] = instance
     val missingActivity = mock(Promise::class.java)

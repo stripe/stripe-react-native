@@ -2,7 +2,6 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.Configuration
 import androidx.core.graphics.toColorInt
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
@@ -12,6 +11,7 @@ import com.reactnativestripesdk.utils.getBooleanOrNull
 import com.reactnativestripesdk.utils.getDoubleOrNull
 import com.reactnativestripesdk.utils.getFloatOr
 import com.reactnativestripesdk.utils.getFloatOrNull
+import com.reactnativestripesdk.utils.isDarkTheme
 import com.stripe.android.paymentelement.AppearanceAPIAdditionsPreview
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.uicore.StripeThemeDefaults
@@ -517,11 +517,7 @@ private fun dynamicColorFromParams(
   // First check if it's a nested map { "light": "#RRGGBB", "dark": "#RRGGBB" }
   if (params.hasKey(key) && params.getType(key) == ReadableType.Map) {
     val colorMap = params.getMap(key)
-    val isDark =
-      (
-        context.resources.configuration.uiMode
-          and Configuration.UI_MODE_NIGHT_MASK
-      ) == Configuration.UI_MODE_NIGHT_YES
+    val isDark = context.resources.configuration.isDarkTheme()
 
     // Pick the hex for current mode, or null
     val hex =

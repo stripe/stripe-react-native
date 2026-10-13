@@ -163,12 +163,10 @@ const lineItems = (settings: PlaygroundSettings) =>
 
 export function buildSessionParameters(
   settings: PlaygroundSettings,
-  customerID?: string,
-  platform: 'ios' | 'android' = 'ios'
+  customerID?: string
 ): object {
   const params: Record<string, unknown> = {
-    // Android currently accepts `elements`; iOS uses the preview UI mode.
-    ui_mode: platform === 'android' ? 'elements' : 'mobile_elements',
+    ui_mode: 'mobile_elements',
     currency: settings.currency,
     items: [
       {
@@ -192,7 +190,9 @@ export function buildSessionParameters(
   };
 
   if (!settings.automaticPaymentMethods) {
-    params.payment_method_types = [...settings.paymentMethodTypes].sort();
+    params.allowed_payment_method_types = [
+      ...settings.paymentMethodTypes,
+    ].sort();
   }
   if (settings.automaticTax) {
     params.automatic_tax = { enabled: true };
