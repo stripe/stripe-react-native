@@ -38,6 +38,10 @@ describe('ComponentAnalyticsClient', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('constructor', () => {
     it('should initialize with unique component instance ID', () => {
       const client1 = new ComponentAnalyticsClient(mockAnalyticsClient, {
@@ -150,16 +154,17 @@ describe('ComponentAnalyticsClient', () => {
       expect(sendEventSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should calculate time_to_load in seconds', (done) => {
-      // Wait 100ms then log
-      setTimeout(() => {
-        componentAnalytics.logComponentWebPageLoaded();
+    it('should calculate time_to_load in seconds', () => {
+      const now = jest.spyOn(Date, 'now').mockReturnValue(1100);
+      now.mockReturnValueOnce(1000);
+      const client = new ComponentAnalyticsClient(mockAnalyticsClient, {
+        component: 'payments',
+      });
 
-        const payload = sendEventSpy.mock.calls[0][0] as any;
-        expect(payload.time_to_load).toBeGreaterThanOrEqual(0.1); // At least 100ms = 0.1s
-        expect(payload.time_to_load).toBeLessThan(1); // Less than 1 second
-        done();
-      }, 100);
+      client.logComponentWebPageLoaded();
+
+      const payload = sendEventSpy.mock.calls[0][0] as any;
+      expect(payload.time_to_load).toBe(0.1);
     });
   });
 
