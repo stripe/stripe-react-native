@@ -8,13 +8,14 @@ import com.reactnativestripesdk.toHtmlString
 import com.reactnativestripesdk.utils.createError
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutController.Session
+import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
-@OptIn(CheckoutSessionPreview::class)
+@OptIn(CheckoutSessionPreview::class, ReactNativeSdkInternal::class)
 internal object CheckoutSessionSerializer {
   suspend fun serialize(session: Session): WritableMap =
     Arguments.createMap().apply {
@@ -182,7 +183,7 @@ internal object CheckoutSessionSerializer {
     val imageBase64 = try {
       withContext(Dispatchers.Default) {
         withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) {
-          val image = withContext(Dispatchers.IO) { paymentOption.imageLoader() }
+          val image = withContext(Dispatchers.IO) { paymentOption.loadIcon(isSystemDarkTheme = false) }
           convertDrawableToBase64(image)
         }
       }

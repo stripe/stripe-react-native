@@ -52,6 +52,7 @@ final class CheckoutSessionSerializerTests: XCTestCase {
         let option = CheckoutController.Session.PaymentOptionDisplayData(
             image: image,
             label: "Visa 4242",
+            sublabel: nil,
             billingDetails: billingDetails,
             paymentMethodType: "card",
             mandateText: NSAttributedString(string: "Terms & conditions", attributes: [

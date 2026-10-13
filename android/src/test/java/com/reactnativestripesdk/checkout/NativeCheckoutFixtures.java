@@ -1,9 +1,12 @@
 package com.reactnativestripesdk.checkout;
 
 import android.graphics.drawable.Drawable;
+import androidx.compose.runtime.Composer;
 import androidx.compose.ui.text.AnnotatedString;
+import androidx.compose.ui.graphics.painter.Painter;
 import com.stripe.android.checkout.CheckoutController;
 import com.stripe.android.checkout.CheckoutController.Session;
+import com.stripe.android.paymentsheet.model.PaymentOptionResource;
 import java.util.Collections;
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
@@ -44,7 +47,18 @@ final class NativeCheckoutFixtures {
       Function1<? super Continuation<? super Drawable>, ? extends Object> imageLoader,
       Session.PaymentOptionDisplayData.BillingDetails billingDetails,
       AnnotatedString mandateText) {
-    return new Session.PaymentOptionDisplayData(imageLoader, "Visa 4242", billingDetails, "card", mandateText);
+    PaymentOptionResource resource = new PaymentOptionResource() {
+      @Override
+      public Object load(Boolean isSystemDarkTheme, Continuation<? super Drawable> continuation) {
+        return imageLoader.invoke(continuation);
+      }
+
+      @Override
+      public Painter rememberPainter(Composer composer, int changed) {
+        throw new UnsupportedOperationException("This fixture only loads the icon");
+      }
+    };
+    return new Session.PaymentOptionDisplayData(resource, "Visa 4242", null, billingDetails, "card", mandateText);
   }
 
   static Session.PaymentOptionDisplayData.BillingDetails postalBillingDetails(String postalCode) {

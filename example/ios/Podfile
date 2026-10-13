@@ -109,6 +109,13 @@ post_integrate do |_installer|
     flags = Array(config.build_settings['OTHER_SWIFT_FLAGS'] || '$(inherited)')
     flags = flags.flat_map { |flag| flag.to_s.split(' ') }
     flags << '$(inherited)' unless flags.include?('$(inherited)')
+    # React-Core-prebuilt's umbrella header omits private headers. Swift's
+    # Clang importer reports each omission when tests import React modules.
+    # Keep other warnings enabled for the test target.
+    unless flags.include?('-Wno-incomplete-umbrella')
+      flags << '-Xcc'
+      flags << '-Wno-incomplete-umbrella'
+    end
     unless disable_spm
       # The tests import Stripe modules directly (@testable-importing the SDK
       # framework also requires resolving the modules its Swift interface
