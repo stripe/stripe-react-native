@@ -3,6 +3,7 @@ package com.reactnativestripesdk.checkout
 import android.content.Context
 import android.content.res.Configuration
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.convertDrawableToBase64
@@ -183,12 +184,12 @@ internal object CheckoutSessionSerializer {
     putString("paymentMethodType", paymentOption.paymentMethodType)
     paymentOption.mandateText?.let { putString("mandateHTML", it.toHtmlString()) }
     paymentOption.billingDetails?.let { putMap("billingDetails", serializeBillingDetails(it)) }
+    val isSystemDarkTheme =
+      (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+        Configuration.UI_MODE_NIGHT_YES
     val imageBase64 = try {
       withContext(Dispatchers.Default) {
         withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) {
-          val isSystemDarkTheme =
-            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-              Configuration.UI_MODE_NIGHT_YES
           val image = withContext(Dispatchers.IO) { paymentOption.loadIcon(isSystemDarkTheme) }
           convertDrawableToBase64(image)
         }
@@ -224,3 +225,7 @@ internal object CheckoutSessionSerializer {
 }
 
 private const val IMAGE_TIMEOUT_MILLIS = 5_000L
+
+/** Use the current host's configuration, or the application's while no activity is available. */
+internal fun ReactApplicationContext.checkoutIconContext(): Context =
+  currentActivity?.takeUnless { it.isDestroyed } ?: this

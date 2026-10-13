@@ -32,6 +32,7 @@ import com.reactnativestripesdk.checkout.CheckoutConfigurationMapper
 import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
 import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
 import com.reactnativestripesdk.checkout.checkoutErrorCode
+import com.reactnativestripesdk.checkout.checkoutIconContext
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
@@ -1463,7 +1464,8 @@ class StripeSdkModule(
           val nativeSession = requireNotNull(controller.session.value) {
             "Checkout did not return a session after configuration."
           }
-          val serializedSession = CheckoutSessionSerializer.serialize(nativeSession, reactApplicationContext)
+          val serializedSession =
+            CheckoutSessionSerializer.serialize(nativeSession, reactApplicationContext.checkoutIconContext())
           val instance = NativeCheckoutControllerInstance(
             controller = controller,
             eventEmitter = eventEmitter,
