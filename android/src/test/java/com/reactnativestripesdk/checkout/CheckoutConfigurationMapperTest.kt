@@ -74,6 +74,7 @@ class CheckoutConfigurationMapperTest {
               "billingDetails" to contactDetails("US"),
               "shippingDetails" to contactDetails("CA"),
               "email" to "jenny@example.com",
+              "phone" to "+15555551234",
             ),
           "paymentElement" to
             readableMapOf(
@@ -113,6 +114,7 @@ class CheckoutConfigurationMapperTest {
     assertContactDetails(defaults.readField("billingDetails"), "US")
     assertContactDetails(defaults.readField("shippingDetails"), "CA")
     assertEquals("jenny@example.com", defaults.readField<String>("email"))
+    assertEquals("+15555551234", defaults.readField<String>("phone"))
 
     val paymentElement =
       result.configuration.readField<PaymentElement.Configuration>("paymentElementConfiguration")
