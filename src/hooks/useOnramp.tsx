@@ -423,6 +423,11 @@ export function useOnramp() {
      *  - To receive Google Pay billing details back as `kycInfo`, ensure that the `GooglePayConfig`
      *    passed to `configure` has `billingAddressConfig` with `format` set to `Full` and the desired fields
      *    set to `true`.
+     *  - Request Apple Pay email/phone through `requiredShippingAddressFields`, or Google Pay
+     *    `isEmailRequired` and `billingAddressConfig.isPhoneNumberRequired`, for Link registration prefill.
+     *  - Samsung Pay contact collection requires `samsungPay.collectContactInformation` in `configure`.
+     * Returned fields are optional. Use `phone` for E.164 registration; `rawPhone` is for display/correction only.
+     * Pass collected name/address to `attachKycInfo`, or the address to `presentKycInfoVerification` for updates.
      * @returns Promise that resolves to an object with displayData, optional kycInfo, or error
      */
     collectPaymentMethod: _collectPaymentMethod,

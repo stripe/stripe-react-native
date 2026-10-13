@@ -57,6 +57,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     @MainActor var checkoutControllers: [String: NativeCheckoutControllerInstance] = [:]
     @MainActor var pendingCheckoutCreations: [String: Task<Void, Never>] = [:]
+    @MainActor var checkoutPresentingViewControllerProvider: () -> UIViewController? = {
+        RCTPresentedViewController()
+    }
 
     var merchantIdentifier: String?
 
@@ -116,7 +119,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)?
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
     var clientSecretProviderSetupIntentClientSecretCallback: ((String) -> Void)?
-    var clientSecretProviderCustomerSessionClientSecretCallback: ((CustomerSessionClientSecret) -> Void)?
+    @MainActor var customerSessionRequests: CustomerSessionRequestRegistry?
 
 #if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
@@ -1333,20 +1336,15 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        let appearance: LinkAppearance = if let appearanceParams = config["appearance"] as? [String: Any?] {
-            Mappers.mapToLinkAppearance(appearanceParams)
-        } else {
-            LinkAppearance()
-        }
-
-        let cryptoCustomerId = config["cryptoCustomerId"] as? String
+        let configuration = Mappers.mapToOnrampConfiguration(config)
 
         Task {
             do {
                 cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(
-                    appearance: appearance,
-                    cryptoCustomerID: cryptoCustomerId,
-                    additionalSDKVersions: onrampAdditionalSDKVersions
+                    appearance: configuration.appearance,
+                    cryptoCustomerID: configuration.cryptoCustomerId,
+                    additionalSDKVersions: onrampAdditionalSDKVersions,
+                    countryHint: configuration.countryHint
                 )
                 resolve([:])  // Return empty object on success
             } catch {

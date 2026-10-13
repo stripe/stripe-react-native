@@ -5,11 +5,13 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutPresenter
+import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CompletableDeferred
@@ -30,11 +32,13 @@ internal class NativeCheckoutControllerInstance(
   private val eventEmitter: EventEmitterCompat,
   private val scope: CoroutineScope,
   initialSession: WritableMap,
+  private val context: ReactApplicationContext,
 ) {
   private val serverUpdateCompletions = mutableMapOf<String, CompletableDeferred<Result<Unit>>>()
   private var controllerId: String? = null
   private var latestSession = initialSession
   private var destroyed = false
+  private var confirmation: CompletableDeferred<CheckoutController.Result>? = null
   private val destructionObservers = mutableSetOf<() -> Unit>()
   private var presenter: CheckoutPresenter? = null
   private var activity: ComponentActivity? = null
@@ -45,7 +49,13 @@ internal class NativeCheckoutControllerInstance(
   }
 
   /** Reuses the native Payment Element for the lifetime of its activity. */
-  fun paymentElement(activity: ComponentActivity): PaymentElement {
+  fun paymentElement(activity: ComponentActivity): PaymentElement = getPresenter(activity).paymentElement()
+
+  /** Reuses the native Currency Selector Element for the lifetime of its activity. */
+  fun currencySelectorElement(activity: ComponentActivity): CurrencySelectorElement =
+    getPresenter(activity).currencySelectorElement()
+
+  private fun getPresenter(activity: ComponentActivity): CheckoutPresenter {
     check(!destroyed) { "Checkout controller was destroyed." }
     if (this.activity !== activity) {
       releasePresenter()
@@ -53,7 +63,33 @@ internal class NativeCheckoutControllerInstance(
       this.activity = activity
       activity.lifecycle.addObserver(activityObserver)
     }
-    return checkNotNull(presenter).paymentElement()
+    return checkNotNull(presenter)
+  }
+
+  /** Waits for the controller's result callback within the bridge controller's lifetime. */
+  @MainThread
+  suspend fun confirm(activity: ComponentActivity): CheckoutController.Result {
+    UiThreadUtil.assertOnUiThread()
+    check(!destroyed) { "Checkout controller was destroyed." }
+    check(confirmation == null) { "Checkout confirmation is already in progress." }
+    val result = CompletableDeferred<CheckoutController.Result>()
+    confirmation = result
+    try {
+      emit("confirming")
+      getPresenter(activity).confirm()
+      val confirmationResult = result.await()
+      publishCurrentState()
+      return confirmationResult
+    } finally {
+      confirmation = null
+      if (!destroyed) emit(if (controller.isUpdating.value) "updating" else "ready")
+    }
+  }
+
+  @MainThread
+  fun onConfirmationResult(result: CheckoutController.Result) {
+    UiThreadUtil.assertOnUiThread()
+    confirmation?.complete(result)
   }
 
   private fun releasePresenter() {
@@ -79,26 +115,31 @@ internal class NativeCheckoutControllerInstance(
     this.controllerId = controllerId
 
     scope.launch {
-      sessionStates().collect { (session, isUpdating) -> publish(session, isUpdating) }
+      sessionStates().collect { session -> publish(session) }
     }
   }
 
   private fun sessionStates() =
-    controller.session.combine(controller.isUpdating) { session, isUpdating -> session to isUpdating }
-      .mapLatest { (session, isUpdating) ->
-        session?.let { CheckoutSessionSerializer.serialize(it) to isUpdating }
+    controller.session.combine(controller.isUpdating) { session, _ -> session }
+      .mapLatest { session ->
+        session?.let { CheckoutSessionSerializer.serialize(it, context.checkoutIconContext()) }
       }.filterNotNull()
 
   /** Publishes the current native snapshot before its status or operation result reaches JS. */
   suspend fun publishCurrentState() {
-    val (session, isUpdating) = sessionStates().first()
-    publish(session, isUpdating)
+    publish(sessionStates().first())
   }
 
-  private fun publish(session: WritableMap, isUpdating: Boolean) {
+  private fun publish(session: WritableMap) {
     if (!destroyed) {
       latestSession = session
-      emit(if (isUpdating) "updating" else "ready")
+      // A serialized snapshot can arrive after the native busy state has changed.
+      val status = when {
+        confirmation != null -> "confirming"
+        controller.isUpdating.value -> "updating"
+        else -> "ready"
+      }
+      emit(status)
     }
   }
 

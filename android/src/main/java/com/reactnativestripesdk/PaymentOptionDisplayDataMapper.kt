@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.TextUnit
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.mapFromPaymentSheetBillingDetails
+import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,7 +22,8 @@ import kotlinx.coroutines.withTimeout
  * Serialize Stripe's PaymentOptionDisplayData into a WritableMap
  * that can be sent over the RN bridge.
  */
-suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap =
+@OptIn(ReactNativeSdkInternal::class)
+suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(isSystemDarkTheme: Boolean): WritableMap =
   Arguments.createMap().apply {
     putString("label", label)
     putString("paymentMethodType", paymentMethodType)
@@ -41,7 +43,7 @@ suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): Wri
           val drawable =
             withTimeout(IMAGE_LOAD_TIMEOUT_MS) {
               withContext(Dispatchers.IO) {
-                imageLoader()
+                loadIcon(isSystemDarkTheme)
               }
             }
           getBitmapFromDrawable(drawable)?.let { bitmap ->
@@ -49,7 +51,7 @@ suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): Wri
           } ?: ""
         }
       } catch (_: Exception) {
-        // If imageLoader fails or times out, return empty string
+        // If loading the icon fails or times out, return empty string
         ""
       }
     putString("image", imageBase64)

@@ -987,11 +987,39 @@ export namespace Checkout {
     }
     export interface CreateOptions {
         clientSecret: string;
+        currencySelectorElement?: CurrencySelectorElementConfiguration;
         defaults?: Defaults;
         merchantDisplayName?: string;
         paymentElement?: PaymentElementConfiguration;
         returnURL: string;
         style?: UserInterfaceStyle;
+    }
+    export interface CurrencySelectorElementAppearance {
+        colors?: CurrencySelectorElementColorConfiguration | {
+            light: CurrencySelectorElementColorConfiguration;
+            dark: CurrencySelectorElementColorConfiguration;
+        };
+        contentVerticalPadding?: number;
+        font?: Partial<FontConfig>;
+        labelContent?: CurrencySelectorElementLabelContent;
+        shapes?: CurrencySelectorElementShapeConfiguration;
+    }
+    export interface CurrencySelectorElementColorConfiguration {
+        background?: ThemedColor;
+        border?: ThemedColor;
+        danger?: ThemedColor;
+        selectedBackground?: ThemedColor;
+        selectedText?: ThemedColor;
+        text?: ThemedColor;
+        textSecondary?: ThemedColor;
+    }
+    export interface CurrencySelectorElementConfiguration {
+        appearance?: CurrencySelectorElementAppearance;
+    }
+    export type CurrencySelectorElementLabelContent = 'automatic' | 'currencyCode' | 'amount';
+    export interface CurrencySelectorElementShapeConfiguration {
+        borderWidth?: number;
+        cornerRadius?: number;
     }
     export interface Defaults {
         billingDetails?: ContactDetails;
@@ -1010,7 +1038,6 @@ export namespace Checkout {
         additionalEnabledNetworks?: string[];
         buttonType?: GooglePayButtonType;
         label?: string;
-        testEnv?: boolean;
     }
     export interface LinkConfiguration {
         display?: 'automatic' | 'never';
@@ -1047,7 +1074,6 @@ export namespace Checkout {
         preferredNetworks?: CardBrand[];
         removeSavedPaymentMethodMessage?: string;
         rowSelectionBehavior?: RowSelectionBehavior;
-        savePaymentMethodOptInBehavior?: SavePaymentMethodOptInBehavior;
         termsDisplay?: Record<string, TermsDisplay>;
     }
     export interface PaymentOptionDisplayData {
@@ -1071,7 +1097,6 @@ export namespace Checkout {
         error: StripeError<ErrorCode>;
     };
     export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
-    export type SavePaymentMethodOptInBehavior = 'automatic' | 'requiresOptIn' | 'requiresOptOut';
     export interface Session {
         businessName?: string;
         currency: string;
@@ -1128,6 +1153,7 @@ export namespace Checkout {
         applyPromotionCode(promotionCode: string): Promise<void>;
         clearPaymentOption(): Promise<void>;
         confirm(): Promise<Result>;
+        readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
         readonly error: StripeError<ErrorCode> | null;
         readonly paymentElement: CheckoutPaymentElement | null;
         reload(): Promise<void>;
@@ -1146,6 +1172,7 @@ export interface CheckoutController {
     applyPromotionCode(promotionCode: string): Promise<void>;
     clearPaymentOption(): Promise<void>;
     confirm(): Promise<Checkout.Result>;
+    readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
     destroy(): Promise<void>;
     readonly paymentElement: CheckoutPaymentElement;
     removePromotionCode(): Promise<void>;
@@ -1157,6 +1184,18 @@ export interface CheckoutController {
 }
 
 // @public
+export interface CheckoutCurrencySelectorElement {
+}
+
+// @public
+export function CheckoutCurrencySelectorElementView(input: CheckoutCurrencySelectorElementViewProps): React_2.JSX.Element;
+
+// @public
+export interface CheckoutCurrencySelectorElementViewProps {
+    element: CheckoutCurrencySelectorElement;
+}
+
+// @public
 export interface CheckoutPaymentElement {
     present(): Promise<void>;
 }
@@ -1165,7 +1204,7 @@ export interface CheckoutPaymentElement {
 export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProps): React_2.JSX.Element;
 
 // @public
-export interface CheckoutPaymentElementViewProps extends ViewProps {
+export interface CheckoutPaymentElementViewProps {
     element: CheckoutPaymentElement;
 }
 
@@ -1312,6 +1351,7 @@ type Configuration = {
     merchantDisplayName: string;
     appearance: LinkAppearance;
     cryptoCustomerId?: string;
+    countryHint?: string;
     googlePay?: GooglePayConfig;
     samsungPay?: SamsungPayConfig;
 };
@@ -2036,6 +2076,7 @@ export { FinancialConnections }
 // @public (undocumented)
 type FinancialConnectionsEvent = {
     name: FinancialConnectionsEventName;
+    financialConnectionsSessionId: string;
     metadata: FinancialConnectionsEventMetadata;
 };
 
@@ -2593,6 +2634,9 @@ type KlarnaParams_2 = {
 
 // @public
 type KycInfo = {
+    email?: string;
+    phone?: string;
+    rawPhone?: string;
     firstName?: string;
     lastName?: string;
     idNumber?: string;
@@ -3859,6 +3903,7 @@ export enum RowStyle {
 
 // @public
 type SamsungPayConfig = {
+    collectContactInformation?: boolean;
     serviceId: string;
     merchantId?: string;
     merchantName?: string;
@@ -4701,7 +4746,7 @@ interface WeChatPayParams_2 {
 
 // Warnings were encountered during analysis:
 //
-// src/components/CustomerSheet.tsx:374:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
+// src/components/CustomerSheet.tsx:383:27 - (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
 // src/connect/Components.tsx:90:3 - (ae-forgotten-export) The symbol "StepChange" needs to be exported by the entry point index.d.ts
 // src/connect/Components.tsx:94:3 - (ae-forgotten-export) The symbol "CollectionOptions" needs to be exported by the entry point index.d.ts
 // src/connect/Components.tsx:274:3 - (ae-forgotten-export) The symbol "PaymentsListDefaultFilters" needs to be exported by the entry point index.d.ts

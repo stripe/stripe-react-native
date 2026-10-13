@@ -91,6 +91,71 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         view.removeFromSuperview()
     }
 
+    func test_sheetRejectsMissingPresenterAndDestroyedController() async throws {
+        let sdk = StripeSdkImpl()
+        sdk.checkoutPresentingViewControllerProvider = { nil }
+        let instance = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let controllerId = "controller-1"
+        sdk.checkoutControllers[controllerId] = instance
+        defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+
+        let confirmationRejected = expectation(description: "Confirmation without a presenter rejects")
+        sdk.confirmCheckout(controllerId: controllerId, resolver: { _ in
+            XCTFail("Invalid confirmation should reject")
+            confirmationRejected.fulfill()
+        }, rejecter: { code, message, _ in
+            XCTAssertEqual(code, "Failed")
+            XCTAssertEqual(message, "Checkout requires a visible presenting view controller.")
+            confirmationRejected.fulfill()
+        })
+        await fulfillment(of: [confirmationRejected], timeout: 2)
+
+        for destroyed in [false, true] {
+            if destroyed { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+            let rejected = expectation(description: "Invalid presentation rejects")
+            sdk.presentCheckoutPaymentElement(controllerId: controllerId, resolver: { _ in
+                XCTFail("Invalid presentation should reject")
+                rejected.fulfill()
+            }, rejecter: { code, message, _ in
+                XCTAssertEqual(code, "Failed")
+                XCTAssertEqual(message, destroyed
+                    ? "Checkout controller `\(controllerId)` does not exist."
+                    : "Checkout requires a presenting view controller.")
+                rejected.fulfill()
+            })
+            await fulfillment(of: [rejected], timeout: 2)
+        }
+    }
+
+    func test_confirmationRejectsConcurrentAttemptsAndSettlesOnDestruction() async throws {
+        let checkout = try await makeCheckout()
+        var statuses: [String] = []
+        let instance = NativeCheckoutControllerInstance(checkout: checkout) { event in
+            statuses.append(event["status"] as! String)
+        }
+        instance.start(controllerId: "confirming")
+        var results: [Result<CheckoutController.ConfirmResult, Error>] = []
+        let presenter = UIViewController()
+
+        try instance.confirm(from: presenter) { results.append($0) }
+        XCTAssertEqual(statuses.last, "confirming")
+        XCTAssertThrowsError(try instance.confirm(from: presenter) { _ in
+            XCTFail("A second confirmation must not start.")
+        })
+        instance.destroy()
+        await Task.yield()
+
+        XCTAssertEqual(results.count, 1)
+        guard case .failure(let error) = results.first else {
+            return XCTFail("Destruction must reject pending confirmation.")
+        }
+        XCTAssertTrue(error is CancellationError)
+        XCTAssertEqual(statuses, ["ready", "confirming"])
+        XCTAssertThrowsError(try instance.confirm(from: presenter) { _ in
+            XCTFail("A destroyed controller must not confirm.")
+        })
+    }
+
     private func makeCheckout() async throws -> CheckoutController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]

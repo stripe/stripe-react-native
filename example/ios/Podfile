@@ -28,6 +28,45 @@ options = {
   :bridgeless_enabled => true,
   :fabric_enabled => true,
   :hermes_enabled => true,
+  # react-native's own post_install only raises IPHONEOS_DEPLOYMENT_TARGET on
+  # each pod's main native target (ReactNativePodsUtils.updateOSDeploymentTarget),
+  # not on the resource bundle targets CocoaPods generates for pods declaring
+  # resource_bundles (e.g. RNCAsyncStorage-RNCAsyncStorage_resources, which
+  # inherits 13.4 from that pod's podspec). Xcode 27 rejects deployment targets
+  # below 15.0, so bump those bundle targets too.
+  :post_install => lambda do |installer|
+    min_deployment_target = Helpers::Constants.min_ios_version_supported.to_f
+
+    installer.pods_project.targets.each do |target|
+      next unless target.respond_to?(:product_type) && target.product_type == 'com.apple.product-type.bundle'
+
+      target.build_configurations.each do |config|
+        current_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f
+        if current_target < min_deployment_target
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_deployment_target.to_s
+        end
+      end
+    end
+
+    # Xcode, by default (CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES
+    # = NO), passes -Werror=non-modular-include-in-framework-module to every
+    # compile/scan job. ReactNativeHost.h (react-native-test-app) textually
+    # #imports React-Core headers (RCTBridgeDelegate.h, RCTLog.h) via plain
+    # header search paths rather than a declared module dependency, which
+    # Xcode 27's stricter dependency scanner now catches where prior Xcodes
+    # didn't. Apple's documented remedy for a framework module mixing modular
+    # and non-modular headers this way is to allow it. This must be set on
+    # every target that transitively imports ReactNativeHost too, since the
+    # flag that gets baked into its precompiled module comes from whichever
+    # target is doing the importing, not from ReactNativeHost's own target
+    # (see the matching fix in post_integrate below for ReactTestApp itself,
+    # which lives in a separate project).
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      end
+    end
+  end,
 }
 
 use_test_app! options do |_target|
@@ -95,6 +134,19 @@ post_integrate do |_installer|
       end
     end
     config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+  end
+
+  # ReactTestApp.xcodeproj is a separate project from Pods.xcodeproj (never
+  # touched by the :post_install lambda above), but its ReactTestApp target
+  # is the one that actually consumes ReactNativeHost.h — and it's the
+  # *consumer's* CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES
+  # setting, not ReactNativeHost's own, that determines whether Xcode 27's
+  # dependency scanner errors when precompiling ReactNativeHost's module for
+  # this project. Apply the same fix here.
+  project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+    end
   end
 
   project.save

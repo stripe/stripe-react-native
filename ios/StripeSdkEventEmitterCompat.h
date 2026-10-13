@@ -16,7 +16,7 @@
 - (void)emitOnCustomerAdapterFetchSelectedPaymentOptionCallback;
 - (void)emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback;
 - (void)emitOnCustomerSessionProviderSetupIntentClientSecret;
-- (void)emitOnCustomerSessionProviderCustomerSessionClientSecret;
+- (void)emitOnCustomerSessionProviderCustomerSessionClientSecret:(NSDictionary *)value;
 - (void)emitEmbeddedPaymentElementDidUpdateHeight:(NSDictionary *)value;
 - (void)emitEmbeddedPaymentElementWillPresent;
 - (void)emitEmbeddedPaymentElementDidUpdatePaymentOption:(NSDictionary *)value;

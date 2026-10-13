@@ -45,6 +45,7 @@ export { PaymentMethodMessagingElement } from './components/PaymentMethodMessagi
 // Checkout private preview
 export { createCheckout } from './checkout/createCheckout';
 export { CheckoutPaymentElementView } from './components/CheckoutPaymentElementView';
+export { CheckoutCurrencySelectorElementView } from './components/CheckoutCurrencySelectorElementView';
 
 //connect components
 export {

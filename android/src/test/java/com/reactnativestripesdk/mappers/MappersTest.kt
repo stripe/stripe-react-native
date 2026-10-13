@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.createCanAddCardResult
 import com.reactnativestripesdk.utils.mapFinancialConnectionsEventErrorCode
+import com.reactnativestripesdk.utils.mapFromFinancialConnectionsEvent
 import com.reactnativestripesdk.utils.mapNextAction
 import com.reactnativestripesdk.utils.mapPaymentMethodType
 import com.reactnativestripesdk.utils.mapToAddress
@@ -102,6 +103,50 @@ class MappersTest {
       assertEquals(expectedValue, mapFinancialConnectionsEventErrorCode(errorCode))
     }
     assertNull(mapFinancialConnectionsEventErrorCode(null))
+  }
+
+  @Test
+  fun mapFromFinancialConnectionsEvent_PreservesSessionIdWithoutMetadata() {
+    val eventNames =
+      listOf(
+        FinancialConnectionsEvent.Name.OPEN,
+        FinancialConnectionsEvent.Name.CANCEL,
+        FinancialConnectionsEvent.Name.FLOW_LAUNCHED_IN_BROWSER,
+      )
+
+    eventNames.forEach { name ->
+      val event =
+        FinancialConnectionsEventFactory.create(name, null, "fcsess_test")
+
+      val result = mapFromFinancialConnectionsEvent(event)
+
+      assertEquals(name.value, result.getString("name"))
+      assertEquals("fcsess_test", result.getString("financialConnectionsSessionId"))
+      assertEquals(setOf("name", "financialConnectionsSessionId", "metadata"), result.toHashMap().keys)
+      assertEquals(
+        mapOf("institutionName" to null, "manualEntry" to null, "errorCode" to null),
+        result.getMap("metadata")?.toHashMap(),
+      )
+    }
+  }
+
+  @Test
+  fun mapFromFinancialConnectionsEvent_PreservesSessionIdAndErrorMetadata() {
+    val event =
+      FinancialConnectionsEventFactory.create(
+        FinancialConnectionsEvent.Name.ERROR,
+        FinancialConnectionsEvent.ErrorCode.NO_ELIGIBLE_ACCOUNTS,
+        "fcsess_test",
+      )
+
+    val result = mapFromFinancialConnectionsEvent(event)
+
+    assertEquals("error", result.getString("name"))
+    assertEquals("fcsess_test", result.getString("financialConnectionsSessionId"))
+    assertEquals(
+      mapOf("institutionName" to null, "manualEntry" to null, "errorCode" to "no_eligible_accounts"),
+      result.getMap("metadata")?.toHashMap(),
+    )
   }
 
   @Test
@@ -216,6 +261,23 @@ class MappersTest {
       mapNextAction(
         StripeIntent.NextActionType.MbWayAwaitAuthorization,
         StripeIntent.NextActionData.MbWayAwaitAuthorization,
+      )
+
+    assertNull(result)
+  }
+
+  @Test
+  fun mapNextAction_DisplayPixDetails_ReturnsNull() {
+    val result =
+      mapNextAction(
+        StripeIntent.NextActionType.DisplayPixDetails,
+        StripeIntent.NextActionData.DisplayPixDetails(
+          data = "pix-qr-code-data",
+          imageUrlPng = "https://payments.stripe.com/pix/qr.png",
+          imageUrlSvg = "https://payments.stripe.com/pix/qr.svg",
+          expiresAt = 1_800_000_000L,
+          hostedInstructionsUrl = "https://payments.stripe.com/pix/instructions",
+        ),
       )
 
     assertNull(result)
@@ -455,11 +517,11 @@ class MappersTest {
     assertEquals(1, result.size)
     assertEquals("cpmt_valid", result[0].id)
   }
+}
 
-  // ============================================
-  // mapToAddress Tests
-  // ============================================
-
+@SuppressLint("RestrictedApi")
+@RunWith(RobolectricTestRunner::class)
+class AddressMappersTest {
   @Test
   fun mapToAddress_NullInputs_ReturnsEmptyAddress() {
     val result = mapToAddress(null, null)
@@ -556,11 +618,11 @@ class MappersTest {
     assertEquals("12345", result.postalCode)
     assertEquals("CA", result.country)
   }
+}
 
-  // ============================================
-  // mapToBillingDetails Tests
-  // ============================================
-
+@SuppressLint("RestrictedApi")
+@RunWith(RobolectricTestRunner::class)
+class BillingDetailsMappersTest {
   @Test
   fun mapToBillingDetails_NullInputs_ReturnsNull() {
     val result = mapToBillingDetails(null, null)
