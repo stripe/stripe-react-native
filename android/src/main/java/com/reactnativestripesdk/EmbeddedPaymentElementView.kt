@@ -3,7 +3,6 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredHeight
@@ -24,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
+import com.reactnativestripesdk.utils.isDarkTheme
 import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -336,8 +336,7 @@ class EmbeddedPaymentElementView(
       }
     }
 
-    val isSystemDarkTheme =
-      (LocalConfiguration.current.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    val isSystemDarkTheme = LocalConfiguration.current.isDarkTheme()
     LaunchedEffect(embedded, isSystemDarkTheme) {
       embedded.paymentOption.collect { opt ->
         val optMap = opt?.toWritableMap(isSystemDarkTheme)

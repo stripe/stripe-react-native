@@ -1,7 +1,6 @@
 package com.reactnativestripesdk.checkout
 
 import android.content.Context
-import android.content.res.Configuration
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableArray
@@ -9,6 +8,7 @@ import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.convertDrawableToBase64
 import com.reactnativestripesdk.toHtmlString
 import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.isDarkTheme
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutController.Session
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
@@ -184,9 +184,7 @@ internal object CheckoutSessionSerializer {
     putString("paymentMethodType", paymentOption.paymentMethodType)
     paymentOption.mandateText?.let { putString("mandateHTML", it.toHtmlString()) }
     paymentOption.billingDetails?.let { putMap("billingDetails", serializeBillingDetails(it)) }
-    val isSystemDarkTheme =
-      (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-        Configuration.UI_MODE_NIGHT_YES
+    val isSystemDarkTheme = context.resources.configuration.isDarkTheme()
     val imageBase64 = try {
       withContext(Dispatchers.Default) {
         withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) {

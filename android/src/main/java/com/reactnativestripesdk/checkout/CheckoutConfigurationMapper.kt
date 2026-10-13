@@ -2,7 +2,6 @@ package com.reactnativestripesdk.checkout
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.Configuration
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import com.facebook.react.bridge.ReadableMap
@@ -14,6 +13,7 @@ import com.reactnativestripesdk.utils.getFloatOr
 import com.reactnativestripesdk.utils.getFloatOrNull
 import com.reactnativestripesdk.utils.getIntegerList
 import com.reactnativestripesdk.utils.getStringList
+import com.reactnativestripesdk.utils.isDarkTheme
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.elements.CurrencySelectorElement
@@ -119,8 +119,7 @@ internal object CheckoutConfigurationMapper {
     context: Context,
   ) {
     params.getMap("colors")?.let { colors ->
-      val isLight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) !=
-        Configuration.UI_MODE_NIGHT_YES
+      val isLight = !context.resources.configuration.isDarkTheme()
       val palette = colors.getMap(if (isLight) "light" else "dark") ?: colors
       palette.color("border", isLight)?.let { appearance.borderColor(Color(it)) }
       palette.color("background", isLight)?.let { appearance.background(Color(it)) }
