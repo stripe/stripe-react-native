@@ -39,7 +39,17 @@ appId: ${APP_ID}
     timeout: 60000
 - tapOn: 'Card'
 - assertVisible: 'Card number. Supported cards include.*'
-- tapOn: 'Close'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: 'UIButton.Close'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: 'Close'
 - scrollUntilVisible:
     element:
       text: 'Session diagnostics'
