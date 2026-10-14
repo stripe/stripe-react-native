@@ -324,8 +324,6 @@ export namespace Checkout {
    * @CheckoutSessionPrivatePreview
    */
   export interface ApplePayConfiguration {
-    /** ISO 3166-1 alpha-2 country code where the transaction is processed. */
-    merchantCountryCode: string;
     /** The type of Apple Pay button to display. */
     buttonType?: ApplePayButtonType;
   }

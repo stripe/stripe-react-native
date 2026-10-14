@@ -967,7 +967,6 @@ export namespace Checkout {
     export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
     export interface ApplePayConfiguration {
         buttonType?: ApplePayButtonType;
-        merchantCountryCode: string;
     }
     export interface BillingDetails {
         address?: Partial<Address>;
