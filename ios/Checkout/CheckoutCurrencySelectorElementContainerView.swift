@@ -6,7 +6,7 @@ import UIKit
 /// Hosts the Currency Selector Element owned by a registered Checkout controller.
 @objc(CheckoutCurrencySelectorElementContainerView)
 @MainActor
-public final class CheckoutCurrencySelectorElementContainerView: UIView {
+public final class CheckoutCurrencySelectorElementContainerView: UIView, CheckoutElementMountHost {
     @objc public var controllerId: String? {
         didSet {
             guard oldValue != controllerId else { return }
@@ -16,6 +16,8 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
     }
     @objc public var onHeightChanged: RCTDirectEventBlock?
     private var element: CurrencySelectorElement?
+    private var registeredElementView: UIView?
+    private var elementConstraints: [NSLayoutConstraint] = []
     private var destruction: AnyCancellable?
     private var sessionObservation: AnyCancellable?
     private var reportedHeight: CGFloat?
@@ -33,19 +35,18 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
             return
         }
         let view = element.uiView
-        guard view.superview == nil else {
-            assertionFailure("A Checkout Currency Selector Element can only be mounted once.")
-            return
-        }
+        guard CheckoutElementMounts.claim(view, for: self) else { return }
+        registeredElementView = view
         self.element = element
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
-        NSLayoutConstraint.activate([
+        elementConstraints = [
             view.topAnchor.constraint(equalTo: topAnchor),
             view.leadingAnchor.constraint(equalTo: leadingAnchor),
             view.trailingAnchor.constraint(equalTo: trailingAnchor),
             view.bottomAnchor.constraint(equalTo: bottomAnchor),
-        ])
+        ]
+        NSLayoutConstraint.activate(elementConstraints)
         element.delegate = nativeDelegate
         destruction = instance.observeDestruction { [weak self] in self?.detach() }
         sessionObservation = instance.checkout.$session
@@ -58,15 +59,27 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
     }
 
     @objc public func detach() {
+        relinquishElementForAnotherHost()
+        if let registeredElementView {
+            self.registeredElementView = nil
+            CheckoutElementMounts.release(registeredElementView, from: self)
+        }
+    }
+
+    func relinquishElementForAnotherHost() {
         destruction?.cancel()
         destruction = nil
         sessionObservation?.cancel()
         sessionObservation = nil
         element?.delegate = nil
+        NSLayoutConstraint.deactivate(elementConstraints)
+        elementConstraints = []
         element?.uiView.removeFromSuperview()
         element = nil
         reportedHeight = nil
     }
+
+    func mountElementIfAvailable() { attach() }
 
     override public func layoutSubviews() {
         super.layoutSubviews()
