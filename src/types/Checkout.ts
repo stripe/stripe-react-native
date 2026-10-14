@@ -505,8 +505,10 @@ export namespace Checkout {
   export interface PaymentOptionDisplayData {
     /** A Base64-encoded image representing the payment method. */
     image: string;
-    /** Customer-facing label, for example `•••• 4242`. */
+    /** Customer-facing label, for example `Visa`. */
     label: string;
+    /** Optional secondary details, for example `•••• 4242` for a card. */
+    sublabel?: string;
     /** Billing details collected for the selected payment method. */
     billingDetails?: BillingDetails;
     /** The payment method, external payment method, or wallet type. */

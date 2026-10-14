@@ -412,7 +412,11 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
             accessibilityRole="button"
             accessibilityLabel={
               session.paymentOption
-                ? `Select payment method, ${session.paymentOption.label}`
+                ? `Select payment method, ${session.paymentOption.label}${
+                    session.paymentOption.sublabel
+                      ? ` ${session.paymentOption.sublabel}`
+                      : ''
+                  }`
                 : 'Select payment method'
             }
             testID="checkout-select-payment-method"
@@ -439,6 +443,12 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
             )}
             <Text style={styles.paymentLabel}>
               {session.paymentOption?.label ?? 'Select payment method'}
+              {session.paymentOption?.sublabel ? (
+                <Text style={styles.paymentSublabel}>
+                  {' '}
+                  {session.paymentOption.sublabel}
+                </Text>
+              ) : null}
             </Text>
             <Text style={styles.chevron}>›</Text>
           </Pressable>
@@ -761,6 +771,7 @@ const styles = StyleSheet.create({
   },
   paymentImage: { width: 28, height: 20 },
   paymentLabel: { flex: 1, color: colors.slate, fontSize: 16 },
+  paymentSublabel: { color: colors.dark_gray },
   summaryCard: { padding: 16, gap: 12 },
   summaryRow: {
     flexDirection: 'row',

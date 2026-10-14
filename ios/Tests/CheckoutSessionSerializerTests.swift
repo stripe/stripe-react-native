@@ -68,7 +68,8 @@ final class CheckoutSessionSerializerTests: XCTestCase {
 
         XCTAssertEqual(address["postalCode"] as? String, "94103")
         XCTAssertNil(address["country"])
-        XCTAssertEqual(paymentOption["label"] as? String, "Visa •••• 4242")
+        XCTAssertEqual(paymentOption["label"] as? String, "Visa")
+        XCTAssertEqual(paymentOption["sublabel"] as? String, "•••• 4242")
         XCTAssertEqual(paymentOption["image"] as? String, image.pngData()?.base64EncodedString())
         let html = try XCTUnwrap(paymentOption["mandateHTML"] as? String)
         XCTAssertTrue(html.contains("https://example.com/terms"))

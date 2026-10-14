@@ -180,10 +180,8 @@ internal object CheckoutSessionSerializer {
     paymentOption: Session.PaymentOptionDisplayData,
     context: Context,
   ): WritableMap = Arguments.createMap().apply {
-    val label = paymentOption.sublabel?.takeIf { it.isNotBlank() }
-      ?.let { "${paymentOption.label} $it" }
-      ?: paymentOption.label
-    putString("label", label)
+    putString("label", paymentOption.label)
+    paymentOption.sublabel?.let { putString("sublabel", it) }
     putString("paymentMethodType", paymentOption.paymentMethodType)
     paymentOption.mandateText?.let { putString("mandateHTML", it.toHtmlString()) }
     paymentOption.billingDetails?.let { putMap("billingDetails", serializeBillingDetails(it)) }

@@ -164,13 +164,12 @@ enum CheckoutSessionSerializer {
     private static func serialize(
         _ paymentOption: CheckoutController.Session.PaymentOptionDisplayData
     ) -> [String: Any] {
-        let label = paymentOption.sublabel.flatMap { $0.isEmpty ? nil : "\(paymentOption.label) \($0)" }
-            ?? paymentOption.label
         var result: [String: Any] = [
             "image": paymentOption.image.pngData()?.base64EncodedString() ?? "",
-            "label": label,
+            "label": paymentOption.label,
             "paymentMethodType": paymentOption.paymentMethodType,
         ]
+        result.setIfPresent("sublabel", paymentOption.sublabel)
         result.setIfPresent("billingDetails", paymentOption.billingDetails.map(serialize))
         result.setIfPresent("mandateHTML", paymentOption.mandateText.map(html))
         return result
