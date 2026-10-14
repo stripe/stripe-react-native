@@ -1081,6 +1081,7 @@ export namespace Checkout {
         label: string;
         mandateHTML?: string;
         paymentMethodType: string;
+        sublabel?: string;
     }
     export type PaymentStatus = 'paid' | 'unpaid' | 'noPaymentRequired';
     export interface PresentmentDetails {

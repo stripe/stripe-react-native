@@ -181,6 +181,7 @@ internal object CheckoutSessionSerializer {
     context: Context,
   ): WritableMap = Arguments.createMap().apply {
     putString("label", paymentOption.label)
+    paymentOption.sublabel?.let { putString("sublabel", it) }
     putString("paymentMethodType", paymentOption.paymentMethodType)
     paymentOption.mandateText?.let { putString("mandateHTML", it.toHtmlString()) }
     paymentOption.billingDetails?.let { putMap("billingDetails", serializeBillingDetails(it)) }
