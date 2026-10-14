@@ -236,15 +236,24 @@ export namespace Checkout {
     | 'Timeout'
     | 'Canceled';
 
-  /** Configuration for Currency Selector Element. */
+  /**
+   * Configuration for Currency Selector Element.
+   * @CheckoutSessionPrivatePreview
+   */
   export interface CurrencySelectorElementConfiguration {
     /** Customizes the appearance of Currency Selector Element. */
     appearance?: CurrencySelectorElementConfiguration.Appearance;
   }
 
-  /** Appearance types used by Currency Selector Element. */
+  /**
+   * Appearance types used by Currency Selector Element.
+   * @CheckoutSessionPrivatePreview
+   */
   export namespace CurrencySelectorElementConfiguration {
-    /** Appearance configuration for Currency Selector Element. */
+    /**
+     * Appearance configuration for Currency Selector Element.
+     * @CheckoutSessionPrivatePreview
+     */
     export interface Appearance {
       /** Vertical padding inside each currency option, in density-independent pixels. */
       contentVerticalPadding?: number;
@@ -263,7 +272,10 @@ export namespace Checkout {
       labelContent?: LabelContent;
     }
 
-    /** Colors used by Currency Selector Element. */
+    /**
+     * Colors used by Currency Selector Element.
+     * @CheckoutSessionPrivatePreview
+     */
     export interface ColorConfiguration {
       /** Border color for the selector track and selected pill. */
       border?: ThemedColor;
@@ -281,7 +293,10 @@ export namespace Checkout {
       danger?: ThemedColor;
     }
 
-    /** Shape configuration for Currency Selector Element. */
+    /**
+     * Shape configuration for Currency Selector Element.
+     * @CheckoutSessionPrivatePreview
+     */
     export interface ShapeConfiguration {
       /** Corner radius in density-independent pixels. Omit for a capsule shape. */
       cornerRadius?: number;
@@ -289,7 +304,10 @@ export namespace Checkout {
       borderWidth?: number;
     }
 
-    /** Content displayed in each currency option label. */
+    /**
+     * Content displayed in each currency option label.
+     * @CheckoutSessionPrivatePreview
+     */
     export type LabelContent = 'automatic' | 'currencyCode' | 'amount';
   }
 
@@ -355,7 +373,10 @@ export namespace Checkout {
     link?: PaymentElementConfiguration.LinkConfiguration;
   }
 
-  /** Configuration types used by Checkout Payment Element. */
+  /**
+   * Configuration types used by Checkout Payment Element.
+   * @CheckoutSessionPrivatePreview
+   */
   export namespace PaymentElementConfiguration {
     /**
      * Appearance configuration for Checkout Payment Element.
