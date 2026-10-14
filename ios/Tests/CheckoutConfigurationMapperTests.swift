@@ -5,6 +5,59 @@ import XCTest
 
 @MainActor
 final class CheckoutConfigurationMapperTests: XCTestCase {
+    func test_currencySelectorDefaultColorsRespectStyle() throws {
+        let defaults = CurrencySelectorElement.Appearance()
+        let colorPaths: [KeyPath<CurrencySelectorElement.Appearance, UIColor>] = [
+            \.border, \.background, \.selectedBackground, \.text, \.selectedText, \.textSecondary, \.danger,
+        ]
+        for style in ["alwaysLight", "alwaysDark", "automatic"] {
+            let appearance = try currencySelectorAppearance(style: style, colors: nil)
+            for deviceStyle: UIUserInterfaceStyle in [.light, .dark] {
+                let expectedStyle: UIUserInterfaceStyle = style == "automatic"
+                    ? deviceStyle : (style == "alwaysDark" ? .dark : .light)
+                for path in colorPaths {
+                    XCTAssertEqual(
+                        appearance[keyPath: path].resolvedColor(with: UITraitCollection(userInterfaceStyle: deviceStyle)),
+                        defaults[keyPath: path].resolvedColor(with: UITraitCollection(userInterfaceStyle: expectedStyle)),
+                        "\(style) on \(deviceStyle): \(path)"
+                    )
+                }
+            }
+        }
+    }
+
+    func test_currencySelectorCustomColorsRespectStyle() throws {
+        let light = ["background": "#FFFFFF", "text": "#112233"]
+        let dark = ["background": "#000000", "text": "#AABBCC"]
+        for style in ["alwaysLight", "alwaysDark", "automatic"] {
+            let appearance = try currencySelectorAppearance(style: style, colors: ["light": light, "dark": dark])
+            for deviceStyle: UIUserInterfaceStyle in [.light, .dark] {
+                let isDark = style == "alwaysDark" || (style == "automatic" && deviceStyle == .dark)
+                let traits = UITraitCollection(userInterfaceStyle: deviceStyle)
+                XCTAssertEqual(appearance.background.resolvedColor(with: traits), UIColor(hexString: isDark ? "#000000" : "#FFFFFF"))
+                XCTAssertEqual(appearance.text.resolvedColor(with: traits), UIColor(hexString: isDark ? "#AABBCC" : "#112233"))
+            }
+        }
+    }
+
+    func test_currencySelectorPartialPaletteKeepsDarkDefaultText() throws {
+        let appearance = try currencySelectorAppearance(style: "alwaysDark", colors: ["background": "#000000"])
+        let light = UITraitCollection(userInterfaceStyle: .light)
+        let dark = UITraitCollection(userInterfaceStyle: .dark)
+        XCTAssertEqual(appearance.background.resolvedColor(with: light), UIColor(hexString: "#000000"))
+        XCTAssertEqual(appearance.text.resolvedColor(with: light), UIColor.label.resolvedColor(with: dark))
+    }
+
+    private func currencySelectorAppearance(style: String, colors: NSDictionary?) throws -> CurrencySelectorElement.Appearance {
+        let selector: NSDictionary = colors.map { ["appearance": ["colors": $0]] } ?? [:]
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: ["clientSecret": "cs_test_secret_123", "style": style, "currencySelectorElement": selector],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {}
+        )
+        return try XCTUnwrap(configuration.currencySelectorElement?.appearance)
+    }
+
     func test_map_mapsCurrencySelectorElementAppearance() throws {
         let configuration = try CheckoutConfigurationMapper.map(
             params: [

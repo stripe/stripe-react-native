@@ -46,7 +46,8 @@ enum CheckoutConfigurationMapper {
         if let currencySelectorParams = params["currencySelectorElement"] as? NSDictionary {
             var currencySelectorConfiguration = CurrencySelectorElement.Configuration()
             currencySelectorConfiguration.appearance = try mapCurrencySelectorAppearance(
-                currencySelectorParams["appearance"] as? NSDictionary
+                currencySelectorParams["appearance"] as? NSDictionary,
+                style: configuration.userInterfaceStyle
             )
             configuration.currencySelectorElement = currencySelectorConfiguration
         }
@@ -54,10 +55,11 @@ enum CheckoutConfigurationMapper {
     }
 
     private static func mapCurrencySelectorAppearance(
-        _ params: NSDictionary?
+        _ params: NSDictionary?,
+        style: CheckoutController.UserInterfaceStyle
     ) throws -> CurrencySelectorElement.Appearance {
         var appearance = CurrencySelectorElement.Appearance()
-        guard let params else { return appearance }
+        let params = params ?? [:]
 
         if let padding = params["contentVerticalPadding"] as? NSNumber {
             appearance.contentVerticalPadding = CGFloat(truncating: padding)
@@ -95,6 +97,16 @@ enum CheckoutConfigurationMapper {
             mapCurrencySelectorColor(colors, key: "selectedText").map { appearance.selectedText = $0 }
             mapCurrencySelectorColor(colors, key: "textSecondary").map { appearance.textSecondary = $0 }
             mapCurrencySelectorColor(colors, key: "danger").map { appearance.danger = $0 }
+        }
+        if style != .automatic {
+            let traits = UITraitCollection(userInterfaceStyle: style == .alwaysDark ? .dark : .light)
+            appearance.border = appearance.border.resolvedColor(with: traits)
+            appearance.background = appearance.background.resolvedColor(with: traits)
+            appearance.selectedBackground = appearance.selectedBackground.resolvedColor(with: traits)
+            appearance.text = appearance.text.resolvedColor(with: traits)
+            appearance.selectedText = appearance.selectedText.resolvedColor(with: traits)
+            appearance.textSecondary = appearance.textSecondary.resolvedColor(with: traits)
+            appearance.danger = appearance.danger.resolvedColor(with: traits)
         }
         return appearance
     }

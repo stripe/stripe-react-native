@@ -45,7 +45,6 @@ extension StripeSdkImpl {
                     let instance = NativeCheckoutControllerInstance(
                         checkout: checkout,
                         currencySelectorElement: currencySelectorElement,
-                        userInterfaceStyle: configuration.userInterfaceStyle,
                         emitEvent: { [weak self] update in
                             self?.emitter?.emitCheckoutControllerDidUpdate(update)
                         }

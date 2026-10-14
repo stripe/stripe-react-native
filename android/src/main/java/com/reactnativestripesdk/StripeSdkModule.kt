@@ -1430,7 +1430,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  @Suppress("TooGenericExceptionCaught", "LongMethod")
+  @Suppress("TooGenericExceptionCaught")
   override fun createCheckout(
     params: ReadableMap,
     controllerId: String,
@@ -1471,7 +1471,6 @@ class StripeSdkModule(
             eventEmitter = eventEmitter,
             scope = scope,
             initialSession = serializedSession,
-            themeMode = mapped.themeMode,
             context = reactApplicationContext,
           )
           check(!checkoutControllersInvalidated) { "Stripe SDK was invalidated." }

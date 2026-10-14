@@ -2,6 +2,8 @@ package com.reactnativestripesdk.checkout
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.compose.material.darkColors
+import androidx.compose.material.lightColors
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import com.facebook.react.bridge.ReadableMap
@@ -29,7 +31,6 @@ internal data class MappedCheckoutConfiguration(
   val clientSecret: String,
   val configuration: CheckoutController.Configuration,
   val rowSelectionBehavior: PaymentElement.RowSelectionBehavior,
-  val themeMode: PaymentElement.Configuration.Appearance.ThemeMode,
 )
 
 @SuppressLint("RestrictedApi")
@@ -59,7 +60,6 @@ internal object CheckoutConfigurationMapper {
 
     return MappedCheckoutConfiguration(
       clientSecret = clientSecret,
-      themeMode = mapThemeMode(params.getString("style") ?: "automatic"),
       configuration = configuration,
       rowSelectionBehavior = mapRowSelectionBehavior(paymentElementParams, didSelectPaymentOption),
     )
@@ -71,12 +71,14 @@ internal object CheckoutConfigurationMapper {
     context: Context,
   ): CurrencySelectorElement.Configuration {
     val configuration = CurrencySelectorElement.Configuration()
-    val appearanceParams = params.getMap("appearance") ?: return configuration
+    val appearanceParams = params.getMap("appearance")
     val appearance = CurrencySelectorElement.Configuration.Appearance()
-    appearanceParams.getFloatOrNull("contentVerticalPadding")?.let(appearance::contentVerticalPaddingDp)
-    mapCurrencySelectorShapes(appearanceParams, appearance)
-    mapCurrencySelectorFont(appearanceParams, appearance, context)
-    mapCurrencySelectorLabel(appearanceParams, appearance)
+    appearanceParams?.let {
+      it.getFloatOrNull("contentVerticalPadding")?.let(appearance::contentVerticalPaddingDp)
+      mapCurrencySelectorShapes(it, appearance)
+      mapCurrencySelectorFont(it, appearance, context)
+      mapCurrencySelectorLabel(it, appearance)
+    }
     mapCurrencySelectorColors(appearanceParams, appearance, style, context)
     return configuration.appearance(appearance)
   }
@@ -119,26 +121,29 @@ internal object CheckoutConfigurationMapper {
   }
 
   private fun mapCurrencySelectorColors(
-    params: ReadableMap,
+    params: ReadableMap?,
     appearance: CurrencySelectorElement.Configuration.Appearance,
     style: String?,
     context: Context,
   ) {
-    params.getMap("colors")?.let { colors ->
-      val isLight = when (style) {
-        "alwaysLight" -> true
-        "alwaysDark" -> false
-        else -> !context.resources.configuration.isDarkTheme()
-      }
-      val palette = colors.getMap(if (isLight) "light" else "dark") ?: colors
-      palette.color("border", isLight)?.let { appearance.borderColor(Color(it)) }
-      palette.color("background", isLight)?.let { appearance.background(Color(it)) }
-      palette.color("selectedBackground", isLight)?.let { appearance.selectedBackground(Color(it)) }
-      palette.color("text", isLight)?.let { appearance.textColor(Color(it)) }
-      palette.color("selectedText", isLight)?.let { appearance.selectedTextColor(Color(it)) }
-      palette.color("textSecondary", isLight)?.let { appearance.textSecondaryColor(Color(it)) }
-      palette.color("danger", isLight)?.let { appearance.dangerColor(Color(it)) }
+    val isLight = when (style) {
+      "alwaysLight" -> true
+      "alwaysDark" -> false
+      else -> !context.resources.configuration.isDarkTheme()
     }
+    val colors = params?.getMap("colors")
+    val palette = colors?.getMap(if (isLight) "light" else "dark") ?: colors
+    // Match the native selector's Material defaults for colors the merchant leaves unset.
+    val defaults = if (isLight) lightColors() else darkColors()
+    appearance.borderColor(palette.color("border", isLight)?.let(::Color) ?: defaults.onSurface.copy(alpha = 0.12f))
+    appearance.background(palette.color("background", isLight)?.let(::Color) ?: defaults.surface)
+    appearance.selectedBackground(palette.color("selectedBackground", isLight)?.let(::Color) ?: defaults.primary)
+    appearance.textColor(palette.color("text", isLight)?.let(::Color) ?: defaults.onSurface)
+    appearance.selectedTextColor(palette.color("selectedText", isLight)?.let(::Color) ?: defaults.onPrimary)
+    appearance.textSecondaryColor(
+      palette.color("textSecondary", isLight)?.let(::Color) ?: defaults.onSurface.copy(alpha = 0.6f),
+    )
+    appearance.dangerColor(palette.color("danger", isLight)?.let(::Color) ?: defaults.error)
   }
 
   private fun mapDefaults(params: ReadableMap): CheckoutController.Configuration.Defaults {
