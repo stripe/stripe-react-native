@@ -125,6 +125,44 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertNil(elementView.delegate)
     }
 
+    func test_destroyReleasesPaymentElementWithOverlappingHostsStillMounted() async throws {
+        let sdk = StripeSdkImpl.shared
+        var instance: NativeCheckoutControllerInstance? = NativeCheckoutControllerInstance(
+            checkout: try await makeCheckout(),
+            emitEvent: { _ in }
+        )
+        let controllerId = "destroy-overlapping-hosts"
+        sdk.checkoutControllers[controllerId] = instance
+        defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+
+        weak var elementView = instance?.checkout.getPaymentElement().uiView
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+        let first = CheckoutPaymentElementContainerView(frame: window.bounds)
+        let second = CheckoutPaymentElementContainerView(frame: window.bounds)
+        first.controllerId = controllerId
+        second.controllerId = controllerId
+        defer {
+            first.removeFromSuperview()
+            second.removeFromSuperview()
+        }
+
+        autoreleasepool {
+            window.addSubview(first)
+            window.addSubview(second)
+            XCTAssertTrue(elementView?.superview === second)
+
+            sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy()
+            XCTAssertTrue(first.subviews.isEmpty)
+            XCTAssertTrue(second.subviews.isEmpty)
+            XCTAssertNil(elementView?.delegate)
+            instance = nil
+        }
+
+        XCTAssertNotNil(first.window)
+        XCTAssertNotNil(second.window)
+        XCTAssertNil(elementView, "Destroyed Checkout views must be released even while prior hosts remain mounted.")
+    }
+
     func test_sheetRejectsMissingPresenterAndDestroyedController() async throws {
         let sdk = StripeSdkImpl()
         sdk.checkoutPresentingViewControllerProvider = { nil }

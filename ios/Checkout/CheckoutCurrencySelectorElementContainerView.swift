@@ -59,6 +59,8 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView, Checkou
     }
 
     @objc public func detach() {
+        destruction?.cancel()
+        destruction = nil
         relinquishElementForAnotherHost()
         if let registeredElementView {
             self.registeredElementView = nil
@@ -67,8 +69,7 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView, Checkou
     }
 
     func relinquishElementForAnotherHost() {
-        destruction?.cancel()
-        destruction = nil
+        // Keep observing destruction while this host is registered for restoration.
         sessionObservation?.cancel()
         sessionObservation = nil
         element?.delegate = nil
