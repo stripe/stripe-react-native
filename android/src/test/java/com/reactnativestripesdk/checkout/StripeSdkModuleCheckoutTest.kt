@@ -55,6 +55,7 @@ class StripeSdkModuleCheckoutTest {
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
       contextRule.context,
+      PaymentElement.Configuration.Appearance.ThemeMode.Automatic,
     )
     val promise = mock(Promise::class.java)
 
@@ -85,6 +86,7 @@ class StripeSdkModuleCheckoutTest {
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
       context,
+      PaymentElement.Configuration.Appearance.ThemeMode.Automatic,
     )
     val controllerId = "controller"
     module.checkoutControllers[controllerId] = instance
@@ -135,6 +137,7 @@ class StripeSdkModuleCheckoutTest {
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
       context,
+      PaymentElement.Configuration.Appearance.ThemeMode.Automatic,
     )
     module.checkoutControllers["controller"] = instance
     val missingActivity = mock(Promise::class.java)

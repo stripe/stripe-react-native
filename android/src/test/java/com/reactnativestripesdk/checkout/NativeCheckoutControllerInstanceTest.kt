@@ -14,6 +14,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutPresenter
+import com.stripe.android.elements.PaymentElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.utils.mapAsStateFlow
 import kotlinx.coroutines.CancellationException
@@ -331,6 +332,7 @@ class NativeCheckoutControllerInstanceTest {
         scope,
         com.facebook.react.bridge.JavaOnlyMap.of("id", "cs_test", "email", "jenny@example.com"),
         context,
+        PaymentElement.Configuration.Appearance.ThemeMode.Automatic,
       )
     }
 

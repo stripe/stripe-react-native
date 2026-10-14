@@ -33,6 +33,7 @@ internal class NativeCheckoutControllerInstance(
   private val scope: CoroutineScope,
   initialSession: WritableMap,
   private val context: ReactApplicationContext,
+  val themeMode: PaymentElement.Configuration.Appearance.ThemeMode,
 ) {
   private val serverUpdateCompletions = mutableMapOf<String, CompletableDeferred<Result<Unit>>>()
   private var controllerId: String? = null

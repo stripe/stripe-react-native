@@ -95,6 +95,44 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         view.removeFromSuperview()
     }
 
+    func test_currencySelectorResolvesColorsUsingCheckoutStyle() async throws {
+        // Keep flag downloads offline; the selector falls back to emoji flags.
+        URLProtocol.registerClass(CheckoutFixtureURLProtocol.self)
+        defer { URLProtocol.unregisterClass(CheckoutFixtureURLProtocol.self) }
+        let sdk = StripeSdkImpl.shared
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+        let host = CheckoutCurrencySelectorElementContainerView(frame: window.bounds)
+        window.addSubview(host)
+        defer { host.removeFromSuperview() }
+
+        let cases: [(CheckoutController.UserInterfaceStyle, UIUserInterfaceStyle, UIUserInterfaceStyle)] = [
+            (.alwaysDark, .light, .dark),
+            (.alwaysLight, .dark, .light),
+            (.automatic, .dark, .dark),
+            (.automatic, .light, .light),
+        ]
+        for (index, testCase) in cases.enumerated() {
+            let (style, windowStyle, expectedStyle) = testCase
+            window.overrideUserInterfaceStyle = windowStyle
+            let checkout = try await makeCheckout(currencySelector: true, style: style)
+            let element = try XCTUnwrap(checkout.getCurrencySelectorElement())
+            let controllerId = "currency-style-\(index)"
+            sdk.checkoutControllers[controllerId] = NativeCheckoutControllerInstance(
+                checkout: checkout, currencySelectorElement: element, userInterfaceStyle: style, emitEvent: { _ in }
+            )
+            defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+
+            element.uiView.backgroundColor = UIColor { traits in
+                traits.userInterfaceStyle == .dark ? .white : .black
+            }
+            host.controllerId = controllerId
+            XCTAssertTrue(element.uiView.superview === host)
+            XCTAssertEqual(element.uiView.traitCollection.userInterfaceStyle, expectedStyle)
+            let expectedColor: UIColor = expectedStyle == .dark ? .white : .black
+            XCTAssertEqual(element.uiView.backgroundColor?.resolvedColor(with: element.uiView.traitCollection), expectedColor)
+        }
+    }
+
     func test_sheetRejectsMissingPresenterAndDestroyedController() async throws {
         let sdk = StripeSdkImpl()
         sdk.checkoutPresentingViewControllerProvider = { nil }
@@ -162,11 +200,14 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         })
     }
 
-    private func makeCheckout() async throws -> CheckoutController {
+    private func makeCheckout(
+        currencySelector: Bool = false,
+        style: CheckoutController.UserInterfaceStyle = .automatic
+    ) async throws -> CheckoutController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]
         let apiClient = STPAPIClient(publishableKey: "pk_test_123")
-        apiClient.apiURL = URL(string: "https://checkout.test")!
+        apiClient.apiURL = URL(string: currencySelector ? "https://checkout-currency.test" : "https://checkout.test")!
         apiClient.urlSession = URLSession(configuration: sessionConfiguration)
         var configuration = CheckoutController.Configuration(
             clientSecret: "cs_test_secret_123",
@@ -174,20 +215,42 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         )
         configuration.apiClient = apiClient
         configuration.paymentElement = .init()
+        configuration.userInterfaceStyle = style
+        if currencySelector {
+            configuration.currencySelectorElement = .init()
+        }
         return try await CheckoutController(configuration: configuration)
     }
 }
 
 private final class CheckoutFixtureURLProtocol: URLProtocol {
     override static func canInit(with request: URLRequest) -> Bool {
-        request.url?.host == "checkout.test"
+        ["checkout.test", "checkout-currency.test", "img.stripecdn.com"].contains(request.url?.host ?? "")
     }
 
     override static func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
+        if request.url?.host == "img.stripecdn.com" {
+            client?.urlProtocol(self, didFailWithError: URLError(.resourceUnavailable))
+            return
+        }
         do {
-            let data = try JSONSerialization.data(withJSONObject: CheckoutTestFixtures.response())
+            var responseBody = CheckoutTestFixtures.response()
+            if request.url?.host == "checkout-currency.test" {
+                responseBody["adaptive_pricing_info"] = [
+                    "integration_currency": "usd",
+                    "integration_amount": 2250,
+                    "active_presentment_currency": "usd",
+                    "local_currency_options": [[
+                        "currency": "gbp",
+                        "amount": 1800,
+                        "presentment_exchange_rate": "0.8",
+                        "conversion_markup_bps": 400,
+                    ], ],
+                ]
+            }
+            let data = try JSONSerialization.data(withJSONObject: responseBody)
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: data)

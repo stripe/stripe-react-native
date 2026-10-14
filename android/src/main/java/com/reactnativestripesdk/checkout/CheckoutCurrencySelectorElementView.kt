@@ -1,8 +1,12 @@
 package com.reactnativestripesdk.checkout
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.darkColors
+import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +26,7 @@ import com.facebook.react.uimanager.events.Event
 import com.reactnativestripesdk.StripeAbstractComposeView
 import com.reactnativestripesdk.StripeSdkModule
 import com.stripe.android.elements.CurrencySelectorElement
+import com.stripe.android.elements.PaymentElement.Configuration.Appearance.ThemeMode
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 
 /** Displays the Currency Selector Element owned by a registered Checkout controller. */
@@ -31,6 +36,7 @@ class CheckoutCurrencySelectorElementView(
 ) : StripeAbstractComposeView(reactContext) {
   private var controllerId: String? = null
   private var element by mutableStateOf<CurrencySelectorElement?>(null)
+  private var themeMode by mutableStateOf(ThemeMode.Automatic)
   private var removeObserver: (() -> Unit)? = null
 
   fun setControllerId(value: String?) {
@@ -56,6 +62,7 @@ class CheckoutCurrencySelectorElementView(
     val module = reactContext.getNativeModule(StripeSdkModule::class.java) ?: return
     val instance = module.checkoutControllers[id] ?: return
     val activity = reactContext.currentActivity as? ComponentActivity ?: return
+    themeMode = instance.themeMode
     element = instance.currencySelectorElement(activity)
     removeObserver = instance.observeDestruction { detach() }
   }
@@ -90,7 +97,9 @@ class CheckoutCurrencySelectorElementView(
             placeable.placeRelative(IntOffset.Zero)
           }
         },
-    ) { currencySelectorElement.Content() }
+    ) {
+      CheckoutCurrencySelectorTheme(themeMode) { currencySelectorElement.Content() }
+    }
   }
 }
 
@@ -103,4 +112,16 @@ private class CheckoutCurrencySelectorHeightEvent(
   override fun getEventData(): WritableMap = Arguments.createMap().apply {
     putDouble("height", height.toDouble())
   }
+}
+
+/** Supplies defaults for selector colors that the merchant has not overridden. */
+@OptIn(CheckoutSessionPreview::class)
+@Composable
+internal fun CheckoutCurrencySelectorTheme(themeMode: ThemeMode, content: @Composable () -> Unit) {
+  val isDark = when (themeMode) {
+    ThemeMode.AlwaysLight -> false
+    ThemeMode.AlwaysDark -> true
+    ThemeMode.Automatic -> isSystemInDarkTheme()
+  }
+  MaterialTheme(colors = if (isDark) darkColors() else lightColors(), content = content)
 }

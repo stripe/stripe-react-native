@@ -29,6 +29,7 @@ internal data class MappedCheckoutConfiguration(
   val clientSecret: String,
   val configuration: CheckoutController.Configuration,
   val rowSelectionBehavior: PaymentElement.RowSelectionBehavior,
+  val themeMode: PaymentElement.Configuration.Appearance.ThemeMode,
 )
 
 @SuppressLint("RestrictedApi")
@@ -58,6 +59,7 @@ internal object CheckoutConfigurationMapper {
 
     return MappedCheckoutConfiguration(
       clientSecret = clientSecret,
+      themeMode = mapThemeMode(params.getString("style") ?: "automatic"),
       configuration = configuration,
       rowSelectionBehavior = mapRowSelectionBehavior(paymentElementParams, didSelectPaymentOption),
     )
