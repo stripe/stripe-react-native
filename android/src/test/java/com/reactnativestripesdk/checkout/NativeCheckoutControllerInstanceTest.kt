@@ -219,9 +219,10 @@ class NativeCheckoutControllerInstanceTest {
 
   @Test
   fun `confirmation waits for native and publishes its session before completing`() = withFixture { fixture ->
+    fixture.selectPaymentOption()
     fixture.start()
     doAnswer {
-      fixture.updating.value = true
+      fixture.scope.launch(Dispatchers.Main) { fixture.updating.value = true }
       null
     }.`when`(fixture.presenter).confirm()
     val pending = async { fixture.instance.confirm(fixture.activity.get()) }
@@ -243,15 +244,18 @@ class NativeCheckoutControllerInstanceTest {
   }
 
   @Test
-  fun `confirmation that does not start returns an error and allows retry`() = withFixture { fixture ->
+  fun `confirmation without a payment option returns an error and allows retry`() = withFixture { fixture ->
     fixture.start()
+    advanceUntilIdle()
     val error = runCatching {
       withTimeout(100) { fixture.instance.confirm(fixture.activity.get()) }
     }.exceptionOrNull()
 
-    assertEquals("Checkout could not begin confirmation.", error?.message)
+    assertEquals("Checkout requires a selected payment option to confirm.", error?.message)
     assertEquals("ready", fixture.events.last().getString("status"))
+    verify(fixture.presenter, times(0)).confirm()
 
+    fixture.selectPaymentOption()
     val canceled = NativeCheckoutFixtures.canceledResult()
     doAnswer {
       fixture.instance.onConfirmationResult(canceled)
@@ -275,9 +279,10 @@ class NativeCheckoutControllerInstanceTest {
 
   @Test
   fun `second confirmation cannot replace a pending call and canceled attempts can retry`() = withFixture { fixture ->
+    fixture.selectPaymentOption()
     fixture.start()
     doAnswer {
-      fixture.updating.value = true
+      fixture.scope.launch(Dispatchers.Main) { fixture.updating.value = true }
       null
     }.`when`(fixture.presenter).confirm()
     val first = async { fixture.instance.confirm(fixture.activity.get()) }
@@ -301,6 +306,7 @@ class NativeCheckoutControllerInstanceTest {
 
   @Test
   fun `native invocation failure clears pending confirmation`() = withFixture { fixture ->
+    fixture.selectPaymentOption()
     fixture.start()
     doAnswer { throw IllegalStateException("Native failure") }.`when`(fixture.presenter).confirm()
     val error = runCatching { fixture.instance.confirm(fixture.activity.get()) }.exceptionOrNull()
@@ -316,9 +322,10 @@ class NativeCheckoutControllerInstanceTest {
 
   @Test
   fun `destruction cancels pending confirmation and ignores late callbacks`() = withFixture { fixture ->
+    fixture.selectPaymentOption()
     fixture.start()
     doAnswer {
-      fixture.updating.value = true
+      fixture.scope.launch(Dispatchers.Main) { fixture.updating.value = true }
       null
     }.`when`(fixture.presenter).confirm()
     var cancellation: Throwable? = null
@@ -381,6 +388,10 @@ class NativeCheckoutControllerInstanceTest {
 
     fun start() {
       instance.start("controller-1")
+    }
+
+    fun selectPaymentOption() {
+      sessions.value = checkoutSession(paymentOption = checkoutPaymentOption(imageLoader = { ColorDrawable() }))
     }
 
     suspend fun close() {

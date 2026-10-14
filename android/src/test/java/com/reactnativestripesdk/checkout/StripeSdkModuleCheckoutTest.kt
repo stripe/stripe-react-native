@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.checkout
 
+import android.graphics.drawable.ColorDrawable
 import android.os.Looper
 import androidx.activity.ComponentActivity
 import com.facebook.react.bridge.JavaOnlyMap
@@ -126,8 +127,12 @@ class StripeSdkModuleCheckoutTest {
     val module = StripeSdkModule(context)
     val controller = mock(CheckoutController::class.java)
     val presenter = mock(CheckoutPresenter::class.java)
-    val session = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
-    `when`(controller.session).thenReturn(MutableStateFlow(session))
+    val sessions = MutableStateFlow(
+      checkoutSession(
+        paymentOption = checkoutPaymentOption(imageLoader = { ColorDrawable() }),
+      ),
+    )
+    `when`(controller.session).thenReturn(sessions)
     `when`(controller.isUpdating).thenReturn(MutableStateFlow(false))
     val instance = NativeCheckoutControllerInstance(
       controller,
@@ -146,6 +151,7 @@ class StripeSdkModuleCheckoutTest {
       context.onHostResume(activity.get())
       `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
       doAnswer {
+        sessions.value = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
         instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
         null
       }.`when`(presenter).confirm()
