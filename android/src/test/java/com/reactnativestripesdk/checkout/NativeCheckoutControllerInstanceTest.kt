@@ -35,6 +35,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -219,6 +220,10 @@ class NativeCheckoutControllerInstanceTest {
   @Test
   fun `confirmation waits for native and publishes its session before completing`() = withFixture { fixture ->
     fixture.start()
+    doAnswer {
+      fixture.updating.value = true
+      null
+    }.`when`(fixture.presenter).confirm()
     val pending = async { fixture.instance.confirm(fixture.activity.get()) }
     runCurrent()
     verify(fixture.presenter).confirm()
@@ -238,8 +243,43 @@ class NativeCheckoutControllerInstanceTest {
   }
 
   @Test
+  fun `confirmation that does not start returns an error and allows retry`() = withFixture { fixture ->
+    fixture.start()
+    val error = runCatching {
+      withTimeout(100) { fixture.instance.confirm(fixture.activity.get()) }
+    }.exceptionOrNull()
+
+    assertEquals("Checkout could not begin confirmation.", error?.message)
+    assertEquals("ready", fixture.events.last().getString("status"))
+
+    val canceled = NativeCheckoutFixtures.canceledResult()
+    doAnswer {
+      fixture.instance.onConfirmationResult(canceled)
+      null
+    }.`when`(fixture.presenter).confirm()
+    assertEquals(canceled, fixture.instance.confirm(fixture.activity.get()))
+  }
+
+  @Test
+  fun `confirmation during another operation does not invoke native confirmation`() = withFixture { fixture ->
+    fixture.start()
+    fixture.updating.value = true
+    runCurrent()
+
+    val error = runCatching { fixture.instance.confirm(fixture.activity.get()) }.exceptionOrNull()
+
+    assertEquals("Checkout cannot confirm while another operation is in progress.", error?.message)
+    assertEquals("updating", fixture.events.last().getString("status"))
+    verify(fixture.presenter, times(0)).confirm()
+  }
+
+  @Test
   fun `second confirmation cannot replace a pending call and canceled attempts can retry`() = withFixture { fixture ->
     fixture.start()
+    doAnswer {
+      fixture.updating.value = true
+      null
+    }.`when`(fixture.presenter).confirm()
     val first = async { fixture.instance.confirm(fixture.activity.get()) }
     runCurrent()
     val secondError = runCatching { fixture.instance.confirm(fixture.activity.get()) }.exceptionOrNull()
@@ -248,6 +288,7 @@ class NativeCheckoutControllerInstanceTest {
     verify(fixture.presenter, times(1)).confirm()
     val canceled = NativeCheckoutFixtures.canceledResult()
     fixture.instance.onConfirmationResult(canceled)
+    fixture.updating.value = false
     assertEquals(canceled, first.await())
 
     doAnswer {
@@ -276,6 +317,10 @@ class NativeCheckoutControllerInstanceTest {
   @Test
   fun `destruction cancels pending confirmation and ignores late callbacks`() = withFixture { fixture ->
     fixture.start()
+    doAnswer {
+      fixture.updating.value = true
+      null
+    }.`when`(fixture.presenter).confirm()
     var cancellation: Throwable? = null
     fixture.instance.launchMutation {
       cancellation = runCatching { fixture.instance.confirm(fixture.activity.get()) }.exceptionOrNull()

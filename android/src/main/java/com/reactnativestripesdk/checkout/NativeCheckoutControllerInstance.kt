@@ -72,11 +72,15 @@ internal class NativeCheckoutControllerInstance(
     UiThreadUtil.assertOnUiThread()
     check(!destroyed) { "Checkout controller was destroyed." }
     check(confirmation == null) { "Checkout confirmation is already in progress." }
+    check(!controller.isUpdating.value) { "Checkout cannot confirm while another operation is in progress." }
     val result = CompletableDeferred<CheckoutController.Result>()
     confirmation = result
     try {
       emit("confirming")
       getPresenter(activity).confirm()
+      // Native confirm returns without a callback when it cannot start, for example when no
+      // payment option is selected or the Payment Element sheet is open.
+      check(result.isCompleted || controller.isUpdating.value) { "Checkout could not begin confirmation." }
       val confirmationResult = result.await()
       publishCurrentState()
       return confirmationResult
