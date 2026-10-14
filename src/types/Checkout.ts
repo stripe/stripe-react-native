@@ -403,6 +403,8 @@ export namespace Checkout {
 
   /**
    * Controls how billing details are collected during checkout.
+   * The iOS Checkout SDK currently supports only `address`; `name`, `phone`,
+   * and `attachDefaultsToPaymentMethod` have no effect yet.
    * @CheckoutSessionPrivatePreview
    */
   export interface BillingDetailsCollectionConfiguration {

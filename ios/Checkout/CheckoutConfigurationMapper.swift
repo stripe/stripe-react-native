@@ -248,6 +248,8 @@ enum CheckoutConfigurationMapper {
         default defaultConfiguration: PaymentElement.BillingDetailsCollectionConfiguration
     ) throws -> PaymentElement.BillingDetailsCollectionConfiguration {
         var configuration = defaultConfiguration
+        // TODO: The Checkout Payment Element in stripe-ios 26.14.0 only exposes address.
+        // Map name, phone, and attachDefaultsToPaymentMethod when native support is available.
         if let address = params["address"] as? String {
             configuration.address = try mapAddressCollectionMode(address)
         }
