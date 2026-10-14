@@ -14,6 +14,7 @@ final class NativeCheckoutControllerInstance {
 
     let checkout: CheckoutController
     let currencySelectorElement: CurrencySelectorElement?
+    let userInterfaceStyle: CheckoutController.UserInterfaceStyle
     private(set) lazy var session = CheckoutSessionSerializer.serialize(checkout.session)
 
     private let emitEvent: ([String: Any]) -> Void
@@ -30,10 +31,12 @@ final class NativeCheckoutControllerInstance {
     init(
         checkout: CheckoutController,
         currencySelectorElement: CurrencySelectorElement? = nil,
+        userInterfaceStyle: CheckoutController.UserInterfaceStyle,
         emitEvent: @escaping ([String: Any]) -> Void
     ) {
         self.checkout = checkout
         self.currencySelectorElement = currencySelectorElement
+        self.userInterfaceStyle = userInterfaceStyle
         self.emitEvent = emitEvent
     }
 

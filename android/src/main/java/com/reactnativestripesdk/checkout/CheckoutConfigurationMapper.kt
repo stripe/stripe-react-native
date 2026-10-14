@@ -53,7 +53,7 @@ internal object CheckoutConfigurationMapper {
       ),
     )
     params.getMap("currencySelectorElement")?.let {
-      configuration.currencySelectorElement(mapCurrencySelectorElement(it, context))
+      configuration.currencySelectorElement(mapCurrencySelectorElement(it, params.getString("style"), context))
     }
 
     return MappedCheckoutConfiguration(
@@ -65,6 +65,7 @@ internal object CheckoutConfigurationMapper {
 
   private fun mapCurrencySelectorElement(
     params: ReadableMap,
+    style: String?,
     context: Context,
   ): CurrencySelectorElement.Configuration {
     val configuration = CurrencySelectorElement.Configuration()
@@ -74,7 +75,7 @@ internal object CheckoutConfigurationMapper {
     mapCurrencySelectorShapes(appearanceParams, appearance)
     mapCurrencySelectorFont(appearanceParams, appearance, context)
     mapCurrencySelectorLabel(appearanceParams, appearance)
-    mapCurrencySelectorColors(appearanceParams, appearance, context)
+    mapCurrencySelectorColors(appearanceParams, appearance, style, context)
     return configuration.appearance(appearance)
   }
 
@@ -118,10 +119,15 @@ internal object CheckoutConfigurationMapper {
   private fun mapCurrencySelectorColors(
     params: ReadableMap,
     appearance: CurrencySelectorElement.Configuration.Appearance,
+    style: String?,
     context: Context,
   ) {
     params.getMap("colors")?.let { colors ->
-      val isLight = !context.resources.configuration.isDarkTheme()
+      val isLight = when (style) {
+        "alwaysLight" -> true
+        "alwaysDark" -> false
+        else -> !context.resources.configuration.isDarkTheme()
+      }
       val palette = colors.getMap(if (isLight) "light" else "dark") ?: colors
       palette.color("border", isLight)?.let { appearance.borderColor(Color(it)) }
       palette.color("background", isLight)?.let { appearance.background(Color(it)) }

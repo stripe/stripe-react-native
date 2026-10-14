@@ -9,7 +9,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
     func test_observesNativeSnapshotsAndStopsOnDestruction() async throws {
         let checkout = try await makeCheckout()
         var events: [[String: Any]] = []
-        let instance = NativeCheckoutControllerInstance(checkout: checkout) {
+        let instance = NativeCheckoutControllerInstance(checkout: checkout, userInterfaceStyle: .automatic) {
             events.append($0)
         }
         let controllerId = "controller-1"
@@ -54,8 +54,12 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
 
     func test_inlineViewReleasesReplacedAndDestroyedControllers() async throws {
         let sdk = StripeSdkImpl.shared
-        let first = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
-        let second = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let first = NativeCheckoutControllerInstance(
+            checkout: try await makeCheckout(), userInterfaceStyle: .automatic, emitEvent: { _ in }
+        )
+        let second = NativeCheckoutControllerInstance(
+            checkout: try await makeCheckout(), userInterfaceStyle: .automatic, emitEvent: { _ in }
+        )
         let firstElement = first.checkout.getPaymentElement()
         let secondElement = second.checkout.getPaymentElement()
         let firstId = "first"
@@ -94,7 +98,9 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
     func test_sheetRejectsMissingPresenterAndDestroyedController() async throws {
         let sdk = StripeSdkImpl()
         sdk.checkoutPresentingViewControllerProvider = { nil }
-        let instance = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let instance = NativeCheckoutControllerInstance(
+            checkout: try await makeCheckout(), userInterfaceStyle: .automatic, emitEvent: { _ in }
+        )
         let controllerId = "controller-1"
         sdk.checkoutControllers[controllerId] = instance
         defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
@@ -130,7 +136,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
     func test_confirmationRejectsConcurrentAttemptsAndSettlesOnDestruction() async throws {
         let checkout = try await makeCheckout()
         var statuses: [String] = []
-        let instance = NativeCheckoutControllerInstance(checkout: checkout) { event in
+        let instance = NativeCheckoutControllerInstance(checkout: checkout, userInterfaceStyle: .automatic) { event in
             statuses.append(event["status"] as! String)
         }
         instance.start(controllerId: "confirming")

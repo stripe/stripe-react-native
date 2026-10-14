@@ -37,6 +37,11 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
             assertionFailure("A Checkout Currency Selector Element can only be mounted once.")
             return
         }
+        switch instance.userInterfaceStyle {
+        case .automatic: overrideUserInterfaceStyle = .unspecified
+        case .alwaysLight: overrideUserInterfaceStyle = .light
+        case .alwaysDark: overrideUserInterfaceStyle = .dark
+        }
         self.element = element
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)

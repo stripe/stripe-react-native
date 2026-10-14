@@ -21,11 +21,46 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(CheckoutSessionPreview::class)
 @RunWith(RobolectricTestRunner::class)
 class CheckoutConfigurationMapperTest {
   private val context = ApplicationProvider.getApplicationContext<Context>()
+
+  @Test
+  @Config(qualifiers = "notnight")
+  fun `forced dark style selects dark currency selector colors on a light device`() {
+    assertEquals(Color.Black, currencySelectorBackground(style = "alwaysDark"))
+  }
+
+  @Test
+  @Config(qualifiers = "night")
+  fun `forced light style selects light currency selector colors on a dark device`() {
+    assertEquals(Color.White, currencySelectorBackground(style = "alwaysLight"))
+  }
+
+  private fun currencySelectorBackground(style: String): Color {
+    val mapped = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "style" to style,
+        "currencySelectorElement" to readableMapOf(
+          "appearance" to readableMapOf(
+            "colors" to readableMapOf(
+              "light" to readableMapOf("background" to "#FFFFFF"),
+              "dark" to readableMapOf("background" to "#000000"),
+            ),
+          ),
+        ),
+      ),
+      context,
+    ) {}.configuration
+
+    val selector = mapped.readField<CurrencySelectorElement.Configuration>("currencySelectorElementConfiguration")
+    val appearance = selector.readField<CurrencySelectorElement.Configuration.Appearance>("appearance")
+    return appearance.readField("background")
+  }
 
   @Test
   fun `map maps currency selector element appearance`() {
