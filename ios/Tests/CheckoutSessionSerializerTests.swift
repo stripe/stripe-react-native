@@ -51,8 +51,8 @@ final class CheckoutSessionSerializerTests: XCTestCase {
         }
         let option = CheckoutController.Session.PaymentOptionDisplayData(
             image: image,
-            label: "Visa 4242",
-            sublabel: nil,
+            label: "Visa",
+            sublabel: "•••• 4242",
             billingDetails: billingDetails,
             paymentMethodType: "card",
             mandateText: NSAttributedString(string: "Terms & conditions", attributes: [
@@ -68,6 +68,7 @@ final class CheckoutSessionSerializerTests: XCTestCase {
 
         XCTAssertEqual(address["postalCode"] as? String, "94103")
         XCTAssertNil(address["country"])
+        XCTAssertEqual(paymentOption["label"] as? String, "Visa •••• 4242")
         XCTAssertEqual(paymentOption["image"] as? String, image.pngData()?.base64EncodedString())
         let html = try XCTUnwrap(paymentOption["mandateHTML"] as? String)
         XCTAssertTrue(html.contains("https://example.com/terms"))

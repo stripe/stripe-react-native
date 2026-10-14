@@ -99,7 +99,7 @@ class CheckoutSessionSerializerTest {
     assertEquals("94103", address.getString("postalCode"))
     assertFalse(address.hasKey("country"))
     assertEquals("", paymentOption.getString("image"))
-    assertEquals("Visa 4242", paymentOption.getString("label"))
+    assertEquals("Visa •••• 4242", paymentOption.getString("label"))
     assertTrue(paymentOption.getString("mandateHTML")!!.contains("&amp;"))
   }
 
