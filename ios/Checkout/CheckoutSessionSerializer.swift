@@ -169,6 +169,7 @@ enum CheckoutSessionSerializer {
             "label": paymentOption.label,
             "paymentMethodType": paymentOption.paymentMethodType,
         ]
+        result.setIfPresent("sublabel", paymentOption.sublabel)
         result.setIfPresent("billingDetails", paymentOption.billingDetails.map(serialize))
         result.setIfPresent("mandateHTML", paymentOption.mandateText.map(html))
         return result

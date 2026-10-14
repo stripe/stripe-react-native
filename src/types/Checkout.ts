@@ -389,8 +389,6 @@ export namespace Checkout {
      * @CheckoutSessionPrivatePreview
      */
     export interface ApplePayConfiguration {
-      /** ISO 3166-1 alpha-2 country code where the transaction is processed. */
-      merchantCountryCode: string;
       /** The type of Apple Pay button to display. */
       buttonType?: ApplePayButtonType;
     }
@@ -508,8 +506,10 @@ export namespace Checkout {
   export interface PaymentOptionDisplayData {
     /** A Base64-encoded image representing the payment method. */
     image: string;
-    /** Customer-facing label, for example `•••• 4242`. */
+    /** Customer-facing label, for example `Visa`. */
     label: string;
+    /** Optional secondary details, for example `•••• 4242` for a card. */
+    sublabel?: string;
     /** Billing details collected for the selected payment method. */
     billingDetails?: BillingDetails;
     /** The payment method, external payment method, or wallet type. */
