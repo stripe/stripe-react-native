@@ -69,9 +69,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 "paymentElement": [
                     "appearance": ["shapes": ["borderRadius": 12.0]],
                     "preferredNetworks": [7, 5],
-                    "billingDetailsCollectionConfiguration": [
-                        "address": "full",
-                    ],
                     "removeSavedPaymentMethodMessage": "Remove this payment method?",
                     "paymentMethodOrder": ["card", "link"],
                     "opensCardScannerAutomatically": true,
@@ -104,7 +101,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         let paymentElement = try XCTUnwrap(configuration.paymentElement)
         XCTAssertEqual(paymentElement.appearance.cornerRadius, 12.0)
         XCTAssertEqual(paymentElement.preferredNetworks, [.visa, .mastercard])
-        XCTAssertEqual(paymentElement.billingDetailsCollectionConfiguration.address, .full)
         XCTAssertEqual(
             paymentElement.removeSavedPaymentMethodMessage,
             "Remove this payment method?"
@@ -148,7 +144,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertNil(configuration.defaults.phone)
         XCTAssertEqual(configuration.userInterfaceStyle, .automatic)
         let paymentElement = try XCTUnwrap(configuration.paymentElement)
-        XCTAssertEqual(paymentElement.billingDetailsCollectionConfiguration.address, .automatic)
         XCTAssertFalse(paymentElement.opensCardScannerAutomatically)
         XCTAssertFalse(paymentElement.displaysMandateText)
         XCTAssertNil(paymentElement.applePayConfiguration)
@@ -190,20 +185,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
     }
 
     func test_map_rejectsUnsupportedEnumValues() {
-        XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
-            params: [
-                "clientSecret": "cs_test_secret_123",
-                "returnURL": "example://checkout",
-                "paymentElement": [
-                    "billingDetailsCollectionConfiguration": [
-                        "address": "never",
-                    ],
-                ],
-            ],
-            merchantIdentifier: nil,
-            didSelectPaymentOption: {}
-        ))
-
         XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
             params: [
                 "clientSecret": "cs_test_secret_123",

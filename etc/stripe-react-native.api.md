@@ -1045,7 +1045,6 @@ export namespace Checkout {
     export interface PaymentElementConfiguration {
         appearance?: PaymentElementConfiguration.Appearance;
         applePay?: PaymentElementConfiguration.ApplePayConfiguration;
-        billingDetailsCollectionConfiguration?: PaymentElementConfiguration.BillingDetailsCollectionConfiguration;
         displaysMandateText?: boolean;
         googlePay?: PaymentElementConfiguration.GooglePayConfiguration;
         link?: PaymentElementConfiguration.LinkConfiguration;
@@ -1062,12 +1061,6 @@ export namespace Checkout {
         export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
         export interface ApplePayConfiguration {
             buttonType?: ApplePayButtonType;
-        }
-        export interface BillingDetailsCollectionConfiguration {
-            address?: 'automatic' | 'full';
-            attachDefaultsToPaymentMethod?: boolean;
-            name?: 'automatic' | 'always';
-            phone?: 'automatic' | 'always';
         }
         export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
         export interface GooglePayConfiguration {

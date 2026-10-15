@@ -339,6 +339,8 @@ export namespace Checkout {
 
   /**
    * Configuration for the Checkout-owned Payment Element.
+   * Configure billing address collection with the Checkout Session’s
+   * `billing_address_collection` parameter.
    * @CheckoutSessionPrivatePreview
    */
   export interface PaymentElementConfiguration {
@@ -346,11 +348,6 @@ export namespace Checkout {
     appearance?: PaymentElementConfiguration.Appearance;
     /** Preferred networks for co-branded cards. */
     preferredNetworks?: CardBrand[];
-    /**
-     * Controls how billing details are collected during checkout. iOS only.
-     * On Android, configure billing collection on the Checkout Session.
-     */
-    billingDetailsCollectionConfiguration?: PaymentElementConfiguration.BillingDetailsCollectionConfiguration;
     /** A custom message shown when a saved payment method is removed. iOS only. */
     removeSavedPaymentMethodMessage?: string;
     /** Overrides the default order of payment method types. */
@@ -389,21 +386,6 @@ export namespace Checkout {
      * @CheckoutSessionPrivatePreview
      */
     export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
-
-    /**
-     * Controls how billing details are collected during checkout.
-     * @CheckoutSessionPrivatePreview
-     */
-    export interface BillingDetailsCollectionConfiguration {
-      /** How to collect the name field. Defaults to `automatic`. */
-      name?: 'automatic' | 'always';
-      /** How to collect the phone field. Defaults to `automatic`. */
-      phone?: 'automatic' | 'always';
-      /** How to collect the billing address. Defaults to `automatic`. */
-      address?: 'automatic' | 'full';
-      /** Whether default billing details are attached to the payment method. */
-      attachDefaultsToPaymentMethod?: boolean;
-    }
 
     /**
      * Apple Pay configuration for Payment Element.

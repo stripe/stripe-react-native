@@ -268,12 +268,6 @@ export function checkoutConfiguration(
     merchantDisplayName: 'Stripe Shop',
     defaults,
     paymentElement: {
-      billingDetailsCollectionConfiguration: {
-        address:
-          settings.billingAddressCollection === 'required'
-            ? 'full'
-            : 'automatic',
-      },
       link: { display: settings.linkMode },
     },
     ...(settings.adaptivePricingCountry !== 'none'
