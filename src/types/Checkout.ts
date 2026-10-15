@@ -28,6 +28,8 @@ export interface CheckoutController {
   readonly session: Checkout.Session;
   /** The Payment Element owned by this controller. */
   readonly paymentElement: CheckoutPaymentElement;
+  /** The Shipping Address Element, or `null` when it is not configured. */
+  readonly shippingAddressElement: CheckoutShippingAddressElement | null;
   /** The Currency Selector Element, or `null` when unavailable. */
   readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
   /** Updates the customer's email address. Pass `null` to clear it. */
@@ -63,6 +65,24 @@ export interface CheckoutPaymentElement {
   /**
    * Requests native Payment Element sheet presentation and resolves immediately.
    * The promise does not wait for dismissal or report the customer's selection.
+   */
+  present(): Promise<void>;
+}
+
+/**
+ * The Checkout-owned Shipping Address Element. It collects and saves a customer's
+ * shipping address in a native sheet, updating the controller's session.
+ *
+ * @remarks
+ * This API is in private preview and can change without notice.
+ *
+ * @CheckoutSessionPrivatePreview
+ */
+export interface CheckoutShippingAddressElement {
+  /**
+   * Requests native shipping address sheet presentation and resolves immediately.
+   * The promise does not wait for dismissal. Read the saved address from
+   * `session.shippingAddress`.
    */
   present(): Promise<void>;
 }
@@ -129,6 +149,11 @@ export namespace Checkout {
     /** Configuration for the Checkout-owned Payment Element. */
     paymentElement?: PaymentElementConfiguration;
     /**
+     * Configuration for the Checkout-owned Shipping Address Element. Provide
+     * `{}` to enable the element with its native defaults.
+     */
+    shippingAddressElement?: ShippingAddressElementConfiguration;
+    /**
      * Configuration for Currency Selector Element. Provide this configuration
      * to enable the element when Adaptive Pricing is available.
      */
@@ -166,6 +191,11 @@ export namespace Checkout {
     readonly session: Session | null;
     /** The Checkout-owned Payment Element, or `null` before Checkout is ready. */
     readonly paymentElement: CheckoutPaymentElement | null;
+    /**
+     * The Shipping Address Element, or `null` before Checkout is ready or
+     * when `shippingAddressElement` was not configured.
+     */
+    readonly shippingAddressElement: CheckoutShippingAddressElement | null;
     /**
      * The Currency Selector Element, or `null` before Checkout is ready or
      * when it is unavailable for the Checkout Session.
@@ -243,6 +273,88 @@ export namespace Checkout {
   export interface CurrencySelectorElementConfiguration {
     /** Customizes the appearance of Currency Selector Element. */
     appearance?: CurrencySelectorElementConfiguration.Appearance;
+  }
+
+  /**
+   * Configuration for the Checkout-owned Shipping Address Element.
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface ShippingAddressElementConfiguration {
+    /** The form title. Defaults to the localized "Shipping address". */
+    title?: string;
+    /** The primary button label. Defaults to the localized "Save address". */
+    buttonTitle?: string;
+    /** Customizes the native shipping address form. */
+    appearance?: ShippingAddressElementConfiguration.Appearance;
+  }
+
+  /**
+   * Appearance types used by Shipping Address Element.
+   * @CheckoutSessionPrivatePreview
+   */
+  export namespace ShippingAddressElementConfiguration {
+    /**
+     * Appearance configuration for Shipping Address Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface Appearance {
+      /** Colors used by the shipping address form, in a single or light/dark palette. */
+      colors?: AppearanceParams['colors'];
+      /** Configures the shipping address form's save button. */
+      primaryButton?: PrimaryButtonConfiguration;
+      /** Insets around the shipping address form and primary button. */
+      formInsetValues?: AppearanceParams['formInsetValues'];
+      /** Font family and scale for the address form. iOS only. */
+      font?: AppearanceParams['font'];
+      /** Shapes and shadows for the address inputs. iOS only. */
+      shapes?: AppearanceParams['shapes'];
+    }
+
+    /**
+     * Appearance of Shipping Address Element's primary button.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface PrimaryButtonConfiguration {
+      /** Font family used for the primary button. */
+      font?: Partial<Pick<FontConfig, 'family'>>;
+      /** Colors used by the primary button, in a single or light/dark palette. */
+      colors?:
+        | PrimaryButtonColorConfiguration
+        | {
+            light: PrimaryButtonColorConfiguration;
+            dark: PrimaryButtonColorConfiguration;
+          };
+      /** Configures the primary button's border, shadow, and height. */
+      shapes?: PrimaryButtonShapeConfiguration;
+    }
+
+    /**
+     * Colors supported by Shipping Address Element's primary button.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface PrimaryButtonColorConfiguration {
+      /** Background color as a hex string. Defaults to the form's primary color. */
+      background?: string;
+      /** Text color as a hex string. Omit to use the native default. */
+      text?: string;
+      /** Border color as a hex string. Omit to use the native default. */
+      border?: string;
+    }
+
+    /**
+     * Shape of Shipping Address Element's primary button.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface PrimaryButtonShapeConfiguration {
+      /** Corner radius in density-independent pixels. */
+      borderRadius?: number;
+      /** Border width in density-independent pixels. */
+      borderWidth?: number;
+      /** Button height in density-independent pixels. Omit to use the native default. */
+      height?: number;
+      /** Shadow used by the primary button. iOS only. */
+      shadow?: NonNullable<AppearanceParams['shapes']>['shadow'];
+    }
   }
 
   /**

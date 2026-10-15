@@ -164,6 +164,17 @@ export async function createCheckoutController(
           NativeStripeSdk.presentCheckoutPaymentElement(controllerId)
         ),
     };
+    // Shipping collection is opt-in, matching the native Checkout configuration.
+    const shippingAddressElement = options.shippingAddressElement
+      ? {
+          present: () =>
+            performOperation(() =>
+              NativeStripeSdk.presentCheckoutShippingAddressElement(
+                controllerId
+              )
+            ),
+        }
+      : null;
     const currencySelectorElement = result.isCurrencySelectorAvailable
       ? {}
       : null;
@@ -176,6 +187,7 @@ export async function createCheckoutController(
         return session!;
       },
       paymentElement,
+      shippingAddressElement,
       currencySelectorElement,
       updateEmail: (email) =>
         performOperation(() =>

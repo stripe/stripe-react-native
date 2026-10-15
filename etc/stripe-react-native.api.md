@@ -981,6 +981,7 @@ export namespace Checkout {
         merchantDisplayName?: string;
         paymentElement?: PaymentElementConfiguration;
         returnURL: string;
+        shippingAddressElement?: ShippingAddressElementConfiguration;
         style?: UserInterfaceStyle;
     }
     export interface CurrencySelectorElementConfiguration {
@@ -1130,6 +1131,39 @@ export namespace Checkout {
         address: Address;
         name?: string;
     }
+    export interface ShippingAddressElementConfiguration {
+        appearance?: ShippingAddressElementConfiguration.Appearance;
+        buttonTitle?: string;
+        title?: string;
+    }
+    export namespace ShippingAddressElementConfiguration {
+        export interface Appearance {
+            colors?: AppearanceParams['colors'];
+            font?: AppearanceParams['font'];
+            formInsetValues?: AppearanceParams['formInsetValues'];
+            primaryButton?: PrimaryButtonConfiguration;
+            shapes?: AppearanceParams['shapes'];
+        }
+        export interface PrimaryButtonColorConfiguration {
+            background?: string;
+            border?: string;
+            text?: string;
+        }
+        export interface PrimaryButtonConfiguration {
+            colors?: PrimaryButtonColorConfiguration | {
+                light: PrimaryButtonColorConfiguration;
+                dark: PrimaryButtonColorConfiguration;
+            };
+            font?: Partial<Pick<FontConfig, 'family'>>;
+            shapes?: PrimaryButtonShapeConfiguration;
+        }
+        export interface PrimaryButtonShapeConfiguration {
+            borderRadius?: number;
+            borderWidth?: number;
+            height?: number;
+            shadow?: NonNullable<AppearanceParams['shapes']>['shadow'];
+        }
+    }
     export interface Tax {
         status: 'ready' | 'requiresShippingAddress' | 'requiresBillingAddress';
     }
@@ -1164,6 +1198,7 @@ export namespace Checkout {
         removePromotionCode(): Promise<void>;
         runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
         readonly session: Session | null;
+        readonly shippingAddressElement: CheckoutShippingAddressElement | null;
         readonly status: 'idle' | 'loading' | 'ready' | 'updating' | 'confirming' | 'error';
         updateEmail(email: string | null): Promise<void>;
         updateShippingAddress(params: UpdateShippingAddressParams): Promise<void>;
@@ -1182,6 +1217,7 @@ export interface CheckoutController {
     removePromotionCode(): Promise<void>;
     runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
     readonly session: Checkout.Session;
+    readonly shippingAddressElement: CheckoutShippingAddressElement | null;
     readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
     updateEmail(email: string | null): Promise<void>;
     updateShippingAddress(params: Checkout.UpdateShippingAddressParams): Promise<void>;
@@ -1210,6 +1246,11 @@ export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProp
 // @public
 export interface CheckoutPaymentElementViewProps {
     element: CheckoutPaymentElement;
+}
+
+// @public
+export interface CheckoutShippingAddressElement {
+    present(): Promise<void>;
 }
 
 // @public (undocumented)

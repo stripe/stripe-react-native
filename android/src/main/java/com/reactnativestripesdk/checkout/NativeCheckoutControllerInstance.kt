@@ -13,6 +13,7 @@ import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutPresenter
 import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
+import com.stripe.android.elements.ShippingAddressElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -27,13 +28,16 @@ import kotlinx.coroutines.launch
 
 /** Owns a native Checkout controller and its session observation for the bridge. */
 @OptIn(CheckoutSessionPreview::class, ExperimentalCoroutinesApi::class)
+@Suppress("TooManyFunctions")
 internal class NativeCheckoutControllerInstance(
   val controller: CheckoutController,
   private val eventEmitter: EventEmitterCompat,
   private val scope: CoroutineScope,
   initialSession: WritableMap,
   private val context: ReactApplicationContext,
+  private val isShippingAddressElementConfigured: Boolean = false,
 ) {
+
   private val serverUpdateCompletions = mutableMapOf<String, CompletableDeferred<Result<Unit>>>()
   private var controllerId: String? = null
   private var latestSession = initialSession
@@ -54,6 +58,14 @@ internal class NativeCheckoutControllerInstance(
   /** Reuses the native Currency Selector Element for the lifetime of its activity. */
   fun currencySelectorElement(activity: ComponentActivity): CurrencySelectorElement =
     getPresenter(activity).currencySelectorElement()
+
+  /** Uses the same activity-bound presenter as Payment Element. */
+  fun shippingAddressElement(activity: ComponentActivity): ShippingAddressElement {
+    check(isShippingAddressElementConfigured) {
+      "Shipping Address Element was not configured for this Checkout controller."
+    }
+    return getPresenter(activity).shippingAddressElement()
+  }
 
   private fun getPresenter(activity: ComponentActivity): CheckoutPresenter {
     check(!destroyed) { "Checkout controller was destroyed." }

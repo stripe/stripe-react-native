@@ -279,5 +279,6 @@ export function checkoutConfiguration(
     ...(settings.adaptivePricingCountry !== 'none'
       ? { currencySelectorElement: {} }
       : {}),
+    ...(settings.collectShippingAddress ? { shippingAddressElement: {} } : {}),
   };
 }
