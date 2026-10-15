@@ -130,6 +130,29 @@ class NativeCheckoutControllerInstanceTest {
   }
 
   @Test
+  fun `emits a brief updating state while payment option image loads`() = withFixture { fixture ->
+    fixture.start()
+    advanceUntilIdle()
+    val initialEventCount = fixture.events.size
+    val imageStarted = CompletableDeferred<Unit>()
+    fixture.sessions.value = checkoutSession(
+      paymentOption = checkoutPaymentOption(imageLoader = {
+        imageStarted.complete(Unit)
+        awaitCancellation()
+      }),
+    )
+    runCurrent()
+    imageStarted.await()
+
+    fixture.updating.value = true
+    runCurrent()
+    fixture.updating.value = false
+    runCurrent()
+
+    assertTrue(fixture.events.drop(initialEventCount).any { it.getString("status") == "updating" })
+  }
+
+  @Test
   fun `observes sessions when the native flow creates a new value on every read`() = withFixture { fixture ->
     `when`(fixture.controller.session).thenReturn(
       fixture.sessions.mapAsStateFlow { session -> session?.let { checkoutSession(email = it.email.orEmpty()) } },
