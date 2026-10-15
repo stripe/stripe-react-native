@@ -413,7 +413,6 @@ export default function PaymentsUICompleteScreen() {
         // autocompleteCountries={['CA']}
         primaryButtonTitle={'use this address'}
         sheetTitle={'🧙‍♀️ custom title'}
-        googlePlacesApiKey={'this-api-key-wont-work'}
       />
       <Button
         title="Reset customer"

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+**Changes**
+
+* [Deprecated] `AddressSheet`'s Android-only `googlePlacesApiKey` prop. Stripe-hosted autocomplete does not require a Google Places API key, and omitting the prop does not disable hosted autocomplete. The prop is ignored on iOS.
+
 ## 0.82.0 - 2026-10-13
 
 **Changes**
