@@ -16,15 +16,31 @@ ruby -e 'begin; require "minitest"; rescue LoadError; require "rubygems/dependen
 ruby scripts/test/stripe_spm_identity_test.rb
 
 VALIDATION_DIR="$(mktemp -d)"
+SIMULATOR_UDID=""
 PODFILE="$REPO_ROOT/example/ios/Podfile"
 PODFILE_LOCK="$REPO_ROOT/example/ios/Podfile.lock"
 cp "$PODFILE" "$VALIDATION_DIR/Podfile"
 cp "$PODFILE_LOCK" "$VALIDATION_DIR/Podfile.lock"
 
+cleanup_simulator() {
+  if [ -n "$SIMULATOR_UDID" ]; then
+    # Xcode may already have shut down the device after the tests finish.
+    xcrun simctl shutdown "$SIMULATOR_UDID" >/dev/null 2>&1 || true
+    xcrun simctl delete "$SIMULATOR_UDID" || return $?
+    SIMULATOR_UDID=""
+  fi
+}
+
 restore_example() {
   local status=$?
   local restored=true
   trap - EXIT INT TERM
+  if ! cleanup_simulator; then
+    echo "Error! Failed to remove the optionality test simulator."
+    if [ "$status" -eq 0 ]; then
+      status=1
+    fi
+  fi
   cp "$VALIDATION_DIR/Podfile" "$PODFILE" || restored=false
   cp "$VALIDATION_DIR/Podfile.lock" "$PODFILE_LOCK" || restored=false
   # Restore Pods, its manifest, and the generated project as well as the input
@@ -103,16 +119,23 @@ test_identity() {
   if command -v xcbeautify >/dev/null 2>&1; then
     formatter=xcbeautify
   fi
+  # Isolate the test runner from earlier CI tests and the preceding feature
+  # selection. Only simulator state is fresh; DerivedData stays shared so
+  # opting out still exercises cached Identity modules from the enabled pass.
+  SIMULATOR_UDID="$(xcrun simctl create "Stripe Identity $(basename "$VALIDATION_DIR")" com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro-Max)"
+  xcrun simctl bootstatus "$SIMULATOR_UDID" -b
   (
     cd example/ios
     xcodebuild test \
       -workspace example.xcworkspace \
       -scheme ReactTestApp \
-      -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' \
+      -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+      -parallel-testing-enabled NO \
       -derivedDataPath "$VALIDATION_DIR/DerivedData" \
       -only-testing:ReactTestAppTests/IdentityVerificationSheetTests \
       CODE_SIGNING_ALLOWED=NO | "$formatter"
   )
+  cleanup_simulator
 }
 
 # Start without cached Onramp modules; reuse the build directory on opt-out to
