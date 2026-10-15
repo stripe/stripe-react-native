@@ -164,7 +164,7 @@ const lineItems = (settings: PlaygroundSettings) =>
 export function buildSessionParameters(
   settings: PlaygroundSettings,
   customerID?: string
-): object {
+): Record<string, unknown> {
   const params: Record<string, unknown> = {
     ui_mode: 'mobile_elements',
     currency: settings.currency,
