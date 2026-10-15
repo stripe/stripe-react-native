@@ -568,6 +568,7 @@ internal fun mapNextAction(
     NextActionType.MbWayAwaitAuthorization,
     NextActionType.DisplayPayNowDetails,
     NextActionType.DisplayPromptPayDetails,
+    NextActionType.DisplayPixDetails,
     null,
     -> {
       return null
@@ -1010,6 +1011,7 @@ internal fun mapToPreferredNetworks(networksAsInts: List<Int>?): List<CardBrand>
 internal fun mapFromFinancialConnectionsEvent(event: FinancialConnectionsEvent): WritableMap =
   Arguments.createMap().apply {
     putString("name", event.name.value)
+    putString("financialConnectionsSessionId", event.financialConnectionsSessionId)
 
     // We require keys to use pascal case, but the original map uses snake case.
     val tweakedMap =
@@ -1170,10 +1172,10 @@ internal fun mapFromConfirmationToken(confirmationToken: ConfirmationToken): Wri
 @SuppressLint("RestrictedApi")
 private fun mapFromSetupFutureUsage(setupFutureUsage: ConfirmPaymentIntentParams.SetupFutureUsage?): String? =
   when (setupFutureUsage) {
-    ConfirmPaymentIntentParams.SetupFutureUsage.OnSession -> "on_session"
-    ConfirmPaymentIntentParams.SetupFutureUsage.OffSession -> "off_session"
-    ConfirmPaymentIntentParams.SetupFutureUsage.Blank -> ""
-    ConfirmPaymentIntentParams.SetupFutureUsage.None -> "none"
+    ConfirmPaymentIntentParams.SetupFutureUsage.OnSession -> "OnSession"
+    ConfirmPaymentIntentParams.SetupFutureUsage.OffSession -> "OffSession"
+    ConfirmPaymentIntentParams.SetupFutureUsage.Blank -> null
+    ConfirmPaymentIntentParams.SetupFutureUsage.None -> "None"
     null -> null
   }
 

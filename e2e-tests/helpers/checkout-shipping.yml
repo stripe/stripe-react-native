@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+---
+- scrollUntilVisible:
+    element:
+      text: 'Add shipping address'
+    centerElement: true
+- tapOn: 'Add shipping address'
+- extendedWaitUntil:
+    visible: 'Shipping address'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Save Address'
+    centerElement: true
+- tapOn: 'Save Address'
+- extendedWaitUntil:
+    notVisible: 'Save Address'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: '(?s).*510 Townsend St.*'
+    centerElement: true
+    timeout: 30000

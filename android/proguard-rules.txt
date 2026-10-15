@@ -9,6 +9,11 @@
 # play-services-tapandpay is a private Google SDK that must be provided by the app.
 # Suppress R8 warnings when it is absent (e.g. in the example app build).
 -dontwarn com.google.android.gms.tapandpay.**
+
+# stripe-android-issuing-push-provisioning is a compileOnly dependency that apps add
+# only when they use push provisioning. Suppress R8 warnings when it is absent.
+-dontwarn com.stripe.android.pushProvisioning.**
+
 -dontwarn com.samsung.android.sdk.samsungpay.**
 -keep class com.samsung.android.sdk.** { *; }
 -keep interface com.samsung.android.sdk.** { *; }

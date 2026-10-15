@@ -1,12 +1,14 @@
 package com.reactnativestripesdk.checkout
 
 import android.content.Context
+import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import androidx.test.core.app.ApplicationProvider
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.checkout.CheckoutController
+import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.model.CardBrand
 import com.stripe.android.model.PaymentMethod
@@ -22,6 +24,39 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class CheckoutConfigurationMapperTest {
   private val context = ApplicationProvider.getApplicationContext<Context>()
+
+  @Test
+  fun `map maps currency selector element appearance`() {
+    val mapped = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "currencySelectorElement" to readableMapOf(
+          "appearance" to readableMapOf(
+            "contentVerticalPadding" to 8,
+            "shapes" to readableMapOf("cornerRadius" to 12, "borderWidth" to 2),
+            "colors" to readableMapOf("background" to "#112233"),
+            "font" to readableMapOf("scale" to 1.2),
+            "labelContent" to "amount",
+          ),
+        ),
+      ),
+      context,
+    ) {}.configuration
+
+    val configuration = mapped.readField<CurrencySelectorElement.Configuration>(
+      "currencySelectorElementConfiguration",
+    )
+    val appearance = configuration.readField<CurrencySelectorElement.Configuration.Appearance>("appearance")
+    assertEquals(8f, appearance.readField<Float>("contentVerticalPaddingDp"))
+    assertEquals(12f, appearance.readField<Float>("cornerRadiusDp"))
+    assertEquals(2f, appearance.readField<Float>("borderWidthDp"))
+    assertEquals(1.2f, appearance.readField<Float>("sizeScaleFactor"))
+    assertEquals(Color("#112233".toColorInt()), appearance.readField<Color>("background"))
+    assertEquals(
+      CurrencySelectorElement.Configuration.Appearance.LabelContent.AMOUNT,
+      appearance.readField<CurrencySelectorElement.Configuration.Appearance.LabelContent>("labelContent"),
+    )
+  }
 
   @Test
   @Suppress("LongMethod")

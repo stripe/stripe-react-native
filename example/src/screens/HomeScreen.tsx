@@ -81,18 +81,19 @@ export default function HomeScreen() {
         merchantCountryCode: 'US',
         merchantName: 'Onramp Example',
         existingPaymentMethodRequired: false,
-        isEmailRequired: false,
+        isEmailRequired: true,
         allowCreditCards: true,
         billingAddressConfig: {
           isRequired: true,
           format: 'Full',
-          isPhoneNumberRequired: false,
+          isPhoneNumberRequired: true,
         },
       },
       ...(Platform.OS === 'android' && SAMSUNG_PAY_SERVICE_ID
         ? {
             samsungPay: {
               serviceId: SAMSUNG_PAY_SERVICE_ID,
+              collectContactInformation: true,
               merchantName: 'Onramp Example',
             },
           }
@@ -181,6 +182,12 @@ export default function HomeScreen() {
                   'PaymentSheetDeferredIntentMultiStepScreen'
                 );
               }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Checkout Sessions (private preview)"
+              onPress={() => navigation.navigate('CheckoutPlaygroundScreen')}
             />
           </View>
           <View style={styles.buttonContainer}>

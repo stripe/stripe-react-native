@@ -6,6 +6,40 @@
 
 * [Added] Stripe Identity is now included in this package through `useStripeIdentity` and `presentIdentityVerificationSheet`, sharing the native Stripe SDK versions and release workflow. The dedicated Identity example shares the existing example's native projects and dependencies. See [migration instructions](./MIGRATING.md#stripe-identity) for the former standalone package.
 * [Added] Identity is opt-in through the `stripe-react-native/Identity` subspec on iOS and `StripeSdk_includeIdentity` on Android, or the Expo plugin's `includeIdentity` option on either platform. Android Identity requires API 24 or higher; existing Payments-only integrations retain API 23 support. Onramp also includes Identity on both platforms.
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.13.0 to 26.14.0.
+* Updated Stripe Android SDK from 23.22.0 to 23.23.0.
+
+**Fixes**
+
+* [Fixed] Android: Fixed custom font validation rejecting font resource names containing underscores in PaymentSheet and PaymentMethodMessagingElement. ([#2573](https://github.com/stripe/stripe-react-native/pull/2573))
+* [Fixed] Fixed an issue where PaymentSheet could close immediately on Android after a JavaScript reload and Activity recreation.
+* [Fixed] Android: Fixed R8 build failures when the optional push provisioning dependency is not included. ([#2715](https://github.com/stripe/stripe-react-native/pull/2715))
+
+## 0.81.0 - 2026-10-06
+
+**Features**
+
+* [Added] Onramp: Expose Platform Pay email, E.164 phone, and raw phone for Link registration prefill on iOS and Android, and add Samsung Pay contact collection configuration.
+* [Added] Added `financialConnectionsSessionId` to Financial Connections `FinancialConnectionsEvent`. Events are now emitted once the session identifier is available.
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.12.1 to 26.13.0.
+* Updated Stripe Android SDK from 23.21.0 to 23.22.0.
+
+**Fixes**
+
+* [Fixed] Android: Fixed PaymentSheet presentation failures after the host Activity changes. ([#2705](https://github.com/stripe/stripe-react-native/pull/2705))
+* [Fixed] Fixed an issue where CustomerSheet could crash on iOS or remain stuck loading on Android when using CustomerSession.
+* [Fixed] Android: ConfirmationToken `setupFutureUsage` now returns the `FutureUsage` values (`OffSession` / `OnSession` / `None`), matching iOS. ([#2697](https://github.com/stripe/stripe-react-native/pull/2697))
+
+## 0.80.0 - 2026-09-30
+
+**Features**
+
 * [Added] Added support for pre-collected consent in Financial Connections flows. (private preview)
 
 ## 0.79.0 - 2026-09-29

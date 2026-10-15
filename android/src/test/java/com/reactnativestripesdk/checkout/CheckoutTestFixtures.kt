@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable
 import androidx.compose.ui.text.AnnotatedString
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.paymentelement.CheckoutSessionPreview
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.intrinsics.startCoroutineUninterceptedOrReturn
 
 @OptIn(CheckoutSessionPreview::class)
@@ -19,9 +20,11 @@ internal fun checkoutPaymentOption(
   imageLoader: suspend () -> Drawable,
   billingDetails: CheckoutController.Session.PaymentOptionDisplayData.BillingDetails? = null,
   mandateText: AnnotatedString? = null,
+  requestedDarkTheme: AtomicReference<Boolean>? = null,
 ): CheckoutController.Session.PaymentOptionDisplayData = NativeCheckoutFixtures.paymentOption(
   // Adapt the suspend loader to the JVM constructor's continuation signature.
   { continuation -> imageLoader.startCoroutineUninterceptedOrReturn(continuation) },
   billingDetails,
   mandateText,
+  requestedDarkTheme,
 )

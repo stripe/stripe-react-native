@@ -54,6 +54,7 @@ internal fun mapConfig(
 
   val displayName = configMap.getString("merchantDisplayName") ?: ""
   val cryptoCustomerId = configMap.getString("cryptoCustomerId")
+  val countryHint = configMap.getString("countryHint")
   val googlePayConfig = mapGooglePayConfig(configMap.getMap("googlePay"))
   val samsungPayConfig = mapSamsungPayConfig(configMap.getMap("samsungPay"))
 
@@ -62,6 +63,7 @@ internal fun mapConfig(
     .publishableKey(publishableKey)
     .appearance(appearance)
     .cryptoCustomerId(cryptoCustomerId)
+    .countryHint(countryHint)
     .apply { googlePayConfig?.let { googlePayConfig(it) } }
     .apply { samsungPayConfig?.let { samsungPayConfig(it) } }
     .apply {
@@ -80,7 +82,7 @@ internal fun mapSamsungPayConfig(params: ReadableMap?): OnrampConfiguration.Sams
   val merchantName = params.getString("merchantName")
   val allowedCardBrands = params.getIntegerList("allowedCardBrands")
 
-  return if (allowedCardBrands.isNullOrEmpty()) {
+  val config = if (allowedCardBrands.isNullOrEmpty()) {
     OnrampConfiguration.SamsungPayConfig(
       serviceId = serviceId,
       merchantId = merchantId,
@@ -94,6 +96,9 @@ internal fun mapSamsungPayConfig(params: ReadableMap?): OnrampConfiguration.Sams
       allowedCardBrands = mapToPreferredNetworks(allowedCardBrands),
     )
   }
+  return config.collectContactInformation(
+    params.hasKey("collectContactInformation") && params.getBoolean("collectContactInformation"),
+  )
 }
 
 @SuppressLint("RestrictedApi")
@@ -281,6 +286,10 @@ internal fun mapFromIdType(idType: IdType): String =
 @SuppressLint("RestrictedApi")
 internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
   val result = Arguments.createMap()
+
+  kycInfo.email?.let { result.putString("email", it) }
+  kycInfo.phone?.let { result.putString("phone", it) }
+  kycInfo.rawPhone?.let { result.putString("rawPhone", it) }
 
   kycInfo.firstName?.let { result.putString("firstName", it) }
   kycInfo.lastName?.let { result.putString("lastName", it) }

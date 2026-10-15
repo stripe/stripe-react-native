@@ -1,9 +1,14 @@
 package com.reactnativestripesdk.checkout;
 
 import android.graphics.drawable.Drawable;
+import androidx.compose.runtime.Composer;
 import androidx.compose.ui.text.AnnotatedString;
+import androidx.compose.ui.graphics.painter.Painter;
+import com.stripe.android.checkout.CheckoutController;
 import com.stripe.android.checkout.CheckoutController.Session;
+import com.stripe.android.paymentsheet.model.PaymentOptionResource;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
 
@@ -31,6 +36,10 @@ final class NativeCheckoutFixtures {
         new Session.Totals(subtotal, zero, zero, zero, total), null, Collections.emptyList());
   }
 
+  static CheckoutController.Result completedResult() { return new CheckoutController.Result.Completed(); }
+  static CheckoutController.Result canceledResult() { return new CheckoutController.Result.Canceled(); }
+  static CheckoutController.Result failedResult(Throwable error) { return new CheckoutController.Result.Failed(error); }
+
   static Session.Status openStatus() { return new Session.Status.Open(); }
   static Session.Status expiredStatus() { return new Session.Status.Expired(); }
   static Session.Status completeStatus() { return new Session.Status.Complete(Session.Status.PaymentStatus.Paid); }
@@ -38,8 +47,23 @@ final class NativeCheckoutFixtures {
   static Session.PaymentOptionDisplayData paymentOption(
       Function1<? super Continuation<? super Drawable>, ? extends Object> imageLoader,
       Session.PaymentOptionDisplayData.BillingDetails billingDetails,
-      AnnotatedString mandateText) {
-    return new Session.PaymentOptionDisplayData(imageLoader, "Visa 4242", billingDetails, "card", mandateText);
+      AnnotatedString mandateText,
+      AtomicReference<Boolean> requestedDarkTheme) {
+    PaymentOptionResource resource = new PaymentOptionResource() {
+      @Override
+      public Object load(Boolean isSystemDarkTheme, Continuation<? super Drawable> continuation) {
+        if (requestedDarkTheme != null) {
+          requestedDarkTheme.set(isSystemDarkTheme);
+        }
+        return imageLoader.invoke(continuation);
+      }
+
+      @Override
+      public Painter rememberPainter(Composer composer, int changed) {
+        throw new UnsupportedOperationException("This fixture only loads the icon");
+      }
+    };
+    return new Session.PaymentOptionDisplayData(resource, "Visa 4242", null, billingDetails, "card", mandateText);
   }
 
   static Session.PaymentOptionDisplayData.BillingDetails postalBillingDetails(String postalCode) {

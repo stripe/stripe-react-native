@@ -10,7 +10,7 @@ appId: ${APP_ID}
 - tapOn: "Customer Sheet"
 - tapOn: "Edit payment methods"
 - extendedWaitUntil:
-    visible: "TEST"
+    visible: "Card number. Supported cards include.*"
     timeout: 150000
 - tapOn:
     text: "Card number. Supported cards include.*"
@@ -29,6 +29,9 @@ appId: ${APP_ID}
     # Native card labels can end with a Unicode direction marker.
     text: .*4242.*
 - tapOn: .*4242.*
+- extendedWaitUntil:
+    visible: "Close"
+    timeout: 150000
 - tapOn: "Close"
 - assertVisible:
     text: "Canceled"
@@ -37,5 +40,5 @@ appId: ${APP_ID}
     id: "customer_adapter_switch"
 - tapOn: .*4242.*
 - extendedWaitUntil:
-    visible: "TEST"
+    visible: "Close"
     timeout: 150000

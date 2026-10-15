@@ -5,9 +5,6 @@ appId: ${APP_ID}
 - tapOn: "More payment scenarios"
 - tapOn: "PaymentSheet with PMO SFU"
 - tapOn: "Checkout"
-- extendedWaitUntil:
-    visible: "TEST"
-    timeout: 150000
 - tapOn:
     text: "Card"
     optional: true
@@ -16,6 +13,9 @@ appId: ${APP_ID}
     optional: true
 - assertVisible:
     text: "By providing your card information, you allow Example Inc. to charge your card for future payments in accordance with their terms."
+- extendedWaitUntil:
+    visible: "Card number. Supported cards include.*"
+    timeout: 150000
 - tapOn:
     text: "Card number. Supported cards include.*"
 - inputText: "4242424242424242"
