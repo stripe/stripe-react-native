@@ -339,8 +339,6 @@ export namespace Checkout {
 
   /**
    * Configuration for the Checkout-owned Payment Element.
-   * Configure billing address collection with the Checkout Session’s
-   * `billing_address_collection` parameter.
    * @CheckoutSessionPrivatePreview
    */
   export interface PaymentElementConfiguration {
