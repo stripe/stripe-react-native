@@ -236,62 +236,80 @@ export namespace Checkout {
     | 'Timeout'
     | 'Canceled';
 
-  /** Configuration for Currency Selector Element. */
+  /**
+   * Configuration for Currency Selector Element.
+   * @CheckoutSessionPrivatePreview
+   */
   export interface CurrencySelectorElementConfiguration {
     /** Customizes the appearance of Currency Selector Element. */
-    appearance?: CurrencySelectorElementAppearance;
+    appearance?: CurrencySelectorElementConfiguration.Appearance;
   }
 
-  /** Appearance configuration for Currency Selector Element. */
-  export interface CurrencySelectorElementAppearance {
-    /** Vertical padding inside each currency option, in density-independent pixels. */
-    contentVerticalPadding?: number;
-    /** Font family and scale used throughout the selector. */
-    font?: Partial<FontConfig>;
-    /** Colors used by the selector. */
-    colors?:
-      | CurrencySelectorElementColorConfiguration
-      | {
-          light: CurrencySelectorElementColorConfiguration;
-          dark: CurrencySelectorElementColorConfiguration;
-        };
-    /** Shape configuration for the selector track and selected pill. */
-    shapes?: CurrencySelectorElementShapeConfiguration;
-    /** Content displayed in each currency option. Defaults to `automatic`. */
-    labelContent?: CurrencySelectorElementLabelContent;
-  }
+  /**
+   * Appearance types used by Currency Selector Element.
+   * @CheckoutSessionPrivatePreview
+   */
+  export namespace CurrencySelectorElementConfiguration {
+    /**
+     * Appearance configuration for Currency Selector Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface Appearance {
+      /** Vertical padding inside each currency option, in density-independent pixels. */
+      contentVerticalPadding?: number;
+      /** Font family and scale used throughout the selector. */
+      font?: Partial<FontConfig>;
+      /** Colors used by the selector. */
+      colors?:
+        | ColorConfiguration
+        | {
+            light: ColorConfiguration;
+            dark: ColorConfiguration;
+          };
+      /** Shape configuration for the selector track and selected pill. */
+      shapes?: ShapeConfiguration;
+      /** Content displayed in each currency option. Defaults to `automatic`. */
+      labelContent?: LabelContent;
+    }
 
-  /** Colors used by Currency Selector Element. */
-  export interface CurrencySelectorElementColorConfiguration {
-    /** Border color for the selector track and selected pill. */
-    border?: ThemedColor;
-    /** Background color of the selector track. */
-    background?: ThemedColor;
-    /** Background color of the selected currency pill. */
-    selectedBackground?: ThemedColor;
-    /** Text color used for unselected currency options. */
-    text?: ThemedColor;
-    /** Text color used for the selected currency option. */
-    selectedText?: ThemedColor;
-    /** Text color used for exchange-rate disclosure. */
-    textSecondary?: ThemedColor;
-    /** Color used for errors shown below the selector. */
-    danger?: ThemedColor;
-  }
+    /**
+     * Colors used by Currency Selector Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface ColorConfiguration {
+      /** Border color for the selector track and selected pill. */
+      border?: ThemedColor;
+      /** Background color of the selector track. */
+      background?: ThemedColor;
+      /** Background color of the selected currency pill. */
+      selectedBackground?: ThemedColor;
+      /** Text color used for unselected currency options. */
+      text?: ThemedColor;
+      /** Text color used for the selected currency option. */
+      selectedText?: ThemedColor;
+      /** Text color used for exchange-rate disclosure. */
+      textSecondary?: ThemedColor;
+      /** Color used for errors shown below the selector. */
+      danger?: ThemedColor;
+    }
 
-  /** Shape configuration for Currency Selector Element. */
-  export interface CurrencySelectorElementShapeConfiguration {
-    /** Corner radius in density-independent pixels. Omit for a capsule shape. */
-    cornerRadius?: number;
-    /** Border width in density-independent pixels. */
-    borderWidth?: number;
-  }
+    /**
+     * Shape configuration for Currency Selector Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface ShapeConfiguration {
+      /** Corner radius in density-independent pixels. Omit for a capsule shape. */
+      cornerRadius?: number;
+      /** Border width in density-independent pixels. */
+      borderWidth?: number;
+    }
 
-  /** Content displayed in each currency option label. */
-  export type CurrencySelectorElementLabelContent =
-    | 'automatic'
-    | 'currencyCode'
-    | 'amount';
+    /**
+     * Content displayed in each currency option label.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type LabelContent = 'automatic' | 'currencyCode' | 'amount';
+  }
 
   /**
    * Known customer details used to prefill Checkout and its elements.
@@ -320,116 +338,19 @@ export namespace Checkout {
   }
 
   /**
-   * Configuration for Apple Pay in Checkout.
-   * @CheckoutSessionPrivatePreview
-   */
-  export interface ApplePayConfiguration {
-    /** ISO 3166-1 alpha-2 country code where the transaction is processed. */
-    merchantCountryCode: string;
-    /** The type of Apple Pay button to display. */
-    buttonType?: ApplePayButtonType;
-  }
-
-  /**
-   * Apple Pay button type options.
-   * @CheckoutSessionPrivatePreview
-   */
-  export type ApplePayButtonType =
-    | 'plain'
-    | 'buy'
-    | 'setUp'
-    | 'inStore'
-    | 'donate'
-    | 'checkout'
-    | 'book'
-    | 'subscribe'
-    | 'reload'
-    | 'addMoney'
-    | 'topUp'
-    | 'order'
-    | 'rent'
-    | 'support'
-    | 'contribute'
-    | 'tip'
-    | 'continue';
-
-  /**
-   * Configuration for Google Pay in Checkout.
-   * @CheckoutSessionPrivatePreview
-   */
-  export interface GooglePayConfiguration {
-    /** An optional label to display with the amount. */
-    label?: string;
-    /** The Google Pay button type. Defaults to `pay`. */
-    buttonType?: GooglePayButtonType;
-    /** Additional card networks to enable, for example `INTERAC`. */
-    additionalEnabledNetworks?: string[];
-  }
-
-  /**
-   * Google Pay button type options.
-   * @CheckoutSessionPrivatePreview
-   */
-  export type GooglePayButtonType =
-    | 'buy'
-    | 'book'
-    | 'checkout'
-    | 'donate'
-    | 'order'
-    | 'pay'
-    | 'subscribe'
-    | 'plain';
-
-  /**
-   * Configuration for Link in Checkout.
-   * @CheckoutSessionPrivatePreview
-   */
-  export interface LinkConfiguration {
-    /** Controls when Link is displayed. Defaults to `automatic`. */
-    display?: 'automatic' | 'never';
-  }
-
-  /**
-   * Appearance configuration for Checkout Payment Element.
-   * @CheckoutSessionPrivatePreview
-   */
-  export type PaymentElementAppearance = AppearanceParams;
-
-  /**
-   * Controls how the inline Payment Element handles row selection.
-   * @CheckoutSessionPrivatePreview
-   */
-  export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
-
-  /**
-   * Controls how billing details are collected during checkout.
-   * @CheckoutSessionPrivatePreview
-   */
-  export interface BillingDetailsCollectionConfiguration {
-    /** How to collect the name field. Defaults to `automatic`. */
-    name?: 'automatic' | 'always';
-    /** How to collect the phone field. Defaults to `automatic`. */
-    phone?: 'automatic' | 'always';
-    /** How to collect the billing address. Defaults to `automatic`. */
-    address?: 'automatic' | 'full';
-    /** Whether default billing details are attached to the payment method. */
-    attachDefaultsToPaymentMethod?: boolean;
-  }
-
-  /**
    * Configuration for the Checkout-owned Payment Element.
    * @CheckoutSessionPrivatePreview
    */
   export interface PaymentElementConfiguration {
     /** Customizes the appearance of Payment Element. */
-    appearance?: PaymentElementAppearance;
+    appearance?: PaymentElementConfiguration.Appearance;
     /** Preferred networks for co-branded cards. */
     preferredNetworks?: CardBrand[];
     /**
      * Controls how billing details are collected during checkout. iOS only.
      * On Android, configure billing collection on the Checkout Session.
      */
-    billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
+    billingDetailsCollectionConfiguration?: PaymentElementConfiguration.BillingDetailsCollectionConfiguration;
     /** A custom message shown when a saved payment method is removed. iOS only. */
     removeSavedPaymentMethodMessage?: string;
     /** Overrides the default order of payment method types. */
@@ -443,13 +364,114 @@ export namespace Checkout {
     /** Whether the embedded view displays mandate text. Defaults to `false`. */
     displaysMandateText?: boolean;
     /** Controls selection in the embedded view. */
-    rowSelectionBehavior?: RowSelectionBehavior;
-    /** Apple Pay configuration. iOS only. */
-    applePay?: ApplePayConfiguration;
-    /** Google Pay configuration. Android only. */
-    googlePay?: GooglePayConfiguration;
-    /** Link display configuration. */
-    link?: LinkConfiguration;
+    rowSelectionBehavior?: PaymentElementConfiguration.RowSelectionBehavior;
+    /** Apple Pay configuration for Payment Element. iOS only. */
+    applePay?: PaymentElementConfiguration.ApplePayConfiguration;
+    /** Google Pay configuration for Payment Element. Android only. */
+    googlePay?: PaymentElementConfiguration.GooglePayConfiguration;
+    /** Link display configuration for Payment Element. */
+    link?: PaymentElementConfiguration.LinkConfiguration;
+  }
+
+  /**
+   * Configuration types used by Checkout Payment Element.
+   * @CheckoutSessionPrivatePreview
+   */
+  export namespace PaymentElementConfiguration {
+    /**
+     * Appearance configuration for Checkout Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type Appearance = AppearanceParams;
+
+    /**
+     * Controls how the inline Payment Element handles row selection.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
+
+    /**
+     * Controls how billing details are collected during checkout.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface BillingDetailsCollectionConfiguration {
+      /** How to collect the name field. Defaults to `automatic`. */
+      name?: 'automatic' | 'always';
+      /** How to collect the phone field. Defaults to `automatic`. */
+      phone?: 'automatic' | 'always';
+      /** How to collect the billing address. Defaults to `automatic`. */
+      address?: 'automatic' | 'full';
+      /** Whether default billing details are attached to the payment method. */
+      attachDefaultsToPaymentMethod?: boolean;
+    }
+
+    /**
+     * Apple Pay configuration for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface ApplePayConfiguration {
+      /** The type of Apple Pay button to display. */
+      buttonType?: ApplePayButtonType;
+    }
+
+    /**
+     * Apple Pay button type options for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type ApplePayButtonType =
+      | 'plain'
+      | 'buy'
+      | 'setUp'
+      | 'inStore'
+      | 'donate'
+      | 'checkout'
+      | 'book'
+      | 'subscribe'
+      | 'reload'
+      | 'addMoney'
+      | 'topUp'
+      | 'order'
+      | 'rent'
+      | 'support'
+      | 'contribute'
+      | 'tip'
+      | 'continue';
+
+    /**
+     * Google Pay configuration for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface GooglePayConfiguration {
+      /** An optional label to display with the amount. */
+      label?: string;
+      /** The Google Pay button type. Defaults to `pay`. */
+      buttonType?: GooglePayButtonType;
+      /** Additional card networks to enable, for example `INTERAC`. */
+      additionalEnabledNetworks?: string[];
+    }
+
+    /**
+     * Google Pay button type options for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type GooglePayButtonType =
+      | 'buy'
+      | 'book'
+      | 'checkout'
+      | 'donate'
+      | 'order'
+      | 'pay'
+      | 'subscribe'
+      | 'plain';
+
+    /**
+     * Link configuration for Payment Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface LinkConfiguration {
+      /** Controls when Link is displayed. Defaults to `automatic`. */
+      display?: 'automatic' | 'never';
+    }
   }
 
   /**
@@ -505,8 +527,10 @@ export namespace Checkout {
   export interface PaymentOptionDisplayData {
     /** A Base64-encoded image representing the payment method. */
     image: string;
-    /** Customer-facing label, for example `•••• 4242`. */
+    /** Customer-facing label, for example `Visa`. */
     label: string;
+    /** Optional secondary details, for example `•••• 4242` for a card. */
+    sublabel?: string;
     /** Billing details collected for the selected payment method. */
     billingDetails?: BillingDetails;
     /** The payment method, external payment method, or wallet type. */
