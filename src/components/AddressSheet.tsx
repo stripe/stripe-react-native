@@ -44,8 +44,8 @@ export interface Props extends AccessibilityProps {
   /** Title displayed at the top of the sheet. Defaults to "Address". */
   sheetTitle?: string;
   /**
-   * Android only. Google Places API key for the direct Google Places integration. Ignored on iOS.
-   * @deprecated Omit this prop. Android uses Stripe-hosted autocomplete, which does not require a Google Places API key. Omitting this prop does not disable hosted autocomplete.
+   * Android only.
+   * @deprecated Omit this prop. Autocomplete now does not require a Google Places API key.
    */
   googlePlacesApiKey?: string;
   /** Called when the user submits their information */
