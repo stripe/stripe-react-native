@@ -118,7 +118,7 @@ internal class NativeCheckoutControllerInstance(
       controller.isUpdating.collect { isUpdating ->
         // Session serialization can suspend while loading a payment icon. Report busy transitions
         // immediately, even if a later state cancels the serialized snapshot.
-        if (isUpdating && controller.isUpdating.value && confirmation == null && !destroyed) emit("updating")
+        if (isUpdating && confirmation == null && !destroyed) emit("updating")
       }
     }
     scope.launch {
