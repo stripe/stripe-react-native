@@ -10,14 +10,14 @@
   "source": "src/index",
   "scripts": {
     "test": "jest",
-    "typescript": "tsc --noEmit",
+    "typescript": "tsc --noEmit && tsc --noEmit --project example-identity/tsconfig.json",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
     "prepare": "bob build && rm -rf lib/*/package.json && husky",
     "propose": "./scripts/propose.rb",
     "release": "./scripts/publish.rb",
     "example": "yarn --cwd example",
     "pods": "cd example && npx pod-install --quiet",
-    "update-pods": "cd example/ios && pod update Stripe StripeApplePay StripeFinancialConnections StripePayments StripePaymentSheet StripePaymentsUI StripeCore StripeUICore StripeCryptoOnramp",
+    "update-pods": "cd example/ios && pod update Stripe StripeApplePay StripeFinancialConnections StripePayments StripePaymentSheet StripePaymentsUI StripeCore StripeIdentity StripeUICore StripeCryptoOnramp",
     "bootstrap": "yarn example && yarn && yarn pods",
     "bootstrap-no-pods": "yarn example && yarn",
     "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none --sort source-order --excludeInternal",
@@ -39,7 +39,12 @@
     "test:package-types": "attw --pack .",
     "prepublishOnly": "echo \"\\nPlease use ./scripts/publish instead\\n\" && exit 1",
     "api-extractor:update": "bob build && api-extractor run --local --verbose",
-    "api-extractor:check": "bob build && api-extractor run --verbose"
+    "api-extractor:check": "bob build && api-extractor run --verbose",
+    "example:identity": "yarn --cwd example start --config ../example-identity/metro.config.js",
+    "run-example-identity-ios": "yarn example ios --no-packager",
+    "run-example-identity-android": "yarn example android --no-packager",
+    "build-example-identity-ios": "cd example && yarn mkdist && react-native bundle --entry-file ../example-identity/index.js --platform ios --dev false --bundle-output dist/main.ios.jsbundle --assets-dest dist",
+    "build-example-identity-android": "cd example && yarn mkdist && react-native bundle --entry-file ../example-identity/index.js --platform android --dev false --bundle-output dist/main.android.jsbundle --assets-dest dist/res"
   },
   "files": [
     "src",

@@ -8,6 +8,7 @@ repositories {
 def isDetektFormat = gradle.startParameter.taskNames.any { it.contains('detektFormat') }
 
 detekt {
+    source.setFrom(files("src/main", "src/test", "src/identity", "src/identityDisabled"))
     buildUponDefaultConfig = true
     config.setFrom(file("detekt/detekt.yml"))
     baseline = file("detekt/detekt-baseline.xml") // https://detekt.dev/docs/introduction/baseline/

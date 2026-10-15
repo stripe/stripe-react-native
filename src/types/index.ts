@@ -50,6 +50,7 @@ export {
 
 export * from './PushProvisioning';
 export * from './Errors';
+export * from './Identity';
 export * from './CustomerSheet';
 export * from './Checkout';
 export type { Address, BillingDetails, AddressDetails } from './Common';

@@ -34,6 +34,7 @@ import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
 import com.reactnativestripesdk.checkout.checkoutErrorCode
 import com.reactnativestripesdk.checkout.checkoutIconContext
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
+import com.reactnativestripesdk.identity.IdentityVerificationSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
 import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
@@ -126,6 +127,7 @@ class StripeSdkModule(
   private var googlePayPaymentMethodLauncherManager: GooglePayPaymentMethodLauncherManager? = null
   private var customerSheetManager: CustomerSheetManager? = null
   private var linkControllerManager: LinkControllerManager? = null
+  private val identityVerificationSheetManager = IdentityVerificationSheetManager.create(reactContext)
   internal val checkoutControllers = mutableMapOf<String, NativeCheckoutControllerInstance>()
   private val pendingCheckoutCreationScopes = mutableSetOf<CoroutineScope>()
 
@@ -147,6 +149,7 @@ class StripeSdkModule(
   override fun invalidate() {
     application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
     checkoutControllersInvalidated = true
+    identityVerificationSheetManager.invalidate()
     super.invalidate()
 
     stripeUIManagers.forEach { it.destroy() }
@@ -169,6 +172,14 @@ class StripeSdkModule(
   private fun registerStripeUIManager(uiManager: StripeUIManager) {
     uiManager.create()
     stripeUIManagers.add(uiManager)
+  }
+
+  @ReactMethod
+  override fun presentIdentityVerificationSheet(
+    options: ReadableMap,
+    promise: Promise,
+  ) {
+    identityVerificationSheetManager.present(options, promise)
   }
 
   private fun unregisterStripeUIManager(uiManager: StripeUIManager?) {

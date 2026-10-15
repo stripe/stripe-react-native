@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## Unreleased
+
+**Features**
+
+* [Added] Stripe Identity is now included in this package through `useStripeIdentity` and `presentIdentityVerificationSheet`, sharing the native Stripe SDK versions and release workflow. The dedicated Identity example shares the existing example's native projects and dependencies. See [migration instructions](./MIGRATING.md#stripe-identity) for the former standalone package.
+* [Added] Identity is opt-in through the `stripe-react-native/Identity` subspec on iOS and `StripeSdk_includeIdentity` on Android, or the Expo plugin's `includeIdentity` option on either platform. Android Identity requires API 24 or higher; existing Payments-only integrations retain API 23 support. Onramp also includes Identity on both platforms.
+
 ## 0.82.0 - 2026-10-13
 
 **Changes**

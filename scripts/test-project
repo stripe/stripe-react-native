@@ -110,29 +110,45 @@ fi
 
 cd "$REPO_ROOT"
 
-echo "Packing local stripe-react-native package"
-PACK_OUTPUT="$(npm pack)"
-TARBALL_FILENAME="$(echo "$PACK_OUTPUT" | tail -n 1 | tr -d '\r\n')"
-TARBALL_PATH="$REPO_ROOT/$TARBALL_FILENAME"
-
 TMP_DIR="$(mktemp -d)"
 PROJECT_DIR="$TMP_DIR/$PROJECT_NAME"
+PACK_DIR=""
 
 cleanup() {
-  if [[ -f "$TARBALL_PATH" ]]; then
-    rm -f "$TARBALL_PATH"
+  local status=$?
+  trap - EXIT INT TERM
+  if [[ -n "$PACK_DIR" ]]; then
+    rm -rf "$PACK_DIR"
   fi
 
   if [[ $KEEP_PROJECT -eq 1 ]]; then
-    echo "Temporary project preserved at: $PROJECT_DIR"
-    return
-  fi
-
-  if [[ -d "$TMP_DIR" ]]; then
+    if [[ -d "$PROJECT_DIR" ]]; then
+      echo "Temporary project preserved at: $PROJECT_DIR"
+    else
+      echo "Temporary directory preserved at: $TMP_DIR"
+    fi
+  else
     rm -rf "$TMP_DIR"
   fi
+  exit "$status"
 }
 trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# Lifecycle scripts can print arbitrary output without a trailing newline.
+# Discover the package in an empty directory instead of parsing npm's stdout.
+PACK_DIR="$(mktemp -d "$TMP_DIR/package.XXXXXX")"
+echo "Packing local stripe-react-native package"
+npm pack --pack-destination "$PACK_DIR"
+shopt -s nullglob
+TARBALLS=("$PACK_DIR"/*.tgz)
+shopt -u nullglob
+if [[ ${#TARBALLS[@]} -ne 1 ]]; then
+  echo "Error! Expected exactly one packed package in $PACK_DIR."
+  exit 1
+fi
+TARBALL_PATH="${TARBALLS[0]}"
 
 echo "Creating React Native project ($PROJECT_NAME) with version $RN_VERSION" in "$TMP_DIR"
 
@@ -159,7 +175,9 @@ if [[ $RUN_IOS -eq 1 ]]; then
   bundle install
   (
     cd ios
-    RCT_NEW_ARCH_ENABLED=1 pod install
+    # React Native's template reads USE_FRAMEWORKS. SPM resolution requires
+    # dynamic frameworks; keep this confined to the throwaway fixture.
+    USE_FRAMEWORKS=dynamic RCT_NEW_ARCH_ENABLED=1 pod install
     xcodebuild \
       -workspace "$PROJECT_NAME.xcworkspace" \
       -configuration Release \

@@ -1,0 +1,51 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Stripe Identity"
+- tapOn:
+    id: "use-test-mode"
+    checked: false
+- assertVisible:
+    id: "use-test-mode"
+    checked: true
+- scrollUntilVisible:
+    element:
+      id: "verify-btn"
+    direction: DOWN
+- assertVisible: "Status: Undefined"
+- tapOn:
+    id: "verify-btn"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible: "You're currently in testmode"
+    timeout: 60000
+- assertNotVisible:
+    id: "loading-spinner"
+- assertNotVisible:
+    id: "verify-btn"
+# Preview the real document-verification UI using a test session. Stop at
+# consent; this test never accepts terms, captures a document, or submits PII.
+- scrollUntilVisible:
+    element:
+      text: "(?i)Proceed"
+    direction: DOWN
+- tapOn: "(?i)Proceed"
+- extendedWaitUntil:
+    visible: "(?i).*Verify your identity.*"
+    timeout: 60000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: "Close"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- extendedWaitUntil:
+    visible: "Status: FlowCanceled"
+    timeout: 30000
+- assertVisible:
+    id: "verify-btn"

@@ -5,6 +5,7 @@ export { useStripe } from './hooks/useStripe';
 export { usePlatformPay } from './hooks/usePlatformPay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
 export { useFinancialConnectionsSheet } from './hooks/useFinancialConnectionsSheet';
+export { useStripeIdentity } from './hooks/useStripeIdentity';
 export { useOnramp } from './hooks/useOnramp';
 export { useLinkController } from './hooks/useLinkController';
 export { useCheckout } from './hooks/useCheckout';

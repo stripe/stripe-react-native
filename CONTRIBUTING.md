@@ -91,6 +91,16 @@ Or open `example/android` in Android Studio and run the app from there.
 - **Android**: Open `example/android` in Android Studio. Find SDK source files under `reactnativestripesdk`.
 - **TypeScript**: Edit files in `src/` and `example/` with your editor of choice. Metro picks up JS/TS changes from `src/` directly, but type definitions are served from `lib/`. If you change the SDK's public API and your editor shows stale types, run `yarn` at the repo root to rebuild `lib/`.
 
+### Identity example
+
+The dedicated Identity playground lives in `example-identity/`. After the same bootstrap, start it with `yarn example:identity`, then run `yarn run-example-identity-ios` or `yarn run-example-identity-android` in another terminal. Stop any existing Metro server first. See [the example README](./example-identity/README.md) for details.
+
+Identity uses `example/`'s native projects, dependency installation, and lockfile. Keep React Native and native build configuration there; do not add a separate Identity package manifest, Podfile, or Gradle project. SDK code, tests, API reports, and publishing use the existing root tooling. Both Payments and Identity use `stripe_version` in `stripe-react-native.podspec` (including SPM) and `StripeSdk_stripeVersion` in `android/gradle.properties`.
+
+This avoids adding another set of Identity versions. It does not consolidate the existing JavaScript manifests in the SDK root, Payments example, and Connect example; their existing install and upgrade workflows remain in place. The Identity playground also shares Payments' app identifier and native installation, so it is run separately rather than installed alongside Payments.
+
+The shared example already enables Onramp on iOS and Android, which also includes Identity. Payments-only consumer builds exclude Identity by default. Consumer apps opt in on iOS with the `stripe-react-native/Identity` subspec, and on Android with `StripeSdk_includeIdentity=true` (or use the Expo plugin's `includeIdentity: true` option for both platforms). Android Identity requires API 24 or higher; Payments-only apps retain API 23 support. See [Identity setup](./README.md#identity).
+
 ## Tests
 
 ### TypeScript unit tests

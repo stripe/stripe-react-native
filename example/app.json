@@ -39,8 +39,7 @@
     "versionCode": 4,
     "permissions": [
       {
-        "android:name": "android.permission.CAMERA",
-        "android:maxSdkVersion": "34"
+        "android:name": "android.permission.CAMERA"
       }
     ],
     "metaData": [

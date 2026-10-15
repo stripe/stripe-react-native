@@ -15,6 +15,8 @@ module.exports = makeMetroConfig({
   // We need to make sure that only one version is loaded for peerDependencies
   // So we block them at the root, and alias them to the versions in example's node_modules
   resolver: {
+    // The dedicated Identity source lives beside this app and shares its install.
+    nodeModulesPaths: [path.join(__dirname, 'node_modules')],
     blacklistRE: exclusionList(
       modules.map(
         (m) =>

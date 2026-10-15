@@ -23,6 +23,7 @@ OPTIONS:
   --disable-spm     Opt out of Swift Package Manager resolution via the Expo
                     plugin's disableSPM option, exercising the CocoaPods
                     fallback path (iOS keeps Expo's static-frameworks default)
+  --include-identity Include the optional Identity SDK through the Expo plugin
   --skip-build      Stop after `expo prebuild` and the iOS integration checks,
                     without running the native builds
   --keep-project    Do not delete the temporary project directory (helpful for debugging failures)
@@ -39,6 +40,7 @@ EXPO_SDK_VERSION=""
 PLATFORMS="$DEFAULT_PLATFORMS"
 KEEP_PROJECT=0
 DISABLE_SPM=0
+INCLUDE_IDENTITY=0
 SKIP_BUILD=0
 
 while [[ $# -gt 0 ]]; do
@@ -63,6 +65,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --disable-spm)
       DISABLE_SPM=1
+      shift
+      ;;
+    --include-identity)
+      INCLUDE_IDENTITY=1
       shift
       ;;
     --skip-build)
@@ -124,29 +130,45 @@ if [[ ! -f package.json ]]; then
   exit 1
 fi
 
-echo "Packing local stripe-react-native package"
-PACK_OUTPUT="$(npm pack)"
-TARBALL_FILENAME="$(echo "$PACK_OUTPUT" | tail -n 1 | tr -d '\r\n')"
-TARBALL_PATH="$REPO_ROOT/$TARBALL_FILENAME"
-
 TMP_DIR="$(mktemp -d)"
 PROJECT_DIR="$TMP_DIR/$PROJECT_NAME"
+PACK_DIR=""
 
 cleanup() {
-  if [[ -f "$TARBALL_PATH" ]]; then
-    rm -f "$TARBALL_PATH"
+  local status=$?
+  trap - EXIT INT TERM
+  if [[ -n "$PACK_DIR" ]]; then
+    rm -rf "$PACK_DIR"
   fi
 
   if [[ $KEEP_PROJECT -eq 1 ]]; then
-    echo "Temporary project preserved at: $PROJECT_DIR"
-    return
-  fi
-
-  if [[ -d "$TMP_DIR" ]]; then
+    if [[ -d "$PROJECT_DIR" ]]; then
+      echo "Temporary project preserved at: $PROJECT_DIR"
+    else
+      echo "Temporary directory preserved at: $TMP_DIR"
+    fi
+  else
     rm -rf "$TMP_DIR"
   fi
+  exit "$status"
 }
 trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# Lifecycle scripts can print arbitrary output without a trailing newline.
+# Discover the package in an empty directory instead of parsing npm's stdout.
+PACK_DIR="$(mktemp -d "$TMP_DIR/package.XXXXXX")"
+echo "Packing local stripe-react-native package"
+npm pack --pack-destination "$PACK_DIR"
+shopt -s nullglob
+TARBALLS=("$PACK_DIR"/*.tgz)
+shopt -u nullglob
+if [[ ${#TARBALLS[@]} -ne 1 ]]; then
+  echo "Error! Expected exactly one packed package in $PACK_DIR."
+  exit 1
+fi
+TARBALL_PATH="${TARBALLS[0]}"
 
 echo "Creating Expo project ($PROJECT_NAME) targeting SDK $EXPO_SDK_VERSION"
 cd "$TMP_DIR"
@@ -162,6 +184,9 @@ APP_JSON_PATH="$PROJECT_DIR/app.json"
 PLUGIN_ARGS=()
 if [[ $DISABLE_SPM -eq 1 ]]; then
   PLUGIN_ARGS+=(--disable-spm)
+fi
+if [[ $INCLUDE_IDENTITY -eq 1 ]]; then
+  PLUGIN_ARGS+=(--include-identity)
 fi
 
 echo "Configuring Expo plugins in app.json"
@@ -191,7 +216,7 @@ verify_ios_dependency_integration() {
   local embed_phase='[stripe-react-native] Embed SPM Frameworks'
   # Matches the Stripe iOS SDK pods (dependency lines included) but not the
   # stripe-react-native development pod itself (lowercase 's').
-  local stripe_pod_pattern='^[[:space:]]*- (Stripe|StripePayments|StripePaymentsUI|StripePaymentSheet|StripeApplePay|StripeFinancialConnections|StripeCryptoOnramp)[ /(]'
+  local stripe_pod_pattern='^[[:space:]]*- (Stripe|StripePayments|StripePaymentsUI|StripePaymentSheet|StripeApplePay|StripeFinancialConnections|StripeIdentity|StripeCameraCore|StripeCryptoOnramp)[ /(]'
 
   local file
   for file in "$app_pbxproj" "$podfile_lock"; do
@@ -200,6 +225,20 @@ verify_ios_dependency_integration() {
       exit 1
     fi
   done
+
+  if [[ $INCLUDE_IDENTITY -eq 1 ]]; then
+    if ! grep -q 'stripe-react-native/Identity' ios/Podfile || ! grep -q 'stripe-react-native/Identity' "$podfile_lock"; then
+      echo "Error! The includeIdentity plugin option did not select the Identity subspec."
+      exit 1
+    fi
+    if ! grep -q 'STRIPE_IDENTITY' "ios/Pods/Target Support Files/stripe-react-native/stripe-react-native.release.xcconfig"; then
+      echo "Error! The Identity subspec did not enable its native implementation."
+      exit 1
+    fi
+  elif grep -q 'stripe-react-native/Identity' "$podfile_lock"; then
+    echo "Error! Identity must not be included in the default Payments fixture."
+    exit 1
+  fi
 
   if [[ $DISABLE_SPM -eq 1 ]]; then
     echo "Verifying the CocoaPods fallback integration (plugin disableSPM option)"

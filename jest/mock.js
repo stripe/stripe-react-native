@@ -3,6 +3,9 @@
 const React = require('react');
 
 const mockFunctions = {
+  presentIdentityVerificationSheet: jest.fn(async () => ({
+    status: 'FlowCompleted',
+  })),
   initStripe: jest.fn(async () => ({})),
   createPaymentMethod: jest.fn(async () => ({
     paymentMethod: {},
@@ -118,6 +121,12 @@ const mockFunctions = {
 };
 
 const mockHooks = {
+  useStripeIdentity: jest.fn(() => ({
+    present: jest.fn(async () => undefined),
+    status: undefined,
+    loading: false,
+    error: undefined,
+  })),
   useConfirmPayment: jest.fn(() => ({
     confirmPayment: jest.fn(() => ({
       ...mockFunctions.confirmPayment(),
