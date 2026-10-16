@@ -150,7 +150,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         let paymentElement = try XCTUnwrap(configuration.paymentElement)
         XCTAssertEqual(paymentElement.billingDetailsCollectionConfiguration.address, .automatic)
         XCTAssertFalse(paymentElement.opensCardScannerAutomatically)
-        XCTAssertFalse(paymentElement.displaysMandateText)
+        XCTAssertTrue(paymentElement.displaysMandateText)
         XCTAssertNil(paymentElement.applePayConfiguration)
         XCTAssertNil(paymentElement.linkConfiguration)
     }
