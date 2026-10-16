@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+**Changes**
+
+* [Deprecated] `AddressSheet`'s Android-only `googlePlacesApiKey` prop. Autocomplete now does not require a Google Places API key.
+
 ## 0.82.0 - 2026-10-13
 
 **Changes**
