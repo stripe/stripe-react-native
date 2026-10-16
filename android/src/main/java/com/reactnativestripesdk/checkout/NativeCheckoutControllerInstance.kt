@@ -71,7 +71,12 @@ internal class NativeCheckoutControllerInstance(
     check(!destroyed) { "Checkout controller was destroyed." }
     if (this.activity !== activity) {
       releasePresenter()
-      presenter = controller.createPresenter(activity)
+      presenter = controller.createPresenter(activity).also { newPresenter ->
+        if (isShippingAddressElementConfigured) {
+          // Register shipping results even when another element recreates the presenter.
+          newPresenter.shippingAddressElement()
+        }
+      }
       this.activity = activity
       activity.lifecycle.addObserver(activityObserver)
     }
