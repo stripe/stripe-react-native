@@ -51,6 +51,9 @@ enum CheckoutConfigurationMapper {
             if let buttonTitle = shippingParams["buttonTitle"] as? String {
                 shippingConfiguration.buttonTitle = buttonTitle
             }
+            if let appearance = shippingParams["appearance"] as? NSDictionary {
+                shippingConfiguration.appearance = try mapShippingAddressAppearance(appearance)
+            }
             configuration.shippingAddressElement = shippingConfiguration
         }
         if let currencySelectorParams = params["currencySelectorElement"] as? NSDictionary {
@@ -61,6 +64,53 @@ enum CheckoutConfigurationMapper {
             configuration.currencySelectorElement = currencySelectorConfiguration
         }
         return configuration
+    }
+
+    private static func mapShippingAddressAppearance(
+        _ params: NSDictionary
+    ) throws -> ShippingAddressElement.Appearance {
+        // Share parsing and validation with Payment Element's appearance options.
+        let mapped = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
+        var appearance = ShippingAddressElement.Appearance()
+        appearance.font.base = mapped.font.base
+        appearance.font.sizeScaleFactor = mapped.font.sizeScaleFactor
+        appearance.colors.primary = mapped.colors.primary
+        appearance.colors.background = mapped.colors.background
+        appearance.colors.componentBackground = mapped.colors.componentBackground
+        appearance.colors.componentBorder = mapped.colors.componentBorder
+        appearance.colors.componentDivider = mapped.colors.componentDivider
+        appearance.colors.text = mapped.colors.text
+        appearance.colors.textSecondary = mapped.colors.textSecondary
+        appearance.colors.componentText = mapped.colors.componentText
+        appearance.colors.componentPlaceholderText = mapped.colors.componentPlaceholderText
+        appearance.colors.icon = mapped.colors.icon
+        appearance.colors.danger = mapped.colors.danger
+        appearance.cornerRadius = mapped.cornerRadius
+        appearance.borderWidth = mapped.borderWidth
+        appearance.shadow = mapShippingAddressShadow(mapped.shadow)
+        appearance.formInsets = mapped.formInsets
+        appearance.primaryButton.backgroundColor = mapped.primaryButton.backgroundColor
+        appearance.primaryButton.textColor = mapped.primaryButton.textColor
+        appearance.primaryButton.borderColor = mapped.primaryButton.borderColor
+        appearance.primaryButton.cornerRadius = mapped.primaryButton.cornerRadius
+        appearance.primaryButton.borderWidth = mapped.primaryButton.borderWidth
+        appearance.primaryButton.font = mapped.primaryButton.font
+        appearance.primaryButton.height = mapped.primaryButton.height
+        if let shadow = mapped.primaryButton.shadow {
+            appearance.primaryButton.shadow = mapShippingAddressShadow(shadow)
+        }
+        return appearance
+    }
+
+    private static func mapShippingAddressShadow(
+        _ shadow: PaymentSheet.Appearance.Shadow
+    ) -> ShippingAddressElement.Appearance.Shadow {
+        var mapped = ShippingAddressElement.Appearance.Shadow()
+        mapped.color = shadow.color
+        mapped.opacity = shadow.opacity
+        mapped.offset = shadow.offset
+        mapped.radius = shadow.radius
+        return mapped
     }
 
     private static func mapCurrencySelectorAppearance(
