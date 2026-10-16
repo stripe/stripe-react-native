@@ -6,7 +6,7 @@ import UIKit
 /// Hosts the UIKit view owned by a registered Checkout controller.
 @objc(CheckoutPaymentElementContainerView)
 @MainActor
-public final class CheckoutPaymentElementContainerView: UIView {
+public final class CheckoutPaymentElementContainerView: UIView, CheckoutElementMountHost {
     @objc public var controllerId: String? {
         didSet {
             guard oldValue != controllerId else { return }
@@ -16,6 +16,7 @@ public final class CheckoutPaymentElementContainerView: UIView {
     }
     @objc public var onHeightChanged: RCTDirectEventBlock?
     private var elementView: PaymentElementUIView?
+    private var registeredElementView: PaymentElementUIView?
     private var destruction: AnyCancellable?
     private var reportedHeight: CGFloat?
     private lazy var nativeDelegate = ElementDelegate(view: self)
@@ -31,10 +32,8 @@ public final class CheckoutPaymentElementContainerView: UIView {
             return
         }
         let view = instance.checkout.getPaymentElement().uiView
-        guard view.superview == nil else {
-            assertionFailure("A Checkout Payment Element can only be mounted once.")
-            return
-        }
+        guard CheckoutElementMounts.claim(view, for: self) else { return }
+        registeredElementView = view
         elementView = view
         view.delegate = nativeDelegate
         addSubview(view)
@@ -45,11 +44,22 @@ public final class CheckoutPaymentElementContainerView: UIView {
     @objc public func detach() {
         destruction?.cancel()
         destruction = nil
+        relinquishElementForAnotherHost()
+        if let registeredElementView {
+            self.registeredElementView = nil
+            CheckoutElementMounts.release(registeredElementView, from: self)
+        }
+    }
+
+    func relinquishElementForAnotherHost() {
+        // Keep observing destruction while this host is registered for restoration.
         elementView?.delegate = nil
         elementView?.removeFromSuperview()
         elementView = nil
         reportedHeight = nil
     }
+
+    func mountElementIfAvailable() { attach() }
 
     override public func layoutSubviews() {
         super.layoutSubviews()
