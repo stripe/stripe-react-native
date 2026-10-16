@@ -80,7 +80,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                         "us_bank_account": "automatic",
                     ],
                     "paymentMethodLayout": "Vertical",
-                    "displaysMandateText": false,
+                    "displaysMandateText": true,
                     "rowSelectionBehavior": ["type": "immediateAction"],
                     "applePay": [
                         "buttonType": "checkout",
@@ -113,7 +113,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertTrue(paymentElement.opensCardScannerAutomatically)
         XCTAssertEqual(paymentElement.termsDisplay[.card], .never)
         XCTAssertEqual(paymentElement.termsDisplay[.USBankAccount], .automatic)
-        XCTAssertFalse(paymentElement.displaysMandateText)
+        XCTAssertTrue(paymentElement.displaysMandateText)
         XCTAssertEqual(paymentElement.applePayConfiguration?.merchantId, "merchant.com.example")
         XCTAssertEqual(paymentElement.applePayConfiguration?.buttonType, .checkout)
         XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
