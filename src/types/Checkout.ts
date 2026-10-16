@@ -283,6 +283,77 @@ export namespace Checkout {
     title?: string;
     /** The primary button label. Defaults to the localized "Save address". */
     buttonTitle?: string;
+    /** Customizes the native shipping address form. */
+    appearance?: ShippingAddressElementConfiguration.Appearance;
+  }
+
+  /**
+   * Appearance types used by Shipping Address Element.
+   * @CheckoutSessionPrivatePreview
+   */
+  export namespace ShippingAddressElementConfiguration {
+    /**
+     * Appearance configuration for Shipping Address Element.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface Appearance {
+      /** Colors used by the shipping address form, in a single or light/dark palette. */
+      colors?: AppearanceParams['colors'];
+      /** Configures the shipping address form's save button. */
+      primaryButton?: PrimaryButtonConfiguration;
+      /** Insets around the shipping address form and primary button. */
+      formInsetValues?: AppearanceParams['formInsetValues'];
+      /** Font family and scale for the address form. iOS only. */
+      font?: AppearanceParams['font'];
+      /** Shapes and shadows for the address inputs. iOS only. */
+      shapes?: AppearanceParams['shapes'];
+    }
+
+    /**
+     * Appearance of Shipping Address Element's primary button.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface PrimaryButtonConfiguration {
+      /** Font family used for the primary button. */
+      font?: Partial<Pick<FontConfig, 'family'>>;
+      /** Colors used by the primary button, in a single or light/dark palette. */
+      colors?:
+        | PrimaryButtonColorConfiguration
+        | {
+            light: PrimaryButtonColorConfiguration;
+            dark: PrimaryButtonColorConfiguration;
+          };
+      /** Configures the primary button's border, shadow, and height. */
+      shapes?: PrimaryButtonShapeConfiguration;
+    }
+
+    /**
+     * Colors supported by Shipping Address Element's primary button.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface PrimaryButtonColorConfiguration {
+      /** Background color as a hex string. Defaults to the form's primary color. */
+      background?: string;
+      /** Text color as a hex string. Omit to use the native default. */
+      text?: string;
+      /** Border color as a hex string. Omit to use the native default. */
+      border?: string;
+    }
+
+    /**
+     * Shape of Shipping Address Element's primary button.
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface PrimaryButtonShapeConfiguration {
+      /** Corner radius in density-independent pixels. */
+      borderRadius?: number;
+      /** Border width in density-independent pixels. */
+      borderWidth?: number;
+      /** Button height in density-independent pixels. Omit to use the native default. */
+      height?: number;
+      /** Shadow used by the primary button. iOS only. */
+      shadow?: NonNullable<AppearanceParams['shapes']>['shadow'];
+    }
   }
 
   /**
