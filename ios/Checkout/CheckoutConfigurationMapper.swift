@@ -43,6 +43,16 @@ enum CheckoutConfigurationMapper {
             merchantIdentifier: merchantIdentifier,
             didSelectPaymentOption: didSelectPaymentOption
         )
+        if let shippingParams = params["shippingAddressElement"] as? NSDictionary {
+            var shippingConfiguration = ShippingAddressElement.Configuration()
+            if let title = shippingParams["title"] as? String {
+                shippingConfiguration.title = title
+            }
+            if let buttonTitle = shippingParams["buttonTitle"] as? String {
+                shippingConfiguration.buttonTitle = buttonTitle
+            }
+            configuration.shippingAddressElement = shippingConfiguration
+        }
         if let currencySelectorParams = params["currencySelectorElement"] as? NSDictionary {
             var currencySelectorConfiguration = CurrencySelectorElement.Configuration()
             currencySelectorConfiguration.appearance = try mapCurrencySelectorAppearance(

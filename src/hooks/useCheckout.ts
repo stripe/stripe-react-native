@@ -7,12 +7,18 @@ import type { Checkout, CheckoutController } from '../types/Checkout';
 
 type State = Pick<
   Checkout.UseResult,
-  'status' | 'session' | 'paymentElement' | 'currencySelectorElement' | 'error'
+  | 'status'
+  | 'session'
+  | 'paymentElement'
+  | 'shippingAddressElement'
+  | 'currencySelectorElement'
+  | 'error'
 >;
 const idle: State = {
   status: 'idle',
   session: null,
   paymentElement: null,
+  shippingAddressElement: null,
   currencySelectorElement: null,
   error: null,
 };
@@ -32,6 +38,7 @@ function stateForController(controller: CheckoutController): State {
     status: controller.status,
     session: controller.session,
     paymentElement: controller.paymentElement,
+    shippingAddressElement: controller.shippingAddressElement,
     currencySelectorElement: controller.currencySelectorElement,
     error: null,
   };

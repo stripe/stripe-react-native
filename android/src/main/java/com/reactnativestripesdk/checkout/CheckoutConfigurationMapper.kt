@@ -20,6 +20,7 @@ import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.elements.PaymentElement.Configuration.Appearance.Embedded.RowStyle
+import com.stripe.android.elements.ShippingAddressElement
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.StripeThemeDefaults
@@ -55,12 +56,24 @@ internal object CheckoutConfigurationMapper {
     params.getMap("currencySelectorElement")?.let {
       configuration.currencySelectorElement(mapCurrencySelectorElement(it, context))
     }
+    params.getMap("shippingAddressElement")?.let {
+      configuration.shippingAddressElement(mapShippingAddressElement(it))
+    }
 
     return MappedCheckoutConfiguration(
       clientSecret = clientSecret,
       configuration = configuration,
       rowSelectionBehavior = mapRowSelectionBehavior(paymentElementParams, didSelectPaymentOption),
     )
+  }
+
+  private fun mapShippingAddressElement(
+    params: ReadableMap,
+  ): ShippingAddressElement.Configuration {
+    val configuration = ShippingAddressElement.Configuration()
+    params.getString("title")?.let(configuration::title)
+    params.getString("buttonTitle")?.let(configuration::buttonTitle)
+    return configuration
   }
 
   private fun mapCurrencySelectorElement(
