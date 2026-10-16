@@ -21,11 +21,107 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(CheckoutSessionPreview::class)
 @RunWith(RobolectricTestRunner::class)
 class CheckoutConfigurationMapperTest {
   private val context = ApplicationProvider.getApplicationContext<Context>()
+
+  @Test
+  @Config(qualifiers = "notnight")
+  fun `forced dark style selects dark currency selector colors on a light device`() {
+    assertEquals(Color.Black, currencySelectorBackground(style = "alwaysDark"))
+  }
+
+  @Test
+  @Config(qualifiers = "night")
+  fun `forced light style selects light currency selector colors on a dark device`() {
+    assertEquals(Color.White, currencySelectorBackground(style = "alwaysLight"))
+  }
+
+  @Test
+  @Config(qualifiers = "notnight")
+  fun `forced dark supplies defaults when no appearance is specified`() {
+    val appearance = currencySelectorAppearance("alwaysDark")
+    assertEquals(Color.White, appearance.readField<Color>("textColor"))
+    assertEquals(Color(0xFF121212), appearance.readField<Color>("background"))
+  }
+
+  @Test
+  @Config(qualifiers = "night")
+  fun `forced light supplies defaults when no appearance is specified`() {
+    val appearance = currencySelectorAppearance("alwaysLight")
+    assertEquals(Color.Black, appearance.readField<Color>("textColor"))
+    assertEquals(Color.White, appearance.readField<Color>("background"))
+  }
+
+  @Test
+  @Config(qualifiers = "notnight")
+  fun `partial dark palette gets contrasting default text`() {
+    val appearance = currencySelectorAppearance("alwaysDark", readableMapOf("background" to "#000000"))
+    assertEquals(Color.Black, appearance.readField<Color>("background"))
+    assertEquals(Color.White, appearance.readField<Color>("textColor"))
+  }
+
+  @Test
+  @Config(qualifiers = "night")
+  fun `automatic and omitted style use dark defaults on a dark device`() {
+    for (style in listOf("automatic", null)) {
+      val appearance = currencySelectorAppearance(style)
+      assertEquals(Color.White, appearance.readField<Color>("textColor"))
+      assertEquals(Color(0xFF121212), appearance.readField<Color>("background"))
+    }
+  }
+
+  @Test
+  @Config(qualifiers = "notnight")
+  fun `automatic and omitted style use light defaults on a light device`() {
+    for (style in listOf("automatic", null)) {
+      val appearance = currencySelectorAppearance(style)
+      assertEquals(Color.Black, appearance.readField<Color>("textColor"))
+      assertEquals(Color.White, appearance.readField<Color>("background"))
+    }
+  }
+
+  @Test
+  @Config(qualifiers = "notnight")
+  fun `forced dark resolves individual themed color overrides`() {
+    val appearance = currencySelectorAppearance(
+      "alwaysDark",
+      readableMapOf("text" to readableMapOf("light" to "#112233", "dark" to "#AABBCC")),
+    )
+    assertEquals(Color(0xFFAABBCC), appearance.readField<Color>("textColor"))
+  }
+
+  private fun currencySelectorBackground(style: String): Color = currencySelectorAppearance(
+    style,
+    readableMapOf(
+      "light" to readableMapOf("background" to "#FFFFFF"),
+      "dark" to readableMapOf("background" to "#000000"),
+    ),
+  ).readField("background")
+
+  private fun currencySelectorAppearance(
+    style: String?,
+    colors: ReadableMap? = null,
+  ): CurrencySelectorElement.Configuration.Appearance {
+    val selectorParams = if (colors == null) {
+      readableMapOf()
+    } else {
+      readableMapOf("appearance" to readableMapOf("colors" to colors))
+    }
+    val mapped = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "style" to style,
+        "currencySelectorElement" to selectorParams,
+      ),
+      context,
+    ) {}.configuration
+    val selector = mapped.readField<CurrencySelectorElement.Configuration>("currencySelectorElementConfiguration")
+    return selector.readField("appearance")
+  }
 
   @Test
   fun `map maps currency selector element appearance`() {
