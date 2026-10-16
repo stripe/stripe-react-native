@@ -211,12 +211,6 @@ enum CheckoutConfigurationMapper {
             configuration.preferredNetworks = try mapPreferredNetworks(preferredNetworks)
         }
 
-        if let billingDetails = params["billingDetailsCollectionConfiguration"] as? NSDictionary {
-            configuration.billingDetailsCollectionConfiguration = try mapBillingDetailsCollection(
-                billingDetails,
-                default: configuration.billingDetailsCollectionConfiguration
-            )
-        }
         configuration.removeSavedPaymentMethodMessage = params["removeSavedPaymentMethodMessage"] as? String
         configuration.paymentMethodOrder = params["paymentMethodOrder"] as? [String]
         if let opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool {
@@ -241,27 +235,6 @@ enum CheckoutConfigurationMapper {
         }
 
         return configuration
-    }
-
-    private static func mapBillingDetailsCollection(
-        _ params: NSDictionary,
-        default defaultConfiguration: PaymentElement.BillingDetailsCollectionConfiguration
-    ) throws -> PaymentElement.BillingDetailsCollectionConfiguration {
-        var configuration = defaultConfiguration
-        if let address = params["address"] as? String {
-            configuration.address = try mapAddressCollectionMode(address)
-        }
-        return configuration
-    }
-
-    private static func mapAddressCollectionMode(
-        _ value: String
-    ) throws -> PaymentElement.BillingDetailsCollectionConfiguration.AddressCollectionMode {
-        switch value {
-        case "automatic": return .automatic
-        case "full": return .full
-        default: throw unsupported(value, at: "paymentElement.billingDetailsCollectionConfiguration.address")
-        }
     }
 
     private static func mapPaymentMethodLayout(
