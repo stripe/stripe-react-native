@@ -179,6 +179,7 @@ enum CheckoutConfigurationMapper {
         didSelectPaymentOption: @escaping () -> Void
     ) throws -> PaymentElement.Configuration {
         var configuration = PaymentElement.Configuration()
+        configuration.displaysMandateText = params?["displaysMandateText"] as? Bool ?? true
         guard let params else {
             return configuration
         }
@@ -229,9 +230,6 @@ enum CheckoutConfigurationMapper {
 
         if let paymentMethodLayout = params["paymentMethodLayout"] as? String {
             configuration.paymentMethodLayout = try mapPaymentMethodLayout(paymentMethodLayout)
-        }
-        if let displaysMandateText = params["displaysMandateText"] as? Bool {
-            configuration.displaysMandateText = displaysMandateText
         }
         if let rowSelectionBehavior = params["rowSelectionBehavior"] as? NSDictionary {
             configuration.rowSelectionBehavior = try mapRowSelectionBehavior(

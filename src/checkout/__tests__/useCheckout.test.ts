@@ -149,10 +149,7 @@ it('ignores stale configuration results', async () => {
   await act(() => pending.resolve({ ...options, clientSecret: 'stale' }));
 
   expect(create).toHaveBeenCalledTimes(1);
-  expect(create).toHaveBeenCalledWith(
-    { ...options, paymentElement: { displaysMandateText: true } },
-    expect.any(String)
-  );
+  expect(create).toHaveBeenCalledWith(options, expect.any(String));
 });
 
 it('destroys a controller created after unmount', async () => {

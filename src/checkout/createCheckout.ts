@@ -135,13 +135,7 @@ export async function createCheckoutController(
   );
   try {
     const result = await NativeStripeSdk.createCheckout(
-      nativeCreateOptions({
-        ...options,
-        paymentElement: {
-          displaysMandateText: true,
-          ...options.paymentElement,
-        },
-      }),
+      nativeCreateOptions(options),
       controllerId
     );
     session ??= result.session;
