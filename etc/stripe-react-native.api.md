@@ -1126,8 +1126,36 @@ export namespace Checkout {
         name?: string;
     }
     export interface ShippingAddressElementConfiguration {
+        appearance?: ShippingAddressElementConfiguration.Appearance;
         buttonTitle?: string;
         title?: string;
+    }
+    export namespace ShippingAddressElementConfiguration {
+        export interface Appearance {
+            colors?: AppearanceParams['colors'];
+            font?: AppearanceParams['font'];
+            formInsetValues?: AppearanceParams['formInsetValues'];
+            primaryButton?: PrimaryButtonConfiguration;
+            shapes?: AppearanceParams['shapes'];
+        }
+        export interface PrimaryButtonColorConfiguration {
+            background?: string;
+            border?: string;
+            text?: string;
+        }
+        export interface PrimaryButtonConfiguration {
+            colors?: PrimaryButtonColorConfiguration | {
+                light: PrimaryButtonColorConfiguration;
+                dark: PrimaryButtonColorConfiguration;
+            };
+            font?: Partial<Pick<FontConfig, 'family'>>;
+            shapes?: PrimaryButtonShapeConfiguration;
+        }
+        export interface PrimaryButtonShapeConfiguration {
+            borderRadius?: number;
+            borderWidth?: number;
+            height?: number;
+        }
     }
     export interface Tax {
         status: 'ready' | 'requiresShippingAddress' | 'requiresBillingAddress';
