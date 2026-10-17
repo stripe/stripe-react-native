@@ -16,6 +16,12 @@ appId: ${APP_ID}
 - tapOn: 'view'
 - tapOn: 'Email source'
 - tapOn: 'Local'
+- scrollUntilVisible:
+    element:
+      text: 'Default Shipping Address'
+    centerElement: true
+- tapOn: 'Default Shipping Address'
+- tapOn: 'US test address'
 - tapOn:
     id: 'checkout-create-session'
 - extendedWaitUntil:
@@ -48,30 +54,13 @@ appId: ${APP_ID}
     direction: UP
     centerElement: true
     timeout: 30000
-- scrollUntilVisible:
-    element:
-      text: 'Add shipping address'
-    centerElement: true
-- tapOn: 'Add shipping address'
-- extendedWaitUntil:
-    visible: 'Shipping address'
-    timeout: 30000
-- scrollUntilVisible:
-    element:
-      text: 'Save Address'
-- tapOn: 'Save Address'
-- extendedWaitUntil:
-    notVisible: 'Save Address'
-    timeout: 30000
-- scrollUntilVisible:
-    element:
-      text: '(?s).*510 Townsend St.*'
-    centerElement: true
-    timeout: 30000
-- tapOn: '(?s)Edit shipping address.*'
+- runFlow:
+    file: helpers/checkout-shipping.yml
 - scrollUntilVisible:
     element:
       text: 'Clear address'
+    direction: UP
+    centerElement: true
 - tapOn: 'Clear address'
 - extendedWaitUntil:
     visible: 'Add shipping address'
