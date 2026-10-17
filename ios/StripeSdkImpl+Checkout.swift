@@ -3,6 +3,7 @@ import React
 @_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdkImpl {
+
     @objc(createCheckout:controllerId:resolver:rejecter:)
     public func createCheckout(
         params: NSDictionary,
@@ -45,6 +46,9 @@ extension StripeSdkImpl {
                     let instance = NativeCheckoutControllerInstance(
                         checkout: checkout,
                         currencySelectorElement: currencySelectorElement,
+                        shippingAddressElement: configuration.shippingAddressElement == nil
+                            ? nil
+                            : checkout.getShippingAddressElement(),
                         emitEvent: { [weak self] update in
                             self?.emitter?.emitCheckoutControllerDidUpdate(update)
                         }
@@ -192,6 +196,32 @@ extension StripeSdkImpl {
                 return
             }
             instance.checkout.getPaymentElement().present(from: presenter, completion: nil)
+            resolve(nil)
+        }
+    }
+
+    @objc(presentCheckoutShippingAddressElement:resolver:rejecter:)
+    public func presentCheckoutShippingAddressElement(
+        controllerId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self, let instance = checkoutControllers[controllerId] else {
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                return
+            }
+            guard let element = instance.shippingAddressElement else {
+                reject("Failed", "Shipping Address Element was not configured for this Checkout controller.", nil)
+                return
+            }
+            guard let presenter = checkoutPresentingViewControllerProvider(),
+                  presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
+                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                return
+            }
+            // Resolve on presentation, matching Payment Element's sheet API.
+            element.present(from: presenter, completion: nil)
             resolve(nil)
         }
     }
