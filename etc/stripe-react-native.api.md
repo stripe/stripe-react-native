@@ -1155,7 +1155,6 @@ export namespace Checkout {
             borderRadius?: number;
             borderWidth?: number;
             height?: number;
-            shadow?: NonNullable<AppearanceParams['shapes']>['shadow'];
         }
     }
     export interface Tax {
