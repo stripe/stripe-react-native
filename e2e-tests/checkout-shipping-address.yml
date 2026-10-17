@@ -1,0 +1,96 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn: 'Reset'
+- scrollUntilVisible:
+    element:
+      text: 'Default Shipping Address'
+    centerElement: true
+- tapOn: 'Default Shipping Address'
+- tapOn: 'US test address'
+- tapOn:
+    id: 'checkout-create-session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+
+# Save the defaults through the native sheet and verify the session updates.
+- runFlow:
+    file: helpers/checkout-shipping.yml
+
+# Edit the recipient and an optional address field on an existing address.
+- tapOn: '(?s)Edit shipping address.*'
+- extendedWaitUntil:
+    visible: 'Full name'
+    timeout: 30000
+- tapOn: 'Full name'
+- eraseText
+- inputText: 'Alex Example'
+- scrollUntilVisible:
+    element:
+      text: 'Address line 2.*'
+    centerElement: true
+- tapOn: 'Address line 2.*'
+- inputText: 'Suite 200'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: 'Save address'
+    centerElement: true
+- tapOn: 'Save address'
+- extendedWaitUntil:
+    notVisible: 'Save address'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: '(?s)Edit shipping address, Alex Example.*510 Townsend St.*Suite 200.*San Francisco.*CA.*94103.*US'
+    centerElement: true
+    timeout: 30000
+
+# Reopening uses the saved session values. Canceling leaves them unchanged.
+- tapOn: '(?s)Edit shipping address.*'
+- extendedWaitUntil:
+    visible: 'Full name'
+    timeout: 30000
+- assertVisible: 'Alex Example'
+- assertVisible: '510 Townsend St'
+- assertVisible: 'Suite 200'
+- tapOn: 'Close'
+- extendedWaitUntil:
+    notVisible: 'Full name'
+    timeout: 30000
+- assertVisible: '(?s)Edit shipping address, Alex Example.*510 Townsend St.*Suite 200.*San Francisco.*CA.*94103.*US'
+
+# Clearing the saved address restores the add action; canceling does not save it.
+- scrollUntilVisible:
+    element:
+      text: 'Clear address'
+    direction: UP
+    centerElement: true
+- tapOn: 'Clear address'
+- extendedWaitUntil:
+    visible: 'Add shipping address'
+    timeout: 30000
+- tapOn: 'Add shipping address'
+- extendedWaitUntil:
+    visible: 'Full name'
+    timeout: 30000
+- tapOn: 'Close'
+- extendedWaitUntil:
+    notVisible: 'Full name'
+    timeout: 30000
+- assertVisible: 'Add shipping address'
