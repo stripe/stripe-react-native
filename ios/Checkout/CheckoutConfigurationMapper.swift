@@ -96,9 +96,6 @@ enum CheckoutConfigurationMapper {
         appearance.primaryButton.borderWidth = mapped.primaryButton.borderWidth
         appearance.primaryButton.font = mapped.primaryButton.font
         appearance.primaryButton.height = mapped.primaryButton.height
-        if let shadow = mapped.primaryButton.shadow {
-            appearance.primaryButton.shadow = mapShippingAddressShadow(shadow)
-        }
         return appearance
     }
 

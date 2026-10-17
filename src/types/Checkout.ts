@@ -323,7 +323,7 @@ export namespace Checkout {
             light: PrimaryButtonColorConfiguration;
             dark: PrimaryButtonColorConfiguration;
           };
-      /** Configures the primary button's border, shadow, and height. */
+      /** Configures the primary button's border and height. */
       shapes?: PrimaryButtonShapeConfiguration;
     }
 
@@ -334,9 +334,15 @@ export namespace Checkout {
     export interface PrimaryButtonColorConfiguration {
       /** Background color as a hex string. Defaults to the form's primary color. */
       background?: string;
-      /** Text color as a hex string. Omit to use the native default. */
+      /**
+       * Text color as a hex string. Defaults to a contrasting color derived from
+       * the button's background on iOS and white (`#FFFFFF`) on Android.
+       */
       text?: string;
-      /** Border color as a hex string. Omit to use the native default. */
+      /**
+       * Border color as a hex string. Defaults to `UIColor.quaternaryLabel` on
+       * iOS and transparent on Android.
+       */
       border?: string;
     }
 
@@ -349,10 +355,11 @@ export namespace Checkout {
       borderRadius?: number;
       /** Border width in density-independent pixels. */
       borderWidth?: number;
-      /** Button height in density-independent pixels. Omit to use the native default. */
+      /**
+       * Button height in density-independent pixels. Defaults to 44 points on
+       * iOS and 48 dp on Android.
+       */
       height?: number;
-      /** Shadow used by the primary button. iOS only. */
-      shadow?: NonNullable<AppearanceParams['shapes']>['shadow'];
     }
   }
 
