@@ -81,8 +81,7 @@ export interface CheckoutPaymentElement {
 export interface CheckoutShippingAddressElement {
   /**
    * Requests native shipping address sheet presentation and resolves immediately.
-   * The promise does not wait for dismissal. Read the saved address from
-   * `session.shippingAddress`.
+   * The promise does not wait for dismissal or report the customer's selection.
    */
   present(): Promise<void>;
 }
@@ -150,7 +149,7 @@ export namespace Checkout {
     paymentElement?: PaymentElementConfiguration;
     /**
      * Configuration for the Checkout-owned Shipping Address Element. Provide
-     * `{}` to enable the element with its native defaults.
+     * `{}` to enable the element with its defaults.
      */
     shippingAddressElement?: ShippingAddressElementConfiguration;
     /**
