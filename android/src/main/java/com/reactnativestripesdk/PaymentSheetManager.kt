@@ -166,15 +166,16 @@ class PaymentSheetManager(
         .shippingDetails(shippingDetails)
         .link(linkConfig)
         .billingDetailsCollectionConfiguration(billingDetailsConfig)
-        .preferredNetworks(
-          mapToPreferredNetworks(args.getIntegerList("preferredNetworks")),
-        ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+        .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .opensCardScannerAutomatically(opensCardScannerAutomatically)
         .cardBrandAcceptance(mapToCardBrandAcceptance(args))
         .apply {
           mapToAllowedCardFundingTypes(args)?.let { allowedCardFundingTypes(it) }
         }.customPaymentMethods(parseCustomPaymentMethods(args.getMap("customPaymentMethodConfiguration")))
 
+    args.getIntegerList("preferredNetworks")?.let {
+      configurationBuilder.preferredNetworks(mapToPreferredNetworks(it))
+    }
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
 

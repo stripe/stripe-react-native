@@ -82,12 +82,13 @@ class CustomerSheetManager(
         .appearance(appearance)
         .googlePayEnabled(googlePayEnabled)
         .headerTextForSelectionScreen(headerTextForSelectionScreen)
-        .preferredNetworks(
-          mapToPreferredNetworks(arguments.getIntegerList("preferredNetworks")),
-        ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+        .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .opensCardScannerAutomatically(opensCardScannerAutomatically)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
 
+    arguments.getIntegerList("preferredNetworks")?.let {
+      configuration.preferredNetworks(mapToPreferredNetworks(it))
+    }
     paymentMethodOrder?.let { configuration.paymentMethodOrder(it) }
     billingDetailsMap?.let {
       configuration.defaultBillingDetails(createDefaultBillingDetails(billingDetailsMap))
