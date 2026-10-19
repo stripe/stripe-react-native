@@ -12,6 +12,7 @@ import com.reactnativestripesdk.utils.mapToBillingDetails
 import com.reactnativestripesdk.utils.mapToPaymentMethodType
 import com.reactnativestripesdk.utils.mapToPreCollectedConsent
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
+import com.reactnativestripesdk.utils.mapToShippingDetails
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
@@ -766,5 +767,44 @@ class BillingDetailsMappersTest {
     assertNull(result.phone)
     assertEquals("90210", result.address?.postalCode)
     assertEquals("US", result.address?.country)
+  }
+
+  @Test
+  fun mapToShippingDetails_NullInput_ReturnsNull() {
+    val result = mapToShippingDetails(null)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapToShippingDetails_FullDetails_IncludesCarrierPhoneTrackingNumber() {
+    val shippingMap =
+      readableMapOf(
+        "name" to "Jane Doe",
+        "phone" to "+1234567890",
+        "carrier" to "FedEx",
+        "trackingNumber" to "123456789",
+        "address" to
+          readableMapOf(
+            "city" to "San Francisco",
+            "country" to "US",
+            "line1" to "123 Main St",
+            "line2" to "Apt 4",
+            "postalCode" to "94111",
+            "state" to "CA",
+          ),
+      )
+
+    val result = mapToShippingDetails(shippingMap)
+    assertNotNull(result)
+    assertEquals("Jane Doe", result!!.name)
+    assertEquals("+1234567890", result.phone)
+    assertEquals("FedEx", result.carrier)
+    assertEquals("123456789", result.trackingNumber)
+    assertEquals("San Francisco", result.address.city)
+    assertEquals("US", result.address.country)
+    assertEquals("123 Main St", result.address.line1)
+    assertEquals("Apt 4", result.address.line2)
+    assertEquals("94111", result.address.postalCode)
+    assertEquals("CA", result.address.state)
   }
 }
