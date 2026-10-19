@@ -311,7 +311,7 @@ extension StripeSdkImpl {
       let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String
       let customerClientSecret = params["customerSessionClientSecret"] as? String
       if customerEphemeralKeySecret != nil && customerClientSecret != nil {
-        return(error: Errors.createError(ErrorType.Failed, "`customerEphemeralKeySecret` and `customerSessionClientSecret cannot both be set"), configuration: nil)
+        return(error: Errors.createError(ErrorType.Failed, "`customerEphemeralKeySecret` and `customerSessionClientSecret` cannot both be set"), configuration: nil)
       } else if let customerEphemeralKeySecret {
         if !Errors.isEKClientSecretValid(clientSecret: customerEphemeralKeySecret) {
           return(error: Errors.createError(ErrorType.Failed, "`customerEphemeralKeySecret` format does not match expected client secret formatting."), configuration: nil)
