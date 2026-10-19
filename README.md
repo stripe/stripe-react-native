@@ -170,6 +170,28 @@ For Expo, set the equivalent option on this SDK's config plugin in your app conf
 
 - **`pod install` aborts with an integrity-check error or Xcode reports "The project 'Pods' is damaged and cannot be opened"** - delete your app's `ios/Pods` directory and run `pod install` again. If the error persists, [file an issue](https://github.com/stripe/stripe-react-native/issues).
 
+### Localization
+
+The Stripe SDK automatically localizes the UI (PaymentSheet, CustomerSheet, etc.) based on the user's device and app configuration:
+
+- **Android:** The PaymentSheet automatically uses the device's system language, or the per-app language preference configured on Android 13+.
+- **iOS:** iOS only displays localized resources for languages that your host application explicitly declares support for. If your iOS app bundle does not declare the user's preferred language, iOS falls back to the app's base development language (usually English). To enable localizations in your iOS app:
+  - In Xcode, select your project in the Project Navigator, select the **Info** tab, and add the desired localizations under the **Localizations** section.
+  - Or in your app's `Info.plist`, ensure `CFBundleAllowMixedLocalizations` is set to `<true/>` and declare your supported language codes in `CFBundleLocalizations`:
+
+    ```xml
+    <key>CFBundleAllowMixedLocalizations</key>
+    <true/>
+    <key>CFBundleLocalizations</key>
+    <array>
+      <string>en</string>
+      <string>es</string>
+      <string>fr</string>
+    </array>
+    ```
+
+  - **Expo:** For Expo projects, you can add `locales` to your `app.json` or configure `CFBundleLocalizations` in `ios.infoPlist` to ensure iOS loads the corresponding Stripe localized strings.
+
 ## Usage example
 
 For a complete example, [visit our docs](https://docs.stripe.com/payments/accept-a-payment?platform=react-native).
