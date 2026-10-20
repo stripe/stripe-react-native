@@ -6,6 +6,10 @@
 
 * [Deprecated] `AddressSheet`'s Android-only `googlePlacesApiKey` prop. Autocomplete now does not require a Google Places API key.
 
+**Fixes**
+
+* [Fixed] iOS: Replaced deprecated `STPPaymentHandler` methods and the completion-based PaymentSheet `confirmHandler` with their current Stripe iOS SDK equivalents, removing the deprecation warnings.
+
 ## 0.82.0 - 2026-10-13
 
 **Changes**
