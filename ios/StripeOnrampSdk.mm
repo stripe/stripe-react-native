@@ -113,6 +113,24 @@ RCT_EXPORT_METHOD(presentUserAttestation:(nonnull RCTPromiseResolveBlock)resolve
   [StripeSdkImpl.shared presentUserAttestation:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(fulfillKycRequirements:(nonnull RCTPromiseResolveBlock)resolve
+                                  reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared fulfillKycRequirements:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(presentTermsAndConditionsIfNeeded:(nonnull RCTPromiseResolveBlock)resolve
+                                  reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentTermsAndConditionsIfNeeded:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(presentTermsOfServiceIfNeeded:(nonnull RCTPromiseResolveBlock)resolve
+                                  reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentTermsOfServiceIfNeeded:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(presentKycInfoVerification:(NSDictionary *)updatedAddress
                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
                                       reject:(nonnull RCTPromiseRejectBlock)reject)
