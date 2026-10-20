@@ -126,14 +126,6 @@ describe('buildInjectedObjectScript', () => {
     expect(readInjectedObject(page)).toEqual(first);
   });
 
-  it('escapes line and paragraph separators', () => {
-    const script = buildInjectedObjectScript(
-      initObject({ fontFamily: 'a\u2028b\u2029c' })
-    );
-
-    expect(script).not.toMatch(/[\u2028\u2029]/);
-  });
-
   it("without it, react-native-webview's iOS definition corrupts a double-quoted value", () => {
     const json = JSON.stringify(initObject({ fontFamily: '"Segoe UI"' }));
     const { page } = runInPage([rnwIOSObjectScript(json)]);

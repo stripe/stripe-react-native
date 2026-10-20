@@ -9,11 +9,10 @@
 // https://github.com/react-native-webview/react-native-webview/issues/3957
 // https://github.com/react-native-webview/react-native-webview/issues/3942
 export function buildInjectedObjectScript(injectedObject: object): string {
-  // JSON.stringify of a string is a valid JS string literal; U+2028 and U+2029
-  // are also escaped for pre-ES2019 engines.
-  const jsonLiteral = JSON.stringify(JSON.stringify(injectedObject))
-    .replace(/\u2028/g, '\\u2028')
-    .replace(/\u2029/g, '\\u2029');
+  // The inner stringify produces the JSON text injectedObjectJson() returns.
+  // The outer one turns that text into a JS string literal, escaping quotes,
+  // backslashes, and control characters, so the script can embed it verbatim.
+  const jsonLiteral = JSON.stringify(JSON.stringify(injectedObject));
 
   return `
     (function() {
