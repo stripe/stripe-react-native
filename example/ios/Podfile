@@ -12,7 +12,7 @@ workspace 'example.xcworkspace'
 disable_spm = ENV['STRIPE_DISABLE_SPM'] == '1'
 $StripeDisableSPM = true if disable_spm
 
-# SPM resolution requires dynamic frameworks. Dynamic frameworks also make
+# This example exercises SPM resolution with dynamic frameworks. They make
 # every pod link its own dependencies, which exposes under-declared podspecs:
 # react-native-test-app's DevSupport pod compiles against JSI and React-Core
 # but declares neither hermes-engine (where the JSI definitions live with

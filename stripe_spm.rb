@@ -41,9 +41,9 @@
 #        Native's SPM apply step can't corrupt Pods.xcodeproj (see
 #        `ensure_uuid_counter_safe`), and verifies the project's integrity
 #        after they ran (see `verify_pods_project_integrity!`),
-#      - fails fast unless the pod builds as a dynamic framework, the only
-#        linkage React Native's SPM integration supports (see
-#        `verify_dynamic_linkage!`),
+#      - verifies that the pod uses dynamic frameworks or React Native's
+#        shared-products configuration for static libraries (see
+#        `verify_linkage!`),
 #      - links the StripeCryptoOnramp package product when the Onramp subspec
 #        is installed (`spm_dependency` silently ignores subspec declarations;
 #        see `link_onramp_product`).
@@ -279,7 +279,7 @@ module StripeSPM
     # this file after all regular post_install hooks have run — while
     # Pods.xcodeproj is still in memory and unwritten, which everything here
     # depends on.
-    #   1. verify_dynamic_linkage! first, so an unsupported configuration
+    #   1. verify_linkage! first, so an unsupported configuration
     #      fails with our actionable message
     #   2. find_package_reference! next, because the remaining steps need the
     #      package reference React Native's SPM integration should have
@@ -292,7 +292,7 @@ module StripeSPM
       return if pod_target.nil?
       return unless active?
 
-      verify_dynamic_linkage!(pod_target)
+      verify_linkage!(installer, pod_target)
       package = find_package_reference!(installer)
       link_onramp_product(installer, pod_target, package)
     end
@@ -434,16 +434,22 @@ module StripeSPM
       branch && !branch.empty? ? branch : nil
     end
 
-    # SPM resolution only works when stripe-react-native builds as a dynamic
-    # framework, so fail `pod install` with instructions otherwise.
-    # 
-    # Note: in the future we could explore a potential solutions that supports
-    # static linkage, but for now we require host apps to use dynamic.
+    # Static SPM consumers need React Native's shared products directory to
+    # avoid duplicate package module maps. Check the generated configuration
+    # after react_native_post_install instead of assuming a version includes it.
     #
     # Note: Pod::Target#build_type is a *private* reader in CocoaPods; only
     # the build_as_* predicates are public API.
-    def verify_dynamic_linkage!(pod_target)
+    def verify_linkage!(installer, pod_target)
       return if pod_target.build_as_dynamic_framework?
+
+      if pod_target.build_as_static_library?
+        native_target = installer.pods_project.targets.find { |target| target.name == pod_target.label }
+        return if native_target && !native_target.build_configurations.empty? &&
+                  native_target.build_configurations.all? do |config|
+                    native_target.build_settings(config.name)['CONFIGURATION_BUILD_DIR'] == '${PODS_CONFIGURATION_BUILD_DIR}'
+                  end
+      end
 
       current = if pod_target.build_as_framework?
                   'a static framework'
@@ -454,8 +460,10 @@ module StripeSPM
                 end
       raise Pod::Informative, <<~MESSAGE
         [stripe-react-native] Resolving the Stripe iOS SDK through Swift Package
-        Manager requires dynamic frameworks, but #{POD_NAME} is building as
-        #{current}. To fix, add `use_frameworks! :linkage => :dynamic` to your Podfile
+        Manager requires dynamic frameworks or React Native's shared-products
+        configuration for static libraries, but #{POD_NAME} is building as
+        #{current} without a supported configuration. Update React Native or
+        add `use_frameworks! :linkage => :dynamic` to your Podfile
         (for Expo, set `"useFrameworks": "dynamic"` via the expo-build-properties plugin).
         If you MUST continue to use static linkage, you can temporarily add
         `$StripeDisableSPM = true` at the top of your Podfile to resolve Stripe

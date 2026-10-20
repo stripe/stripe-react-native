@@ -35,9 +35,9 @@ if (needsKotlinVersion) {
 }
 if (!disableSPM) {
   // Every Expo SDK this script targets ships React Native >= 0.75, so the
-  // Stripe iOS SDK resolves through Swift Package Manager by default — which
-  // requires dynamic frameworks (Expo's default is static; `pod install`
-  // fails fast otherwise). This mirrors what real Expo apps must configure;
+  // Stripe iOS SDK resolves through Swift Package Manager by default. This
+  // fixture exercises dynamic frameworks, including older React Native
+  // versions without shared-products support for static SPM consumers;
   // see stripe_spm.rb. The fallback (--disable-spm) run deliberately keeps
   // Expo's static default: that is the configuration opted-out apps build
   // with.

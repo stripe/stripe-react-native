@@ -112,7 +112,7 @@ implementation 'com.google.android.material:material:<version>'
 
 The Stripe React Native SDK supports all [Apple supported Xcode versions](https://developer.apple.com/news/upcoming-requirements/) and is compatible with apps targeting iOS 13 or above. For iOS 12 support, please use [`@stripe/stripe-react-native@0.19.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.19.0).
 
-The SDK requires that your app uses dynamic linkage. See more details below.
+SPM resolution supports dynamic frameworks and static libraries configured by React Native to use its shared products directory. See more details below.
 
 The SDK uses TypeScript features available in Babel version `7.9.0` and above.
 Alternatively use the `plugin-transform-typescript` plugin in your project.
@@ -121,7 +121,7 @@ You'll need to run `pod install` in your `ios` directory to install the native d
 
 ### iOS Dependency Resolution
 
-By default, the Stripe React Native SDK resolves its Stripe iOS SDK dependency through Swift Package Manager (SPM) instead of CocoaPods due to the deprecation of CocoaPods. This requires building your app with dynamic linking. Add the following to your Podfile if it isn't there already:
+By default, the Stripe React Native SDK resolves its Stripe iOS SDK dependency through Swift Package Manager (SPM) instead of CocoaPods due to the deprecation of CocoaPods. Dynamic frameworks are supported. To use them, add the following to your Podfile if it isn't there already:
 
 ```ruby
 use_frameworks! :linkage => :dynamic
@@ -129,13 +129,17 @@ use_frameworks! :linkage => :dynamic
 
 For Expo, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
 
+Static libraries are also supported when `react_native_post_install` sets the Stripe pod's `CONFIGURATION_BUILD_DIR` to `${PODS_CONFIGURATION_BUILD_DIR}` in every build configuration. React Native versions with this SPM integration configure the shared directory automatically. This also supports Expo precompiled modules that convert the Stripe pod to a static library. Keep the standard `react_native_post_install` call in your Podfile; no additional Podfile call is needed. Static frameworks and dynamic libraries remain unsupported.
+
+Static SPM resolution also requires [React Native's module-map fix](https://github.com/react/react-native/pull/59182) for pods whose module name differs from their pod name, including `stripe-react-native`. Use a React Native release containing that fix before enabling this configuration.
+
 If you encounter problems with SPM dependency resolution, please immediately [file an issue](https://github.com/stripe/stripe-react-native/issues).
 
 #### Opt-Out
 
 **WARNING:** CocoaPods support is deprecated and future versions of the Strpe React Native SDK will require resolving the iOS SDK dependency through Swift Package Manager.
 
-If you need to temporarily continue resolving the Stripe iOS SDK dependency through CocoaPods (for example if your app currently can't build with dynamic linking), add this at the top of your Podfile:
+If your app cannot use either supported SPM linkage configuration, you can temporarily continue resolving the Stripe iOS SDK dependency through CocoaPods. Add this at the top of your Podfile:
 
 ```ruby
 $StripeDisableSPM = true
@@ -160,7 +164,7 @@ For Expo, set the equivalent option on this SDK's config plugin in your app conf
 
 #### Troubleshooting
 
-- **`pod install` fails with "Resolving the Stripe iOS SDK through Swift Package Manager requires dynamic frameworks"** — your app is building with static libraries (React Native's default). Add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/)).
+- **`pod install` fails with "Resolving the Stripe iOS SDK through Swift Package Manager requires dynamic frameworks or React Native's shared-products configuration"** — the Stripe pod uses an unsupported linkage configuration. For static libraries, update React Native to a version that configures the shared products directory and keep the standard `react_native_post_install` call. Alternatively, use dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/)).
 
 - **`pod install` fails with "The Stripe iOS Swift package was not added to the Pods project"** - the integration relies on `react_native_post_install` being called from your Podfile. If your Podfile is customized and no longer calls it, restore that call (see the [React Native template Podfile](https://github.com/react-native-community/template/blob/main/template/ios/Podfile)).
 

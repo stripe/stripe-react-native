@@ -182,6 +182,23 @@ The Stripe iOS SDK is deprecating CocoaPods support, and accordingly the Stripe 
 
 For a full explanation of the SPM resolution mechanism, see the documentation in `stripe_spm.rb`.
 
+SPM resolution supports a dynamic framework, or a static library when React Native's
+`react_native_post_install` configures its `CONFIGURATION_BUILD_DIR` as
+`${PODS_CONFIGURATION_BUILD_DIR}` for every build configuration. The shared directory
+prevents duplicate Swift package module maps. Static frameworks and dynamic libraries
+remain unsupported. The check runs after the Podfile's post-install hook, so keep the
+standard `react_native_post_install` call in that hook.
+
+Static SPM resolution also needs [React Native's module-map fix](https://github.com/react/react-native/pull/59182)
+for pods whose module name differs from their pod name, including `stripe-react-native`.
+Use a React Native release containing that fix when testing this configuration.
+
+Run the standalone CocoaPods integration checks with:
+
+```sh
+ruby scripts/test/stripe_spm_test.rb
+```
+
 | Toggle | Effect |
 |--------|--------|
 | `STRIPE_DISABLE_SPM=1 yarn pods` | Builds the example app using the CocoaPods fallback (static libraries), for verifying the opt-out path. |
