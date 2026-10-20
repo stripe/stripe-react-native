@@ -34,6 +34,10 @@ import type {
 import type { FinancialConnections, StripeError } from '../types';
 import { FinancialConnectionsSheetError } from '../types/FinancialConnections';
 import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
+import {
+  buildInjectedObjectScript,
+  usesNativeInjectedObject,
+} from './injectedObjectScript';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -183,6 +187,7 @@ type EmbeddedFinancialConnectionsResult =
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const [dynamicWebview, setDynamicWebview] = useState<{
     WebView: typeof WebView | null;
+    usesNativeInjectedObject?: boolean;
   } | null>(null);
 
   // Store pending authenticated webview promises (for Android Custom Tabs)
@@ -208,14 +213,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   // This is needed because the SDK uses dual delivery paths (setIntent + direct emit)
   const recentlyHandledUrls = useRef<Set<string>>(new Set());
 
-  const loadWebViewComponent = useCallback(async () => {
+  const loadWebViewComponent = useCallback(() => {
     if (dynamicWebview) return;
 
     setDynamicWebview({ WebView: null });
 
     try {
-      const mod = await import('react-native-webview');
-      setDynamicWebview({ WebView: mod.WebView });
+      const mod: typeof import('react-native-webview') = require('react-native-webview');
+      const { version } = require('react-native-webview/package.json');
+      setDynamicWebview({
+        WebView: mod.WebView,
+        usesNativeInjectedObject: usesNativeInjectedObject(
+          Platform.OS,
+          version
+        ),
+      });
     } catch (err) {
       console.error('Failed to import react-native-webview:', err);
     }
@@ -859,6 +871,23 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     [backgroundColor, style]
   );
 
+  const injectedObject = useMemo(
+    () => ({
+      initParams: {
+        appearance: withDefaultFontFamily(appearance),
+        locale,
+        fonts,
+      },
+      initComponentProps: componentProps,
+      appInfo: { applicationId: overrides?.applicationId },
+    }),
+    [appearance, locale, fonts, componentProps, overrides?.applicationId]
+  );
+  const injectedObjectScript = useMemo(
+    () => buildInjectedObjectScript(injectedObject),
+    [injectedObject]
+  );
+
   if (!WebViewComponent) return null;
 
   return (
@@ -875,17 +904,15 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       webviewDebuggingEnabled={DEVELOPMENT_MODE}
       source={source}
       userAgent={userAgent}
-      injectedJavaScriptObject={{
-        initParams: {
-          appearance: withDefaultFontFamily(appearance),
-          locale,
-          fonts,
-        },
-        initComponentProps: componentProps,
-        appInfo: { applicationId: overrides?.applicationId },
-      }}
-      // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
-      injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
+      {...(dynamicWebview?.usesNativeInjectedObject
+        ? { injectedJavaScriptObject: injectedObject }
+        : {})}
+      // The native Android bridge also needs a nonempty before-content script.
+      injectedJavaScriptBeforeContentLoaded={
+        dynamicWebview?.usesNativeInjectedObject
+          ? '(function() {})();'
+          : injectedObjectScript
+      }
       injectedJavaScript={
         sizeToContent ? CONTENT_HEIGHT_OBSERVER_SCRIPT : undefined
       }

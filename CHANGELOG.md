@@ -6,6 +6,10 @@
 
 * [Deprecated] `AddressSheet`'s Android-only `googlePlacesApiKey` prop. Autocomplete now does not require a Google Places API key.
 
+**Fixes**
+
+* [Fixed] Connect components failing to initialize when configuration values contain quotes or other special characters.
+
 ## 0.82.0 - 2026-10-13
 
 **Changes**

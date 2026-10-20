@@ -127,6 +127,7 @@
       "node_modules/(?!(react-native|@react-native|react-native-webview)/)"
     ],
     "moduleNameMapper": {
+      "^react-native-webview/package\\.json$": "<rootDir>/node_modules/react-native-webview/package.json",
       "^.+/package\\.json$": "<rootDir>/package.json"
     }
   },

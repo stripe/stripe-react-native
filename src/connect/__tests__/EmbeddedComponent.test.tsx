@@ -7,6 +7,15 @@ let webViewOnMessage: ((event: any) => void) | undefined;
 let mockLoadWebView = false;
 let mockWebViewComponent: any;
 let mockWebViewProps: any;
+let mockWebViewVersion = '13.15.0';
+
+jest.mock('../analytics/AnalyticsClient');
+
+jest.mock('react-native-webview/package.json', () => ({
+  get version() {
+    return mockWebViewVersion;
+  },
+}));
 
 jest.mock('react', () => {
   const React = jest.requireActual('react');
@@ -48,6 +57,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () =>
 );
 
 import React from 'react';
+import { runInNewContext } from 'vm';
 import { render, waitFor, act } from '@testing-library/react-native';
 import {
   ActivityIndicator,
@@ -195,6 +205,112 @@ describe('EmbeddedComponent', () => {
       // Verify the pattern is correct
       expect(expectedUserAgent).toContain('Mobile');
       expect(expectedUserAgent).toContain('stripe-react_native/1.0.0');
+    });
+  });
+
+  describe('Initialization transport', () => {
+    const originalPlatform = Platform.OS;
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+      mockWebViewVersion = '13.15.0';
+    });
+
+    it.each([
+      ['ios', '13.13.0', false],
+      ['ios', '13.15.0', false],
+      ['android', '13.6.0', true],
+      ['android', '13.13.0', true],
+      ['android', '13.13.1', false],
+      ['android', '13.15.0', false],
+    ] as const)(
+      'uses the expected transport on %s with WebView %s',
+      async (platform, version, nativeObject) => {
+        Platform.OS = platform;
+        mockWebViewVersion = version;
+        const fontFamily = '"Courier New", Courier, monospace';
+        const fonts = [
+          { family: fontFamily, src: 'https://example.com/font.woff2' },
+        ];
+        const componentProps = {
+          setExample: ['`', '${window.executed = true}'],
+        };
+        connectInstance = loadConnectAndInitialize({
+          ...mockInitParams,
+          appearance: { variables: { fontFamily } },
+          fonts,
+          ...{ overrides: { applicationId: 'example.application' } },
+        });
+        renderComponent({ componentProps });
+        await waitFor(() => expect(mockWebViewProps).toBeDefined());
+
+        const expected = {
+          initParams: {
+            appearance: { variables: { fontFamily } },
+            locale: 'en',
+            fonts,
+          },
+          initComponentProps: componentProps,
+          appInfo: { applicationId: 'example.application' },
+        };
+        if (nativeObject) {
+          expect(mockWebViewProps.injectedJavaScriptObject).toEqual(expected);
+          expect(mockWebViewProps.injectedJavaScriptBeforeContentLoaded).toBe(
+            '(function() {})();'
+          );
+        } else {
+          expect(mockWebViewProps).not.toHaveProperty(
+            'injectedJavaScriptObject'
+          );
+          const window: any = {};
+          runInNewContext(
+            mockWebViewProps.injectedJavaScriptBeforeContentLoaded,
+            { window }
+          );
+          expect(
+            JSON.parse(window.ReactNativeWebView.injectedObjectJson())
+          ).toEqual(expected);
+          expect(window.executed).toBeUndefined();
+        }
+      }
+    );
+
+    it('keeps the source stable and initializes new documents with updated configuration', async () => {
+      Platform.OS = 'ios';
+      renderComponent();
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+      const source = mockWebViewProps.source;
+      const window: any = {};
+      runInNewContext(mockWebViewProps.injectedJavaScriptBeforeContentLoaded, {
+        window,
+      });
+      expect(
+        JSON.parse(window.ReactNativeWebView.injectedObjectJson()).initParams
+          .appearance.variables.fontFamily
+      ).toContain('-apple-system');
+
+      const appearance = { variables: { fontFamily: '"Updated", `font`' } };
+      act(() => connectInstance.update({ appearance, locale: 'fr' }));
+      expect(mockWebViewProps.source).toBe(source);
+      const nextWindow: any = {};
+      runInNewContext(mockWebViewProps.injectedJavaScriptBeforeContentLoaded, {
+        window: nextWindow,
+      });
+      expect(
+        JSON.parse(nextWindow.ReactNativeWebView.injectedObjectJson())
+          .initParams
+      ).toEqual({ appearance, locale: 'fr' });
+      const updateConnectInstance = jest.fn();
+      runInNewContext(
+        mockInjectJavaScript.mock.calls[
+          mockInjectJavaScript.mock.calls.length - 1
+        ][0],
+        { window: { updateConnectInstance } }
+      );
+      expect(updateConnectInstance).toHaveBeenCalledWith({
+        appearance,
+        locale: 'fr',
+      });
     });
   });
 

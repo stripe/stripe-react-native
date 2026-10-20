@@ -168,7 +168,7 @@ export const APPEARANCE_PRESETS: Record<string, AppearanceVariables> = {
     badgeDangerColorBackground: 'rgb(227, 95, 95)',
     badgeDangerColorBorder: 'rgb(227, 95, 95)',
     badgeDangerColorText: 'rgb(255, 255, 255)',
-    fontFamily: 'Courier',
+    fontFamily: '"Courier New", Courier, monospace',
     borderRadius: '0px',
   },
 
