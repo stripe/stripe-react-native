@@ -1731,6 +1731,8 @@ enum CryptoNetwork {
     // (undocumented)
     bitcoin = "bitcoin",
     // (undocumented)
+    celo = "celo",
+    // (undocumented)
     ethereum = "ethereum",
     // (undocumented)
     optimism = "optimism",
@@ -2210,6 +2212,15 @@ interface FpxResult {
     // (undocumented)
     bank?: string;
 }
+
+// @public
+type FulfillKycRequirementsResult = {
+    status: 'Submitted' | 'PendingVerification' | 'NotRequired';
+    error?: undefined;
+} | {
+    status?: undefined;
+    error: CryptoOnrampError;
+};
 
 // @public (undocumented)
 type FutureUsage = 'OffSession' | 'OnSession' | 'None';
@@ -2996,6 +3007,8 @@ declare namespace Onramp {
         UncategorizedApiError,
         AppAttestationUnavailableError,
         CryptoOnrampError,
+        FulfillKycRequirementsResult,
+        PartnerTermsResult,
         RetrieveMissingIdentifiersResult,
         SubmitIdentifiersResult,
         UserAttestationResult,
@@ -3130,6 +3143,15 @@ interface P24Params_2 {
     // (undocumented)
     paymentMethodType: 'P24';
 }
+
+// @public
+type PartnerTermsResult = {
+    status: 'Accepted' | 'NotRequired';
+    error?: undefined;
+} | {
+    status?: undefined;
+    error: CryptoOnrampError;
+};
 
 // @public (undocumented)
 type PayByBankParams = {
@@ -3566,7 +3588,6 @@ export interface PlatformPayButtonProps extends AccessibilityProps {
         shippingMethod: ShippingMethod;
     }) => void;
     setOrderTracking?: (completion: (orderIdentifier: string, orderTypeIdentifier: string, authenticationToken: string, webServiceUrl: string) => void) => void;
-    // (undocumented)
     style?: StyleProp<ViewStyle>;
     // (undocumented)
     testID?: string;
@@ -4526,6 +4547,9 @@ export function useOnramp(): {
     retrieveMissingIdentifiers: () => Promise<Onramp.RetrieveMissingIdentifiersResult>;
     submitIdentifiers: (identifiers: Onramp.ComplianceIdentifier[]) => Promise<Onramp.SubmitIdentifiersResult>;
     presentUserAttestation: () => Promise<Onramp.UserAttestationResult>;
+    fulfillKycRequirements: () => Promise<Onramp.FulfillKycRequirementsResult>;
+    presentTermsAndConditionsIfNeeded: () => Promise<Onramp.PartnerTermsResult>;
+    presentTermsOfServiceIfNeeded: () => Promise<Onramp.PartnerTermsResult>;
     presentKycInfoVerification: (updatedAddress: Address | null) => Promise<Onramp.VerifyKycResult>;
     updatePhoneNumber: (phone: string) => Promise<{
         error?: Onramp.CryptoOnrampError;
