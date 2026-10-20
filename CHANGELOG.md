@@ -8,6 +8,10 @@
 * Updated Stripe Android SDK from 23.23.0 to 23.24.0.
 * [Deprecated] `AddressSheet`'s Android-only `googlePlacesApiKey` prop. Autocomplete now does not require a Google Places API key.
 
+**Fixes**
+
+* [Fixed] Connect embedded components no longer hang without calling `onLoadError` when an init param contains a double quote, backslash, or backtick, such as a double-quoted family name in `appearance.variables.fontFamily`.
+
 ## 0.82.0 - 2026-10-13
 
 **Changes**
@@ -60,9 +64,6 @@
 **Changes**
 * [Changed] React Native versions < 0.75 are deprecated.
 * [Changed] iOS: By default, the Stripe iOS SDK is now resolved through Swift Package Manager instead of CocoaPods (the Stripe iOS SDK is deprecating CocoaPods support). This requires building with dynamic frameworks: add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via the `expo-build-properties` plugin). See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.
-
-**Fixes**
-* [Fixed] Connect embedded components no longer hang without calling `onLoadError` when an init param contains a double quote, backslash, or backtick, such as a double-quoted family name in `appearance.variables.fontFamily`.
 
 ## 0.77.0 - 2026-09-16
 
