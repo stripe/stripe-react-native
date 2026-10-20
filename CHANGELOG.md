@@ -6,6 +6,10 @@
 
 * [Deprecated] `AddressSheet`'s Android-only `googlePlacesApiKey` prop. Autocomplete now does not require a Google Places API key.
 
+**Fixes**
+
+* [Fixed] Android: Restore Checkout's configured Shipping Address Element result handling when the host Activity is recreated.
+
 ## 0.82.0 - 2026-10-13
 
 **Changes**

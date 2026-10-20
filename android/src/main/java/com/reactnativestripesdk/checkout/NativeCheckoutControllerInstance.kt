@@ -1,10 +1,12 @@
 package com.reactnativestripesdk.checkout
 
+import android.app.Activity
 import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
@@ -36,7 +38,7 @@ internal class NativeCheckoutControllerInstance(
   initialSession: WritableMap,
   private val context: ReactApplicationContext,
   private val isShippingAddressElementConfigured: Boolean = false,
-) {
+) : LifecycleEventListener {
 
   private val serverUpdateCompletions = mutableMapOf<String, CompletableDeferred<Result<Unit>>>()
   private var controllerId: String? = null
@@ -46,9 +48,30 @@ internal class NativeCheckoutControllerInstance(
   private val destructionObservers = mutableSetOf<() -> Unit>()
   private var presenter: CheckoutPresenter? = null
   private var activity: ComponentActivity? = null
+  private var hostActivityClass: Class<out ComponentActivity>? = null
   private val activityObserver = LifecycleEventObserver { _, event ->
     if (event == Lifecycle.Event.ON_DESTROY) {
       releasePresenter()
+    }
+  }
+
+  override fun onHostResume() {
+    val activity = context.currentActivity as? ComponentActivity ?: return
+    if (!destroyed && !activity.isFinishing && activity.lifecycle.currentState != Lifecycle.State.DESTROYED) {
+      getPresenter(activity)
+    }
+  }
+
+  override fun onHostPause() = Unit
+
+  override fun onHostDestroy() = Unit
+
+  fun onActivityCreated(activity: Activity) {
+    // React's currentActivity can still be absent while the host is recreated beneath a sheet.
+    if (!destroyed && this.activity == null &&
+      activity is ComponentActivity && activity.javaClass == hostActivityClass
+    ) {
+      getPresenter(activity)
     }
   }
 
@@ -73,11 +96,12 @@ internal class NativeCheckoutControllerInstance(
       releasePresenter()
       presenter = controller.createPresenter(activity).also { newPresenter ->
         if (isShippingAddressElementConfigured) {
-          // Register shipping results even when another element recreates the presenter.
+          // SAE construction registers its result callback for this host.
           newPresenter.shippingAddressElement()
         }
       }
       this.activity = activity
+      hostActivityClass = activity.javaClass
       activity.lifecycle.addObserver(activityObserver)
     }
     return checkNotNull(presenter)
@@ -130,6 +154,8 @@ internal class NativeCheckoutControllerInstance(
     UiThreadUtil.assertOnUiThread()
     check(this.controllerId == null && !destroyed)
     this.controllerId = controllerId
+    context.addLifecycleEventListener(this)
+    onHostResume()
 
     scope.launch {
       controller.isUpdating.collect { isUpdating ->
@@ -204,6 +230,7 @@ internal class NativeCheckoutControllerInstance(
       return
     }
     destroyed = true
+    context.removeLifecycleEventListener(this)
     val observers = destructionObservers.toList()
     destructionObservers.clear()
     observers.forEach { it() }
