@@ -45,6 +45,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -55,6 +56,60 @@ import java.util.concurrent.atomic.AtomicReference
 @OptIn(CheckoutSessionPreview::class, ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class NativeCheckoutControllerInstanceTest {
+  @Test
+  fun `start eagerly binds the configured shipping address element to the current host`() =
+    withFixture(isShippingAddressElementConfigured = true) { fixture ->
+      val activity = fixture.activity.get()
+      `when`(fixture.context.currentActivity).thenReturn(activity)
+
+      fixture.start()
+      fixture.instance.onHostResume()
+
+      verify(fixture.context).addLifecycleEventListener(fixture.instance)
+      verify(fixture.controller, times(1)).createPresenter(activity)
+      verify(fixture.presenter, times(1)).shippingAddressElement()
+
+      fixture.instance.destroy()
+      verify(fixture.context, times(1)).removeLifecycleEventListener(fixture.instance)
+    }
+
+  @Test
+  fun `configured presenter binds when React resumes after start had no current activity`() =
+    withFixture(isShippingAddressElementConfigured = true) { fixture ->
+      fixture.start()
+      verify(fixture.controller, never()).createPresenter(fixture.activity.get())
+
+      val activity = fixture.activity.get()
+      `when`(fixture.context.currentActivity).thenReturn(activity)
+      fixture.instance.onHostResume()
+      fixture.instance.onHostResume()
+
+      verify(fixture.controller, times(1)).createPresenter(activity)
+      verify(fixture.presenter, times(1)).shippingAddressElement()
+
+      fixture.destroyActivity()
+      val unrelatedActivity = Robolectric.buildActivity(UnrelatedComponentActivity::class.java).get()
+      fixture.instance.onActivityCreated(unrelatedActivity)
+      verify(fixture.controller, never()).createPresenter(unrelatedActivity)
+
+      fixture.instance.destroy()
+      val activityAfterDestroy = Robolectric.buildActivity(ComponentActivity::class.java).get()
+      fixture.instance.onActivityCreated(activityAfterDestroy)
+      verify(fixture.controller, never()).createPresenter(activityAfterDestroy)
+      verify(fixture.context, times(1)).removeLifecycleEventListener(fixture.instance)
+    }
+
+  @Test
+  fun `start does not request an unconfigured shipping address element`() = withFixture { fixture ->
+    val activity = fixture.activity.get()
+    `when`(fixture.context.currentActivity).thenReturn(activity)
+
+    fixture.start()
+
+    verify(fixture.controller).createPresenter(activity)
+    verify(fixture.presenter, never()).shippingAddressElement()
+  }
+
   @Test
   fun `destroy releases resources and stops future updates`() = withFixture { fixture ->
     fixture.start()
@@ -313,9 +368,12 @@ class NativeCheckoutControllerInstanceTest {
     assertEquals(eventCountBeforeDestroy, fixture.events.size)
   }
 
-  private fun withFixture(test: suspend TestScope.(Fixture) -> Unit) = runTest {
+  private fun withFixture(
+    isShippingAddressElementConfigured: Boolean = false,
+    test: suspend TestScope.(Fixture) -> Unit,
+  ) = runTest {
     Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-    val fixture = Fixture()
+    val fixture = Fixture(isShippingAddressElementConfigured)
     try {
       test(fixture)
     } finally {
@@ -324,7 +382,9 @@ class NativeCheckoutControllerInstanceTest {
     }
   }
 
-  private class Fixture {
+  private class Fixture(
+    isShippingAddressElementConfigured: Boolean = false,
+  ) {
     val controller = mock(CheckoutController::class.java)
     val presenter = mock(CheckoutPresenter::class.java)
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
@@ -334,6 +394,7 @@ class NativeCheckoutControllerInstanceTest {
     val events = mutableListOf<ReadableMap>()
     val context = mock(ReactApplicationContext::class.java)
     val instance: NativeCheckoutControllerInstance
+    private var activityDestroyed = false
 
     init {
       `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
@@ -354,6 +415,7 @@ class NativeCheckoutControllerInstanceTest {
         scope,
         com.facebook.react.bridge.JavaOnlyMap.of("id", "cs_test", "email", "jenny@example.com"),
         context,
+        isShippingAddressElementConfigured,
       )
     }
 
@@ -364,7 +426,16 @@ class NativeCheckoutControllerInstanceTest {
     suspend fun close() {
       instance.destroy()
       scope.coroutineContext.job.join()
-      activity.pause().stop().destroy()
+      destroyActivity()
+    }
+
+    fun destroyActivity() {
+      if (!activityDestroyed) {
+        activity.pause().stop().destroy()
+        activityDestroyed = true
+      }
     }
   }
+
+  private class UnrelatedComponentActivity : ComponentActivity()
 }

@@ -1488,8 +1488,8 @@ class StripeSdkModule(
             },
           )
         } catch (error: Exception) {
-          checkoutControllers.remove(controllerId)
-          controller?.destroy()
+          val instance = checkoutControllers.remove(controllerId)
+          if (instance != null) instance.destroy() else controller?.destroy()
           scope.cancel()
           promise.reject("Failed", error.message, error)
         } finally {
@@ -2105,6 +2105,8 @@ class StripeSdkModule(
         activity: Activity,
         savedInstanceState: Bundle?,
       ) {
+        checkoutControllers.values.forEach { it.onActivityCreated(activity) }
+
         // Only set flag when ReactActivity is actually being recreated (savedInstanceState != null)
         // savedInstanceState != null means this is a recreation, not first creation
         if (activity is ReactActivity && savedInstanceState != null) {
