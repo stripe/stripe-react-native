@@ -837,7 +837,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         return false; // Block WebView navigation
       }
 
-      if (navigationType !== 'click') return true;
+      if (Platform.OS === 'ios' && navigationType !== 'click') return true;
 
       // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
       if (isAllowedStripeHost(url)) {

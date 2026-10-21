@@ -6,6 +6,10 @@
 
 * [Deprecated] `AddressSheet`'s Android-only `googlePlacesApiKey` prop. Autocomplete now does not require a Google Places API key.
 
+**Fixes**
+
+* [Fixed] Android: Connect external links now use the configured browser presentation regardless of navigation type.
+
 ## 0.82.0 - 2026-10-13
 
 **Changes**
