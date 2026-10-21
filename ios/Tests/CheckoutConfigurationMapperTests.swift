@@ -173,19 +173,43 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         }
     }
 
-    func test_map_mapsApplePayDisplay() throws {
-        let cases: [(String, PaymentElement.Configuration.ApplePayConfiguration.Display)] = [
-            ("automatic", .automatic),
-            ("never", .never),
-        ]
-        for (display, expected) in cases {
+    func test_map_configuresApplePayWhenDisplayIsAutomatic() throws {
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: [
+                "paymentElement": [
+                    "applePay": [
+                        "display": "automatic",
+                        "buttonType": "checkout",
+                    ],
+                ],
+            ],
+            merchantIdentifier: "merchant.com.example",
+            didSelectPaymentOption: {}
+        )
+
+        let applePay = try XCTUnwrap(configuration.paymentElement?.applePayConfiguration)
+        XCTAssertEqual(applePay.merchantId, "merchant.com.example")
+        XCTAssertEqual(applePay.buttonType, .checkout)
+    }
+
+    func test_map_omitsApplePayWhenDisplayIsNever() throws {
+        for merchantIdentifier: String? in ["merchant.com.example", nil, ""] {
             let configuration = try CheckoutConfigurationMapper.map(
-                params: ["paymentElement": ["applePay": ["display": display]]],
-                merchantIdentifier: "merchant.com.example",
+                params: [
+                    "paymentElement": [
+                        "applePay": ["display": "never"],
+                        "link": ["display": "never"],
+                        "paymentMethodOrder": ["card"],
+                    ],
+                ],
+                merchantIdentifier: merchantIdentifier,
                 didSelectPaymentOption: {}
             )
 
-            XCTAssertEqual(configuration.paymentElement?.applePayConfiguration?.display, expected)
+            let paymentElement = try XCTUnwrap(configuration.paymentElement)
+            XCTAssertNil(paymentElement.applePayConfiguration)
+            XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
+            XCTAssertEqual(paymentElement.paymentMethodOrder, ["card"])
         }
     }
 
@@ -196,7 +220,9 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
             didSelectPaymentOption: {}
         )
 
-        XCTAssertEqual(configuration.paymentElement?.applePayConfiguration?.display, .automatic)
+        let applePay = try XCTUnwrap(configuration.paymentElement?.applePayConfiguration)
+        XCTAssertEqual(applePay.merchantId, "merchant.com.example")
+        XCTAssertNil(applePay.buttonType)
     }
 
     func test_map_rejectsUnsupportedApplePayDisplay() {
