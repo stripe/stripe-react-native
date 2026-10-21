@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-react-native",
-  "version": "0.79.0",
+  "version": "0.82.0",
   "author": "Stripe",
   "description": "Stripe SDK for React Native",
   "main": "lib/commonjs/index",
@@ -203,6 +203,8 @@
         "CardField": "CardFieldComponentView",
         "CardForm": "CardFormComponentView",
         "EmbeddedPaymentElementView": "EmbeddedPaymentElementViewComponentView",
+        "CheckoutPaymentElementView": "CheckoutPaymentElementViewComponentView",
+        "CheckoutCurrencySelectorElementView": "CheckoutCurrencySelectorElementViewComponentView",
         "NavigationBar": "NavigationBarComponentView",
         "StripeContainer": "StripeContainerComponentView"
       }

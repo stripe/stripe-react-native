@@ -1,4 +1,9 @@
-import type { Checkout, CheckoutController } from '../types/Checkout';
+import type {
+  Checkout,
+  CheckoutController,
+  CheckoutCurrencySelectorElement,
+  CheckoutPaymentElement,
+} from '../types/Checkout';
 import type { StripeError } from '../types/Errors';
 import { runServerUpdate } from './runServerUpdate';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
@@ -8,8 +13,34 @@ import {
   createCheckoutBridgeId,
 } from './CheckoutControllerEventEmitter';
 
-const CHECKOUT_NOT_IMPLEMENTED_MESSAGE =
-  'This version of @stripe/stripe-react-native does not include native support for the Checkout private preview.';
+const paymentElementIds = new WeakMap<CheckoutPaymentElement, string>();
+const currencySelectorElementIds = new WeakMap<
+  CheckoutCurrencySelectorElement,
+  string
+>();
+
+/** Resolves a Currency Selector Element owned by a Checkout controller. */
+export function getCheckoutCurrencySelectorElementId(
+  element: CheckoutCurrencySelectorElement
+): string {
+  const id = currencySelectorElementIds.get(element);
+  if (!id) {
+    throw new Error('Currency Selector Element was not created by this SDK.');
+  }
+  return id;
+}
+
+/** Resolves a Payment Element owned by a Checkout controller. */
+export function getCheckoutPaymentElementId(
+  element: CheckoutPaymentElement
+): string {
+  const id = paymentElementIds.get(element);
+  if (!id) {
+    throw new Error('Payment Element was not created by this SDK.');
+  }
+  return id;
+}
+
 const CHECKOUT_DESTROYED_MESSAGE = 'This Checkout controller was destroyed.';
 
 type CheckoutOperationError = Error & StripeError<Checkout.ErrorCode>;
@@ -103,6 +134,10 @@ export async function createCheckoutController(
       : undefined
   );
   try {
+    // Keep handle availability consistent if options change during native creation.
+    const isShippingAddressElementConfigured = Boolean(
+      options.shippingAddressElement
+    );
     const result = await NativeStripeSdk.createCheckout(
       nativeCreateOptions(options),
       controllerId
@@ -114,27 +149,39 @@ export async function createCheckoutController(
         throw checkoutError('Failed', CHECKOUT_DESTROYED_MESSAGE);
       }
     };
-    const notImplemented = async (): Promise<never> => {
-      assertActive();
-      throw new Error(CHECKOUT_NOT_IMPLEMENTED_MESSAGE);
-    };
-
-    const performOperation = async (
-      operation: () => Promise<void>
-    ): Promise<void> => {
+    const performOperation = async <T>(
+      operation: () => Promise<T>
+    ): Promise<T> => {
       assertActive();
       try {
-        await operation();
+        const operationResult = await operation();
         assertActive();
+        return operationResult;
       } catch (error) {
         throw normalizeCheckoutError(error);
       }
     };
 
     const paymentElement = {
-      // TODO(porter): Present the native Payment Element sheet.
-      present: notImplemented,
+      present: () =>
+        performOperation(() =>
+          NativeStripeSdk.presentCheckoutPaymentElement(controllerId)
+        ),
     };
+    // Shipping collection is opt-in, matching the native Checkout configuration.
+    const shippingAddressElement = isShippingAddressElementConfigured
+      ? {
+          present: () =>
+            performOperation(() =>
+              NativeStripeSdk.presentCheckoutShippingAddressElement(
+                controllerId
+              )
+            ),
+        }
+      : null;
+    const currencySelectorElement = result.isCurrencySelectorAvailable
+      ? {}
+      : null;
 
     controller = {
       get status() {
@@ -144,6 +191,8 @@ export async function createCheckoutController(
         return session!;
       },
       paymentElement,
+      shippingAddressElement,
+      currencySelectorElement,
       updateEmail: (email) =>
         performOperation(() =>
           NativeStripeSdk.updateCheckoutEmail(controllerId, email)
@@ -169,8 +218,8 @@ export async function createCheckoutController(
         performOperation(() =>
           NativeStripeSdk.clearCheckoutPaymentOption(controllerId)
         ),
-      // TODO(porter): Bridge Checkout confirmation.
-      confirm: notImplemented,
+      confirm: () =>
+        performOperation(() => NativeStripeSdk.confirmCheckout(controllerId)),
       destroy: () => {
         if (destroyPromise) {
           return destroyPromise;
@@ -188,6 +237,10 @@ export async function createCheckoutController(
         return destroyPromise;
       },
     };
+    paymentElementIds.set(paymentElement, controllerId);
+    if (currencySelectorElement) {
+      currencySelectorElementIds.set(currencySelectorElement, controllerId);
+    }
     return controller;
   } catch (error) {
     subscription.remove();

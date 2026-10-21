@@ -5,15 +5,15 @@ appId: ${APP_ID}
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (deferred intent)"
 - tapOn: "Checkout"
-- extendedWaitUntil:
-    visible: "TEST"
-    timeout: 150000
 - tapOn:
     text: "Card"
     optional: true
 - tapOn:
     text: "New card"
     optional: true
+- extendedWaitUntil:
+    visible: "Card number. Supported cards include.*"
+    timeout: 150000
 - tapOn:
     text: "Card number. Supported cards include.*"
 - inputText: "4242424242424242"

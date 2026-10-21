@@ -82,12 +82,13 @@ class CustomerSheetManager(
         .appearance(appearance)
         .googlePayEnabled(googlePayEnabled)
         .headerTextForSelectionScreen(headerTextForSelectionScreen)
-        .preferredNetworks(
-          mapToPreferredNetworks(arguments.getIntegerList("preferredNetworks")),
-        ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+        .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .opensCardScannerAutomatically(opensCardScannerAutomatically)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
 
+    arguments.getIntegerList("preferredNetworks")?.let {
+      configuration.preferredNetworks(mapToPreferredNetworks(it))
+    }
     paymentMethodOrder?.let { configuration.paymentMethodOrder(it) }
     billingDetailsMap?.let {
       configuration.defaultBillingDetails(createDefaultBillingDetails(billingDetailsMap))
@@ -162,6 +163,12 @@ class CustomerSheetManager(
     customerSheet?.configure(configuration.build())
 
     initPromise.resolve(Arguments.createMap())
+  }
+
+  override fun onDestroy() {
+    customerSessionProvider?.invalidate()
+    customerSessionProvider = null
+    super.onDestroy()
   }
 
   private fun handleResult(result: CustomerSheetResult) {

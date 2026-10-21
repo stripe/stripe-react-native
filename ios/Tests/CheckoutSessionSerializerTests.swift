@@ -51,7 +51,8 @@ final class CheckoutSessionSerializerTests: XCTestCase {
         }
         let option = CheckoutController.Session.PaymentOptionDisplayData(
             image: image,
-            label: "Visa 4242",
+            label: "Visa",
+            sublabel: "•••• 4242",
             billingDetails: billingDetails,
             paymentMethodType: "card",
             mandateText: NSAttributedString(string: "Terms & conditions", attributes: [
@@ -67,10 +68,35 @@ final class CheckoutSessionSerializerTests: XCTestCase {
 
         XCTAssertEqual(address["postalCode"] as? String, "94103")
         XCTAssertNil(address["country"])
+        XCTAssertEqual(paymentOption["label"] as? String, "Visa")
+        XCTAssertEqual(paymentOption["sublabel"] as? String, "•••• 4242")
         XCTAssertEqual(paymentOption["image"] as? String, image.pngData()?.base64EncodedString())
         let html = try XCTUnwrap(paymentOption["mandateHTML"] as? String)
         XCTAssertTrue(html.contains("https://example.com/terms"))
         XCTAssertTrue(html.contains("&amp;"))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
+    }
+
+    func test_serializeConfirmationResults() throws {
+        let statuses: [(CheckoutController.Session.Status.PaymentStatus, String)] = [
+            (.paid, "paid"), (.unpaid, "unpaid"), (.noPaymentRequired, "noPaymentRequired"),
+        ]
+        for (nativeStatus, expected) in statuses {
+            let result = CheckoutSessionSerializer.serialize(
+                CheckoutController.ConfirmResult.completed(paymentStatus: nativeStatus)
+            )
+            XCTAssertEqual(result as NSDictionary, ["status": "completed", "paymentStatus": expected])
+        }
+        XCTAssertEqual(
+            CheckoutSessionSerializer.serialize(CheckoutController.ConfirmResult.canceled) as NSDictionary,
+            ["status": "canceled"]
+        )
+        let error = NSError(domain: "CheckoutTest", code: 1, userInfo: [NSLocalizedDescriptionKey: "Payment failed"])
+        let result = CheckoutSessionSerializer.serialize(CheckoutController.ConfirmResult.failed(error))
+        XCTAssertEqual(result["status"] as? String, "failed")
+        let mappedError = try XCTUnwrap(result["error"] as? [String: Any])
+        XCTAssertEqual(mappedError["code"] as? String, "Failed")
+        XCTAssertEqual(mappedError["message"] as? String, "Payment failed")
         XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
     }
 

@@ -135,6 +135,7 @@ android {
   // When running tests on bitrise we need to make sure that the test artifacts are inside
   // the root project directory (in that case example/android), or it won't be picked up.
   testOptions {
+    unitTests.includeAndroidResources = true
     unitTests.all { Test test ->
       def outputRoot = rootProject.layout.buildDirectory.get().asFile
       test.reports.junitXml.outputLocation.set(new File(outputRoot, "test-results/${test.name}"))
@@ -174,9 +175,15 @@ dependencies {
   testImplementation "com.google.android.gms:play-services-wallet:20.0.0"
 
   // Users need to declare this dependency on their own, otherwise all methods are a no-op
-  compileOnly "com.stripe:stripe-android-issuing-push-provisioning:1.3.0"
+  compileOnly("com.stripe:stripe-android-issuing-push-provisioning:1.3.0") {
+    // play-services-tapandpay is a private Google SDK that apps must provide. AGP 9
+    // resolves compileOnly dependencies for release lint, which fails without it.
+    exclude group: "com.google.android.gms", module: "play-services-tapandpay"
+  }
 
   testImplementation "junit:junit:4.13"
+  testImplementation "com.google.truth:truth:1.4.5"
+  testImplementation "app.cash.turbine:turbine:1.2.1"
   testImplementation "org.mockito:mockito-inline:3.+"
   testImplementation "org.robolectric:robolectric:4.10"
   testImplementation "androidx.test:core:1.4.0"

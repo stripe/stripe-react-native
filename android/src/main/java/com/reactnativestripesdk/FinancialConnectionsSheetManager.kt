@@ -13,6 +13,7 @@ import com.reactnativestripesdk.utils.mapFromFinancialConnectionsEvent
 import com.reactnativestripesdk.utils.mapFromToken
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.financialconnections.FinancialConnections
+import com.stripe.android.financialconnections.FinancialConnectionsPreCollectedConsent
 import com.stripe.android.financialconnections.FinancialConnectionsSheet
 import com.stripe.android.financialconnections.FinancialConnectionsSheetForTokenResult
 import com.stripe.android.financialconnections.FinancialConnectionsSheetResult
@@ -29,6 +30,7 @@ class FinancialConnectionsSheetManager(
   private var mode: Mode,
   publishableKey: String,
   stripeAccountId: String?,
+  private val preCollectedConsent: FinancialConnectionsPreCollectedConsent?,
 ) : StripeUIManager(context) {
   enum class Mode {
     ForToken,
@@ -58,14 +60,20 @@ class FinancialConnectionsSheetManager(
             activity,
             signal,
             ::onFinancialConnectionsSheetForTokenResult,
-          ).present(configuration = configuration)
+          ).present(
+            configuration = configuration,
+            preCollectedConsent = preCollectedConsent,
+          )
       }
 
       Mode.ForSession -> {
         @SuppressLint("RestrictedApi")
         FinancialConnectionsSheet
           .create(activity, signal, ::onFinancialConnectionsSheetForDataResult)
-          .present(configuration = configuration)
+          .present(
+            configuration = configuration,
+            preCollectedConsent = preCollectedConsent,
+          )
       }
     }
   }

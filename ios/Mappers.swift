@@ -1173,6 +1173,7 @@ class Mappers {
 
         let mappedEvent: [String: Any] = [
             "name": event.name.rawValue,
+            "financialConnectionsSessionId": event.financialConnectionsSessionId,
             "metadata": metadata,
         ]
 
@@ -1180,6 +1181,26 @@ class Mappers {
     }
 
 #if canImport(StripeCryptoOnramp)
+    struct OnrampConfiguration {
+        let appearance: LinkAppearance
+        let cryptoCustomerId: String?
+        let countryHint: String?
+    }
+
+    class func mapToOnrampConfiguration(_ params: NSDictionary) -> OnrampConfiguration {
+        let appearance: LinkAppearance = if let appearanceParams = params["appearance"] as? [String: Any?] {
+            mapToLinkAppearance(appearanceParams)
+        } else {
+            LinkAppearance()
+        }
+
+        return OnrampConfiguration(
+            appearance: appearance,
+            cryptoCustomerId: params["cryptoCustomerId"] as? String,
+            countryHint: params["countryHint"] as? String
+        )
+    }
+
     class func mapToLinkAppearance(_ params: [String: Any?]) -> LinkAppearance {
         let darkColors = params["darkColors"] as? [String: Any?]
         let lightColors = params["lightColors"] as? [String: Any?]
@@ -1287,6 +1308,16 @@ class Mappers {
 
     class func mapFromKycInfo(_ kycInfo: KycInfo) -> [String: Any] {
         var result: [String: Any] = [:]
+
+        if let email = kycInfo.email {
+            result["email"] = email
+        }
+        if let phone = kycInfo.phone {
+            result["phone"] = phone
+        }
+        if let rawPhone = kycInfo.rawPhone {
+            result["rawPhone"] = rawPhone
+        }
 
         if let firstName = kycInfo.firstName {
             result["firstName"] = firstName

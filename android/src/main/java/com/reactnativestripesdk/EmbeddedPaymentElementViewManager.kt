@@ -159,13 +159,7 @@ class EmbeddedPaymentElementViewManager :
         .appearance(appearance)
         .shippingDetails(shippingDetails)
         .billingDetailsCollectionConfiguration(billingDetailsConfig)
-        .preferredNetworks(
-          mapToPreferredNetworks(
-            map
-              .getIntegerList("preferredNetworks")
-              ?.let { ArrayList(it) },
-          ),
-        ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+        .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .opensCardScannerAutomatically(opensCardScannerAutomatically)
         .cardBrandAcceptance(mapToCardBrandAcceptance(map))
         .apply {
@@ -177,6 +171,10 @@ class EmbeddedPaymentElementViewManager :
             map.getMap("customPaymentMethodConfiguration"),
           ),
         )
+
+    map.getIntegerList("preferredNetworks")?.let {
+      configurationBuilder.preferredNetworks(mapToPreferredNetworks(it))
+    }
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }

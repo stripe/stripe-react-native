@@ -10,7 +10,7 @@ appId: ${APP_ID}
 - tapOn:
     text: "Choose payment method"
 - extendedWaitUntil:
-    visible: "TEST"
+    visible: "Close"
     timeout: 150000
 - tapOn: "Close"
 - assertVisible:

@@ -1,12 +1,16 @@
 package com.reactnativestripesdk.utils
 
 import android.content.Context
+import android.content.res.Configuration
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
+
+internal fun Configuration.isDarkTheme(): Boolean =
+  (uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
 fun View.showSoftKeyboard() {
   post {
