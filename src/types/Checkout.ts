@@ -396,7 +396,7 @@ export namespace Checkout {
     termsDisplay?: Record<string, TermsDisplay>;
     /** The layout used when Payment Element is presented as a sheet. */
     paymentMethodLayout?: PaymentMethodLayout;
-    /** Whether the embedded view displays mandate text. Defaults to `false`. */
+    /** Whether the embedded view displays mandate text. Defaults to `true`. */
     displaysMandateText?: boolean;
     /** Controls selection in the embedded view. */
     rowSelectionBehavior?: PaymentElementConfiguration.RowSelectionBehavior;
