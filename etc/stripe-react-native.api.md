@@ -3566,7 +3566,6 @@ export interface PlatformPayButtonProps extends AccessibilityProps {
         shippingMethod: ShippingMethod;
     }) => void;
     setOrderTracking?: (completion: (orderIdentifier: string, orderTypeIdentifier: string, authenticationToken: string, webServiceUrl: string) => void) => void;
-    // (undocumented)
     style?: StyleProp<ViewStyle>;
     // (undocumented)
     testID?: string;
