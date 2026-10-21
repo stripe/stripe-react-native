@@ -4,12 +4,14 @@ import android.content.Context
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import androidx.test.core.app.ApplicationProvider
+import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
+import com.stripe.android.elements.PaymentElement.Configuration.Appearance.Embedded.RowStyle
 import com.stripe.android.model.CardBrand
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CheckoutSessionPreview
@@ -19,6 +21,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(CheckoutSessionPreview::class)
 @RunWith(RobolectricTestRunner::class)
@@ -34,7 +37,15 @@ class CheckoutConfigurationMapperTest {
           "appearance" to readableMapOf(
             "contentVerticalPadding" to 8,
             "shapes" to readableMapOf("cornerRadius" to 12, "borderWidth" to 2),
-            "colors" to readableMapOf("background" to "#112233"),
+            "colors" to readableMapOf(
+              "border" to "#112233",
+              "background" to "#223344",
+              "selectedBackground" to "#334455",
+              "text" to "#445566",
+              "selectedText" to "#556677",
+              "textSecondary" to "#667788",
+              "danger" to "#778899",
+            ),
             "font" to readableMapOf("scale" to 1.2),
             "labelContent" to "amount",
           ),
@@ -51,10 +62,71 @@ class CheckoutConfigurationMapperTest {
     assertEquals(12f, appearance.readField<Float>("cornerRadiusDp"))
     assertEquals(2f, appearance.readField<Float>("borderWidthDp"))
     assertEquals(1.2f, appearance.readField<Float>("sizeScaleFactor"))
-    assertEquals(Color("#112233".toColorInt()), appearance.readField<Color>("background"))
+    val colors = mapOf(
+      "borderColor" to "#112233",
+      "background" to "#223344",
+      "selectedBackground" to "#334455",
+      "textColor" to "#445566",
+      "selectedTextColor" to "#556677",
+      "textSecondaryColor" to "#667788",
+      "dangerColor" to "#778899",
+    )
+    for ((field, value) in colors) {
+      assertEquals(Color(value.toColorInt()), appearance.readField<Color>(field))
+    }
     assertEquals(
       CurrencySelectorElement.Configuration.Appearance.LabelContent.AMOUNT,
       appearance.readField<CurrencySelectorElement.Configuration.Appearance.LabelContent>("labelContent"),
+    )
+  }
+
+  @Test
+  @Config(qualifiers = "night")
+  fun `map selects dark currency selector colors in dark mode`() {
+    val configuration = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "currencySelectorElement" to readableMapOf(
+          "appearance" to readableMapOf(
+            "colors" to readableMapOf(
+              "light" to readableMapOf("background" to "#112233"),
+              "dark" to readableMapOf("background" to "#445566"),
+            ),
+          ),
+        ),
+      ),
+      context,
+    ) {}.configuration.readField<CurrencySelectorElement.Configuration>("currencySelectorElementConfiguration")
+
+    assertEquals(
+      Color("#445566".toColorInt()),
+      configuration.readField<CurrencySelectorElement.Configuration.Appearance>("appearance")
+        .readField<Color>("background"),
+    )
+  }
+
+  @Test
+  fun `map uses checkout style for currency selector colors`() {
+    val configuration = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "style" to "alwaysDark",
+        "currencySelectorElement" to readableMapOf(
+          "appearance" to readableMapOf(
+            "colors" to readableMapOf(
+              "light" to readableMapOf("background" to "#112233"),
+              "dark" to readableMapOf("background" to "#445566"),
+            ),
+          ),
+        ),
+      ),
+      context,
+    ) {}.configuration.readField<CurrencySelectorElement.Configuration>("currencySelectorElementConfiguration")
+
+    assertEquals(
+      Color("#445566".toColorInt()),
+      configuration.readField<CurrencySelectorElement.Configuration.Appearance>("appearance")
+        .readField<Color>("background"),
     )
   }
 
@@ -74,12 +146,26 @@ class CheckoutConfigurationMapperTest {
               "billingDetails" to contactDetails("US"),
               "shippingDetails" to contactDetails("CA"),
               "email" to "jenny@example.com",
+              "phone" to "+15555551234",
             ),
           "paymentElement" to
             readableMapOf(
               "appearance" to
                 readableMapOf(
+                  "font" to readableMapOf("scale" to 1.2),
+                  "shapes" to readableMapOf("borderRadius" to 10, "borderWidth" to 2),
                   "formInsetValues" to readableMapOf("left" to 12, "bottom" to 24),
+                  "embeddedPaymentElement" to readableMapOf(
+                    "row" to readableMapOf(
+                      "style" to "flatWithRadio",
+                      "additionalInsets" to 8,
+                      "flat" to readableMapOf(
+                        "separatorThickness" to 2,
+                        "separatorColor" to readableMapOf("light" to "#112233", "dark" to "#AABBCC"),
+                        "radio" to readableMapOf("selectedColor" to "#445566"),
+                      ),
+                    ),
+                  ),
                   "colors" to
                     readableMapOf(
                       "light" to readableMapOf("primary" to "#112233"),
@@ -113,6 +199,7 @@ class CheckoutConfigurationMapperTest {
     assertContactDetails(defaults.readField("billingDetails"), "US")
     assertContactDetails(defaults.readField("shippingDetails"), "CA")
     assertEquals("jenny@example.com", defaults.readField<String>("email"))
+    assertEquals("+15555551234", defaults.readField<String>("phone"))
 
     val paymentElement =
       result.configuration.readField<PaymentElement.Configuration>("paymentElementConfiguration")
@@ -130,6 +217,27 @@ class CheckoutConfigurationMapperTest {
     )
 
     val appearance = paymentElement.readField<PaymentElement.Configuration.Appearance>("appearance")
+    val typography = appearance.readField<PaymentElement.Configuration.Appearance.Typography>("typography")
+    assertEquals(1.2f, typography.readField<Float>("sizeScaleFactor"))
+    val shapes = appearance.readField<PaymentElement.Configuration.Appearance.Shapes>("shapes")
+    assertEquals(10f, shapes.readField<Float>("cornerRadiusDp"))
+    assertEquals(2f, shapes.readField<Float>("borderStrokeWidthDp"))
+    val embedded = appearance.readField<PaymentElement.Configuration.Appearance.Embedded>("embeddedAppearance")
+    val row = embedded.readField<RowStyle.FlatWithRadio>("rowStyle")
+    assertEquals(8f, row.readField<Float>("additionalVerticalInsetsDp"))
+    assertEquals(2f, row.readField<Float>("separatorThicknessDp"))
+    assertEquals(
+      "#112233".toColorInt(),
+      row.readField<RowStyle.FlatWithRadio.Colors>("colorsLight").readField<Int>("separatorColor"),
+    )
+    assertEquals(
+      "#AABBCC".toColorInt(),
+      row.readField<RowStyle.FlatWithRadio.Colors>("colorsDark").readField<Int>("separatorColor"),
+    )
+    assertEquals(
+      "#445566".toColorInt(),
+      row.readField<RowStyle.FlatWithRadio.Colors>("colorsLight").readField<Int>("selectedColor"),
+    )
     assertEquals(
       PaymentElement.Configuration.Appearance.ThemeMode.AlwaysDark,
       appearance.readField("themeMode"),
@@ -182,6 +290,41 @@ class CheckoutConfigurationMapperTest {
     ) {}.configuration.readField<PaymentElement.Configuration>("paymentElementConfiguration")
 
     assertEquals(listOf("card", "link"), mapped.readField("paymentMethodOrder"))
+  }
+
+  @Test
+  fun `map maps other embedded row styles`() {
+    val checkmark = mapEmbeddedRow(
+      readableMapOf(
+        "style" to "flatWithCheckmark",
+        "flat" to readableMapOf("checkmark" to readableMapOf("color" to "#112233")),
+      ),
+    ).readField<RowStyle.FlatWithCheckmark>("rowStyle")
+    assertEquals(
+      "#112233".toColorInt(),
+      checkmark.readField<RowStyle.FlatWithCheckmark.Colors>("colorsLight").readField<Int>("checkmarkColor"),
+    )
+
+    val disclosure = mapEmbeddedRow(
+      readableMapOf(
+        "style" to "flatWithDisclosure",
+        "flat" to readableMapOf("disclosure" to readableMapOf("color" to "#445566")),
+      ),
+    ).readField<RowStyle.FlatWithDisclosure>("rowStyle")
+    assertEquals(
+      "#445566".toColorInt(),
+      disclosure.readField<RowStyle.FlatWithDisclosure.Colors>("colorsLight").readField<Int>("disclosureColor"),
+    )
+
+    val floating = mapEmbeddedRow(
+      readableMapOf(
+        "style" to "floatingButton",
+        "additionalInsets" to 6,
+        "floating" to readableMapOf("spacing" to 14),
+      ),
+    ).readField<RowStyle.FloatingButton>("rowStyle")
+    assertEquals(6f, floating.readField<Float>("additionalInsetsDp"))
+    assertEquals(14f, floating.readField<Float>("spacingDp"))
   }
 
   @Test
@@ -242,6 +385,20 @@ class CheckoutConfigurationMapperTest {
       "clientSecret" to "cs_test_secret_123",
       "returnURL" to "example://checkout",
     )
+
+  private fun mapEmbeddedRow(row: ReadableMap): PaymentElement.Configuration.Appearance.Embedded =
+    CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "paymentElement" to readableMapOf(
+          "appearance" to readableMapOf("embeddedPaymentElement" to readableMapOf("row" to row)),
+        ),
+      ),
+      context,
+    ) {}.configuration
+      .readField<PaymentElement.Configuration>("paymentElementConfiguration")
+      .readField<PaymentElement.Configuration.Appearance>("appearance")
+      .readField("embeddedAppearance")
 
   private fun contactDetails(country: String) =
     readableMapOf(

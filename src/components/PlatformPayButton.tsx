@@ -71,11 +71,21 @@ export interface Props extends AccessibilityProps {
     ) => void
   ) => void;
   testID?: string;
+  /**
+   * Style applied to the button container.
+   *
+   * **Important:** The native Apple Pay and Google Pay button views do not have an intrinsic height in React Native.
+   * You must explicitly specify a `height` in the `style` prop (e.g. `height: 48` or `height: 50`),
+   * otherwise the container will collapse to a height of 0 and the button will not be visible.
+   */
   style?: StyleProp<ViewStyle>;
 }
 
 /**
  *  PlatformPayButton Component. Display the platform-specific native wallet pay button: Apple Pay on iOS, and Google Pay on Android.
+ *
+ *  **Note:** The native pay buttons require an explicit `height` specified in the `style` prop
+ *  (e.g., `{ height: 48 }` or `{ height: 50 }`). Without an explicit height, the component collapses to 0 height.
  *
  * @example
  * ```ts
@@ -85,7 +95,7 @@ export interface Props extends AccessibilityProps {
  *    appearance={PlatformPay.ButtonStyle.WhiteOutline}
  *    borderRadius={4}
  *    disabled={!isApplePaySupported}
- *    style={styles.payButton}
+ *    style={{ height: 48 }}
  *  />
  * ```
  * @param __namedParameters Props

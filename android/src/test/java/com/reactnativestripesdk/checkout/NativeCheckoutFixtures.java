@@ -63,7 +63,7 @@ final class NativeCheckoutFixtures {
         throw new UnsupportedOperationException("This fixture only loads the icon");
       }
     };
-    return new Session.PaymentOptionDisplayData(resource, "Visa 4242", null, billingDetails, "card", mandateText);
+    return new Session.PaymentOptionDisplayData(resource, "Visa", "•••• 4242", billingDetails, "card", mandateText);
   }
 
   static Session.PaymentOptionDisplayData.BillingDetails postalBillingDetails(String postalCode) {

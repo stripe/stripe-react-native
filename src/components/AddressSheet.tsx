@@ -43,7 +43,10 @@ export interface Props extends AccessibilityProps {
   primaryButtonTitle?: string;
   /** Title displayed at the top of the sheet. Defaults to "Address". */
   sheetTitle?: string;
-  /** Android only. Google Places api key used to provide autocomplete suggestions. When null, autocomplete is disabled on Android. */
+  /**
+   * Android only.
+   * @deprecated Omit this prop. Autocomplete now does not require a Google Places API key.
+   */
   googlePlacesApiKey?: string;
   /** Called when the user submits their information */
   onSubmit: (result: CollectAddressResult) => void;
