@@ -173,6 +173,55 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         }
     }
 
+    func test_map_mapsApplePayDisplay() throws {
+        let cases: [(String, PaymentElement.Configuration.ApplePayConfiguration.Display)] = [
+            ("automatic", .automatic),
+            ("never", .never),
+        ]
+        for (display, expected) in cases {
+            let configuration = try CheckoutConfigurationMapper.map(
+                params: ["paymentElement": ["applePay": ["display": display]]],
+                merchantIdentifier: "merchant.com.example",
+                didSelectPaymentOption: {}
+            )
+
+            XCTAssertEqual(configuration.paymentElement?.applePayConfiguration?.display, expected)
+        }
+    }
+
+    func test_map_defaultsApplePayDisplayToAutomatic() throws {
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: ["paymentElement": ["applePay": [:]]],
+            merchantIdentifier: "merchant.com.example",
+            didSelectPaymentOption: {}
+        )
+
+        XCTAssertEqual(configuration.paymentElement?.applePayConfiguration?.display, .automatic)
+    }
+
+    func test_map_rejectsUnsupportedApplePayDisplay() {
+        XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
+            params: ["paymentElement": ["applePay": ["display": "invalid"]]],
+            merchantIdentifier: "merchant.com.example",
+            didSelectPaymentOption: {}
+        )) { error in
+            XCTAssertEqual(
+                error as? CheckoutConfigurationMapperError,
+                .unsupportedValue(path: "paymentElement.applePay.display", value: "invalid")
+            )
+        }
+    }
+
+    func test_map_doesNotConfigureApplePayFromMerchantIdentifierAlone() throws {
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: ["paymentElement": [:]],
+            merchantIdentifier: "merchant.com.example",
+            didSelectPaymentOption: {}
+        )
+
+        XCTAssertNil(configuration.paymentElement?.applePayConfiguration)
+    }
+
     func test_map_leavesConfigurationValidationToNativeCheckout() throws {
         let configuration = try CheckoutConfigurationMapper.map(
             params: [:],

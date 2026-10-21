@@ -432,6 +432,11 @@ export namespace Checkout {
     export interface ApplePayConfiguration {
       /** The type of Apple Pay button to display. */
       buttonType?: ApplePayButtonType;
+      /**
+       * Controls whether Apple Pay is displayed in Payment Element.
+       * Defaults to `automatic`.
+       */
+      display?: 'automatic' | 'never';
     }
 
     /**
