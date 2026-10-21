@@ -223,7 +223,10 @@ export interface Spec extends TurboModule {
   openAuthenticatedWebView(
     id: string,
     url: string
-  ): Promise<{ url?: string } | null>;
+  ): Promise<{
+    url?: string;
+    error?: { code?: string; message?: string | null };
+  } | null>;
 
   presentExternalWebPage(url: string): Promise<void>;
 

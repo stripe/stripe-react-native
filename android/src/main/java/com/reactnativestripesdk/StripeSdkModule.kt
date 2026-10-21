@@ -1765,10 +1765,26 @@ class StripeSdkModule(
     url: String,
     promise: Promise,
   ) {
-    isAuthWebViewActive = true
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    if (!isValidAuthenticatedWebViewUrl(url)) {
+      promise.reject("InvalidUrl", "Authenticated web view URL must be HTTPS and contain no credentials")
+      return
+    }
+
+    val activity =
+      reactApplicationContext.currentActivity as? FragmentActivity
+        ?: run {
+          promise.reject("MissingActivity", "Authenticated web view requires an active activity")
+          return
+        }
 
     UiThreadUtil.runOnUiThread {
+      if (activeAuthWebViewId != null) {
+        promise.reject("AuthWebViewAlreadyActive", "An authenticated web view is already active")
+        return@runOnUiThread
+      }
+
+      val generation = ++authWebViewGeneration
+      activeAuthWebViewId = id
       try {
         val uri = url.toUri()
         val builder =
@@ -1789,22 +1805,31 @@ class StripeSdkModule(
         // Note: Custom Tabs doesn't have built-in redirect handling like iOS ASWebAuthenticationSession.
         // The redirect will be handled via deep linking when the auth server redirects to stripe-connect://
         // The React Native Linking module will capture the deep link and pass it back to the JS layer.
+        isAuthWebViewActive = true
         customTabsIntent.launchUrl(activity, uri)
 
         // Fallback: Reset after timeout if JavaScript doesn't call authWebViewDeepLinkHandled
         Handler(Looper.getMainLooper()).postDelayed({
-          if (isAuthWebViewActive) {
-            isAuthWebViewActive = false
-          }
+          clearAuthWebViewIfActive(id, generation)
         }, AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS)
 
         promise.resolve(null)
       } catch (e: Exception) {
-        isAuthWebViewActive = false
-        promise.resolve(createError("Failed", e))
+        clearAuthWebViewIfActive(id, generation)
+        promise.reject("Failed", e.message, e)
       }
     }
   }
+
+  private fun isValidAuthenticatedWebViewUrl(url: String): Boolean =
+    try {
+      val uri = url.toUri()
+      uri.scheme.equals("https", ignoreCase = true) &&
+        !uri.host.isNullOrBlank() &&
+        uri.userInfo == null
+    } catch (_: Exception) {
+      false
+    }
 
   @ReactMethod
   override fun presentExternalWebPage(
@@ -1949,8 +1974,24 @@ class StripeSdkModule(
     id: String,
     promise: Promise,
   ) {
+    UiThreadUtil.runOnUiThread {
+      clearAuthWebViewIfActive(id)
+      promise.resolve(null)
+    }
+  }
+
+  private fun clearAuthWebViewIfActive(
+    id: String,
+    expectedGeneration: Long? = null,
+  ) {
+    if (
+      activeAuthWebViewId != id ||
+      (expectedGeneration != null && authWebViewGeneration != expectedGeneration)
+    ) {
+      return
+    }
+    activeAuthWebViewId = null
     isAuthWebViewActive = false
-    promise.resolve(null)
   }
 
   /**
@@ -2072,6 +2113,8 @@ class StripeSdkModule(
 
   private var isRecreatingReactActivity = false
   private var isAuthWebViewActive = false
+  private var activeAuthWebViewId: String? = null
+  private var authWebViewGeneration = 0L
   private val activityLifecycleCallbacks =
     object : DefaultActivityLifecycleCallbacks() {
       override fun onActivityCreated(

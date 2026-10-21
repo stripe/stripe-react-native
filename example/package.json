@@ -40,6 +40,7 @@
     "@types/react": "^19.0.10",
     "patch-package": "^8.0.0",
     "react-native-test-app": "^4.4.6",
+    "react-native-webview": "13.16.0",
     "react-test-renderer": "19.1.0",
     "typescript": "5.7.3"
   },

@@ -206,6 +206,7 @@
         "CheckoutPaymentElementView": "CheckoutPaymentElementViewComponentView",
         "CheckoutCurrencySelectorElementView": "CheckoutCurrencySelectorElementViewComponentView",
         "NavigationBar": "NavigationBarComponentView",
+        "ConnectBridgeContainer": "ConnectBridgeContainerComponentView",
         "StripeContainer": "StripeContainerComponentView"
       }
     },

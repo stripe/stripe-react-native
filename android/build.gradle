@@ -92,6 +92,7 @@ android {
   defaultConfig {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     versionCode 1
     versionName "1.0"
     vectorDrawables.useSupportLibrary = true
@@ -169,6 +170,7 @@ dependencies {
   implementation "androidx.legacy:legacy-support-v4:1.0.0"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0"
   implementation "androidx.browser:browser:1.8.0"
+  implementation "androidx.webkit:webkit:1.14.0"
 
   // play-services-wallet is already included in stripe-android
   compileOnly "com.google.android.gms:play-services-wallet:20.0.0"
@@ -187,10 +189,25 @@ dependencies {
   testImplementation "org.mockito:mockito-inline:3.+"
   testImplementation "org.robolectric:robolectric:4.10"
   testImplementation "androidx.test:core:1.4.0"
+  androidTestImplementation "androidx.test:core:1.6.1"
+  androidTestImplementation "androidx.test.ext:junit:1.2.1"
+  androidTestImplementation "androidx.test:runner:1.6.2"
+  androidTestImplementation "androidx.test:rules:1.6.1"
   testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0"
 
   implementation "androidx.compose.ui:ui:1.7.8"
   implementation "androidx.compose.foundation:foundation-layout:1.7.8"
+}
+
+// Connect depends on react-native-webview as an optional peer. Keep the RNC
+// composition instrumentation dependency and source opt-in to example builds
+// that have that peer linked; standalone SDK consumers need not include RNC.
+def reactNativeWebViewProject = rootProject.findProject(":react-native-webview")
+if (reactNativeWebViewProject != null) {
+  android.sourceSets.androidTest.java.srcDir("src/androidTest/rnc/java")
+  dependencies {
+    androidTestImplementation reactNativeWebViewProject
+  }
 }
 
 def lintRulesJar = file("$projectDir/lint-rules/build/libs/lint-rules-1.0.0.jar")

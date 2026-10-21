@@ -10,20 +10,26 @@ import {
   AppState,
   AppStateStatus,
   Linking,
+  NativeSyntheticEvent,
   Platform,
   StyleProp,
   StyleSheet,
   View,
   ViewStyle,
 } from 'react-native';
-import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type {
   ShouldStartLoadRequest,
   WebViewOpenWindowEvent,
 } from 'react-native-webview/lib/WebViewTypes';
+import type { WebView } from 'react-native-webview';
 import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
+import NativeConnectBridgeContainer, {
+  Commands as ConnectBridgeCommands,
+  type ConnectBridgeErrorEvent,
+  type ConnectBridgeRequestEvent,
+} from '../specs/NativeConnectBridgeContainer';
 import { addListener } from '../events';
 import { useConnectComponents } from './ConnectComponentsProvider';
 import type {
@@ -42,6 +48,42 @@ const PRODUCTION_URL = 'https://connect-js.stripe.com';
 const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
 const sdkVersion = pjson.version;
+
+const connectContextIds = new WeakMap<object, string>();
+let nextConnectContextId = 1;
+let activeAndroidAuthOwner: { operationId: string; token: object } | null =
+  null;
+
+function releaseAndroidAuthOwner(token: object, operationId: string) {
+  if (
+    activeAndroidAuthOwner?.token === token &&
+    activeAndroidAuthOwner.operationId === operationId
+  ) {
+    activeAndroidAuthOwner = null;
+  }
+}
+
+function reserveAndroidAuthOwner(token: object, operationId: string): boolean {
+  if (activeAndroidAuthOwner) return false;
+  activeAndroidAuthOwner = { token, operationId };
+  return true;
+}
+
+function getNativeAuthOperationId(replyContext: ConnectBridgeReplyContext) {
+  return JSON.stringify([
+    replyContext.attachmentId,
+    replyContext.requestHandle,
+  ]);
+}
+
+function getConnectContextId(connectInstance: object): string {
+  let contextId = connectContextIds.get(connectInstance);
+  if (!contextId) {
+    contextId = `connect-context-${nextConnectContextId++}`;
+    connectContextIds.set(connectInstance, contextId);
+  }
+  return contextId;
+}
 
 // Android deep link polling configuration
 // These constants control the polling mechanism that prevents Expo Router from dismissing screens
@@ -86,6 +128,9 @@ export interface CommonComponentProps {
 }
 
 const styles = StyleSheet.create({
+  webview: {
+    flex: 1,
+  },
   loadingIndicatorContainer: {
     position: 'absolute',
     flex: 1,
@@ -180,6 +225,16 @@ type EmbeddedFinancialConnectionsResult =
       error?: undefined;
     };
 
+type ConnectBridgeReplyContext = {
+  attachmentId: string;
+  requestHandle: string;
+};
+
+type ConnectBridgeReplyAction =
+  | 'clientSecret'
+  | 'financialConnections'
+  | 'authenticatedWebView';
+
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const [dynamicWebview, setDynamicWebview] = useState<{
     WebView: typeof WebView | null;
@@ -192,6 +247,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     Map<
       string,
       {
+        id: string;
         callback: (id: string, url: string | null) => void;
         timeoutId?: NodeJS.Timeout;
       }
@@ -202,7 +258,24 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const pendingFinancialConnectionsPromise = useRef<{
     id: string;
     cleanup: () => void;
+    replyContext: ConnectBridgeReplyContext;
   } | null>(null);
+  const androidAuthOwnerToken = useRef<object>({});
+  const isComponentMounted = useRef(true);
+
+  const clearPendingAndroidAuthRequests = useCallback(() => {
+    const owner = activeAndroidAuthOwner;
+    if (owner?.token === androidAuthOwnerToken.current) {
+      releaseAndroidAuthOwner(owner.token, owner.operationId);
+      NativeStripeSdk.authWebViewDeepLinkHandled(owner.operationId).catch(
+        () => {}
+      );
+    }
+    pendingAuthWebViewPromises.current.forEach((promiseData) => {
+      if (promiseData.timeoutId) clearTimeout(promiseData.timeoutId);
+    });
+    pendingAuthWebViewPromises.current.clear();
+  }, []);
 
   // Track recently handled URLs to prevent duplicate processing
   // This is needed because the SDK uses dual delivery paths (setIntent + direct emit)
@@ -241,6 +314,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   //
   // This preserves the navigation stack and prevents unwanted screen dismissals.
   useEffect(() => {
+    isComponentMounted.current = true;
     if (Platform.OS !== 'android') return;
 
     const pollInterval = setInterval(async () => {
@@ -273,7 +347,15 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                 .next().value;
 
               if (firstEntry) {
-                const [id, promiseData] = firstEntry;
+                const [operationId, promiseData] = firstEntry;
+                const owner = activeAndroidAuthOwner;
+                if (
+                  owner?.token !== androidAuthOwnerToken.current ||
+                  owner.operationId !== operationId
+                ) {
+                  pendingAuthWebViewPromises.current.delete(operationId);
+                  return;
+                }
 
                 // Clear the timeout if it exists
                 if (promiseData.timeoutId) {
@@ -281,13 +363,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                 }
 
                 // Remove from Map and invoke callback
-                pendingAuthWebViewPromises.current.delete(id);
-                promiseData.callback(id, url);
+                pendingAuthWebViewPromises.current.delete(operationId);
+                releaseAndroidAuthOwner(owner.token, operationId);
+                promiseData.callback(promiseData.id, url);
 
                 // Reset the Android flag
-                NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(() => {
-                  // Intentionally silent - flag reset is not critical
-                });
+                NativeStripeSdk.authWebViewDeepLinkHandled(operationId).catch(
+                  () => {
+                    // Intentionally silent - flag reset is not critical
+                  }
+                );
               }
             }
           });
@@ -312,21 +397,31 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         if (pendingAuthWebViewPromises.current.size > 0) {
           // Give the deep link handler time to process the URL
           // If no deep link arrives within the grace period, assume the user cancelled
-          pendingAuthWebViewPromises.current.forEach((promiseData, id) => {
-            // Only set timeout if one doesn't already exist
-            if (!promiseData.timeoutId) {
-              const timeoutId = setTimeout(() => {
-                const stillPending = pendingAuthWebViewPromises.current.get(id);
-                if (stillPending) {
-                  pendingAuthWebViewPromises.current.delete(id);
-                  stillPending.callback(id, null);
-                }
-              }, DEEP_LINK_GRACE_PERIOD_MS);
+          pendingAuthWebViewPromises.current.forEach(
+            (promiseData, operationId) => {
+              // Only set timeout if one doesn't already exist
+              if (!promiseData.timeoutId) {
+                const timeoutId = setTimeout(() => {
+                  const stillPending =
+                    pendingAuthWebViewPromises.current.get(operationId);
+                  if (stillPending) {
+                    pendingAuthWebViewPromises.current.delete(operationId);
+                    releaseAndroidAuthOwner(
+                      androidAuthOwnerToken.current,
+                      operationId
+                    );
+                    stillPending.callback(stillPending.id, null);
+                    NativeStripeSdk.authWebViewDeepLinkHandled(
+                      operationId
+                    ).catch(() => {});
+                  }
+                }, DEEP_LINK_GRACE_PERIOD_MS);
 
-              // Store the timeout ID so we can clear it later if needed
-              promiseData.timeoutId = timeoutId;
+                // Store the timeout ID so we can clear it later if needed
+                promiseData.timeoutId = timeoutId;
+              }
             }
-          });
+          );
         }
       }
 
@@ -334,23 +429,26 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     });
 
     return () => {
+      isComponentMounted.current = false;
+      clearPendingAndroidAuthRequests();
       // Clear all pending timeouts and promises
       // We intentionally want the latest ref value at cleanup time
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      const promises = pendingAuthWebViewPromises.current;
-      promises.forEach((promiseData, _id) => {
-        if (promiseData.timeoutId) {
-          clearTimeout(promiseData.timeoutId);
-        }
-      });
-      promises.clear();
+
       pendingFinancialConnectionsPromise.current?.cleanup();
       subscription.remove();
     };
-  }, []);
+  }, [clearPendingAndroidAuthRequests]);
 
   const { connectInstance, appearance, locale, analyticsClient } =
     useConnectComponents();
+  const connectContextId = getConnectContextId(connectInstance);
+  const previousConnectContextId = useRef(connectContextId);
+  useEffect(() => {
+    if (previousConnectContextId.current === connectContextId) return;
+    previousConnectContextId.current = connectContextId;
+    clearPendingAndroidAuthRequests();
+    pendingFinancialConnectionsPromise.current?.cleanup();
+  }, [connectContextId, clearPendingAndroidAuthRequests]);
   const { fonts, publishableKey, fetchClientSecret, overrides } =
     connectInstance.initParams as StripeConnectInitParamsInternal;
 
@@ -402,44 +500,28 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     .join('&');
 
   const connectURL = `${BASE_URL}/v1.0/react_native_webview.html#${hash}`;
-  const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
-  const ref = useRef<WebView>(null);
-  const hasTriedSourceReload = useRef(false);
+  const connectBridgeRef =
+    useRef<React.ElementRef<typeof NativeConnectBridgeContainer>>(null);
 
-  const [prevAppearance, setPrevAppearance] = useState(appearance);
-  const [prevLocale, setPrevLocale] = useState(locale);
+  const replyToConnectBridge = useCallback(
+    (
+      request: ConnectBridgeReplyContext,
+      action: ConnectBridgeReplyAction,
+      data: unknown
+    ) => {
+      const bridgeContainer = connectBridgeRef.current;
+      if (!bridgeContainer) return;
 
-  if (prevAppearance !== appearance || prevLocale !== locale) {
-    setPrevAppearance(appearance);
-    setPrevLocale(locale);
-
-    const patchedAppearance = withDefaultFontFamily(appearance);
-
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.updateConnectInstance(${JSON.stringify({ appearance: patchedAppearance, locale })});
-        true;
-      })();
-    `);
-  }
-
-  const [prevComponentProps, setPrevComponentProps] = useState(componentProps);
-  if (prevComponentProps !== componentProps) {
-    setPrevComponentProps(componentProps);
-
-    Object.entries(componentProps || {}).forEach(([key, value]) => {
-      ref.current?.injectJavaScript(`
-        (function() {
-          window.callSetterWithSerializableValue(${JSON.stringify({
-            setter: key,
-            value,
-          })});
-          true;
-        })();
-      `);
-    });
-  }
+      ConnectBridgeCommands.reply(
+        bridgeContainer,
+        request.attachmentId,
+        request.requestHandle,
+        JSON.stringify({ type: 'connectBridgeReply', action, data })
+      );
+    },
+    []
+  );
 
   const handleUnexpectedError = useCallback((error: unknown) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -447,27 +529,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   }, []);
 
   const WebViewComponent = dynamicWebview?.WebView;
-
-  // Workaround for react-native-webview new architecture bug on iOS
-  // https://github.com/react-native-webview/react-native-webview/pull/3880
-  // The source prop doesn't get set properly on iOS with new architecture,
-  // so we force reload after the component mounts
-  useEffect(() => {
-    if (
-      Platform.OS === 'ios' &&
-      !hasTriedSourceReload.current &&
-      WebViewComponent &&
-      ref.current
-    ) {
-      hasTriedSourceReload.current = true;
-      // Force reload after mount to ensure source is set
-      const timer = setTimeout(() => {
-        ref.current?.reload();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [WebViewComponent]);
 
   // Track component lifecycle events
   useEffect(() => {
@@ -484,64 +545,62 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     }
   }, [hasBeenViewed, componentAnalytics]);
 
-  const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.returnedFromAuthenticatedWebView(${JSON.stringify({
+  const handleAuthWebViewResult = useCallback(
+    (
+      id: string,
+      resultUrl: string | null,
+      replyContext: ConnectBridgeReplyContext
+    ) => {
+      replyToConnectBridge(replyContext, 'authenticatedWebView', {
+        id,
+        url: resultUrl,
+      });
+    },
+    [replyToConnectBridge]
+  );
+
+  const handleFinancialConnectionsResult = useCallback(
+    (
+      id: string,
+      result: EmbeddedFinancialConnectionsResult,
+      replyContext: ConnectBridgeReplyContext
+    ) => {
+      let value;
+      if (result.error) {
+        value = {
           id,
-          url: resultUrl,
-        })});
-        true;
-      })();
-    `);
-  };
+          financialConnectionsSession: null,
+          token: null,
+          error: result.error,
+        };
+      } else if (result.session) {
+        value = {
+          id,
+          financialConnectionsSession: {
+            accounts: result.session.accounts,
+          },
+          token: result.token,
+          error: null,
+        };
+      } else {
+        value = {
+          id,
+          financialConnectionsSession: null,
+          token: null,
+          error: null,
+        };
+      }
 
-  const handleFinancialConnectionsResult = (
-    id: string,
-    result: EmbeddedFinancialConnectionsResult
-  ) => {
-    let value;
-    if (result.error) {
-      value = {
-        id,
-        financialConnectionsSession: null,
-        token: null,
-        error: result.error,
-      };
-    } else if (result.session) {
-      value = {
-        id,
-        financialConnectionsSession: {
-          accounts: result.session.accounts,
-        },
-        token: result.token,
-        error: null,
-      };
-    } else {
-      value = {
-        id,
-        financialConnectionsSession: null,
-        token: null,
-        error: null,
-      };
-    }
-
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.callSetterWithSerializableValue(${JSON.stringify({
-          setter: 'setCollectMobileFinancialConnectionsResult',
-          value,
-        })});
-        true;
-      })();
-    `);
-  };
+      replyToConnectBridge(replyContext, 'financialConnections', value);
+    },
+    [replyToConnectBridge]
+  );
 
   const onMessageCallback = useCallback(
-    async (event: WebViewMessageEvent) => {
+    async (rawMessage: string, replyContext: ConnectBridgeReplyContext) => {
       let message: { type: string; data?: unknown };
       try {
-        message = JSON.parse(event.nativeEvent.data);
+        message = JSON.parse(rawMessage);
       } catch (error) {
         componentAnalytics.logDeserializeMessageError(
           'unknown',
@@ -555,13 +614,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           handleUnexpectedError(error);
           return null;
         });
-        if (!clientSecret) return;
+        if (!clientSecret) {
+          replyToConnectBridge(replyContext, 'clientSecret', null);
+          return;
+        }
 
-        ref.current?.injectJavaScript(`
-            window.clientSecretDeferred.resolve(${JSON.stringify(
-              clientSecret
-            )});
-          `);
+        replyToConnectBridge(replyContext, 'clientSecret', clientSecret);
       } else if (message.type === 'debug') {
         // message.data is of type string
         console.debug(`[EmbeddedComponent ${component}]: ${message.data}`);
@@ -601,23 +659,31 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         // Validate client secret
         if (!clientSecret || typeof clientSecret !== 'string') {
-          handleFinancialConnectionsResult(id, {
-            error: {
-              code: 'InvalidClientSecret',
-              message: 'Invalid or missing clientSecret parameter',
+          handleFinancialConnectionsResult(
+            id,
+            {
+              error: {
+                code: 'InvalidClientSecret',
+                message: 'Invalid or missing clientSecret parameter',
+              },
             },
-          });
+            replyContext
+          );
           return;
         }
 
         // Prevent multiple simultaneous flows
         if (pendingFinancialConnectionsPromise.current) {
-          handleFinancialConnectionsResult(id, {
-            error: {
-              code: 'AlreadyInProgress',
-              message: 'Financial Connections flow already in progress',
+          handleFinancialConnectionsResult(
+            id,
+            {
+              error: {
+                code: 'AlreadyInProgress',
+                message: 'Financial Connections flow already in progress',
+              },
             },
-          });
+            replyContext
+          );
           return;
         }
 
@@ -641,12 +707,15 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           if (hasCleanedUp) return;
           hasCleanedUp = true;
           eventListener?.remove();
-          pendingFinancialConnectionsPromise.current = null;
+          if (pendingFinancialConnectionsPromise.current?.cleanup === cleanup) {
+            pendingFinancialConnectionsPromise.current = null;
+          }
         };
 
         pendingFinancialConnectionsPromise.current = {
           id,
           cleanup,
+          replyContext,
         };
 
         const resultPromise: Promise<FinancialConnections.TokenResult> =
@@ -660,44 +729,61 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               if (
                 result.error.code === FinancialConnectionsSheetError.Canceled
               ) {
-                handleFinancialConnectionsResult(id, {});
+                handleFinancialConnectionsResult(id, {}, replyContext);
                 return;
               }
 
-              handleFinancialConnectionsResult(id, {
-                error: result.error,
-              });
+              handleFinancialConnectionsResult(
+                id,
+                {
+                  error: result.error,
+                },
+                replyContext
+              );
               return;
             }
 
             if (!result.session) {
-              handleFinancialConnectionsResult(id, {
-                error: {
-                  code: 'UnexpectedError',
-                  message: 'Financial Connections completed without a session',
+              handleFinancialConnectionsResult(
+                id,
+                {
+                  error: {
+                    code: 'UnexpectedError',
+                    message:
+                      'Financial Connections completed without a session',
+                  },
                 },
-              });
+                replyContext
+              );
               return;
             }
 
-            handleFinancialConnectionsResult(id, {
-              session: result.session,
-              token: result.token
-                ? toStripeJsBankAccountToken(result.token)
-                : null,
-            });
+            handleFinancialConnectionsResult(
+              id,
+              {
+                session: result.session,
+                token: result.token
+                  ? toStripeJsBankAccountToken(result.token)
+                  : null,
+              },
+              replyContext
+            );
           })
           .catch((unexpectedError) => {
             handleUnexpectedError(unexpectedError);
-            handleFinancialConnectionsResult(id, {
-              error: {
-                code: 'UnexpectedError',
-                message:
-                  unexpectedError instanceof Error
-                    ? unexpectedError.message
-                    : 'An unexpected error occurred during Financial Connections',
+            handleFinancialConnectionsResult(
+              id,
+              {
+                error: {
+                  code: 'UnexpectedError',
+                  message:
+                    unexpectedError instanceof Error
+                      ? unexpectedError.message
+                      : 'An unexpected error occurred during Financial Connections',
+                },
               },
-            });
+              replyContext
+            );
           })
           .finally(cleanup);
       } else if (message.type === 'closeWebView') {
@@ -730,11 +816,51 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         const { url, id } = message.data as { id: string; url: string };
 
         // Validate URL before opening
-        if (!isValidUrl(url)) {
+        if (!isValidAuthenticatedWebViewUrl(url)) {
           handleUnexpectedError(
-            new Error(`Invalid URL for authenticated webview: ${url}`)
+            new Error('Invalid URL for authenticated webview')
           );
+          handleAuthWebViewResult(id, null, replyContext);
           return;
+        }
+
+        const isAndroid = Platform.OS === 'android';
+        const ownerToken = androidAuthOwnerToken.current;
+        const nativeOperationId = isAndroid
+          ? getNativeAuthOperationId(replyContext)
+          : id;
+        let resultReplied = false;
+        const completeRequest = (authId: string, resultUrl: string | null) => {
+          if (resultReplied) return;
+          resultReplied = true;
+          if (resultUrl) {
+            componentAnalytics.logAuthenticatedWebViewRedirected(authId);
+          } else {
+            componentAnalytics.logAuthenticatedWebViewCanceled(authId);
+          }
+          handleAuthWebViewResult(authId, resultUrl, replyContext);
+        };
+        const pendingRequest = {
+          id,
+          callback: completeRequest,
+        };
+
+        if (isAndroid) {
+          if (!reserveAndroidAuthOwner(ownerToken, nativeOperationId)) {
+            componentAnalytics.logAuthenticatedWebViewError(
+              id,
+              new Error('Another authenticated webview is already active')
+            );
+            handleAuthWebViewResult(id, null, replyContext);
+            return;
+          }
+
+          // Install the owner callback before launching Custom Tabs so an
+          // immediate return URL cannot arrive before there is a pending entry.
+          pendingAuthWebViewPromises.current.set(
+            nativeOperationId,
+            pendingRequest
+          );
         }
 
         // Log authenticated web view opened
@@ -742,9 +868,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         // On Android, we need to wait for the deep link callback
         // On iOS, the promise resolves with the redirect URL
-        NativeStripeSdk.openAuthenticatedWebView(id, url)
+        NativeStripeSdk.openAuthenticatedWebView(nativeOperationId, url)
           .then((result) => {
             if (Platform.OS === 'ios') {
+              if (result?.error) {
+                const error = new Error(
+                  result.error.message ||
+                    result.error.code ||
+                    'Authenticated web view could not be opened'
+                );
+                componentAnalytics.logAuthenticatedWebViewError(id, error);
+                handleUnexpectedError(error);
+                handleAuthWebViewResult(id, null, replyContext);
+                return;
+              }
+
               // iOS returns the redirect URL directly
               const resultUrl = result?.url ?? null;
               if (resultUrl) {
@@ -752,24 +890,23 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               } else {
                 componentAnalytics.logAuthenticatedWebViewCanceled(id);
               }
-              handleAuthWebViewResult(id, resultUrl);
-            } else {
-              // Android: Store promise in Map to be resolved by deep link listener
-              pendingAuthWebViewPromises.current.set(id, {
-                callback: (authId: string, resultUrl: string | null) => {
-                  if (resultUrl) {
-                    componentAnalytics.logAuthenticatedWebViewRedirected(
-                      authId
-                    );
-                  } else {
-                    componentAnalytics.logAuthenticatedWebViewCanceled(authId);
-                  }
-                  handleAuthWebViewResult(authId, resultUrl);
-                },
-              });
+              handleAuthWebViewResult(id, resultUrl, replyContext);
             }
           })
           .catch((error) => {
+            if (isAndroid) {
+              const pending =
+                pendingAuthWebViewPromises.current.get(nativeOperationId);
+              if (pending === pendingRequest) {
+                if (pending.timeoutId) clearTimeout(pending.timeoutId);
+                pendingAuthWebViewPromises.current.delete(nativeOperationId);
+              }
+              releaseAndroidAuthOwner(ownerToken, nativeOperationId);
+              NativeStripeSdk.authWebViewDeepLinkHandled(
+                nativeOperationId
+              ).catch(() => {});
+            }
+            completeRequest(id, null);
             if (__DEV__) {
               console.error(
                 `[EmbeddedComponent] Error opening authenticated webview:`,
@@ -791,13 +928,46 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       component,
       componentAnalytics,
       fetchClientSecret,
+      handleAuthWebViewResult,
+      handleFinancialConnectionsResult,
       handleUnexpectedError,
       onLoadError,
       onLoaderStart,
       onContentHeightChange,
       onOpenNotificationBannerForm,
       onPageDidLoad,
+      replyToConnectBridge,
     ]
+  );
+
+  const onBridgeRequest = useCallback(
+    (event: NativeSyntheticEvent<ConnectBridgeRequestEvent>) => {
+      const {
+        attachmentId,
+        requestHandle,
+        contextId: eventContextId,
+        rawMessage,
+      } = event.nativeEvent;
+      if (!isComponentMounted.current || eventContextId !== connectContextId)
+        return;
+      onMessageCallback(rawMessage, { attachmentId, requestHandle }).catch(
+        handleUnexpectedError
+      );
+    },
+    [connectContextId, handleUnexpectedError, onMessageCallback]
+  );
+
+  const onBridgeError = useCallback(
+    (event: NativeSyntheticEvent<ConnectBridgeErrorEvent>) => {
+      onLoadError?.({
+        elementTagName: component,
+        error: {
+          type: 'render_error',
+          message: getConnectBridgeErrorMessage(event.nativeEvent.error),
+        },
+      });
+    },
+    [component, onLoadError]
   );
 
   const openUrlOutsideComponent = useCallback(
@@ -862,20 +1032,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   if (!WebViewComponent) return null;
 
   return (
-    <WebViewComponent
-      ref={ref}
+    <NativeConnectBridgeContainer
+      ref={connectBridgeRef}
       style={mergedStyle}
-      renderLoading={() => {
-        return (
-          <View style={[styles.loadingIndicatorContainer, { backgroundColor }]}>
-            <ActivityIndicator color={textColor} />
-          </View>
-        );
-      }}
-      webviewDebuggingEnabled={DEVELOPMENT_MODE}
-      source={source}
-      userAgent={userAgent}
-      injectedJavaScriptObject={{
+      contextId={connectContextId}
+      connectSource={connectURL}
+      initializationObjectJson={JSON.stringify({
         initParams: {
           appearance: withDefaultFontFamily(appearance),
           locale,
@@ -883,43 +1045,35 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         },
         initComponentProps: componentProps,
         appInfo: { applicationId: overrides?.applicationId },
-      }}
-      // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
-      injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
-      injectedJavaScript={
-        sizeToContent ? CONTENT_HEIGHT_OBSERVER_SCRIPT : undefined
-      }
-      onMessage={onMessageCallback}
-      onOpenWindow={presentExternalLinksInApp ? onOpenWindow : undefined}
-      onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-      onLayout={handleLayout}
-      // Camera/Media Permissions - matches iOS SDK behavior
-      mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
-      allowsInlineMediaPlayback={true}
-      mediaPlaybackRequiresUserAction={false}
-    />
+      })}
+      observeContentHeight={Boolean(sizeToContent)}
+      onBridgeRequest={onBridgeRequest}
+      onBridgeError={onBridgeError}
+    >
+      <WebViewComponent
+        style={styles.webview}
+        renderLoading={() => {
+          return (
+            <View
+              style={[styles.loadingIndicatorContainer, { backgroundColor }]}
+            >
+              <ActivityIndicator color={textColor} />
+            </View>
+          );
+        }}
+        webviewDebuggingEnabled={DEVELOPMENT_MODE}
+        userAgent={userAgent}
+        onOpenWindow={presentExternalLinksInApp ? onOpenWindow : undefined}
+        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+        onLayout={handleLayout}
+        // Camera/Media Permissions - matches iOS SDK behavior
+        mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+        allowsInlineMediaPlayback={true}
+        mediaPlaybackRequiresUserAction={false}
+      />
+    </NativeConnectBridgeContainer>
   );
 }
-
-const CONTENT_HEIGHT_OBSERVER_SCRIPT = `
-  (function() {
-    if (window.__stripeConnectHeightObserver || !document.body) return;
-    window.__stripeConnectHeightObserver = true;
-    var lastHeight = -1;
-    var reportHeight = function() {
-      var height = document.body.getBoundingClientRect().height;
-      if (Math.abs(height - lastHeight) < 0.5) return;
-      lastHeight = height;
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        type: 'contentHeightChanged',
-        data: { height: height }
-      }));
-    };
-    new ResizeObserver(reportHeight).observe(document.body);
-    reportHeight();
-  })();
-  true;
-`;
 
 const DEFAULT_FONT =
   "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'";
@@ -977,6 +1131,33 @@ function isValidUrl(url: string): boolean {
     return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
   } catch {
     return false;
+  }
+}
+
+function isValidAuthenticatedWebViewUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return (
+      parsedUrl.protocol === 'https:' &&
+      parsedUrl.hostname.length > 0 &&
+      parsedUrl.username.length === 0 &&
+      parsedUrl.password.length === 0
+    );
+  } catch {
+    return false;
+  }
+}
+
+function getConnectBridgeErrorMessage(error: string): string {
+  switch (error) {
+    case 'unsupported_web_view':
+      return 'Embedded components require a supported react-native-webview version.';
+    case 'multiple_web_views':
+      return 'Embedded components must contain exactly one WebView.';
+    case 'invalid_connect_source':
+      return 'Embedded components could not load because the Connect URL is invalid.';
+    default:
+      return 'Embedded components could not initialize. Check the WebView configuration and try again.';
   }
 }
 

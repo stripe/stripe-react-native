@@ -2023,8 +2023,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        guard let url = URL(string: url) else {
-            resolve(Errors.createError(ErrorType.Failed, "Invalid URL"))
+        guard let components = URLComponents(string: url),
+              components.scheme?.lowercased() == "https",
+              let host = components.host,
+              !host.isEmpty,
+              components.user == nil,
+              components.password == nil,
+              let authenticationURL = components.url else {
+            resolve(Errors.createError(ErrorType.Failed, "Invalid authenticated web view URL"))
             return
         }
 
@@ -2033,10 +2039,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 resolve(Errors.createError(ErrorType.Failed, "StripeSdkImpl instance deallocated"))
                 return
             }
+            guard self.authenticationSession == nil else {
+                resolve(Errors.createError(ErrorType.Failed, "An authenticated web view is already active"))
+                return
+            }
 
             // Create the authentication session with the configured URL scheme
             self.authenticationSession = ASWebAuthenticationSession(
-                url: url,
+                url: authenticationURL,
                 callbackURLScheme: StripeSdkImpl.authenticatedWebViewReturnURLScheme
             ) { callbackURL, error in
                 if let error = error {
