@@ -525,6 +525,61 @@ describe('EmbeddedComponent', () => {
       }
     });
 
+    it.each(['android', 'ios'])(
+      'shares real S3-hosted CSV exports without opening them externally on %s',
+      async (platform) => {
+        const previousPlatform = Platform.OS;
+        Platform.OS = platform as any;
+        const downloadAndShare =
+          NativeStripeSdk.downloadAndShareFile as jest.Mock;
+        downloadAndShare.mockResolvedValue({ success: true });
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+        const csvExportUrl =
+          'https://stripe-data-exports.s3.amazonaws.com/acct_123/xprt_456/payouts.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=abc';
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url: csvExportUrl,
+            navigationType: 'other',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(downloadAndShare).toHaveBeenCalledWith(csvExportUrl, null);
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+          Platform.OS = previousPlatform;
+        }
+      }
+    );
+
+    it('does not treat lookalike export hosts as CSV exports', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const downloadAndShare =
+        NativeStripeSdk.downloadAndShareFile as jest.Mock;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://stripe-data-exports.s3.amazonaws.com.attacker.example/x.csv',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(downloadAndShare).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
     it('keeps external navigation blocked when opening the URL rejects', async () => {
       const previousPlatform = Platform.OS;
       Platform.OS = 'android' as any;

@@ -1014,6 +1014,7 @@ function isCsvExportUrl(url: string): boolean {
     return (
       parsedUrl.hostname === 'stripe-data-exports.com' ||
       parsedUrl.hostname.endsWith('.stripe-data-exports.com') ||
+      parsedUrl.hostname === 'stripe-data-exports.s3.amazonaws.com' ||
       parsedUrl.pathname.includes('stripe-data-exports')
     );
   } catch {
