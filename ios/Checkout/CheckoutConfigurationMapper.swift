@@ -241,12 +241,9 @@ enum CheckoutConfigurationMapper {
         }
 
         if let applePayParams = params["applePay"] as? NSDictionary {
-            guard let merchantIdentifier, !merchantIdentifier.isEmpty else {
-                throw CheckoutConfigurationMapperError.missingMerchantIdentifier
-            }
-            configuration.applePayConfiguration = PaymentElement.Configuration.ApplePayConfiguration(
-                merchantId: merchantIdentifier,
-                buttonType: try mapApplePayButtonType(applePayParams["buttonType"] as? String)
+            configuration.applePayConfiguration = try mapApplePayConfiguration(
+                applePayParams,
+                merchantIdentifier: merchantIdentifier
             )
         }
 
@@ -324,6 +321,25 @@ enum CheckoutConfigurationMapper {
         case "never": return .never
         default: throw unsupported(value, at: "paymentElement.link.display")
         }
+    }
+
+    private static func mapApplePayConfiguration(
+        _ params: NSDictionary,
+        merchantIdentifier: String?
+    ) throws -> PaymentElement.Configuration.ApplePayConfiguration? {
+        switch params["display"] as? String {
+        case "never": return nil
+        case nil, "automatic": break
+        case .some(let value): throw unsupported(value, at: "paymentElement.applePay.display")
+        }
+
+        guard let merchantIdentifier, !merchantIdentifier.isEmpty else {
+            throw CheckoutConfigurationMapperError.missingMerchantIdentifier
+        }
+        return .init(
+            merchantId: merchantIdentifier,
+            buttonType: try mapApplePayButtonType(params["buttonType"] as? String)
+        )
     }
 
     private static func mapApplePayButtonType(_ value: String?) throws -> PKPaymentButtonType? {
