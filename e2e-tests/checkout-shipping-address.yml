@@ -33,9 +33,12 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Full name'
     timeout: 30000
-- tapOn: 'Full name'
-- eraseText
+# Tap the value to place the cursor at the end of the name.
+- tapOn: 'Jenny Rosen'
+# Extra backspaces on an empty Android field move focus to previous address fields.
+- eraseText: 11
 - inputText: 'Alex Example'
+- assertVisible: 'Alex Example'
 - scrollUntilVisible:
     element:
       text: 'Address line 2.*'
@@ -57,7 +60,7 @@ appId: ${APP_ID}
     timeout: 30000
 - scrollUntilVisible:
     element:
-      text: '(?s)Edit shipping address, Alex Example.*510 Townsend St.*Suite 200.*San Francisco.*CA.*94103.*US'
+      text: '(?s)Edit shipping address, Alex Example\s+510 Townsend St.*Suite 200.*San Francisco.*CA.*94103.*US'
     centerElement: true
     timeout: 30000
 
@@ -73,7 +76,7 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     notVisible: 'Full name'
     timeout: 30000
-- assertVisible: '(?s)Edit shipping address, Alex Example.*510 Townsend St.*Suite 200.*San Francisco.*CA.*94103.*US'
+- assertVisible: '(?s)Edit shipping address, Alex Example\s+510 Townsend St.*Suite 200.*San Francisco.*CA.*94103.*US'
 
 # Clearing the saved address restores the add action; canceling does not save it.
 - scrollUntilVisible:
