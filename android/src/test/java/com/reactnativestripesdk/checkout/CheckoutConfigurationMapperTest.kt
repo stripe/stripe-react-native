@@ -21,6 +21,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(CheckoutSessionPreview::class)
 @RunWith(RobolectricTestRunner::class)
@@ -36,7 +37,15 @@ class CheckoutConfigurationMapperTest {
           "appearance" to readableMapOf(
             "contentVerticalPadding" to 8,
             "shapes" to readableMapOf("cornerRadius" to 12, "borderWidth" to 2),
-            "colors" to readableMapOf("background" to "#112233"),
+            "colors" to readableMapOf(
+              "border" to "#112233",
+              "background" to "#223344",
+              "selectedBackground" to "#334455",
+              "text" to "#445566",
+              "selectedText" to "#556677",
+              "textSecondary" to "#667788",
+              "danger" to "#778899",
+            ),
             "font" to readableMapOf("scale" to 1.2),
             "labelContent" to "amount",
           ),
@@ -53,10 +62,71 @@ class CheckoutConfigurationMapperTest {
     assertEquals(12f, appearance.readField<Float>("cornerRadiusDp"))
     assertEquals(2f, appearance.readField<Float>("borderWidthDp"))
     assertEquals(1.2f, appearance.readField<Float>("sizeScaleFactor"))
-    assertEquals(Color("#112233".toColorInt()), appearance.readField<Color>("background"))
+    val colors = mapOf(
+      "borderColor" to "#112233",
+      "background" to "#223344",
+      "selectedBackground" to "#334455",
+      "textColor" to "#445566",
+      "selectedTextColor" to "#556677",
+      "textSecondaryColor" to "#667788",
+      "dangerColor" to "#778899",
+    )
+    for ((field, value) in colors) {
+      assertEquals(Color(value.toColorInt()), appearance.readField<Color>(field))
+    }
     assertEquals(
       CurrencySelectorElement.Configuration.Appearance.LabelContent.AMOUNT,
       appearance.readField<CurrencySelectorElement.Configuration.Appearance.LabelContent>("labelContent"),
+    )
+  }
+
+  @Test
+  @Config(qualifiers = "night")
+  fun `map selects dark currency selector colors in dark mode`() {
+    val configuration = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "currencySelectorElement" to readableMapOf(
+          "appearance" to readableMapOf(
+            "colors" to readableMapOf(
+              "light" to readableMapOf("background" to "#112233"),
+              "dark" to readableMapOf("background" to "#445566"),
+            ),
+          ),
+        ),
+      ),
+      context,
+    ) {}.configuration.readField<CurrencySelectorElement.Configuration>("currencySelectorElementConfiguration")
+
+    assertEquals(
+      Color("#445566".toColorInt()),
+      configuration.readField<CurrencySelectorElement.Configuration.Appearance>("appearance")
+        .readField<Color>("background"),
+    )
+  }
+
+  @Test
+  fun `map uses checkout style for currency selector colors`() {
+    val configuration = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "style" to "alwaysDark",
+        "currencySelectorElement" to readableMapOf(
+          "appearance" to readableMapOf(
+            "colors" to readableMapOf(
+              "light" to readableMapOf("background" to "#112233"),
+              "dark" to readableMapOf("background" to "#445566"),
+            ),
+          ),
+        ),
+      ),
+      context,
+    ) {}.configuration.readField<CurrencySelectorElement.Configuration>("currencySelectorElementConfiguration")
+
+    assertEquals(
+      Color("#445566".toColorInt()),
+      configuration.readField<CurrencySelectorElement.Configuration.Appearance>("appearance")
+        .readField<Color>("background"),
     )
   }
 

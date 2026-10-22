@@ -1520,7 +1520,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  @Suppress("TooGenericExceptionCaught")
+  @Suppress("TooGenericExceptionCaught", "LongMethod")
   override fun createCheckout(
     params: ReadableMap,
     controllerId: String,
@@ -1562,6 +1562,7 @@ class StripeSdkModule(
             scope = scope,
             initialSession = serializedSession,
             context = reactApplicationContext,
+            isShippingAddressElementConfigured = params.getMap("shippingAddressElement") != null,
           )
           check(!checkoutControllersInvalidated) { "Stripe SDK was invalidated." }
           scope.coroutineContext.ensureActive()
@@ -1721,6 +1722,32 @@ class StripeSdkModule(
       }
       try {
         instance.paymentElement(activity).present()
+        promise.resolve(null)
+      } catch (error: Exception) {
+        promise.reject("Failed", error.message, error)
+      }
+    }
+  }
+
+  @ReactMethod
+  @Suppress("TooGenericExceptionCaught")
+  override fun presentCheckoutShippingAddressElement(controllerId: String, promise: Promise) {
+    UiThreadUtil.runOnUiThread {
+      val instance = checkoutControllers[controllerId]
+      if (instance == null) {
+        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        return@runOnUiThread
+      }
+      val activity = reactApplicationContext.currentActivity as? ComponentActivity
+      if (activity == null || activity.isFinishing ||
+        !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+      ) {
+        promise.reject("Failed", "Checkout requires a resumed activity to present Shipping Address Element.")
+        return@runOnUiThread
+      }
+      try {
+        // Native Checkout saves the address and publishes the updated session.
+        instance.shippingAddressElement(activity).present()
         promise.resolve(null)
       } catch (error: Exception) {
         promise.reject("Failed", error.message, error)

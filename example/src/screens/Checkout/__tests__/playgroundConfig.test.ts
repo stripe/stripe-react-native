@@ -89,6 +89,27 @@ describe('Checkout playground configuration', () => {
     ).toContain('requires Guest');
   });
 
+  it.each([
+    ['automatic', undefined],
+    ['required', 'required'],
+  ] as const)(
+    'configures %s billing address collection on the session',
+    (billingAddressCollection, expected) => {
+      const settings = {
+        ...defaultPlaygroundSettings,
+        billingAddressCollection,
+      };
+
+      expect(buildSessionParameters(settings).billing_address_collection).toBe(
+        expected
+      );
+      expect(
+        checkoutConfiguration({ clientSecret: 'cs_test_secret', settings })
+          .paymentElement
+      ).not.toHaveProperty('billingDetailsCollectionConfiguration');
+    }
+  );
+
   it('maps local defaults into Checkout configuration', () => {
     const configuration = checkoutConfiguration({
       clientSecret: 'cs_test_secret',

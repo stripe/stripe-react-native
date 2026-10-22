@@ -1215,6 +1215,19 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     [backgroundColor, style]
   );
 
+  const injectedObject = useMemo(
+    () => ({
+      initParams: {
+        appearance: withDefaultFontFamily(appearance),
+        locale,
+        fonts,
+      },
+      initComponentProps: componentProps,
+      appInfo: { applicationId: overrides?.applicationId },
+    }),
+    [appearance, locale, fonts, componentProps, overrides?.applicationId]
+  );
+
   if (!WebViewComponent) return null;
 
   return (
@@ -1224,15 +1237,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       contextId={connectContextId}
       sourceGeneration={sourceGeneration}
       connectSource={connectURL}
-      initializationObjectJson={JSON.stringify({
-        initParams: {
-          appearance: withDefaultFontFamily(appearance),
-          locale,
-          fonts,
-        },
-        initComponentProps: componentProps,
-        appInfo: { applicationId: overrides?.applicationId },
-      })}
+      initializationObjectJson={JSON.stringify(injectedObject)}
       observeContentHeight={Boolean(sizeToContent)}
       onBridgeRequest={onBridgeRequest}
       onBridgeClaimResult={onBridgeClaimResult}

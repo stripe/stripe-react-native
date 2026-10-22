@@ -982,6 +982,7 @@ export namespace Checkout {
         merchantDisplayName?: string;
         paymentElement?: PaymentElementConfiguration;
         returnURL: string;
+        shippingAddressElement?: ShippingAddressElementConfiguration;
         style?: UserInterfaceStyle;
     }
     export interface CurrencySelectorElementConfiguration {
@@ -1046,7 +1047,6 @@ export namespace Checkout {
     export interface PaymentElementConfiguration {
         appearance?: PaymentElementConfiguration.Appearance;
         applePay?: PaymentElementConfiguration.ApplePayConfiguration;
-        billingDetailsCollectionConfiguration?: PaymentElementConfiguration.BillingDetailsCollectionConfiguration;
         displaysMandateText?: boolean;
         googlePay?: PaymentElementConfiguration.GooglePayConfiguration;
         link?: PaymentElementConfiguration.LinkConfiguration;
@@ -1063,12 +1063,6 @@ export namespace Checkout {
         export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
         export interface ApplePayConfiguration {
             buttonType?: ApplePayButtonType;
-        }
-        export interface BillingDetailsCollectionConfiguration {
-            address?: 'automatic' | 'full';
-            attachDefaultsToPaymentMethod?: boolean;
-            name?: 'automatic' | 'always';
-            phone?: 'automatic' | 'always';
         }
         export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
         export interface GooglePayConfiguration {
@@ -1131,6 +1125,10 @@ export namespace Checkout {
         address: Address;
         name?: string;
     }
+    export interface ShippingAddressElementConfiguration {
+        buttonTitle?: string;
+        title?: string;
+    }
     export interface Tax {
         status: 'ready' | 'requiresShippingAddress' | 'requiresBillingAddress';
     }
@@ -1165,6 +1163,7 @@ export namespace Checkout {
         removePromotionCode(): Promise<void>;
         runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
         readonly session: Session | null;
+        readonly shippingAddressElement: CheckoutShippingAddressElement | null;
         readonly status: 'idle' | 'loading' | 'ready' | 'updating' | 'confirming' | 'error';
         updateEmail(email: string | null): Promise<void>;
         updateShippingAddress(params: UpdateShippingAddressParams): Promise<void>;
@@ -1183,6 +1182,7 @@ export interface CheckoutController {
     removePromotionCode(): Promise<void>;
     runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
     readonly session: Checkout.Session;
+    readonly shippingAddressElement: CheckoutShippingAddressElement | null;
     readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
     updateEmail(email: string | null): Promise<void>;
     updateShippingAddress(params: Checkout.UpdateShippingAddressParams): Promise<void>;
@@ -1211,6 +1211,11 @@ export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProp
 // @public
 export interface CheckoutPaymentElementViewProps {
     element: CheckoutPaymentElement;
+}
+
+// @public
+export interface CheckoutShippingAddressElement {
+    present(): Promise<void>;
 }
 
 // @public (undocumented)
@@ -3561,7 +3566,6 @@ export interface PlatformPayButtonProps extends AccessibilityProps {
         shippingMethod: ShippingMethod;
     }) => void;
     setOrderTracking?: (completion: (orderIdentifier: string, orderTypeIdentifier: string, authenticationToken: string, webServiceUrl: string) => void) => void;
-    // (undocumented)
     style?: StyleProp<ViewStyle>;
     // (undocumented)
     testID?: string;

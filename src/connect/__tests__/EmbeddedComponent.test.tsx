@@ -1154,6 +1154,48 @@ describe('EmbeddedComponent', () => {
     });
   });
 
+  describe('Init params injection', () => {
+    it('passes quoted font families to the native initialization adapter', async () => {
+      const appearance = {
+        variables: { fontFamily: '"Courier New", C:\\fonts\\${name}`' },
+      };
+      connectInstance = loadConnectAndInitialize({
+        ...mockInitParams,
+        appearance,
+      });
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => expect(mockBridgeContainerProps).toBeDefined());
+
+      expect(
+        JSON.parse(mockBridgeContainerProps.initializationObjectJson)
+      ).toEqual({
+        initParams: { appearance, locale: 'en' },
+        appInfo: {},
+      });
+      expect(mockWebViewProps.injectedJavaScriptObject).toBeUndefined();
+      expect(
+        mockWebViewProps.injectedJavaScriptBeforeContentLoaded
+      ).toBeUndefined();
+    });
+
+    it('passes the default font family to the native initialization adapter', async () => {
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => expect(mockBridgeContainerProps).toBeDefined());
+
+      const injected = JSON.parse(
+        mockBridgeContainerProps.initializationObjectJson
+      );
+      expect(injected.initParams.appearance.variables.fontFamily).toBeTruthy();
+      expect(injected.initParams.appearance.variables.colorPrimary).toBe(
+        '#000000'
+      );
+    });
+  });
+
   describe('Financial Connections bridge', () => {
     const mockSession = {
       id: 'session',

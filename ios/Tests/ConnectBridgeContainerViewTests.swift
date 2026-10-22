@@ -25,7 +25,7 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
         let hostClass = try XCTUnwrap(NSClassFromString("ConnectBridgeContainerComponentView") as? UIView.Type)
         let host = hostClass.init(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
         let container = try XCTUnwrap(host.value(forKey: "contentView") as? ConnectBridgeContainerView)
-        let initializationJson = #"{"initParams":{"locale":"en"}}"#
+        let initializationJson = #"{"initParams":{"locale":"en","appearance":{"variables":{"fontFamily":"\"Courier New\", C:\\fonts\\${name}`"}}}}"#
         let updatedInitializationJson = #"{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"updated"}}"#
 
         let rncComponentClass = try XCTUnwrap(NSClassFromString("RNCWebView") as? UIView.Type)
