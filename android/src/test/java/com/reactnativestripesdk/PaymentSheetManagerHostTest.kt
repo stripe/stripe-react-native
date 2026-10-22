@@ -116,16 +116,63 @@ class PaymentSheetManagerHostTest {
     assertThat(shadowOf(firstHost).nextStartedActivityForResult).isNull()
   }
 
-  private fun runScenario(block: suspend Scenario.() -> Unit) = runTest {
+  @Test
+  fun confirmationTokenThenEphemeralKeySheetCanBePresented() = runScenario(
+    arguments = JavaOnlyMap.of(
+      "merchantDisplayName", "Callback switching test",
+      "customerId", "cus_test",
+      "customerSessionClientSecret", "cuss_test_secret_test",
+      "intentConfiguration",
+          JavaOnlyMap.of(
+        "mode", JavaOnlyMap.of("amount", 1000, "currencyCode", "usd"),
+        "confirmationTokenConfirmHandler", true,
+      ),
+    ),
+  ) {
+    manager.present(presentPromise)
+    shadowOf(Looper.getMainLooper()).idle()
+    val firstLaunch = requireNotNull(shadowOf(firstHost).nextStartedActivityForResult)
+    firstHost.activityResultRegistry.dispatchResult(firstLaunch.requestCode, Activity.RESULT_CANCELED, null)
+    assertPresentationResultReceived()
+
+    val ephemeralKeyArguments = JavaOnlyMap.of(
+      "merchantDisplayName", "Callback switching test",
+      "paymentIntentClientSecret", "pi_test_secret_test",
+      "customerId", "cus_test",
+      "customerEphemeralKeySecret", "ek_test",
+    )
+    manager.configure(ephemeralKeyArguments, initPromise)
+    assertInitializationSucceeded()
+    manager.present(presentPromise)
+    shadowOf(Looper.getMainLooper()).idle()
+
+    val secondLaunch = requireNotNull(shadowOf(firstHost).nextStartedActivityForResult)
+    val sheetActivityClass = Class.forName(requireNotNull(secondLaunch.intent.component).className)
+      .asSubclass(Activity::class.java)
+    val sheetController = Robolectric.buildActivity(sheetActivityClass, secondLaunch.intent).create()
+    try {
+      // Configuration errors finish the launched activity synchronously during onCreate.
+      assertThat(sheetController.get().isFinishing).isFalse()
+    } finally {
+      sheetController.destroy()
+    }
+    assertThat(secondLaunch.intent.component?.className).isEqualTo(PAYMENT_SHEET_ACTIVITY)
+    firstHost.activityResultRegistry.dispatchResult(secondLaunch.requestCode, Activity.RESULT_CANCELED, null)
+    assertPresentationResultReceived()
+  }
+
+  private fun runScenario(
+    arguments: ReadableMap = JavaOnlyMap.of(
+      "merchantDisplayName", "Host replacement test",
+      "paymentIntentClientSecret", "pi_test_secret_test",
+    ),
+    block: suspend Scenario.() -> Unit,
+  ) = runTest {
     val firstHostController = Robolectric.buildActivity(FragmentActivity::class.java).setup()
     val secondHostController = Robolectric.buildActivity(FragmentActivity::class.java).setup()
     val context = BridgeReactContext(RuntimeEnvironment.getApplication())
     val initPromise = FakePromise()
     val presentPromise = FakePromise()
-    val arguments = JavaOnlyMap.of(
-      "merchantDisplayName", "Host replacement test",
-      "paymentIntentClientSecret", "pi_test_secret_test",
-    )
     val manager = PaymentSheetManager(context, arguments, initPromise)
     val advancedFraudSignalsEnabled = Stripe.advancedFraudSignalsEnabled
 
