@@ -1126,8 +1126,36 @@ export namespace Checkout {
         name?: string;
     }
     export interface ShippingAddressElementConfiguration {
+        appearance?: ShippingAddressElementConfiguration.Appearance;
         buttonTitle?: string;
         title?: string;
+    }
+    export namespace ShippingAddressElementConfiguration {
+        export interface Appearance {
+            colors?: AppearanceParams['colors'];
+            font?: AppearanceParams['font'];
+            formInsetValues?: AppearanceParams['formInsetValues'];
+            primaryButton?: PrimaryButtonConfiguration;
+            shapes?: AppearanceParams['shapes'];
+        }
+        export interface PrimaryButtonColorConfiguration {
+            background?: string;
+            border?: string;
+            text?: string;
+        }
+        export interface PrimaryButtonConfiguration {
+            colors?: PrimaryButtonColorConfiguration | {
+                light: PrimaryButtonColorConfiguration;
+                dark: PrimaryButtonColorConfiguration;
+            };
+            font?: Partial<Pick<FontConfig, 'family'>>;
+            shapes?: PrimaryButtonShapeConfiguration;
+        }
+        export interface PrimaryButtonShapeConfiguration {
+            borderRadius?: number;
+            borderWidth?: number;
+            height?: number;
+        }
     }
     export interface Tax {
         status: 'ready' | 'requiresShippingAddress' | 'requiresBillingAddress';
@@ -3566,7 +3594,6 @@ export interface PlatformPayButtonProps extends AccessibilityProps {
         shippingMethod: ShippingMethod;
     }) => void;
     setOrderTracking?: (completion: (orderIdentifier: string, orderTypeIdentifier: string, authenticationToken: string, webServiceUrl: string) => void) => void;
-    // (undocumented)
     style?: StyleProp<ViewStyle>;
     // (undocumented)
     testID?: string;
