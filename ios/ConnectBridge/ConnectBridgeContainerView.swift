@@ -6,11 +6,13 @@ private final class WeakConnectBridgeScriptHandler: NSObject, WKScriptMessageHan
     weak var owner: ConnectBridgeContainerView?
     private let attachmentId: String
     private let contextId: String
+    private let sourceGeneration: String
 
-    init(owner: ConnectBridgeContainerView, attachmentId: String, contextId: String) {
+    init(owner: ConnectBridgeContainerView, attachmentId: String, contextId: String, sourceGeneration: String) {
         self.owner = owner
         self.attachmentId = attachmentId
         self.contextId = contextId
+        self.sourceGeneration = sourceGeneration
     }
 
     func userContentController(
@@ -22,24 +24,120 @@ private final class WeakConnectBridgeScriptHandler: NSObject, WKScriptMessageHan
             message,
             expectedAttachmentId: attachmentId,
             expectedContextId: contextId,
+            expectedSourceGeneration: sourceGeneration,
             replyHandler: replyHandler
         )
             ?? replyHandler(["type": "ack"], nil)
     }
 }
 
+private final class PendingConnectBridgeRequest {
+    let attachmentId: String
+    let contextId: String
+    let sourceGeneration: String
+    let documentId: String
+    let requestHandle: String
+    let messageType: String
+    let requestId: String?
+    let launchUrl: String?
+    let clientSecret: String?
+    let connectedAccountId: String?
+    let completion: ((Any?, String?) -> Void)?
+    var claimId: String?
+    var claimToken: String?
+    var claimed = false
+
+    init(
+        attachmentId: String,
+        contextId: String,
+        sourceGeneration: String,
+        documentId: String,
+        requestHandle: String,
+        messageType: String,
+        requestId: String?,
+        launchUrl: String?,
+        clientSecret: String?,
+        connectedAccountId: String?,
+        completion: ((Any?, String?) -> Void)?
+    ) {
+        self.attachmentId = attachmentId
+        self.contextId = contextId
+        self.sourceGeneration = sourceGeneration
+        self.documentId = documentId
+        self.requestHandle = requestHandle
+        self.messageType = messageType
+        self.requestId = requestId
+        self.launchUrl = launchUrl
+        self.clientSecret = clientSecret
+        self.connectedAccountId = connectedAccountId
+        self.completion = completion
+    }
+}
+
+private final class WeakConnectBridgeOwner {
+    weak var value: ConnectBridgeContainerView?
+
+    init(_ value: ConnectBridgeContainerView) {
+        self.value = value
+    }
+}
+
+private final class ConnectBridgeLaunchClaim {
+    let owner: WeakConnectBridgeOwner
+    let request: PendingConnectBridgeRequest
+    let token: String
+
+    init(owner: ConnectBridgeContainerView, request: PendingConnectBridgeRequest, token: String) {
+        self.owner = WeakConnectBridgeOwner(owner)
+        self.request = request
+        self.token = token
+    }
+}
+
+private final class ConnectBridgeLaunchClaimRegistry: @unchecked Sendable {
+    private let lock = NSLock()
+    private var claims: [String: ConnectBridgeLaunchClaim] = [:]
+
+    func register(owner: ConnectBridgeContainerView, request: PendingConnectBridgeRequest) -> String? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard claims.count < ConnectBridgeContainerView.maximumPendingRequests else { return nil }
+        let token = UUID().uuidString
+        claims[token] = ConnectBridgeLaunchClaim(owner: owner, request: request, token: token)
+        return token
+    }
+
+    func consume(_ token: String) -> ConnectBridgeLaunchClaim? {
+        lock.lock()
+        defer { lock.unlock() }
+        return claims.removeValue(forKey: token)
+    }
+
+    func remove(_ token: String?) {
+        guard let token else { return }
+        lock.lock()
+        claims.removeValue(forKey: token)
+        lock.unlock()
+    }
+
+    func removeAll(for owner: ConnectBridgeContainerView) {
+        lock.lock()
+        claims = claims.filter { $0.value.owner.value !== owner }
+        lock.unlock()
+    }
+}
+
 @objc(ConnectBridgeContainerView)
 public final class ConnectBridgeContainerView: UIView {
+    fileprivate static let maximumPendingRequests = 128
+    private static let launchClaimRegistry = ConnectBridgeLaunchClaimRegistry()
+
     @objc public var onBridgeRequest: ((NSDictionary) -> Void)?
+    @objc public var onBridgeClaimResult: ((NSDictionary) -> Void)?
     @objc public var onBridgeError: ((NSString) -> Void)?
     @objc public var onBridgeReady: ((NSString) -> Void)?
 
-    private struct PendingReply {
-        let attachmentId: String
-        let contextId: String
-        let documentId: String
-        let completion: (Any?, String?) -> Void
-    }
+    typealias InitializationUpdateCompletion = @MainActor @Sendable (Any?, Error?) -> Void
 
     private weak var boundWebView: WKWebView?
     private weak var discoveryRoot: UIView?
@@ -48,14 +146,21 @@ public final class ConnectBridgeContainerView: UIView {
     private var attachmentId: String?
     private var currentDocumentId: String?
     private var contextId = ""
+    private var sourceGeneration = ""
     private var connectSource = ""
     private var initializationObjectJson = "{}"
     private var observeContentHeight = false
-    private var pendingReplies: [String: PendingReply] = [:]
+    private var pendingRequests: [String: PendingConnectBridgeRequest] = [:]
+    private var appliedInitializationObjectJson: String?
+    private var pendingInitializationUpdateBaselineJson: String?
+    private var initializationUpdateGeneration = 0
+    private var initializationUpdateInFlightId: UUID?
+    private var initializationUpdateRetryRequested = false
     private var scanTimer: Timer?
     private var errorReported = false
     private var invalidated = false
     var loadSourceForTesting: ((WKWebView, URL) -> Void)?
+    var evaluateInitializationUpdateForTesting: ((WKWebView, String, @escaping InitializationUpdateCompletion) -> Void)?
 
     @objc public func setDiscoveryRoot(_ root: UIView) {
         discoveryRoot = root
@@ -73,25 +178,29 @@ public final class ConnectBridgeContainerView: UIView {
         isUserInteractionEnabled = false
     }
 
-    @objc(updateConfigurationWithContextId:connectSource:initializationObjectJson:observeContentHeight:)
+    @objc(updateConfigurationWithContextId:sourceGeneration:connectSource:initializationObjectJson:observeContentHeight:)
     public func updateConfiguration(
         contextId: String,
+        sourceGeneration: String = "",
         connectSource: String,
         initializationObjectJson: String,
         observeContentHeight: Bool
     ) {
         let contextChanged = self.contextId != contextId
+        let sourceGenerationChanged = self.sourceGeneration != sourceGeneration
         let sourceChanged = self.connectSource != connectSource
         let initializationChanged = self.initializationObjectJson != initializationObjectJson
         let heightChanged = self.observeContentHeight != observeContentHeight
 
         self.contextId = contextId
+        self.sourceGeneration = sourceGeneration
         self.connectSource = connectSource
         self.initializationObjectJson = initializationObjectJson
         self.observeContentHeight = observeContentHeight
 
-        guard contextChanged || sourceChanged || initializationChanged || heightChanged else { return }
-        guard !contextChanged, !sourceChanged, !heightChanged else {
+        guard contextChanged || sourceGenerationChanged || sourceChanged || initializationChanged || heightChanged else { return }
+        guard !contextChanged, !sourceGenerationChanged, !sourceChanged, !heightChanged else {
+            clearPendingInitializationUpdate()
             let webView = boundWebView
             unbind(webView: webView)
             if let webView {
@@ -112,15 +221,294 @@ public final class ConnectBridgeContainerView: UIView {
     @objc public func reply(_ expectedAttachmentId: String, requestHandle: String, payload: String) {
         guard !invalidated,
               attachmentId == expectedAttachmentId,
-              let pending = pendingReplies.removeValue(forKey: requestHandle),
+              let pending = pendingRequests[requestHandle],
+              pending.completion != nil,
+              pending.claimed,
               pending.attachmentId == expectedAttachmentId,
               pending.contextId == contextId,
+              pending.sourceGeneration == sourceGeneration,
               pending.documentId == currentDocumentId,
               let data = payload.data(using: .utf8),
               let value = try? JSONSerialization.jsonObject(with: data)
         else { return }
 
-        pending.completion(value, nil)
+        removePendingRequest(pending)
+        pending.completion?(value, nil)
+    }
+
+    @objc(claim:attachmentId:requestHandle:documentId:contextId:sourceGeneration:)
+    public func claim(
+        _ claimId: String,
+        attachmentId expectedAttachmentId: String,
+        requestHandle: String,
+        documentId expectedDocumentId: String,
+        contextId expectedContextId: String,
+        sourceGeneration expectedSourceGeneration: String
+    ) {
+        let runClaim = { [weak self] in
+            guard let self else { return }
+            self.claimOnMainThread(
+                claimId,
+                attachmentId: expectedAttachmentId,
+                requestHandle: requestHandle,
+                documentId: expectedDocumentId,
+                contextId: expectedContextId,
+                sourceGeneration: expectedSourceGeneration
+            )
+        }
+        if Thread.isMainThread {
+            runClaim()
+        } else {
+            DispatchQueue.main.async(execute: runClaim)
+        }
+    }
+
+    @objc(cancel:requestHandle:)
+    public func cancel(_ expectedAttachmentId: String, requestHandle: String) {
+        guard attachmentId == expectedAttachmentId,
+              let pending = pendingRequests[requestHandle],
+              pending.attachmentId == expectedAttachmentId
+        else { return }
+        cancelRequest(pending)
+    }
+
+    static func authorizeLaunchClaim(
+        _ token: String,
+        operation: String,
+        url: String? = nil,
+        clientSecret: String? = nil,
+        connectedAccountId: String? = nil,
+        completion: @escaping (Bool) -> Void
+    ) {
+        guard let claim = launchClaimRegistry.consume(token) else {
+            DispatchQueue.main.async { completion(false) }
+            return
+        }
+        let request = claim.request
+        let matchesOperation: Bool
+        switch operation {
+        case "openAuthenticatedWebView":
+            matchesOperation = request.messageType == operation && request.launchUrl == url
+        case "openFinancialConnections":
+            matchesOperation = request.messageType == operation &&
+                request.clientSecret == clientSecret &&
+                request.connectedAccountId == connectedAccountId
+        default:
+            matchesOperation = false
+        }
+        DispatchQueue.main.async {
+            guard matchesOperation, let owner = claim.owner.value else {
+                claim.owner.value?.cancelRequest(request)
+                completion(false)
+                return
+            }
+            owner.revalidateLaunchClaim(claim, completion: completion)
+        }
+    }
+
+    private func claimOnMainThread(
+        _ claimId: String,
+        attachmentId expectedAttachmentId: String,
+        requestHandle: String,
+        documentId expectedDocumentId: String,
+        contextId expectedContextId: String,
+        sourceGeneration expectedSourceGeneration: String
+    ) {
+        let pending = pendingRequests[requestHandle]
+        guard let webView = boundWebView,
+              !invalidated,
+              window != nil,
+              pending != nil,
+              let pending,
+              pending.claimId == nil,
+              pending.attachmentId == expectedAttachmentId,
+              attachmentId == expectedAttachmentId,
+              pending.documentId == expectedDocumentId,
+              currentDocumentId == expectedDocumentId,
+              pending.contextId == expectedContextId,
+              contextId == expectedContextId,
+              pending.sourceGeneration == expectedSourceGeneration,
+              sourceGeneration == expectedSourceGeneration
+        else {
+            if let pending,
+               pending.attachmentId == expectedAttachmentId,
+               pending.documentId == expectedDocumentId,
+               pending.contextId == expectedContextId,
+               pending.sourceGeneration == expectedSourceGeneration {
+                cancelRequest(pending)
+            }
+            emitClaimResult(
+                claimId,
+                attachmentId: expectedAttachmentId,
+                requestHandle: requestHandle,
+                sourceGeneration: expectedSourceGeneration,
+                admitted: false,
+                claimToken: nil
+            )
+            return
+        }
+
+        pending.claimId = claimId
+        webView.evaluateJavaScript(Self.claimProbeScript(documentId: expectedDocumentId)) { [weak self, weak webView] result, _ in
+            guard let self else { return }
+            let stillCurrent =
+                !self.invalidated && self.window != nil &&
+                webView != nil && self.boundWebView === webView &&
+                self.pendingRequests[requestHandle] === pending &&
+                pending.claimId == claimId &&
+                pending.attachmentId == expectedAttachmentId && self.attachmentId == expectedAttachmentId &&
+                pending.documentId == expectedDocumentId && self.currentDocumentId == expectedDocumentId &&
+                pending.contextId == expectedContextId && self.contextId == expectedContextId &&
+                pending.sourceGeneration == expectedSourceGeneration && self.sourceGeneration == expectedSourceGeneration
+
+            guard (result as? Bool) == true, stillCurrent else {
+                self.cancelRequest(pending)
+                self.emitClaimResult(
+                    claimId,
+                    attachmentId: expectedAttachmentId,
+                    requestHandle: requestHandle,
+                    sourceGeneration: expectedSourceGeneration,
+                    admitted: false,
+                    claimToken: nil
+                )
+                return
+            }
+
+            pending.claimed = true
+            let needsLaunchClaim = ["openAuthenticatedWebView", "openFinancialConnections"].contains(pending.messageType)
+            let claimToken = needsLaunchClaim ? Self.launchClaimRegistry.register(owner: self, request: pending) : nil
+            if needsLaunchClaim && claimToken == nil {
+                self.cancelRequest(pending)
+                self.emitClaimResult(
+                    claimId,
+                    attachmentId: expectedAttachmentId,
+                    requestHandle: requestHandle,
+                    sourceGeneration: expectedSourceGeneration,
+                    admitted: false,
+                    claimToken: nil
+                )
+                return
+            }
+            pending.claimToken = claimToken
+            if pending.completion == nil { self.removePendingRequest(pending) }
+            self.emitClaimResult(
+                claimId,
+                attachmentId: expectedAttachmentId,
+                requestHandle: requestHandle,
+                sourceGeneration: expectedSourceGeneration,
+                admitted: true,
+                claimToken: claimToken
+            )
+        }
+    }
+
+    private func revalidateLaunchClaim(_ claim: ConnectBridgeLaunchClaim, completion: @escaping (Bool) -> Void) {
+        let pending = claim.request
+        guard claim.owner.value === self,
+              !invalidated,
+              window != nil,
+              let webView = boundWebView,
+              pendingRequests[pending.requestHandle] === pending,
+              pending.claimed,
+              pending.claimToken == claim.token,
+              attachmentId == pending.attachmentId,
+              currentDocumentId == pending.documentId,
+              contextId == pending.contextId,
+              sourceGeneration == pending.sourceGeneration
+        else {
+            cancelRequest(pending)
+            completion(false)
+            return
+        }
+
+        webView.evaluateJavaScript(Self.claimProbeScript(documentId: pending.documentId)) { [weak self, weak webView] result, _ in
+            guard let self else {
+                completion(false)
+                return
+            }
+            let stillCurrent =
+                !self.invalidated && self.window != nil && webView != nil && self.boundWebView === webView &&
+                self.pendingRequests[pending.requestHandle] === pending && pending.claimed &&
+                pending.claimToken == claim.token && self.attachmentId == pending.attachmentId &&
+                self.currentDocumentId == pending.documentId && self.contextId == pending.contextId &&
+                self.sourceGeneration == pending.sourceGeneration
+            guard (result as? Bool) == true, stillCurrent else {
+                self.cancelRequest(pending)
+                completion(false)
+                return
+            }
+
+            pending.claimToken = nil
+            completion(true)
+        }
+    }
+
+    private func emitClaimResult(
+        _ claimId: String,
+        attachmentId: String,
+        requestHandle: String,
+        sourceGeneration: String,
+        admitted: Bool,
+        claimToken: String?
+    ) {
+        var event: [String: Any] = [
+            "claimId": claimId,
+            "attachmentId": attachmentId,
+            "requestHandle": requestHandle,
+            "sourceGeneration": sourceGeneration,
+            "admitted": admitted,
+        ]
+        if let claimToken { event["claimToken"] = claimToken }
+        onBridgeClaimResult?(event as NSDictionary)
+    }
+
+    private static func claimProbeScript(documentId: String) -> String {
+        let expectedDocumentId = quote(documentId)
+        return """
+        (function() {
+          return window.location.origin === 'https://connect-js.stripe.com' &&
+            window.__stripeConnectDocument &&
+            window.__stripeConnectDocument.id === \(expectedDocumentId);
+        })();
+        """
+    }
+
+    private func removePendingRequest(_ pending: PendingConnectBridgeRequest) {
+        guard pendingRequests[pending.requestHandle] === pending else { return }
+        pendingRequests.removeValue(forKey: pending.requestHandle)
+        Self.launchClaimRegistry.remove(pending.claimToken)
+        pending.claimToken = nil
+    }
+
+    private func cancelRequest(_ pending: PendingConnectBridgeRequest) {
+        guard pendingRequests[pending.requestHandle] === pending else { return }
+        removePendingRequest(pending)
+        guard let completion = pending.completion else { return }
+        let action: String
+        let data: Any
+        switch pending.messageType {
+        case "openAuthenticatedWebView":
+            action = "authenticatedWebView"
+            data = ["id": pending.requestId ?? "", "url": NSNull()] as [String: Any]
+        case "openFinancialConnections":
+            action = "financialConnections"
+            data = [
+                "id": pending.requestId ?? "",
+                "financialConnectionsSession": NSNull(),
+                "token": NSNull(),
+                "error": ["code": "Canceled", "message": "The flow has been canceled."],
+            ] as [String: Any]
+        default:
+            action = "clientSecret"
+            data = NSNull()
+        }
+        completion(["type": "connectBridgeReply", "action": action, "data": data], nil)
+    }
+
+    private func cancelPendingRequests() {
+        let requests = Array(pendingRequests.values)
+        requests.forEach(cancelRequest)
+        Self.launchClaimRegistry.removeAll(for: self)
     }
 
     @objc public func dispose() {
@@ -184,11 +572,13 @@ public final class ConnectBridgeContainerView: UIView {
 
         let newAttachmentId = UUID().uuidString
         let bindingContextId = contextId
+        let bindingSourceGeneration = sourceGeneration
         let contentController = webView.configuration.userContentController
         let handler = WeakConnectBridgeScriptHandler(
             owner: self,
             attachmentId: newAttachmentId,
-            contextId: bindingContextId
+            contextId: bindingContextId,
+            sourceGeneration: bindingSourceGeneration
         )
         contentController.addScriptMessageHandler(handler, contentWorld: .page, name: Self.messageHandlerName)
         boundWebView = webView
@@ -196,6 +586,7 @@ public final class ConnectBridgeContainerView: UIView {
         scriptHandler = handler
         attachmentId = newAttachmentId
         currentDocumentId = nil
+        appliedInitializationObjectJson = initializationObjectJson
         errorReported = false
 
         guard !connectSource.isEmpty else {
@@ -220,12 +611,14 @@ public final class ConnectBridgeContainerView: UIView {
         _ message: WKScriptMessage,
         expectedAttachmentId: String,
         expectedContextId: String,
+        expectedSourceGeneration: String,
         replyHandler: @escaping (Any?, String?) -> Void
     ) {
         guard !invalidated,
               window != nil,
               attachmentId == expectedAttachmentId,
               contextId == expectedContextId,
+              sourceGeneration == expectedSourceGeneration,
               let webView = boundWebView,
               message.webView === webView,
               message.frameInfo.isMainFrame,
@@ -242,8 +635,10 @@ public final class ConnectBridgeContainerView: UIView {
         }
 
         if currentDocumentId != documentId {
-            cancelPendingReplies()
+            cancelPendingRequests()
             currentDocumentId = documentId
+            initializationUpdateInFlightId = nil
+            initializationUpdateRetryRequested = false
         }
 
         guard let rawData = rawMessage.data(using: .utf8),
@@ -255,32 +650,64 @@ public final class ConnectBridgeContainerView: UIView {
         }
 
         if type == "nativeDocumentStart" {
+            let documentInitializationJson = (envelope["data"] as? [String: Any])?["initializationObjectJson"] as? String
+            appliedInitializationObjectJson = documentInitializationJson ?? initializationObjectJson
+            if let documentInitializationJson, documentInitializationJson == initializationObjectJson {
+                clearPendingInitializationUpdate()
+            } else {
+                if pendingInitializationUpdateBaselineJson == nil {
+                    pendingInitializationUpdateBaselineJson = documentInitializationJson ?? appliedInitializationObjectJson
+                } else {
+                    pendingInitializationUpdateBaselineJson = documentInitializationJson
+                }
+                initializationUpdateGeneration += 1
+            }
             replyHandler(["type": "ack"], nil)
+            retryPendingInitializationUpdate()
             return
         }
 
+        retryPendingInitializationUpdate()
+
         let requestHandle = UUID().uuidString
         let asynchronous = ["fetchClientSecret", "openAuthenticatedWebView", "openFinancialConnections"].contains(type)
-        if asynchronous {
-            pendingReplies[requestHandle] = PendingReply(
-                attachmentId: attachmentId,
-                contextId: contextId,
-                documentId: documentId,
-                completion: replyHandler
-            )
+        if pendingRequests.count >= Self.maximumPendingRequests,
+           let oldest = pendingRequests.values.first {
+            cancelRequest(oldest)
         }
-        onBridgeRequest?([
+        let data = envelope["data"] as? [String: Any]
+        let pending = PendingConnectBridgeRequest(
+            attachmentId: attachmentId,
+            contextId: expectedContextId,
+            sourceGeneration: expectedSourceGeneration,
+            documentId: documentId,
+            requestHandle: requestHandle,
+            messageType: type,
+            requestId: data?["id"] as? String,
+            launchUrl: data?["url"] as? String,
+            clientSecret: data?["clientSecret"] as? String,
+            connectedAccountId: data?["connectedAccountId"] as? String ?? "",
+            completion: asynchronous ? replyHandler : nil
+        )
+        pendingRequests[requestHandle] = pending
+        let requestEvent: NSDictionary = [
             "attachmentId": attachmentId,
             "requestHandle": requestHandle,
             "documentId": documentId,
             "contextId": contextId,
+            "sourceGeneration": expectedSourceGeneration,
             "rawMessage": rawMessage,
-        ])
+        ]
+        if let onBridgeRequest {
+            onBridgeRequest(requestEvent)
+        } else {
+            cancelRequest(pending)
+        }
         if !asynchronous { replyHandler(["type": "ack"], nil) }
     }
 
     private func updateCurrentDocumentInitialization() {
-        guard let webView = boundWebView, let documentId = currentDocumentId else { return }
+        guard boundWebView != nil, attachmentId != nil else { return }
         let bootstrap = Self.bootstrapScript(
             initializationObjectJson: initializationObjectJson,
             observeContentHeight: observeContentHeight
@@ -289,19 +716,107 @@ public final class ConnectBridgeContainerView: UIView {
             reportError("unsupported_web_view")
             return
         }
-        guard let script = Self.initializationUpdateScript(
-                documentId: documentId,
-                initializationObjectJson: initializationObjectJson
-              )
+        if pendingInitializationUpdateBaselineJson == nil {
+            pendingInitializationUpdateBaselineJson = appliedInitializationObjectJson
+        }
+        initializationUpdateGeneration += 1
+        retryPendingInitializationUpdate()
+    }
+
+    private func retryPendingInitializationUpdate() {
+        if initializationUpdateInFlightId != nil {
+            if pendingInitializationUpdateBaselineJson != nil {
+                initializationUpdateRetryRequested = true
+            }
+            return
+        }
+        guard let webView = boundWebView,
+              let expectedAttachmentId = attachmentId,
+              let documentId = currentDocumentId,
+              let baselineJson = pendingInitializationUpdateBaselineJson
         else { return }
+
+        let targetJson = initializationObjectJson
+        let changes = Self.changedInitializationGroups(from: baselineJson, to: targetJson)
+        guard changes.updateInstance || changes.updateComponentProps else {
+            appliedInitializationObjectJson = targetJson
+            pendingInitializationUpdateBaselineJson = nil
+            return
+        }
+        guard let script = Self.initializationUpdateScript(
+            documentId: documentId,
+            initializationObjectJson: targetJson,
+            updateInstance: changes.updateInstance,
+            updateComponentProps: changes.updateComponentProps
+        ) else { return }
 
         // The Objective-C WebKit API evaluates in the page world. Avoid the
         // content-world Swift overlay here because it adds a libswiftWebKit
         // runtime dependency unavailable on supported older iOS versions.
-        webView.evaluateJavaScript(script, completionHandler: { _, _ in })
+        let updateId = UUID()
+        let generation = initializationUpdateGeneration
+        initializationUpdateInFlightId = updateId
+        let completion: InitializationUpdateCompletion = { [weak self, weak webView] result, _ in
+            guard let self,
+                  let webView,
+                  self.initializationUpdateInFlightId == updateId
+            else { return }
+            self.initializationUpdateInFlightId = nil
+            guard self.boundWebView === webView,
+                  self.attachmentId == expectedAttachmentId,
+                  self.currentDocumentId == documentId
+            else { return }
+
+            let shouldRetry =
+                self.initializationUpdateRetryRequested ||
+                generation != self.initializationUpdateGeneration
+            self.initializationUpdateRetryRequested = false
+            if (result as? Bool) == true {
+                self.appliedInitializationObjectJson = targetJson
+                if shouldRetry {
+                    self.pendingInitializationUpdateBaselineJson = targetJson
+                    self.retryPendingInitializationUpdate()
+                } else {
+                    self.pendingInitializationUpdateBaselineJson = nil
+                }
+            } else if shouldRetry {
+                self.retryPendingInitializationUpdate()
+            }
+        }
+        if let evaluateInitializationUpdateForTesting {
+            evaluateInitializationUpdateForTesting(webView, script, completion)
+        } else {
+            webView.evaluateJavaScript(script, completionHandler: completion)
+        }
     }
 
-    static func initializationUpdateScript(documentId: String, initializationObjectJson: String) -> String? {
+    private func clearPendingInitializationUpdate() {
+        pendingInitializationUpdateBaselineJson = nil
+        initializationUpdateInFlightId = nil
+        initializationUpdateRetryRequested = false
+        initializationUpdateGeneration += 1
+    }
+
+    private static func changedInitializationGroups(from previousJson: String, to nextJson: String) -> (updateInstance: Bool, updateComponentProps: Bool) {
+        guard let previous = try? JSONSerialization.jsonObject(with: Data(previousJson.utf8)) as? [String: Any],
+              let next = try? JSONSerialization.jsonObject(with: Data(nextJson.utf8)) as? [String: Any]
+        else { return (true, true) }
+
+        let previousParams = previous["initParams"] as? [String: Any] ?? [:]
+        let nextParams = next["initParams"] as? [String: Any] ?? [:]
+        let previousComponentProps = previous["initComponentProps"] as? [String: Any] ?? [:]
+        let nextComponentProps = next["initComponentProps"] as? [String: Any] ?? [:]
+        let updateInstance = !NSDictionary(dictionary: previousParams.filter { ["appearance", "locale"].contains($0.key) }).isEqual(to: nextParams.filter { ["appearance", "locale"].contains($0.key) })
+        let updateComponentProps = !NSDictionary(dictionary: previousComponentProps).isEqual(to: nextComponentProps)
+        return (updateInstance, updateComponentProps)
+    }
+
+    static func initializationUpdateScript(
+        documentId: String,
+        initializationObjectJson: String,
+        updateInstance: Bool = true,
+        updateComponentProps: Bool = true
+    ) -> String? {
         guard let json = javaScriptString(initializationObjectJson) else { return nil }
         let script = """
         (function() {
@@ -313,7 +828,7 @@ public final class ConnectBridgeContainerView: UIView {
           if (typeof beginUpdate !== 'function') return false;
           var applyUpdate = beginUpdate(record.id);
           if (typeof applyUpdate !== 'function') return false;
-          return applyUpdate(\(json));
+          return applyUpdate(\(json), \(updateInstance ? "true" : "false"), \(updateComponentProps ? "true" : "false"));
         })();
         """
         return script
@@ -321,7 +836,8 @@ public final class ConnectBridgeContainerView: UIView {
 
     private func unbind(webView: WKWebView?) {
         guard let webView, boundWebView === webView else { return }
-        cancelPendingReplies()
+        cancelPendingRequests()
+        clearPendingInitializationUpdate()
         if #available(iOS 14.0, *), let boundContentController {
             boundContentController.removeScriptMessageHandler(forName: Self.messageHandlerName, contentWorld: .page)
         }
@@ -331,12 +847,6 @@ public final class ConnectBridgeContainerView: UIView {
         attachmentId = nil
         currentDocumentId = nil
         onBridgeReady?("" as NSString)
-    }
-
-    private func cancelPendingReplies() {
-        let replies = pendingReplies.values
-        pendingReplies.removeAll()
-        replies.forEach { $0.completion(["type": "cancelled"], nil) }
     }
 
     private func reportError(_ error: String) {
@@ -395,15 +905,17 @@ public final class ConnectBridgeContainerView: UIView {
           defineProperty(window, '__stripeConnectBeginInitializationUpdate', {
             value: function(expectedDocumentId) {
               if (window.location.origin !== origin || window.__stripeConnectDocument !== record || record.id !== expectedDocumentId) return null;
-              return function(serialized) {
+              return function(serialized, updateInstance, updateComponentProps) {
                 if (window.location.origin !== origin || window.__stripeConnectDocument !== record || record.id !== expectedDocumentId) return false;
                 var initialization = jsonParse(serialized);
+                if (updateInstance && typeof window.updateConnectInstance !== 'function') return false;
+                if (updateComponentProps && typeof window.callSetterWithSerializableValue !== 'function') return false;
                 initializationJson = serialized;
-                if (typeof window.updateConnectInstance === 'function') {
+                if (updateInstance) {
                   var params = initialization.initParams || {};
                   window.updateConnectInstance({ appearance: params.appearance, locale: params.locale });
                 }
-                if (typeof window.callSetterWithSerializableValue === 'function') {
+                if (updateComponentProps) {
                   var props = initialization.initComponentProps || {};
                   objectKeys(props).forEach(function(key) {
                     window.callSetterWithSerializableValue({ setter: key, value: props[key] });
@@ -427,7 +939,7 @@ public final class ConnectBridgeContainerView: UIView {
             configurable: false,
             writable: false
           });
-          webView.postMessage(JSON.stringify({ type: 'nativeDocumentStart' }));
+          webView.postMessage(JSON.stringify({ type: 'nativeDocumentStart', data: { initializationObjectJson: initializationJson } }));
           var installHeightObserver = function() {
             if (!\(observesHeight) || window.__stripeConnectHeightObserver || !document.body || !window.ResizeObserver) return;
             window.__stripeConnectHeightObserver = true;

@@ -15,6 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -24,6 +25,181 @@ import org.json.JSONTokener
 
 @RunWith(AndroidJUnit4::class)
 class ConnectBridgeContainerViewTest {
+  @Test
+  fun consecutiveInitializationUpdatesKeepAllChangesUntilWrapperIsReady() {
+    assertTrue(WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER))
+    assertTrue(WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT))
+
+    val requestLatch = CountDownLatch(1)
+    val pageDidLoadLatch = CountDownLatch(1)
+    val wrapperInstalledLatch = CountDownLatch(1)
+    val requestDocumentId = AtomicReference<String>()
+    val webViewReference = AtomicReference<WebView>()
+    val containerReference = AtomicReference<ConnectBridgeContainerView>()
+    lateinit var webView: WebView
+    lateinit var container: ConnectBridgeContainerView
+    val scenario = ActivityScenario.launch(ConnectBridgeTestActivity::class.java)
+
+    try {
+      scenario.onActivity { activity ->
+        webView = WebView(activity).apply { settings.javaScriptEnabled = true }
+        container = ConnectBridgeContainerView(activity).apply {
+          contextId = "initialization-race-context"
+          initializationObjectJson = INIT_A
+          onRequest = { request ->
+            when (JSONObject(request.rawMessage).optString("type")) {
+              "fetchClientSecret" -> {
+                requestDocumentId.set(request.documentId)
+                container.claimForTest(request) { result ->
+                  assertTrue(result.admitted)
+                  assertTrue(container.reply(request.attachmentId, request.requestHandle, reply("cs_test_fixture")))
+                  requestLatch.countDown()
+                }
+              }
+              "pageDidLoad" -> pageDidLoadLatch.countDown()
+            }
+          }
+          onReady = {
+            webView.loadDataWithBaseURL(
+              TRUSTED_ORIGIN,
+              INITIALIZATION_RACE_FIXTURE,
+              "text/html",
+              "UTF-8",
+              null,
+            )
+          }
+        }
+        webViewReference.set(webView)
+        containerReference.set(container)
+        container.onAfterUpdateTransaction()
+        container.addView(webView, FrameLayout.LayoutParams(-1, -1))
+        activity.setContentView(container)
+      }
+
+      assertTrue("Initial Connect document did not send a request", requestLatch.await(10, TimeUnit.SECONDS))
+      val activeWebView = requireNotNull(webViewReference.get())
+      val activeContainer = requireNotNull(containerReference.get())
+
+      scenario.onActivity {
+        activeContainer.initializationObjectJson = INIT_B
+        activeContainer.onAfterUpdateTransaction()
+        // WebView evaluates scripts in order. This callback runs after the B update
+        // evaluation has returned, so C is a distinct update while the wrapper is
+        // still held behind the fixture's readiness gate.
+        activeWebView.evaluateJavascript("true") {
+          activeContainer.initializationObjectJson = INIT_C
+          activeContainer.onAfterUpdateTransaction()
+          activeWebView.evaluateJavascript("window.installWrapper()") {
+            wrapperInstalledLatch.countDown()
+          }
+        }
+      }
+
+      assertTrue("Wrapper installation script did not run", wrapperInstalledLatch.await(5, TimeUnit.SECONDS))
+      assertTrue("Wrapper readiness message did not reach native", pageDidLoadLatch.await(5, TimeUnit.SECONDS))
+      val applied = awaitJavascriptValue(activeWebView, "JSON.stringify({locale:window.__connectInstanceUpdate.locale, marker:window.__componentPropUpdate.value, document:window.__stripeConnectDocument})") {
+        val value = runCatching { JSONTokener(it).nextValue() as? String }.getOrNull()
+        val result = runCatching { value?.let { json -> JSONObject(json) } }.getOrNull()
+        result?.optString("marker") == "new"
+      }
+      val appliedValues = JSONObject(JSONTokener(applied).nextValue() as String)
+      assertEquals("fr", appliedValues.getString("locale"))
+      assertEquals("new", appliedValues.getString("marker"))
+      assertEquals(requestDocumentId.get(), appliedValues.getString("document"))
+    } finally {
+      scenario.close()
+    }
+  }
+
+  @Test
+  fun readinessDuringInFlightInitializationUpdateRetriesAfterFailedEvaluation() {
+    val requestLatch = CountDownLatch(1)
+    val firstEvaluationLatch = CountDownLatch(1)
+    val pageDidLoadLatch = CountDownLatch(1)
+    val firstEvaluationResult = AtomicReference<String>()
+    val releaseFirstCompletion = AtomicReference<((String?) -> Unit)?>()
+    val webViewReference = AtomicReference<WebView>()
+    val containerReference = AtomicReference<ConnectBridgeContainerView>()
+    val scenario = ActivityScenario.launch(ConnectBridgeTestActivity::class.java)
+
+    try {
+      scenario.onActivity { activity ->
+        val webView = WebView(activity).apply { settings.javaScriptEnabled = true }
+        val container = ConnectBridgeContainerView(activity).apply {
+          contextId = "readiness-in-flight-context"
+          initializationObjectJson = INIT_A
+          onRequest = { request ->
+            when (JSONObject(request.rawMessage).optString("type")) {
+              "fetchClientSecret" -> requestLatch.countDown()
+              "pageDidLoad" -> pageDidLoadLatch.countDown()
+            }
+          }
+          onReady = {
+            webView.loadDataWithBaseURL(
+              TRUSTED_ORIGIN,
+              INITIALIZATION_RACE_FIXTURE,
+              "text/html",
+              "UTF-8",
+              null,
+            )
+          }
+        }
+        webViewReference.set(webView)
+        containerReference.set(container)
+        container.onAfterUpdateTransaction()
+        container.addView(webView, FrameLayout.LayoutParams(-1, -1))
+        activity.setContentView(container)
+      }
+
+      assertTrue("Initial Connect request did not reach native", requestLatch.await(10, TimeUnit.SECONDS))
+      val webView = requireNotNull(webViewReference.get())
+      val container = requireNotNull(containerReference.get())
+      scenario.onActivity {
+        var holdFirstEvaluation = true
+        container.evaluateInitializationUpdateForTesting = { activeWebView, script, completion ->
+          activeWebView.evaluateJavascript(script) { result ->
+            if (holdFirstEvaluation) {
+              holdFirstEvaluation = false
+              firstEvaluationResult.set(result)
+              releaseFirstCompletion.set(completion)
+              firstEvaluationLatch.countDown()
+            } else {
+              completion(result)
+            }
+          }
+        }
+        container.initializationObjectJson = INIT_B
+        container.onAfterUpdateTransaction()
+      }
+
+      assertTrue("Initialization update did not evaluate", firstEvaluationLatch.await(5, TimeUnit.SECONDS))
+      assertEquals("false", firstEvaluationResult.get())
+      val wrapperLatch = CountDownLatch(1)
+      webView.post {
+        webView.evaluateJavascript("window.installWrapper()") { wrapperLatch.countDown() }
+      }
+      assertTrue("Delayed wrapper did not install", wrapperLatch.await(5, TimeUnit.SECONDS))
+      assertTrue("Readiness did not arrive while evaluation was held", pageDidLoadLatch.await(5, TimeUnit.SECONDS))
+      scenario.onActivity {
+        requireNotNull(releaseFirstCompletion.get())(firstEvaluationResult.get())
+      }
+
+      val applied = awaitJavascriptValue(
+        webView,
+        "JSON.stringify({locale:window.__connectInstanceUpdate.locale, marker:window.__componentPropUpdate.value})",
+      ) { value ->
+        val json = runCatching { JSONTokener(value).nextValue() as? String }.getOrNull()
+        val appliedValues = runCatching { json?.let(::JSONObject) }.getOrNull()
+        appliedValues?.optString("locale") == "fr"
+      }
+      val values = JSONObject(JSONTokener(applied).nextValue() as String)
+      assertEquals("fr", values.getString("locale"))
+      assertEquals("old", values.getString("marker"))
+    } finally {
+      scenario.close()
+    }
+  }
+
   @Test
   fun trustedMainDocumentReceivesReplyAfterContainerBinds() {
     assertTrue(WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER))
@@ -54,8 +230,11 @@ class ConnectBridgeContainerViewTest {
             .put("type", "connectBridgeReply")
             .put("data", "result_test")
             .toString()
-          assertTrue(container.reply(request.attachmentId, request.requestHandle, payload))
-          requestLatch.countDown()
+          container.claimForTest(request) { result ->
+            assertTrue(result.admitted)
+            assertTrue(container.reply(request.attachmentId, request.requestHandle, payload))
+            requestLatch.countDown()
+          }
         }
         container.onReady = {
           webView.loadDataWithBaseURL(
@@ -89,6 +268,228 @@ class ConnectBridgeContainerViewTest {
       assertTrue("Reply did not reach the original document", replyLatch.await(5, TimeUnit.SECONDS))
       assertEquals("result_test", replyTextReference.get())
       assertEquals(null, errorReference.get())
+    } finally {
+      scenario.close()
+    }
+  }
+
+  @Test
+  fun authenticatedLaunchClaimRequiresMatchingArgumentsAndIsSingleUse() {
+    assertTrue(WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER))
+    assertTrue(WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT))
+
+    val requestCount = AtomicInteger()
+    val wrongArgumentsAdmitted = AtomicReference<Boolean>()
+    val matchingArgumentsAdmitted = AtomicReference<Boolean>()
+    val duplicateLaunchAdmitted = AtomicReference<Boolean>()
+    val requests = CopyOnWriteArrayList<ConnectBridgeContainerView.Request>()
+    val webViewReference = AtomicReference<WebView>()
+    val scenario = ActivityScenario.launch(ConnectBridgeTestActivity::class.java)
+
+    try {
+      scenario.onActivity { activity ->
+        val container = ConnectBridgeContainerView(activity).apply {
+          contextId = "claim-context"
+          sourceGeneration = "claim-generation"
+          onRequest = requestEvent@{ request ->
+            if (JSONObject(request.rawMessage).optString("type") != "openAuthenticatedWebView") return@requestEvent
+            requests += request
+            val index = requestCount.incrementAndGet()
+            claim(
+              claimId = "claim-$index",
+              expectedAttachmentId = request.attachmentId,
+              requestHandle = request.requestHandle,
+              expectedDocumentId = request.documentId,
+              expectedContextId = request.contextId,
+              expectedSourceGeneration = request.sourceGeneration,
+            )
+          }
+          onClaimResult = { result ->
+            assertTrue("Trusted live document claim was rejected", result.admitted)
+            val request = requests.first { it.requestHandle == result.requestHandle }
+            val data = JSONObject(request.rawMessage).getJSONObject("data")
+            val expectedUrl = data.getString("url")
+            val claimToken = requireNotNull(result.claimToken)
+            if (requestCount.get() == 1) {
+              ConnectBridgeContainerView.authorizeLaunchClaim(
+                token = claimToken,
+                expectedMessageType = "openAuthenticatedWebView",
+                expectedUrl = "https://connect-js.stripe.com/wrong-url",
+              ) { admitted -> wrongArgumentsAdmitted.set(admitted) }
+            } else {
+              ConnectBridgeContainerView.authorizeLaunchClaim(
+                token = claimToken,
+                expectedMessageType = "openAuthenticatedWebView",
+                expectedUrl = expectedUrl,
+              ) { admitted ->
+                matchingArgumentsAdmitted.set(admitted)
+                ConnectBridgeContainerView.authorizeLaunchClaim(
+                  token = claimToken,
+                  expectedMessageType = "openAuthenticatedWebView",
+                  expectedUrl = expectedUrl,
+                ) { duplicateAdmitted ->
+                  duplicateLaunchAdmitted.set(duplicateAdmitted)
+                  cancel(request.attachmentId, request.requestHandle)
+                }
+              }
+            }
+          }
+        }
+        val webView = WebView(activity).apply { settings.javaScriptEnabled = true }
+        webViewReference.set(webView)
+        container.onReady = {
+          webView.loadDataWithBaseURL(TRUSTED_ORIGIN, LAUNCH_CLAIM_FIXTURE, "text/html", "UTF-8", null)
+        }
+        container.onAfterUpdateTransaction()
+        container.addView(webView, FrameLayout.LayoutParams(-1, -1))
+        activity.setContentView(container)
+      }
+
+      val results = awaitJavascriptValue(
+        requireNotNull(webViewReference.get()),
+        "document.body.dataset.results",
+      ) { value ->
+        runCatching { JSONTokener(value).nextValue() as? String == "cancelled,cancelled" }.getOrDefault(false)
+      }
+      assertEquals("cancelled,cancelled", JSONTokener(results).nextValue())
+      assertEquals(2, requestCount.get())
+      assertEquals(false, wrongArgumentsAdmitted.get())
+      assertEquals(true, matchingArgumentsAdmitted.get())
+      assertEquals(false, duplicateLaunchAdmitted.get())
+    } finally {
+      scenario.close()
+    }
+  }
+
+  @Test
+  fun detachedHostRejectsClaimsAndLaunchRevalidationButAllowsFreshRequestsAfterReattach() {
+    assertTrue(WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER))
+    assertTrue(WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT))
+
+    val requests = CopyOnWriteArrayList<ConnectBridgeContainerView.Request>()
+    val requestLatches = listOf(CountDownLatch(1), CountDownLatch(1), CountDownLatch(1))
+    val scenario = ActivityScenario.launch(ConnectBridgeTestActivity::class.java)
+    lateinit var container: ConnectBridgeContainerView
+    lateinit var webView: WebView
+
+    try {
+      scenario.onActivity { activity ->
+        container = ConnectBridgeContainerView(activity).apply {
+          contextId = "detached-claim-context"
+          sourceGeneration = "detached-claim-generation"
+          onRequest = { request ->
+            if (JSONObject(request.rawMessage).optString("type") == "openAuthenticatedWebView") {
+              requests += request
+              requestLatches.getOrNull(requests.lastIndex)?.countDown()
+            }
+          }
+        }
+        webView = WebView(activity).apply { settings.javaScriptEnabled = true }
+        container.onReady = {
+          webView.loadDataWithBaseURL(
+            TRUSTED_ORIGIN,
+            """
+              <!doctype html><html><body><script>
+              window.returnedFromAuthenticatedWebView = function() {};
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'openAuthenticatedWebView',
+                data: { id: 'request-1', url: 'https://accounts.example.test/login' }
+              }));
+              </script></body></html>
+            """.trimIndent(),
+            "text/html",
+            "UTF-8",
+            null,
+          )
+        }
+        container.onAfterUpdateTransaction()
+        container.addView(webView, FrameLayout.LayoutParams(-1, -1))
+        activity.setContentView(container)
+      }
+
+      assertTrue("Initial authenticated request did not arrive", requestLatches[0].await(10, TimeUnit.SECONDS))
+      val firstRequest = requests[0]
+      val firstClaimAdmitted = AtomicReference<Boolean>()
+      val firstClaimLatch = CountDownLatch(1)
+      scenario.onActivity { activity ->
+        activity.setContentView(FrameLayout(activity))
+        assertFalse("Detached container must not remain attached", container.isAttachedToWindow)
+        assertFalse("Detached WebView must not remain attached", webView.isAttachedToWindow)
+        container.claimForTest(firstRequest) { result ->
+          firstClaimAdmitted.set(result.admitted)
+          firstClaimLatch.countDown()
+        }
+      }
+      assertTrue("Detached initial claim did not complete", firstClaimLatch.await(5, TimeUnit.SECONDS))
+      assertFalse("Detached host must reject a pending claim", requireNotNull(firstClaimAdmitted.get()))
+
+      scenario.onActivity { activity ->
+        activity.setContentView(container)
+        container.post { postAuthenticatedRequest(webView, "request-2") }
+      }
+      assertTrue("Reattached document did not send a fresh request", requestLatches[1].await(5, TimeUnit.SECONDS))
+      val secondRequest = requests[1]
+      val secondClaim = AtomicReference<ConnectBridgeContainerView.ClaimResult>()
+      val secondClaimLatch = CountDownLatch(1)
+      scenario.onActivity {
+        container.claimForTest(secondRequest) { result ->
+          secondClaim.set(result)
+          secondClaimLatch.countDown()
+        }
+      }
+      assertTrue("Attached fresh claim did not complete", secondClaimLatch.await(5, TimeUnit.SECONDS))
+      assertTrue("Attached fresh claim should be admitted", requireNotNull(secondClaim.get()).admitted)
+      val secondClaimToken = requireNotNull(secondClaim.get().claimToken)
+
+      val detachedRedeemResult = AtomicReference<Boolean>()
+      val detachedRedeemLatch = CountDownLatch(1)
+      scenario.onActivity { activity ->
+        activity.setContentView(FrameLayout(activity))
+        assertFalse("Container should be detached before launch revalidation", container.isAttachedToWindow)
+        ConnectBridgeContainerView.authorizeLaunchClaim(
+          token = secondClaimToken,
+          expectedMessageType = "openAuthenticatedWebView",
+          expectedUrl = "https://accounts.example.test/login",
+        ) { admitted ->
+          detachedRedeemResult.set(admitted)
+          detachedRedeemLatch.countDown()
+        }
+      }
+      assertTrue("Detached launch revalidation did not complete", detachedRedeemLatch.await(5, TimeUnit.SECONDS))
+      assertFalse("Detached host must reject launch revalidation", requireNotNull(detachedRedeemResult.get()))
+
+      scenario.onActivity { activity ->
+        activity.setContentView(container)
+        container.post { postAuthenticatedRequest(webView, "request-3") }
+      }
+      assertTrue("Reattachment did not preserve a fresh document request", requestLatches[2].await(5, TimeUnit.SECONDS))
+      val thirdRequest = requests[2]
+      val thirdClaim = AtomicReference<ConnectBridgeContainerView.ClaimResult>()
+      val thirdClaimLatch = CountDownLatch(1)
+      scenario.onActivity {
+        container.claimForTest(thirdRequest) { result ->
+          thirdClaim.set(result)
+          thirdClaimLatch.countDown()
+        }
+      }
+      assertTrue("Fresh post-reattachment claim did not complete", thirdClaimLatch.await(5, TimeUnit.SECONDS))
+      assertTrue("Fresh post-reattachment claim should be admitted", requireNotNull(thirdClaim.get()).admitted)
+      val attachedRedeemResult = AtomicReference<Boolean>()
+      val attachedRedeemLatch = CountDownLatch(1)
+      scenario.onActivity {
+        ConnectBridgeContainerView.authorizeLaunchClaim(
+          token = requireNotNull(thirdClaim.get().claimToken),
+          expectedMessageType = "openAuthenticatedWebView",
+          expectedUrl = "https://accounts.example.test/login",
+        ) { admitted ->
+          attachedRedeemResult.set(admitted)
+          attachedRedeemLatch.countDown()
+        }
+      }
+      assertTrue("Attached launch revalidation did not complete", attachedRedeemLatch.await(5, TimeUnit.SECONDS))
+      assertTrue("Attached host should admit launch revalidation", requireNotNull(attachedRedeemResult.get()))
+      assertEquals(firstRequest.attachmentId, thirdRequest.attachmentId)
+      scenario.onActivity { container.cancel(thirdRequest.attachmentId, thirdRequest.requestHandle) }
     } finally {
       scenario.close()
     }
@@ -257,6 +658,7 @@ class ConnectBridgeContainerViewTest {
   @Test
   fun pendingReplyIsDiscardedWhenTheSameWebViewLoadsANewDocument() {
     val firstRequestLatch = CountDownLatch(1)
+    val firstRequestClaimedLatch = CountDownLatch(1)
     val secondRequestLatch = CountDownLatch(1)
     val activityReference = AtomicReference<ConnectBridgeTestActivity>()
     val webViewReference = AtomicReference<WebView>()
@@ -278,14 +680,21 @@ class ConnectBridgeContainerViewTest {
           if (!request.isFixtureRequest()) return@requestEvent
           requests += request
           if (requests.size == 1) {
+            container.claimForTest(request) { result ->
+              assertTrue("Initial document request was not admitted", result.admitted)
+              firstRequestClaimedLatch.countDown()
+            }
             firstRequestLatch.countDown()
           } else if (requests.size == 2) {
-            val oldRequest = requests.first()
-            staleReplyAccepted.set(
-              container.reply(oldRequest.attachmentId, oldRequest.requestHandle, reply("stale")),
-            )
-            assertTrue(container.reply(request.attachmentId, request.requestHandle, reply("result_test")))
-            secondRequestLatch.countDown()
+            container.claimForTest(request) { result ->
+              assertTrue(result.admitted)
+              val oldRequest = requests.first()
+              staleReplyAccepted.set(
+                container.reply(oldRequest.attachmentId, oldRequest.requestHandle, reply("stale")),
+              )
+              assertTrue(container.reply(request.attachmentId, request.requestHandle, reply("result_test")))
+              secondRequestLatch.countDown()
+            }
           }
         }
         container.onReady = {
@@ -296,6 +705,7 @@ class ConnectBridgeContainerViewTest {
       }
 
       assertTrue("First document did not send a request", firstRequestLatch.await(10, TimeUnit.SECONDS))
+      assertTrue("Initial document request was not admitted", firstRequestClaimedLatch.await(5, TimeUnit.SECONDS))
       assertTrue(requests.first().documentId.matches(Regex("[0-9a-f]{32}")))
 
       scenario.onActivity {
@@ -512,8 +922,60 @@ class ConnectBridgeContainerViewTest {
     return result.get()
   }
 
+  private fun ConnectBridgeContainerView.claimForTest(
+    request: ConnectBridgeContainerView.Request,
+    completion: (ConnectBridgeContainerView.ClaimResult) -> Unit,
+  ) {
+    val claimId = "test-claim-${request.requestHandle}"
+    onClaimResult = { result ->
+      if (result.claimId == claimId) completion(result)
+    }
+    claim(
+      claimId = claimId,
+      expectedAttachmentId = request.attachmentId,
+      requestHandle = request.requestHandle,
+      expectedDocumentId = request.documentId,
+      expectedContextId = request.contextId,
+      expectedSourceGeneration = request.sourceGeneration,
+    )
+  }
+
+  private fun postAuthenticatedRequest(webView: WebView, requestId: String) {
+    val message = JSONObject()
+      .put("type", "openAuthenticatedWebView")
+      .put(
+        "data",
+        JSONObject()
+          .put("id", requestId)
+          .put("url", "https://accounts.example.test/login"),
+      )
+      .toString()
+    webView.evaluateJavascript(
+      "window.ReactNativeWebView.postMessage(${JSONObject.quote(message)})",
+      null,
+    )
+  }
+
   private companion object {
     const val TRUSTED_ORIGIN = "https://connect-js.stripe.com"
+    const val INIT_A = """{"initParams":{"locale":"en"},"initComponentProps":{"fixtureMarker":"old"}}"""
+    const val INIT_B = """{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"old"}}"""
+    const val INIT_C = """{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"new"}}"""
+    val INITIALIZATION_RACE_FIXTURE = """
+      <!doctype html><html><body><script>
+        window.__cachedInitialization = JSON.parse(window.ReactNativeWebView.injectedObjectJson());
+        window.ReactNativeWebView.postMessage(JSON.stringify({type:'fetchClientSecret'}));
+        window.installWrapper = function() {
+          window.updateConnectInstance = function(value) { window.__connectInstanceUpdate = value; };
+          window.callSetterWithSerializableValue = function(value) { window.__componentPropUpdate = value; };
+          var params = window.__cachedInitialization.initParams;
+          var props = window.__cachedInitialization.initComponentProps;
+          window.updateConnectInstance({appearance:params.appearance, locale:params.locale});
+          window.callSetterWithSerializableValue({setter:'fixtureMarker', value:props.fixtureMarker});
+          window.ReactNativeWebView.postMessage(JSON.stringify({type:'pageDidLoad'}));
+        };
+      </script></body></html>
+    """.trimIndent()
     val HTML_FIXTURE = """
       <!doctype html>
       <html>
@@ -609,6 +1071,26 @@ class ConnectBridgeContainerViewTest {
       window.FixtureBridge.onmessage = function(event) {
         document.getElementById('result').textContent = event.data;
       };
+      </script></body></html>
+    """.trimIndent()
+
+    val LAUNCH_CLAIM_FIXTURE = """
+      <!doctype html><html><body><script>
+      var results = [];
+      window.returnedFromAuthenticatedWebView = function(value) {
+        results.push(value && value.url === null ? 'cancelled' : 'unexpected');
+        document.body.dataset.results = results.join(',');
+        if (results.length === 1) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'openAuthenticatedWebView',
+            data: { id: 'second-request', url: 'https://accounts.example.test/login' }
+          }));
+        }
+      };
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'openAuthenticatedWebView',
+        data: { id: 'first-request', url: 'https://accounts.example.test/login' }
+      }));
       </script></body></html>
     """.trimIndent()
 

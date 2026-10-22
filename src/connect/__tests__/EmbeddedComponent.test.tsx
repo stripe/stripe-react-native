@@ -9,6 +9,8 @@ let mockWebViewProps: any;
 let mockBridgeContainerComponent: any;
 let mockBridgeContainerProps: any;
 const mockBridgeReply = jest.fn();
+const mockBridgeClaim = jest.fn();
+const mockBridgeCancel = jest.fn();
 
 jest.mock('react', () => {
   const React = jest.requireActual('react');
@@ -43,8 +45,10 @@ jest.mock('react-native-webview', () => {
 jest.mock('../../specs/NativeStripeSdkModule', () =>
   mockCreateNativeStripeSdkMock({
     collectBankAccountToken: jest.fn(),
+    collectBankAccountTokenFromConnect: jest.fn(),
     collectFinancialConnectionsAccounts: jest.fn(),
     openAuthenticatedWebView: jest.fn(),
+    openAuthenticatedWebViewFromConnect: jest.fn(),
     authWebViewDeepLinkHandled: jest.fn().mockResolvedValue(undefined),
     pollAndClearPendingStripeConnectUrls: jest.fn().mockResolvedValue([]),
   })
@@ -54,14 +58,15 @@ jest.mock('../../specs/NativeConnectBridgeContainer', () => {
   const React = require('react');
   mockBridgeContainerComponent = React.forwardRef((props: any, ref: any) => {
     mockBridgeContainerProps = props;
-    React.useImperativeHandle(ref, () => ({}));
+    const imperativeHandle = { onBridgeClaimResult: props.onBridgeClaimResult };
+    React.useImperativeHandle(ref, () => imperativeHandle);
     return React.createElement(React.Fragment, null, props.children);
   });
 
   return {
     __esModule: true,
     default: mockBridgeContainerComponent,
-    Commands: { reply: jest.fn() },
+    Commands: { reply: jest.fn(), claim: jest.fn(), cancel: jest.fn() },
   };
 });
 
@@ -93,6 +98,8 @@ import type { StripeConnectInitParams } from '../connectTypes';
 const mockBridgeCommands =
   require('../../specs/NativeConnectBridgeContainer').Commands;
 mockBridgeCommands.reply = mockBridgeReply;
+mockBridgeCommands.claim = mockBridgeClaim;
+mockBridgeCommands.cancel = mockBridgeCancel;
 
 describe('EmbeddedComponent', () => {
   const mockInitParams: StripeConnectInitParams = {
@@ -114,6 +121,41 @@ describe('EmbeddedComponent', () => {
     mockLoadWebView = false;
     mockWebViewProps = undefined;
     mockBridgeContainerProps = undefined;
+    mockBridgeClaim.mockImplementation(
+      (
+        viewRef: { onBridgeClaimResult?: (event: unknown) => void },
+        claimId: string,
+        attachmentId: string,
+        requestHandle: string,
+        _documentId: string,
+        _contextId: string,
+        sourceGeneration: string
+      ) => {
+        viewRef?.onBridgeClaimResult?.({
+          nativeEvent: {
+            claimId,
+            attachmentId,
+            requestHandle,
+            sourceGeneration,
+            admitted: true,
+            claimToken: 'test-claim-token',
+          },
+        });
+      }
+    );
+    (
+      NativeStripeSdk.collectBankAccountTokenFromConnect as jest.Mock
+    ).mockImplementation((clientSecret: string, options: unknown) =>
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock)(
+        clientSecret,
+        options
+      )
+    );
+    (
+      NativeStripeSdk.openAuthenticatedWebViewFromConnect as jest.Mock
+    ).mockImplementation((operationId: string, url: string) =>
+      (NativeStripeSdk.openAuthenticatedWebView as jest.Mock)(operationId, url)
+    );
     connectInstance = loadConnectAndInitialize(mockInitParams);
   });
 
@@ -135,17 +177,23 @@ describe('EmbeddedComponent', () => {
     type: string,
     data?: unknown,
     bridgeProps = mockBridgeContainerProps,
-    requestContext = {
-      attachmentId: 'test-attachment',
-      requestHandle: 'test-request',
-      documentId: 'test-document',
-    }
+    requestContext: Partial<{
+      attachmentId: string;
+      requestHandle: string;
+      documentId: string;
+      sourceGeneration: string;
+    }> = {}
   ) => {
     if (!bridgeProps) throw new Error('Bridge container is not mounted');
     bridgeProps.onBridgeRequest({
       nativeEvent: {
         contextId: bridgeProps.contextId,
+        attachmentId: 'test-attachment',
+        requestHandle: 'test-request',
+        documentId: 'test-document',
         ...requestContext,
+        sourceGeneration:
+          requestContext.sourceGeneration ?? bridgeProps.sourceGeneration,
         rawMessage: JSON.stringify({ type, data }),
       },
     });
@@ -185,6 +233,8 @@ describe('EmbeddedComponent', () => {
 
       const previousContextId = mockBridgeContainerProps.contextId;
       const previousSource = mockBridgeContainerProps.connectSource;
+      const previousSourceGeneration =
+        mockBridgeContainerProps.sourceGeneration;
       const replacementFetchClientSecret = jest.fn(
         async () => 'replacement_secret'
       );
@@ -206,6 +256,9 @@ describe('EmbeddedComponent', () => {
 
       await waitFor(() => {
         expect(mockBridgeContainerProps.contextId).not.toBe(previousContextId);
+        expect(mockBridgeContainerProps.sourceGeneration).not.toBe(
+          previousSourceGeneration
+        );
       });
       expect(mockBridgeContainerProps.connectSource).toBe(previousSource);
 
@@ -225,6 +278,203 @@ describe('EmbeddedComponent', () => {
       expect(replacementFetchClientSecret).not.toHaveBeenCalled();
       expect(mockBridgeReply).toHaveBeenCalledTimes(replyCount);
       expect(firstInstance).not.toBe(replacementInstance);
+    });
+
+    it('rejects queued requests after returning to the same source with a new generation', async () => {
+      mockLoadWebView = true;
+      const onAccountUpdate = jest.fn();
+      const callbacks = { accountUpdate: onAccountUpdate };
+      const { rerender } = renderComponent({ callbacks });
+
+      await waitFor(() => {
+        expect(mockBridgeContainerProps).toBeDefined();
+      });
+
+      const originalContextId = mockBridgeContainerProps.contextId;
+      const originalSource = mockBridgeContainerProps.connectSource;
+      const originalSourceGeneration =
+        mockBridgeContainerProps.sourceGeneration;
+
+      const rerenderWithComponent = (
+        component: 'payments' | 'payment-details'
+      ) => {
+        rerender(
+          <ConnectComponentsProvider connectInstance={connectInstance}>
+            <EmbeddedComponent
+              component={component}
+              callbacks={callbacks}
+              onLoaderStart={jest.fn()}
+              onLoadError={jest.fn()}
+            />
+          </ConnectComponentsProvider>
+        );
+      };
+
+      rerenderWithComponent('payment-details');
+      await waitFor(() => {
+        expect(mockBridgeContainerProps.connectSource).not.toBe(originalSource);
+      });
+
+      rerenderWithComponent('payments');
+      await waitFor(() => {
+        expect(mockBridgeContainerProps.connectSource).toBe(originalSource);
+      });
+
+      expect(mockBridgeContainerProps.contextId).toBe(originalContextId);
+      const latestBridgeProps = mockBridgeContainerProps;
+
+      await act(async () => {
+        latestBridgeProps.onBridgeRequest({
+          nativeEvent: {
+            contextId: originalContextId,
+            attachmentId: 'old-a-attachment',
+            requestHandle: 'old-a-callback-request',
+            documentId: 'old-a-document',
+            sourceGeneration: originalSourceGeneration,
+            rawMessage: JSON.stringify({
+              type: 'onSetterFunctionCalled',
+              data: { setter: 'setAccountUpdate', value: { id: 'acct_123' } },
+            }),
+          },
+        });
+        latestBridgeProps.onBridgeRequest({
+          nativeEvent: {
+            contextId: originalContextId,
+            attachmentId: 'old-a-auth-attachment',
+            requestHandle: 'old-a-auth-request',
+            documentId: 'old-a-document',
+            sourceGeneration: originalSourceGeneration,
+            rawMessage: JSON.stringify({
+              type: 'openAuthenticatedWebView',
+              data: {
+                id: 'old-a-auth',
+                url: 'https://connect.stripe.com/auth',
+              },
+            }),
+          },
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockBridgeClaim).not.toHaveBeenCalled();
+      expect(onAccountUpdate).not.toHaveBeenCalled();
+      expect(NativeStripeSdk.openAuthenticatedWebView).not.toHaveBeenCalled();
+      expect(
+        NativeStripeSdk.openAuthenticatedWebViewFromConnect
+      ).not.toHaveBeenCalled();
+      expect(latestBridgeProps.sourceGeneration).not.toBe(
+        originalSourceGeneration
+      );
+    });
+
+    it('drops an admitted claim when ownership changes before its continuation runs', async () => {
+      mockLoadWebView = true;
+      const onAccountUpdate = jest.fn();
+      const callbacks = { accountUpdate: onAccountUpdate };
+      const { rerender } = renderComponent({ callbacks });
+
+      await waitFor(() => {
+        expect(mockBridgeContainerProps?.onBridgeRequest).toEqual(
+          expect.any(Function)
+        );
+      });
+
+      const originalBridgeProps = mockBridgeContainerProps;
+      const originalContextId = originalBridgeProps.contextId;
+      const originalSourceGeneration = originalBridgeProps.sourceGeneration;
+      mockBridgeClaim.mockImplementationOnce(() => {});
+
+      act(() => {
+        originalBridgeProps.onBridgeRequest({
+          nativeEvent: {
+            contextId: originalContextId,
+            attachmentId: 'pending-attachment',
+            requestHandle: 'pending-request',
+            documentId: 'pending-document',
+            sourceGeneration: originalSourceGeneration,
+            rawMessage: JSON.stringify({
+              type: 'onSetterFunctionCalled',
+              data: {
+                setter: 'setAccountUpdate',
+                value: { id: 'pending-account' },
+              },
+            }),
+          },
+        });
+      });
+
+      const [, claimId, attachmentId, requestHandle, , , sourceGeneration] =
+        mockBridgeClaim.mock.calls[0];
+      const rerenderToOtherComponent = () => {
+        rerender(
+          <ConnectComponentsProvider connectInstance={connectInstance}>
+            <EmbeddedComponent
+              component="payment-details"
+              callbacks={callbacks}
+              onLoaderStart={jest.fn()}
+              onLoadError={jest.fn()}
+            />
+          </ConnectComponentsProvider>
+        );
+      };
+
+      act(() => {
+        originalBridgeProps.onBridgeClaimResult({
+          nativeEvent: {
+            claimId,
+            attachmentId,
+            requestHandle,
+            sourceGeneration,
+            admitted: true,
+            claimToken: 'claim-token',
+          },
+        });
+        rerenderToOtherComponent();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockBridgeContainerProps.sourceGeneration).not.toBe(
+        originalSourceGeneration
+      );
+      expect(onAccountUpdate).not.toHaveBeenCalled();
+    });
+
+    it('releases an admitted request when a merchant callback throws', async () => {
+      mockLoadWebView = true;
+      const onAccountUpdate = jest.fn(() => {
+        throw new Error('merchant callback failed');
+      });
+      const { unmount } = renderComponent({
+        callbacks: { accountUpdate: onAccountUpdate },
+      });
+      const consoleError = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      try {
+        await act(async () => {
+          sendBridgeRequest('onSetterFunctionCalled', {
+            setter: 'setAccountUpdate',
+            value: { id: 'acct_123' },
+          });
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        expect(onAccountUpdate).toHaveBeenCalledWith({ id: 'acct_123' });
+        expect(mockBridgeCancel).toHaveBeenCalledWith(
+          expect.anything(),
+          'test-attachment',
+          'test-request'
+        );
+      } finally {
+        consoleError.mockRestore();
+        unmount();
+      }
     });
 
     it('ignores a queued bridge event after unmount', () => {
@@ -517,17 +767,22 @@ describe('EmbeddedComponent', () => {
       'http://connect.stripe.com/auth',
       'https://merchant:secret@connect.stripe.com/auth',
       'not a URL',
-    ])('rejects invalid authenticated URLs before native launch: %s', (url) => {
-      mockLoadWebView = true;
-      renderComponent();
+    ])(
+      'rejects invalid authenticated URLs before native launch: %s',
+      async (url) => {
+        mockLoadWebView = true;
+        renderComponent();
 
-      act(() => {
-        sendBridgeRequest('openAuthenticatedWebView', { id: 'auth-1', url });
-      });
+        await act(async () => {
+          sendBridgeRequest('openAuthenticatedWebView', { id: 'auth-1', url });
+          await Promise.resolve();
+          await Promise.resolve();
+        });
 
-      expect(NativeStripeSdk.openAuthenticatedWebView).not.toHaveBeenCalled();
-      expectNullAuthReply();
-    });
+        expect(NativeStripeSdk.openAuthenticatedWebView).not.toHaveBeenCalled();
+        await waitFor(() => expectNullAuthReply());
+      }
+    );
 
     it('replies and releases ownership when native launch fails', async () => {
       mockLoadWebView = true;
@@ -571,6 +826,68 @@ describe('EmbeddedComponent', () => {
       });
     });
 
+    it('clears an Android auth owner when the same Connect instance changes source', async () => {
+      mockLoadWebView = true;
+      let resolveFirst!: (result: null) => void;
+      let resolveSecond!: (result: null) => void;
+      const firstLaunch = new Promise<null>((resolve) => {
+        resolveFirst = resolve;
+      });
+      const secondLaunch = new Promise<null>((resolve) => {
+        resolveSecond = resolve;
+      });
+      (NativeStripeSdk.openAuthenticatedWebView as jest.Mock)
+        .mockImplementationOnce(() => firstLaunch)
+        .mockImplementationOnce(() => secondLaunch);
+      const { rerender, unmount } = renderComponent();
+      const firstBridge = mockBridgeContainerProps;
+
+      try {
+        await act(async () => {
+          sendBridgeRequest(
+            'openAuthenticatedWebView',
+            { id: 'auth-a', url: 'https://connect.stripe.com/auth' },
+            firstBridge
+          );
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+        await waitFor(() => {
+          expect(
+            NativeStripeSdk.openAuthenticatedWebView
+          ).toHaveBeenCalledTimes(1);
+        });
+
+        rerender(
+          <ConnectComponentsProvider connectInstance={connectInstance}>
+            <EmbeddedComponent
+              component="payment-details"
+              onLoaderStart={jest.fn()}
+              onLoadError={jest.fn()}
+            />
+          </ConnectComponentsProvider>
+        );
+
+        await act(async () => {
+          sendBridgeRequest('openAuthenticatedWebView', {
+            id: 'auth-b',
+            url: 'https://connect.stripe.com/auth',
+          });
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+        await waitFor(() => {
+          expect(
+            NativeStripeSdk.openAuthenticatedWebView
+          ).toHaveBeenCalledTimes(2);
+        });
+      } finally {
+        resolveFirst(null);
+        resolveSecond(null);
+        unmount();
+      }
+    });
+
     it('replies with an error when iOS resolves a native launch failure', async () => {
       mockLoadWebView = true;
       Platform.OS = 'ios' as any;
@@ -612,7 +929,7 @@ describe('EmbeddedComponent', () => {
       ).mockResolvedValueOnce([resultUrl]);
 
       try {
-        act(() => {
+        await act(async () => {
           sendBridgeRequest(
             'openAuthenticatedWebView',
             { id: 'auth-owner', url: 'https://connect.stripe.com/auth' },
@@ -633,6 +950,8 @@ describe('EmbeddedComponent', () => {
               documentId: 'non-owner-document',
             }
           );
+          await Promise.resolve();
+          await Promise.resolve();
         });
 
         expect(NativeStripeSdk.openAuthenticatedWebView).toHaveBeenCalledTimes(
@@ -697,13 +1016,15 @@ describe('EmbeddedComponent', () => {
       };
 
       try {
-        act(() => {
+        await act(async () => {
           sendBridgeRequest(
             'openAuthenticatedWebView',
             { id: 'reused-auth-id', url: 'https://connect.stripe.com/auth' },
             firstBridge,
             firstRequestContext
           );
+          await Promise.resolve();
+          await Promise.resolve();
         });
         firstComponent.unmount();
 
@@ -714,7 +1035,7 @@ describe('EmbeddedComponent', () => {
           NativeStripeSdk.pollAndClearPendingStripeConnectUrls as jest.Mock
         ).mockResolvedValueOnce(['stripe-connect://return?state=second']);
 
-        act(() => {
+        await act(async () => {
           sendBridgeRequest(
             'openAuthenticatedWebView',
             { id: 'reused-auth-id', url: 'https://connect.stripe.com/auth' },
@@ -725,6 +1046,8 @@ describe('EmbeddedComponent', () => {
               documentId: 'second-document',
             }
           );
+          await Promise.resolve();
+          await Promise.resolve();
         });
 
         await act(async () => {
@@ -873,6 +1196,17 @@ describe('EmbeddedComponent', () => {
           clientSecret: 'client_secret',
           connectedAccountId: 'connected_account',
         });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      await waitFor(() => {
+        expect(
+          mockBridgeReply.mock.calls.some(
+            (call) =>
+              call[2] === 'test-request' &&
+              JSON.parse(call[3]).action === 'financialConnections'
+          )
+        ).toBe(true);
       });
     };
 
@@ -944,6 +1278,76 @@ describe('EmbeddedComponent', () => {
       });
     });
 
+    it('clears stale Financial Connections ownership when the same Connect instance changes source', async () => {
+      let resolveFirst!: (result: any) => void;
+      let resolveSecond!: (result: any) => void;
+      const firstResult = new Promise<any>((resolve) => {
+        resolveFirst = resolve;
+      });
+      const secondResult = new Promise<any>((resolve) => {
+        resolveSecond = resolve;
+      });
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock)
+        .mockImplementationOnce(() => firstResult)
+        .mockImplementationOnce(() => secondResult);
+
+      mockLoadWebView = true;
+      const { rerender, unmount } = renderComponent({
+        component: 'account-onboarding',
+      });
+      const firstBridge = mockBridgeContainerProps;
+
+      try {
+        await act(async () => {
+          sendBridgeRequest(
+            'openFinancialConnections',
+            {
+              id: 'request-a',
+              clientSecret: 'secret-a',
+              connectedAccountId: 'acct-a',
+            },
+            firstBridge
+          );
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+        await waitFor(() => {
+          expect(NativeStripeSdk.collectBankAccountToken).toHaveBeenCalledTimes(
+            1
+          );
+        });
+
+        rerender(
+          <ConnectComponentsProvider connectInstance={connectInstance}>
+            <EmbeddedComponent
+              component="payments"
+              onLoaderStart={jest.fn()}
+              onLoadError={jest.fn()}
+            />
+          </ConnectComponentsProvider>
+        );
+
+        await act(async () => {
+          sendBridgeRequest('openFinancialConnections', {
+            id: 'request-b',
+            clientSecret: 'secret-b',
+            connectedAccountId: 'acct-b',
+          });
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+        await waitFor(() => {
+          expect(NativeStripeSdk.collectBankAccountToken).toHaveBeenCalledTimes(
+            2
+          );
+        });
+      } finally {
+        resolveFirst({ error: { code: 'Canceled' } });
+        resolveSecond({ error: { code: 'Canceled' } });
+        unmount();
+      }
+    });
+
     it('forwards a session-only result with a null token', async () => {
       (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue({
         session: mockSession,
@@ -989,7 +1393,7 @@ describe('EmbeddedComponent', () => {
       const firstContextId = firstBridge.contextId;
 
       try {
-        act(() => {
+        await act(async () => {
           sendBridgeRequest(
             'openFinancialConnections',
             {
@@ -999,6 +1403,8 @@ describe('EmbeddedComponent', () => {
             },
             firstBridge
           );
+          await Promise.resolve();
+          await Promise.resolve();
         });
 
         const secondInstance = loadConnectAndInitialize({
@@ -1020,7 +1426,7 @@ describe('EmbeddedComponent', () => {
         });
         const secondBridge = mockBridgeContainerProps;
 
-        act(() => {
+        await act(async () => {
           sendBridgeRequest(
             'openFinancialConnections',
             {
@@ -1030,6 +1436,8 @@ describe('EmbeddedComponent', () => {
             },
             secondBridge
           );
+          await Promise.resolve();
+          await Promise.resolve();
         });
 
         await act(async () => {
@@ -1038,12 +1446,13 @@ describe('EmbeddedComponent', () => {
           await Promise.resolve();
         });
         await waitFor(() => {
-          expect(
-            mockBridgeReply.mock.calls.some(
-              (call) => JSON.parse(call[3]).data?.id === 'request-a'
-            )
-          ).toBe(true);
+          expect(removeFirstListener).toHaveBeenCalledTimes(1);
         });
+        expect(
+          mockBridgeReply.mock.calls.some(
+            (call) => JSON.parse(call[3]).data?.id === 'request-a'
+          )
+        ).toBe(false);
 
         const thirdInstance = loadConnectAndInitialize({
           ...mockInitParams,

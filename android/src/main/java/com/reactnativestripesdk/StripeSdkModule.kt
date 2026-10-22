@@ -33,6 +33,7 @@ import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
 import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
 import com.reactnativestripesdk.checkout.checkoutErrorCode
 import com.reactnativestripesdk.checkout.checkoutIconContext
+import com.reactnativestripesdk.connect.ConnectBridgeContainerView
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
@@ -97,6 +98,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.util.UUID
 
 @ReactModule(name = StripeSdkModule.NAME)
 @OptIn(ReactNativeSdkInternal::class, CheckoutSessionPreview::class)
@@ -122,6 +124,7 @@ class StripeSdkModule(
   private var paymentLauncherManager: PaymentLauncherManager? = null
   private var collectBankAccountLauncherManager: CollectBankAccountLauncherManager? = null
   private var financialConnectionsSheetManager: FinancialConnectionsSheetManager? = null
+  private val financialConnectionsOperationGate = ConnectFinancialConnectionsOperationGate()
   private var googlePayLauncherManager: GooglePayLauncherManager? = null
   private var googlePayPaymentMethodLauncherManager: GooglePayPaymentMethodLauncherManager? = null
   private var customerSheetManager: CustomerSheetManager? = null
@@ -1163,6 +1166,77 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
+    UiThreadUtil.runOnUiThread {
+      collectBankAccountTokenOnUiThread(clientSecret, params, promise)
+    }
+  }
+
+  @ReactMethod
+  override fun collectBankAccountTokenFromConnect(
+    clientSecret: String,
+    params: ReadableMap,
+    claimToken: String,
+    promise: Promise,
+  ) {
+    val connectedAccountId = getValOr(params, "connectedAccountId", null) as? String
+    UiThreadUtil.runOnUiThread {
+      ConnectBridgeContainerView.authorizeLaunchClaim(
+        token = claimToken,
+        expectedMessageType = "openFinancialConnections",
+        expectedClientSecret = clientSecret,
+        expectedConnectedAccountId = connectedAccountId,
+      ) { admitted ->
+        if (!admitted) {
+          promise.resolve(
+            createError(ErrorType.Canceled.toString(), "Financial Connections request is no longer active"),
+          )
+          return@authorizeLaunchClaim
+        }
+        collectBankAccountTokenOnUiThread(clientSecret, params, promise, claimToken)
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun openAuthenticatedWebViewFromConnect(
+    id: String,
+    url: String,
+    claimToken: String,
+    promise: Promise,
+  ) {
+    if (!isValidAuthenticatedWebViewUrl(url)) {
+      promise.reject("InvalidUrl", "Authenticated web view URL must be HTTPS and contain no credentials")
+      return
+    }
+
+    val activity =
+      reactApplicationContext.currentActivity as? FragmentActivity
+        ?: run {
+          promise.reject("MissingActivity", "Authenticated web view requires an active activity")
+          return
+        }
+
+    UiThreadUtil.runOnUiThread {
+      ConnectBridgeContainerView.authorizeLaunchClaim(
+        token = claimToken,
+        expectedMessageType = "openAuthenticatedWebView",
+        expectedUrl = url,
+      ) { admitted ->
+        if (!admitted) {
+          promise.reject("Canceled", "Authenticated web view request is no longer active")
+          return@authorizeLaunchClaim
+        }
+        launchAuthenticatedWebViewOnUiThread(activity, id, url, promise)
+      }
+    }
+  }
+
+  private fun collectBankAccountTokenOnUiThread(
+    clientSecret: String,
+    params: ReadableMap,
+    promise: Promise,
+    connectOperationId: String? = null,
+  ) {
     if (!::stripe.isInitialized) {
       promise.resolve(createMissingInitError())
       return
@@ -1177,6 +1251,13 @@ class StripeSdkModule(
         return
       }
 
+    val operationId = connectOperationId ?: UUID.randomUUID().toString()
+    if (!financialConnectionsOperationGate.begin(operationId)) {
+      promise.resolve(
+        createError(ErrorType.Canceled.toString(), "Another Financial Connections flow is already active"),
+      )
+      return
+    }
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
@@ -1186,6 +1267,7 @@ class StripeSdkModule(
         publishableKey = publishableKey,
         stripeAccountId = accountId,
         preCollectedConsent = preCollectedConsent,
+        onComplete = { financialConnectionsOperationGate.finish(operationId) },
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1212,6 +1294,13 @@ class StripeSdkModule(
         return
       }
 
+    val operationId = UUID.randomUUID().toString()
+    if (!financialConnectionsOperationGate.begin(operationId)) {
+      promise.resolve(
+        createError(ErrorType.Canceled.toString(), "Another Financial Connections flow is already active"),
+      )
+      return
+    }
     unregisterStripeUIManager(financialConnectionsSheetManager)
     financialConnectionsSheetManager =
       FinancialConnectionsSheetManager(
@@ -1221,6 +1310,7 @@ class StripeSdkModule(
         publishableKey = publishableKey,
         stripeAccountId = accountId,
         preCollectedConsent = preCollectedConsent,
+        onComplete = { financialConnectionsOperationGate.finish(operationId) },
       ).also {
         registerStripeUIManager(it)
         it.present(promise)
@@ -1778,46 +1868,55 @@ class StripeSdkModule(
         }
 
     UiThreadUtil.runOnUiThread {
-      if (activeAuthWebViewId != null) {
-        promise.reject("AuthWebViewAlreadyActive", "An authenticated web view is already active")
-        return@runOnUiThread
-      }
+      launchAuthenticatedWebViewOnUiThread(activity, id, url, promise)
+    }
+  }
 
-      val generation = ++authWebViewGeneration
-      activeAuthWebViewId = id
-      try {
-        val uri = url.toUri()
-        val builder =
-          androidx.browser.customtabs.CustomTabsIntent
-            .Builder()
+  private fun launchAuthenticatedWebViewOnUiThread(
+    activity: FragmentActivity,
+    id: String,
+    url: String,
+    promise: Promise,
+  ) {
+    if (activeAuthWebViewId != null) {
+      promise.reject("AuthWebViewAlreadyActive", "An authenticated web view is already active")
+      return
+    }
 
-        // Set toolbar color for better UX
-        builder.setShowTitle(true)
-        builder.setUrlBarHidingEnabled(true)
+    val generation = ++authWebViewGeneration
+    activeAuthWebViewId = id
+    try {
+      val uri = url.toUri()
+      val builder =
+        androidx.browser.customtabs.CustomTabsIntent
+          .Builder()
 
-        val customTabsIntent = builder.build()
+      // Set toolbar color for better UX
+      builder.setShowTitle(true)
+      builder.setUrlBarHidingEnabled(true)
 
-        // NOTE: We intentionally do NOT use FLAG_ACTIVITY_NO_HISTORY here.
-        // That flag can cause React Native's state restoration to fail when returning from Custom Tabs,
-        // resulting in the navigation stack being reset and the previous screen being dismissed.
-        // Custom Tabs will be properly cleaned up when the user navigates back or the session completes.
+      val customTabsIntent = builder.build()
 
-        // Note: Custom Tabs doesn't have built-in redirect handling like iOS ASWebAuthenticationSession.
-        // The redirect will be handled via deep linking when the auth server redirects to stripe-connect://
-        // The React Native Linking module will capture the deep link and pass it back to the JS layer.
-        isAuthWebViewActive = true
-        customTabsIntent.launchUrl(activity, uri)
+      // NOTE: We intentionally do NOT use FLAG_ACTIVITY_NO_HISTORY here.
+      // That flag can cause React Native's state restoration to fail when returning from Custom Tabs,
+      // resulting in the navigation stack being reset and the previous screen being dismissed.
+      // Custom Tabs will be properly cleaned up when the user navigates back or the session completes.
 
-        // Fallback: Reset after timeout if JavaScript doesn't call authWebViewDeepLinkHandled
-        Handler(Looper.getMainLooper()).postDelayed({
-          clearAuthWebViewIfActive(id, generation)
-        }, AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS)
+      // Note: Custom Tabs doesn't have built-in redirect handling like iOS ASWebAuthenticationSession.
+      // The redirect will be handled via deep linking when the auth server redirects to stripe-connect://
+      // The React Native Linking module will capture the deep link and pass it back to the JS layer.
+      isAuthWebViewActive = true
+      customTabsIntent.launchUrl(activity, uri)
 
-        promise.resolve(null)
-      } catch (e: Exception) {
+      // Fallback: Reset after timeout if JavaScript doesn't call authWebViewDeepLinkHandled
+      Handler(Looper.getMainLooper()).postDelayed({
         clearAuthWebViewIfActive(id, generation)
-        promise.reject("Failed", e.message, e)
-      }
+      }, AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS)
+
+      promise.resolve(null)
+    } catch (e: Exception) {
+      clearAuthWebViewIfActive(id, generation)
+      promise.reject("Failed", e.message, e)
     }
   }
 
@@ -2263,5 +2362,21 @@ class StripeSdkModule(
         return urls
       }
     }
+  }
+}
+
+internal class ConnectFinancialConnectionsOperationGate {
+  private var activeOperationId: String? = null
+
+  @Synchronized
+  fun begin(operationId: String): Boolean {
+    if (activeOperationId != null) return false
+    activeOperationId = operationId
+    return true
+  }
+
+  @Synchronized
+  fun finish(operationId: String) {
+    if (activeOperationId == operationId) activeOperationId = null
   }
 }

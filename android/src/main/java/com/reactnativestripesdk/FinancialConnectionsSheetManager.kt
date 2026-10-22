@@ -31,6 +31,7 @@ class FinancialConnectionsSheetManager(
   publishableKey: String,
   stripeAccountId: String?,
   private val preCollectedConsent: FinancialConnectionsPreCollectedConsent?,
+  private val onComplete: (() -> Unit)? = null,
 ) : StripeUIManager(context) {
   enum class Mode {
     ForToken,
@@ -45,7 +46,10 @@ class FinancialConnectionsSheetManager(
     )
 
   override fun onPresent() {
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: run {
+      notifyComplete()
+      return
+    }
     val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
     FinancialConnections.setEventListener { event ->
       val params = mapFromFinancialConnectionsEvent(event)
@@ -80,22 +84,34 @@ class FinancialConnectionsSheetManager(
 
   override fun onDestroy() {
     super.onDestroy()
+    notifyComplete()
     // Remove any event listener that might be set
     FinancialConnections.clearEventListener()
+  }
+
+  private var completionNotified = false
+
+  private fun notifyComplete() {
+    if (completionNotified) return
+    completionNotified = true
+    onComplete?.invoke()
   }
 
   private fun onFinancialConnectionsSheetForTokenResult(result: FinancialConnectionsSheetForTokenResult) {
     when (result) {
       is FinancialConnectionsSheetForTokenResult.Canceled -> {
         promise?.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
+        notifyComplete()
       }
 
       is FinancialConnectionsSheetForTokenResult.Failed -> {
         promise?.resolve(createError(ErrorType.Failed.toString(), result.error))
+        notifyComplete()
       }
 
       is FinancialConnectionsSheetForTokenResult.Completed -> {
         promise?.resolve(createTokenResult(result))
+        notifyComplete()
       }
     }
   }
@@ -104,10 +120,12 @@ class FinancialConnectionsSheetManager(
     when (result) {
       is FinancialConnectionsSheetResult.Canceled -> {
         promise?.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
+        notifyComplete()
       }
 
       is FinancialConnectionsSheetResult.Failed -> {
         promise?.resolve(createError(ErrorType.Failed.toString(), result.error))
+        notifyComplete()
       }
 
       is FinancialConnectionsSheetResult.Completed -> {
@@ -116,6 +134,7 @@ class FinancialConnectionsSheetManager(
             it.putMap("session", mapFromSession(result.financialConnectionsSession))
           },
         )
+        notifyComplete()
       }
     }
   }

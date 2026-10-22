@@ -7,6 +7,18 @@ import XCTest
 
 @MainActor
 final class ConnectBridgeContainerViewTests: XCTestCase {
+    func test_financialConnectionsOperationGateKeepsLaterFlowsOutUntilCompletion() {
+        let gate = ConnectFinancialConnectionsOperationGate()
+
+        XCTAssertTrue(gate.begin("connect-a"))
+        XCTAssertFalse(gate.begin("connect-b"))
+        gate.finish("connect-b")
+        XCTAssertFalse(gate.begin("connect-b"))
+
+        gate.finish("connect-a")
+        XCTAssertTrue(gate.begin("connect-b"))
+    }
+
     func test_rncWebViewUsesNativeRequestReplyWithInitializationObject() async throws {
         guard #available(iOS 14.0, *) else { throw XCTSkip("WKScriptMessageHandlerWithReply requires iOS 14") }
 
@@ -49,6 +61,7 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
 
         let bridgeReady = expectation(description: "native handler is installed before fixture load")
         let firstRequestReceived = expectation(description: "first RNC document request reaches the adapter")
+        let firstRequestClaimed = expectation(description: "first RNC document request is admitted")
         let secondRequestReceived = expectation(description: "replacement RNC document request reaches the adapter")
         let initialHeightReceived = expectation(description: "initial document height reaches the adapter")
         let changedHeightReceived = expectation(description: "updated document height reaches the adapter")
@@ -91,32 +104,79 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
             if requestCount == 1 {
                 firstRequest = event as? [String: Any]
                 firstRequestReceived.fulfill()
+                self.dispatchCommand(
+                    "claim",
+                    arguments: [
+                        "claim-\(event["requestHandle"] as! String)",
+                        event["attachmentId"] as! String,
+                        event["requestHandle"] as! String,
+                        event["documentId"] as! String,
+                        event["contextId"] as! String,
+                        event["sourceGeneration"] as! String,
+                    ],
+                    to: host
+                )
                 return
             }
 
-            guard let firstRequest else {
+            guard firstRequest != nil else {
                 XCTFail("Replacement request arrived before the first request was captured")
                 return
             }
-            container.reply(
-                firstRequest["attachmentId"] as! String,
-                requestHandle: firstRequest["requestHandle"] as! String,
-                payload: #"{"type":"connectBridgeReply","action":"clientSecret","data":"stale"}"#
+            self.dispatchCommand(
+                "claim",
+                arguments: [
+                    "claim-\(event["requestHandle"] as! String)",
+                    event["attachmentId"] as! String,
+                    event["requestHandle"] as! String,
+                    event["documentId"] as! String,
+                    event["contextId"] as! String,
+                    event["sourceGeneration"] as! String,
+                ],
+                to: host
             )
-            container.reply(
-                event["attachmentId"] as! String,
-                requestHandle: "unknown-request-handle",
-                payload: #"{"type":"connectBridgeReply","action":"clientSecret","data":"unknown"}"#
+        }
+        container.onBridgeClaimResult = { event in
+            guard event["admitted"] as? Bool == true,
+                  let requestHandle = event["requestHandle"] as? String
+            else {
+                XCTFail("The live request was not admitted")
+                return
+            }
+            if requestHandle == firstRequest?["requestHandle"] as? String {
+                firstRequestClaimed.fulfill()
+                return
+            }
+            guard
+                  let attachmentId = event["attachmentId"] as? String,
+                  let firstRequest
+            else {
+                XCTFail("The live replacement request was not admitted")
+                return
+            }
+            self.dispatchCommand(
+                "reply",
+                arguments: [
+                    firstRequest["attachmentId"] as! String,
+                    firstRequest["requestHandle"] as! String,
+                    #"{"type":"connectBridgeReply","action":"clientSecret","data":"stale"}"#,
+                ],
+                to: host
             )
-            container.reply(
-                event["attachmentId"] as! String,
-                requestHandle: event["requestHandle"] as! String,
-                payload: #"{"type":"connectBridgeReply","action":"clientSecret","data":"fresh"}"#
+            self.dispatchCommand(
+                "reply",
+                arguments: [attachmentId, "unknown-request-handle", #"{"type":"connectBridgeReply","action":"clientSecret","data":"unknown"}"#],
+                to: host
             )
-            container.reply(
-                event["attachmentId"] as! String,
-                requestHandle: event["requestHandle"] as! String,
-                payload: #"{"type":"connectBridgeReply","action":"clientSecret","data":"duplicate"}"#
+            self.dispatchCommand(
+                "reply",
+                arguments: [attachmentId, requestHandle, #"{"type":"connectBridgeReply","action":"clientSecret","data":"fresh"}"#],
+                to: host
+            )
+            self.dispatchCommand(
+                "reply",
+                arguments: [attachmentId, requestHandle, #"{"type":"connectBridgeReply","action":"clientSecret","data":"duplicate"}"#],
+                to: host
             )
             secondRequestReceived.fulfill()
         }
@@ -152,6 +212,7 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
         XCTAssertEqual(injectedObjectJson, initializationJson)
 
         await fulfillment(of: [firstRequestReceived], timeout: 3)
+        await fulfillment(of: [firstRequestClaimed], timeout: 3)
         await fulfillment(of: [initialHeightReceived, changedHeightReceived], timeout: 3)
         XCTAssertGreaterThan(Set(reportedHeights).count, 1)
         let firstDocumentId = try await evaluateJavaScript("window.__stripeConnectDocument.id", in: webView) as? String
@@ -186,6 +247,533 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
         let result = try await evaluateJavaScript("document.body.dataset.result", in: webView) as? String
         XCTAssertEqual(result, "fresh")
         XCTAssertEqual(rncImplementationView.value(forKey: "messagingEnabled") as? Bool, false)
+    }
+
+    func test_fabricClaimAndCancelCommandsGuardSingleUseAuthenticatedLaunchClaims() async throws {
+        guard #available(iOS 14.0, *) else { throw XCTSkip("WKScriptMessageHandlerWithReply requires iOS 14") }
+
+        let hostClass = try XCTUnwrap(NSClassFromString("ConnectBridgeContainerComponentView") as? UIView.Type)
+        let host = hostClass.init(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let container = try XCTUnwrap(host.value(forKey: "contentView") as? ConnectBridgeContainerView)
+        let rncComponentClass = try XCTUnwrap(NSClassFromString("RNCWebView") as? UIView.Type)
+        let rncComponent = rncComponentClass.init(frame: host.bounds)
+        let rncImplementationView = try XCTUnwrap(findView(named: "RNCWebViewImpl", in: rncComponent))
+        rncImplementationView.setValue(false, forKey: "messagingEnabled")
+        rncImplementationView.setValue(nil, forKey: "onShouldStartLoadWithRequest")
+        mount(rncComponent, in: host, at: 0)
+
+        let argumentMismatchRejected = expectation(description: "claim token rejects mismatched launch arguments")
+        let exactLaunchAdmitted = expectation(description: "live matching launch claim is revalidated")
+        let duplicateLaunchRejected = expectation(description: "launch claim token is single-use")
+        var requestsByHandle: [String: [String: Any]] = [:]
+
+        let fixtureHTML = """
+        <!doctype html><html><body><script>
+          var results = [];
+          window.returnedFromAuthenticatedWebView = function(value) {
+            results.push(value && value.url === null ? 'cancelled' : 'unexpected');
+            document.body.dataset.launchResults = results.join(',');
+            if (results.length === 1) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'openAuthenticatedWebView',
+                data: { id: 'second-request', url: 'https://accounts.example.test/login' }
+              }));
+            }
+          };
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'openAuthenticatedWebView',
+            data: { id: 'first-request', url: 'https://accounts.example.test/login' }
+          }));
+        </script></body></html>
+        """
+        let source = "https://connect-js.stripe.com/test-fixture"
+        container.loadSourceForTesting = { webView, sourceURL in
+            webView.loadHTMLString(fixtureHTML, baseURL: sourceURL)
+        }
+        container.updateConfiguration(
+            contextId: "claim-context",
+            sourceGeneration: "claim-generation",
+            connectSource: source,
+            initializationObjectJson: #"{"initParams":{"locale":"en"}}"#,
+            observeContentHeight: false
+        )
+        container.onBridgeRequest = { event in
+            guard let rawMessage = event["rawMessage"] as? String,
+                  let data = rawMessage.data(using: .utf8),
+                  let message = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  message["type"] as? String == "openAuthenticatedWebView",
+                  let requestHandle = event["requestHandle"] as? String
+            else { return }
+            guard let normalizedEvent = event as? [String: Any] else {
+                XCTFail("Native request event was not a string-keyed dictionary")
+                return
+            }
+            requestsByHandle[requestHandle] = normalizedEvent
+            self.dispatchCommand(
+                "claim",
+                arguments: [
+                    "claim-\(requestHandle)",
+                    event["attachmentId"] as! String,
+                    requestHandle,
+                    event["documentId"] as! String,
+                    event["contextId"] as! String,
+                    event["sourceGeneration"] as! String,
+                ],
+                to: host
+            )
+        }
+        container.onBridgeClaimResult = { result in
+            guard result["admitted"] as? Bool == true,
+                  let claimToken = result["claimToken"] as? String,
+                  let requestHandle = result["requestHandle"] as? String,
+                  let attachmentId = result["attachmentId"] as? String,
+                  let request = requestsByHandle[requestHandle],
+                  let rawMessage = request["rawMessage"] as? String,
+                  let data = rawMessage.data(using: .utf8),
+                  let message = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let requestData = message["data"] as? [String: Any],
+                  let url = requestData["url"] as? String
+            else {
+                XCTFail("The live authenticated request did not receive an operation claim")
+                return
+            }
+
+            if requestData["id"] as? String == "first-request" {
+                ConnectBridgeContainerView.authorizeLaunchClaim(
+                    claimToken,
+                    operation: "openAuthenticatedWebView",
+                    url: "https://accounts.example.test/wrong"
+                ) { admitted in
+                    XCTAssertFalse(admitted)
+                    argumentMismatchRejected.fulfill()
+                }
+                return
+            }
+
+            ConnectBridgeContainerView.authorizeLaunchClaim(
+                claimToken,
+                operation: "openAuthenticatedWebView",
+                url: url
+            ) { admitted in
+                XCTAssertTrue(admitted)
+                exactLaunchAdmitted.fulfill()
+                ConnectBridgeContainerView.authorizeLaunchClaim(
+                    claimToken,
+                    operation: "openAuthenticatedWebView",
+                    url: url
+                ) { duplicateAdmitted in
+                    XCTAssertFalse(duplicateAdmitted)
+                    duplicateLaunchRejected.fulfill()
+                    self.dispatchCommand("cancel", arguments: [attachmentId, requestHandle], to: host)
+                }
+            }
+        }
+
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let root = UIViewController()
+        window.rootViewController = root
+        root.view.addSubview(host)
+        window.makeKeyAndVisible()
+        root.view.layoutIfNeeded()
+        host.layoutIfNeeded()
+        defer {
+            container.dispose()
+            window.isHidden = true
+        }
+
+        let webView = try XCTUnwrap(findView(of: WKWebView.self, in: host))
+        await fulfillment(of: [argumentMismatchRejected, exactLaunchAdmitted, duplicateLaunchRejected], timeout: 5)
+        try await waitForJavaScriptValue("document.body.dataset.launchResults", in: webView) {
+            $0 as? String == "cancelled,cancelled"
+        }
+    }
+
+    func test_initializationUpdateRetriesAfterWrapperSetupCompletes() async throws {
+        guard #available(iOS 14.0, *) else { throw XCTSkip("WKScriptMessageHandlerWithReply requires iOS 14") }
+
+        let hostClass = try XCTUnwrap(NSClassFromString("ConnectBridgeContainerComponentView") as? UIView.Type)
+        let host = hostClass.init(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let container = try XCTUnwrap(host.value(forKey: "contentView") as? ConnectBridgeContainerView)
+        let rncComponentClass = try XCTUnwrap(NSClassFromString("RNCWebView") as? UIView.Type)
+        let rncComponent = rncComponentClass.init(frame: host.bounds)
+        let rncImplementationView = try XCTUnwrap(findView(named: "RNCWebViewImpl", in: rncComponent))
+        rncImplementationView.setValue(false, forKey: "messagingEnabled")
+        rncImplementationView.setValue(nil, forKey: "onShouldStartLoadWithRequest")
+        mount(rncComponent, in: host, at: 0)
+
+        let fixtureHTML = """
+        <!doctype html><html><body><script>
+          window.__cachedInitialization = JSON.parse(window.ReactNativeWebView.injectedObjectJson());
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'fetchClientSecret' }));
+          window.installWrapper = function() {
+            window.updateConnectInstance = function(value) { window.__connectInstanceUpdate = value; };
+            window.callSetterWithSerializableValue = function(value) { window.__componentPropUpdate = value; };
+            window.updateConnectInstance({ locale: window.__cachedInitialization.initParams.locale });
+            window.callSetterWithSerializableValue({ setter: 'fixtureMarker', value: window.__cachedInitialization.initComponentProps.fixtureMarker });
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pageDidLoad' }));
+          };
+        </script></body></html>
+        """
+        container.loadSourceForTesting = { webView, sourceURL in
+            webView.loadHTMLString(fixtureHTML, baseURL: sourceURL)
+        }
+        container.updateConfiguration(
+            contextId: "delayed-wrapper-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"en"},"initComponentProps":{"fixtureMarker":"old"}}"#,
+            observeContentHeight: false
+        )
+
+        let bridgeReady = expectation(description: "native handler is installed before fixture load")
+        let initialRequest = expectation(description: "document is active before wrapper setup")
+        let pageDidLoad = expectation(description: "wrapper readiness message reaches native")
+        container.onBridgeReady = { value in
+            if value.length > 0 { bridgeReady.fulfill() }
+        }
+        container.onBridgeRequest = { event in
+            guard let rawMessage = event["rawMessage"] as? String,
+                  let data = rawMessage.data(using: .utf8),
+                  let message = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            else { return }
+            if message["type"] as? String == "fetchClientSecret" { initialRequest.fulfill() }
+            if message["type"] as? String == "pageDidLoad" { pageDidLoad.fulfill() }
+        }
+
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let root = UIViewController()
+        window.rootViewController = root
+        root.view.addSubview(host)
+        window.makeKeyAndVisible()
+        root.view.layoutIfNeeded()
+        host.layoutIfNeeded()
+        defer {
+            container.dispose()
+            window.isHidden = true
+        }
+
+        await fulfillment(of: [bridgeReady], timeout: 3)
+        let webView = try XCTUnwrap(findView(of: WKWebView.self, in: host))
+        await fulfillment(of: [initialRequest], timeout: 3)
+
+        let firstUpdateEvaluated = expectation(description: "first initialization update finishes in JavaScript")
+        var releaseFirstUpdateCompletion: (() -> Void)?
+        var firstUpdateResult: Any?
+        container.evaluateInitializationUpdateForTesting = { webView, script, completion in
+            webView.evaluateJavaScript(script) { result, error in
+                if releaseFirstUpdateCompletion == nil {
+                    firstUpdateResult = result
+                    releaseFirstUpdateCompletion = { completion(result, error) }
+                    firstUpdateEvaluated.fulfill()
+                } else {
+                    completion(result, error)
+                }
+            }
+        }
+        container.updateConfiguration(
+            contextId: "delayed-wrapper-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"updated"}}"#,
+            observeContentHeight: false
+        )
+        await fulfillment(of: [firstUpdateEvaluated], timeout: 3)
+        XCTAssertEqual(firstUpdateResult as? Bool, false)
+        _ = try await evaluateJavaScript("window.installWrapper()", in: webView)
+        await fulfillment(of: [pageDidLoad], timeout: 3)
+        try XCTUnwrap(releaseFirstUpdateCompletion)()
+
+        try await waitForJavaScriptValue("window.__componentPropUpdate && window.__componentPropUpdate.value", in: webView) {
+            $0 as? String == "updated"
+        }
+        let updatedLocale = try await evaluateJavaScript("window.__connectInstanceUpdate && window.__connectInstanceUpdate.locale", in: webView) as? String
+        XCTAssertEqual(updatedLocale, "fr")
+    }
+
+    func test_successfulUpdateAdvancesBaselineBeforeRetryingNewerConfiguration() async throws {
+        guard #available(iOS 14.0, *) else { throw XCTSkip("WKScriptMessageHandlerWithReply requires iOS 14") }
+
+        let hostClass = try XCTUnwrap(NSClassFromString("ConnectBridgeContainerComponentView") as? UIView.Type)
+        let host = hostClass.init(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let container = try XCTUnwrap(host.value(forKey: "contentView") as? ConnectBridgeContainerView)
+        let rncComponentClass = try XCTUnwrap(NSClassFromString("RNCWebView") as? UIView.Type)
+        let rncComponent = rncComponentClass.init(frame: host.bounds)
+        let rncImplementationView = try XCTUnwrap(findView(named: "RNCWebViewImpl", in: rncComponent))
+        rncImplementationView.setValue(false, forKey: "messagingEnabled")
+        rncImplementationView.setValue(nil, forKey: "onShouldStartLoadWithRequest")
+        mount(rncComponent, in: host, at: 0)
+
+        let fixtureHTML = """
+        <!doctype html><html><body><script>
+          window.updateConnectInstance = function(value) { window.__connectInstanceUpdate = value; };
+          window.callSetterWithSerializableValue = function(value) { window.__componentPropUpdate = value; };
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pageDidLoad' }));
+        </script></body></html>
+        """
+        container.loadSourceForTesting = { webView, sourceURL in
+            webView.loadHTMLString(fixtureHTML, baseURL: sourceURL)
+        }
+
+        let bridgeReady = expectation(description: "native handler is installed before fixture load")
+        let pageDidLoad = expectation(description: "fixture reports wrapper readiness")
+        container.onBridgeReady = { value in
+            if value.length > 0 { bridgeReady.fulfill() }
+        }
+        container.onBridgeRequest = { event in
+            guard let rawMessage = event["rawMessage"] as? String,
+                  let data = rawMessage.data(using: .utf8),
+                  let message = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            else { return }
+            if message["type"] as? String == "pageDidLoad" { pageDidLoad.fulfill() }
+        }
+        container.updateConfiguration(
+            contextId: "consecutive-update-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"en"},"initComponentProps":{"fixtureMarker":"old"}}"#,
+            observeContentHeight: false
+        )
+
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let root = UIViewController()
+        window.rootViewController = root
+        root.view.addSubview(host)
+        window.makeKeyAndVisible()
+        root.view.layoutIfNeeded()
+        host.layoutIfNeeded()
+        defer {
+            container.dispose()
+            window.isHidden = true
+        }
+
+        await fulfillment(of: [bridgeReady, pageDidLoad], timeout: 3)
+        let webView = try XCTUnwrap(findView(of: WKWebView.self, in: host))
+        let firstEvaluationCaptured = expectation(description: "first update evaluation is held after execution")
+        let secondEvaluationStarted = expectation(description: "newer target starts a second evaluation")
+        var releaseFirstEvaluation: (() -> Void)?
+        var updateScripts: [String] = []
+        container.evaluateInitializationUpdateForTesting = { webView, script, completion in
+            updateScripts.append(script)
+            if updateScripts.count == 1 {
+                webView.evaluateJavaScript(script) { result, error in
+                    releaseFirstEvaluation = { completion(result, error) }
+                    firstEvaluationCaptured.fulfill()
+                }
+            } else {
+                secondEvaluationStarted.fulfill()
+                webView.evaluateJavaScript(script, completionHandler: completion)
+            }
+        }
+
+        container.updateConfiguration(
+            contextId: "consecutive-update-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"update-b"}}"#,
+            observeContentHeight: false
+        )
+        await fulfillment(of: [firstEvaluationCaptured], timeout: 3)
+        container.updateConfiguration(
+            contextId: "consecutive-update-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"update-c"}}"#,
+            observeContentHeight: false
+        )
+
+        try XCTUnwrap(releaseFirstEvaluation)()
+        await fulfillment(of: [secondEvaluationStarted], timeout: 3)
+        XCTAssertEqual(updateScripts.count, 2)
+        XCTAssertTrue(updateScripts[1].contains(", false, true)"))
+        try await waitForJavaScriptValue("window.__componentPropUpdate && window.__componentPropUpdate.value", in: webView) {
+            $0 as? String == "update-c"
+        }
+    }
+
+    func test_newDocumentRetiresOldInitializationUpdateBeforeStartingAnother() async throws {
+        guard #available(iOS 14.0, *) else { throw XCTSkip("WKScriptMessageHandlerWithReply requires iOS 14") }
+
+        let hostClass = try XCTUnwrap(NSClassFromString("ConnectBridgeContainerComponentView") as? UIView.Type)
+        let host = hostClass.init(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let container = try XCTUnwrap(host.value(forKey: "contentView") as? ConnectBridgeContainerView)
+        let rncComponentClass = try XCTUnwrap(NSClassFromString("RNCWebView") as? UIView.Type)
+        let rncComponent = rncComponentClass.init(frame: host.bounds)
+        let rncImplementationView = try XCTUnwrap(findView(named: "RNCWebViewImpl", in: rncComponent))
+        rncImplementationView.setValue(false, forKey: "messagingEnabled")
+        rncImplementationView.setValue(nil, forKey: "onShouldStartLoadWithRequest")
+        mount(rncComponent, in: host, at: 0)
+
+        let fixtureHTML = """
+        <!doctype html><html><body><script>
+          window.updateConnectInstance = function(value) { window.__connectInstanceUpdate = value; };
+          window.callSetterWithSerializableValue = function(value) { window.__componentPropUpdate = value; };
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pageDidLoad' }));
+        </script></body></html>
+        """
+        container.loadSourceForTesting = { webView, sourceURL in
+            webView.loadHTMLString(fixtureHTML, baseURL: sourceURL)
+        }
+
+        let bridgeReady = expectation(description: "native handler is installed before fixture load")
+        let firstPageDidLoad = expectation(description: "first document reports readiness")
+        let secondPageDidLoad = expectation(description: "replacement document reports readiness")
+        var pageLoadCount = 0
+        container.onBridgeReady = { value in
+            if value.length > 0 { bridgeReady.fulfill() }
+        }
+        container.onBridgeRequest = { event in
+            guard let rawMessage = event["rawMessage"] as? String,
+                  let data = rawMessage.data(using: .utf8),
+                  let message = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            else { return }
+            if message["type"] as? String == "pageDidLoad" {
+                pageLoadCount += 1
+                (pageLoadCount == 1 ? firstPageDidLoad : secondPageDidLoad).fulfill()
+            }
+        }
+        container.updateConfiguration(
+            contextId: "document-replacement-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"en"},"initComponentProps":{"fixtureMarker":"old"}}"#,
+            observeContentHeight: false
+        )
+
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let root = UIViewController()
+        window.rootViewController = root
+        root.view.addSubview(host)
+        window.makeKeyAndVisible()
+        root.view.layoutIfNeeded()
+        host.layoutIfNeeded()
+        defer {
+            container.dispose()
+            window.isHidden = true
+        }
+
+        await fulfillment(of: [bridgeReady, firstPageDidLoad], timeout: 3)
+        let webView = try XCTUnwrap(findView(of: WKWebView.self, in: host))
+        let sourceURL = try XCTUnwrap(URL(string: "https://connect-js.stripe.com/test-fixture"))
+        let firstDocumentId = try await evaluateJavaScript("window.__stripeConnectDocument.id", in: webView) as? String
+        let firstUpdateCaptured = expectation(description: "old document update completion is held")
+        let secondUpdateCaptured = expectation(description: "new document update starts while old completion is held")
+        var releaseFirstUpdate: (() -> Void)?
+        var releaseSecondUpdate: (() -> Void)?
+        var updateCount = 0
+        container.evaluateInitializationUpdateForTesting = { webView, script, completion in
+            updateCount += 1
+            webView.evaluateJavaScript(script) { result, error in
+                if updateCount == 1 {
+                    releaseFirstUpdate = { completion(result, error) }
+                    firstUpdateCaptured.fulfill()
+                } else {
+                    releaseSecondUpdate = { completion(result, error) }
+                    secondUpdateCaptured.fulfill()
+                }
+            }
+        }
+
+        container.updateConfiguration(
+            contextId: "document-replacement-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"update-b"}}"#,
+            observeContentHeight: false
+        )
+        await fulfillment(of: [firstUpdateCaptured], timeout: 3)
+
+        webView.loadHTMLString(fixtureHTML, baseURL: sourceURL)
+        try await waitForJavaScriptValue("window.__stripeConnectDocument.id", in: webView) {
+            guard let documentId = $0 as? String else { return false }
+            return documentId != firstDocumentId
+        }
+        await fulfillment(of: [secondPageDidLoad], timeout: 3)
+        container.updateConfiguration(
+            contextId: "document-replacement-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"update-c"}}"#,
+            observeContentHeight: false
+        )
+        await fulfillment(of: [secondUpdateCaptured], timeout: 3)
+
+        try XCTUnwrap(releaseFirstUpdate)()
+        try XCTUnwrap(releaseSecondUpdate)()
+        try await waitForJavaScriptValue("window.__componentPropUpdate && window.__componentPropUpdate.value", in: webView) {
+            $0 as? String == "update-c"
+        }
+    }
+
+    func test_initializationUpdateBeforeDocumentStartRefreshesBootstrapForFirstLoadAndReload() async throws {
+        guard #available(iOS 14.0, *) else { throw XCTSkip("WKScriptMessageHandlerWithReply requires iOS 14") }
+
+        let hostClass = try XCTUnwrap(NSClassFromString("ConnectBridgeContainerComponentView") as? UIView.Type)
+        let host = hostClass.init(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let container = try XCTUnwrap(host.value(forKey: "contentView") as? ConnectBridgeContainerView)
+        let rncComponentClass = try XCTUnwrap(NSClassFromString("RNCWebView") as? UIView.Type)
+        let rncComponent = rncComponentClass.init(frame: host.bounds)
+        let rncImplementationView = try XCTUnwrap(findView(named: "RNCWebViewImpl", in: rncComponent))
+        rncImplementationView.setValue(false, forKey: "messagingEnabled")
+        rncImplementationView.setValue(nil, forKey: "onShouldStartLoadWithRequest")
+        mount(rncComponent, in: host, at: 0)
+
+        let fixtureHTML = """
+        <!doctype html><html><head><title>PreDocumentStartFixture</title></head><body></body></html>
+        """
+        var pendingWebView: WKWebView?
+        var pendingSourceURL: URL?
+        container.loadSourceForTesting = { webView, sourceURL in
+            pendingWebView = webView
+            pendingSourceURL = sourceURL
+        }
+
+        let bridgeReady = expectation(description: "native handler is installed before document load")
+        container.onBridgeReady = { value in
+            if value.length > 0 { bridgeReady.fulfill() }
+        }
+        container.updateConfiguration(
+            contextId: "pre-document-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"en"}}"#,
+            observeContentHeight: false
+        )
+
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let root = UIViewController()
+        window.rootViewController = root
+        root.view.addSubview(host)
+        window.makeKeyAndVisible()
+        root.view.layoutIfNeeded()
+        host.layoutIfNeeded()
+        defer {
+            container.dispose()
+            window.isHidden = true
+        }
+
+        await fulfillment(of: [bridgeReady], timeout: 3)
+        container.updateConfiguration(
+            contextId: "pre-document-context",
+            connectSource: "https://connect-js.stripe.com/test-fixture",
+            initializationObjectJson: #"{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"latest"}}"#,
+            observeContentHeight: false
+        )
+
+        let webView = try XCTUnwrap(pendingWebView)
+        let sourceURL = try XCTUnwrap(pendingSourceURL)
+        webView.loadHTMLString(fixtureHTML, baseURL: sourceURL)
+        try await waitForJavaScriptValue("document.title", in: webView) {
+            $0 as? String == "PreDocumentStartFixture"
+        }
+        let latestInitialization = #"{"initParams":{"locale":"fr"},"initComponentProps":{"fixtureMarker":"latest"}}"#
+        try await waitForJavaScriptValue("window.ReactNativeWebView.injectedObjectJson()", in: webView) {
+            $0 as? String == latestInitialization
+        }
+        let firstDocumentId = try await evaluateJavaScript(
+            "window.__stripeConnectDocument.id",
+            in: webView
+        ) as? String
+        XCTAssertNotNil(firstDocumentId)
+
+        webView.loadHTMLString(fixtureHTML, baseURL: sourceURL)
+        try await waitForJavaScriptValue("window.__stripeConnectDocument.id", in: webView) {
+            guard let documentId = $0 as? String else { return false }
+            return documentId != firstDocumentId
+        }
+        try await waitForJavaScriptValue("window.ReactNativeWebView.injectedObjectJson()", in: webView) {
+            $0 as? String == latestInitialization
+        }
     }
 
     func test_onlyTrustedMainFrameOriginsCanSendBridgeMessages() async throws {
@@ -338,7 +926,11 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
             documentId: window.__stripeConnectDocument.id,
             rawMessage: JSON.stringify({ type: 'fetchClientSecret' })
           }).then(function(reply) {
-            document.body.dataset.pendingResult = reply.type;
+            document.body.dataset.pendingResult = JSON.stringify({
+              type: reply.type,
+              action: reply.action,
+              data: reply.data
+            });
           });
         </script></body></html>
         """
@@ -390,7 +982,7 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
         host.removeFromSuperview()
         await fulfillment(of: [firstDetach], timeout: 3)
         try await waitForJavaScriptValue("document.body.dataset.pendingResult", in: webView) {
-            $0 as? String == "cancelled"
+            $0 as? String == #"{"type":"connectBridgeReply","action":"clientSecret","data":null}"#
         }
 
         let secondAttachmentReady = expectation(description: "reattachment installs a new handler")
@@ -409,7 +1001,7 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
         container.dispose()
         await fulfillment(of: [disposed], timeout: 3)
         try await waitForJavaScriptValue("document.body.dataset.pendingResult", in: webView) {
-            $0 as? String == "cancelled"
+            $0 as? String == #"{"type":"connectBridgeReply","action":"clientSecret","data":null}"#
         }
 
         let requestCountBeforeDisposeProbe = requests.count
@@ -470,7 +1062,8 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
         let firstDocumentId = try XCTUnwrap(firstDocumentIdValue)
         let updateScript = try XCTUnwrap(ConnectBridgeContainerView.initializationUpdateScript(
             documentId: firstDocumentId,
-            initializationObjectJson: initializationJson
+            initializationObjectJson: initializationJson,
+            updateComponentProps: false
         ))
         let updateResult = try await evaluateJavaScript(updateScript, in: webView) as? Bool
         XCTAssertEqual(updateResult, true)
@@ -565,6 +1158,13 @@ final class ConnectBridgeContainerViewTests: XCTestCase {
         let implementation = class_getMethodImplementation(type(of: parent), selector)
         typealias MountChild = @convention(c) (AnyObject, Selector, AnyObject, Int) -> Void
         unsafeBitCast(implementation, to: MountChild.self)(parent, selector, child, index)
+    }
+
+    private func dispatchCommand(_ command: String, arguments: [Any], to host: UIView) {
+        let selector = NSSelectorFromString("handleCommand:args:")
+        let implementation = class_getMethodImplementation(type(of: host), selector)
+        typealias HandleCommand = @convention(c) (AnyObject, Selector, NSString, NSArray) -> Void
+        unsafeBitCast(implementation, to: HandleCommand.self)(host, selector, command as NSString, arguments as NSArray)
     }
 
     private func evaluateJavaScript(_ script: String, in webView: WKWebView) async throws -> Any? {

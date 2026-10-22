@@ -92,6 +92,8 @@ The React Native **new architecture** (TurboModules and Fabric) is required.
 
 _Components_
 
+Connect embedded components require an Android System WebView that supports `WEB_MESSAGE_LISTENER` and `DOCUMENT_START_SCRIPT`. Unsupported configurations report a component load error through `onLoadError`; update Android System WebView to a version supporting both features.
+
 In order to use [CardForm](https://stripe.dev/stripe-react-native/api-reference/index.html#CardForm) component, you need to install and configure [Material Components theme](https://github.com/material-components/material-components-android/blob/master/docs/getting-started.md#4-change-your-app-theme-to-inherit-from-a-material-components-theme) in your app.
 
 1. Add below dependency to your `app/build.gradle` file with specified version

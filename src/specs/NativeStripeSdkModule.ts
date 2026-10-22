@@ -137,6 +137,12 @@ export interface Spec extends TurboModule {
     clientSecret: string,
     params: UnsafeObject<PaymentMethod.CollectBankAccountTokenParams>
   ): Promise<FinancialConnections.TokenResult>;
+  /** Internal Connect bridge entry point; not part of the public package API. */
+  collectBankAccountTokenFromConnect(
+    clientSecret: string,
+    params: UnsafeObject<PaymentMethod.CollectBankAccountTokenParams>,
+    claimToken: string
+  ): Promise<FinancialConnections.TokenResult>;
   collectFinancialConnectionsAccounts(
     clientSecret: string,
     params: UnsafeObject<FinancialConnections.CollectFinancialConnectionsAccountsParams>
@@ -223,6 +229,15 @@ export interface Spec extends TurboModule {
   openAuthenticatedWebView(
     id: string,
     url: string
+  ): Promise<{
+    url?: string;
+    error?: { code?: string; message?: string | null };
+  } | null>;
+  /** Internal Connect bridge entry point; not part of the public package API. */
+  openAuthenticatedWebViewFromConnect(
+    id: string,
+    url: string,
+    claimToken: string
   ): Promise<{
     url?: string;
     error?: { code?: string; message?: string | null };

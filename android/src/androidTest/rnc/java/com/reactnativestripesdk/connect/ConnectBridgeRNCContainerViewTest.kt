@@ -100,19 +100,20 @@ class ConnectBridgeRNCContainerViewTest {
               }
             }
 
-            val reply = if (message?.optString("type") == "fetchClientSecret") {
+            if (message?.optString("type") == "fetchClientSecret") {
               requestDocumentIds += request.documentId
               if (fetchRequestCount.incrementAndGet() >= 2) reloadFetchLatch.countDown()
-              JSONObject()
+              val reply = JSONObject()
                 .put("type", "connectBridgeReply")
                 .put("action", "clientSecret")
                 .put("data", "cs_test_fixture")
                 .toString()
-            } else {
-              "{\"type\":\"ack\"}"
+              container.claimForTest(request) { result ->
+                assertTrue(result.admitted)
+                assertTrue(container.reply(request.attachmentId, request.requestHandle, reply))
+                clientSecretLatch.countDown()
+              }
             }
-            container.reply(request.attachmentId, request.requestHandle, reply)
-            if (message?.optString("type") == "fetchClientSecret") clientSecretLatch.countDown()
           }
         }
         containerReference.set(container)
@@ -176,6 +177,7 @@ class ConnectBridgeRNCContainerViewTest {
   @Test
   fun replacementWebViewInsideTheSameRncWrapperGetsANewAttachment() {
     val firstRequestLatch = CountDownLatch(1)
+    val firstRequestClaimedLatch = CountDownLatch(1)
     val replacementRequestLatch = CountDownLatch(1)
     val unavailableLatch = CountDownLatch(1)
     val replacementReadyLatch = CountDownLatch(1)
@@ -223,28 +225,33 @@ class ConnectBridgeRNCContainerViewTest {
               fixtureRequests += value
               if (value == "initial_engine") {
                 firstRequest.set(request)
+                containerReference.get().claimForTest(request) { result ->
+                  assertTrue(result.admitted)
+                  firstRequestClaimedLatch.countDown()
+                }
                 firstRequestLatch.countDown()
               } else if (value == "replacement_engine") {
-                acceptedOldReply.set(
-                  containerReference.get().reply(
-                    firstRequest.get().attachmentId,
-                    firstRequest.get().requestHandle,
-                    clientSecretReply("stale_result"),
-                  ),
-                )
-                assertTrue(
-                  containerReference.get().reply(
-                    request.attachmentId,
-                    request.requestHandle,
-                    clientSecretReply("replacement_result"),
-                  ),
-                )
-                replacementRequestLatch.countDown()
+                containerReference.get().claimForTest(request) { result ->
+                  assertTrue(result.admitted)
+                  acceptedOldReply.set(
+                    containerReference.get().reply(
+                      firstRequest.get().attachmentId,
+                      firstRequest.get().requestHandle,
+                      clientSecretReply("stale_result"),
+                    ),
+                  )
+                  assertTrue(
+                    containerReference.get().reply(
+                      request.attachmentId,
+                      request.requestHandle,
+                      clientSecretReply("replacement_result"),
+                    ),
+                  )
+                  replacementRequestLatch.countDown()
+                }
               } else if (value == "detached_engine") {
                 fixtureRequests += "unexpected_detached_engine_request"
               }
-            } else {
-              containerReference.get().reply(request.attachmentId, request.requestHandle, "{\"type\":\"ack\"}")
             }
           }
         }
@@ -258,6 +265,7 @@ class ConnectBridgeRNCContainerViewTest {
       }
 
       assertTrue("Initial RNC engine did not send its fixture request", firstRequestLatch.await(10, TimeUnit.SECONDS))
+      assertTrue("Initial RNC request was not admitted before replacement", firstRequestClaimedLatch.await(5, TimeUnit.SECONDS))
       val originalAttachment = firstRequest.get().attachmentId
 
       scenario.onActivity { activity ->
@@ -337,6 +345,24 @@ class ConnectBridgeRNCContainerViewTest {
     script: String,
   ): String = JSONTokener(evaluateJavaScript(webView, script)).nextValue() as String
 
+  private fun ConnectBridgeContainerView.claimForTest(
+    request: ConnectBridgeContainerView.Request,
+    completion: (ConnectBridgeContainerView.ClaimResult) -> Unit,
+  ) {
+    val claimId = "test-claim-${request.requestHandle}"
+    onClaimResult = { result ->
+      if (result.claimId == claimId) completion(result)
+    }
+    claim(
+      claimId = claimId,
+      expectedAttachmentId = request.attachmentId,
+      requestHandle = request.requestHandle,
+      expectedDocumentId = request.documentId,
+      expectedContextId = request.contextId,
+      expectedSourceGeneration = request.sourceGeneration,
+    )
+  }
+
   private class TestRNCWebViewManager : RNCWebViewManager() {
     fun createView(context: ThemedReactContext): RNCWebViewWrapper = super.createViewInstance(context)
 
@@ -411,8 +437,8 @@ class ConnectBridgeRNCContainerViewTest {
       </script></body></html>
     """.trimIndent()
     const val INITIALIZATION_JSON =
-      "{\"initParams\":{\"locale\":\"en\"},\"initComponentProps\":{\"fixtureMarker\":\"init_preserved\"},\"appInfo\":{}}"
+      "{\"initParams\":{\"locale\":\"en\",\"appearance\":{\"variables\":{\"fontFamily\":\"\\\"Quoted\\\" \\\\ \${fontName}\"}}},\"initComponentProps\":{\"fixtureMarker\":\"init_preserved\"},\"appInfo\":{}}"
     const val UPDATED_INITIALIZATION_JSON =
-      "{\"initParams\":{\"locale\":\"fr\"},\"initComponentProps\":{\"fixtureMarker\":\"updated\"},\"appInfo\":{}}"
+      "{\"initParams\":{\"locale\":\"fr\",\"appearance\":{\"variables\":{\"fontFamily\":\"\\\"Quoted\\\" \\\\ \${fontName}\"}}},\"initComponentProps\":{\"fixtureMarker\":\"updated\"},\"appInfo\":{}}"
   }
 }

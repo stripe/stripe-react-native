@@ -49,9 +49,10 @@ class FinancialConnections {
         configuration: FinancialConnectionsSheet.Configuration? = nil,
         preCollectedConsent: FinancialConnectionsPreCollectedConsent? = nil,
         onEvent: ((FinancialConnectionsEvent) -> Void)? = nil,
+        presentImmediatelyOnMain: Bool = false,
         resolve: @escaping RCTPromiseResolveBlock
     ) {
-        DispatchQueue.main.async {
+        let present = {
             let financialConnectionsSheet = FinancialConnectionsSheet(
                 financialConnectionsSessionClientSecret: withClientSecret,
                 returnURL: returnURL,
@@ -76,6 +77,11 @@ class FinancialConnections {
                         resolve(Errors.createError(ErrorType.Failed, error))
                     }
                 })
+        }
+        if presentImmediatelyOnMain && Thread.isMainThread {
+            present()
+        } else {
+            DispatchQueue.main.async(execute: present)
         }
     }
 

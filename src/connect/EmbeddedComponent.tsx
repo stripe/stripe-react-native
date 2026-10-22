@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -27,6 +28,7 @@ import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import NativeConnectBridgeContainer, {
   Commands as ConnectBridgeCommands,
+  type ConnectBridgeClaimResultEvent,
   type ConnectBridgeErrorEvent,
   type ConnectBridgeRequestEvent,
 } from '../specs/NativeConnectBridgeContainer';
@@ -53,6 +55,7 @@ const connectContextIds = new WeakMap<object, string>();
 let nextConnectContextId = 1;
 let activeAndroidAuthOwner: { operationId: string; token: object } | null =
   null;
+let nextConnectSourceGeneration = 1;
 
 function releaseAndroidAuthOwner(token: object, operationId: string) {
   if (
@@ -228,6 +231,18 @@ type EmbeddedFinancialConnectionsResult =
 type ConnectBridgeReplyContext = {
   attachmentId: string;
   requestHandle: string;
+  documentId: string;
+  contextId: string;
+  sourceGeneration: string;
+  claimToken?: string;
+};
+
+type ConnectBridgeClaimWaiter = {
+  attachmentId: string;
+  requestHandle: string;
+  contextId: string;
+  sourceGeneration: string;
+  resolve: (result: { admitted: boolean; claimToken?: string }) => void;
 };
 
 type ConnectBridgeReplyAction =
@@ -262,6 +277,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   } | null>(null);
   const androidAuthOwnerToken = useRef<object>({});
   const isComponentMounted = useRef(true);
+  const pendingBridgeClaimWaiters = useRef(
+    new Map<string, ConnectBridgeClaimWaiter>()
+  );
+  const nextBridgeClaimId = useRef(1);
 
   const clearPendingAndroidAuthRequests = useCallback(() => {
     const owner = activeAndroidAuthOwner;
@@ -442,13 +461,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const { connectInstance, appearance, locale, analyticsClient } =
     useConnectComponents();
   const connectContextId = getConnectContextId(connectInstance);
-  const previousConnectContextId = useRef(connectContextId);
-  useEffect(() => {
-    if (previousConnectContextId.current === connectContextId) return;
-    previousConnectContextId.current = connectContextId;
-    clearPendingAndroidAuthRequests();
-    pendingFinancialConnectionsPromise.current?.cleanup();
-  }, [connectContextId, clearPendingAndroidAuthRequests]);
   const { fonts, publishableKey, fetchClientSecret, overrides } =
     connectInstance.initParams as StripeConnectInitParamsInternal;
 
@@ -500,9 +512,91 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     .join('&');
 
   const connectURL = `${BASE_URL}/v1.0/react_native_webview.html#${hash}`;
+  const sourceAuthority = JSON.stringify([
+    connectContextId,
+    component,
+    connectURL,
+  ]);
+  const sourceGenerationState = useRef({
+    authority: sourceAuthority,
+    value: `connect-source-${nextConnectSourceGeneration++}`,
+  });
+  if (sourceGenerationState.current.authority !== sourceAuthority) {
+    sourceGenerationState.current = {
+      authority: sourceAuthority,
+      value: `connect-source-${nextConnectSourceGeneration++}`,
+    };
+  }
+  const sourceGeneration = sourceGenerationState.current.value;
+  const latestBridgeOwner = useRef({ connectContextId, sourceGeneration });
+  latestBridgeOwner.current = { connectContextId, sourceGeneration };
+  const previousBridgeOwner = useRef({ connectContextId, sourceGeneration });
+
+  useLayoutEffect(() => {
+    if (
+      previousBridgeOwner.current.connectContextId === connectContextId &&
+      previousBridgeOwner.current.sourceGeneration === sourceGeneration
+    ) {
+      return;
+    }
+    previousBridgeOwner.current = { connectContextId, sourceGeneration };
+    clearPendingAndroidAuthRequests();
+    pendingFinancialConnectionsPromise.current?.cleanup();
+  }, [clearPendingAndroidAuthRequests, connectContextId, sourceGeneration]);
 
   const connectBridgeRef =
     useRef<React.ElementRef<typeof NativeConnectBridgeContainer>>(null);
+
+  useEffect(() => {
+    const bridgeContainer = connectBridgeRef.current;
+    const claimWaiters = pendingBridgeClaimWaiters.current;
+    return () => {
+      claimWaiters.forEach((waiter) => {
+        if (bridgeContainer) {
+          ConnectBridgeCommands.cancel(
+            bridgeContainer,
+            waiter.attachmentId,
+            waiter.requestHandle
+          );
+        }
+        waiter.resolve({ admitted: false });
+      });
+      claimWaiters.clear();
+    };
+  }, [connectContextId, sourceGeneration]);
+
+  const isCurrentBridgeOwner = useCallback(
+    (contextId: string, requestSourceGeneration: string) => {
+      const currentOwner = latestBridgeOwner.current;
+      return (
+        isComponentMounted.current &&
+        contextId === currentOwner.connectContextId &&
+        requestSourceGeneration === currentOwner.sourceGeneration
+      );
+    },
+    []
+  );
+
+  const isCurrentBridgeRequest = useCallback(
+    (request: ConnectBridgeReplyContext) =>
+      isCurrentBridgeOwner(request.contextId, request.sourceGeneration),
+    [isCurrentBridgeOwner]
+  );
+
+  const cancelConnectBridgeRequest = useCallback(
+    (
+      request: Pick<ConnectBridgeReplyContext, 'attachmentId' | 'requestHandle'>
+    ) => {
+      const bridgeContainer = connectBridgeRef.current;
+      if (!bridgeContainer) return;
+      ConnectBridgeCommands.cancel(
+        bridgeContainer,
+        request.attachmentId,
+        request.requestHandle
+      );
+    },
+    []
+  );
 
   const replyToConnectBridge = useCallback(
     (
@@ -511,7 +605,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       data: unknown
     ) => {
       const bridgeContainer = connectBridgeRef.current;
-      if (!bridgeContainer) return;
+      if (!bridgeContainer || !isCurrentBridgeRequest(request)) return;
 
       ConnectBridgeCommands.reply(
         bridgeContainer,
@@ -520,7 +614,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         JSON.stringify({ type: 'connectBridgeReply', action, data })
       );
     },
-    []
+    [isCurrentBridgeRequest]
   );
 
   const handleUnexpectedError = useCallback((error: unknown) => {
@@ -598,6 +692,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const onMessageCallback = useCallback(
     async (rawMessage: string, replyContext: ConnectBridgeReplyContext) => {
+      if (!isCurrentBridgeRequest(replyContext)) return;
       let message: { type: string; data?: unknown };
       try {
         message = JSON.parse(rawMessage);
@@ -606,6 +701,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           'unknown',
           error instanceof Error ? error : new Error(String(error))
         );
+        cancelConnectBridgeRequest(replyContext);
         return;
       }
 
@@ -614,6 +710,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           handleUnexpectedError(error);
           return null;
         });
+        if (!isCurrentBridgeRequest(replyContext)) return;
         if (!clientSecret) {
           replyToConnectBridge(replyContext, 'clientSecret', null);
           return;
@@ -649,6 +746,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           );
         }
       } else if (message.type === 'openFinancialConnections') {
+        if (!replyContext.claimToken) return;
         const messageData = message.data as {
           clientSecret: string;
           id: string;
@@ -719,9 +817,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         };
 
         const resultPromise: Promise<FinancialConnections.TokenResult> =
-          NativeStripeSdk.collectBankAccountToken(clientSecret, {
-            connectedAccountId,
-          });
+          NativeStripeSdk.collectBankAccountTokenFromConnect(
+            clientSecret,
+            { connectedAccountId },
+            replyContext.claimToken
+          );
 
         resultPromise
           .then((result) => {
@@ -813,6 +913,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           }
         }
       } else if (message.type === 'openAuthenticatedWebView') {
+        if (!replyContext.claimToken) return;
         const { url, id } = message.data as { id: string; url: string };
 
         // Validate URL before opening
@@ -833,6 +934,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         const completeRequest = (authId: string, resultUrl: string | null) => {
           if (resultReplied) return;
           resultReplied = true;
+          if (!isCurrentBridgeRequest(replyContext)) return;
           if (resultUrl) {
             componentAnalytics.logAuthenticatedWebViewRedirected(authId);
           } else {
@@ -868,7 +970,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         // On Android, we need to wait for the deep link callback
         // On iOS, the promise resolves with the redirect URL
-        NativeStripeSdk.openAuthenticatedWebView(nativeOperationId, url)
+        NativeStripeSdk.openAuthenticatedWebViewFromConnect(
+          nativeOperationId,
+          url,
+          replyContext.claimToken
+        )
           .then((result) => {
             if (Platform.OS === 'ios') {
               if (result?.error) {
@@ -931,6 +1037,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       handleAuthWebViewResult,
       handleFinancialConnectionsResult,
       handleUnexpectedError,
+      isCurrentBridgeRequest,
+      cancelConnectBridgeRequest,
       onLoadError,
       onLoaderStart,
       onContentHeightChange,
@@ -945,16 +1053,94 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       const {
         attachmentId,
         requestHandle,
+        documentId,
         contextId: eventContextId,
+        sourceGeneration: eventSourceGeneration,
         rawMessage,
       } = event.nativeEvent;
-      if (!isComponentMounted.current || eventContextId !== connectContextId)
+      const bridgeContainer = connectBridgeRef.current;
+      if (
+        !bridgeContainer ||
+        !isCurrentBridgeOwner(eventContextId, eventSourceGeneration)
+      ) {
+        cancelConnectBridgeRequest({ attachmentId, requestHandle });
         return;
-      onMessageCallback(rawMessage, { attachmentId, requestHandle }).catch(
-        handleUnexpectedError
+      }
+
+      const claimId = `connect-claim-${nextBridgeClaimId.current++}`;
+      const claimResult = new Promise<{
+        admitted: boolean;
+        claimToken?: string;
+      }>((resolve) => {
+        pendingBridgeClaimWaiters.current.set(claimId, {
+          attachmentId,
+          requestHandle,
+          contextId: eventContextId,
+          sourceGeneration: eventSourceGeneration,
+          resolve,
+        });
+      });
+      ConnectBridgeCommands.claim(
+        bridgeContainer,
+        claimId,
+        attachmentId,
+        requestHandle,
+        documentId,
+        eventContextId,
+        eventSourceGeneration
       );
+      claimResult
+        .then(({ admitted, claimToken }) => {
+          if (
+            !admitted ||
+            !isCurrentBridgeOwner(eventContextId, eventSourceGeneration)
+          ) {
+            cancelConnectBridgeRequest({ attachmentId, requestHandle });
+            return;
+          }
+          return onMessageCallback(rawMessage, {
+            attachmentId,
+            requestHandle,
+            documentId,
+            contextId: eventContextId,
+            sourceGeneration: eventSourceGeneration,
+            claimToken,
+          });
+        })
+        .catch((error: unknown) => {
+          cancelConnectBridgeRequest({ attachmentId, requestHandle });
+          handleUnexpectedError(error);
+        });
     },
-    [connectContextId, handleUnexpectedError, onMessageCallback]
+    [
+      cancelConnectBridgeRequest,
+      handleUnexpectedError,
+      isCurrentBridgeOwner,
+      onMessageCallback,
+    ]
+  );
+
+  const onBridgeClaimResult = useCallback(
+    (event: NativeSyntheticEvent<ConnectBridgeClaimResultEvent>) => {
+      const result = event.nativeEvent;
+      const waiter = pendingBridgeClaimWaiters.current.get(result.claimId);
+      if (!waiter) return;
+      pendingBridgeClaimWaiters.current.delete(result.claimId);
+      const admitted =
+        result.admitted &&
+        waiter.attachmentId === result.attachmentId &&
+        waiter.requestHandle === result.requestHandle &&
+        waiter.sourceGeneration === result.sourceGeneration &&
+        isCurrentBridgeOwner(waiter.contextId, waiter.sourceGeneration);
+      if (!admitted) {
+        cancelConnectBridgeRequest(waiter);
+      }
+      waiter.resolve({
+        admitted,
+        claimToken: admitted ? result.claimToken : undefined,
+      });
+    },
+    [cancelConnectBridgeRequest, isCurrentBridgeOwner]
   );
 
   const onBridgeError = useCallback(
@@ -1036,6 +1222,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       ref={connectBridgeRef}
       style={mergedStyle}
       contextId={connectContextId}
+      sourceGeneration={sourceGeneration}
       connectSource={connectURL}
       initializationObjectJson={JSON.stringify({
         initParams: {
@@ -1048,6 +1235,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       })}
       observeContentHeight={Boolean(sizeToContent)}
       onBridgeRequest={onBridgeRequest}
+      onBridgeClaimResult={onBridgeClaimResult}
       onBridgeError={onBridgeError}
     >
       <WebViewComponent

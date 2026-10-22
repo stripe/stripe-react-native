@@ -66,6 +66,19 @@ RCT_EXPORT_METHOD(collectBankAccountToken:(nonnull NSString *)clientSecret
   [StripeSdkImpl.shared collectBankAccountToken:clientSecret params:params resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(collectBankAccountTokenFromConnect:(nonnull NSString *)clientSecret
+                                             params:(nonnull NSDictionary *)params
+                                         claimToken:(nonnull NSString *)claimToken
+                                            resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                             reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared collectBankAccountTokenFromConnect:clientSecret
+                                                 params:params
+                                             claimToken:claimToken
+                                               resolver:resolve
+                                               rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(collectFinancialConnectionsAccounts:(nonnull NSString *)clientSecret
                                                params:(nonnull NSDictionary *)params
                                               resolve:(nonnull RCTPromiseResolveBlock)resolve
@@ -477,6 +490,19 @@ RCT_EXPORT_METHOD(openAuthenticatedWebView:(nonnull NSString *)id
                                     reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared openAuthenticatedWebView:id url:url resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(openAuthenticatedWebViewFromConnect:(nonnull NSString *)id
+                                                 url:(nonnull NSString *)url
+                                          claimToken:(nonnull NSString *)claimToken
+                                             resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                              reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared openAuthenticatedWebViewFromConnect:id
+                                                   url:url
+                                            claimToken:claimToken
+                                              resolver:resolve
+                                              rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(presentExternalWebPage:(nonnull NSString *)url

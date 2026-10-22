@@ -16,6 +16,25 @@ import UIKit
 @_spi(LinkControllerPreview) @_spi(ReactNativeSDK) import StripePaymentSheet
 #endif
 
+internal final class ConnectFinancialConnectionsOperationGate: @unchecked Sendable {
+    private let lock = NSLock()
+    private var activeOperationId: String?
+
+    func begin(_ operationId: String) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        guard activeOperationId == nil else { return false }
+        activeOperationId = operationId
+        return true
+    }
+
+    func finish(_ operationId: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        if activeOperationId == operationId { activeOperationId = nil }
+    }
+}
+
 @available(iOS 13.0, *)
 class ASWebAuthenticationPresentationContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
@@ -138,6 +157,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
 
     var authenticationSession: ASWebAuthenticationSession?
+    private let financialConnectionsOperationGate = ConnectFinancialConnectionsOperationGate()
     var authenticationContextProvider: Any?
 
     @objc public func invalidateCheckoutControllers() {
@@ -1176,6 +1196,24 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
+        collectBankAccountTokenImpl(
+            clientSecret: clientSecret,
+            params: params,
+            connectOperationId: nil,
+            presentImmediatelyOnMain: false,
+            resolver: resolve,
+            rejecter: reject
+        )
+    }
+
+    private func collectBankAccountTokenImpl(
+        clientSecret: String,
+        params: NSDictionary,
+        connectOperationId: String?,
+        presentImmediatelyOnMain: Bool,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
         if STPAPIClient.shared.publishableKey == nil {
             resolve(Errors.MISSING_INIT_ERROR)
             return
@@ -1194,24 +1232,31 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             self?.emitter?.emitOnFinancialConnectionsEvent(mappedEvent)
         }
 
+        let preCollectedConsent: FinancialConnectionsPreCollectedConsent?
+        do {
+            preCollectedConsent = try FinancialConnections.mapToPreCollectedConsent(params)
+        } catch {
+            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
+        }
+
+        let operationId = connectOperationId ?? UUID().uuidString
+        guard financialConnectionsOperationGate.begin(operationId) else {
+            resolve(Errors.createError(ErrorType.Canceled, "Another Financial Connections flow is already active"))
+            return
+        }
+
         // Use connectedAccountId from params if provided
         let originalStripeAccount = STPAPIClient.shared.stripeAccount
         if let connectedAccountId = params["connectedAccountId"] as? String {
             STPAPIClient.shared.stripeAccount = connectedAccountId
         }
 
-        let wrappedResolve: RCTPromiseResolveBlock = { result in
+        let wrappedResolve: RCTPromiseResolveBlock = { [weak self] result in
             // Restore original stripeAccount after completion
             STPAPIClient.shared.stripeAccount = originalStripeAccount
+            self?.financialConnectionsOperationGate.finish(operationId)
             resolve(result)
-        }
-
-        let preCollectedConsent: FinancialConnectionsPreCollectedConsent?
-        do {
-            preCollectedConsent = try FinancialConnections.mapToPreCollectedConsent(params)
-        } catch {
-            wrappedResolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
-            return
         }
 
         FinancialConnections.presentForToken(
@@ -1220,8 +1265,42 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             configuration: configuration,
             preCollectedConsent: preCollectedConsent,
             onEvent: onEvent,
+            presentImmediatelyOnMain: presentImmediatelyOnMain,
             resolve: wrappedResolve
         )
+    }
+
+    @objc(collectBankAccountTokenFromConnect:params:claimToken:resolver:rejecter:)
+    public func collectBankAccountTokenFromConnect(
+        clientSecret: String,
+        params: NSDictionary,
+        claimToken: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        ConnectBridgeContainerView.authorizeLaunchClaim(
+            claimToken,
+            operation: "openFinancialConnections",
+            clientSecret: clientSecret,
+            connectedAccountId: params["connectedAccountId"] as? String
+        ) { [weak self] admitted in
+            guard admitted else {
+                resolve(Errors.createError(ErrorType.Canceled, "Financial Connections request is no longer active"))
+                return
+            }
+            guard let self else {
+                resolve(Errors.createError(ErrorType.Failed, "StripeSdkImpl instance deallocated"))
+                return
+            }
+            self.collectBankAccountTokenImpl(
+                clientSecret: clientSecret,
+                params: params,
+                connectOperationId: claimToken,
+                presentImmediatelyOnMain: true,
+                resolver: resolve,
+                rejecter: reject
+            )
+        }
     }
 
     @objc(collectFinancialConnectionsAccounts:params:resolver:rejecter:)
@@ -1249,24 +1328,31 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             self?.emitter?.emitOnFinancialConnectionsEvent(mappedEvent)
         }
 
+        let preCollectedConsent: FinancialConnectionsPreCollectedConsent?
+        do {
+            preCollectedConsent = try FinancialConnections.mapToPreCollectedConsent(params)
+        } catch {
+            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
+        }
+
+        let operationId = UUID().uuidString
+        guard financialConnectionsOperationGate.begin(operationId) else {
+            resolve(Errors.createError(ErrorType.Canceled, "Another Financial Connections flow is already active"))
+            return
+        }
+
         // Use connectedAccountId from params if provided
         let originalStripeAccount = STPAPIClient.shared.stripeAccount
         if let connectedAccountId = params["connectedAccountId"] as? String {
             STPAPIClient.shared.stripeAccount = connectedAccountId
         }
 
-        let wrappedResolve: RCTPromiseResolveBlock = { result in
+        let wrappedResolve: RCTPromiseResolveBlock = { [weak self] result in
             // Restore original stripeAccount after completion
             STPAPIClient.shared.stripeAccount = originalStripeAccount
+            self?.financialConnectionsOperationGate.finish(operationId)
             resolve(result)
-        }
-
-        let preCollectedConsent: FinancialConnectionsPreCollectedConsent?
-        do {
-            preCollectedConsent = try FinancialConnections.mapToPreCollectedConsent(params)
-        } catch {
-            wrappedResolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
-            return
         }
 
         FinancialConnections.present(
@@ -2023,6 +2109,50 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
+        let runOnMain = { [weak self] in
+            guard let self else {
+                resolve(Errors.createError(ErrorType.Failed, "StripeSdkImpl instance deallocated"))
+                return
+            }
+            self.openAuthenticatedWebViewOnMain(id: id, url: url, resolver: resolve)
+        }
+        if Thread.isMainThread {
+            runOnMain()
+        } else {
+            DispatchQueue.main.async(execute: runOnMain)
+        }
+    }
+
+    @objc(openAuthenticatedWebViewFromConnect:url:claimToken:resolver:rejecter:)
+    public func openAuthenticatedWebViewFromConnect(
+        id: String,
+        url: String,
+        claimToken: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        ConnectBridgeContainerView.authorizeLaunchClaim(
+            claimToken,
+            operation: "openAuthenticatedWebView",
+            url: url
+        ) { [weak self] admitted in
+            guard admitted else {
+                resolve([])
+                return
+            }
+            guard let self else {
+                resolve(Errors.createError(ErrorType.Failed, "StripeSdkImpl instance deallocated"))
+                return
+            }
+            self.openAuthenticatedWebViewOnMain(id: id, url: url, resolver: resolve)
+        }
+    }
+
+    private func openAuthenticatedWebViewOnMain(
+        id: String,
+        url: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock
+    ) {
         guard let components = URLComponents(string: url),
               components.scheme?.lowercased() == "https",
               let host = components.host,
@@ -2034,58 +2164,52 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else {
-                resolve(Errors.createError(ErrorType.Failed, "StripeSdkImpl instance deallocated"))
-                return
-            }
-            guard self.authenticationSession == nil else {
-                resolve(Errors.createError(ErrorType.Failed, "An authenticated web view is already active"))
-                return
-            }
+        guard authenticationSession == nil else {
+            resolve(Errors.createError(ErrorType.Failed, "An authenticated web view is already active"))
+            return
+        }
 
-            // Create the authentication session with the configured URL scheme
-            self.authenticationSession = ASWebAuthenticationSession(
-                url: authenticationURL,
-                callbackURLScheme: StripeSdkImpl.authenticatedWebViewReturnURLScheme
-            ) { callbackURL, error in
-                if let error = error {
-                    // User canceled or an error occurred
-                    if (error as NSError).code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
-                        // User canceled - resolve successfully as this is expected behavior
-                        resolve([])
-                    } else {
-                        resolve(Errors.createError(ErrorType.Failed, error as NSError))
-                    }
-                } else if let callbackURL = callbackURL {
-                    // Return the callback URL
-                    let result: [String: Any] = ["url": callbackURL.absoluteString]
-                    resolve(result)
-                } else {
-                    // Session completed successfully without a callback URL
+        // Create the authentication session with the configured URL scheme
+        authenticationSession = ASWebAuthenticationSession(
+            url: authenticationURL,
+            callbackURLScheme: StripeSdkImpl.authenticatedWebViewReturnURLScheme
+        ) { [weak self] callbackURL, error in
+            if let error = error {
+                // User canceled or an error occurred
+                if (error as NSError).code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
+                    // User canceled - resolve successfully as this is expected behavior
                     resolve([])
+                } else {
+                    resolve(Errors.createError(ErrorType.Failed, error as NSError))
                 }
-
-                // Clean up the session and context provider
-                self.authenticationSession = nil
-                self.authenticationContextProvider = nil
+            } else if let callbackURL = callbackURL {
+                // Return the callback URL
+                let result: [String: Any] = ["url": callbackURL.absoluteString]
+                resolve(result)
+            } else {
+                // Session completed successfully without a callback URL
+                resolve([])
             }
 
-            // Configure the session for iOS 13+
-            if #available(iOS 13.0, *) {
-                let contextProvider = ASWebAuthenticationPresentationContextProvider()
-                self.authenticationContextProvider = contextProvider
-                self.authenticationSession?.presentationContextProvider = contextProvider
-                self.authenticationSession?.prefersEphemeralWebBrowserSession = false
-            }
+            // Clean up the session and context provider
+            self?.authenticationSession = nil
+            self?.authenticationContextProvider = nil
+        }
 
-            // Start the session
-            guard self.authenticationSession?.start() == true else {
-                resolve(Errors.createError(ErrorType.Failed, "Failed to start authentication session"))
-                self.authenticationSession = nil
-                self.authenticationContextProvider = nil
-                return
-            }
+        // Configure the session for iOS 13+
+        if #available(iOS 13.0, *) {
+            let contextProvider = ASWebAuthenticationPresentationContextProvider()
+            authenticationContextProvider = contextProvider
+            authenticationSession?.presentationContextProvider = contextProvider
+            authenticationSession?.prefersEphemeralWebBrowserSession = false
+        }
+
+        // Start the session
+        guard authenticationSession?.start() == true else {
+            resolve(Errors.createError(ErrorType.Failed, "Failed to start authentication session"))
+            authenticationSession = nil
+            authenticationContextProvider = nil
+            return
         }
     }
 

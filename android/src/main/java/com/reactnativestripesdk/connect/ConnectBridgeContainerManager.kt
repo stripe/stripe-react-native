@@ -12,6 +12,8 @@ import com.facebook.react.viewmanagers.ConnectBridgeContainerManagerDelegate
 import com.facebook.react.viewmanagers.ConnectBridgeContainerManagerInterface
 
 @ReactModule(name = ConnectBridgeContainerManager.NAME)
+// React Native's generated view interface requires prop, command, and event overrides here.
+@Suppress("TooManyFunctions")
 class ConnectBridgeContainerManager :
   ViewGroupManager<ConnectBridgeContainerView>(),
   ConnectBridgeContainerManagerInterface<ConnectBridgeContainerView> {
@@ -24,6 +26,7 @@ class ConnectBridgeContainerManager :
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(
       EVENT_REQUEST to mutableMapOf("registrationName" to "onBridgeRequest"),
+      EVENT_CLAIM_RESULT to mutableMapOf("registrationName" to "onBridgeClaimResult"),
       EVENT_ERROR to mutableMapOf("registrationName" to "onBridgeError"),
     )
 
@@ -31,6 +34,9 @@ class ConnectBridgeContainerManager :
     ConnectBridgeContainerView(reactContext).apply {
       onRequest = { request ->
         dispatchEvent(this, BridgeRequestEvent(reactContext.surfaceId, id, request))
+      }
+      onClaimResult = { result ->
+        dispatchEvent(this, BridgeClaimResultEvent(reactContext.surfaceId, id, result))
       }
       onError = { error ->
         dispatchEvent(this, BridgeErrorEvent(reactContext.surfaceId, id, error))
@@ -56,6 +62,14 @@ class ConnectBridgeContainerManager :
     source: String?,
   ) {
     view.connectSource = source
+  }
+
+  @ReactProp(name = "sourceGeneration")
+  override fun setSourceGeneration(
+    view: ConnectBridgeContainerView,
+    sourceGeneration: String?,
+  ) {
+    view.sourceGeneration = sourceGeneration
   }
 
   @ReactProp(name = "initializationObjectJson")
@@ -88,6 +102,26 @@ class ConnectBridgeContainerManager :
     view.reply(attachmentId, requestHandle, payload)
   }
 
+  override fun claim(
+    view: ConnectBridgeContainerView,
+    claimId: String,
+    attachmentId: String,
+    requestHandle: String,
+    documentId: String,
+    contextId: String,
+    sourceGeneration: String,
+  ) {
+    view.claim(claimId, attachmentId, requestHandle, documentId, contextId, sourceGeneration)
+  }
+
+  override fun cancel(
+    view: ConnectBridgeContainerView,
+    attachmentId: String,
+    requestHandle: String,
+  ) {
+    view.cancel(attachmentId, requestHandle)
+  }
+
   private fun dispatchEvent(
     view: ConnectBridgeContainerView,
     event: Event<*>,
@@ -111,7 +145,28 @@ class ConnectBridgeContainerManager :
         putString("requestHandle", request.requestHandle)
         putString("documentId", request.documentId)
         putString("contextId", request.contextId)
+        putString("sourceGeneration", request.sourceGeneration)
         putString("rawMessage", request.rawMessage)
+      }
+  }
+
+  private class BridgeClaimResultEvent(
+    surfaceId: Int,
+    viewId: Int,
+    private val result: ConnectBridgeContainerView.ClaimResult,
+  ) : Event<BridgeClaimResultEvent>(surfaceId, viewId) {
+    override fun canCoalesce() = false
+
+    override fun getEventName() = EVENT_CLAIM_RESULT
+
+    override fun getEventData(): WritableMap =
+      Arguments.createMap().apply {
+        putString("claimId", result.claimId)
+        putString("attachmentId", result.attachmentId)
+        putString("requestHandle", result.requestHandle)
+        putString("sourceGeneration", result.sourceGeneration)
+        putBoolean("admitted", result.admitted)
+        result.claimToken?.let { putString("claimToken", it) }
       }
   }
 
@@ -129,6 +184,7 @@ class ConnectBridgeContainerManager :
   companion object {
     const val NAME = "ConnectBridgeContainer"
     private const val EVENT_REQUEST = "topBridgeRequest"
+    private const val EVENT_CLAIM_RESULT = "topBridgeClaimResult"
     private const val EVENT_ERROR = "topBridgeError"
   }
 }
