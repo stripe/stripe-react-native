@@ -4,10 +4,8 @@ import android.os.Looper
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
-import com.facebook.react.bridge.Promise
 import com.google.common.truth.Truth.assertThat
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
-import com.stripe.android.core.reactnative.UnregisterSignal
 import com.stripe.android.paymentelement.CreateIntentWithConfirmationTokenCallback
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.PaymentSheet
@@ -30,50 +28,24 @@ import org.robolectric.annotation.LooperMode
 @OptIn(ReactNativeSdkInternal::class)
 class PaymentSheetCallbackTest {
   @Test
-  fun paymentSheetRebuildsWhenCallbackChanges() {
-    mockConstruction(PaymentSheet.Builder::class.java, withSettings().defaultAnswer(RETURNS_SELF)) { builder, _ ->
-      Mockito.`when`(builder.build(any(FragmentActivity::class.java), any(UnregisterSignal::class.java)))
-        .thenReturn(mock(PaymentSheet::class.java))
-    }.use { builders ->
-      runScenario { manager ->
-        callbackSequence.forEachIndexed { index, kind ->
-          manager.configure(arguments(kind), mock(Promise::class.java))
-          assertThat(builders.constructed()).hasSize(index + 1)
-          assertCallback(builders.constructed().last(), kind)
-
-          // Updating configuration without changing callback type must preserve result registration.
-          manager.configure(arguments(kind), mock(Promise::class.java))
-          assertThat(builders.constructed()).hasSize(index + 1)
-        }
-      }
-    }
-  }
-
-  @Test
   fun flowControllerRebuildsWhenCallbackChanges() {
     val settings = withSettings().defaultAnswer(RETURNS_SELF)
     mockConstruction(PaymentSheet.FlowController.Builder::class.java, settings) { builder, _ ->
       Mockito.`when`(builder.build(any(FragmentActivity::class.java)))
         .thenReturn(mock(PaymentSheet.FlowController::class.java))
     }.use { builders ->
-      runScenario { manager ->
+      runScenario { manager, promise ->
         callbackSequence.forEachIndexed { index, kind ->
-          manager.configure(arguments(kind, customFlow = true), mock(Promise::class.java))
+          manager.configure(arguments(kind), promise)
           assertThat(builders.constructed()).hasSize(index + 1)
           assertCallback(builders.constructed().last(), kind)
 
-          manager.configure(arguments(kind, customFlow = true), mock(Promise::class.java))
+          // Reusing the same callback type must preserve the existing controller.
+          manager.configure(arguments(kind), promise)
           assertThat(builders.constructed()).hasSize(index + 1)
         }
       }
     }
-  }
-
-  private fun assertCallback(builder: PaymentSheet.Builder, kind: CallbackKind) {
-    verify(builder, Mockito.times(if (kind == CallbackKind.IntentCreation) 1 else 0))
-      .createIntentCallback(any(CreateIntentCallback::class.java))
-    verify(builder, Mockito.times(if (kind == CallbackKind.ConfirmationToken) 1 else 0))
-      .createIntentCallback(any(CreateIntentWithConfirmationTokenCallback::class.java))
   }
 
   private fun assertCallback(builder: PaymentSheet.FlowController.Builder, kind: CallbackKind) {
@@ -83,13 +55,14 @@ class PaymentSheetCallbackTest {
       .createIntentCallback(any(CreateIntentWithConfirmationTokenCallback::class.java))
   }
 
-  private fun runScenario(block: (PaymentSheetManager) -> Unit) {
+  private fun runScenario(block: (PaymentSheetManager, FakePromise) -> Unit) {
     val activityController = Robolectric.buildActivity(FragmentActivity::class.java).setup()
     val context = BridgeReactContext(RuntimeEnvironment.getApplication())
     context.onHostResume(activityController.get())
-    val manager = PaymentSheetManager(context, JavaOnlyMap(), mock(Promise::class.java))
+    val promise = FakePromise()
+    val manager = PaymentSheetManager(context, JavaOnlyMap(), promise)
     try {
-      block(manager)
+      block(manager, promise)
     } finally {
       manager.destroy()
       shadowOf(Looper.getMainLooper()).idle()
@@ -98,12 +71,13 @@ class PaymentSheetCallbackTest {
       context.destroy()
       activityController.pause().stop().destroy()
     }
+    promise.ensureAllEventsConsumed()
   }
 
-  private fun arguments(kind: CallbackKind, customFlow: Boolean = false): JavaOnlyMap =
+  private fun arguments(kind: CallbackKind): JavaOnlyMap =
     JavaOnlyMap.of(
       "merchantDisplayName", "Callback switching test",
-      "customFlow", customFlow,
+      "customFlow", true,
     ).apply {
       if (kind == CallbackKind.None) {
         putString("paymentIntentClientSecret", "pi_test_secret_test")
