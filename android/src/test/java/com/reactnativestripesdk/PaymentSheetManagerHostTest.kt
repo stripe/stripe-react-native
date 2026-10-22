@@ -13,7 +13,6 @@ import com.reactnativestripesdk.utils.StripeUIManager
 import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
-import com.stripe.android.testing.PaymentSheetConfigurationValidator
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -148,7 +147,15 @@ class PaymentSheetManagerHostTest {
     shadowOf(Looper.getMainLooper()).idle()
 
     val secondLaunch = requireNotNull(shadowOf(firstHost).nextStartedActivityForResult)
-    PaymentSheetConfigurationValidator.validate(secondLaunch.intent)
+    val sheetActivityClass = Class.forName(requireNotNull(secondLaunch.intent.component).className)
+      .asSubclass(Activity::class.java)
+    val sheetController = Robolectric.buildActivity(sheetActivityClass, secondLaunch.intent).create()
+    try {
+      // Configuration errors finish the launched activity synchronously during onCreate.
+      assertThat(sheetController.get().isFinishing).isFalse()
+    } finally {
+      sheetController.destroy()
+    }
     assertThat(secondLaunch.intent.component?.className).isEqualTo(PAYMENT_SHEET_ACTIVITY)
     firstHost.activityResultRegistry.dispatchResult(secondLaunch.requestCode, Activity.RESULT_CANCELED, null)
     assertPresentationResultReceived()
