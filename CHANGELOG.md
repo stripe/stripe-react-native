@@ -17,6 +17,7 @@
 
 **Fixes**
 
+* [Fixed] iOS: Replaced deprecated `STPPaymentHandler` methods and the completion-based PaymentSheet `confirmHandler` with their current Stripe iOS SDK equivalents, removing the deprecation warnings.
 * [Fixed] Connect embedded components no longer hang without calling `onLoadError` when an init param contains a double quote, backslash, or backtick, such as a double-quoted family name in `appearance.variables.fontFamily`.
 
 ## 0.82.0 - 2026-10-13
