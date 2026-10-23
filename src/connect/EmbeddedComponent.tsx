@@ -838,7 +838,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         return false; // Block WebView navigation
       }
 
-      if (navigationType !== 'click') return true;
+      if (Platform.OS === 'ios' && navigationType !== 'click') return true;
 
       // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
       if (isAllowedStripeHost(url)) {
@@ -1014,6 +1014,7 @@ function isCsvExportUrl(url: string): boolean {
     return (
       parsedUrl.hostname === 'stripe-data-exports.com' ||
       parsedUrl.hostname.endsWith('.stripe-data-exports.com') ||
+      parsedUrl.hostname === 'stripe-data-exports.s3.amazonaws.com' ||
       parsedUrl.pathname.includes('stripe-data-exports')
     );
   } catch {

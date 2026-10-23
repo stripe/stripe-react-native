@@ -44,6 +44,8 @@ jest.mock('../../specs/NativeStripeSdkModule', () =>
     collectBankAccountToken: jest.fn(),
     collectFinancialConnectionsAccounts: jest.fn(),
     openAuthenticatedWebView: jest.fn(),
+    downloadAndShareFile: jest.fn(),
+    presentExternalWebPage: jest.fn(),
   })
 );
 
@@ -52,6 +54,7 @@ import { render, waitFor, act } from '@testing-library/react-native';
 import {
   ActivityIndicator,
   AppState,
+  Linking,
   Platform,
   StyleSheet,
 } from 'react-native';
@@ -358,6 +361,250 @@ describe('EmbeddedComponent', () => {
 
       // Listener should be removed after unmount
       expect(appStateListeners.length).toBeLessThan(initialListenerCount);
+    });
+  });
+
+  describe('Navigation handling', () => {
+    const getNavigationHandler = async (props: any = {}) => {
+      mockLoadWebView = true;
+      renderComponent(props);
+
+      await waitFor(() => {
+        expect(mockWebViewProps?.onShouldStartLoadWithRequest).toEqual(
+          expect.any(Function)
+        );
+      });
+
+      return mockWebViewProps.onShouldStartLoadWithRequest;
+    };
+
+    it('opens an Android external navigation classified as other', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://example.com/help',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it('opens an Android external navigation when classification is omitted', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://example.com/help',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it('uses the configured in-app browser for Android external navigations', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const openInApp = NativeStripeSdk.presentExternalWebPage as jest.Mock;
+      openInApp.mockResolvedValue(undefined);
+      const openUrl = jest.spyOn(Linking, 'openURL');
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler({
+          presentExternalLinksInApp: true,
+        });
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://example.com/help',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(openInApp).toHaveBeenCalledWith('https://example.com/help');
+        expect(openUrl).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it('keeps Android navigation to an allowed Connect host in the component', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const openUrl = jest.spyOn(Linking, 'openURL');
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://connect-js.stripe.com/embedded',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(true);
+        expect(openUrl).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it.each([
+      ['click', false],
+      ['other', true],
+    ])(
+      'preserves iOS %s navigation behavior',
+      async (navigationType, expected) => {
+        const previousPlatform = Platform.OS;
+        Platform.OS = 'ios' as any;
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url: 'https://example.com/help',
+            navigationType,
+          });
+
+          expect(shouldLoad).toBe(expected);
+          if (expected) {
+            expect(openUrl).not.toHaveBeenCalled();
+          } else {
+            expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
+          }
+        } finally {
+          openUrl.mockRestore();
+          Platform.OS = previousPlatform;
+        }
+      }
+    );
+
+    it('shares CSV exports without opening them externally', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const downloadAndShare =
+        NativeStripeSdk.downloadAndShareFile as jest.Mock;
+      downloadAndShare.mockResolvedValue({ success: true });
+      const openUrl = jest.spyOn(Linking, 'openURL');
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://stripe-data-exports.com/report.csv',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(downloadAndShare).toHaveBeenCalledWith(
+          'https://stripe-data-exports.com/report.csv',
+          null
+        );
+        expect(openUrl).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it.each(['android', 'ios'])(
+      'shares real S3-hosted CSV exports without opening them externally on %s',
+      async (platform) => {
+        const previousPlatform = Platform.OS;
+        Platform.OS = platform as any;
+        const downloadAndShare =
+          NativeStripeSdk.downloadAndShareFile as jest.Mock;
+        downloadAndShare.mockResolvedValue({ success: true });
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+        const csvExportUrl =
+          'https://stripe-data-exports.s3.amazonaws.com/acct_123/xprt_456/payouts.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=abc';
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url: csvExportUrl,
+            navigationType: 'other',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(downloadAndShare).toHaveBeenCalledWith(csvExportUrl, null);
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+          Platform.OS = previousPlatform;
+        }
+      }
+    );
+
+    it('does not treat lookalike export hosts as CSV exports', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const downloadAndShare =
+        NativeStripeSdk.downloadAndShareFile as jest.Mock;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://stripe-data-exports.s3.amazonaws.com.attacker.example/x.csv',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(downloadAndShare).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it('keeps external navigation blocked when opening the URL rejects', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const error = new Error('Unable to open URL');
+      const openUrl = jest.spyOn(Linking, 'openURL').mockRejectedValue(error);
+      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://example.com/help',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        await waitFor(() => {
+          expect(consoleError).toHaveBeenCalledWith(
+            'Unexpected error: Unable to open URL'
+          );
+        });
+      } finally {
+        consoleError.mockRestore();
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
     });
   });
 

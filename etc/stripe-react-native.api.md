@@ -1063,6 +1063,7 @@ export namespace Checkout {
         export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
         export interface ApplePayConfiguration {
             buttonType?: ApplePayButtonType;
+            display?: 'automatic' | 'never';
         }
         export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
         export interface GooglePayConfiguration {
