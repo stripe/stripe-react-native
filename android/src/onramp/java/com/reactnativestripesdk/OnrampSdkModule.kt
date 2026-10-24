@@ -10,7 +10,6 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.SavedStateHandle
-import com.stripe.android.core.model.CountryCode
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
@@ -31,6 +30,7 @@ import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
+import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.exception.SDKVersion
@@ -46,7 +46,6 @@ import com.stripe.android.crypto.onramp.model.OnrampConfigurationResult
 import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
 import com.stripe.android.crypto.onramp.model.OnrampDeleteWalletAddressResult
 import com.stripe.android.crypto.onramp.model.OnrampGetWalletOwnershipChallengeResult
-import com.stripe.android.crypto.onramp.model.OnrampUserAttestationResult
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
 import com.stripe.android.crypto.onramp.model.OnrampLogOutResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
@@ -56,6 +55,7 @@ import com.stripe.android.crypto.onramp.model.OnrampSubmitIdentifiersResult
 import com.stripe.android.crypto.onramp.model.OnrampSubmitWalletOwnershipSignatureResult
 import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
+import com.stripe.android.crypto.onramp.model.OnrampUserAttestationResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyKycInfoResult
 import com.stripe.android.link.LinkController.PaymentMethodPreview
@@ -106,6 +106,9 @@ class OnrampSdkModule(
   private var checkoutPromise: Promise? = null
   private var verifyKycPromise: Promise? = null
   private var userAttestationPromise: Promise? = null
+  private var fulfillKycRequirementsPromise: Promise? = null
+  private var termsAndConditionsPromise: Promise? = null
+  private var termsOfServicePromise: Promise? = null
   private var samsungPayAvailability = CompletableDeferred(false)
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
@@ -185,34 +188,7 @@ class OnrampSdkModule(
       return
     }
 
-    val onrampCallbacks =
-      OnrampCallbacks()
-        .verifyIdentityCallback { result ->
-          handleOnrampIdentityVerificationResult(result, identityVerificationPromise!!)
-        }.collectPaymentCallback { result ->
-          handleOnrampCollectPaymentResult(result, collectPaymentPromise!!)
-        }.authorizeCallback { result ->
-          handleOnrampAuthorizationResult(result, authorizePromise!!)
-        }.checkoutCallback { result ->
-          handleOnrampCheckoutResult(result, checkoutPromise!!)
-        }.verifyKycCallback { result ->
-          handleOnrampKycVerificationResult(result, verifyKycPromise!!)
-        }.userAttestationCallback { result ->
-          userAttestationPromise?.let {
-            handleUserAttestationResult(result, it)
-          }
-        }.samsungPayIsReadyCallback { isReady, _ ->
-          samsungPayAvailability.complete(isReady)
-        }.onrampSessionClientSecretProvider { sessionId ->
-          checkoutClientSecretDeferred = CompletableDeferred()
-
-          val params = Arguments.createMap()
-          params.putString("onrampSessionId", sessionId)
-
-          eventEmitterCompat.emitOnCheckoutClientSecretRequested(params)
-
-          checkoutClientSecretDeferred!!.await()
-        }
+    val onrampCallbacks = createOnrampCallbacks()
 
     this.onrampCallbacks = onrampCallbacks
 
@@ -238,6 +214,44 @@ class OnrampSdkModule(
       }
     }
   }
+
+  private fun createOnrampCallbacks(): OnrampCallbacks =
+    OnrampCallbacks()
+      .verifyIdentityCallback { result ->
+        handleOnrampIdentityVerificationResult(result, identityVerificationPromise!!)
+      }.collectPaymentCallback { result ->
+        handleOnrampCollectPaymentResult(result, collectPaymentPromise!!)
+      }.authorizeCallback { result ->
+        handleOnrampAuthorizationResult(result, authorizePromise!!)
+      }.checkoutCallback { result ->
+        handleOnrampCheckoutResult(result, checkoutPromise!!)
+      }.verifyKycCallback { result ->
+        handleOnrampKycVerificationResult(result, verifyKycPromise!!)
+      }.userAttestationCallback { result ->
+        userAttestationPromise?.let {
+          handleUserAttestationResult(result, it)
+        }
+      }.kycCallback { result ->
+        fulfillKycRequirementsPromise?.resolve(mapFromOnrampKycResult(result))
+        fulfillKycRequirementsPromise = null
+      }.termsAndConditionsCallback { result ->
+        termsAndConditionsPromise?.resolve(mapFromOnrampPartnerTermsResult(result))
+        termsAndConditionsPromise = null
+      }.termsOfServiceCallback { result ->
+        termsOfServicePromise?.resolve(mapFromOnrampPartnerTermsResult(result))
+        termsOfServicePromise = null
+      }.samsungPayIsReadyCallback { isReady, _ ->
+        samsungPayAvailability.complete(isReady)
+      }.onrampSessionClientSecretProvider { sessionId ->
+        checkoutClientSecretDeferred = CompletableDeferred()
+
+        val params = Arguments.createMap()
+        params.putString("onrampSessionId", sessionId)
+
+        eventEmitterCompat.emitOnCheckoutClientSecretRequested(params)
+
+        checkoutClientSecretDeferred!!.await()
+      }
 
   @ReactMethod
   override fun isSamsungPaySupported(promise: Promise) {
@@ -596,6 +610,30 @@ class OnrampSdkModule(
     withOnrampPresenter(promise) { presenter ->
       userAttestationPromise = promise
       presenter.presentUserAttestation()
+    }
+  }
+
+  @ReactMethod
+  override fun fulfillKycRequirements(promise: Promise) {
+    withOnrampPresenter(promise) { presenter ->
+      fulfillKycRequirementsPromise = promise
+      presenter.fulfillKycRequirements()
+    }
+  }
+
+  @ReactMethod
+  override fun presentTermsAndConditionsIfNeeded(promise: Promise) {
+    withOnrampPresenter(promise) { presenter ->
+      termsAndConditionsPromise = promise
+      presenter.presentTermsAndConditionsIfNeeded()
+    }
+  }
+
+  @ReactMethod
+  override fun presentTermsOfServiceIfNeeded(promise: Promise) {
+    withOnrampPresenter(promise) { presenter ->
+      termsOfServicePromise = promise
+      presenter.presentTermsOfServiceIfNeeded()
     }
   }
 

@@ -1181,6 +1181,30 @@ class Mappers {
     }
 
 #if canImport(StripeCryptoOnramp)
+    class func mapFromFulfillKYCRequirementsResult(_ result: FulfillKYCRequirementsResult) -> NSDictionary {
+        switch result {
+        case .submitted:
+            return ["status": "Submitted"]
+        case .pendingVerification:
+            return ["status": "PendingVerification"]
+        case .notRequired:
+            return ["status": "NotRequired"]
+        case .canceled:
+            return Errors.createError(ErrorType.Canceled, "KYC collection was canceled")
+        }
+    }
+
+    class func mapFromPartnerTermsResult(_ result: PartnerTermsResult) -> NSDictionary {
+        switch result {
+        case .accepted:
+            return ["status": "Accepted"]
+        case .notRequired:
+            return ["status": "NotRequired"]
+        case .canceled:
+            return Errors.createError(ErrorType.Canceled, "Partner terms were canceled")
+        }
+    }
+
     struct OnrampConfiguration {
         let appearance: LinkAppearance
         let cryptoCustomerId: String?

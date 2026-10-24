@@ -8,6 +8,8 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.WritableMap
+import com.reactnativestripesdk.utils.createCanceledError
 import com.reactnativestripesdk.utils.getIntegerList
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.stripe.android.core.model.CountryCode
@@ -19,6 +21,8 @@ import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.IdType
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
+import com.stripe.android.crypto.onramp.model.OnrampKycResult
+import com.stripe.android.crypto.onramp.model.OnrampPartnerTermsResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
 import com.stripe.android.crypto.onramp.model.PaymentMethodSelection
 import com.stripe.android.crypto.onramp.model.WalletOwnershipChallenge
@@ -389,6 +393,24 @@ internal fun mapFromSubmitIdentifiersResult(
   putBoolean("carfTinRequired", result.carfTinRequired)
   putArray("invalidIdentifiers", mapFromComplianceIdentifierTypes(result.invalidIdentifiers))
 }
+
+@SuppressLint("RestrictedApi")
+internal fun mapFromOnrampKycResult(result: OnrampKycResult): WritableMap =
+  when (result) {
+    is OnrampKycResult.Submitted -> Arguments.createMap().apply { putString("status", "Submitted") }
+    is OnrampKycResult.PendingVerification -> Arguments.createMap().apply { putString("status", "PendingVerification") }
+    is OnrampKycResult.NotRequired -> Arguments.createMap().apply { putString("status", "NotRequired") }
+    is OnrampKycResult.Cancelled -> createCanceledError("KYC collection was canceled")
+    is OnrampKycResult.Failed -> createOnrampFailedError(result.error)
+  }
+
+internal fun mapFromOnrampPartnerTermsResult(result: OnrampPartnerTermsResult): WritableMap =
+  when (result) {
+    is OnrampPartnerTermsResult.Accepted -> Arguments.createMap().apply { putString("status", "Accepted") }
+    is OnrampPartnerTermsResult.NotRequired -> Arguments.createMap().apply { putString("status", "NotRequired") }
+    is OnrampPartnerTermsResult.Cancelled -> createCanceledError("Partner terms were canceled")
+    is OnrampPartnerTermsResult.Failed -> createOnrampFailedError(result.error)
+  }
 
 private fun mapFromComplianceIdentifierRequirementsList(
   requirements: List<ComplianceIdentifierRequirement>,

@@ -9,6 +9,12 @@
 
 ## 0.83.0 - 2026-10-20
 
+**Features**
+
+* [Added] Added `fulfillKycRequirements` to Crypto Onramp for collecting additional KYC documents and questionnaire answers.
+* [Added] Added `presentTermsAndConditionsIfNeeded` and `presentTermsOfServiceIfNeeded` to Crypto Onramp for collecting acceptance of transaction terms and partner terms of service.
+* [Added] Added Celo network support to Crypto Onramp.
+
 **Changes**
 
 * Updated Stripe iOS SDK from 26.14.0 to 26.15.0.
