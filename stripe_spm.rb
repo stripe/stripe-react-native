@@ -96,12 +96,10 @@
 #
 #   React Native >= 0.75 (default)        -> Stripe via Swift Package Manager
 #   React Native >= 0.75, opt-out below   -> Stripe via CocoaPods registry
-#   React Native <  0.75                  -> Stripe via CocoaPods registry
-#                                            (no `spm_dependency` available)
 #
 # SPM mode additionally requires CocoaPods >= MINIMUM_COCOAPODS_VERSION and
-# fails the install with instructions otherwise; the CocoaPods registry modes
-# have no version requirement of their own.
+# fails the install with instructions otherwise; the CocoaPods registry mode
+# has no version requirement of its own.
 #
 # To opt out and resolve Stripe through CocoaPods instead (available while
 # Stripe continues to publish pods), add this at the top of your Podfile:
@@ -587,17 +585,13 @@ end
 # True when the Stripe iOS SDK should be resolved through Swift Package
 # Manager for this install. Evaluated by the podspec.
 #
-# `defined?(spm_dependency)` effectively checks if the React Native version is
-# >= 0.75 since this is the version that introduces `spm_dependency`. The user's
-# Podfile will require `react_native_pods.rb`, which defines `spm_dependency` as
-# a top-level function, so the function is visibile here exactly when the app's
-# React Native version supports it.
+# All supported React Native versions provide `spm_dependency`, so only the
+# explicit opt-out selects the CocoaPods registry fallback.
 #
 # `$StripeDisableSPM` is the user-facing opt-out. The value is compared to
 # `true` (not just "defined") so tooling that emits `$StripeDisableSPM =
 # false` gets SPM resolution as expected.
 def stripe_spm_enabled?
-  return false unless defined?(spm_dependency)
   return false if defined?($StripeDisableSPM) && $StripeDisableSPM == true
 
   true

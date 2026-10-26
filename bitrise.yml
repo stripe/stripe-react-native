@@ -166,8 +166,8 @@ workflows:
   # Build-only coverage for the CocoaPods fallback path (STRIPE_DISABLE_SPM /
   # $StripeDisableSPM): Stripe resolved from the pod registry with React
   # Native's default static libraries. All other iOS jobs run SPM mode, so
-  # without this job the fallback — what RN < 0.75 apps and opted-out apps use
-  # while Stripe still publishes pods — would have no CI coverage. This is the
+  # without this job the fallback — what opted-out apps use while Stripe still
+  # publishes pods — would have no CI coverage. This is the
   # closest match to today's real-world default app configuration. Build-only:
   # no e2e-tests consumer pulls its artifact.
   build-ios-fallback:

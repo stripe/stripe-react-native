@@ -102,7 +102,7 @@
   "peerDependencies": {
     "expo": ">=46.0.9",
     "react": "*",
-    "react-native": "*",
+    "react-native": ">=0.75.0",
     "react-native-webview": "*"
   },
   "peerDependenciesMeta": {
