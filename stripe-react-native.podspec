@@ -20,11 +20,11 @@ Pod::Spec.new do |s|
   s.platforms    = { ios: '13.0' }
   s.source       = { git: 'https://github.com/stripe/stripe-react-native.git', tag: s.version.to_s }
 
-  # On React Native >= 0.75 the Stripe iOS SDK is resolved through Swift
-  # Package Manager (the Stripe iOS SDK is deprecating CocoaPods support);
-  # older React Native versions and apps that set `$StripeDisableSPM = true`
-  # fall back to the CocoaPods registry via the `unless stripe_spm_enabled?`
-  # dependency blocks below. stripe_spm.rb documents the full mechanism.
+  # By default the Stripe iOS SDK is resolved through Swift Package Manager
+  # (the Stripe iOS SDK is deprecating CocoaPods support). Apps that set
+  # `$StripeDisableSPM = true` fall back to the CocoaPods registry via the
+  # `unless stripe_spm_enabled?` dependency blocks below. stripe_spm.rb
+  # documents the full mechanism.
   # `stripe_version` pins both paths to the same stripe-ios release.
   stripe_spm_activate!(s, version: stripe_version) if stripe_spm_enabled?
 
@@ -57,7 +57,7 @@ Pod::Spec.new do |s|
     core.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h', 'ios/StripeSdkEventEmitterCompat.h' ]
     core.dependency 'React-Core'
     unless stripe_spm_enabled?
-      # CocoaPods fallback for React Native < 0.75 and $StripeDisableSPM users.
+      # CocoaPods fallback for $StripeDisableSPM users.
       # Keep in sync with StripeSPM::CORE_PRODUCTS in stripe_spm.rb — these are
       # two spellings of the same dependency set.
       core.dependency 'Stripe', stripe_version

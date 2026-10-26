@@ -76,7 +76,7 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 
 #### React Native
 
-React Native verions < 0.75 are deprecated.
+React Native 0.75 or later is required.
 The React Native **new architecture** (TurboModules and Fabric) is required.
 
 - **Android:** Set `newArchEnabled=true` in `android/gradle.properties`.

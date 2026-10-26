@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Breaking changes**
+
+* [Removed] Support for React Native versions below 0.75. React Native 0.75 or later is now required.
+
 **Fixes**
 
 * [Fixed] Android: Connect external links now use the configured browser presentation regardless of navigation type.
