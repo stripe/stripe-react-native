@@ -94,6 +94,10 @@ class PaymentSheetManager(
   internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
   private var keepJsAwake: KeepJsAwakeTask? = null
   private var lastConfigureWasCustomFlow: Boolean? = null
+  private var paymentSheetCallbackKind: CallbackKind? = null
+  private var flowControllerCallbackKind: CallbackKind? = null
+
+  private enum class CallbackKind { None, IntentCreation, ConfirmationToken }
 
   @SuppressLint("RestrictedApi")
   override fun onCreate() {
@@ -221,24 +225,34 @@ class PaymentSheetManager(
     args: ReadableMap,
     promise: Promise,
   ) {
+    val callbackKind =
+      when {
+        intentConfiguration == null -> CallbackKind.None
+        args.getMap("intentConfiguration")?.hasKey("confirmationTokenConfirmHandler") == true ->
+          CallbackKind.ConfirmationToken
+        else -> CallbackKind.IntentCreation
+      }
+
+    // Native intent-creation callbacks are registered by the builder, not by configure/present.
     if (args.getBooleanOr("customFlow", false)) {
       lastConfigureWasCustomFlow = true
-      if (flowController == null) {
-        initFlowController(args, promise)
+      if (flowController == null || flowControllerCallbackKind != callbackKind) {
+        initFlowController(callbackKind, promise)
       }
       configureFlowController(promise)
       return
     }
 
     lastConfigureWasCustomFlow = false
-    if (paymentSheet == null) {
-      initPaymentSheet(args, promise)
+    if (paymentSheet == null || paymentSheetCallbackKind != callbackKind) {
+      signal.unregister()
+      initPaymentSheet(callbackKind, promise)
     }
     promise.resolve(Arguments.createMap())
   }
 
   private fun initPaymentSheet(
-    args: ReadableMap,
+    callbackKind: CallbackKind,
     promise: Promise,
   ) {
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
@@ -248,31 +262,19 @@ class PaymentSheetManager(
         factory = PromiseViewModel.Factory,
       )[PromiseViewModel::class]
     promiseViewModel.setPromise(promise)
-    val intentConfigMap = args.getMap("intentConfiguration")
-    val useConfirmationTokenCallback = intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
-    paymentSheet =
-      if (intentConfiguration != null) {
-        val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback(promiseViewModel))
-        if (useConfirmationTokenCallback) {
-          builder.createIntentCallback(buildCreateConfirmationTokenCallback())
-        } else {
-          builder.createIntentCallback(buildIntentCreationCallback())
-        }
-        @SuppressLint("RestrictedApi")
-        builder
-          .confirmCustomPaymentMethodCallback(this)
-          .build(activity, signal)
-      } else {
-        @SuppressLint("RestrictedApi")
-        PaymentSheet
-          .Builder(buildPaymentSheetResultCallback(promiseViewModel))
-          .confirmCustomPaymentMethodCallback(this)
-          .build(activity, signal)
-      }
+    val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback(promiseViewModel))
+    when (callbackKind) {
+      CallbackKind.ConfirmationToken -> builder.createIntentCallback(buildCreateConfirmationTokenCallback())
+      CallbackKind.IntentCreation -> builder.createIntentCallback(buildIntentCreationCallback())
+      CallbackKind.None -> Unit
+    }
+    @SuppressLint("RestrictedApi")
+    paymentSheet = builder.confirmCustomPaymentMethodCallback(this).build(activity, signal)
+    paymentSheetCallbackKind = callbackKind
   }
 
   private fun initFlowController(
-    args: ReadableMap,
+    callbackKind: CallbackKind,
     promise: Promise,
   ) {
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
@@ -282,32 +284,18 @@ class PaymentSheetManager(
         factory = PromiseViewModel.Factory,
       )[PromiseViewModel::class]
     promiseViewModel.setPromise(promise)
-    val intentConfigMap = args.getMap("intentConfiguration")
-    val useConfirmationTokenCallback =
-      intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
-    flowController =
-      if (intentConfiguration != null) {
-        val builder =
-          PaymentSheet.FlowController
-            .Builder(
-              resultCallback = buildPaymentSheetResultCallback(promiseViewModel),
-              paymentOptionResultCallback = buildPaymentOptionCallback(promiseViewModel),
-            )
-        if (useConfirmationTokenCallback) {
-          builder.createIntentCallback(buildCreateConfirmationTokenCallback())
-        } else {
-          builder.createIntentCallback(buildIntentCreationCallback())
-        }
-        builder.confirmCustomPaymentMethodCallback(this)
-        builder.build(activity)
-      } else {
-        PaymentSheet.FlowController
-          .Builder(
-            resultCallback = buildPaymentSheetResultCallback(promiseViewModel),
-            paymentOptionResultCallback = buildPaymentOptionCallback(promiseViewModel),
-          ).confirmCustomPaymentMethodCallback(this)
-          .build(activity)
-      }
+    val builder =
+      PaymentSheet.FlowController.Builder(
+        resultCallback = buildPaymentSheetResultCallback(promiseViewModel),
+        paymentOptionResultCallback = buildPaymentOptionCallback(promiseViewModel),
+      )
+    when (callbackKind) {
+      CallbackKind.ConfirmationToken -> builder.createIntentCallback(buildCreateConfirmationTokenCallback())
+      CallbackKind.IntentCreation -> builder.createIntentCallback(buildIntentCreationCallback())
+      CallbackKind.None -> Unit
+    }
+    flowController = builder.confirmCustomPaymentMethodCallback(this).build(activity)
+    flowControllerCallbackKind = callbackKind
   }
 
   private fun buildCreateConfirmationTokenCallback(): CreateIntentWithConfirmationTokenCallback {
