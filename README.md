@@ -75,7 +75,7 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 
 #### React Native
 
-React Native verions < 0.75 are deprecated.
+React Native 0.75 or later is required.
 The React Native **new architecture** (TurboModules and Fabric) is required.
 
 - **Android:** Set `newArchEnabled=true` in `android/gradle.properties`.
@@ -127,6 +127,7 @@ use_frameworks! :linkage => :dynamic
 ```
 
 For Expo, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
+If you are using precompiled modules with Expo, you must use Expo 58.0.19 or later, otherwise Expo will revert your build to static linking.
 
 If you encounter problems with SPM dependency resolution, please immediately [file an issue](https://github.com/stripe/stripe-react-native/issues).
 
@@ -134,7 +135,7 @@ If you previously opted out of SPM resolution, remove `$StripeDisableSPM = true`
 
 #### Troubleshooting
 
-- **`pod install` fails with "Resolving the Stripe iOS SDK through Swift Package Manager requires dynamic frameworks"** — your app is building with static libraries (React Native's default). Add `use_frameworks! :linkage => :dynamic` to your Podfile (for Expo, set `"useFrameworks": "dynamic"` via [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/)).
+- **`pod install` fails with "Resolving the Stripe iOS SDK through Swift Package Manager requires dynamic frameworks"** — your app is building with static libraries (React Native's default). If you are not using Expo, add `use_frameworks! :linkage => :dynamic` to your Podfile. If you are using Expo, set `"useFrameworks": dynamic"` via [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/)). If you are using precompiled modules in Expo, additionally ensure you are using Expo 58.0.19 or later.
 
 - **`pod install` fails with "The Stripe iOS Swift package was not added to the Pods project"** - the integration relies on `react_native_post_install` being called from your Podfile. If your Podfile is customized and no longer calls it, restore that call (see the [React Native template Podfile](https://github.com/react-native-community/template/blob/main/template/ios/Podfile)).
 

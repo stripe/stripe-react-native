@@ -40,6 +40,9 @@ type StripePluginProps = {
    * @deprecated The Stripe iOS SDK no longer supports CocoaPods resolution.
    * Setting this to true throws an error. Remove this option and use
    * `expo-build-properties` with `"useFrameworks": "dynamic"`.
+   * If Expo still reports static linkage, upgrade to Expo 58.0.19 or later.
+   * It includes the precompiled-module linkage fix
+   * in expo-modules-autolinking 58.0.15; keep dynamic frameworks enabled.
    */
   disableSPM?: boolean;
 };

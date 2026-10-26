@@ -445,6 +445,12 @@ module StripeSPM
         Manager requires dynamic frameworks, but #{POD_NAME} is building as
         #{current}. To fix, add `use_frameworks! :linkage => :dynamic` to your Podfile
         (for Expo, set `"useFrameworks": "dynamic"` via the expo-build-properties plugin).
+
+        If Expo still reports static linkage with dynamic frameworks enabled,
+        upgrade to Expo 58.0.19 or later (expo-modules-autolinking 58.0.15 or later).
+        Earlier Expo versions with precompiled modules enabled can override
+        the dynamic-framework setting. Update your dependencies and lockfile,
+        then rerun `npx expo prebuild --platform ios`, keeping dynamic frameworks enabled.
       MESSAGE
     end
 
@@ -571,11 +577,7 @@ end
 # True when the Stripe iOS SDK should be resolved through Swift Package
 # Manager for this install. Evaluated by the podspec.
 #
-# `defined?(spm_dependency)` effectively checks if the React Native version is
-# >= 0.75 since this is the version that introduces `spm_dependency`. The user's
-# Podfile will require `react_native_pods.rb`, which defines `spm_dependency` as
-# a top-level function, so the function is visibile here exactly when the app's
-# React Native version supports it.
+# All supported React Native versions provide `spm_dependency`.
 #
 # Reject the legacy opt-out explicitly so existing Podfiles fail with migration
 # instructions before attempting to resolve Stripe pods that no longer exist.
@@ -589,8 +591,6 @@ def stripe_spm_enabled?
       `use_frameworks! :linkage => :dynamic` to use Swift Package Manager
     MESSAGE
   end
-
-  return false unless defined?(spm_dependency)
 
   true
 end
