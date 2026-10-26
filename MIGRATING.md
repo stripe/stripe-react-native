@@ -9,7 +9,7 @@ use_frameworks! :linkage => :dynamic
 ```
 
 For Expo apps, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
-If you are using precompiled modules with Expo, you must use Expo 58.0.18 or later, otherwise Expo will revert your build to static linking.
+If you are using precompiled modules with Expo, you must use Expo 58.0.19 or later, otherwise Expo will revert your build to static linking.
 
 See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.
 

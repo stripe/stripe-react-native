@@ -459,7 +459,7 @@ module StripeSPM
         (for Expo, set `"useFrameworks": "dynamic"` via the expo-build-properties plugin).
 
         If Expo still reports static linkage with dynamic frameworks enabled,
-        upgrade to Expo 58.0.18 or later (expo-modules-autolinking 58.0.15 or later).
+        upgrade to Expo 58.0.19 or later (expo-modules-autolinking 58.0.15 or later).
         Earlier Expo versions with precompiled modules enabled can override
         the dynamic-framework setting. Update your dependencies and lockfile,
         then rerun `npx expo prebuild --platform ios`, keeping dynamic frameworks enabled.

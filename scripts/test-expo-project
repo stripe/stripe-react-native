@@ -31,7 +31,7 @@ OPTIONS:
 iOS TROUBLESHOOTING:
   If pod install reports static linkage despite useFrameworks: "dynamic",
   rerun this script with --keep-project to preserve the generated app.
-  In that app, upgrade to Expo 58.0.18 or later (expo-modules-autolinking
+  In that app, upgrade to Expo 58.0.19 or later (expo-modules-autolinking
   58.0.15 or later), update its dependencies and lockfile, then run
   npx expo prebuild --platform ios from the app directory. This fixes Expo's
   precompiled-module linkage override; keep dynamic frameworks enabled.

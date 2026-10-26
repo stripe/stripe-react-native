@@ -42,7 +42,7 @@ type StripePluginProps = {
    * instead of Swift Package Manager.
    * Defaults to false (SPM resolution on React Native >= 0.75, which requires
    * `expo-build-properties` with `"useFrameworks": "dynamic"`).
-   * If Expo still reports static linkage, upgrade to Expo 58.0.18 or later
+   * If Expo still reports static linkage, upgrade to Expo 58.0.19 or later
    * before opting out of SPM. It includes the precompiled-module linkage fix
    * in expo-modules-autolinking 58.0.15; keep dynamic frameworks enabled.
    * WARNING: CocoaPods support is deprecated and future Stripe SDK versions
