@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Breaking changes**
+
+* [Removed] iOS: The `disableSPM` Expo option and `$StripeDisableSPM = true` Podfile flag are no longer supported because the Stripe iOS SDK no longer supports CocoaPods resolution. Remove these options and use dynamic frameworks with Swift Package Manager. See the [migration guide](MIGRATING.md#ios-swift-package-manager-dependency-resolution-and-dynamic-linking).
+
 **Fixes**
 
 * [Fixed] Android: Connect external links now use the configured browser presentation regardless of navigation type.

@@ -37,19 +37,21 @@ type StripePluginProps = {
    */
   includeOnramp?: boolean;
   /**
-   * iOS only. When true, sets `$StripeDisableSPM = true` in the generated
-   * Podfile, so the Stripe iOS SDK is resolved through the CocoaPods registry
-   * instead of Swift Package Manager.
-   * Defaults to false (SPM resolution on React Native >= 0.75, which requires
-   * `expo-build-properties` with `"useFrameworks": "dynamic"`).
-   * WARNING: CocoaPods support is deprecated and future Stripe SDK versions
-   * will not provide this option. Only use it as a last resort to temporarily
-   * support static linking, old React Native versions, or as a stopgap workaround.
+   * @deprecated The Stripe iOS SDK no longer supports CocoaPods resolution.
+   * Setting this to true throws an error. Remove this option and use
+   * `expo-build-properties` with `"useFrameworks": "dynamic"`.
    */
   disableSPM?: boolean;
 };
 
 const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
+  // Reject the legacy opt-out before registering any native project changes.
+  if (props.disableSPM) {
+    throw new Error(
+      '[stripe-react-native] disableSPM is no longer supported because the Stripe iOS SDK no longer supports CocoaPods resolution. Remove disableSPM from your app config and set "useFrameworks": "dynamic" via the expo-build-properties plugin.'
+    );
+  }
+
   config = withStripeIos(config, props);
   config = withNoopSwiftFile(config);
   config = withStripeAndroid(config, props);
