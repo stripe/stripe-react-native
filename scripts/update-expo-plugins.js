@@ -38,7 +38,9 @@ if (!disableSPM) {
   // Stripe iOS SDK resolves through Swift Package Manager by default — which
   // requires dynamic frameworks (Expo's default is static; `pod install`
   // fails fast otherwise). This mirrors what real Expo apps must configure;
-  // see stripe_spm.rb. The fallback (--disable-spm) run deliberately keeps
+  // see stripe_spm.rb. If precompiled modules override this setting, update
+  // Expo to 58.0.18 or later (expo-modules-autolinking 58.0.15 or later).
+  // The fallback (--disable-spm) run deliberately keeps
   // Expo's static default: that is the configuration opted-out apps build
   // with.
   buildProperties.ios = {

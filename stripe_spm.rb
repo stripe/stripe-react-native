@@ -457,6 +457,13 @@ module StripeSPM
         Manager requires dynamic frameworks, but #{POD_NAME} is building as
         #{current}. To fix, add `use_frameworks! :linkage => :dynamic` to your Podfile
         (for Expo, set `"useFrameworks": "dynamic"` via the expo-build-properties plugin).
+
+        If Expo still reports static linkage with dynamic frameworks enabled,
+        upgrade to Expo 58.0.18 or later (expo-modules-autolinking 58.0.15 or later).
+        Earlier Expo versions with precompiled modules enabled can override
+        the dynamic-framework setting. Update your dependencies and lockfile,
+        then rerun `npx expo prebuild --platform ios`, keeping dynamic frameworks enabled.
+
         If you MUST continue to use static linkage, you can temporarily add
         `$StripeDisableSPM = true` at the top of your Podfile to resolve Stripe
         through CocoaPods instead. WARNING: THIS IS DEPRECATED AND FUTURE STRIPE SDK
