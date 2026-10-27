@@ -939,7 +939,7 @@ export interface CheckmarkConfig {
     color?: ThemedColor;
 }
 
-// @public
+// @internal
 export namespace Checkout {
     export interface Address {
         city?: string;
@@ -1200,7 +1200,7 @@ export namespace Checkout {
     export type UserInterfaceStyle = 'alwaysLight' | 'alwaysDark' | 'automatic';
 }
 
-// @public
+// @internal
 export interface CheckoutController {
     applyPromotionCode(promotionCode: string): Promise<void>;
     clearPaymentOption(): Promise<void>;
@@ -1217,32 +1217,32 @@ export interface CheckoutController {
     updateShippingAddress(params: Checkout.UpdateShippingAddressParams): Promise<void>;
 }
 
-// @public
+// @internal
 export interface CheckoutCurrencySelectorElement {
 }
 
-// @public
+// @internal
 export function CheckoutCurrencySelectorElementView(input: CheckoutCurrencySelectorElementViewProps): React_2.JSX.Element;
 
-// @public
+// @internal
 export interface CheckoutCurrencySelectorElementViewProps {
     element: CheckoutCurrencySelectorElement;
 }
 
-// @public
+// @internal
 export interface CheckoutPaymentElement {
     present(): Promise<void>;
 }
 
-// @public
+// @internal
 export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProps): React_2.JSX.Element;
 
-// @public
+// @internal
 export interface CheckoutPaymentElementViewProps {
     element: CheckoutPaymentElement;
 }
 
-// @public
+// @internal
 export interface CheckoutShippingAddressElement {
     present(): Promise<void>;
 }
@@ -1635,7 +1635,7 @@ type CreateCardTokenParams = {
     currency?: string;
 };
 
-// @public
+// @internal
 export function createCheckout(options: Checkout.CreateOptions): Promise<CheckoutController>;
 
 // @public
@@ -4484,7 +4484,7 @@ type USBankAccountResult = {
     supportedNetworks?: string[];
 };
 
-// @public
+// @internal
 export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult;
 
 // @public
