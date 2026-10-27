@@ -43,14 +43,6 @@ appId: ${APP_ID}
 - assertVisible:
     id: 'checkout-status'
 - assertVisible: 'Status: ready'
-- scrollUntilVisible:
-    element:
-      id: 'checkout-select-payment-method'
-    centerElement: true
-- tapOn:
-    id: 'checkout-select-payment-method'
-- extendedWaitUntil:
-    visible: 'Card'
-    timeout: 60000
-- tapOn: 'Card'
+- runFlow:
+    file: helpers/checkout-open-card.yml
 - assertVisible: 'Card number. Supported cards include.*'
