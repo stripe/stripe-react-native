@@ -1650,6 +1650,66 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(fulfillKycRequirements:rejecter:)
+    public func fulfillKycRequirements(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task { @MainActor in
+            do {
+                let presenter = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
+                let result = try await coordinator.fulfillKYCRequirements(from: presenter)
+                resolve(Mappers.mapFromFulfillKYCRequirementsResult(result))
+            } catch {
+                resolve(OnrampErrors.createFailedError(error))
+            }
+        }
+    }
+
+    @objc(presentTermsAndConditionsIfNeeded:rejecter:)
+    public func presentTermsAndConditionsIfNeeded(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task { @MainActor in
+            do {
+                let presenter = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
+                let result = try await coordinator.presentTermsAndConditionsIfNeeded(from: presenter)
+                resolve(Mappers.mapFromPartnerTermsResult(result))
+            } catch {
+                resolve(OnrampErrors.createFailedError(error))
+            }
+        }
+    }
+
+    @objc(presentTermsOfServiceIfNeeded:rejecter:)
+    public func presentTermsOfServiceIfNeeded(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task { @MainActor in
+            do {
+                let presenter = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
+                let result = try await coordinator.presentTermsOfServiceIfNeeded(from: presenter)
+                resolve(Mappers.mapFromPartnerTermsResult(result))
+            } catch {
+                resolve(OnrampErrors.createFailedError(error))
+            }
+        }
+    }
+
     @objc(presentKycInfoVerification:resolver:rejecter:)
     public func presentKycInfoVerification(
         updatedAddressDictionary: NSDictionary?,
