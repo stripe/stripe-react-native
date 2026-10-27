@@ -2,17 +2,32 @@ appId: ${APP_ID}
 ---
 - launchApp:
     clearState: true
-- tapOn: "Accept a payment"
-- tapOn: "Prebuilt UI (multi-step)"
+- tapOn: 'Accept a payment'
+- tapOn: 'Prebuilt UI (multi-step)'
 - extendedWaitUntil:
-    visible: "Choose payment method"
+    visible: 'Choose payment method'
     timeout: 150000
-- tapOn:
-    text: "Choose payment method"
+# Google Pay is available in test mode and is selected during initialization.
 - extendedWaitUntil:
-    visible: "Close"
+    visible: 'Google Pay'
     timeout: 150000
-- tapOn: "Close"
 - assertVisible:
+    text: 'Buy with Google Pay'
+    enabled: true
+- tapOn:
+    text: 'Choose payment method'
+- extendedWaitUntil:
+    visible: 'Close'
+    timeout: 150000
+- tapOn: 'Close'
+# Dismissing the sheet preserves the existing selection without an error.
+- extendedWaitUntil:
+    notVisible: 'Close'
+    timeout: 30000
+- assertVisible:
+    text: 'Google Pay'
+- assertVisible:
+    text: 'Buy with Google Pay'
+    enabled: true
+- assertNotVisible:
     text: .*anceled.*
-- tapOn: "OK"

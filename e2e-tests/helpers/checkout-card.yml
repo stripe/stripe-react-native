@@ -1,14 +1,7 @@
 appId: ${APP_ID}
 ---
-- scrollUntilVisible:
-    element:
-      text: 'Select payment method'
-    centerElement: true
-- tapOn: 'Select payment method'
-- extendedWaitUntil:
-    visible: 'Card'
-    timeout: 60000
-- tapOn: 'Card'
+- runFlow:
+    file: checkout-open-card.yml
 - tapOn: 'Card number. Supported cards include.*'
 - inputText: ${CARD_NUMBER}
 - inputText: '0145'
