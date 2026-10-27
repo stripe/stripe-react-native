@@ -1351,7 +1351,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-webview (14.0.1):
+  - react-native-webview (13.16.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1842,7 +1842,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-react-native (0.83.0):
+  - stripe-react-native (0.84.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1863,32 +1863,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - stripe-react-native/Core (= 0.83.0)
-    - stripe-react-native/NewArch (= 0.83.0)
+    - stripe-react-native/Core (= 0.84.0)
+    - stripe-react-native/NewArch (= 0.84.0)
     - Yoga
-  - stripe-react-native/Core (0.83.0):
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-Core-prebuilt
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - Yoga
-  - stripe-react-native/NewArch (0.83.0):
+  - stripe-react-native/Core (0.84.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1910,7 +1888,29 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-react-native/Onramp (0.83.0):
+  - stripe-react-native/NewArch (0.84.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - stripe-react-native/Onramp (0.84.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1973,7 +1973,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - react-native-webview (from `../node_modules/react-native-webview`)
+  - react-native-webview (from `../../node_modules/react-native-webview`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-oscompat (from `../node_modules/react-native/ReactCommon/oscompat`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -2090,7 +2090,7 @@ EXTERNAL SOURCES:
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-webview:
-    :path: "../node_modules/react-native-webview"
+    :path: "../../node_modules/react-native-webview"
   React-NativeModulesApple:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-oscompat:
@@ -2179,7 +2179,7 @@ SPEC CHECKSUMS:
   React: 914f8695f9bf38e6418228c2ffb70021e559f92f
   React-callinvoker: 1c0808402aee0c6d4a0d8e7220ce6547af9fba71
   React-Core: 4ae98f9e8135b8ddbd7c98730afb6fdae883db90
-  React-Core-prebuilt: 02f0ad625ddd47463c009c2d0c5dd35c0d982599
+  React-Core-prebuilt: 8f4cca589c14e8cf8fc6db4587ef1c2056b5c151
   React-CoreModules: e878a90bb19b8f3851818af997dbae3b3b0a27ac
   React-cxxreact: 28af9844f6dc87be1385ab521fbfb3746f19563c
   React-debug: dfe7f2f01b36058f2a9b94872e071eb40e063a3c
@@ -2207,7 +2207,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: abad17e497845ba728b779e2fac123ee961d4545
   React-microtasksnativemodule: 90dfab2adb37c8c90da7afffcec427d7c90acb29
   react-native-safe-area-context: 3f031fa5a6c36a3731f6fa2202bfa8f411850c6b
-  react-native-webview: 7eed4d1758c5a244460c2577719897ca015b130a
+  react-native-webview: e90afced564d2c18c2d814f9e8d3d922fe11cfd7
   React-NativeModulesApple: 1664340b8750d64e0ef3907c5e53d9481f74bcbd
   React-oscompat: ce47230ed20185e91de62d8c6d139ae61763d09c
   React-perflogger: b1af3cfb3f095f819b2814910000392a8e17ba9f
@@ -2245,7 +2245,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 0574155b95b96b89a51717c4dd42fb6057926bbc
   RNCPicker: 8857af4403867e2d81b8e8149e3e5c66282f1ee9
   RNScreens: e3ad77a0b586f4910e4f4c30ec05d91a2c506075
-  stripe-react-native: 747a6bd6acdb3856021d7aa259d737bd2d118b85
+  stripe-react-native: b23aba15b830bda7ef2e9dc87e96cbab4e39fb28
   Yoga: 65431d43277b661ebc7289c6c5d82f64ce42cfe0
 
 PODFILE CHECKSUM: 865bd37bc8f1b842d6d516040eb0f9e7504c60bb
