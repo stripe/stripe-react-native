@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Breaking changes**
+
+* [Removed] Support for React Native versions below 0.75. React Native 0.75 or later is now required.
+
 **Features**
 
 * [Added] Added `fulfillKycRequirements` to Crypto Onramp for collecting additional KYC documents and questionnaire answers.
