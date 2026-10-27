@@ -1,7 +1,7 @@
 import { AndroidConfig } from '@expo/config-plugins';
 import { resolve } from 'path';
 
-import {
+import withStripe, {
   setApplePayEntitlement,
   setGooglePayMetaData,
   setOnrampGradleProperty,
@@ -22,6 +22,39 @@ const { getMainApplicationOrThrow, readAndroidManifestAsync } =
 
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleManifestPath = resolve(fixturesPath, 'sample-AndroidManifest.xml');
+
+describe('withStripe', () => {
+  it('rejects disableSPM with migration instructions', () => {
+    expect(() =>
+      withStripe(
+        { name: 'StripeTest', slug: 'stripe-test' },
+        {
+          merchantIdentifier: 'merchant.com.example',
+          enableGooglePay: false,
+          disableSPM: true,
+        }
+      )
+    ).toThrow(
+      'Remove disableSPM from your app config and set "useFrameworks": "dynamic" via the expo-build-properties plugin.'
+    );
+  });
+
+  it.each([undefined, false])(
+    'allows SPM resolution when disableSPM is %s',
+    (disableSPM) => {
+      expect(() =>
+        withStripe(
+          { name: 'StripeTest', slug: 'stripe-test' },
+          {
+            merchantIdentifier: 'merchant.com.example',
+            enableGooglePay: false,
+            ...(disableSPM === undefined ? {} : { disableSPM }),
+          }
+        )
+      ).not.toThrow();
+    }
+  );
+});
 
 describe('setApplePayEntitlement', () => {
   it(`sets the apple pay entitlement when none exist`, () => {
