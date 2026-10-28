@@ -1,9 +1,7 @@
-import {
-  CheckoutCurrencySelectorElementView,
-  CheckoutPaymentElementView,
-  useCheckout,
-} from '@stripe/stripe-react-native';
-import type { Checkout } from '@stripe/stripe-react-native';
+import { CheckoutCurrencySelectorElementView } from '@stripe/stripe-react-native/src/components/CheckoutCurrencySelectorElementView';
+import { CheckoutPaymentElementView } from '@stripe/stripe-react-native/src/components/CheckoutPaymentElementView';
+import { useCheckout } from '@stripe/stripe-react-native/src/hooks/useCheckout';
+import type { Checkout } from '@stripe/stripe-react-native/src/types/Checkout';
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -133,22 +131,8 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
   const checkout = useCheckout({ getConfiguration });
   const [paymentElementVisible, setPaymentElementVisible] = useState(false);
   const [emailEditorVisible, setEmailEditorVisible] = useState(false);
-  const [shippingEditorVisible, setShippingEditorVisible] = useState(false);
   const [diagnosticsVisible, setDiagnosticsVisible] = useState(false);
   const [emailDraft, setEmailDraft] = useState('');
-  const [shippingDraft, setShippingDraft] = useState(
-    settings.defaultShippingAddressOption === 'custom'
-      ? settings.customShippingAddress
-      : {
-          name: 'Jenny Rosen',
-          line1: '510 Townsend St',
-          line2: '',
-          city: 'San Francisco',
-          state: 'CA',
-          postalCode: '94103',
-          country: 'US',
-        }
-  );
   const [actionError, setActionError] = useState<string | null>(null);
 
   useLayoutEffect(() => {
@@ -221,23 +205,6 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
     const trimmed = email?.trim();
     await run(() => checkout.updateEmail(trimmed ? trimmed : null));
     setEmailEditorVisible(false);
-  };
-
-  const saveShipping = async () => {
-    await run(() =>
-      checkout.updateShippingAddress({
-        name: shippingDraft.name,
-        address: {
-          country: shippingDraft.country,
-          line1: shippingDraft.line1,
-          line2: shippingDraft.line2 || undefined,
-          city: shippingDraft.city,
-          state: shippingDraft.state,
-          postalCode: shippingDraft.postalCode,
-        },
-      })
-    );
-    setShippingEditorVisible(false);
   };
 
   if (checkout.status === 'loading' && !session) {
@@ -365,7 +332,20 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
         </CartSection>
 
         {settings.collectShippingAddress && (
-          <CartSection title="Shipping Address">
+          <CartSection
+            title="Shipping Address"
+            action={
+              session.shippingAddress ? (
+                <TextButton
+                  title="Clear address"
+                  disabled={isBusy}
+                  onPress={() =>
+                    run(() => checkout.updateShippingAddress({ address: null }))
+                  }
+                />
+              ) : null
+            }
+          >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
@@ -373,8 +353,12 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
                   ? `Edit shipping address, ${formatAddress(session.shippingAddress)}`
                   : 'Add shipping address'
               }
-              disabled={isBusy}
-              onPress={() => setShippingEditorVisible(true)}
+              disabled={isBusy || !checkout.shippingAddressElement}
+              onPress={() => {
+                if (checkout.shippingAddressElement) {
+                  run(checkout.shippingAddressElement.present);
+                }
+              }}
               style={({ pressed }) => [
                 styles.card,
                 styles.addressCard,
@@ -569,52 +553,6 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
             <Text style={styles.dangerButtonText}>Clear email</Text>
           </Pressable>
         </View>
-      </EditorModal>
-
-      <EditorModal
-        title="Shipping Address"
-        visible={shippingEditorVisible}
-        onClose={() => setShippingEditorVisible(false)}
-      >
-        <ScrollView contentContainerStyle={styles.editorContent}>
-          {(
-            [
-              ['name', 'Name'],
-              ['line1', 'Address line 1'],
-              ['line2', 'Address line 2'],
-              ['city', 'City'],
-              ['state', 'State'],
-              ['postalCode', 'ZIP / postal code'],
-              ['country', 'Country'],
-            ] as const
-          ).map(([key, label]) => (
-            <View key={key} style={styles.editorField}>
-              <Text style={styles.inputLabel}>{label}</Text>
-              <TextInput
-                accessibilityLabel={label}
-                style={styles.textInput}
-                value={shippingDraft[key]}
-                onChangeText={(value) =>
-                  setShippingDraft((current) => ({ ...current, [key]: value }))
-                }
-              />
-            </View>
-          ))}
-          <Pressable style={styles.primaryButton} onPress={saveShipping}>
-            <Text style={styles.primaryButtonText}>Save Address</Text>
-          </Pressable>
-          <Pressable
-            style={styles.dangerButton}
-            onPress={async () => {
-              await run(() =>
-                checkout.updateShippingAddress({ address: null })
-              );
-              setShippingEditorVisible(false);
-            }}
-          >
-            <Text style={styles.dangerButtonText}>Clear address</Text>
-          </Pressable>
-        </ScrollView>
       </EditorModal>
 
       <EditorModal

@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-react-native",
-  "version": "0.82.0",
+  "version": "0.84.0",
   "author": "Stripe",
   "description": "Stripe SDK for React Native",
   "main": "lib/commonjs/index",
@@ -102,7 +102,7 @@
   "peerDependencies": {
     "expo": ">=46.0.9",
     "react": "*",
-    "react-native": "*",
+    "react-native": ">=0.75.0",
     "react-native-webview": "*"
   },
   "peerDependenciesMeta": {

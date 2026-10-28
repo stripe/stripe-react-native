@@ -24,6 +24,7 @@ import com.stripe.android.elements.ShippingAddressElement
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.StripeThemeDefaults
+import com.stripe.android.elements.ShippingAddressElement.Configuration.Appearance as ShippingAddressAppearance
 
 @OptIn(CheckoutSessionPreview::class)
 internal data class MappedCheckoutConfiguration(
@@ -57,7 +58,7 @@ internal object CheckoutConfigurationMapper {
       configuration.currencySelectorElement(mapCurrencySelectorElement(it, context, params.getString("style")))
     }
     params.getMap("shippingAddressElement")?.let {
-      configuration.shippingAddressElement(mapShippingAddressElement(it))
+      configuration.shippingAddressElement(mapShippingAddressElement(it, params.getString("style"), context))
     }
 
     return MappedCheckoutConfiguration(
@@ -69,11 +70,105 @@ internal object CheckoutConfigurationMapper {
 
   private fun mapShippingAddressElement(
     params: ReadableMap,
+    style: String?,
+    context: Context,
   ): ShippingAddressElement.Configuration {
     val configuration = ShippingAddressElement.Configuration()
     params.getString("title")?.let(configuration::title)
     params.getString("buttonTitle")?.let(configuration::buttonTitle)
-    return configuration
+    val appearanceParams = params.getMap("appearance")
+    if (appearanceParams == null && style == null) return configuration
+
+    val appearance = ShippingAddressAppearance()
+    style?.let {
+      appearance.themeMode(
+        when (it) {
+          "alwaysLight" -> ShippingAddressAppearance.ThemeMode.AlwaysLight
+          "alwaysDark" -> ShippingAddressAppearance.ThemeMode.AlwaysDark
+          "automatic" -> ShippingAddressAppearance.ThemeMode.Automatic
+          else -> unsupportedValue("style", it)
+        },
+      )
+    }
+    appearanceParams?.getMap("colors")?.let { colors ->
+      appearance.colorsLight(mapShippingAddressColors(colors.getMap("light") ?: colors, true))
+      appearance.colorsDark(mapShippingAddressColors(colors.getMap("dark") ?: colors, false))
+    }
+    appearanceParams?.getMap("primaryButton")?.let { buttonParams ->
+      appearance.primaryButton(mapShippingAddressPrimaryButton(buttonParams, context))
+    }
+    appearanceParams?.getMap("formInsetValues")?.let { insets ->
+      // Preserve the shipping sheet's native defaults for omitted edges.
+      appearance.formInsetValues(
+        ShippingAddressAppearance.Insets(
+          startDp = insets.getFloatOr("left", SHIPPING_FORM_HORIZONTAL_INSET),
+          topDp = insets.getFloatOr("top", 0f),
+          endDp = insets.getFloatOr("right", SHIPPING_FORM_HORIZONTAL_INSET),
+          bottomDp = insets.getFloatOr("bottom", SHIPPING_FORM_BOTTOM_INSET),
+        ),
+      )
+    }
+    return configuration.appearance(appearance)
+  }
+
+  private fun mapShippingAddressPrimaryButton(
+    params: ReadableMap,
+    context: Context,
+  ): ShippingAddressAppearance.PrimaryButton {
+    val button = ShippingAddressAppearance.PrimaryButton()
+    params.getMap("colors")?.let { colors ->
+      button.colorsLight(mapShippingAddressButtonColors(colors.getMap("light") ?: colors, true))
+      button.colorsDark(mapShippingAddressButtonColors(colors.getMap("dark") ?: colors, false))
+    }
+    params.getMap("shapes")?.let { shapes ->
+      button.shape(
+        ShippingAddressAppearance.PrimaryButton.Shape()
+          .cornerRadiusDp(shapes.getFloatOrNull("borderRadius"))
+          .borderStrokeWidthDp(shapes.getFloatOrNull("borderWidth"))
+          .heightDp(shapes.getFloatOrNull("height")),
+      )
+    }
+    params.getMap("font")?.let { font ->
+      button.typography(
+        ShippingAddressAppearance.PrimaryButton.Typography()
+          .fontResId(getFontResId(font, "family", context)),
+      )
+    }
+    return button
+  }
+
+  private fun mapShippingAddressColors(
+    params: ReadableMap,
+    isLight: Boolean,
+  ): ShippingAddressAppearance.Colors {
+    val colors = if (isLight) ShippingAddressAppearance.Colors.light() else ShippingAddressAppearance.Colors.dark()
+    params.color("primary", isLight)?.let(colors::primary)
+    params.color("background", isLight)?.let(colors::surface)
+    params.color("componentBackground", isLight)?.let(colors::component)
+    params.color("componentBorder", isLight)?.let(colors::componentBorder)
+    params.color("componentDivider", isLight)?.let(colors::componentDivider)
+    params.color("componentText", isLight)?.let(colors::onComponent)
+    params.color("secondaryText", isLight)?.let(colors::subtitle)
+    params.color("placeholderText", isLight)?.let(colors::placeholderText)
+    params.color("primaryText", isLight)?.let(colors::onSurface)
+    params.color("icon", isLight)?.let(colors::appBarIcon)
+    params.color("error", isLight)?.let(colors::error)
+    return colors
+  }
+
+  private fun mapShippingAddressButtonColors(
+    params: ReadableMap,
+    isLight: Boolean,
+  ): ShippingAddressAppearance.PrimaryButton.Colors {
+    val colors = if (isLight) {
+      ShippingAddressAppearance.PrimaryButton.Colors.light()
+    } else {
+      ShippingAddressAppearance.PrimaryButton.Colors.dark()
+    }
+    params.color("background", isLight)?.let(colors::background)
+    params.color("text", isLight)?.let(colors::onBackground)
+    params.color("border", isLight)?.let(colors::border)
+    return colors
   }
 
   private fun mapCurrencySelectorElement(
@@ -558,3 +653,5 @@ private fun unsupportedValue(path: String, value: Any?): Nothing =
 
 private const val HEX_COLOR_LENGTH_RGB = 6
 private const val HEX_COLOR_LENGTH_ARGB = 8
+private const val SHIPPING_FORM_HORIZONTAL_INSET = 20f
+private const val SHIPPING_FORM_BOTTOM_INSET = 40f

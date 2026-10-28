@@ -1,4 +1,4 @@
-import type { Checkout } from '@stripe/stripe-react-native';
+import type { Checkout } from '@stripe/stripe-react-native/src/types/Checkout';
 import { hostedBackendURL } from './backend';
 
 export type PaymentElementMode = 'sheet' | 'view';
@@ -273,5 +273,6 @@ export function checkoutConfiguration(
     ...(settings.adaptivePricingCountry !== 'none'
       ? { currencySelectorElement: {} }
       : {}),
+    ...(settings.collectShippingAddress ? { shippingAddressElement: {} } : {}),
   };
 }

@@ -1,18 +1,23 @@
 # Migration Guide
 
+## React Native 0.75 minimum
+
+React Native 0.75 or later is required. Upgrade your app's React Native version before updating this SDK, or continue using an older SDK release if you cannot upgrade yet.
+
 ## iOS Swift Package Manager dependency resolution and dynamic linking
 
-By default, the Stripe React Native SDK now resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager instead of CocoaPods. This requires building your app with dynamic linking. For non-Expo apps, add to your Podfile:
+The Stripe React Native SDK resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager. The Stripe iOS SDK no longer supports CocoaPods resolution. This requires building your app with dynamic linking. For non-Expo apps, add to your Podfile:
 
 ```ruby
 use_frameworks! :linkage => :dynamic
 ```
 
 For Expo apps, set `"useFrameworks": "dynamic"` via the [expo-build-properties](https://docs.expo.dev/versions/latest/sdk/build-properties/) plugin.
+If you are using precompiled modules with Expo, you must use Expo 58.0.19 or later, otherwise Expo will revert your build to static linking.
 
-See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details, troubleshooting, and temporary workarounds.
+Remove `$StripeDisableSPM = true` from your Podfile or `disableSPM` from your Expo app config if you previously opted out of SPM resolution. These options now cause an error.
 
-React Native versions < 0.75 will continue using CocoaPods. However, these React Native versions are deprecated and will not be supported in future Stripe React Native SDK versions.
+See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details and troubleshooting.
 
 ## Android SDK 36 requirement (stripe-android 23.x)
 
