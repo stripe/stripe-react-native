@@ -3798,7 +3798,10 @@ interface ShippingDetails_2 {
 }
 
 // @public (undocumented)
-type ShippingDetails_3 = BillingDetails;
+type ShippingDetails_3 = BillingDetails & {
+    carrier?: string;
+    trackingNumber?: string;
+};
 
 // @public
 type ShippingMethod = {
@@ -4478,7 +4481,7 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
 // src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
-// src/types/PaymentMethod.ts:301:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:304:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
