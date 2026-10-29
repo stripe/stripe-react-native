@@ -639,6 +639,9 @@ export type IntentConfiguration = {
    * for more information.
    */
   onBehalfOf?: string;
+  /** The ID of the payment method configuration to use for this session. Only the payment methods enabled in that configuration are offered. Create the PaymentIntent or SetupIntent on your server with the same `payment_method_configuration`. See [Payment method configurations](https://docs.stripe.com/payments/payment-method-configurations).
+   */
+  paymentMethodConfigurationId?: string;
 };
 
 export type Mode = PaymentMode | SetupMode;
