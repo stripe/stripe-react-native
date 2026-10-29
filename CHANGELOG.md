@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+**Features**
+
+* [Added] `IntentConfiguration.paymentMethodConfigurationId`, forwarded to the native `PaymentSheet.IntentConfiguration` on iOS and Android, so `initPaymentSheet` (including `customFlow`) and the Embedded Payment Element can use a payment method configuration.
+
 ## 0.85.1 - 2026-11-10
 
 **Changes**
