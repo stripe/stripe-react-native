@@ -21,7 +21,7 @@ const mockFunctions = {
     error: null,
   })),
   confirmPayment: jest.fn(async () => ({
-    paymentMethod: {},
+    paymentIntent: {},
     error: null,
   })),
   isPlatformPaySupported: jest.fn(async () => true),
@@ -119,60 +119,60 @@ const mockFunctions = {
 
 const mockHooks = {
   useConfirmPayment: jest.fn(() => ({
-    confirmPayment: jest.fn(() => ({
-      ...mockFunctions.confirmPayment(),
-    })),
+    confirmPayment: jest.fn((...args) => mockFunctions.confirmPayment(...args)),
   })),
   useConfirmSetupIntent: jest.fn(() => ({
-    confirmSetupIntent: jest.fn(() => ({
-      ...mockFunctions.confirmSetupIntent(),
-    })),
+    confirmSetupIntent: jest.fn((...args) =>
+      mockFunctions.confirmSetupIntent(...args)
+    ),
   })),
   usePlatformPay: jest.fn(() => ({
     loading: false,
-    isPlatformPaySupported: true,
-    confirmPlatformPaySetupIntent: jest.fn(async () => ({
-      ...mockFunctions.confirmPlatformPaySetupIntent(),
-    })),
-    confirmPlatformPayPayment: jest.fn(async () => ({
-      ...mockFunctions.confirmPlatformPayPayment(),
-    })),
-    dismissPlatformPay: jest.fn(async () => ({
-      ...mockFunctions.dismissPlatformPay(),
-    })),
-    createPlatformPayPaymentMethod: jest.fn(async () => ({
-      ...mockFunctions.createPlatformPayPaymentMethod(),
-    })),
-    createPlatformPayToken: jest.fn(async () => ({
-      ...mockFunctions.createPlatformPayToken(),
-    })),
-    updatePlatformPaySheet: jest.fn(async () => ({
-      ...mockFunctions.updatePlatformPaySheet(),
-    })),
-    openPlatformPaySetup: jest.fn(async () => ({
-      ...mockFunctions.openPlatformPaySetup(),
-    })),
+    isPlatformPaySupported: jest.fn((...args) =>
+      mockFunctions.isPlatformPaySupported(...args)
+    ),
+    confirmPlatformPaySetupIntent: jest.fn((...args) =>
+      mockFunctions.confirmPlatformPaySetupIntent(...args)
+    ),
+    confirmPlatformPayPayment: jest.fn((...args) =>
+      mockFunctions.confirmPlatformPayPayment(...args)
+    ),
+    dismissPlatformPay: jest.fn((...args) =>
+      mockFunctions.dismissPlatformPay(...args)
+    ),
+    createPlatformPayPaymentMethod: jest.fn((...args) =>
+      mockFunctions.createPlatformPayPaymentMethod(...args)
+    ),
+    createPlatformPayToken: jest.fn((...args) =>
+      mockFunctions.createPlatformPayToken(...args)
+    ),
+    updatePlatformPaySheet: jest.fn((...args) =>
+      mockFunctions.updatePlatformPaySheet(...args)
+    ),
+    openPlatformPaySetup: jest.fn((...args) =>
+      mockFunctions.openPlatformPaySetup(...args)
+    ),
   })),
   usePaymentSheet: jest.fn(() => ({
     loading: false,
-    initPaymentSheet: jest.fn(async () => ({
-      ...mockFunctions.initPaymentSheet(),
-    })),
-    presentPaymentSheet: jest.fn(async () => ({
-      ...mockFunctions.presentPaymentSheet(),
-    })),
-    confirmPaymentSheetPayment: jest.fn(async () => ({
-      ...mockFunctions.confirmPaymentSheetPayment(),
-    })),
+    initPaymentSheet: jest.fn((...args) =>
+      mockFunctions.initPaymentSheet(...args)
+    ),
+    presentPaymentSheet: jest.fn((...args) =>
+      mockFunctions.presentPaymentSheet(...args)
+    ),
+    confirmPaymentSheetPayment: jest.fn((...args) =>
+      mockFunctions.confirmPaymentSheetPayment(...args)
+    ),
   })),
   useFinancialConnectionsSheet: jest.fn(() => ({
     loading: false,
-    collectBankAccountToken: jest.fn(async () => ({
-      ...mockFunctions.collectBankAccountToken(),
-    })),
-    collectFinancialConnectionsAccounts: jest.fn(async () => ({
-      ...mockFunctions.collectFinancialConnectionsAccounts(),
-    })),
+    collectBankAccountToken: jest.fn((...args) =>
+      mockFunctions.collectBankAccountToken(...args)
+    ),
+    collectFinancialConnectionsAccounts: jest.fn((...args) =>
+      mockFunctions.collectFinancialConnectionsAccounts(...args)
+    ),
   })),
   useEmbeddedPaymentElement: jest.fn((intentConfig, configuration) => ({
     embeddedPaymentElementView: React.createElement('View', {
