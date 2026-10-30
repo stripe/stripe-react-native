@@ -22,11 +22,7 @@ protocol PaymentMethodMessagingElementInstance {
 
 extension PaymentMethodMessagingElement: PaymentMethodMessagingElementInstance {}
 
-enum PaymentMethodMessagingElementLoadResult {
-    case success(PaymentMethodMessagingElementInstance)
-    case noContent
-    case failed(Error)
-}
+typealias PaymentMethodMessagingElementLoadResult = Result<PaymentMethodMessagingElementInstance?, Error>
 
 @objc(PaymentMethodMessagingElementContainerView)
 public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecognizerDelegate {
@@ -42,9 +38,9 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         case .success(let element):
             return .success(element)
         case .noContent:
-            return .noContent
+            return .success(nil)
         case .failed(let error):
-            return .failed(error)
+            return .failure(error)
         }
     }
     var emitHeight: ([String: Any]) -> Void = {
@@ -175,22 +171,21 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
             guard generation == self.configurationGeneration else { return }
 
             var resultMap: [String: String] = [:]
-            var height: CGFloat? = 0
+            var height: CGFloat = 0
             switch result {
-            case .success(let paymentMethodMessagingElement):
-                self.messagingInstance = paymentMethodMessagingElement
-                height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
-                resultMap["status"] = "loaded"
-            case .noContent:
-                resultMap["status"] = "no_content"
-                self.messagingInstance = nil
-            case .failed(let error):
+            case .success(let element):
+                self.messagingInstance = element
+                if let view = element?.view {
+                    height = view.systemLayoutSizeFitting(CGSize(width: view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
+                }
+                resultMap["status"] = element == nil ? "no_content" : "loaded"
+            case .failure(let error):
                 self.messagingInstance = nil
                 resultMap["status"] = "failed"
                 resultMap["message"] = error.localizedDescription
             }
 
-            self.emitHeight(["height": height ?? 0])
+            self.emitHeight(["height": height])
             self.emitConfigureResult(resultMap)
             attachPaymentElementIfAvailable()
         }

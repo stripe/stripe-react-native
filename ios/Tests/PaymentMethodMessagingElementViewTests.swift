@@ -8,17 +8,10 @@ final class PaymentMethodMessagingElementViewTests: XCTestCase {
     func test_lateResultsDoNotReplaceCustomAppearanceOrEmitEvents() async throws {
         for staleResult in staleResults() {
             let harness = Harness()
-            let firstStarted = expectation(description: "Default appearance load started")
-            harness.loader.onStart = { firstStarted.fulfill() }
-            harness.view.configuration = configuration()
-            let firstTask = try XCTUnwrap(harness.view.configurationTask)
-            await fulfillment(of: [firstStarted], timeout: 2)
-
-            let secondStarted = expectation(description: "Custom appearance load started")
-            harness.loader.onStart = { secondStarted.fulfill() }
-            harness.view.appearance = ["style": "dark", "textColor": "#123456"]
-            let secondTask = try XCTUnwrap(harness.view.configurationTask)
-            await fulfillment(of: [secondStarted], timeout: 2)
+            let firstTask = try await startLoad(harness) { harness.view.configuration = configuration() }
+            let secondTask = try await startLoad(harness) {
+                harness.view.appearance = ["style": "dark", "textColor": "#123456"]
+            }
             XCTAssertEqual(harness.loader.configurations[0].appearance.style, .automatic)
             XCTAssertEqual(harness.loader.configurations[1].appearance.style, .alwaysDark)
             XCTAssertEqual(harness.loader.configurations[1].appearance.textColor, UIColor(hexString: "#123456"))
@@ -43,17 +36,8 @@ final class PaymentMethodMessagingElementViewTests: XCTestCase {
     func test_staleResultsAreIgnoredWhileLatestLoadIsPending() async throws {
         for staleResult in staleResults() {
             let harness = Harness()
-            let firstStarted = expectation(description: "First configuration started")
-            harness.loader.onStart = { firstStarted.fulfill() }
-            harness.view.configuration = configuration()
-            let firstTask = try XCTUnwrap(harness.view.configurationTask)
-            await fulfillment(of: [firstStarted], timeout: 2)
-
-            let secondStarted = expectation(description: "Updated configuration started")
-            harness.loader.onStart = { secondStarted.fulfill() }
-            harness.view.configuration = configuration(amount: 2000)
-            let secondTask = try XCTUnwrap(harness.view.configurationTask)
-            await fulfillment(of: [secondStarted], timeout: 2)
+            let firstTask = try await startLoad(harness) { harness.view.configuration = configuration() }
+            let secondTask = try await startLoad(harness) { harness.view.configuration = configuration(amount: 2000) }
             XCTAssertEqual(harness.loader.configurations[1].amount, 2000)
 
             harness.loader.complete(0, with: staleResult)
@@ -72,11 +56,7 @@ final class PaymentMethodMessagingElementViewTests: XCTestCase {
 
     func test_invalidConfigurationInvalidatesPendingLoad() async throws {
         let harness = Harness()
-        let started = expectation(description: "Valid configuration started")
-        harness.loader.onStart = { started.fulfill() }
-        harness.view.configuration = configuration()
-        let task = try XCTUnwrap(harness.view.configurationTask)
-        await fulfillment(of: [started], timeout: 2)
+        let task = try await startLoad(harness) { harness.view.configuration = configuration() }
 
         harness.view.configuration = ["currency": "usd"]
         XCTAssertEqual(harness.statuses, ["loading", "failed"])
@@ -90,19 +70,18 @@ final class PaymentMethodMessagingElementViewTests: XCTestCase {
 
     func test_supersededTaskDoesNotStartOrEmitLoading() async throws {
         let harness = Harness()
-        let started = expectation(description: "Latest load started")
-        harness.loader.onStart = { started.fulfill() }
-        harness.view.configuration = configuration()
-        let supersededTask = try XCTUnwrap(harness.view.configurationTask)
-        harness.view.appearance = ["style": "dark"]
-        let currentTask = try XCTUnwrap(harness.view.configurationTask)
-        await fulfillment(of: [started], timeout: 2)
-        await supersededTask.value
+        var supersededTask: Task<Void, Never>?
+        let currentTask = try await startLoad(harness) {
+            harness.view.configuration = configuration()
+            supersededTask = try XCTUnwrap(harness.view.configurationTask)
+            harness.view.appearance = ["style": "dark"]
+        }
+        await supersededTask?.value
         XCTAssertEqual(harness.loader.configurations.count, 1)
         XCTAssertEqual(harness.loader.configurations[0].appearance.style, .alwaysDark)
         XCTAssertEqual(harness.statuses, ["loading"])
 
-        harness.loader.complete(0, with: .noContent)
+        harness.loader.complete(0, with: .success(nil))
         await currentTask.value
         XCTAssertEqual(harness.statuses, ["loading", "no_content"])
     }
@@ -111,11 +90,7 @@ final class PaymentMethodMessagingElementViewTests: XCTestCase {
         let harness = Harness()
         harness.view.appearance = ["style": "dark"]
         XCTAssertNil(harness.view.configurationTask)
-        let started = expectation(description: "Styled load started")
-        harness.loader.onStart = { started.fulfill() }
-        harness.view.configuration = configuration()
-        let task = try XCTUnwrap(harness.view.configurationTask)
-        await fulfillment(of: [started], timeout: 2)
+        let task = try await startLoad(harness) { harness.view.configuration = configuration() }
         XCTAssertEqual(harness.loader.configurations[0].appearance.style, .alwaysDark)
         harness.loader.complete(0, with: .success(StubElement()))
         await task.value
@@ -123,38 +98,37 @@ final class PaymentMethodMessagingElementViewTests: XCTestCase {
     }
 
     func test_currentFailureAndNoContentRemovePreviouslyLoadedView() async throws {
-        for result in [PaymentMethodMessagingElementLoadResult.noContent, .failed(testError())] {
+        for result in [PaymentMethodMessagingElementLoadResult.success(nil), .failure(testError())] {
             let harness = Harness()
-            let firstStarted = expectation(description: "Initial load started")
-            harness.loader.onStart = { firstStarted.fulfill() }
-            harness.view.configuration = configuration()
-            let firstTask = try XCTUnwrap(harness.view.configurationTask)
-            await fulfillment(of: [firstStarted], timeout: 2)
+            let firstTask = try await startLoad(harness) { harness.view.configuration = configuration() }
             let element = StubElement()
             harness.loader.complete(0, with: .success(element))
             await firstTask.value
             XCTAssertTrue(harness.view.subviews.first === element.view)
 
-            let secondStarted = expectation(description: "Replacement load started")
-            harness.loader.onStart = { secondStarted.fulfill() }
-            harness.view.configuration = configuration(amount: 2000)
-            let secondTask = try XCTUnwrap(harness.view.configurationTask)
-            await fulfillment(of: [secondStarted], timeout: 2)
+            let secondTask = try await startLoad(harness) { harness.view.configuration = configuration(amount: 2000) }
             harness.loader.complete(1, with: result)
             await secondTask.value
             XCTAssertTrue(harness.view.subviews.isEmpty)
             XCTAssertNil(element.view.superview)
             XCTAssertEqual(harness.heights.last, 0)
             switch result {
-            case .noContent:
+            case .success:
                 XCTAssertEqual(harness.statuses.last, "no_content")
-            case .failed:
+            case .failure:
                 XCTAssertEqual(harness.statuses.last, "failed")
                 XCTAssertEqual(harness.events.last?["message"] as? String, "Test load failed")
-            case .success:
-                XCTFail("Expected a terminal result without content")
             }
         }
+    }
+
+    private func startLoad(_ harness: Harness, update: () throws -> Void) async throws -> Task<Void, Never> {
+        let started = expectation(description: "Load started")
+        harness.loader.onStart = { started.fulfill() }
+        try update()
+        let task = try XCTUnwrap(harness.view.configurationTask)
+        await fulfillment(of: [started], timeout: 2)
+        return task
     }
 
     private func configuration(amount: Int = 1000) -> NSDictionary {
@@ -166,7 +140,7 @@ final class PaymentMethodMessagingElementViewTests: XCTestCase {
     }
 
     private func staleResults() -> [PaymentMethodMessagingElementLoadResult] {
-        [.success(StubElement()), .noContent, .failed(testError())]
+        [.success(StubElement()), .success(nil), .failure(testError())]
     }
 }
 
