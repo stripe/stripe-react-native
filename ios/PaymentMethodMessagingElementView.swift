@@ -118,6 +118,13 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     }
 
     private func initMessagingElement(config: NSDictionary) {
+        // Cancel any in-flight request unconditionally, before validating the
+        // new config. Otherwise an invalid update would return early without
+        // cancelling an older, still-running (and now stale) request, letting
+        // it complete and commit its result later.
+        pendingCreateTask?.cancel()
+        pendingCreateTask = nil
+
         let configResult = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: config)
 
         if let error = configResult.error {
@@ -140,8 +147,12 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         var resultMap: [String: String] = [:]
         var height: CGFloat? = 0
 
-        pendingCreateTask?.cancel()
         pendingCreateTask = Task { @MainActor in
+            // Bail out immediately if this task was already superseded before
+            // it got a chance to run, so we don't emit a spurious "loading"
+            // event or kick off an already-pointless create() call.
+            guard !Task.isCancelled else { return }
+
             StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(["status": "loading"])
             let result = await PaymentMethodMessagingElement.create(configuration: configuration)
 
