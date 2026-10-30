@@ -7,7 +7,7 @@ The Stripe React Native SDK allows you to build delightful payment experiences i
 
 ## Getting started
 
-Get started with our [📚 integration guides](https://stripe.com/docs/payments/accept-a-payment?platform=react-native) and [example project](./CONTRIBUTING.md#running-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-react-native).
+Get started with our [📚 integration guides](https://stripe.com/docs/payments/accept-a-payment?platform=react-native) and [example project](./CONTRIBUTING.md#2-run-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-react-native).
 
 > Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-react-native/blob/master/CHANGELOG.md).
 
@@ -55,16 +55,15 @@ Next, add:
 ```json
 {
   "expo": {
-    ...
     "plugins": [
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": string | string [],
-          "enableGooglePay": boolean
+          "merchantIdentifier": "merchant.com.example",
+          "enableGooglePay": true
         }
       ]
-    ],
+    ]
   }
 }
 ```
@@ -290,11 +289,11 @@ jest.mock('@stripe/stripe-react-native', () => mock);
 To have a more control over the mocks, you can extend and override particular methods e.g.:
 
 ```tsx
-const presentNativePayMock = jest.fn();
+const mockPresentPaymentSheet = jest.fn();
 
 jest.mock('@stripe/stripe-react-native', () => ({
   ...mock,
-  presentNativePay: presentNativePayMock,
+  presentPaymentSheet: mockPresentPaymentSheet,
 }));
 ```
 
