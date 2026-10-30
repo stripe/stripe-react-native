@@ -25,6 +25,11 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     // Used to track height updates
     private var previousHeight: CGFloat?
 
+    // The in-flight initMessagingElement task, if any. Cancelled and replaced
+    // whenever a newer `appearance`/`configuration` prop update arrives, since
+    // those are independently-dispatched RN props that can race each other.
+    private var pendingCreateTask: Task<Void, Never>?
+
     @objc var appearance: NSDictionary? {
         didSet {
             if let appearance = appearance {
@@ -135,9 +140,16 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         var resultMap: [String: String] = [:]
         var height: CGFloat? = 0
 
-        Task { @MainActor in
+        pendingCreateTask?.cancel()
+        pendingCreateTask = Task { @MainActor in
             StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(["status": "loading"])
-            switch await PaymentMethodMessagingElement.create(configuration: configuration) {
+            let result = await PaymentMethodMessagingElement.create(configuration: configuration)
+
+            // Discard results from a request that's been superseded by a more
+            // recent `appearance` or `configuration` prop update.
+            guard !Task.isCancelled else { return }
+
+            switch result {
             case .success(let paymentMethodMessagingElement):
                 self.messagingInstance = paymentMethodMessagingElement
                 height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
