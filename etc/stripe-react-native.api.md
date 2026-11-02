@@ -940,7 +940,36 @@ export interface CheckmarkConfig {
 }
 
 // @internal
-export namespace Checkout {
+export interface CheckoutCurrencySelectorElement {
+}
+
+// @internal
+export function CheckoutCurrencySelectorElementView(input: CheckoutCurrencySelectorElementViewProps): React_2.JSX.Element;
+
+// @internal
+export interface CheckoutCurrencySelectorElementViewProps {
+    element: CheckoutCurrencySelectorElement;
+}
+
+// @internal
+export interface CheckoutElements {
+    applyPromotionCode(promotionCode: string): Promise<void>;
+    clearPaymentOption(): Promise<void>;
+    confirm(): Promise<CheckoutElements.Result>;
+    readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
+    destroy(): Promise<void>;
+    readonly paymentElement: CheckoutPaymentElement;
+    removePromotionCode(): Promise<void>;
+    runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+    readonly session: CheckoutElements.Session;
+    readonly shippingAddressElement: CheckoutShippingAddressElement | null;
+    readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
+    updateEmail(email: string | null): Promise<void>;
+    updateShippingAddress(params: CheckoutElements.UpdateShippingAddressParams): Promise<void>;
+}
+
+// @internal
+export namespace CheckoutElements {
     export interface Address {
         city?: string;
         country: string;
@@ -1198,35 +1227,6 @@ export namespace Checkout {
         updateShippingAddress(params: UpdateShippingAddressParams): Promise<void>;
     }
     export type UserInterfaceStyle = 'alwaysLight' | 'alwaysDark' | 'automatic';
-}
-
-// @internal
-export interface CheckoutController {
-    applyPromotionCode(promotionCode: string): Promise<void>;
-    clearPaymentOption(): Promise<void>;
-    confirm(): Promise<Checkout.Result>;
-    readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
-    destroy(): Promise<void>;
-    readonly paymentElement: CheckoutPaymentElement;
-    removePromotionCode(): Promise<void>;
-    runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
-    readonly session: Checkout.Session;
-    readonly shippingAddressElement: CheckoutShippingAddressElement | null;
-    readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
-    updateEmail(email: string | null): Promise<void>;
-    updateShippingAddress(params: Checkout.UpdateShippingAddressParams): Promise<void>;
-}
-
-// @internal
-export interface CheckoutCurrencySelectorElement {
-}
-
-// @internal
-export function CheckoutCurrencySelectorElementView(input: CheckoutCurrencySelectorElementViewProps): React_2.JSX.Element;
-
-// @internal
-export interface CheckoutCurrencySelectorElementViewProps {
-    element: CheckoutCurrencySelectorElement;
 }
 
 // @internal
@@ -1636,7 +1636,7 @@ type CreateCardTokenParams = {
 };
 
 // @internal
-export function createCheckoutElements(options: Checkout.CreateOptions): Promise<CheckoutController>;
+export function createCheckoutElements(options: CheckoutElements.CreateOptions): Promise<CheckoutElements>;
 
 // @public
 type CreateCryptoPaymentTokenResult = {
@@ -4507,7 +4507,7 @@ type USBankAccountResult = {
 };
 
 // @internal
-export function useCheckoutElements(options: Checkout.UseOptions): Checkout.UseResult;
+export function useCheckoutElements(options: CheckoutElements.UseOptions): CheckoutElements.UseResult;
 
 // @public
 export function useConfirmPayment(): {

@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { CheckoutCurrencySelectorElementView } from '../../components/CheckoutCurrencySelectorElementView';
 import { createCheckoutElements } from '../createCheckoutElements';
-import type { Checkout } from '../../types/Checkout';
+import type { CheckoutElements } from '../../types/CheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 
 jest.mock('../../events', () => ({
@@ -19,7 +19,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
 }));
 
 it('exposes only available elements and follows their native height', async () => {
-  const options: Checkout.CreateOptions = {
+  const options: CheckoutElements.CreateOptions = {
     clientSecret: 'cs_test_secret',
     returnURL: 'example://checkout',
     currencySelectorElement: {},

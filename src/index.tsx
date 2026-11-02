@@ -30,14 +30,13 @@ export { CheckoutCurrencySelectorElementView } from './components/CheckoutCurren
 
 export { createCheckoutElements } from './checkout/createCheckoutElements';
 export type {
-  CheckoutController,
+  CheckoutElements,
   CheckoutPaymentElement,
   CheckoutShippingAddressElement,
   CheckoutCurrencySelectorElement,
   CheckoutPaymentElementViewProps,
   CheckoutCurrencySelectorElementViewProps,
-} from './types/Checkout';
-export type { Checkout } from './types/Checkout';
+} from './types/CheckoutElements';
 export type { Props as PlatformPayButtonProps } from './components/PlatformPayButton';
 
 export * from './functions';

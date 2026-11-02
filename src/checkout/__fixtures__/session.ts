@@ -1,8 +1,8 @@
-import type { Checkout } from '../../types/Checkout';
+import type { CheckoutElements } from '../../types/CheckoutElements';
 
 const zero = { amount: '$0.00', minorUnitsAmount: 0 };
 
-export const checkoutSession: Checkout.Session = {
+export const checkoutSession: CheckoutElements.Session = {
   id: 'cs_test',
   currency: 'usd',
   livemode: false,

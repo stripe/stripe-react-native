@@ -1,7 +1,7 @@
 import { checkoutSession as session } from '../__fixtures__/session';
 import { addListener } from '../../events';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
-import type { Checkout } from '../../types/Checkout';
+import type { CheckoutElements } from '../../types/CheckoutElements';
 import { createCheckoutElements } from '../createCheckoutElements';
 
 jest.mock('../../events', () => ({ addListener: jest.fn() }));
@@ -20,7 +20,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
   },
 }));
 
-const options: Checkout.CreateOptions = {
+const options: CheckoutElements.CreateOptions = {
   clientSecret: 'cs_test_secret',
   returnURL: 'example://checkout',
 };

@@ -4,7 +4,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { LayoutAnimation } from 'react-native';
 import { CheckoutPaymentElementView } from '../../components/CheckoutPaymentElementView';
 import { createCheckoutElements } from '../createCheckoutElements';
-import type { Checkout } from '../../types/Checkout';
+import type { CheckoutElements } from '../../types/CheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 
 jest.mock('../../events', () => ({
@@ -23,7 +23,7 @@ it('routes the controller ID and resets native height when the element changes',
   const configureNext = jest
     .spyOn(LayoutAnimation, 'configureNext')
     .mockImplementation(() => {});
-  const options: Checkout.CreateOptions = {
+  const options: CheckoutElements.CreateOptions = {
     clientSecret: 'cs_test_secret',
     returnURL: 'example://checkout',
   };
