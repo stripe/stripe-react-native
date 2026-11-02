@@ -10,6 +10,7 @@ import type { CheckoutCurrencySelectorElementViewProps } from '../types/Checkout
  * @remarks
  * This API is in private preview and can change without notice.
  *
+ * @internal
  * @CheckoutSessionPrivatePreview
  */
 export function CheckoutCurrencySelectorElementView({

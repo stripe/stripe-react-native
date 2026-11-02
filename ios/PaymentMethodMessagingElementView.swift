@@ -25,6 +25,11 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     // Used to track height updates
     private var previousHeight: CGFloat?
 
+    // The in-flight initMessagingElement task, if any. Cancelled and replaced
+    // whenever a newer `appearance`/`configuration` prop update arrives, since
+    // those are independently-dispatched RN props that can race each other.
+    private var pendingCreateTask: Task<Void, Never>?
+
     @objc var appearance: NSDictionary? {
         didSet {
             if let appearance = appearance {
@@ -113,6 +118,13 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     }
 
     private func initMessagingElement(config: NSDictionary) {
+        // Cancel any in-flight request unconditionally, before validating the
+        // new config. Otherwise an invalid update would return early without
+        // cancelling an older, still-running (and now stale) request, letting
+        // it complete and commit its result later.
+        pendingCreateTask?.cancel()
+        pendingCreateTask = nil
+
         let configResult = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: config)
 
         if let error = configResult.error {
@@ -135,9 +147,20 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         var resultMap: [String: String] = [:]
         var height: CGFloat? = 0
 
-        Task { @MainActor in
+        pendingCreateTask = Task { @MainActor in
+            // Bail out immediately if this task was already superseded before
+            // it got a chance to run, so we don't emit a spurious "loading"
+            // event or kick off an already-pointless create() call.
+            guard !Task.isCancelled else { return }
+
             StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(["status": "loading"])
-            switch await PaymentMethodMessagingElement.create(configuration: configuration) {
+            let result = await PaymentMethodMessagingElement.create(configuration: configuration)
+
+            // Discard results from a request that's been superseded by a more
+            // recent `appearance` or `configuration` prop update.
+            guard !Task.isCancelled else { return }
+
+            switch result {
             case .success(let paymentMethodMessagingElement):
                 self.messagingInstance = paymentMethodMessagingElement
                 height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height

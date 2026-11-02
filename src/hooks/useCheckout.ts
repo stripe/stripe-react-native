@@ -52,6 +52,7 @@ function stateForController(controller: CheckoutController): State {
  * @remarks
  * This API is in private preview and can change without notice.
  *
+ * @internal
  * @CheckoutSessionPrivatePreview
  */
 export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {

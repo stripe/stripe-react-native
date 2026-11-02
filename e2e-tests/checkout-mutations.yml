@@ -67,9 +67,10 @@ appId: ${APP_ID}
     timeout: 30000
 - scrollUntilVisible:
     element:
-      text: 'Select payment method'
+      id: 'checkout-select-payment-method'
     centerElement: true
-- tapOn: 'Select payment method'
+- tapOn:
+    id: 'checkout-select-payment-method'
 - scrollUntilVisible:
     element:
       text: 'Card'

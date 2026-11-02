@@ -1,0 +1,29 @@
+appId: ${APP_ID}
+---
+- scrollUntilVisible:
+    element:
+      id: 'checkout-select-payment-method'
+    centerElement: true
+- tapOn:
+    id: 'checkout-select-payment-method'
+- extendedWaitUntil:
+    visible: 'Card|Add a new payment method|Card number. Supported cards include.*'
+    timeout: 60000
+# A preselected wallet opens the saved payment method list first.
+- runFlow:
+    when:
+      visible: 'Add a new payment method'
+    commands:
+      - tapOn: 'Add a new payment method'
+- extendedWaitUntil:
+    visible: 'Card|Card number. Supported cards include.*'
+    timeout: 60000
+# Some presentations open the card form directly.
+- runFlow:
+    when:
+      visible: 'Card'
+    commands:
+      - tapOn: 'Card'
+- extendedWaitUntil:
+    visible: 'Card number. Supported cards include.*'
+    timeout: 60000

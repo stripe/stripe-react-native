@@ -1,9 +1,7 @@
-import {
-  CheckoutCurrencySelectorElementView,
-  CheckoutPaymentElementView,
-  useCheckout,
-} from '@stripe/stripe-react-native';
-import type { Checkout } from '@stripe/stripe-react-native';
+import { CheckoutCurrencySelectorElementView } from '@stripe/stripe-react-native/src/components/CheckoutCurrencySelectorElementView';
+import { CheckoutPaymentElementView } from '@stripe/stripe-react-native/src/components/CheckoutPaymentElementView';
+import { useCheckout } from '@stripe/stripe-react-native/src/hooks/useCheckout';
+import type { Checkout } from '@stripe/stripe-react-native/src/types/Checkout';
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,

@@ -16,6 +16,7 @@ import type { EmbeddedRowSelectionBehavior } from './EmbeddedPaymentElement';
  * @remarks
  * This API is in private preview and can change without notice.
  *
+ * @internal
  * @CheckoutSessionPrivatePreview
  */
 export interface CheckoutController {
@@ -59,6 +60,7 @@ export interface CheckoutController {
  * @remarks
  * This API is in private preview and can change without notice.
  *
+ * @internal
  * @CheckoutSessionPrivatePreview
  */
 export interface CheckoutPaymentElement {
@@ -76,6 +78,7 @@ export interface CheckoutPaymentElement {
  * @remarks
  * This API is in private preview and can change without notice.
  *
+ * @internal
  * @CheckoutSessionPrivatePreview
  */
 export interface CheckoutShippingAddressElement {
@@ -92,6 +95,7 @@ export interface CheckoutShippingAddressElement {
  * @remarks
  * This API is in private preview and can change without notice.
  *
+ * @internal
  * @CheckoutSessionPrivatePreview
  */
 export interface CheckoutPaymentElementViewProps {
@@ -105,11 +109,20 @@ export interface CheckoutPaymentElementViewProps {
  * @remarks
  * This API is in private preview and can change without notice.
  *
+ * @internal
  * @CheckoutSessionPrivatePreview
  */
 export interface CheckoutCurrencySelectorElement {}
 
-/** Props for the inline Checkout Currency Selector Element view. */
+/**
+ * Props for the inline Checkout Currency Selector Element view.
+ *
+ * @remarks
+ * This API is in private preview and can change without notice.
+ *
+ * @internal
+ * @CheckoutSessionPrivatePreview
+ */
 export interface CheckoutCurrencySelectorElementViewProps {
   /** The Currency Selector Element owned by Checkout. */
   element: CheckoutCurrencySelectorElement;
@@ -121,17 +134,20 @@ export interface CheckoutCurrencySelectorElementViewProps {
  * @remarks
  * This API is in private preview and can change without notice.
  *
+ * @internal
  * @CheckoutSessionPrivatePreview
  */
 export namespace Checkout {
   /**
    * The appearance to use for Checkout UI.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export type UserInterfaceStyle = 'alwaysLight' | 'alwaysDark' | 'automatic';
 
   /**
    * Configuration used to create Checkout.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface CreateOptions {
@@ -161,6 +177,7 @@ export namespace Checkout {
 
   /**
    * Options for loading and managing Checkout with `useCheckout`.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface UseOptions {
@@ -175,6 +192,7 @@ export namespace Checkout {
 
   /**
    * Reactive Checkout state and controller methods returned by `useCheckout`.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface UseResult {
@@ -222,6 +240,7 @@ export namespace Checkout {
 
   /**
    * Parameters for updating or clearing the customer's shipping address.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface UpdateShippingAddressParams {
@@ -233,6 +252,7 @@ export namespace Checkout {
 
   /**
    * The result of confirming a Checkout Session.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export type Result =
@@ -255,6 +275,7 @@ export namespace Checkout {
 
   /**
    * Error codes returned by Checkout APIs.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export type ErrorCode =
@@ -267,6 +288,7 @@ export namespace Checkout {
 
   /**
    * Configuration for Currency Selector Element.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface CurrencySelectorElementConfiguration {
@@ -276,6 +298,7 @@ export namespace Checkout {
 
   /**
    * Configuration for the Checkout-owned Shipping Address Element.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface ShippingAddressElementConfiguration {
@@ -289,11 +312,13 @@ export namespace Checkout {
 
   /**
    * Appearance types used by Shipping Address Element.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export namespace ShippingAddressElementConfiguration {
     /**
      * Appearance configuration for Shipping Address Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface Appearance {
@@ -311,6 +336,7 @@ export namespace Checkout {
 
     /**
      * Appearance of Shipping Address Element's primary button.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface PrimaryButtonConfiguration {
@@ -329,6 +355,7 @@ export namespace Checkout {
 
     /**
      * Colors supported by Shipping Address Element's primary button.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface PrimaryButtonColorConfiguration {
@@ -348,6 +375,7 @@ export namespace Checkout {
 
     /**
      * Shape of Shipping Address Element's primary button.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface PrimaryButtonShapeConfiguration {
@@ -365,11 +393,13 @@ export namespace Checkout {
 
   /**
    * Appearance types used by Currency Selector Element.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export namespace CurrencySelectorElementConfiguration {
     /**
      * Appearance configuration for Currency Selector Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface Appearance {
@@ -392,6 +422,7 @@ export namespace Checkout {
 
     /**
      * Colors used by Currency Selector Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface ColorConfiguration {
@@ -413,6 +444,7 @@ export namespace Checkout {
 
     /**
      * Shape configuration for Currency Selector Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface ShapeConfiguration {
@@ -424,6 +456,7 @@ export namespace Checkout {
 
     /**
      * Content displayed in each currency option label.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export type LabelContent = 'automatic' | 'currencyCode' | 'amount';
@@ -431,6 +464,7 @@ export namespace Checkout {
 
   /**
    * Known customer details used to prefill Checkout and its elements.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface Defaults {
@@ -446,6 +480,7 @@ export namespace Checkout {
 
   /**
    * A customer's name and postal address.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface ContactDetails {
@@ -457,6 +492,7 @@ export namespace Checkout {
 
   /**
    * Configuration for the Checkout-owned Payment Element.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface PaymentElementConfiguration {
@@ -488,23 +524,27 @@ export namespace Checkout {
 
   /**
    * Configuration types used by Checkout Payment Element.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export namespace PaymentElementConfiguration {
     /**
      * Appearance configuration for Checkout Payment Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export type Appearance = AppearanceParams;
 
     /**
      * Controls how the inline Payment Element handles row selection.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
 
     /**
      * Apple Pay configuration for Payment Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface ApplePayConfiguration {
@@ -519,6 +559,7 @@ export namespace Checkout {
 
     /**
      * Apple Pay button type options for Payment Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export type ApplePayButtonType =
@@ -542,6 +583,7 @@ export namespace Checkout {
 
     /**
      * Google Pay configuration for Payment Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface GooglePayConfiguration {
@@ -555,6 +597,7 @@ export namespace Checkout {
 
     /**
      * Google Pay button type options for Payment Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export type GooglePayButtonType =
@@ -569,6 +612,7 @@ export namespace Checkout {
 
     /**
      * Link configuration for Payment Element.
+     * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface LinkConfiguration {
@@ -579,6 +623,7 @@ export namespace Checkout {
 
   /**
    * A view of the Checkout Session that represents the customer's checkout.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface Session {
@@ -616,6 +661,7 @@ export namespace Checkout {
 
   /**
    * Currency presentation details for the Checkout Session.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface PresentmentDetails {
@@ -625,6 +671,7 @@ export namespace Checkout {
 
   /**
    * Display data for the customer's currently selected payment option.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface PaymentOptionDisplayData {
@@ -644,6 +691,7 @@ export namespace Checkout {
 
   /**
    * Billing details associated with a selected payment method.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface BillingDetails {
@@ -659,6 +707,7 @@ export namespace Checkout {
 
   /**
    * The customer's shipping contact details and postal address.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface ShippingAddress {
@@ -670,6 +719,7 @@ export namespace Checkout {
 
   /**
    * A postal address.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface Address {
@@ -689,12 +739,14 @@ export namespace Checkout {
 
   /**
    * An item or group of items in the Checkout order summary.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export type OrderSummaryItem = OneTimePriceOrderSummaryItem;
 
   /**
    * A group of one-time-price items in the Checkout order summary.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface OneTimePriceOrderSummaryItem {
@@ -710,6 +762,7 @@ export namespace Checkout {
 
   /**
    * A one-time-price item the customer is purchasing.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface OneTimePriceItem {
@@ -735,6 +788,7 @@ export namespace Checkout {
 
   /**
    * Aggregate amounts for an order summary item.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface AmountDetails {
@@ -752,6 +806,7 @@ export namespace Checkout {
 
   /**
    * A monetary amount in display and minor-unit forms.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface Amount {
@@ -763,6 +818,7 @@ export namespace Checkout {
 
   /**
    * A tax amount calculated for the order summary.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface TaxAmount extends Amount {
@@ -776,6 +832,7 @@ export namespace Checkout {
 
   /**
    * Minimum and maximum values for a customer-adjustable quantity.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface AdjustableQuantity {
@@ -789,6 +846,7 @@ export namespace Checkout {
 
   /**
    * An aggregate discount amount for the Checkout Session.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface DiscountAmount extends Amount {
@@ -802,6 +860,7 @@ export namespace Checkout {
 
   /**
    * Tax computation status for the Checkout Session.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface Tax {
@@ -811,6 +870,7 @@ export namespace Checkout {
 
   /**
    * Tax and discount breakdown for the computed Checkout Session total.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export interface Totals {
@@ -828,6 +888,7 @@ export namespace Checkout {
 
   /**
    * The lifecycle status of a Checkout Session.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export type SessionStatus =
@@ -848,6 +909,7 @@ export namespace Checkout {
 
   /**
    * The payment status of a completed Checkout Session.
+   * @internal
    * @CheckoutSessionPrivatePreview
    */
   export type PaymentStatus = 'paid' | 'unpaid' | 'noPaymentRequired';
