@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { addListener } from '../../events';
-import { useCheckout } from '../../hooks/useCheckout';
+import { useCheckoutElements } from '../../hooks/useCheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import type { Checkout } from '../../types/Checkout';
 import { checkoutSession as session } from '../__fixtures__/session';
@@ -37,7 +37,7 @@ function renderCheckout(overrides: Partial<Checkout.UseOptions> = {}) {
     ...overrides,
   };
   return renderHook(
-    (hookOptions: Checkout.UseOptions) => useCheckout(hookOptions),
+    (hookOptions: Checkout.UseOptions) => useCheckoutElements(hookOptions),
     { initialProps }
   );
 }

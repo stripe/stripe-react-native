@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { LayoutAnimation } from 'react-native';
 import { CheckoutPaymentElementView } from '../../components/CheckoutPaymentElementView';
-import { createCheckout } from '../createCheckout';
+import { createCheckoutElements } from '../createCheckoutElements';
 import type { Checkout } from '../../types/Checkout';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 
@@ -30,8 +30,8 @@ it('routes the controller ID and resets native height when the element changes',
   (NativeStripeSdk.createCheckout as jest.Mock)
     .mockResolvedValueOnce({ controllerId: 'controller-1', session })
     .mockResolvedValueOnce({ controllerId: 'controller-2', session });
-  const first = await createCheckout(options);
-  const second = await createCheckout(options);
+  const first = await createCheckoutElements(options);
+  const second = await createCheckoutElements(options);
   const { UNSAFE_getByType, rerender, unmount } = render(
     <CheckoutPaymentElementView element={first.paymentElement} />
   );

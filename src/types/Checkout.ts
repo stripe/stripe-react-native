@@ -176,7 +176,7 @@ export namespace Checkout {
   }
 
   /**
-   * Options for loading and managing Checkout with `useCheckout`.
+   * Options for loading and managing Checkout with `useCheckoutElements`.
    * @internal
    * @CheckoutSessionPrivatePreview
    */
@@ -191,7 +191,7 @@ export namespace Checkout {
   }
 
   /**
-   * Reactive Checkout state and controller methods returned by `useCheckout`.
+   * Reactive Checkout state and controller methods returned by `useCheckoutElements`.
    * @internal
    * @CheckoutSessionPrivatePreview
    */

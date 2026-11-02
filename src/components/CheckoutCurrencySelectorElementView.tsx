@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getCheckoutCurrencySelectorElementId } from '../checkout/createCheckout';
+import { getCheckoutCurrencySelectorElementId } from '../checkout/createCheckoutElements';
 import NativeCheckoutCurrencySelectorElement from '../specs/NativeCheckoutCurrencySelectorElement';
 import type { CheckoutCurrencySelectorElementViewProps } from '../types/Checkout';
 

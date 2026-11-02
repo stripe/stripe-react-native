@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createCheckoutController,
   normalizeCheckoutError,
-} from '../checkout/createCheckout';
+} from '../checkout/createCheckoutElements';
 import type { Checkout, CheckoutController } from '../types/Checkout';
 
 type State = Pick<
@@ -55,7 +55,9 @@ function stateForController(controller: CheckoutController): State {
  * @internal
  * @CheckoutSessionPrivatePreview
  */
-export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {
+export function useCheckoutElements(
+  options: Checkout.UseOptions
+): Checkout.UseResult {
   const enabled = options.enabled ?? true;
   const configuration = useRef(options.getConfiguration);
   configuration.current = options.getConfiguration;

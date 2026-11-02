@@ -1,7 +1,9 @@
-import { CheckoutCurrencySelectorElementView } from '@stripe/stripe-react-native/src/components/CheckoutCurrencySelectorElementView';
-import { CheckoutPaymentElementView } from '@stripe/stripe-react-native/src/components/CheckoutPaymentElementView';
-import { useCheckout } from '@stripe/stripe-react-native/src/hooks/useCheckout';
-import type { Checkout } from '@stripe/stripe-react-native/src/types/Checkout';
+import {
+  CheckoutCurrencySelectorElementView,
+  CheckoutPaymentElementView,
+  useCheckoutElements,
+  type Checkout,
+} from '@stripe/stripe-react-native';
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -128,7 +130,7 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
     async () => checkoutConfiguration(route.params),
     [route.params]
   );
-  const checkout = useCheckout({ getConfiguration });
+  const checkout = useCheckoutElements({ getConfiguration });
   const [paymentElementVisible, setPaymentElementVisible] = useState(false);
   const [emailEditorVisible, setEmailEditorVisible] = useState(false);
   const [diagnosticsVisible, setDiagnosticsVisible] = useState(false);

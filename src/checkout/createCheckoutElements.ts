@@ -102,13 +102,13 @@ function nativeCreateOptions(
  * @internal
  * @CheckoutSessionPrivatePreview
  */
-export async function createCheckout(
+export async function createCheckoutElements(
   options: Checkout.CreateOptions
 ): Promise<CheckoutController> {
   return createCheckoutController(options);
 }
 
-/** Creates a controller and reports its native state changes to useCheckout. */
+/** Creates a controller and reports its native state changes to useCheckoutElements. */
 export async function createCheckoutController(
   options: Checkout.CreateOptions,
   onUpdate?: (controller: CheckoutController) => void

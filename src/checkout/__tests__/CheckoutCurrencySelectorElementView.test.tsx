@@ -2,7 +2,7 @@ import { checkoutSession as session } from '../__fixtures__/session';
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { CheckoutCurrencySelectorElementView } from '../../components/CheckoutCurrencySelectorElementView';
-import { createCheckout } from '../createCheckout';
+import { createCheckoutElements } from '../createCheckoutElements';
 import type { Checkout } from '../../types/Checkout';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 
@@ -27,8 +27,8 @@ it('exposes only available elements and follows their native height', async () =
   (NativeStripeSdk.createCheckout as jest.Mock)
     .mockResolvedValueOnce({ session, isCurrencySelectorAvailable: true })
     .mockResolvedValueOnce({ session, isCurrencySelectorAvailable: false });
-  const available = await createCheckout(options);
-  const unavailable = await createCheckout(options);
+  const available = await createCheckoutElements(options);
+  const unavailable = await createCheckoutElements(options);
   expect(unavailable.currencySelectorElement).toBeNull();
   const { UNSAFE_getByType } = render(
     <CheckoutCurrencySelectorElementView
