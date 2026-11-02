@@ -1,7 +1,7 @@
 import { CheckoutCurrencySelectorElementView } from '@stripe/stripe-react-native/src/components/CheckoutCurrencySelectorElementView';
 import { CheckoutPaymentElementView } from '@stripe/stripe-react-native/src/components/CheckoutPaymentElementView';
-import { useCheckout } from '@stripe/stripe-react-native/src/hooks/useCheckout';
-import type { Checkout } from '@stripe/stripe-react-native/src/types/Checkout';
+import { useCheckoutElements } from '@stripe/stripe-react-native/src/hooks/useCheckoutElements';
+import type { CheckoutElements } from '@stripe/stripe-react-native/src/types/CheckoutElements';
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -112,7 +112,9 @@ function EditorModal({
   );
 }
 
-function formatAddress(shippingAddress: Checkout.ShippingAddress): string {
+function formatAddress(
+  shippingAddress: CheckoutElements.ShippingAddress
+): string {
   const { address, name } = shippingAddress;
   const locality = [address.city, address.state, address.postalCode]
     .filter(Boolean)
@@ -128,7 +130,7 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
     async () => checkoutConfiguration(route.params),
     [route.params]
   );
-  const checkout = useCheckout({ getConfiguration });
+  const checkout = useCheckoutElements({ getConfiguration });
   const [paymentElementVisible, setPaymentElementVisible] = useState(false);
   const [emailEditorVisible, setEmailEditorVisible] = useState(false);
   const [diagnosticsVisible, setDiagnosticsVisible] = useState(false);
@@ -180,11 +182,11 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
     if (!result) {
       return;
     }
-    switch ((result as Checkout.Result).status) {
+    switch ((result as CheckoutElements.Result).status) {
       case 'completed':
         Alert.alert(
           'Success',
-          `Payment status: ${(result as Extract<Checkout.Result, { status: 'completed' }>).paymentStatus}`,
+          `Payment status: ${(result as Extract<CheckoutElements.Result, { status: 'completed' }>).paymentStatus}`,
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
         break;
@@ -194,8 +196,8 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
       case 'failed':
         Alert.alert(
           'Unable to complete checkout',
-          (result as Extract<Checkout.Result, { status: 'failed' }>).error
-            .message
+          (result as Extract<CheckoutElements.Result, { status: 'failed' }>)
+            .error.message
         );
         break;
     }

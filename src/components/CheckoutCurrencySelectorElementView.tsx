@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { getCheckoutCurrencySelectorElementId } from '../checkout/createCheckout';
+import { getCheckoutCurrencySelectorElementId } from '../checkout/createCheckoutElements';
 import NativeCheckoutCurrencySelectorElement from '../specs/NativeCheckoutCurrencySelectorElement';
-import type { CheckoutCurrencySelectorElementViewProps } from '../types/Checkout';
+import type { CheckoutCurrencySelectorElementViewProps } from '../types/CheckoutElements';
 
 /**
  * Renders the Checkout-owned Currency Selector Element inline and follows its

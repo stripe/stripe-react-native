@@ -19,14 +19,14 @@ import type { EmbeddedRowSelectionBehavior } from './EmbeddedPaymentElement';
  * @internal
  * @CheckoutSessionPrivatePreview
  */
-export interface CheckoutController {
+export interface CheckoutElements {
   /**
    * The controller lifecycle status. Disable mutation and confirmation UI
    * unless this is `ready`.
    */
   readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
   /** The latest snapshot of the customer's Checkout Session. */
-  readonly session: Checkout.Session;
+  readonly session: CheckoutElements.Session;
   /** The Payment Element owned by this controller. */
   readonly paymentElement: CheckoutPaymentElement;
   /** The Shipping Address Element, or `null` when it is not configured. */
@@ -37,7 +37,7 @@ export interface CheckoutController {
   updateEmail(email: string | null): Promise<void>;
   /** Sets or clears the customer's shipping address. */
   updateShippingAddress(
-    params: Checkout.UpdateShippingAddressParams
+    params: CheckoutElements.UpdateShippingAddressParams
   ): Promise<void>;
   /** Applies a promotion code after trimming leading and trailing whitespace. */
   applyPromotionCode(promotionCode: string): Promise<void>;
@@ -48,7 +48,7 @@ export interface CheckoutController {
   /** Clears the customer's currently selected payment option. */
   clearPaymentOption(): Promise<void>;
   /** Confirms the Checkout Session for the selected payment option. */
-  confirm(): Promise<Checkout.Result>;
+  confirm(): Promise<CheckoutElements.Result>;
   /** Releases the controller's native resources and clears its loaded state. */
   destroy(): Promise<void>;
 }
@@ -99,7 +99,7 @@ export interface CheckoutShippingAddressElement {
  * @CheckoutSessionPrivatePreview
  */
 export interface CheckoutPaymentElementViewProps {
-  /** The Payment Element owned by Checkout. */
+  /** The Payment Element owned by Checkout Elements. */
   element: CheckoutPaymentElement;
 }
 
@@ -124,12 +124,12 @@ export interface CheckoutCurrencySelectorElement {}
  * @CheckoutSessionPrivatePreview
  */
 export interface CheckoutCurrencySelectorElementViewProps {
-  /** The Currency Selector Element owned by Checkout. */
+  /** The Currency Selector Element owned by Checkout Elements. */
   element: CheckoutCurrencySelectorElement;
 }
 
 /**
- * Types used by the Checkout private-preview APIs.
+ * Types used by the Checkout Elements private-preview APIs.
  *
  * @remarks
  * This API is in private preview and can change without notice.
@@ -137,7 +137,7 @@ export interface CheckoutCurrencySelectorElementViewProps {
  * @internal
  * @CheckoutSessionPrivatePreview
  */
-export namespace Checkout {
+export namespace CheckoutElements {
   /**
    * The appearance to use for Checkout UI.
    * @internal
@@ -146,7 +146,7 @@ export namespace Checkout {
   export type UserInterfaceStyle = 'alwaysLight' | 'alwaysDark' | 'automatic';
 
   /**
-   * Configuration used to create Checkout.
+   * Configuration used to create Checkout Elements.
    * @internal
    * @CheckoutSessionPrivatePreview
    */
@@ -176,7 +176,7 @@ export namespace Checkout {
   }
 
   /**
-   * Options for loading and managing Checkout with `useCheckout`.
+   * Options for loading and managing Checkout with `useCheckoutElements`.
    * @internal
    * @CheckoutSessionPrivatePreview
    */
@@ -191,7 +191,7 @@ export namespace Checkout {
   }
 
   /**
-   * Reactive Checkout state and controller methods returned by `useCheckout`.
+   * Reactive Checkout state and controller methods returned by `useCheckoutElements`.
    * @internal
    * @CheckoutSessionPrivatePreview
    */

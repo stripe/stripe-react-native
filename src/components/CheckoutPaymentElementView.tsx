@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { LayoutAnimation } from 'react-native';
-import { getCheckoutPaymentElementId } from '../checkout/createCheckout';
+import { getCheckoutPaymentElementId } from '../checkout/createCheckoutElements';
 import NativeCheckoutPaymentElement from '../specs/NativeCheckoutPaymentElement';
-import type { CheckoutPaymentElementViewProps } from '../types/Checkout';
+import type { CheckoutPaymentElementViewProps } from '../types/CheckoutElements';
 
 /**
  * Renders the Checkout-owned Payment Element inline and follows its native height.

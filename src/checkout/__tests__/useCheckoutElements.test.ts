@@ -1,8 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { addListener } from '../../events';
-import { useCheckout } from '../../hooks/useCheckout';
+import { useCheckoutElements } from '../../hooks/useCheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
-import type { Checkout } from '../../types/Checkout';
+import type { CheckoutElements } from '../../types/CheckoutElements';
 import { checkoutSession as session } from '../__fixtures__/session';
 import type { CheckoutControllerUpdate } from '../CheckoutControllerEventEmitter';
 
@@ -18,7 +18,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
   },
 }));
 
-const options: Checkout.CreateOptions = {
+const options: CheckoutElements.CreateOptions = {
   clientSecret: 'cs_test_secret',
   returnURL: 'example://checkout',
 };
@@ -31,13 +31,14 @@ const startServerUpdate = NativeStripeSdk.runCheckoutServerUpdate as jest.Mock;
 const completeServerUpdate =
   NativeStripeSdk.completeCheckoutServerUpdate as jest.Mock;
 
-function renderCheckout(overrides: Partial<Checkout.UseOptions> = {}) {
-  const initialProps: Checkout.UseOptions = {
+function renderCheckout(overrides: Partial<CheckoutElements.UseOptions> = {}) {
+  const initialProps: CheckoutElements.UseOptions = {
     getConfiguration,
     ...overrides,
   };
   return renderHook(
-    (hookOptions: Checkout.UseOptions) => useCheckout(hookOptions),
+    (hookOptions: CheckoutElements.UseOptions) =>
+      useCheckoutElements(hookOptions),
     { initialProps }
   );
 }
@@ -137,7 +138,7 @@ it('reloads with the latest configuration and ignores old events', async () => {
 });
 
 it('ignores stale configuration results', async () => {
-  const pending = deferred<Checkout.CreateOptions>();
+  const pending = deferred<CheckoutElements.CreateOptions>();
   const configuration = jest
     .fn()
     .mockReturnValueOnce(pending.promise)
@@ -155,7 +156,7 @@ it('ignores stale configuration results', async () => {
 it('destroys a controller created after unmount', async () => {
   const pending = deferred<{
     controllerId: string;
-    session: Checkout.Session;
+    session: CheckoutElements.Session;
   }>();
   create.mockReturnValueOnce(pending.promise);
   const hook = renderCheckout();

@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createCheckoutController,
   normalizeCheckoutError,
-} from '../checkout/createCheckout';
-import type { Checkout, CheckoutController } from '../types/Checkout';
+} from '../checkout/createCheckoutElements';
+import type { CheckoutElements } from '../types/CheckoutElements';
 
 type State = Pick<
-  Checkout.UseResult,
+  CheckoutElements.UseResult,
   | 'status'
   | 'session'
   | 'paymentElement'
@@ -23,7 +23,7 @@ const idle: State = {
   error: null,
 };
 
-function stateForController(controller: CheckoutController): State {
+function stateForController(controller: CheckoutElements): State {
   if (controller.status === 'destroyed') {
     return {
       ...idle,
@@ -55,13 +55,15 @@ function stateForController(controller: CheckoutController): State {
  * @internal
  * @CheckoutSessionPrivatePreview
  */
-export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {
+export function useCheckoutElements(
+  options: CheckoutElements.UseOptions
+): CheckoutElements.UseResult {
   const enabled = options.enabled ?? true;
   const configuration = useRef(options.getConfiguration);
   configuration.current = options.getConfiguration;
   const active = useRef(false);
   const generation = useRef(0);
-  const controller = useRef<CheckoutController | undefined>(undefined);
+  const controller = useRef<CheckoutElements | undefined>(undefined);
   const destruction = useRef<Promise<void> | undefined>(undefined);
   const [state, setState] = useState<State>(idle);
 
@@ -134,7 +136,7 @@ export function useCheckout(options: Checkout.UseOptions): Checkout.UseResult {
     };
   }, [destroy, enabled, reload]);
 
-  const methods = useMemo<Omit<Checkout.UseResult, keyof State>>(() => {
+  const methods = useMemo<Omit<CheckoutElements.UseResult, keyof State>>(() => {
     const currentController = () => {
       if (!active.current || !controller.current) {
         throw new Error('Checkout has not loaded a controller.');
