@@ -734,6 +734,40 @@ class OnrampMappersTests: XCTestCase {
         )
     }
 
+    func test_mapFromFulfillKYCRequirementsResult_preservesOutcomes() throws {
+        let submitted = Mappers.mapFromFulfillKYCRequirementsResult(.submitted)
+        XCTAssertEqual(submitted["status"] as? String, "Submitted")
+        XCTAssertNil(submitted["error"])
+
+        let pendingVerification = Mappers.mapFromFulfillKYCRequirementsResult(.pendingVerification)
+        XCTAssertEqual(pendingVerification["status"] as? String, "PendingVerification")
+        XCTAssertNil(pendingVerification["error"])
+
+        let notRequired = Mappers.mapFromFulfillKYCRequirementsResult(.notRequired)
+        XCTAssertEqual(notRequired["status"] as? String, "NotRequired")
+        XCTAssertNil(notRequired["error"])
+
+        let canceled = Mappers.mapFromFulfillKYCRequirementsResult(.canceled)
+        let error = try XCTUnwrap(canceled["error"] as? NSDictionary)
+        XCTAssertEqual(error["code"] as? String, "Canceled")
+        XCTAssertNil(canceled["status"])
+    }
+
+    func test_mapFromPartnerTermsResult_preservesOutcomes() throws {
+        let accepted = Mappers.mapFromPartnerTermsResult(.accepted)
+        XCTAssertEqual(accepted["status"] as? String, "Accepted")
+        XCTAssertNil(accepted["error"])
+
+        let notRequired = Mappers.mapFromPartnerTermsResult(.notRequired)
+        XCTAssertEqual(notRequired["status"] as? String, "NotRequired")
+        XCTAssertNil(notRequired["error"])
+
+        let canceled = Mappers.mapFromPartnerTermsResult(.canceled)
+        let error = try XCTUnwrap(canceled["error"] as? NSDictionary)
+        XCTAssertEqual(error["code"] as? String, "Canceled")
+        XCTAssertNil(canceled["status"])
+    }
+
     private func assertPaymentMethodDisplayDataMap(
         type: PaymentMethodDisplayData.PaymentMethodType,
         label: String,

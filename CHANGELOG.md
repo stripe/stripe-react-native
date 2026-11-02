@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## Unreleased
+
+**Features**
+
+* [Added] Added `fulfillKycRequirements` to Crypto Onramp for collecting additional KYC documents and questionnaire answers.
+* [Added] Added `presentTermsAndConditionsIfNeeded` and `presentTermsOfServiceIfNeeded` to Crypto Onramp for collecting acceptance of transaction terms and partner terms of service.
+* [Added] Added Celo network support to Crypto Onramp.
+
 ## 0.84.0 - 2026-10-27
 
 **Breaking changes**

@@ -8,18 +8,29 @@ interface VerifyIdentitySectionProps {
   handleVerifyIdentity: () => void;
   handlePresentUserAttestation: () => void;
   userAttestationStatus: string | null;
+  handlePresentTermsOfService: () => void;
+  handlePresentTermsAndConditions: () => void;
+  handleFulfillKycRequirements: () => void;
 }
 
 export function VerifyIdentitySection({
   handleVerifyIdentity,
   handlePresentUserAttestation,
   userAttestationStatus,
+  handlePresentTermsOfService,
+  handlePresentTermsAndConditions,
+  handleFulfillKycRequirements,
 }: VerifyIdentitySectionProps) {
   return (
     <Collapse title="Verification" initialExpanded={false}>
       <Button
         title="Verify Identity"
         onPress={handleVerifyIdentity}
+        variant="primary"
+      />
+      <Button
+        title="Fulfill Additional KYC"
+        onPress={handleFulfillKycRequirements}
         variant="primary"
       />
       <Button
@@ -32,6 +43,16 @@ export function VerifyIdentitySection({
           {`User attestation status: ${userAttestationStatus}`}
         </Text>
       ) : null}
+      <Button
+        title="Terms of Service"
+        onPress={handlePresentTermsOfService}
+        variant="primary"
+      />
+      <Button
+        title="Terms and Conditions"
+        onPress={handlePresentTermsAndConditions}
+        variant="primary"
+      />
     </Collapse>
   );
 }

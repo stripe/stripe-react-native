@@ -10,6 +10,8 @@ import com.reactnativestripesdk.mapAppearance
 import com.reactnativestripesdk.mapConfig
 import com.reactnativestripesdk.mapFromCryptoConsumerWallet
 import com.reactnativestripesdk.mapFromKycInfo
+import com.reactnativestripesdk.mapFromOnrampKycResult
+import com.reactnativestripesdk.mapFromOnrampPartnerTermsResult
 import com.reactnativestripesdk.mapFromWalletOwnershipChallenge
 import com.reactnativestripesdk.mapGooglePayConfig
 import com.reactnativestripesdk.mapOnrampPaymentMethodSelection
@@ -24,6 +26,8 @@ import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.IdType
 import com.stripe.android.crypto.onramp.model.KycInfo
+import com.stripe.android.crypto.onramp.model.OnrampKycResult
+import com.stripe.android.crypto.onramp.model.OnrampPartnerTermsResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
 import com.stripe.android.crypto.onramp.model.PaymentMethodSelection
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
@@ -926,4 +930,62 @@ class OnrampMappersTest {
       error.message,
     )
   }
+
+  @Test
+  fun mapFromOnrampKycResult_preservesOutcomes() {
+    val submitted = mapFromOnrampKycResult(nativeResult(OnrampKycResult.Submitted::class.java))
+    assertEquals("Submitted", submitted.getString("status"))
+    assertFalse(submitted.hasKey("error"))
+
+    val pendingVerification = mapFromOnrampKycResult(
+      nativeResult(OnrampKycResult.PendingVerification::class.java),
+    )
+    assertEquals("PendingVerification", pendingVerification.getString("status"))
+    assertFalse(pendingVerification.hasKey("error"))
+
+    val notRequired = mapFromOnrampKycResult(nativeResult(OnrampKycResult.NotRequired::class.java))
+    assertEquals("NotRequired", notRequired.getString("status"))
+    assertFalse(notRequired.hasKey("error"))
+
+    val canceled = mapFromOnrampKycResult(nativeResult(OnrampKycResult.Cancelled::class.java))
+    assertEquals("Canceled", canceled.getMap("error")!!.getString("code"))
+    assertFalse(canceled.hasKey("status"))
+
+    val failed = mapFromOnrampKycResult(
+      nativeResult(OnrampKycResult.Failed::class.java, IllegalStateException("Upload failed")),
+    )
+    assertEquals("Failed", failed.getMap("error")!!.getString("code"))
+    assertEquals("Upload failed", failed.getMap("error")!!.getString("message"))
+    assertFalse(failed.hasKey("status"))
+  }
+
+  @Test
+  fun mapFromOnrampPartnerTermsResult_preservesOutcomes() {
+    val accepted = mapFromOnrampPartnerTermsResult(nativeResult(OnrampPartnerTermsResult.Accepted::class.java))
+    assertEquals("Accepted", accepted.getString("status"))
+    assertFalse(accepted.hasKey("error"))
+
+    val notRequired = mapFromOnrampPartnerTermsResult(
+      nativeResult(OnrampPartnerTermsResult.NotRequired::class.java),
+    )
+    assertEquals("NotRequired", notRequired.getString("status"))
+    assertFalse(notRequired.hasKey("error"))
+
+    val canceled = mapFromOnrampPartnerTermsResult(nativeResult(OnrampPartnerTermsResult.Cancelled::class.java))
+    assertEquals("Canceled", canceled.getMap("error")!!.getString("code"))
+    assertFalse(canceled.hasKey("status"))
+
+    val failed = mapFromOnrampPartnerTermsResult(
+      nativeResult(OnrampPartnerTermsResult.Failed::class.java, IllegalStateException("Acceptance failed")),
+    )
+    assertEquals("Failed", failed.getMap("error")!!.getString("code"))
+    assertEquals("Acceptance failed", failed.getMap("error")!!.getString("message"))
+    assertFalse(failed.hasKey("status"))
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  private fun <T> nativeResult(type: Class<T>, vararg arguments: Any): T =
+    type.declaredConstructors.single { !it.isSynthetic && it.parameterCount == arguments.size }
+      .apply { isAccessible = true }
+      .newInstance(*arguments) as T
 }

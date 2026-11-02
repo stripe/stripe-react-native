@@ -131,6 +131,21 @@ export function useOnramp() {
       return requireOnrampModule().presentUserAttestation();
     }, []);
 
+  const _fulfillKycRequirements =
+    useCallback(async (): Promise<Onramp.FulfillKycRequirementsResult> => {
+      return requireOnrampModule().fulfillKycRequirements();
+    }, []);
+
+  const _presentTermsAndConditionsIfNeeded =
+    useCallback(async (): Promise<Onramp.PartnerTermsResult> => {
+      return requireOnrampModule().presentTermsAndConditionsIfNeeded();
+    }, []);
+
+  const _presentTermsOfServiceIfNeeded =
+    useCallback(async (): Promise<Onramp.PartnerTermsResult> => {
+      return requireOnrampModule().presentTermsOfServiceIfNeeded();
+    }, []);
+
   const _presentKycInfoVerification = useCallback(
     async (updatedAddress: Address | null): Promise<Onramp.VerifyKycResult> => {
       return requireOnrampModule().presentKycInfoVerification(updatedAddress);
@@ -370,6 +385,29 @@ export function useOnramp() {
      * @returns Promise that resolves to `Confirmed` when accepted, or error
      */
     presentUserAttestation: _presentUserAttestation,
+
+    /**
+     * Retrieves additional KYC requirements and presents document and questionnaire
+     * collection when needed. Requires an authenticated Link user.
+     * Returns `Submitted`, `PendingVerification`, or `NotRequired`, or an error.
+     * Submission is asynchronous and does not mean verification has completed.
+     * Cancellation returns an error with code `Canceled`.
+     */
+    fulfillKycRequirements: _fulfillKycRequirements,
+
+    /**
+     * Presents transaction terms when acceptance is required. Call before checkout.
+     * Requires an authenticated Link user. Returns `Accepted` or `NotRequired`, or an error.
+     * Cancellation returns an error with code `Canceled`.
+     */
+    presentTermsAndConditionsIfNeeded: _presentTermsAndConditionsIfNeeded,
+
+    /**
+     * Presents partner terms of service when acceptance is required. Call during onboarding
+     * after Link authentication. Returns `Accepted` or `NotRequired`, or an error.
+     * Cancellation returns an error with code `Canceled`.
+     */
+    presentTermsOfServiceIfNeeded: _presentTermsOfServiceIfNeeded,
 
     /**
      * Presents UI to verify KYC information for the current Link user.

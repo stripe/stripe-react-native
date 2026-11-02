@@ -34,6 +34,9 @@ export interface Spec extends TurboModule {
     identifiers: ReadonlyArray<UnsafeObject<Onramp.ComplianceIdentifier>>
   ): Promise<Onramp.SubmitIdentifiersResult>;
   presentUserAttestation(): Promise<Onramp.UserAttestationResult>;
+  fulfillKycRequirements(): Promise<Onramp.FulfillKycRequirementsResult>;
+  presentTermsAndConditionsIfNeeded(): Promise<Onramp.PartnerTermsResult>;
+  presentTermsOfServiceIfNeeded(): Promise<Onramp.PartnerTermsResult>;
   presentKycInfoVerification: (
     updatedAddress: UnsafeObject<Address> | null
   ) => Promise<Onramp.VerifyKycResult>;
