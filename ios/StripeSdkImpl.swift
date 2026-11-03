@@ -425,7 +425,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
 
         let paymentHandler = STPPaymentHandler.shared()
-        paymentHandler.confirmSetupIntent(setupIntentParams, with: self) { status, setupIntent, error in
+        paymentHandler.confirmSetupIntent(params: setupIntentParams, authenticationContext: self) { status, setupIntent, error in
             switch status {
             case .failed:
                 resolve(Errors.createError(ErrorType.Failed, error))
@@ -771,7 +771,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ){
         let paymentHandler = STPPaymentHandler.shared()
-        paymentHandler.handleNextAction(forPayment: paymentIntentClientSecret, with: self, returnURL: returnURL) { status, paymentIntent, handleActionError in
+        paymentHandler.handleNextAction(paymentIntentClientSecret: paymentIntentClientSecret, authenticationContext: self, returnURL: returnURL) { status, paymentIntent, handleActionError in
             switch status {
             case .failed:
                 resolve(Errors.createError(ErrorType.Failed, handleActionError))
@@ -799,7 +799,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ){
         let paymentHandler = STPPaymentHandler.shared()
-        paymentHandler.handleNextAction(forSetupIntent: setupIntentClientSecret, with: self, returnURL: returnURL) { status, setupIntent, handleActionError in
+        paymentHandler.handleNextAction(setupIntentClientSecret: setupIntentClientSecret, authenticationContext: self, returnURL: returnURL) { status, setupIntent, handleActionError in
             switch status {
             case .failed:
                 resolve(Errors.createError(ErrorType.Failed, handleActionError))
@@ -953,7 +953,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         if error != nil {
             resolve(error)
         } else {
-            STPPaymentHandler.shared().confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
+            STPPaymentHandler.shared().confirmPaymentIntent(params: paymentIntentParams, authenticationContext: self, completion: onCompleteConfirmPayment)
         }
     }
 
