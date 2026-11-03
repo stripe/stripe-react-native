@@ -12,8 +12,6 @@ import type {
   UserInterfaceStyle,
   CardBrand,
 } from './Common';
-import type { PaymentMethod } from '.';
-import type * as ConfirmationToken from './ConfirmationToken';
 import * as PaymentSheetTypes from './PaymentSheet';
 import NativeStripeSdkModule from '../specs/NativeStripeSdkModule';
 import {
@@ -27,6 +25,7 @@ import {
 
 import React from 'react';
 import { addListener } from '../events';
+import { createIntentCreationCallback } from '../internal/intentCreationCallback';
 import NativeEmbeddedPaymentElement, {
   Commands,
   NativeProps,
@@ -290,17 +289,14 @@ function setupIntentConfirmHandlers(
     confirmHandlerCallback?.remove();
     confirmHandlerCallback = addListener(
       'onConfirmHandlerCallback',
-      ({
-        paymentMethod,
-        shouldSavePaymentMethod,
-      }: {
-        paymentMethod: PaymentMethod.Result;
-        shouldSavePaymentMethod: boolean;
-      }) => {
+      ({ paymentMethod, shouldSavePaymentMethod, requestId }) => {
         confirmHandler(
           paymentMethod,
           shouldSavePaymentMethod,
-          NativeStripeSdkModule.intentCreationCallback
+          createIntentCreationCallback(
+            NativeStripeSdkModule.intentCreationCallback,
+            requestId
+          )
         );
       }
     );
@@ -312,14 +308,13 @@ function setupIntentConfirmHandlers(
     confirmationTokenHandlerCallback?.remove();
     confirmationTokenHandlerCallback = addListener(
       'onConfirmationTokenHandlerCallback',
-      ({
-        confirmationToken,
-      }: {
-        confirmationToken: ConfirmationToken.Result;
-      }) => {
+      ({ confirmationToken, requestId }) => {
         confirmationTokenConfirmHandler(
           confirmationToken,
-          NativeStripeSdkModule.confirmationTokenCreationCallback
+          createIntentCreationCallback(
+            NativeStripeSdkModule.confirmationTokenCreationCallback,
+            requestId
+          )
         );
       }
     );
