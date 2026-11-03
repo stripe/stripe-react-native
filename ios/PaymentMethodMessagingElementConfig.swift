@@ -5,7 +5,7 @@
 //  Created by Tyler Clawson on 2/18/26.
 //
 
-@_spi(PaymentMethodMessagingElementPreview) @_spi(STP) import StripePaymentSheet
+@_spi(PaymentMethodMessagingElementPreview) @_spi(InternalOnlyAPI) import StripePaymentSheet
 
 internal class PaymentMethodMessagingElementConfig {
     class func buildAppearanceFromParams(params: NSDictionary?) -> PaymentMethodMessagingElement.Appearance {

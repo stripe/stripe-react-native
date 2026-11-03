@@ -1,6 +1,6 @@
 import Foundation
 import PassKit
-@_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
+@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
 
 enum CheckoutConfigurationMapperError: LocalizedError, Equatable {
     case unsupportedValue(path: String, value: String)
@@ -22,11 +22,11 @@ enum CheckoutConfigurationMapper {
         params: NSDictionary,
         merchantIdentifier: String?,
         didSelectPaymentOption: @escaping () -> Void
-    ) throws -> CheckoutController.Configuration {
+    ) throws -> CheckoutElementsController.Configuration {
         let clientSecret = params["clientSecret"] as? String ?? ""
         let returnURL = params["returnURL"] as? String ?? ""
 
-        var configuration = CheckoutController.Configuration(
+        var configuration = CheckoutElementsController.Configuration(
             clientSecret: clientSecret,
             returnURL: returnURL
         )
@@ -191,18 +191,18 @@ enum CheckoutConfigurationMapper {
 
     private static func mapDefaults(
         _ params: NSDictionary?
-    ) -> CheckoutController.Configuration.Defaults {
-        var defaults = CheckoutController.Configuration.Defaults()
+    ) -> CheckoutElementsController.Configuration.Defaults {
+        var defaults = CheckoutElementsController.Configuration.Defaults()
 
         if let billingParams = params?["billingDetails"] as? NSDictionary {
-            var billingDetails = CheckoutController.Configuration.Defaults.BillingDetails()
+            var billingDetails = CheckoutElementsController.Configuration.Defaults.BillingDetails()
             billingDetails.name = billingParams["name"] as? String
             billingDetails.address = mapAddress(billingParams["address"] as? NSDictionary)
             defaults.billingDetails = billingDetails
         }
 
         if let shippingParams = params?["shippingDetails"] as? NSDictionary {
-            var shippingDetails = CheckoutController.Configuration.Defaults.ShippingDetails()
+            var shippingDetails = CheckoutElementsController.Configuration.Defaults.ShippingDetails()
             shippingDetails.name = shippingParams["name"] as? String
             shippingDetails.address = mapAddress(shippingParams["address"] as? NSDictionary)
             defaults.shippingDetails = shippingDetails
@@ -216,11 +216,11 @@ enum CheckoutConfigurationMapper {
 
     static func mapAddress(
         _ params: NSDictionary?
-    ) -> CheckoutController.Address? {
+    ) -> CheckoutElementsController.Address? {
         guard let params else {
             return nil
         }
-        return CheckoutController.Address(
+        return CheckoutElementsController.Address(
             country: params["country"] as? String ?? "",
             line1: params["line1"] as? String,
             line2: params["line2"] as? String,

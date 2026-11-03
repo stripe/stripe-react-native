@@ -1,6 +1,6 @@
 import Foundation
 import React
-@_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
+@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
 
 extension StripeSdkImpl {
 
@@ -38,7 +38,7 @@ extension StripeSdkImpl {
                             ])
                         }
                     )
-                    let checkout = try await CheckoutController(configuration: configuration)
+                    let checkout = try await CheckoutElementsController(configuration: configuration)
                     try Task.checkCancellation()
                     let currencySelectorElement = configuration.currencySelectorElement == nil
                         ? nil
