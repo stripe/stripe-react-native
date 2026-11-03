@@ -131,7 +131,7 @@ export interface CheckoutCurrencySelectorElementViewProps {
 }
 
 /**
- * A Checkout-owned Express Checkout Element for accepting wallet payments.
+ * A Checkout-owned Express Checkout Element.
  *
  * @remarks
  * This API is in private preview and can change without notice.
@@ -208,8 +208,8 @@ export namespace CheckoutElements {
      */
     currencySelectorElement?: CurrencySelectorElementConfiguration;
     /**
-     * Configuration for the Express Checkout Element. Required when using
-     * Express Checkout Element.
+     * Configuration for the Express Checkout Element. Provide this configuration
+     * to enable the element.
      */
     expressCheckoutElement?: ExpressCheckoutElementConfiguration;
   }
@@ -346,11 +346,14 @@ export namespace CheckoutElements {
    * @CheckoutSessionPrivatePreview
    */
   export interface ExpressCheckoutElementConfiguration {
-    /** Apple Pay configuration. iOS only; enabled through StripeProvider's merchantIdentifier. */
+    /**
+     * Apple Pay configuration. iOS only. Enabled when a merchantIdentifier is
+     * provided through StripeProvider.
+     */
     applePay?: ExpressCheckoutElementConfiguration.ApplePayConfiguration;
     /** Google Pay configuration. Android only. */
     googlePay?: ExpressCheckoutElementConfiguration.GooglePayConfiguration;
-    /** Link display configuration. */
+    /** Link configuration. */
     link?: ExpressCheckoutElementConfiguration.LinkConfiguration;
     /** Customizes the appearance of Express Checkout Element. */
     appearance?: ExpressCheckoutElementConfiguration.Appearance;
@@ -470,11 +473,9 @@ export namespace CheckoutElements {
       buttonLayout?: ButtonLayout;
       /**
        * Border radius of the express payment buttons, in density-independent pixels.
-       * On iOS, this follows CALayer corner radius behavior. The native default
-       * matches Liquid Glass on iOS 26+ when compatibility mode is disabled,
-       * and is 6 on earlier iOS versions and Android.
+       * Omit to use the platform default.
        */
-      borderRadius: number;
+      borderRadius?: number;
     }
   }
 
@@ -490,28 +491,23 @@ export namespace CheckoutElements {
      * @CheckoutSessionPrivatePreview
      */
     export interface PaymentMethod {
-      /** Whether this payment method is available after configuration and device eligibility checks. */
       available: boolean;
-      /** The payment method type. */
       type: string;
     }
 
     /**
-     * Apple Pay availability in Express Checkout Element.
      * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface ApplePayPaymentMethod extends PaymentMethod {}
 
     /**
-     * Google Pay availability in Express Checkout Element.
      * @internal
      * @CheckoutSessionPrivatePreview
      */
     export interface GooglePayPaymentMethod extends PaymentMethod {}
 
     /**
-     * Link availability in Express Checkout Element.
      * @internal
      * @CheckoutSessionPrivatePreview
      */

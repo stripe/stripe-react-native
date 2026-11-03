@@ -5,8 +5,7 @@ import type { ExpressCheckoutElementViewProps } from '../types/CheckoutElements'
  * Renders the Checkout-owned Express Checkout Element inline.
  *
  * @remarks
- * This API is in private preview and can change without notice. Native support
- * for Express Checkout Element is not implemented in this version.
+ * This API is in private preview and can change without notice.
  *
  * @internal
  * @CheckoutSessionPrivatePreview

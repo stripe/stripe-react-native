@@ -42,23 +42,6 @@ export function getCheckoutPaymentElementId(
 
 const CHECKOUT_DESTROYED_MESSAGE = 'This Checkout controller was destroyed.';
 
-/** Supplies unavailable express methods until native session serialization supports them. */
-function sessionWithExpressCheckoutAvailability(
-  session: CheckoutElements.Session
-): CheckoutElements.Session {
-  if (session.availableExpressCheckoutPaymentMethods) {
-    return session;
-  }
-  return {
-    ...session,
-    availableExpressCheckoutPaymentMethods: {
-      applePay: { available: false, type: 'apple_pay' },
-      googlePay: { available: false, type: 'google_pay' },
-      link: { available: false, type: 'link' },
-    },
-  };
-}
-
 type CheckoutOperationError = Error & StripeError<CheckoutElements.ErrorCode>;
 
 const checkoutErrorCodes = new Set<CheckoutElements.ErrorCode>([
@@ -144,7 +127,7 @@ export async function createCheckoutController(
   const subscription = addCheckoutControllerListener(controllerId, (update) => {
     if (status !== 'destroyed') {
       status = update.status;
-      session = sessionWithExpressCheckoutAvailability(update.session);
+      session = update.session;
       if (controller) {
         onUpdate?.(controller);
       }
@@ -165,7 +148,7 @@ export async function createCheckoutController(
       nativeCreateOptions(options),
       controllerId
     );
-    session ??= sessionWithExpressCheckoutAvailability(result.session);
+    session ??= result.session;
 
     const assertActive = () => {
       if (status === 'destroyed') {

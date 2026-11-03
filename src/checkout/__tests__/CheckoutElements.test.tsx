@@ -65,7 +65,6 @@ it('rejects Express Checkout configuration before invoking native or subscribing
         appearance: {
           buttonTheme: 'dark',
           buttonLayout: { maxColumns: 2, maxRows: 1 },
-          borderRadius: 6,
         },
         onResult,
       },
@@ -78,24 +77,26 @@ it('rejects Express Checkout configuration before invoking native or subscribing
   expect(onResult).not.toHaveBeenCalled();
 });
 
-it('supplies unavailable express methods for native snapshots without availability data', async () => {
-  const { availableExpressCheckoutPaymentMethods, ...nativeSession } = session;
-  create.mockResolvedValueOnce({ session: nativeSession });
+it('preserves native session snapshots and their express payment method availability', async () => {
   const controller = await createCheckoutElements(options);
   expect(controller.expressCheckoutElement).toBeNull();
-  expect(controller.session.availableExpressCheckoutPaymentMethods).toEqual(
-    availableExpressCheckoutPaymentMethods
-  );
+  expect(controller.session).toBe(session);
+
+  const updated = {
+    ...session,
+    email: 'updated@example.com',
+    availableExpressCheckoutPaymentMethods: {
+      ...session.availableExpressCheckoutPaymentMethods,
+      link: { available: true, type: 'link' },
+    },
+  };
 
   emit('checkoutControllerDidUpdate', {
     controllerId: create.mock.calls[0][1],
     status: 'updating',
-    session: { ...nativeSession, email: 'updated@example.com' },
+    session: updated,
   });
-  expect(controller.session).toMatchObject({
-    email: 'updated@example.com',
-    availableExpressCheckoutPaymentMethods,
-  });
+  expect(controller.session).toBe(updated);
   await controller.destroy();
 });
 
