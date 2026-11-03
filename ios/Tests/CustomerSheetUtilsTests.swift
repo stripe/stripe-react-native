@@ -4,7 +4,7 @@
 //
 
 @testable import stripe_react_native
-@_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
+@_spi(PrivateBetaCustomerSheet) @_spi(InternalOnlyAPI) import StripePaymentSheet
 import XCTest
 
 class CustomerSheetUtilsTests: XCTestCase {

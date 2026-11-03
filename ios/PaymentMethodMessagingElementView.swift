@@ -1,6 +1,6 @@
 import Foundation
 import React
-@_spi(PaymentMethodMessagingElementPreview) @_spi(STP) import StripePaymentSheet
+@_spi(PaymentMethodMessagingElementPreview) @_spi(InternalOnlyAPI) import StripePaymentSheet
 import UIKit
 
 @objc(PaymentMethodMessagingElementView)

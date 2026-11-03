@@ -1,7 +1,7 @@
 import Foundation
 @testable import stripe_react_native
-@_spi(STP) import StripeCore
-@testable @_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
+@_spi(InternalOnlyAPI) import StripeCore
+@testable @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
 import XCTest
 
 @MainActor
@@ -134,7 +134,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
             statuses.append(event["status"] as! String)
         }
         instance.start(controllerId: "confirming")
-        var results: [Result<CheckoutController.ConfirmResult, Error>] = []
+        var results: [Result<CheckoutElementsController.ConfirmResult, Error>] = []
         let presenter = UIViewController()
 
         try instance.confirm(from: presenter) { results.append($0) }
@@ -156,19 +156,19 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         })
     }
 
-    private func makeCheckout() async throws -> CheckoutController {
+    private func makeCheckout() async throws -> CheckoutElementsController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]
         let apiClient = STPAPIClient(publishableKey: "pk_test_123")
         apiClient.apiURL = URL(string: "https://checkout.test")!
         apiClient.urlSession = URLSession(configuration: sessionConfiguration)
-        var configuration = CheckoutController.Configuration(
+        var configuration = CheckoutElementsController.Configuration(
             clientSecret: "cs_test_secret_123",
             returnURL: "https://example.com/checkout"
         )
         configuration.apiClient = apiClient
         configuration.paymentElement = .init()
-        return try await CheckoutController(configuration: configuration)
+        return try await CheckoutElementsController(configuration: configuration)
     }
 }
 

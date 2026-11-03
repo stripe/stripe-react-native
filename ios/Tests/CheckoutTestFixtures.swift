@@ -1,19 +1,19 @@
 import Foundation
-@_spi(STP) import StripeCore
-@testable @_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
+@_spi(InternalOnlyAPI) import StripeCore
+@testable @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
 
 /// Uses the native decoder so bridge tests exercise real Checkout session models.
 enum CheckoutTestFixtures {
     static func session(
         status: String = "open",
         paymentStatus: String = "unpaid"
-    ) throws -> CheckoutController.Session {
+    ) throws -> CheckoutElementsController.Session {
         let data = try JSONSerialization.data(withJSONObject: response(
             status: status,
             paymentStatus: paymentStatus
         ))
         let response = try StripeJSONDecoder().decode(PaymentPagesAPIResponse.self, from: data)
-        return CheckoutController.Session(apiResponse: response, localState: .empty)
+        return CheckoutElementsController.Session(apiResponse: response, localState: .empty)
     }
 
     static func response(
