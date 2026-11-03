@@ -23,6 +23,21 @@ internal object CheckoutSessionSerializer {
   suspend fun serialize(session: Session, context: Context): WritableMap =
     Arguments.createMap().apply {
       putString("id", session.id)
+      // Default availability for the Express Checkout API stub.
+      putMap(
+        "availableExpressCheckoutPaymentMethods",
+        Arguments.createMap().apply {
+          for ((key, type) in mapOf("applePay" to "apple_pay", "googlePay" to "google_pay", "link" to "link")) {
+            putMap(
+              key,
+              Arguments.createMap().apply {
+                putBoolean("available", false)
+                putString("type", type)
+              },
+            )
+          }
+        },
+      )
       putBoolean("livemode", session.livemode)
       putString("currency", session.currency)
       session.email?.let { putString("email", it) }

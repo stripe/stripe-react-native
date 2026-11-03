@@ -112,6 +112,12 @@ export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,
   onUpdate?: (controller: CheckoutElements) => void
 ): Promise<CheckoutElements> {
+  // TODO: Bridge Express Checkout configuration, availability, and payment results.
+  if (options.expressCheckoutElement) {
+    throw new Error(
+      'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
+    );
+  }
   const controllerId = createCheckoutBridgeId();
   let status: CheckoutElements['status'] = 'ready';
   let session: CheckoutElements.Session | undefined;
@@ -193,6 +199,7 @@ export async function createCheckoutController(
       paymentElement,
       shippingAddressElement,
       currencySelectorElement,
+      expressCheckoutElement: null,
       updateEmail: (email) =>
         performOperation(() =>
           NativeStripeSdk.updateCheckoutEmail(controllerId, email)

@@ -12,6 +12,7 @@ type State = Pick<
   | 'paymentElement'
   | 'shippingAddressElement'
   | 'currencySelectorElement'
+  | 'expressCheckoutElement'
   | 'error'
 >;
 const idle: State = {
@@ -20,6 +21,7 @@ const idle: State = {
   paymentElement: null,
   shippingAddressElement: null,
   currencySelectorElement: null,
+  expressCheckoutElement: null,
   error: null,
 };
 
@@ -40,6 +42,7 @@ function stateForController(controller: CheckoutElements): State {
     paymentElement: controller.paymentElement,
     shippingAddressElement: controller.shippingAddressElement,
     currencySelectorElement: controller.currencySelectorElement,
+    expressCheckoutElement: controller.expressCheckoutElement,
     error: null,
   };
 }

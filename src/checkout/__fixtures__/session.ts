@@ -4,6 +4,11 @@ const zero = { amount: '$0.00', minorUnitsAmount: 0 };
 
 export const checkoutSession: CheckoutElements.Session = {
   id: 'cs_test',
+  availableExpressCheckoutPaymentMethods: {
+    applePay: { available: false, type: 'apple_pay' },
+    googlePay: { available: false, type: 'google_pay' },
+    link: { available: false, type: 'link' },
+  },
   currency: 'usd',
   livemode: false,
   status: { type: 'open' },

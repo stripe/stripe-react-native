@@ -5,6 +5,18 @@ import XCTest
 
 @MainActor
 final class CheckoutSessionSerializerTests: XCTestCase {
+    func test_serialize_includesUnavailableExpressPaymentMethods() throws {
+        let result = CheckoutSessionSerializer.serialize(try CheckoutTestFixtures.session())
+        let methods = try XCTUnwrap(result["availableExpressCheckoutPaymentMethods"] as? [String: Any])
+
+        XCTAssertEqual(methods as NSDictionary, [
+            "applePay": ["available": false, "type": "apple_pay"],
+            "googlePay": ["available": false, "type": "google_pay"],
+            "link": ["available": false, "type": "link"],
+        ] as NSDictionary)
+        XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
+    }
+
     func test_serialize_preservesNativeAmountsAndItemStructure() throws {
         let session = try CheckoutTestFixtures.session()
         let result = CheckoutSessionSerializer.serialize(session)
