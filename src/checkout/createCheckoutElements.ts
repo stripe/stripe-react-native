@@ -42,6 +42,23 @@ export function getCheckoutPaymentElementId(
 
 const CHECKOUT_DESTROYED_MESSAGE = 'This Checkout controller was destroyed.';
 
+/** Supplies unavailable express methods until native session serialization supports them. */
+function sessionWithExpressCheckoutAvailability(
+  session: CheckoutElements.Session
+): CheckoutElements.Session {
+  if (session.availableExpressCheckoutPaymentMethods) {
+    return session;
+  }
+  return {
+    ...session,
+    availableExpressCheckoutPaymentMethods: {
+      applePay: { available: false, type: 'apple_pay' },
+      googlePay: { available: false, type: 'google_pay' },
+      link: { available: false, type: 'link' },
+    },
+  };
+}
+
 type CheckoutOperationError = Error & StripeError<CheckoutElements.ErrorCode>;
 
 const checkoutErrorCodes = new Set<CheckoutElements.ErrorCode>([
@@ -112,6 +129,12 @@ export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,
   onUpdate?: (controller: CheckoutElements) => void
 ): Promise<CheckoutElements> {
+  // TODO: Bridge Express Checkout configuration, availability, and payment results.
+  if (options.expressCheckoutElement) {
+    throw new Error(
+      'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
+    );
+  }
   const controllerId = createCheckoutBridgeId();
   let status: CheckoutElements['status'] = 'ready';
   let session: CheckoutElements.Session | undefined;
@@ -121,7 +144,7 @@ export async function createCheckoutController(
   const subscription = addCheckoutControllerListener(controllerId, (update) => {
     if (status !== 'destroyed') {
       status = update.status;
-      session = update.session;
+      session = sessionWithExpressCheckoutAvailability(update.session);
       if (controller) {
         onUpdate?.(controller);
       }
@@ -142,7 +165,7 @@ export async function createCheckoutController(
       nativeCreateOptions(options),
       controllerId
     );
-    session ??= result.session;
+    session ??= sessionWithExpressCheckoutAvailability(result.session);
 
     const assertActive = () => {
       if (status === 'destroyed') {
@@ -193,6 +216,7 @@ export async function createCheckoutController(
       paymentElement,
       shippingAddressElement,
       currencySelectorElement,
+      expressCheckoutElement: null,
       updateEmail: (email) =>
         performOperation(() =>
           NativeStripeSdk.updateCheckoutEmail(controllerId, email)

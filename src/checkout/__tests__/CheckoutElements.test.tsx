@@ -48,6 +48,57 @@ beforeEach(() => {
   create.mockImplementation(async () => ({ session }));
 });
 
+it('rejects Express Checkout configuration before invoking native or subscribing', async () => {
+  const onResult = jest.fn<void, [CheckoutElements.Result]>();
+  await expect(
+    createCheckoutElements({
+      ...options,
+      expressCheckoutElement: {
+        applePay: { buttonType: 'checkout' },
+        googlePay: {
+          display: 'automatic',
+          label: 'Total',
+          buttonType: 'pay',
+          additionalEnabledNetworks: ['INTERAC'],
+        },
+        link: { display: 'never' },
+        appearance: {
+          buttonTheme: 'dark',
+          buttonLayout: { maxColumns: 2, maxRows: 1 },
+          borderRadius: 6,
+        },
+        onResult,
+      },
+    })
+  ).rejects.toThrow(
+    'does not include native support for Express Checkout Element'
+  );
+  expect(create).not.toHaveBeenCalled();
+  expect(addListener).not.toHaveBeenCalled();
+  expect(onResult).not.toHaveBeenCalled();
+});
+
+it('supplies unavailable express methods for native snapshots without availability data', async () => {
+  const { availableExpressCheckoutPaymentMethods, ...nativeSession } = session;
+  create.mockResolvedValueOnce({ session: nativeSession });
+  const controller = await createCheckoutElements(options);
+  expect(controller.expressCheckoutElement).toBeNull();
+  expect(controller.session.availableExpressCheckoutPaymentMethods).toEqual(
+    availableExpressCheckoutPaymentMethods
+  );
+
+  emit('checkoutControllerDidUpdate', {
+    controllerId: create.mock.calls[0][1],
+    status: 'updating',
+    session: { ...nativeSession, email: 'updated@example.com' },
+  });
+  expect(controller.session).toMatchObject({
+    email: 'updated@example.com',
+    availableExpressCheckoutPaymentMethods,
+  });
+  await controller.destroy();
+});
+
 it('keeps one nullable Currency Selector handle for the controller lifetime', async () => {
   create.mockResolvedValueOnce({ session, isCurrencySelectorAvailable: true });
   const controller = await createCheckoutElements({

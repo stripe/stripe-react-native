@@ -87,11 +87,13 @@ it('loads while enabled and follows native updates', async () => {
   });
 
   expect(hook.result.current.status).toBe('idle');
+  expect(hook.result.current.expressCheckoutElement).toBeNull();
   await hook.result.current.reload();
   expect(configuration).not.toHaveBeenCalled();
 
   hook.rerender({ enabled: true, getConfiguration: configuration });
   await waitFor(() => expect(hook.result.current.status).toBe('ready'));
+  expect(hook.result.current.expressCheckoutElement).toBeNull();
   const firstUpdateEmail = hook.result.current.updateEmail;
   const updated = { ...session, email: 'native@example.com' };
   act(() =>
@@ -181,6 +183,26 @@ it('reports initialization errors and recovers on reload', async () => {
 
   await act(() => hook.result.current.reload());
   expect(hook.result.current).toMatchObject({ status: 'ready', error: null });
+});
+
+it('reports unsupported Express Checkout configuration through its error state', async () => {
+  const hook = renderCheckout({
+    getConfiguration: async () => ({
+      ...options,
+      expressCheckoutElement: { onResult: jest.fn() },
+    }),
+  });
+  await waitFor(() => expect(hook.result.current.status).toBe('error'));
+  expect(hook.result.current).toMatchObject({
+    expressCheckoutElement: null,
+    error: {
+      code: 'Failed',
+      message:
+        'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.',
+    },
+  });
+  expect(create).not.toHaveBeenCalled();
+  hook.unmount();
 });
 
 it('cancels an active server update during reload', async () => {

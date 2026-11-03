@@ -33,6 +33,8 @@ export interface CheckoutElements {
   readonly shippingAddressElement: CheckoutShippingAddressElement | null;
   /** The Currency Selector Element, or `null` when unavailable. */
   readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
+  /** The Express Checkout Element, or `null` when unavailable. */
+  readonly expressCheckoutElement: ExpressCheckoutElement | null;
   /** Updates the customer's email address. Pass `null` to clear it. */
   updateEmail(email: string | null): Promise<void>;
   /** Sets or clears the customer's shipping address. */
@@ -129,6 +131,38 @@ export interface CheckoutCurrencySelectorElementViewProps {
 }
 
 /**
+ * A Checkout-owned Express Checkout Element for accepting wallet payments.
+ *
+ * @remarks
+ * This API is in private preview and can change without notice.
+ *
+ * @internal
+ * @CheckoutSessionPrivatePreview
+ */
+export interface ExpressCheckoutElement {}
+
+/**
+ * Alias for the Checkout-owned Express Checkout Element.
+ * @internal
+ * @CheckoutSessionPrivatePreview
+ */
+export type CheckoutExpressCheckoutElement = ExpressCheckoutElement;
+
+/**
+ * Props for the inline Express Checkout Element view.
+ *
+ * @remarks
+ * This API is in private preview and can change without notice.
+ *
+ * @internal
+ * @CheckoutSessionPrivatePreview
+ */
+export interface ExpressCheckoutElementViewProps {
+  /** The Express Checkout Element owned by Checkout Elements. */
+  element: ExpressCheckoutElement;
+}
+
+/**
  * Types used by the Checkout Elements private-preview APIs.
  *
  * @remarks
@@ -173,6 +207,11 @@ export namespace CheckoutElements {
      * to enable the element when Adaptive Pricing is available.
      */
     currencySelectorElement?: CurrencySelectorElementConfiguration;
+    /**
+     * Configuration for the Express Checkout Element. Required when using
+     * Express Checkout Element.
+     */
+    expressCheckoutElement?: ExpressCheckoutElementConfiguration;
   }
 
   /**
@@ -218,6 +257,11 @@ export namespace CheckoutElements {
      * when it is unavailable for the Checkout Session.
      */
     readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
+    /**
+     * The Express Checkout Element, or `null` before Checkout is ready, when
+     * it is not configured, or when no express payment methods are available.
+     */
+    readonly expressCheckoutElement: ExpressCheckoutElement | null;
     /** The initialization error when `status` is `error`; otherwise `null`. */
     readonly error: StripeError<ErrorCode> | null;
     /** Fetches fresh configuration and replaces the current native controller. */
@@ -294,6 +338,195 @@ export namespace CheckoutElements {
   export interface CurrencySelectorElementConfiguration {
     /** Customizes the appearance of Currency Selector Element. */
     appearance?: CurrencySelectorElementConfiguration.Appearance;
+  }
+
+  /**
+   * Configuration for the Checkout-owned Express Checkout Element.
+   * @internal
+   * @CheckoutSessionPrivatePreview
+   */
+  export interface ExpressCheckoutElementConfiguration {
+    /** Apple Pay configuration. iOS only; enabled through StripeProvider's merchantIdentifier. */
+    applePay?: ExpressCheckoutElementConfiguration.ApplePayConfiguration;
+    /** Google Pay configuration. Android only. */
+    googlePay?: ExpressCheckoutElementConfiguration.GooglePayConfiguration;
+    /** Link display configuration. */
+    link?: ExpressCheckoutElementConfiguration.LinkConfiguration;
+    /** Customizes the appearance of Express Checkout Element. */
+    appearance?: ExpressCheckoutElementConfiguration.Appearance;
+    /** Called when a payment is finalized through Express Checkout Element. */
+    onResult: (result: Result) => void;
+  }
+
+  /**
+   * Configuration types used by Express Checkout Element.
+   * @internal
+   * @CheckoutSessionPrivatePreview
+   */
+  export namespace ExpressCheckoutElementConfiguration {
+    /**
+     * Apple Pay configuration for Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface ApplePayConfiguration {
+      /** The type of Apple Pay button to display. */
+      buttonType?: ApplePayButtonType;
+    }
+
+    /**
+     * Apple Pay button type options for Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export type ApplePayButtonType =
+      | 'plain'
+      | 'buy'
+      | 'setUp'
+      | 'inStore'
+      | 'donate'
+      | 'checkout'
+      | 'book'
+      | 'subscribe'
+      | 'reload'
+      | 'addMoney'
+      | 'topUp'
+      | 'order'
+      | 'rent'
+      | 'support'
+      | 'contribute'
+      | 'tip'
+      | 'continue';
+
+    /**
+     * Google Pay configuration for Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface GooglePayConfiguration {
+      /** Controls when Google Pay is displayed. Defaults to `automatic`. */
+      display?: 'automatic' | 'never';
+      /** An optional label to display with the amount. Google Pay may omit it. */
+      label?: string;
+      /** The type of Google Pay button to display. Defaults to `pay`. */
+      buttonType?: GooglePayButtonType;
+      /** Additional card networks to enable, for example `INTERAC`. */
+      additionalEnabledNetworks?: string[];
+    }
+
+    /**
+     * Google Pay button type options for Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export type GooglePayButtonType =
+      | 'buy'
+      | 'book'
+      | 'checkout'
+      | 'donate'
+      | 'order'
+      | 'pay'
+      | 'subscribe'
+      | 'plain';
+
+    /**
+     * Link configuration for Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface LinkConfiguration {
+      /** Controls when Link is displayed. Defaults to `automatic`. */
+      display?: 'automatic' | 'never';
+    }
+
+    /**
+     * Theme of the express payment buttons.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export type ButtonTheme = 'automatic' | 'light' | 'dark';
+
+    /**
+     * Determines how express payment buttons are arranged.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface ButtonLayout {
+      /** Maximum number of columns. Must be an integer between 1 and 10, inclusive. */
+      maxColumns?: number;
+      /** Maximum number of rows. Must be an integer between 1 and 10, inclusive. */
+      maxRows?: number;
+    }
+
+    /**
+     * Appearance configuration for Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface Appearance {
+      /** Theme of the express payment buttons. Defaults to `automatic`. */
+      buttonTheme?: ButtonTheme;
+      /** Arranges the express payment buttons in a grid. */
+      buttonLayout?: ButtonLayout;
+      /**
+       * Border radius of the express payment buttons, in density-independent pixels.
+       * On iOS, this follows CALayer corner radius behavior. The native default
+       * matches Liquid Glass on iOS 26+ when compatibility mode is disabled,
+       * and is 6 on earlier iOS versions and Android.
+       */
+      borderRadius: number;
+    }
+  }
+
+  /**
+   * Payment method availability types for Express Checkout Element.
+   * @internal
+   * @CheckoutSessionPrivatePreview
+   */
+  export namespace ExpressCheckoutElement {
+    /**
+     * A payment method supported by Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface PaymentMethod {
+      /** Whether this payment method is available after configuration and device eligibility checks. */
+      available: boolean;
+      /** The payment method type. */
+      type: string;
+    }
+
+    /**
+     * Apple Pay availability in Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface ApplePayPaymentMethod extends PaymentMethod {}
+
+    /**
+     * Google Pay availability in Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface GooglePayPaymentMethod extends PaymentMethod {}
+
+    /**
+     * Link availability in Express Checkout Element.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface LinkPaymentMethod extends PaymentMethod {}
+
+    /**
+     * Payment methods available after applying configuration and device eligibility.
+     * @internal
+     * @CheckoutSessionPrivatePreview
+     */
+    export interface PaymentMethods {
+      applePay: ApplePayPaymentMethod;
+      googlePay: GooglePayPaymentMethod;
+      link: LinkPaymentMethod;
+    }
   }
 
   /**
@@ -629,6 +862,8 @@ export namespace CheckoutElements {
   export interface Session {
     /** The Checkout Session ID. */
     id: string;
+    /** Express payment method availability after applying configuration and device eligibility. */
+    availableExpressCheckoutPaymentMethods: ExpressCheckoutElement.PaymentMethods;
     /** The business name configured in Stripe Business Public Details. */
     businessName?: string;
     /** Whether the Checkout Session is in live mode. */
