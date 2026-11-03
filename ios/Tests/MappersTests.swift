@@ -269,6 +269,44 @@ class MappersTests: XCTestCase {
         XCTAssertNil(result?.address?.state)
     }
 
+    // MARK: - mapToShippingDetails Tests
+
+    func test_mapToShippingDetails_nilInput_returnsNil() {
+        let result = Mappers.mapToShippingDetails(shippingDetails: nil)
+        XCTAssertNil(result)
+    }
+
+    func test_mapToShippingDetails_fullDetails_includesCarrierPhoneTrackingNumber() {
+        let shippingMap: NSDictionary = [
+            "name": "Jane Doe",
+            "phone": "+1234567890",
+            "carrier": "FedEx",
+            "trackingNumber": "123456789",
+            "address": [
+                "city": "San Francisco",
+                "country": "US",
+                "line1": "123 Main St",
+                "line2": "Apt 4",
+                "postalCode": "94111",
+                "state": "CA",
+            ],
+        ]
+
+        let result = Mappers.mapToShippingDetails(shippingDetails: shippingMap)
+
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.name, "Jane Doe")
+        XCTAssertEqual(result?.phone, "+1234567890")
+        XCTAssertEqual(result?.carrier, "FedEx")
+        XCTAssertEqual(result?.trackingNumber, "123456789")
+        XCTAssertEqual(result?.address.city, "San Francisco")
+        XCTAssertEqual(result?.address.country, "US")
+        XCTAssertEqual(result?.address.line1, "123 Main St")
+        XCTAssertEqual(result?.address.line2, "Apt 4")
+        XCTAssertEqual(result?.address.postalCode, "94111")
+        XCTAssertEqual(result?.address.state, "CA")
+    }
+
     // MARK: - mapFromBillingDetails Tests
 
     func test_mapFromBillingDetails_nilInput_returnsMapWithNSNulls() {
