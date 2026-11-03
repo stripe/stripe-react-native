@@ -8,6 +8,14 @@
 * [Added] Added `presentTermsAndConditionsIfNeeded` and `presentTermsOfServiceIfNeeded` to Crypto Onramp for collecting acceptance of transaction terms and partner terms of service.
 * [Added] Added Celo network support to Crypto Onramp.
 
+**Changes**
+
+* Updated Stripe iOS SDK from 26.15.1 to 26.16.0.
+
+**Fixes**
+
+* [Fixed] iOS: Fixed a race condition where `PaymentMethodMessagingElement` could render with a stale `appearance` or `configuration` when both props updated in quick succession. ([#2779](https://github.com/stripe/stripe-react-native/pull/2779))
+
 ## 0.84.0 - 2026-10-27
 
 **Breaking changes**
