@@ -7,6 +7,7 @@
 * [Added] Added `fulfillKycRequirements` to Crypto Onramp for collecting additional KYC documents and questionnaire answers.
 * [Added] Added `presentTermsAndConditionsIfNeeded` and `presentTermsOfServiceIfNeeded` to Crypto Onramp for collecting acceptance of transaction terms and partner terms of service.
 * [Added] Added Celo network support to Crypto Onramp.
+* [Added] `IntentConfiguration.paymentMethodConfigurationId`, forwarded to the native `PaymentSheet.IntentConfiguration` on iOS and Android, so `initPaymentSheet` (including `customFlow`) and the Embedded Payment Element can use a payment method configuration.
 
 ## 0.84.0 - 2026-10-27
 
