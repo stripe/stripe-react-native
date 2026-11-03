@@ -12,8 +12,12 @@ enum CheckoutTestFixtures {
             status: status,
             paymentStatus: paymentStatus
         ))
-        let response = try StripeJSONDecoder().decode(PaymentPagesAPIResponse.self, from: data)
-        return CheckoutElementsController.Session(apiResponse: response, localState: .empty)
+        let response = try StripeJSONDecoder().decode(CheckoutClientAPIResponse.self, from: data)
+        return CheckoutElementsController.Session(
+            apiResponse: response,
+            clientSecret: "cs_test_secret",
+            localState: .empty
+        )
     }
 
     static func response(
@@ -21,39 +25,44 @@ enum CheckoutTestFixtures {
         paymentStatus: String = "unpaid"
     ) -> [String: Any] {
         [
-            "session_id": "cs_test",
+            "id": "cs_test",
+            "ui_mode": "mobile_elements",
             "livemode": false,
-            "mode": "modeless",
             "status": status,
             "payment_status": paymentStatus,
-            "currency": "usd",
-            "checkout_items": [[
+            "presentment_currency": "usd",
+            "integration_currency": "usd",
+            "items": [[
                 "key": "group_1",
                 "type": "one_time_price",
-                "one_time_price": ["items": [[
-                    "inner_item_key": "item_1",
-                    "quantity": 2,
+                "one_time_price": [
+                    "items": [[
+                        "inner_item_key": "item_1",
+                        "quantity": 2,
+                        "unit_amount": 1050,
+                        "unit_amount_decimal": "1050.25",
+                        "amount_details": [
+                            "subtotal": 2100,
+                            "total": 2250,
+                            "tax_amounts": [],
+                            "tax_inclusive": 0,
+                            "tax_exclusive": 150,
+                        ],
+                        "adjustable_quantity": ["enabled": true, "minimum": 1, "maximum": 5],
+                        "price": [
+                            "id": "price_1",
+                            "currency": "usd",
+                            "unit_amount": 1050,
+                            "product": ["name": "Test item", "images": ["https://example.com/item.png"]],
+                        ],
+                    ], ],
                     "subtotal": 2100,
                     "total": 2250,
-                    "unit_amount": 1050,
-                    "unit_amount_decimal": "1050.25",
-                    "tax_amounts": [],
-                    "tax_inclusive": 0,
-                    "tax_exclusive": 150,
-                    "adjustable_quantity": ["enabled": true, "minimum": 1, "maximum": 5],
-                    "price": [
-                        "id": "price_1",
-                        "currency": "usd",
-                        "unit_amount": 1050,
-                        "product": ["name": "Test item", "images": ["https://example.com/item.png"]],
-                    ],
-                ], ], ],
+                ],
             ], ],
-            "elements_session": [
-                "session_id": "es_test",
-                "merchant_country": "US",
-                "payment_method_preference": ["ordered_payment_method_types": ["card"]],
-            ],
+            "merchant_info": ["country": "US"],
+            "elements_session_id": "es_test",
+            "ordered_payment_method_types_and_wallets": ["card"],
         ]
     }
 }

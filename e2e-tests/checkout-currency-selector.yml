@@ -28,9 +28,11 @@ appId: ${APP_ID}
     timeout: 30000
 - assertVisible:
     id: 'checkout-currency-selector'
+# The details toggle only renders when the server returns disclosure details.
 - runFlow:
     when:
       platform: iOS
+      visible: '.*Show details'
     commands:
       - tapOn:
           text: '.*Show details'
