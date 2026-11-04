@@ -70,6 +70,7 @@ import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
 import com.stripe.android.checkout.CheckoutController
+import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
 import com.stripe.android.core.reactnative.ReactNativeAnalytics
@@ -1427,6 +1428,12 @@ class StripeSdkModule(
         },
       activity = getCurrentActivityOrResolveWithError(promise) as? AppCompatActivity,
     )
+  }
+
+  @ReactMethod
+  override fun resetCheckoutCustomer(promise: Promise) {
+    CheckoutElementsController.resetCustomer(context = reactApplicationContext)
+    promise.resolve(null)
   }
 
   @ReactMethod

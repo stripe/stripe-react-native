@@ -225,6 +225,8 @@ export async function createCheckoutController(
         performOperation(() =>
           NativeStripeSdk.clearCheckoutPaymentOption(controllerId)
         ),
+      resetCustomer: () =>
+        performOperation(() => NativeStripeSdk.resetCheckoutCustomer()),
       confirm: () =>
         performOperation(() => NativeStripeSdk.confirmCheckout(controllerId)),
       destroy: () => {
