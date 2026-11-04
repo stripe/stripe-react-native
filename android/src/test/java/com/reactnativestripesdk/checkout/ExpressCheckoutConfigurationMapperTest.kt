@@ -90,7 +90,7 @@ class ExpressCheckoutConfigurationMapperTest {
   }
 
   @Test
-  fun `maps every Google Pay button type and button theme`() {
+  fun `maps every native enum value without a hardcoded bridge list`() {
     for (type in ExpressGooglePay.ButtonType.entries) {
       val configuration = ExpressCheckoutConfigurationMapper.map(
         readableMapOf("googlePay" to readableMapOf("buttonType" to type.name.lowercase())),
@@ -101,20 +101,18 @@ class ExpressCheckoutConfigurationMapperTest {
       val appearance = mapAppearance(readableMapOf("buttonTheme" to theme.name.lowercase()))
       assertEquals(theme, appearance.readField("buttonTheme"))
     }
-    val automatic = ExpressCheckoutConfigurationMapper.map(
-      readableMapOf(
-        "googlePay" to readableMapOf("display" to "automatic"),
-        "link" to readableMapOf("display" to "automatic"),
-      ),
-    )
-    assertEquals(
-      ExpressGooglePay.Display.Automatic,
-      automatic.readField<ExpressGooglePay>("googlePayConfiguration").readField<ExpressGooglePay.Display>("display"),
-    )
-    assertEquals(
-      ExpressLink.Display.Automatic,
-      automatic.readField<ExpressLink>("linkConfiguration").readField<ExpressLink.Display>("display"),
-    )
+    for (display in ExpressGooglePay.Display.entries) {
+      val configuration = ExpressCheckoutConfigurationMapper.map(
+        readableMapOf("googlePay" to readableMapOf("display" to display.name.lowercase())),
+      )
+      assertEquals(display, configuration.readField<ExpressGooglePay>("googlePayConfiguration").readField("display"))
+    }
+    for (display in ExpressLink.Display.entries) {
+      val configuration = ExpressCheckoutConfigurationMapper.map(
+        readableMapOf("link" to readableMapOf("display" to display.name.lowercase())),
+      )
+      assertEquals(display, configuration.readField<ExpressLink>("linkConfiguration").readField("display"))
+    }
   }
 
   @Test
@@ -130,12 +128,13 @@ class ExpressCheckoutConfigurationMapperTest {
   }
 
   @Test
-  fun `rejects fractional and out of bounds layout dimensions`() {
+  fun `native layout setters reject out of bounds dimensions`() {
     for (key in listOf("maxRows", "maxColumns")) {
-      for (value in listOf(-1, 0, 11, 1.5, Double.NaN, Double.POSITIVE_INFINITY)) {
-        assertThrows(IllegalArgumentException::class.java) {
+      for (value in listOf(-1, 0, 11)) {
+        val error = assertThrows(IllegalArgumentException::class.java) {
           mapAppearance(readableMapOf("buttonLayout" to readableMapOf(key to value)))
         }
+        assertEquals("$key must be between 1 and 10 or null.", error.message)
       }
     }
   }

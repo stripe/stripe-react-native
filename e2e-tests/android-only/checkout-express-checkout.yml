@@ -35,11 +35,21 @@ appId: ${APP_ID}
 - assertVisible:
     id: 'checkout-express-checkout'
 
-# Check native content, not just the React Native container.
-- assertVisible: 'Pay with GPay'
-- tapOn: 'Pay with GPay'
+# Google Play services versions expose different labels. Select the ECE button
+# above Items, not the similarly named Payment Element option below it.
+- assertVisible:
+    text: '(Pay with GPay|Google Pay)'
+    above:
+      text: 'Items'
+- tapOn:
+    text: '(Pay with GPay|Google Pay)'
+    above:
+      text: 'Items'
 - extendedWaitUntil:
-    notVisible: 'Pay with GPay'
+    notVisible:
+      text: '(Pay with GPay|Google Pay)'
+      above:
+        text: 'Items'
     timeout: 30000
 - pressKey: BACK
 - extendedWaitUntil:
@@ -50,4 +60,7 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: 'Status: ready'
     timeout: 30000
-- assertVisible: 'Pay with GPay'
+- assertVisible:
+    text: '(Pay with GPay|Google Pay)'
+    above:
+      text: 'Items'

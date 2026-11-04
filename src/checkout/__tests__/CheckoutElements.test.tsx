@@ -302,6 +302,40 @@ it('does not expose an unavailable Android Express Checkout Element', async () =
   await controller.destroy();
 });
 
+it('keeps explicit confirmation outcomes separate from the Express Checkout callback', async () => {
+  jest.replaceProperty(Platform, 'OS', 'android');
+  const onResult = jest.fn();
+  create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });
+  const controller = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: { onResult },
+  });
+  const confirm = NativeStripeSdk.confirmCheckout as jest.Mock;
+  const results: CheckoutElements.Result[] = [
+    { status: 'completed', paymentStatus: 'paid' },
+    { status: 'canceled' },
+    { status: 'failed', error: { code: 'Failed', message: 'Declined' } },
+  ];
+  for (const result of results) {
+    confirm.mockResolvedValueOnce(result);
+    await expect(controller.confirm()).resolves.toBe(result);
+    expect(onResult).not.toHaveBeenCalled();
+  }
+  confirm.mockRejectedValueOnce(new Error('Confirmation already active'));
+  await expect(controller.confirm()).rejects.toThrow(
+    'Confirmation already active'
+  );
+  expect(onResult).not.toHaveBeenCalled();
+
+  emit('checkoutExpressCheckoutDidComplete', {
+    controllerId: create.mock.calls[0][1],
+    result: results[1],
+  });
+  expect(onResult).toHaveBeenCalledTimes(1);
+  expect(onResult).toHaveBeenCalledWith(results[1]);
+  await controller.destroy();
+});
+
 it('routes all inline payment outcomes to their controller and removes listeners on destruction', async () => {
   jest.replaceProperty(Platform, 'OS', 'android');
   const firstResult = jest.fn();

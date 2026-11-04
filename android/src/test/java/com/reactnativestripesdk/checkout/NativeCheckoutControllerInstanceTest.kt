@@ -353,16 +353,43 @@ class NativeCheckoutControllerInstanceTest {
     }
 
   @Test
-  fun `explicit confirmation does not also emit an express result`() =
+  fun `explicit confirmation outcomes never also emit express results`() =
     withFixture(expressConfigured = true) { fixture ->
       fixture.start()
-      val pending = async { fixture.instance.confirm(fixture.activity.get()) }
-      runCurrent()
-      val completed = NativeCheckoutFixtures.completedResult()
-      fixture.instance.onConfirmationResult(completed)
-      assertEquals(completed, pending.await())
-      advanceUntilIdle()
+      val outcomes = listOf(
+        NativeCheckoutFixtures.completedResult(),
+        NativeCheckoutFixtures.canceledResult(),
+        NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")),
+      )
+      for (result in outcomes) {
+        val pending = async { fixture.instance.confirm(fixture.activity.get()) }
+        runCurrent()
+        fixture.instance.onConfirmationResult(result)
+        assertSame(result, pending.await())
+        advanceUntilIdle()
+        assertTrue(fixture.expressResults.isEmpty())
+      }
+    }
+
+  @Test
+  fun `synchronous confirm rejection during an express flow belongs only to the explicit caller`() =
+    withFixture(expressConfigured = true) { fixture ->
+      fixture.start()
+      fixture.updating.value = true
+      val rejected = NativeCheckoutFixtures.failedResult(
+        IllegalStateException("Cannot confirm checkout while another confirmation is in progress."),
+      )
+      doAnswer {
+        fixture.instance.onConfirmationResult(rejected)
+        null
+      }.`when`(fixture.presenter).confirm()
+      assertSame(rejected, fixture.instance.confirm(fixture.activity.get()))
       assertTrue(fixture.expressResults.isEmpty())
+
+      fixture.updating.value = false
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+      advanceUntilIdle()
+      assertEquals("canceled", fixture.expressResults.single().getMap("result")!!.getString("status"))
     }
 
   @Test

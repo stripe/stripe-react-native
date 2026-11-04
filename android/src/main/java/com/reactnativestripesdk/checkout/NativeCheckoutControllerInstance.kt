@@ -128,6 +128,11 @@ internal class NativeCheckoutControllerInstance(
     if (pendingConfirmation != null) {
       pendingConfirmation.complete(result)
     } else if (isExpressCheckoutElementConfigured) {
+      // In the pinned native SDK, only CheckoutPresenter.confirm() and ECE buttons deliver
+      // controller results. Payment Element's sheets/rows only select payment options; even an
+      // immediateAction integration confirms through our confirm(), which installs the deferred
+      // before invoking the presenter. Thus only ECE results reach this branch, not those from
+      // confirming a Google Pay/Link option selected in Payment Element.
       scope.launch {
         val serializedResult = try {
           // Publish the refreshed session before the merchant handles the payment result.
