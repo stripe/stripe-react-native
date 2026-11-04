@@ -53,25 +53,10 @@ beforeEach(() => {
 
 it('passes Express Checkout configuration without serializing its result callback', async () => {
   const onResult = jest.fn<void, [CheckoutElements.Result]>();
-  const controller = await createCheckoutElements({
-    ...options,
-    expressCheckoutElement: {
-      applePay: { buttonType: 'checkout' },
-      googlePay: {
-        display: 'automatic',
-        label: 'Total',
-        buttonType: 'pay',
-        additionalEnabledNetworks: ['INTERAC'],
-      },
-      link: { display: 'never' },
-      appearance: {
-        buttonTheme: 'dark',
-        buttonLayout: { maxColumns: 2, maxRows: 1 },
-      },
-      onResult,
-    },
-  });
-  expect(create.mock.calls[0][0].expressCheckoutElement).toEqual({
+  const configuration: Omit<
+    CheckoutElements.ExpressCheckoutElementConfiguration,
+    'onResult'
+  > = {
     applePay: { buttonType: 'checkout' },
     googlePay: {
       display: 'automatic',
@@ -84,7 +69,12 @@ it('passes Express Checkout configuration without serializing its result callbac
       buttonTheme: 'dark',
       buttonLayout: { maxColumns: 2, maxRows: 1 },
     },
+  };
+  const controller = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: { ...configuration, onResult },
   });
+  expect(create.mock.calls[0][0].expressCheckoutElement).toEqual(configuration);
   expect(onResult).not.toHaveBeenCalled();
   await controller.destroy();
 });
@@ -120,7 +110,6 @@ it('routes wallet results to their controller and removes callbacks on destructi
     expressCheckoutElement: { onResult: otherResult },
   });
   expect(first.expressCheckoutElement).not.toBeNull();
-  expect(first.expressCheckoutElement).toBe(first.expressCheckoutElement);
   const controllerId = create.mock.calls[0][1];
   for (const result of [
     { status: 'completed', paymentStatus: 'paid' },
@@ -271,7 +260,12 @@ it('forwards mutations and preserves native errors', async () => {
 it('removes listeners when creation fails', async () => {
   const error = new Error('Invalid client secret');
   create.mockRejectedValueOnce(error);
-  await expect(createCheckoutElements(options)).rejects.toBe(error);
+  await expect(
+    createCheckoutElements({
+      ...options,
+      expressCheckoutElement: { onResult: jest.fn() },
+    })
+  ).rejects.toBe(error);
   expect(
     [...listeners.values()].every((callbacks) => callbacks.size === 0)
   ).toBe(true);

@@ -93,10 +93,10 @@ export function normalizeCheckoutError(error: unknown): CheckoutOperationError {
 function nativeCreateOptions(
   options: CheckoutElements.CreateOptions
 ): Parameters<typeof NativeStripeSdk.createCheckout>[0] {
-  const { expressCheckoutElement, ...nativeOptions } = options;
   const result: Parameters<typeof NativeStripeSdk.createCheckout>[0] = {
-    ...nativeOptions,
+    ...options,
   };
+  const { expressCheckoutElement } = options;
   if (expressCheckoutElement) {
     result.expressCheckoutElement = {
       applePay: expressCheckoutElement.applePay,
@@ -107,12 +107,9 @@ function nativeCreateOptions(
   }
   const rowSelectionBehavior = options.paymentElement?.rowSelectionBehavior;
   if (rowSelectionBehavior?.type === 'immediateAction') {
-    return {
-      ...result,
-      paymentElement: {
-        ...options.paymentElement,
-        rowSelectionBehavior: { type: rowSelectionBehavior.type },
-      },
+    result.paymentElement = {
+      ...options.paymentElement,
+      rowSelectionBehavior: { type: rowSelectionBehavior.type },
     };
   }
   return result;
@@ -272,7 +269,7 @@ export async function createCheckoutController(
         status = 'destroyed';
         subscription.remove();
         selectionSubscription.remove();
-        expressResultSubscription.remove();
+        expressResultSubscription?.remove();
         if (expressCheckoutElement) {
           expressCheckoutElementIds.delete(expressCheckoutElement);
         }
@@ -293,7 +290,7 @@ export async function createCheckoutController(
   } catch (error) {
     subscription.remove();
     selectionSubscription.remove();
-    expressResultSubscription.remove();
+    expressResultSubscription?.remove();
     throw error;
   }
 }

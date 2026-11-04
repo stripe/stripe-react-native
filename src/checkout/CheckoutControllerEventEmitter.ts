@@ -35,9 +35,12 @@ export function addCheckoutExpressCheckoutResultListener(
   controllerId: string,
   listener: ((result: CheckoutElements.Result) => void) | undefined
 ) {
+  if (!listener) {
+    return;
+  }
   return addListener('checkoutExpressCheckoutResult', (event) => {
     if (event.controllerId === controllerId) {
-      listener?.(event.result);
+      listener(event.result);
     }
   });
 }
