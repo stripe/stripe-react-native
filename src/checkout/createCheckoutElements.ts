@@ -107,6 +107,20 @@ export async function createCheckoutElements(
   return createCheckoutController(options);
 }
 
+/**
+ * Deletes all persisted authentication state associated with a customer.
+ * You must call this method when the user logs out from your app.
+ *
+ * @remarks
+ * This API is in private preview and can change without notice.
+ *
+ * @internal
+ * @CheckoutSessionPrivatePreview
+ */
+export async function resetCheckoutCustomer(): Promise<void> {
+  return NativeStripeSdk.resetCheckoutCustomer();
+}
+
 /** Creates a controller and reports its native state changes to useCheckoutElements. */
 export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,

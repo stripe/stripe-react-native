@@ -1696,6 +1696,13 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun resetCheckoutCustomer(promise: Promise) {
+    // The Android Checkout SDK doesn't have its own resetCustomer API; this clears the same persisted Link state.
+    PaymentSheet.resetCustomer(context = reactApplicationContext)
+    promise.resolve(null)
+  }
+
   @Suppress("TooGenericExceptionCaught")
   private fun performCheckoutMutation(
     controllerId: String,

@@ -243,6 +243,15 @@ extension StripeSdkImpl {
         }
     }
 
+    @objc(resetCheckoutCustomer:rejecter:)
+    public func resetCheckoutCustomer(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        CheckoutElementsController.resetCustomer()
+        resolve(nil)
+    }
+
     @objc(completeCheckoutServerUpdate:operationId:error:resolver:rejecter:)
     public func completeCheckoutServerUpdate(
         controllerId: String,

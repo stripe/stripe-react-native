@@ -308,6 +308,9 @@ export interface Spec extends TurboModule {
     error: string | null
   ): Promise<void>;
 
+  /** @CheckoutSessionPrivatePreview */
+  resetCheckoutCustomer(): Promise<void>;
+
   // Events
   addListener: (eventType: string) => void;
   removeListeners: (count: number) => void;

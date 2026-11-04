@@ -2,7 +2,10 @@ import { checkoutSession as session } from '../__fixtures__/session';
 import { addListener } from '../../events';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import type { CheckoutElements } from '../../types/CheckoutElements';
-import { createCheckoutElements } from '../createCheckoutElements';
+import {
+  createCheckoutElements,
+  resetCheckoutCustomer,
+} from '../createCheckoutElements';
 
 jest.mock('../../events', () => ({ addListener: jest.fn() }));
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
@@ -17,6 +20,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
     clearCheckoutPaymentOption: jest.fn(),
     presentCheckoutPaymentElement: jest.fn(),
     confirmCheckout: jest.fn(),
+    resetCheckoutCustomer: jest.fn(),
   },
 }));
 
@@ -236,4 +240,17 @@ it('returns native confirmation outcomes and preserves rejection errors', async 
   await controller.destroy();
   await expect(controller.confirm()).rejects.toThrow('destroyed');
   expect(confirm).toHaveBeenCalledTimes(4);
+});
+
+it('resets the Checkout customer natively', async () => {
+  // Given the native reset succeeds
+  (NativeStripeSdk.resetCheckoutCustomer as jest.Mock).mockResolvedValue(
+    undefined
+  );
+
+  // When the customer is reset
+  await resetCheckoutCustomer();
+
+  // Then the native module clears the customer's state
+  expect(NativeStripeSdk.resetCheckoutCustomer).toHaveBeenCalledTimes(1);
 });

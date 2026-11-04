@@ -306,6 +306,12 @@ RCT_EXPORT_METHOD(completeCheckoutServerUpdate:(nonnull NSString *)controllerId
   [StripeSdkImpl.shared completeCheckoutServerUpdate:controllerId operationId:operationId error:error resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(resetCheckoutCustomer:(nonnull RCTPromiseResolveBlock)resolve
+                                 reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared resetCheckoutCustomer:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSString *)setupIntentClientSecret
                                                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
                                                                        reject:(nonnull RCTPromiseRejectBlock)reject)
