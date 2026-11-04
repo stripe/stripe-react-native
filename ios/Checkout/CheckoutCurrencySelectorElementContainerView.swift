@@ -1,6 +1,6 @@
 import Combine
 import React
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 import UIKit
 
 /// Hosts the Currency Selector Element owned by a registered Checkout controller.

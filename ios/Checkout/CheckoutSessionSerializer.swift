@@ -1,5 +1,5 @@
 import Foundation
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 @MainActor
 enum CheckoutSessionSerializer {

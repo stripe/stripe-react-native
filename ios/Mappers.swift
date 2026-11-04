@@ -1,7 +1,7 @@
 import Contacts
 import PassKit
 import Stripe
-@_spi(ConfirmationTokensPublicPreview) import StripePayments
+import StripePayments
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
 @_spi(CryptoOnrampAlpha) import StripePaymentSheet
