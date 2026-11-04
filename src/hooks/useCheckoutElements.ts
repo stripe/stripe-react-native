@@ -156,6 +156,7 @@ export function useCheckoutElements(
       removePromotionCode: async () =>
         currentController().removePromotionCode(),
       clearPaymentOption: async () => currentController().clearPaymentOption(),
+      resetCustomer: async () => currentController().resetCustomer(),
       runServerUpdate: async (callback) =>
         currentController().runServerUpdate(callback),
       confirm: async () => currentController().confirm(),
