@@ -2,11 +2,11 @@ import AuthenticationServices
 import Foundation
 import PassKit
 import React
-@_spi(DashboardOnly) @_spi(InternalOnlyAPI) import Stripe
-@_spi(InternalOnlyAPI) @_spi(ReactNativeSDK) import StripeCore
+@_spi(DashboardOnly) @_spi(ReactNativeSDK) import Stripe
+@_spi(ReactNativeSDK) import StripeCore
 import StripeFinancialConnections
-@_spi(InternalOnlyAPI) @_spi(ConfirmationTokensPublicPreview) import StripePayments
-import StripePaymentsUI
+@_spi(ReactNativeSDK) @_spi(ConfirmationTokensPublicPreview) import StripePayments
+@_spi(ReactNativeSDK) import StripePaymentsUI
 import UIKit
 #if canImport(StripeCryptoOnramp)
 @_spi(CryptoOnrampAlpha) import StripeCryptoOnramp

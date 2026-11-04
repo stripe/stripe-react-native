@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 import UIKit
 
 /// Owns a native Checkout controller and its session observation for the bridge.

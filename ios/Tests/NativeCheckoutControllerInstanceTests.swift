@@ -1,7 +1,7 @@
 import Foundation
 @testable import stripe_react_native
-@_spi(InternalOnlyAPI) import StripeCore
-@testable @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripeCore
+@testable @_spi(ReactNativeSDK) import StripePaymentSheet
 import XCTest
 
 @MainActor
