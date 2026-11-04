@@ -11,9 +11,11 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.EventEmitterCompat
+import com.reactnativestripesdk.utils.createError
 import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.elements.CurrencySelectorElement
+import com.stripe.android.elements.ExpressCheckoutElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.elements.ShippingAddressElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
@@ -39,6 +41,7 @@ internal class NativeCheckoutControllerInstance(
   initialSession: WritableMap,
   private val context: ReactApplicationContext,
   private val isShippingAddressElementConfigured: Boolean = false,
+  private val isExpressCheckoutElementConfigured: Boolean = false,
 ) {
 
   private val serverUpdateCompletions = mutableMapOf<String, CompletableDeferred<Result<Unit>>>()
@@ -92,6 +95,14 @@ internal class NativeCheckoutControllerInstance(
     return getPresenter(activity).shippingAddressElement()
   }
 
+  /** Uses the same activity-bound presenter as the other Checkout elements. */
+  fun expressCheckoutElement(activity: ComponentActivity): ExpressCheckoutElement {
+    check(isExpressCheckoutElementConfigured) {
+      "Express Checkout Element was not configured for this Checkout controller."
+    }
+    return getPresenter(activity).expressCheckoutElement()
+  }
+
   private fun getPresenter(activity: ComponentActivity): CheckoutElementsPresenter {
     check(!destroyed) { "Checkout controller was destroyed." }
     return bindPresenter(activity)
@@ -105,6 +116,10 @@ internal class NativeCheckoutControllerInstance(
         if (isShippingAddressElementConfigured) {
           // Register shipping results even when another element recreates the presenter.
           newPresenter.shippingAddressElement()
+        }
+        if (isExpressCheckoutElementConfigured) {
+          // Register wallet results even when another element recreates the presenter.
+          newPresenter.expressCheckoutElement()
         }
       }
       this.activity = activity
@@ -140,9 +155,34 @@ internal class NativeCheckoutControllerInstance(
   }
 
   @MainThread
+  @Suppress("TooGenericExceptionCaught")
   fun onConfirmationResult(result: CheckoutElementsController.Result) {
     UiThreadUtil.assertOnUiThread()
-    confirmation?.complete(result)
+    val pendingConfirmation = confirmation
+    if (pendingConfirmation != null) {
+      pendingConfirmation.complete(result)
+    } else if (!destroyed && isExpressCheckoutElementConfigured) {
+      scope.launch {
+        val serializedResult = try {
+          // Publish the refreshed session before the merchant handles the payment result.
+          publishCurrentState()
+          CheckoutSessionSerializer.serialize(result, controller.session.value?.status)
+        } catch (error: CancellationException) {
+          throw error
+        } catch (error: Exception) {
+          // Match explicit confirmation's bridge error handling rather than crashing the coroutine.
+          createError(checkoutErrorCode(error), error).apply { putString("status", "failed") }
+        }
+        if (!destroyed) {
+          eventEmitter.emitCheckoutExpressCheckoutDidComplete(
+            Arguments.createMap().apply {
+              putString("controllerId", controllerId)
+              putMap("result", serializedResult)
+            },
+          )
+        }
+      }
+    }
   }
 
   private fun releasePresenter() {
