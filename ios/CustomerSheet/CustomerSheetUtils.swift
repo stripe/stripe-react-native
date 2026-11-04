@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(PrivateBetaCustomerSheet) @_spi(ReactNativeSDK) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 class CustomerSheetUtils {
     internal class func buildCustomerSheetConfiguration(

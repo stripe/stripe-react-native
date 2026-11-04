@@ -1,5 +1,5 @@
 @testable import stripe_react_native
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(ReactNativeSDK) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(ReactNativeSDK) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 import XCTest
 
 class PaymentSheetUtilsTests: XCTestCase {
