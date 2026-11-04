@@ -1,5 +1,5 @@
 import Foundation
-@_spi(PrivateBetaCustomerSheet) import StripePaymentSheet
+import StripePaymentSheet
 
 /// Owns the pending CustomerSession requests for one CustomerSheet instance.
 @MainActor
