@@ -1453,6 +1453,8 @@ class StripeSdkModule(
     )
   }
 
+  // TODO: Implement resetCheckoutCustomer when it is available in stripe-android.
+
   @ReactMethod
   @Suppress("TooGenericExceptionCaught", "LongMethod")
   override fun createCheckout(

@@ -4,6 +4,15 @@ import React
 
 extension StripeSdkImpl {
 
+    @objc(resetCheckoutCustomer:rejecter:)
+    public func resetCheckoutCustomer(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        CheckoutElementsController.resetCustomer()
+        resolve(nil)
+    }
+
     @objc(createCheckout:controllerId:resolver:rejecter:)
     public func createCheckout(
         params: NSDictionary,
