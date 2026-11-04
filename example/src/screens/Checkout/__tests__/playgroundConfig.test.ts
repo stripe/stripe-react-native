@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {
   buildSessionParameters,
   checkoutConfiguration,
@@ -5,6 +6,8 @@ import {
   resolvedEmail,
   validateSettings,
 } from '../playgroundConfig';
+
+jest.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 
 describe('Checkout playground configuration', () => {
   it('builds the standard stripe-ios cart request', () => {
@@ -132,4 +135,31 @@ describe('Checkout playground configuration', () => {
       paymentElement: { link: { display: 'automatic' } },
     });
   });
+});
+
+it('opts into Android Express Checkout with its result callback and Link display', () => {
+  const onResult = jest.fn();
+  const params = {
+    clientSecret: 'cs_test_secret',
+    settings: {
+      ...defaultPlaygroundSettings,
+      expressCheckoutEnabled: true,
+      linkMode: 'never' as const,
+    },
+  };
+  jest.replaceProperty(Platform, 'OS', 'android');
+  expect(
+    checkoutConfiguration(params, onResult).expressCheckoutElement
+  ).toEqual({ link: { display: 'never' }, onResult });
+  expect(
+    checkoutConfiguration(
+      { ...params, settings: defaultPlaygroundSettings },
+      onResult
+    ).expressCheckoutElement
+  ).toBeUndefined();
+  jest.replaceProperty(Platform, 'OS', 'ios');
+  expect(
+    checkoutConfiguration(params, onResult).expressCheckoutElement
+  ).toBeUndefined();
+  jest.restoreAllMocks();
 });
