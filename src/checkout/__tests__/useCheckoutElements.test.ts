@@ -185,23 +185,25 @@ it('reports initialization errors and recovers on reload', async () => {
   expect(hook.result.current).toMatchObject({ status: 'ready', error: null });
 });
 
-it('reports unsupported Express Checkout configuration through its error state', async () => {
+it('exposes the native Express Checkout handle and forwards payment results', async () => {
+  create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });
+  const onResult = jest.fn();
   const hook = renderCheckout({
     getConfiguration: async () => ({
       ...options,
-      expressCheckoutElement: { onResult: jest.fn() },
+      expressCheckoutElement: { onResult },
     }),
   });
-  await waitFor(() => expect(hook.result.current.status).toBe('error'));
-  expect(hook.result.current).toMatchObject({
-    expressCheckoutElement: null,
-    error: {
-      code: 'Failed',
-      message:
-        'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.',
-    },
-  });
-  expect(create).not.toHaveBeenCalled();
+  await waitFor(() => expect(hook.result.current.status).toBe('ready'));
+  expect(hook.result.current.expressCheckoutElement).not.toBeNull();
+  const result = { status: 'completed', paymentStatus: 'paid' };
+  act(() =>
+    listener('checkoutExpressCheckoutResult')({
+      controllerId: controllerId(),
+      result,
+    })
+  );
+  expect(onResult).toHaveBeenCalledWith(result);
   hook.unmount();
 });
 

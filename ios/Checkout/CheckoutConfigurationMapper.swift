@@ -21,7 +21,8 @@ enum CheckoutConfigurationMapper {
     static func map(
         params: NSDictionary,
         merchantIdentifier: String?,
-        didSelectPaymentOption: @escaping () -> Void
+        didSelectPaymentOption: @escaping () -> Void,
+        expressCheckoutCompletion: @escaping ExpressCheckoutElement.Configuration.CompletionHandler = { _ in }
     ) throws -> CheckoutElementsController.Configuration {
         let clientSecret = params["clientSecret"] as? String ?? ""
         let returnURL = params["returnURL"] as? String ?? ""
@@ -63,7 +64,74 @@ enum CheckoutConfigurationMapper {
             )
             configuration.currencySelectorElement = currencySelectorConfiguration
         }
+        if let expressParams = params["expressCheckoutElement"] as? NSDictionary {
+            configuration.expressCheckoutElement = try mapExpressCheckoutElement(
+                expressParams,
+                merchantIdentifier: merchantIdentifier,
+                completion: expressCheckoutCompletion
+            )
+        }
         return configuration
+    }
+
+    private static func mapExpressCheckoutElement(
+        _ params: NSDictionary,
+        merchantIdentifier: String?,
+        completion: @escaping ExpressCheckoutElement.Configuration.CompletionHandler
+    ) throws -> ExpressCheckoutElement.Configuration {
+        var configuration = ExpressCheckoutElement.Configuration(completion: completion)
+        if let merchantIdentifier, !merchantIdentifier.isEmpty {
+            let applePay = params["applePay"] as? NSDictionary
+            configuration.applePayConfiguration = .init(
+                merchantId: merchantIdentifier,
+                buttonType: try mapApplePayButtonType(
+                    applePay?["buttonType"] as? String,
+                    path: "expressCheckoutElement.applePay.buttonType"
+                )
+            )
+        } else if params["applePay"] is NSDictionary {
+            throw CheckoutConfigurationMapperError.missingMerchantIdentifier
+        }
+        if let link = params["link"] as? NSDictionary,
+           let display = link["display"] as? String {
+            switch display {
+            case "automatic": configuration.linkConfiguration.display = .automatic
+            case "never": configuration.linkConfiguration.display = .never
+            default: throw unsupported(display, at: "expressCheckoutElement.link.display")
+            }
+        }
+        if let appearance = params["appearance"] as? NSDictionary {
+            if let theme = appearance["buttonTheme"] as? String {
+                switch theme {
+                case "automatic": configuration.appearance.buttonTheme = .automatic
+                case "light": configuration.appearance.buttonTheme = .light
+                case "dark": configuration.appearance.buttonTheme = .dark
+                default: throw unsupported(theme, at: "expressCheckoutElement.appearance.buttonTheme")
+                }
+            }
+            if let radius = appearance["borderRadius"] as? NSNumber {
+                guard radius.doubleValue.isFinite, radius.doubleValue >= 0 else {
+                    throw unsupported(radius.stringValue, at: "expressCheckoutElement.appearance.borderRadius")
+                }
+                configuration.appearance.cornerRadius = CGFloat(truncating: radius)
+            }
+            if let layout = appearance["buttonLayout"] as? NSDictionary {
+                configuration.appearance.buttonLayout.maxColumns = try mapExpressLayoutDimension(layout, key: "maxColumns")
+                configuration.appearance.buttonLayout.maxRows = try mapExpressLayoutDimension(layout, key: "maxRows")
+            }
+        }
+        return configuration
+    }
+
+    private static func mapExpressLayoutDimension(_ params: NSDictionary, key: String) throws -> Int? {
+        guard let value = params[key] else { return nil }
+        guard let number = value as? NSNumber,
+              number.doubleValue.isFinite,
+              (1...10).contains(number.doubleValue),
+              number.doubleValue.rounded() == number.doubleValue else {
+            throw unsupported(String(describing: value), at: "expressCheckoutElement.appearance.buttonLayout.\(key)")
+        }
+        return number.intValue
     }
 
     private static func mapShippingAddressAppearance(
@@ -342,7 +410,10 @@ enum CheckoutConfigurationMapper {
         )
     }
 
-    private static func mapApplePayButtonType(_ value: String?) throws -> PKPaymentButtonType? {
+    private static func mapApplePayButtonType(
+        _ value: String?,
+        path: String = "paymentElement.applePay.buttonType"
+    ) throws -> PKPaymentButtonType? {
         guard let value else {
             return nil
         }
@@ -364,7 +435,7 @@ enum CheckoutConfigurationMapper {
         case "contribute": 14
         case "tip": 15
         case "continue": 16
-        default: throw unsupported(value, at: "paymentElement.applePay.buttonType")
+        default: throw unsupported(value, at: path)
         }
         return PKPaymentButtonType(rawValue: rawValue)
     }

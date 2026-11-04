@@ -51,6 +51,7 @@ type CustomerSheetInitResult = UnsafeObject<{
 type CheckoutCreateResult = UnsafeObject<{
   session: CheckoutElements.Session;
   isCurrencySelectorAvailable: boolean;
+  isExpressCheckoutAvailable: boolean;
 }>;
 
 export interface Spec extends TurboModule {
@@ -253,7 +254,14 @@ export interface Spec extends TurboModule {
 
   /** @CheckoutSessionPrivatePreview */
   createCheckout(
-    params: UnsafeObject<CheckoutElements.CreateOptions>,
+    params: UnsafeObject<
+      Omit<CheckoutElements.CreateOptions, 'expressCheckoutElement'> & {
+        expressCheckoutElement?: Omit<
+          CheckoutElements.ExpressCheckoutElementConfiguration,
+          'onResult'
+        >;
+      }
+    >,
     controllerId: string
   ): Promise<CheckoutCreateResult>;
 

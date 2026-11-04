@@ -36,6 +36,13 @@ extension StripeSdkImpl {
                             emitter?.emitCheckoutControllerDidSelectPaymentOption([
                                 "controllerId": controllerId,
                             ])
+                        },
+                        expressCheckoutCompletion: { [weak self] result in
+                            guard let self, checkoutControllers[controllerId] != nil else { return }
+                            emitter?.emitCheckoutExpressCheckoutResult([
+                                "controllerId": controllerId,
+                                "result": CheckoutSessionSerializer.serialize(result),
+                            ])
                         }
                     )
                     let checkout = try await CheckoutElementsController(configuration: configuration)
@@ -45,6 +52,9 @@ extension StripeSdkImpl {
                         : checkout.getCurrencySelectorElement()
                     let instance = NativeCheckoutControllerInstance(
                         checkout: checkout,
+                        expressCheckoutElement: configuration.expressCheckoutElement == nil
+                            ? nil
+                            : checkout.getExpressCheckoutElement(),
                         currencySelectorElement: currencySelectorElement,
                         shippingAddressElement: configuration.shippingAddressElement == nil
                             ? nil
@@ -58,6 +68,8 @@ extension StripeSdkImpl {
                     resolve([
                         "session": instance.session,
                         "isCurrencySelectorAvailable": currencySelectorElement != nil,
+                        "isExpressCheckoutAvailable": instance.expressCheckoutElement != nil
+                            && !checkout.session.availableExpressCheckoutPaymentMethods.isEmpty,
                     ])
                 } catch {
                     reject("Failed", error.localizedDescription, error)

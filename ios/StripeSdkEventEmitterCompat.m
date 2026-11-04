@@ -27,6 +27,7 @@
     @"onCheckoutClientSecretRequested",
     @"paymentMethodMessagingElementDidUpdateHeight",
     @"paymentMethodMessagingElementConfigureResult",
+    @"checkoutExpressCheckoutResult",
     @"checkoutControllerDidUpdate",
     @"checkoutServerUpdateRequested",
     @"checkoutControllerDidSelectPaymentOption",
@@ -141,6 +142,11 @@
 - (void)emitPaymentMethodMessagingElementConfigureResult:(NSDictionary *)value
 {
   [self sendEventWithName:@"paymentMethodMessagingElementConfigureResult" body:value];
+}
+
+- (void)emitCheckoutExpressCheckoutResult:(NSDictionary *)value
+{
+  [self sendEventWithName:@"checkoutExpressCheckoutResult" body:value];
 }
 
 - (void)emitCheckoutControllerDidUpdate:(NSDictionary *)value

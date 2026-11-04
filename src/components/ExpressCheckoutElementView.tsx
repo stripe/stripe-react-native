@@ -1,4 +1,6 @@
-import type React from 'react';
+import React, { useState } from 'react';
+import { getCheckoutExpressCheckoutElementId } from '../checkout/createCheckoutElements';
+import NativeCheckoutExpressCheckoutElement from '../specs/NativeCheckoutExpressCheckoutElement';
 import type { ExpressCheckoutElementViewProps } from '../types/CheckoutElements';
 
 /**
@@ -10,12 +12,25 @@ import type { ExpressCheckoutElementViewProps } from '../types/CheckoutElements'
  * @internal
  * @CheckoutSessionPrivatePreview
  */
-export function ExpressCheckoutElementView(
-  _props: ExpressCheckoutElementViewProps
-): React.JSX.Element {
-  // TODO: Render the Checkout-owned Express Checkout Element with a native component.
-  throw new Error(
-    'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
+export function ExpressCheckoutElementView({
+  element,
+}: ExpressCheckoutElementViewProps): React.JSX.Element {
+  const controllerId = getCheckoutExpressCheckoutElementId(element);
+  return <MeasuredElement key={controllerId} controllerId={controllerId} />;
+}
+
+function MeasuredElement({
+  controllerId,
+}: {
+  controllerId: string;
+}): React.JSX.Element {
+  const [height, setHeight] = useState(1);
+  return (
+    <NativeCheckoutExpressCheckoutElement
+      controllerId={controllerId}
+      style={{ height }}
+      onHeightChanged={({ nativeEvent }) => setHeight(nativeEvent.height)}
+    />
   );
 }
 

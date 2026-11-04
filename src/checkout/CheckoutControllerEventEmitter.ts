@@ -30,6 +30,18 @@ export function addCheckoutControllerListener(
   });
 }
 
+/** Forwards wallet payment results only to the owning controller. */
+export function addCheckoutExpressCheckoutResultListener(
+  controllerId: string,
+  listener: ((result: CheckoutElements.Result) => void) | undefined
+) {
+  return addListener('checkoutExpressCheckoutResult', (event) => {
+    if (event.controllerId === controllerId) {
+      listener?.(event.result);
+    }
+  });
+}
+
 /** Forwards the native immediate-action callback for this controller. */
 export function addCheckoutControllerSelectionListener(
   controllerId: string,

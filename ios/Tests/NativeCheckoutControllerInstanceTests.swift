@@ -156,7 +156,58 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         })
     }
 
-    private func makeCheckout() async throws -> CheckoutElementsController {
+    func test_expressViewReleasesReplacedUnmountedAndDestroyedControllers() async throws {
+        let sdk = StripeSdkImpl.shared
+        let firstCheckout = try await makeCheckout(express: true)
+        let secondCheckout = try await makeCheckout(express: true)
+        let first = NativeCheckoutControllerInstance(
+            checkout: firstCheckout,
+            expressCheckoutElement: firstCheckout.getExpressCheckoutElement(),
+            emitEvent: { _ in }
+        )
+        let second = NativeCheckoutControllerInstance(
+            checkout: secondCheckout,
+            expressCheckoutElement: secondCheckout.getExpressCheckoutElement(),
+            emitEvent: { _ in }
+        )
+        sdk.checkoutControllers["express-first"] = first
+        sdk.checkoutControllers["express-second"] = second
+        defer {
+            sdk.checkoutControllers.removeValue(forKey: "express-first")?.destroy()
+            sdk.checkoutControllers.removeValue(forKey: "express-second")?.destroy()
+        }
+        let firstView = try XCTUnwrap(first.expressCheckoutElement?.uiView)
+        let secondView = try XCTUnwrap(second.expressCheckoutElement?.uiView)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+        let view = CheckoutExpressCheckoutElementContainerView(frame: CGRect(x: 0, y: 0, width: 320, height: 1))
+        view.controllerId = "express-first"
+        var heights: [CGFloat] = []
+        view.onHeightChanged = { event in heights.append(event?["height"] as? CGFloat ?? -1) }
+        window.addSubview(view)
+        view.layoutIfNeeded()
+        XCTAssertTrue(firstView.superview === view)
+        XCTAssertEqual(heights.count, 1)
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        XCTAssertEqual(heights.count, 1)
+        view.removeFromSuperview()
+        XCTAssertNil(firstView.superview)
+        window.addSubview(view)
+        XCTAssertTrue(firstView.superview === view)
+        view.controllerId = "express-second"
+        XCTAssertNil(firstView.superview)
+        XCTAssertTrue(secondView.superview === view)
+        first.destroy()
+        XCTAssertTrue(secondView.superview === view)
+        second.destroy()
+        XCTAssertNil(secondView.superview)
+        XCTAssertTrue(view.subviews.isEmpty)
+        view.detach()
+        view.controllerId = nil
+        view.removeFromSuperview()
+    }
+
+    private func makeCheckout(express: Bool = false) async throws -> CheckoutElementsController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]
         let apiClient = STPAPIClient(publishableKey: "pk_test_123")
@@ -168,6 +219,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         )
         configuration.apiClient = apiClient
         configuration.paymentElement = .init()
+        if express { configuration.expressCheckoutElement = .init(completion: { _ in }) }
         return try await CheckoutElementsController(configuration: configuration)
     }
 }

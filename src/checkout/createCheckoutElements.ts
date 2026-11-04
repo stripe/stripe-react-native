@@ -1,4 +1,6 @@
+import { Platform } from 'react-native';
 import type {
+  ExpressCheckoutElement,
   CheckoutElements,
   CheckoutCurrencySelectorElement,
   CheckoutPaymentElement,
@@ -9,8 +11,22 @@ import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import {
   addCheckoutControllerListener,
   addCheckoutControllerSelectionListener,
+  addCheckoutExpressCheckoutResultListener,
   createCheckoutBridgeId,
 } from './CheckoutControllerEventEmitter';
+
+const expressCheckoutElementIds = new WeakMap<ExpressCheckoutElement, string>();
+
+/** Resolves an Express Checkout Element owned by a Checkout controller. */
+export function getCheckoutExpressCheckoutElementId(
+  element: ExpressCheckoutElement
+): string {
+  const id = expressCheckoutElementIds.get(element);
+  if (!id) {
+    throw new Error('Express Checkout Element was not created by this SDK.');
+  }
+  return id;
+}
 
 const paymentElementIds = new WeakMap<CheckoutPaymentElement, string>();
 const currencySelectorElementIds = new WeakMap<
@@ -76,19 +92,30 @@ export function normalizeCheckoutError(error: unknown): CheckoutOperationError {
 
 function nativeCreateOptions(
   options: CheckoutElements.CreateOptions
-): CheckoutElements.CreateOptions {
-  const rowSelectionBehavior = options.paymentElement?.rowSelectionBehavior;
-  if (!rowSelectionBehavior || rowSelectionBehavior.type === 'default') {
-    return options;
-  }
-
-  return {
-    ...options,
-    paymentElement: {
-      ...options.paymentElement,
-      rowSelectionBehavior: { type: rowSelectionBehavior.type },
-    },
+): Parameters<typeof NativeStripeSdk.createCheckout>[0] {
+  const { expressCheckoutElement, ...nativeOptions } = options;
+  const result: Parameters<typeof NativeStripeSdk.createCheckout>[0] = {
+    ...nativeOptions,
   };
+  if (expressCheckoutElement) {
+    result.expressCheckoutElement = {
+      applePay: expressCheckoutElement.applePay,
+      googlePay: expressCheckoutElement.googlePay,
+      link: expressCheckoutElement.link,
+      appearance: expressCheckoutElement.appearance,
+    };
+  }
+  const rowSelectionBehavior = options.paymentElement?.rowSelectionBehavior;
+  if (rowSelectionBehavior?.type === 'immediateAction') {
+    return {
+      ...result,
+      paymentElement: {
+        ...options.paymentElement,
+        rowSelectionBehavior: { type: rowSelectionBehavior.type },
+      },
+    };
+  }
+  return result;
 }
 
 /**
@@ -112,8 +139,7 @@ export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,
   onUpdate?: (controller: CheckoutElements) => void
 ): Promise<CheckoutElements> {
-  // TODO: Bridge Express Checkout configuration, availability, and payment results.
-  if (options.expressCheckoutElement) {
+  if (options.expressCheckoutElement && Platform.OS !== 'ios') {
     throw new Error(
       'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
     );
@@ -138,6 +164,10 @@ export async function createCheckoutController(
     options.paymentElement?.rowSelectionBehavior?.type === 'immediateAction'
       ? options.paymentElement.rowSelectionBehavior.onSelectPaymentOption
       : undefined
+  );
+  const expressResultSubscription = addCheckoutExpressCheckoutResultListener(
+    controllerId,
+    options.expressCheckoutElement?.onResult
   );
   try {
     // Keep handle availability consistent if options change during native creation.
@@ -189,6 +219,10 @@ export async function createCheckoutController(
       ? {}
       : null;
 
+    const expressCheckoutElement = result.isExpressCheckoutAvailable
+      ? {}
+      : null;
+
     controller = {
       get status() {
         return status;
@@ -199,7 +233,7 @@ export async function createCheckoutController(
       paymentElement,
       shippingAddressElement,
       currencySelectorElement,
-      expressCheckoutElement: null,
+      expressCheckoutElement,
       updateEmail: (email) =>
         performOperation(() =>
           NativeStripeSdk.updateCheckoutEmail(controllerId, email)
@@ -238,12 +272,19 @@ export async function createCheckoutController(
         status = 'destroyed';
         subscription.remove();
         selectionSubscription.remove();
+        expressResultSubscription.remove();
+        if (expressCheckoutElement) {
+          expressCheckoutElementIds.delete(expressCheckoutElement);
+        }
         destroyPromise = Promise.resolve().then(() =>
           NativeStripeSdk.destroyCheckout(controllerId)
         );
         return destroyPromise;
       },
     };
+    if (expressCheckoutElement) {
+      expressCheckoutElementIds.set(expressCheckoutElement, controllerId);
+    }
     paymentElementIds.set(paymentElement, controllerId);
     if (currencySelectorElement) {
       currencySelectorElementIds.set(currencySelectorElement, controllerId);
@@ -252,6 +293,7 @@ export async function createCheckoutController(
   } catch (error) {
     subscription.remove();
     selectionSubscription.remove();
+    expressResultSubscription.remove();
     throw error;
   }
 }

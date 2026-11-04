@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { checkoutSession as session } from '../__fixtures__/session';
 import { addListener } from '../../events';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
@@ -36,45 +37,107 @@ function emit(name: string, event: object) {
 
 beforeEach(() => {
   listeners.clear();
-  (addListener as jest.Mock).mockImplementation((name, listener) => {
-    const callbacks = listeners.get(name) ?? new Set();
-    listeners.set(name, callbacks);
-    callbacks.add(listener);
-    return { remove: () => callbacks.delete(listener) };
-  });
+  (addListener as jest.Mock)
+    .mockReset()
+    .mockImplementation((name, listener) => {
+      const callbacks = listeners.get(name) ?? new Set();
+      listeners.set(name, callbacks);
+      callbacks.add(listener);
+      return { remove: () => callbacks.delete(listener) };
+    });
   for (const method of Object.values(NativeStripeSdk)) {
     (method as jest.Mock).mockReset().mockResolvedValue(undefined);
   }
   create.mockImplementation(async () => ({ session }));
 });
 
-it('rejects Express Checkout configuration before invoking native or subscribing', async () => {
+it('passes Express Checkout configuration without serializing its result callback', async () => {
   const onResult = jest.fn<void, [CheckoutElements.Result]>();
-  await expect(
-    createCheckoutElements({
-      ...options,
-      expressCheckoutElement: {
-        applePay: { buttonType: 'checkout' },
-        googlePay: {
-          display: 'automatic',
-          label: 'Total',
-          buttonType: 'pay',
-          additionalEnabledNetworks: ['INTERAC'],
-        },
-        link: { display: 'never' },
-        appearance: {
-          buttonTheme: 'dark',
-          buttonLayout: { maxColumns: 2, maxRows: 1 },
-        },
-        onResult,
+  const controller = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: {
+      applePay: { buttonType: 'checkout' },
+      googlePay: {
+        display: 'automatic',
+        label: 'Total',
+        buttonType: 'pay',
+        additionalEnabledNetworks: ['INTERAC'],
       },
-    })
-  ).rejects.toThrow(
-    'does not include native support for Express Checkout Element'
-  );
-  expect(create).not.toHaveBeenCalled();
-  expect(addListener).not.toHaveBeenCalled();
+      link: { display: 'never' },
+      appearance: {
+        buttonTheme: 'dark',
+        buttonLayout: { maxColumns: 2, maxRows: 1 },
+      },
+      onResult,
+    },
+  });
+  expect(create.mock.calls[0][0].expressCheckoutElement).toEqual({
+    applePay: { buttonType: 'checkout' },
+    googlePay: {
+      display: 'automatic',
+      label: 'Total',
+      buttonType: 'pay',
+      additionalEnabledNetworks: ['INTERAC'],
+    },
+    link: { display: 'never' },
+    appearance: {
+      buttonTheme: 'dark',
+      buttonLayout: { maxColumns: 2, maxRows: 1 },
+    },
+  });
   expect(onResult).not.toHaveBeenCalled();
+  await controller.destroy();
+});
+
+it('rejects Express Checkout on unsupported platforms before subscribing', async () => {
+  const platform = jest.replaceProperty(Platform, 'OS', 'android');
+  try {
+    await expect(
+      createCheckoutElements({
+        ...options,
+        expressCheckoutElement: { onResult: jest.fn() },
+      })
+    ).rejects.toThrow(
+      'does not include native support for Express Checkout Element'
+    );
+    expect(create).not.toHaveBeenCalled();
+    expect(addListener).not.toHaveBeenCalled();
+  } finally {
+    platform.restore();
+  }
+});
+
+it('routes wallet results to their controller and removes callbacks on destruction', async () => {
+  create.mockResolvedValue({ session, isExpressCheckoutAvailable: true });
+  const onResult = jest.fn();
+  const otherResult = jest.fn();
+  const first = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: { onResult },
+  });
+  const second = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: { onResult: otherResult },
+  });
+  expect(first.expressCheckoutElement).not.toBeNull();
+  expect(first.expressCheckoutElement).toBe(first.expressCheckoutElement);
+  const controllerId = create.mock.calls[0][1];
+  for (const result of [
+    { status: 'completed', paymentStatus: 'paid' },
+    { status: 'canceled' },
+    { status: 'failed', error: { code: 'Failed', message: 'Payment failed' } },
+  ]) {
+    emit('checkoutExpressCheckoutResult', { controllerId, result });
+    expect(onResult).toHaveBeenLastCalledWith(result);
+  }
+  expect(otherResult).not.toHaveBeenCalled();
+  await first.destroy();
+  emit('checkoutExpressCheckoutResult', {
+    controllerId,
+    result: { status: 'canceled' },
+  });
+  expect(onResult).toHaveBeenCalledTimes(3);
+  await second.destroy();
 });
 
 it('preserves native session snapshots and their express payment method availability', async () => {
