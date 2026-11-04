@@ -7,7 +7,7 @@
 
 import Foundation
 import React
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(InternalOnlyAPI) @_spi(CustomPaymentMethodsBeta) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(ReactNativeSDK) @_spi(CustomPaymentMethodsBeta) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 
 @objc(StripeSdkImpl)
 extension StripeSdkImpl {
