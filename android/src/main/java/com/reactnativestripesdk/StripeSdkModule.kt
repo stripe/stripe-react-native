@@ -1453,7 +1453,11 @@ class StripeSdkModule(
     )
   }
 
-  // TODO: Implement resetCheckoutCustomer when it is available in stripe-android.
+  @ReactMethod
+  override fun resetCheckoutCustomer(promise: Promise) {
+    CheckoutElementsController.resetCustomer(context = reactApplicationContext)
+    promise.resolve(null)
+  }
 
   @ReactMethod
   @Suppress("TooGenericExceptionCaught", "LongMethod")
