@@ -350,12 +350,7 @@ extension StripeSdkImpl {
                 confirmationTokenConfirmHandler: { confirmationToken in
                     return try await withCheckedThrowingContinuation { continuation in
                         self.paymentSheetConfirmationTokenIntentCreationCallback = { result in
-                            switch result {
-                            case .success(let clientSecret):
-                                continuation.resume(returning: clientSecret)
-                            case .failure(let error):
-                                continuation.resume(throwing: error)
-                            }
+                            continuation.resume(with: result)
                         }
                         self.emitter?.emitOnConfirmationTokenHandlerCallback([
                             "confirmationToken": Mappers.mapFromConfirmationToken(confirmationToken) ?? NSNull(),
