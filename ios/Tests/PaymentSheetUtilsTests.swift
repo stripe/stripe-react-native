@@ -572,20 +572,24 @@ class PaymentSheetUtilsTests: XCTestCase {
             "captureMethod": "Manual",
         ]
 
-        let config = StripeSdkImpl.shared.buildIntentConfiguration(
-            modeParams: modeParams,
-            paymentMethodTypes: nil,
-            onBehalfOf: nil,
-            captureMethod: StripeSdkImpl.mapCaptureMethod(modeParams["captureMethod"] as? String),
-            useConfirmationTokenCallback: false
-        )
+        for build in [StripeSdkImpl.shared.buildIntentConfiguration, StripeSdkImpl.shared.buildEmbeddedIntentConfiguration] {
+            for useConfirmationToken in [false, true] {
+                let config = build(
+                    modeParams,
+                    nil,
+                    nil,
+                    StripeSdkImpl.mapCaptureMethod(modeParams["captureMethod"] as? String),
+                    useConfirmationToken
+                )
 
-        if case .payment(let amount, let currency, _, let captureMethod, _) = config.mode {
-            XCTAssertEqual(amount, 1099)
-            XCTAssertEqual(currency, "usd")
-            XCTAssertEqual(captureMethod, .manual)
-        } else {
-            XCTFail("Expected payment mode")
+                if case .payment(let amount, let currency, _, let captureMethod, _) = config.mode {
+                    XCTAssertEqual(amount, 1099)
+                    XCTAssertEqual(currency, "usd")
+                    XCTAssertEqual(captureMethod, .manual)
+                } else {
+                    XCTFail("Expected payment mode")
+                }
+            }
         }
     }
 

@@ -73,13 +73,12 @@ extension StripeSdkImpl {
       return
     }
     let captureMethodString = modeParams["captureMethod"] as? String
-    let intentConfig = buildIntentConfiguration(
+    let intentConfig = buildEmbeddedIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
       onBehalfOf: intentConfig["onBehalfOf"] as? String,
       captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
-      useConfirmationTokenCallback: hasConfirmationTokenHandler,
-      isEmbedded: true
+      useConfirmationTokenCallback: hasConfirmationTokenHandler
     )
 
     guard let configuration = buildEmbeddedPaymentElementConfiguration(params: configuration).configuration else {
@@ -194,13 +193,12 @@ extension StripeSdkImpl {
       return
     }
     let captureMethodString = modeParams["captureMethod"] as? String
-    let intentConfiguration = buildIntentConfiguration(
+    let intentConfiguration = buildEmbeddedIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
       onBehalfOf: intentConfig["onBehalfOf"] as? String,
       captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
-      useConfirmationTokenCallback: hasConfirmationTokenHandler,
-      isEmbedded: true
+      useConfirmationTokenCallback: hasConfirmationTokenHandler
     )
 
     Task {
@@ -252,6 +250,50 @@ class StripeSdkEmbeddedPaymentElementDelegate: EmbeddedPaymentElementDelegate {
 // MARK: Config parsing
 
 extension StripeSdkImpl {
+  @nonobjc
+  internal func buildEmbeddedIntentConfiguration(
+    modeParams: NSDictionary,
+    paymentMethodTypes: [String]?,
+    onBehalfOf: String?,
+    captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod,
+    useConfirmationTokenCallback: Bool
+  ) -> PaymentSheet.IntentConfiguration {
+    let mode = StripeSdkImpl.buildIntentConfigurationMode(modeParams: modeParams, captureMethod: captureMethod)
+    if useConfirmationTokenCallback {
+      return PaymentSheet.IntentConfiguration(
+        mode: mode,
+        paymentMethodTypes: paymentMethodTypes,
+        onBehalfOf: onBehalfOf,
+        confirmationTokenConfirmHandler: { confirmationToken in
+          return try await withCheckedThrowingContinuation { continuation in
+            self.embeddedConfirmationTokenIntentCreationCallback = { result in
+              switch result {
+              case .success(let clientSecret):
+                continuation.resume(returning: clientSecret)
+              case .failure(let error):
+                continuation.resume(throwing: error)
+              }
+            }
+            self.emitter?.emitOnEmbeddedConfirmationTokenHandlerCallback([
+              "confirmationToken": Mappers.mapFromConfirmationToken(confirmationToken) ?? NSNull(),
+            ])
+          }
+        })
+    } else {
+      return PaymentSheet.IntentConfiguration(
+        mode: mode,
+        paymentMethodTypes: paymentMethodTypes,
+        onBehalfOf: onBehalfOf,
+        confirmHandler: { paymentMethod, shouldSavePaymentMethod, intentCreationCallback in
+          self.embeddedIntentCreationCallback = intentCreationCallback
+          self.emitter?.emitOnEmbeddedConfirmHandlerCallback([
+            "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? NSNull(),
+            "shouldSavePaymentMethod": shouldSavePaymentMethod,
+          ])
+        })
+    }
+  }
+
   @nonobjc
   internal func buildEmbeddedPaymentElementConfiguration(
     params: NSDictionary
