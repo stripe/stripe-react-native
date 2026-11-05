@@ -303,7 +303,6 @@ class PaymentSheetManager(
       val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
       val params =
         Arguments.createMap().apply {
-          putString("component", "paymentSheet")
           putMap("confirmationToken", mapFromConfirmationToken(confirmationToken))
         }
 
@@ -331,7 +330,6 @@ class PaymentSheetManager(
       val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
       val params =
         Arguments.createMap().apply {
-          putString("component", "paymentSheet")
           putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
           putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
         }

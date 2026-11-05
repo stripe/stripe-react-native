@@ -13,9 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
-import NativeStripeSdkModule, {
-  IntentCreationRouting,
-} from './specs/NativeStripeSdkModule';
+import NativeStripeSdkModule from './specs/NativeStripeSdkModule';
 import NativeOnrampSdkModule from './specs/NativeOnrampSdkModule';
 import { PaymentMethod } from './types';
 import { UnsafeObject } from './specs/utils';
@@ -36,17 +34,15 @@ type Events = {
     controllerId: string;
     operationId: string;
   }>;
-  onConfirmHandlerCallback: EventEmitter<
-    IntentCreationRouting & {
-      paymentMethod: UnsafeObject<PaymentMethod.Result>;
-      shouldSavePaymentMethod: boolean;
-    }
-  >;
-  onConfirmationTokenHandlerCallback: EventEmitter<
-    IntentCreationRouting & {
-      confirmationToken: UnsafeObject<ConfirmationTokenResult>;
-    }
-  >;
+  onConfirmHandlerCallback: EventEmitter<{
+    paymentMethod: UnsafeObject<PaymentMethod.Result>;
+    shouldSavePaymentMethod: boolean;
+  }>;
+  onConfirmationTokenHandlerCallback: EventEmitter<{
+    confirmationToken: UnsafeObject<ConfirmationTokenResult>;
+  }>;
+  onEmbeddedConfirmHandlerCallback: Events['onConfirmHandlerCallback'];
+  onEmbeddedConfirmationTokenHandlerCallback: Events['onConfirmationTokenHandlerCallback'];
   onFinancialConnectionsEvent: EventEmitter<
     UnsafeObject<FinancialConnectionsEvent>
   >;

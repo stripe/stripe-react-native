@@ -360,14 +360,11 @@ export const initPaymentSheet = async (
     confirmHandlerCallback?.remove();
     confirmHandlerCallback = addListener(
       'onConfirmHandlerCallback',
-      ({ paymentMethod, shouldSavePaymentMethod, component }) => {
-        if (Platform.OS === 'android' && component !== 'paymentSheet') {
-          return;
-        }
-        confirmHandler(paymentMethod, shouldSavePaymentMethod, (response) =>
-          NativeStripeSdk.intentCreationCallback(
-            Platform.OS === 'android' ? { ...response, component } : response
-          )
+      ({ paymentMethod, shouldSavePaymentMethod }) => {
+        confirmHandler(
+          paymentMethod,
+          shouldSavePaymentMethod,
+          NativeStripeSdk.intentCreationCallback
         );
       }
     );
@@ -379,14 +376,10 @@ export const initPaymentSheet = async (
     confirmationTokenHandlerCallback?.remove();
     confirmationTokenHandlerCallback = addListener(
       'onConfirmationTokenHandlerCallback',
-      ({ confirmationToken, component }) => {
-        if (Platform.OS === 'android' && component !== 'paymentSheet') {
-          return;
-        }
-        confirmationTokenHandler(confirmationToken, (response) =>
-          NativeStripeSdk.confirmationTokenCreationCallback(
-            Platform.OS === 'android' ? { ...response, component } : response
-          )
+      ({ confirmationToken }) => {
+        confirmationTokenHandler(
+          confirmationToken,
+          NativeStripeSdk.confirmationTokenCreationCallback
         );
       }
     );

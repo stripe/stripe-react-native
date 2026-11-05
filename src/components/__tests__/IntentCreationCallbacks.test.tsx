@@ -20,6 +20,8 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
     createEmbeddedPaymentElement: jest.fn(),
     intentCreationCallback: jest.fn(),
     confirmationTokenCreationCallback: jest.fn(),
+    embeddedIntentCreationCallback: jest.fn(),
+    embeddedConfirmationTokenCreationCallback: jest.fn(),
   },
 }));
 
@@ -71,10 +73,16 @@ describe.each([false, true])(
     const respond = token
       ? native.confirmationTokenCreationCallback
       : native.intentCreationCallback;
-    const emit = (routing: object) => {
+    const embeddedEvent = token
+      ? 'onEmbeddedConfirmationTokenHandlerCallback'
+      : 'onEmbeddedConfirmHandlerCallback';
+    const embeddedRespond = token
+      ? native.embeddedConfirmationTokenCreationCallback
+      : native.embeddedIntentCreationCallback;
+    const emit = (eventName: string) => {
       jest.mocked(addListener).mock.calls.forEach(([name, handler]) => {
-        if (name === event) {
-          handler({ ...payload, ...routing });
+        if (name === eventName) {
+          handler(payload);
         }
       });
     };
@@ -83,32 +91,35 @@ describe.each([false, true])(
       const sheet = jest.fn();
       const embedded = jest.fn();
       await register(sheet, embedded, token);
-      emit({});
-      emit({ component: 'unknown' });
-      expect(sheet).not.toHaveBeenCalled();
-      expect(embedded).not.toHaveBeenCalled();
-      for (const [component, handler, other] of [
-        ['paymentSheet', sheet, embedded],
-        ['embeddedPaymentElement', embedded, sheet],
+      for (const [
+        eventName,
+        handler,
+        other,
+        responseCallback,
+        otherResponseCallback,
+      ] of [
+        [event, sheet, embedded, respond, embeddedRespond],
+        [embeddedEvent, embedded, sheet, embeddedRespond, respond],
       ] as const) {
         sheet.mockClear();
         embedded.mockClear();
-        emit({ component });
+        respond.mockClear();
+        embeddedRespond.mockClear();
+        emit(eventName);
         expect(handler).toHaveBeenCalledTimes(1);
         expect(other).not.toHaveBeenCalled();
         const callback = handler.mock.calls[0]![token ? 1 : 2];
-        callback({ clientSecret: 'test-secret', component: 'wrong' });
-        expect(respond).toHaveBeenLastCalledWith({
+        callback({ clientSecret: 'test-secret' });
+        expect(responseCallback).toHaveBeenLastCalledWith({
           clientSecret: 'test-secret',
-          component,
         });
         callback({
           error: { message: 'Test failure', localizedMessage: 'Try again' },
         });
-        expect(respond).toHaveBeenLastCalledWith({
+        expect(responseCallback).toHaveBeenLastCalledWith({
           error: { message: 'Test failure', localizedMessage: 'Try again' },
-          component,
         });
+        expect(otherResponseCallback).not.toHaveBeenCalled();
       }
     });
 
@@ -117,7 +128,7 @@ describe.each([false, true])(
       const sheet = jest.fn();
       const embedded = jest.fn();
       await register(sheet, embedded, token);
-      emit({});
+      emit(event);
       for (const handler of [sheet, embedded]) {
         expect(handler).toHaveBeenCalledTimes(1);
         handler.mock.calls[0]![token ? 1 : 2]({ clientSecret: 'test-secret' });

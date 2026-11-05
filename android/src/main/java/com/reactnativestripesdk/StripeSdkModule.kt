@@ -331,10 +331,25 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    when (params.getString("component")) {
-      "embeddedPaymentElement" -> embeddedIntentCreationCallback.complete(params)
-      "paymentSheet" -> paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
-    }
+    paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
+    promise.resolve(null)
+  }
+
+  @ReactMethod
+  override fun embeddedIntentCreationCallback(
+    params: ReadableMap,
+    promise: Promise,
+  ) {
+    embeddedIntentCreationCallback.complete(params)
+    promise.resolve(null)
+  }
+
+  @ReactMethod
+  override fun embeddedConfirmationTokenCreationCallback(
+    params: ReadableMap,
+    promise: Promise,
+  ) {
+    embeddedConfirmationTokenCreationCallback.complete(params)
     promise.resolve(null)
   }
 
@@ -355,10 +370,7 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    when (params.getString("component")) {
-      "embeddedPaymentElement" -> embeddedConfirmationTokenCreationCallback.complete(params)
-      "paymentSheet" -> paymentSheetManager?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
-    }
+    paymentSheetManager?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
     promise.resolve(null)
   }
 

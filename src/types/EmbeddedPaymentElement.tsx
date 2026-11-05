@@ -287,18 +287,16 @@ function setupIntentConfirmHandlers(
   if (confirmHandler) {
     confirmHandlerCallback?.remove();
     confirmHandlerCallback = addListener(
-      'onConfirmHandlerCallback',
-      ({ paymentMethod, shouldSavePaymentMethod, component }) => {
-        if (
-          Platform.OS === 'android' &&
-          component !== 'embeddedPaymentElement'
-        ) {
-          return;
-        }
-        confirmHandler(paymentMethod, shouldSavePaymentMethod, (response) =>
-          NativeStripeSdkModule.intentCreationCallback(
-            Platform.OS === 'android' ? { ...response, component } : response
-          )
+      Platform.OS === 'android'
+        ? 'onEmbeddedConfirmHandlerCallback'
+        : 'onConfirmHandlerCallback',
+      ({ paymentMethod, shouldSavePaymentMethod }) => {
+        confirmHandler(
+          paymentMethod,
+          shouldSavePaymentMethod,
+          Platform.OS === 'android'
+            ? NativeStripeSdkModule.embeddedIntentCreationCallback
+            : NativeStripeSdkModule.intentCreationCallback
         );
       }
     );
@@ -309,18 +307,15 @@ function setupIntentConfirmHandlers(
   if (confirmationTokenConfirmHandler) {
     confirmationTokenHandlerCallback?.remove();
     confirmationTokenHandlerCallback = addListener(
-      'onConfirmationTokenHandlerCallback',
-      ({ confirmationToken, component }) => {
-        if (
-          Platform.OS === 'android' &&
-          component !== 'embeddedPaymentElement'
-        ) {
-          return;
-        }
-        confirmationTokenConfirmHandler(confirmationToken, (response) =>
-          NativeStripeSdkModule.confirmationTokenCreationCallback(
-            Platform.OS === 'android' ? { ...response, component } : response
-          )
+      Platform.OS === 'android'
+        ? 'onEmbeddedConfirmationTokenHandlerCallback'
+        : 'onConfirmationTokenHandlerCallback',
+      ({ confirmationToken }) => {
+        confirmationTokenConfirmHandler(
+          confirmationToken,
+          Platform.OS === 'android'
+            ? NativeStripeSdkModule.embeddedConfirmationTokenCreationCallback
+            : NativeStripeSdkModule.confirmationTokenCreationCallback
         );
       }
     );

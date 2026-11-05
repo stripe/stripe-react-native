@@ -53,13 +53,6 @@ type CheckoutCreateResult = UnsafeObject<{
   isCurrencySelectorAvailable: boolean;
 }>;
 
-export type IntentCreationRouting = {
-  component?: 'paymentSheet' | 'embeddedPaymentElement';
-};
-
-type IntentCreationResponse = PaymentSheet.IntentCreationCallbackParams &
-  IntentCreationRouting;
-
 export interface Spec extends TurboModule {
   initialise(params: UnsafeObject<InitialiseParams>): Promise<void>;
   createPaymentMethod(
@@ -92,10 +85,16 @@ export interface Spec extends TurboModule {
     params: UnsafeObject<PaymentSheet.SetupParams>
   ): Promise<InitPaymentSheetResult>;
   intentCreationCallback(
-    result: UnsafeObject<IntentCreationResponse>
+    result: UnsafeObject<PaymentSheet.IntentCreationCallbackParams>
   ): Promise<void>;
   confirmationTokenCreationCallback(
-    result: UnsafeObject<IntentCreationResponse>
+    result: UnsafeObject<PaymentSheet.IntentCreationCallbackParams>
+  ): Promise<void>;
+  embeddedIntentCreationCallback(
+    result: UnsafeObject<PaymentSheet.IntentCreationCallbackParams>
+  ): Promise<void>;
+  embeddedConfirmationTokenCreationCallback(
+    result: UnsafeObject<PaymentSheet.IntentCreationCallbackParams>
   ): Promise<void>;
   customPaymentMethodResultCallback(
     result: UnsafeObject<PaymentSheet.CustomPaymentMethodResult>
