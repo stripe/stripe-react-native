@@ -27,6 +27,30 @@ appId: ${APP_ID}
 - assertVisible:
     text: 'Enable Express Checkout'
     checked: true
+- scrollUntilVisible:
+    element:
+      text: 'Express button theme'
+    centerElement: true
+- tapOn: 'Express button theme'
+- tapOn: 'Light'
+- scrollUntilVisible:
+    element:
+      text: 'Express border radius'
+    centerElement: true
+- tapOn: 'Express border radius'
+- tapOn: '0 dp'
+- scrollUntilVisible:
+    element:
+      text: 'Express max rows'
+    centerElement: true
+- tapOn: 'Express max rows'
+- tapOn: '2'
+- scrollUntilVisible:
+    element:
+      text: 'Express max columns'
+    centerElement: true
+- tapOn: 'Express max columns'
+- tapOn: '1'
 - tapOn:
     id: 'checkout-create-session'
 - extendedWaitUntil:
