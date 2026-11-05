@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.checkout
 
+import android.annotation.SuppressLint
 import android.content.Context
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
@@ -24,21 +25,7 @@ internal object CheckoutSessionSerializer {
   suspend fun serialize(session: Session, context: Context): WritableMap =
     Arguments.createMap().apply {
       putString("id", session.id)
-      // Default availability for the Express Checkout API stub.
-      putMap(
-        "availableExpressCheckoutPaymentMethods",
-        Arguments.createMap().apply {
-          for ((key, type) in mapOf("applePay" to "apple_pay", "googlePay" to "google_pay", "link" to "link")) {
-            putMap(
-              key,
-              Arguments.createMap().apply {
-                putBoolean("available", false)
-                putString("type", type)
-              },
-            )
-          }
-        },
-      )
+      putMap("availableExpressCheckoutPaymentMethods", serializeExpressPaymentMethods(session))
       putBoolean("livemode", session.livemode)
       // Like iOS, omit the currency when the session has none.
       session.currency?.let { putString("currency", it) }
@@ -64,6 +51,24 @@ internal object CheckoutSessionSerializer {
       session.taxAmounts?.let { putArray("taxAmounts", serializeList(it, ::serialize)) }
       putMap("totals", serialize(session.totals))
     }
+
+  @SuppressLint("RestrictedApi")
+  private fun serializeExpressPaymentMethods(session: Session): WritableMap {
+    val availableTypes = session.availableExpressCheckoutPaymentMethods.toSet()
+    return Arguments.createMap().apply {
+      // Apple Pay remains unavailable on Android. Native eligibility and display settings
+      // determine Google Pay and Link availability for every session snapshot.
+      for ((key, type) in mapOf("applePay" to "apple_pay", "googlePay" to "google_pay", "link" to "link")) {
+        putMap(
+          key,
+          Arguments.createMap().apply {
+            putBoolean("available", type in availableTypes)
+            putString("type", type)
+          },
+        )
+      }
+    }
+  }
 
   fun serialize(
     result: CheckoutElementsController.Result,
