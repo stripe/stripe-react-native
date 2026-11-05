@@ -2,9 +2,12 @@ package com.reactnativestripesdk.checkout
 
 import android.annotation.SuppressLint
 import com.facebook.react.bridge.ReadableMap
+import com.reactnativestripesdk.utils.getFloatOrNull
+import com.reactnativestripesdk.utils.getIntOrNull
 import com.reactnativestripesdk.utils.getStringList
 import com.stripe.android.elements.ExpressCheckoutElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
+import com.stripe.android.elements.ExpressCheckoutElement.Configuration.Appearance as ExpressAppearance
 import com.stripe.android.elements.ExpressCheckoutElement.Configuration.GooglePayConfiguration as ExpressGooglePay
 import com.stripe.android.elements.ExpressCheckoutElement.Configuration.LinkConfiguration as ExpressLink
 
@@ -15,6 +18,7 @@ internal object ExpressCheckoutConfigurationMapper {
     ExpressCheckoutElement.Configuration().apply {
       params.getMap("googlePay")?.let { googlePayConfiguration(mapGooglePay(it)) }
       params.getMap("link")?.let { linkConfiguration(mapLink(it)) }
+      params.getMap("appearance")?.let { appearance(mapAppearance(it)) }
     }
 
   private fun mapGooglePay(params: ReadableMap): ExpressGooglePay = ExpressGooglePay().apply {
@@ -28,6 +32,20 @@ internal object ExpressCheckoutConfigurationMapper {
 
   private fun mapLink(params: ReadableMap): ExpressLink = ExpressLink().apply {
     params.getString("display")?.let { display(mapEnum("link.display", it)) }
+  }
+
+  private fun mapAppearance(params: ReadableMap): ExpressAppearance = ExpressAppearance().apply {
+    params.getString("buttonTheme")?.let {
+      buttonTheme(mapEnum("appearance.buttonTheme", it))
+    }
+    params.getFloatOrNull("borderRadius")?.let(::cornerRadiusDp)
+    params.getMap("buttonLayout")?.let { layout ->
+      buttonLayout(
+        ExpressAppearance.ButtonLayout()
+          .maxColumns(layout.getIntOrNull("maxColumns"))
+          .maxRows(layout.getIntOrNull("maxRows")),
+      )
+    }
   }
 
   // Follow native enum names so newly supported native values do not need another bridge switch case.
