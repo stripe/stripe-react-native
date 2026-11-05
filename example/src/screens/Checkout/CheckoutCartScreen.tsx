@@ -600,6 +600,23 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
               Currency: {session.currency.toUpperCase()}
             </Text>
           </View>
+          <Text style={styles.diagnosticsLabel}>
+            EXPRESS CHECKOUT AVAILABILITY
+          </Text>
+          <View style={styles.diagnosticsCard}>
+            {Object.entries(session.availableExpressCheckoutPaymentMethods).map(
+              ([key, method]) => (
+                <Text
+                  key={key}
+                  testID={`checkout-express-availability-${key}`}
+                  style={styles.diagnosticsMetadata}
+                >
+                  {method.type}:{' '}
+                  {method.available ? 'available' : 'unavailable'}
+                </Text>
+              )
+            )}
+          </View>
           <Text
             selectable
             testID="checkout-snapshot"
