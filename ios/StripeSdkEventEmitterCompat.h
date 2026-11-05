@@ -7,6 +7,8 @@
 
 - (void)emitOnConfirmHandlerCallback:(NSDictionary *)value;
 - (void)emitOnConfirmationTokenHandlerCallback:(NSDictionary *)value;
+- (void)emitOnEmbeddedConfirmHandlerCallback:(NSDictionary *)value;
+- (void)emitOnEmbeddedConfirmationTokenHandlerCallback:(NSDictionary *)value;
 - (void)emitOnFinancialConnectionsEvent:(NSDictionary *)value;
 - (void)emitOnOrderTrackingCallback;
 - (void)emitOnCustomerAdapterFetchPaymentMethodsCallback;

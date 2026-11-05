@@ -14,6 +14,28 @@ extension StripeSdkImpl {
 
   // MARK: Public API wrappers
 
+  @objc(embeddedIntentCreationCallback:resolver:rejecter:)
+  @MainActor public func embeddedIntentCreationCallback(result: NSDictionary,
+                                                        resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+    guard let callback = self.embeddedIntentCreationCallback else {
+      resolve(Errors.createError(ErrorType.Failed, "No intent creation callback was set"))
+      return
+    }
+    callback(StripeSdkImpl.intentCreationResult(from: result))
+  }
+
+  @objc(embeddedConfirmationTokenCreationCallback:resolver:rejecter:)
+  @MainActor public func embeddedConfirmationTokenCreationCallback(result: NSDictionary,
+                                                                   resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                                   rejecter reject: @escaping RCTPromiseRejectBlock) {
+    guard let callback = self.embeddedConfirmationTokenIntentCreationCallback else {
+      resolve(Errors.createError(ErrorType.Failed, "No confirmation token intent creation callback was set"))
+      return
+    }
+    callback(StripeSdkImpl.intentCreationResult(from: result))
+  }
+
   @objc(createEmbeddedPaymentElement:configuration:resolve:reject:)
   public func createEmbeddedPaymentElement(intentConfig: NSDictionary,
                                            configuration: NSDictionary,
@@ -39,7 +61,7 @@ extension StripeSdkImpl {
       return
     }
     let captureMethodString = modeParams["captureMethod"] as? String
-    let intentConfig = buildIntentConfiguration(
+    let intentConfig = buildEmbeddedIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
       onBehalfOf: intentConfig["onBehalfOf"] as? String,
@@ -159,7 +181,7 @@ extension StripeSdkImpl {
       return
     }
     let captureMethodString = modeParams["captureMethod"] as? String
-    let intentConfiguration = buildIntentConfiguration(
+    let intentConfiguration = buildEmbeddedIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
       onBehalfOf: intentConfig["onBehalfOf"] as? String,
@@ -216,6 +238,45 @@ class StripeSdkEmbeddedPaymentElementDelegate: EmbeddedPaymentElementDelegate {
 // MARK: Config parsing
 
 extension StripeSdkImpl {
+  @nonobjc
+  internal func buildEmbeddedIntentConfiguration(
+    modeParams: NSDictionary,
+    paymentMethodTypes: [String]?,
+    onBehalfOf: String?,
+    captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod,
+    useConfirmationTokenCallback: Bool
+  ) -> PaymentSheet.IntentConfiguration {
+    let mode = StripeSdkImpl.buildIntentConfigurationMode(modeParams: modeParams, captureMethod: captureMethod)
+    if useConfirmationTokenCallback {
+      return PaymentSheet.IntentConfiguration(
+        mode: mode,
+        paymentMethodTypes: paymentMethodTypes,
+        onBehalfOf: onBehalfOf,
+        confirmationTokenConfirmHandler: { confirmationToken in
+          return try await withCheckedThrowingContinuation { continuation in
+            self.embeddedConfirmationTokenIntentCreationCallback = { result in
+              continuation.resume(with: result)
+            }
+            self.emitter?.emitOnEmbeddedConfirmationTokenHandlerCallback([
+              "confirmationToken": Mappers.mapFromConfirmationToken(confirmationToken) ?? NSNull(),
+            ])
+          }
+        })
+    } else {
+      return PaymentSheet.IntentConfiguration(
+        mode: mode,
+        paymentMethodTypes: paymentMethodTypes,
+        onBehalfOf: onBehalfOf,
+        confirmHandler: { paymentMethod, shouldSavePaymentMethod, intentCreationCallback in
+          self.embeddedIntentCreationCallback = intentCreationCallback
+          self.emitter?.emitOnEmbeddedConfirmHandlerCallback([
+            "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? NSNull(),
+            "shouldSavePaymentMethod": shouldSavePaymentMethod,
+          ])
+        })
+    }
+  }
+
   @nonobjc
   internal func buildEmbeddedPaymentElementConfiguration(
     params: NSDictionary
