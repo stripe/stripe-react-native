@@ -10,7 +10,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.util.ReflectionHelpers
@@ -46,7 +46,7 @@ class IntentCreationCallbacksTest {
             val promise = mock(Promise::class.java)
             val response = JavaOnlyMap.of("clientSecret", "secret-$index")
             respond(response, promise)
-            verify(promise).resolve(null)
+            verifyNoInteractions(promise)
             assertEquals(response, request.await())
             if (index == 0) assertFalse(requests[1].first.isCompleted)
           }

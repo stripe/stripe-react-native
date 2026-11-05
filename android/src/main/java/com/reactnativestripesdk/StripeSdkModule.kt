@@ -331,8 +331,12 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
+    if (paymentSheetManager == null) {
+      promise.resolve(PaymentSheetManager.createMissingInitError())
+      return
+    }
+
     paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
-    promise.resolve(null)
   }
 
   @ReactMethod
@@ -341,7 +345,6 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     embeddedIntentCreationCallback.complete(params)
-    promise.resolve(null)
   }
 
   @ReactMethod
@@ -350,7 +353,6 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     embeddedConfirmationTokenCreationCallback.complete(params)
-    promise.resolve(null)
   }
 
   @ReactMethod
@@ -370,8 +372,12 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
+    if (paymentSheetManager == null) {
+      promise.resolve(PaymentSheetManager.createMissingInitError())
+      return
+    }
+
     paymentSheetManager?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
-    promise.resolve(null)
   }
 
   @ReactMethod
