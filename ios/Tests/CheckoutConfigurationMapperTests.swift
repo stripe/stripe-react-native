@@ -37,14 +37,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertTrue(didComplete)
     }
 
-    func test_map_expressCheckoutIsOptInAndUsesNativeDefaults() throws {
-        let disabled = try CheckoutConfigurationMapper.map(
-            params: [:],
-            merchantIdentifier: nil,
-            didSelectPaymentOption: {},
-            expressCheckoutCompletion: { _ in }
-        )
-        XCTAssertNil(disabled.expressCheckoutElement)
+    func test_map_expressCheckoutUsesNativeDefaults() throws {
         for merchantIdentifier: String? in [nil, "", "merchant.com.example"] {
             let configuration = try CheckoutConfigurationMapper.map(
                 params: ["expressCheckoutElement": [:]],
@@ -235,6 +228,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertNil(configuration.defaults.shippingDetails)
         XCTAssertNil(configuration.defaults.email)
         XCTAssertNil(configuration.defaults.phone)
+        XCTAssertNil(configuration.expressCheckoutElement)
         XCTAssertEqual(configuration.userInterfaceStyle, .automatic)
         let paymentElement = try XCTUnwrap(configuration.paymentElement)
         XCTAssertFalse(paymentElement.opensCardScannerAutomatically)
