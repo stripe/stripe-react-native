@@ -1,0 +1,43 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn: 'Reset'
+- scrollUntilVisible:
+    element:
+      text: 'Automatic Payment Methods'
+    centerElement: true
+- tapOn: 'Automatic Payment Methods'
+- scrollUntilVisible:
+    element:
+      text: 'Enable Express Checkout'
+# Move the final toggle above the fixed Create Checkout Session footer.
+- swipe:
+    direction: UP
+- tapOn: 'Enable Express Checkout'
+- assertVisible:
+    text: 'Enable Express Checkout'
+    checked: true
+- tapOn:
+    id: 'checkout-create-session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- assertVisible:
+    id: 'checkout-express-checkout'
+
+# Google Play services versions expose different labels. Select the ECE button
+# above Items, not the similarly named Payment Element option below it.
+- assertVisible:
+    text: '(Pay with GPay|Google Pay)'
+    above:
+      text: 'Items'

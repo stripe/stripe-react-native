@@ -61,6 +61,10 @@ internal object CheckoutConfigurationMapper {
       configuration.shippingAddressElement(mapShippingAddressElement(it, params.getString("style"), context))
     }
 
+    params.getMap("expressCheckoutElement")?.let {
+      configuration.expressCheckoutElement(ExpressCheckoutConfigurationMapper.map(it))
+    }
+
     return MappedCheckoutConfiguration(
       clientSecret = clientSecret,
       configuration = configuration,

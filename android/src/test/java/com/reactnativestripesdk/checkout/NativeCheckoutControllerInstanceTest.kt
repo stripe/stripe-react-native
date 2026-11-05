@@ -14,6 +14,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.checkout.CheckoutPresenter
+import com.stripe.android.elements.ExpressCheckoutElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.utils.mapAsStateFlow
 import kotlinx.coroutines.CancellationException
@@ -38,6 +39,8 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -313,9 +316,44 @@ class NativeCheckoutControllerInstanceTest {
     assertEquals(eventCountBeforeDestroy, fixture.events.size)
   }
 
-  private fun withFixture(test: suspend TestScope.(Fixture) -> Unit) = runTest {
+  @Test
+  fun `unconfigured express element cannot be accessed`() = withFixture { fixture ->
+    assertThrows(IllegalStateException::class.java) {
+      fixture.instance.expressCheckoutElement(fixture.activity.get())
+    }
+  }
+
+  @Test
+  fun `express element shares the presenter and registers wallets after activity recreation`() =
+    withFixture(expressConfigured = true) { fixture ->
+      val element = mock(ExpressCheckoutElement::class.java)
+      `when`(fixture.presenter.expressCheckoutElement()).thenReturn(element)
+      fixture.instance.paymentElement(fixture.activity.get())
+      assertSame(element, fixture.instance.expressCheckoutElement(fixture.activity.get()))
+      assertSame(element, fixture.instance.expressCheckoutElement(fixture.activity.get()))
+      verify(fixture.controller, times(1)).createPresenter(fixture.activity.get())
+      fixture.activity.pause().stop().destroy()
+      val nextActivity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
+      val nextPresenter = mock(CheckoutPresenter::class.java)
+      val nextElement = mock(ExpressCheckoutElement::class.java)
+      `when`(fixture.controller.createPresenter(nextActivity.get())).thenReturn(nextPresenter)
+      `when`(nextPresenter.expressCheckoutElement()).thenReturn(nextElement)
+      try {
+        fixture.instance.currencySelectorElement(nextActivity.get())
+        verify(nextPresenter).expressCheckoutElement()
+        assertSame(nextElement, fixture.instance.expressCheckoutElement(nextActivity.get()))
+        fixture.instance.destroy()
+        assertThrows(IllegalStateException::class.java) {
+          fixture.instance.expressCheckoutElement(nextActivity.get())
+        }
+      } finally {
+        nextActivity.pause().stop().destroy()
+      }
+    }
+
+  private fun withFixture(expressConfigured: Boolean = false, test: suspend TestScope.(Fixture) -> Unit) = runTest {
     Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-    val fixture = Fixture()
+    val fixture = Fixture(expressConfigured)
     try {
       test(fixture)
     } finally {
@@ -324,7 +362,7 @@ class NativeCheckoutControllerInstanceTest {
     }
   }
 
-  private class Fixture {
+  private class Fixture(expressConfigured: Boolean) {
     val controller = mock(CheckoutController::class.java)
     val presenter = mock(CheckoutPresenter::class.java)
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
@@ -354,6 +392,7 @@ class NativeCheckoutControllerInstanceTest {
         scope,
         com.facebook.react.bridge.JavaOnlyMap.of("id", "cs_test", "email", "jenny@example.com"),
         context,
+        isExpressCheckoutElementConfigured = expressConfigured,
       )
     }
 
@@ -364,7 +403,7 @@ class NativeCheckoutControllerInstanceTest {
     suspend fun close() {
       instance.destroy()
       scope.coroutineContext.job.join()
-      activity.pause().stop().destroy()
+      if (!activity.get().isDestroyed) activity.pause().stop().destroy()
     }
   }
 }

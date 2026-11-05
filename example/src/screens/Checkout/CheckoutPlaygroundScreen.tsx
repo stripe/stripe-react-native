@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -693,13 +694,28 @@ export default function CheckoutPlaygroundScreen() {
         )}
 
         <Section title="Express Checkout Element">
-          <View style={styles.availabilityCard}>
-            <Text style={styles.availabilityTitle}>Not bridged in RN</Text>
-            <Text style={styles.helperText}>
-              Apple Pay and Link Express Checkout controls will appear here when
-              the React Native Checkout API exposes the element.
-            </Text>
-          </View>
+          {Platform.OS === 'android' ? (
+            <>
+              <ToggleRow
+                label="Enable Express Checkout"
+                value={settings.expressCheckoutEnabled}
+                onChange={(enabled) => set('expressCheckoutEnabled', enabled)}
+              />
+              <Text style={styles.helperText}>
+                Displays Google Pay and Link when available. Link follows the
+                display setting above. Render-only preview: completion
+                callbacks, appearance, and availability diagnostics are not
+                bridged yet.
+              </Text>
+            </>
+          ) : (
+            <View style={styles.availabilityCard}>
+              <Text style={styles.availabilityTitle}>Not bridged on iOS</Text>
+              <Text style={styles.helperText}>
+                Express Checkout is currently available on Android only.
+              </Text>
+            </View>
+          )}
         </Section>
       </ScrollView>
 

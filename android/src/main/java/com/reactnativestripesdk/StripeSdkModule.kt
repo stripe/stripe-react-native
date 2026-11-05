@@ -1473,6 +1473,7 @@ class StripeSdkModule(
             initialSession = serializedSession,
             context = reactApplicationContext,
             isShippingAddressElementConfigured = params.getMap("shippingAddressElement") != null,
+            isExpressCheckoutElementConfigured = params.getMap("expressCheckoutElement") != null,
           )
           check(!checkoutControllersInvalidated) { "Stripe SDK was invalidated." }
           scope.coroutineContext.ensureActive()
@@ -1481,6 +1482,11 @@ class StripeSdkModule(
           promise.resolve(
             Arguments.createMap().apply {
               putMap("session", serializedSession.copy())
+              putBoolean(
+                "isExpressCheckoutAvailable",
+                params.getMap("expressCheckoutElement") != null &&
+                  nativeSession.availableExpressCheckoutPaymentMethods.isNotEmpty(),
+              )
               putBoolean(
                 "isCurrencySelectorAvailable",
                 params.hasKey("currencySelectorElement") && nativeSession.isCurrencySelectorAvailable,
