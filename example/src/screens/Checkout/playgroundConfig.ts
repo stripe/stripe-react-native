@@ -241,8 +241,7 @@ export function buildSessionParameters(
 }
 
 export function checkoutConfiguration(
-  params: CheckoutCartParams,
-  onResult?: (result: CheckoutElements.Result) => void
+  params: CheckoutCartParams
 ): CheckoutElements.CreateOptions {
   const { clientSecret, settings } = params;
   const address =
@@ -278,11 +277,12 @@ export function checkoutConfiguration(
       ? { currencySelectorElement: {} }
       : {}),
     ...(settings.collectShippingAddress ? { shippingAddressElement: {} } : {}),
-    ...(Platform.OS === 'android' && settings.expressCheckoutEnabled && onResult
+    ...(Platform.OS === 'android' && settings.expressCheckoutEnabled
       ? {
           expressCheckoutElement: {
             link: { display: settings.linkMode },
-            onResult,
+            // Render-only preview; completion handling is bridged in a follow-up.
+            onResult: () => {},
           },
         }
       : {}),

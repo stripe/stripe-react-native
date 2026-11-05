@@ -703,7 +703,9 @@ export default function CheckoutPlaygroundScreen() {
               />
               <Text style={styles.helperText}>
                 Displays Google Pay and Link when available. Link follows the
-                display setting above.
+                display setting above. Render-only preview: completion
+                callbacks, appearance, and availability diagnostics are not
+                bridged yet.
               </Text>
             </>
           ) : (

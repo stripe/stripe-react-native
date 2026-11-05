@@ -11,7 +11,6 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.EventEmitterCompat
-import com.reactnativestripesdk.utils.createError
 import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.elements.CurrencySelectorElement
@@ -19,7 +18,6 @@ import com.stripe.android.elements.ExpressCheckoutElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.elements.ShippingAddressElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -155,39 +153,9 @@ internal class NativeCheckoutControllerInstance(
   }
 
   @MainThread
-  @Suppress("TooGenericExceptionCaught")
   fun onConfirmationResult(result: CheckoutElementsController.Result) {
     UiThreadUtil.assertOnUiThread()
-    val pendingConfirmation = confirmation
-    if (pendingConfirmation != null) {
-      pendingConfirmation.complete(result)
-    } else if (!destroyed && isExpressCheckoutElementConfigured) {
-      // In the pinned native SDK, only CheckoutElementsPresenter.confirm() and ECE buttons deliver
-      // controller results. Payment Element's sheets/rows only select payment options; even an
-      // immediateAction integration confirms through our confirm(), which installs the deferred
-      // before invoking the presenter. Thus only ECE results reach this branch, not those from
-      // confirming a Google Pay/Link option selected in Payment Element.
-      scope.launch {
-        val serializedResult = try {
-          // Publish the refreshed session before the merchant handles the payment result.
-          publishCurrentState()
-          CheckoutSessionSerializer.serialize(result, controller.session.value?.status)
-        } catch (error: CancellationException) {
-          throw error
-        } catch (error: Exception) {
-          // Match explicit confirmation's bridge error handling rather than crashing the coroutine.
-          createError(checkoutErrorCode(error), error).apply { putString("status", "failed") }
-        }
-        if (!destroyed) {
-          eventEmitter.emitCheckoutExpressCheckoutDidComplete(
-            Arguments.createMap().apply {
-              putString("controllerId", controllerId)
-              putMap("result", serializedResult)
-            },
-          )
-        }
-      }
-    }
+    confirmation?.complete(result)
   }
 
   private fun releasePresenter() {

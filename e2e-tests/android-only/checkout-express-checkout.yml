@@ -41,26 +41,3 @@ appId: ${APP_ID}
     text: '(Pay with GPay|Google Pay)'
     above:
       text: 'Items'
-- tapOn:
-    text: '(Pay with GPay|Google Pay)'
-    above:
-      text: 'Items'
-- extendedWaitUntil:
-    notVisible:
-      text: '(Pay with GPay|Google Pay)'
-      above:
-        text: 'Items'
-    timeout: 30000
-- pressKey: BACK
-- extendedWaitUntil:
-    visible: 'Canceled'
-    timeout: 60000
-- assertVisible: 'The payment was canceled.'
-- tapOn: 'OK'
-- extendedWaitUntil:
-    visible: 'Status: ready'
-    timeout: 30000
-- assertVisible:
-    text: '(Pay with GPay|Google Pay)'
-    above:
-      text: 'Items'
