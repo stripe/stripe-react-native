@@ -259,6 +259,14 @@ it('loads Android Express Checkout and replaces its handle on reload', async () 
   await waitFor(() => expect(hook.result.current.status).toBe('ready'));
   const firstElement = hook.result.current.expressCheckoutElement;
   expect(firstElement).not.toBeNull();
+  const result = { status: 'canceled' };
+  act(() =>
+    listener('checkoutExpressCheckoutDidComplete')({
+      controllerId: controllerId(),
+      result,
+    })
+  );
+  expect(onResult).toHaveBeenCalledWith(result);
   await act(() => hook.result.current.reload());
   expect(hook.result.current.expressCheckoutElement).not.toBe(firstElement);
   hook.unmount();
