@@ -287,16 +287,12 @@ function setupIntentConfirmHandlers(
   if (confirmHandler) {
     confirmHandlerCallback?.remove();
     confirmHandlerCallback = addListener(
-      Platform.OS === 'android'
-        ? 'onEmbeddedConfirmHandlerCallback'
-        : 'onConfirmHandlerCallback',
+      'onEmbeddedConfirmHandlerCallback',
       ({ paymentMethod, shouldSavePaymentMethod }) => {
         confirmHandler(
           paymentMethod,
           shouldSavePaymentMethod,
-          Platform.OS === 'android'
-            ? NativeStripeSdkModule.embeddedIntentCreationCallback
-            : NativeStripeSdkModule.intentCreationCallback
+          NativeStripeSdkModule.embeddedIntentCreationCallback
         );
       }
     );
@@ -307,15 +303,11 @@ function setupIntentConfirmHandlers(
   if (confirmationTokenConfirmHandler) {
     confirmationTokenHandlerCallback?.remove();
     confirmationTokenHandlerCallback = addListener(
-      Platform.OS === 'android'
-        ? 'onEmbeddedConfirmationTokenHandlerCallback'
-        : 'onConfirmationTokenHandlerCallback',
+      'onEmbeddedConfirmationTokenHandlerCallback',
       ({ confirmationToken }) => {
         confirmationTokenConfirmHandler(
           confirmationToken,
-          Platform.OS === 'android'
-            ? NativeStripeSdkModule.embeddedConfirmationTokenCreationCallback
-            : NativeStripeSdkModule.confirmationTokenCreationCallback
+          NativeStripeSdkModule.embeddedConfirmationTokenCreationCallback
         );
       }
     );

@@ -14,6 +14,40 @@ extension StripeSdkImpl {
 
   // MARK: Public API wrappers
 
+  @objc(embeddedIntentCreationCallback:resolver:rejecter:)
+  @MainActor public func embeddedIntentCreationCallback(result: NSDictionary,
+                                                        resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+    guard let callback = self.embeddedIntentCreationCallback else {
+      resolve(Errors.createError(ErrorType.Failed, "No intent creation callback was set"))
+      return
+    }
+    if let clientSecret = result["clientSecret"] as? String {
+      callback(.success(clientSecret))
+    } else {
+      let errorParams = result["error"] as? NSDictionary
+      let error = ConfirmationError(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
+      callback(.failure(error))
+    }
+  }
+
+  @objc(embeddedConfirmationTokenCreationCallback:resolver:rejecter:)
+  @MainActor public func embeddedConfirmationTokenCreationCallback(result: NSDictionary,
+                                                                   resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                                   rejecter reject: @escaping RCTPromiseRejectBlock) {
+    guard let callback = self.embeddedConfirmationTokenIntentCreationCallback else {
+      resolve(Errors.createError(ErrorType.Failed, "No confirmation token intent creation callback was set"))
+      return
+    }
+    if let clientSecret = result["clientSecret"] as? String {
+      callback(.success(clientSecret))
+    } else {
+      let errorParams = result["error"] as? NSDictionary
+      let error = ConfirmationError(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
+      callback(.failure(error))
+    }
+  }
+
   @objc(createEmbeddedPaymentElement:configuration:resolve:reject:)
   public func createEmbeddedPaymentElement(intentConfig: NSDictionary,
                                            configuration: NSDictionary,
@@ -44,7 +78,8 @@ extension StripeSdkImpl {
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
       onBehalfOf: intentConfig["onBehalfOf"] as? String,
       captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
-      useConfirmationTokenCallback: hasConfirmationTokenHandler
+      useConfirmationTokenCallback: hasConfirmationTokenHandler,
+      isEmbedded: true
     )
 
     guard let configuration = buildEmbeddedPaymentElementConfiguration(params: configuration).configuration else {
@@ -164,7 +199,8 @@ extension StripeSdkImpl {
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
       onBehalfOf: intentConfig["onBehalfOf"] as? String,
       captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
-      useConfirmationTokenCallback: hasConfirmationTokenHandler
+      useConfirmationTokenCallback: hasConfirmationTokenHandler,
+      isEmbedded: true
     )
 
     Task {

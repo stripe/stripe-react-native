@@ -402,14 +402,14 @@ RCT_EXPORT_METHOD(embeddedIntentCreationCallback:(nonnull NSDictionary *)result
                                         resolve:(nonnull RCTPromiseResolveBlock)resolve
                                          reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared intentCreationCallback:result resolver:resolve rejecter:reject];
+  [StripeSdkImpl.shared embeddedIntentCreationCallback:result resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(embeddedConfirmationTokenCreationCallback:(nonnull NSDictionary *)result
                                                    resolve:(nonnull RCTPromiseResolveBlock)resolve
                                                     reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared confirmationTokenCreationCallback:result resolver:resolve rejecter:reject];
+  [StripeSdkImpl.shared embeddedConfirmationTokenCreationCallback:result resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(isCardInWallet:(nonnull NSDictionary *)params

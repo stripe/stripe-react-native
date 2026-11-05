@@ -66,6 +66,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
     var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
+    var embeddedIntentCreationCallback: ((Result<String, Error>) -> Void)?
+    var embeddedConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 
     var urlScheme: String?
 

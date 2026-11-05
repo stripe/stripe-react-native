@@ -339,7 +339,8 @@ extension StripeSdkImpl {
         paymentMethodTypes: [String]?,
         onBehalfOf: String?,
         captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod,
-        useConfirmationTokenCallback: Bool
+        useConfirmationTokenCallback: Bool,
+        isEmbedded: Bool = false
     ) -> PaymentSheet.IntentConfiguration {
         var mode: PaymentSheet.IntentConfiguration.Mode
         if let amount = modeParams["amount"] as? Int {
@@ -364,7 +365,7 @@ extension StripeSdkImpl {
                 onBehalfOf: onBehalfOf,
                 confirmationTokenConfirmHandler: { confirmationToken in
                     return try await withCheckedThrowingContinuation { continuation in
-                        self.paymentSheetConfirmationTokenIntentCreationCallback = { result in
+                        let callback: (Result<String, Error>) -> Void = { result in
                             switch result {
                             case .success(let clientSecret):
                                 continuation.resume(returning: clientSecret)
@@ -372,9 +373,16 @@ extension StripeSdkImpl {
                                 continuation.resume(throwing: error)
                             }
                         }
-                        self.emitter?.emitOnConfirmationTokenHandlerCallback([
-                            "confirmationToken": Mappers.mapFromConfirmationToken(confirmationToken) ?? NSNull()
-                        ])
+                        let params: [String: Any] = [
+                            "confirmationToken": Mappers.mapFromConfirmationToken(confirmationToken) ?? NSNull(),
+                        ]
+                        if isEmbedded {
+                            self.embeddedConfirmationTokenIntentCreationCallback = callback
+                            self.emitter?.emitOnEmbeddedConfirmationTokenHandlerCallback(params)
+                        } else {
+                            self.paymentSheetConfirmationTokenIntentCreationCallback = callback
+                            self.emitter?.emitOnConfirmationTokenHandlerCallback(params)
+                        }
                     }
                 })
         } else {
@@ -383,11 +391,17 @@ extension StripeSdkImpl {
                 paymentMethodTypes: paymentMethodTypes,
                 onBehalfOf: onBehalfOf,
                 confirmHandler: { paymentMethod, shouldSavePaymentMethod, intentCreationCallback in
-                    self.paymentSheetIntentCreationCallback = intentCreationCallback
-                    self.emitter?.emitOnConfirmHandlerCallback([
+                    let params: [String: Any] = [
                         "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? NSNull(),
                         "shouldSavePaymentMethod": shouldSavePaymentMethod,
-                    ])
+                    ]
+                    if isEmbedded {
+                        self.embeddedIntentCreationCallback = intentCreationCallback
+                        self.emitter?.emitOnEmbeddedConfirmHandlerCallback(params)
+                    } else {
+                        self.paymentSheetIntentCreationCallback = intentCreationCallback
+                        self.emitter?.emitOnConfirmHandlerCallback(params)
+                    }
                 })
         }
     }

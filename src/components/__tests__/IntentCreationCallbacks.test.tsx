@@ -87,55 +87,44 @@ describe.each([false, true])(
       });
     };
 
-    it('invokes only the target handler and routes its success and error responses', async () => {
-      const sheet = jest.fn();
-      const embedded = jest.fn();
-      await register(sheet, embedded, token);
-      for (const [
-        eventName,
-        handler,
-        other,
-        responseCallback,
-        otherResponseCallback,
-      ] of [
-        [event, sheet, embedded, respond, embeddedRespond],
-        [embeddedEvent, embedded, sheet, embeddedRespond, respond],
-      ] as const) {
-        sheet.mockClear();
-        embedded.mockClear();
-        respond.mockClear();
-        embeddedRespond.mockClear();
-        emit(eventName);
-        expect(handler).toHaveBeenCalledTimes(1);
-        expect(other).not.toHaveBeenCalled();
-        const callback = handler.mock.calls[0]![token ? 1 : 2];
-        callback({ clientSecret: 'test-secret' });
-        expect(responseCallback).toHaveBeenLastCalledWith({
-          clientSecret: 'test-secret',
-        });
-        callback({
-          error: { message: 'Test failure', localizedMessage: 'Try again' },
-        });
-        expect(responseCallback).toHaveBeenLastCalledWith({
-          error: { message: 'Test failure', localizedMessage: 'Try again' },
-        });
-        expect(otherResponseCallback).not.toHaveBeenCalled();
+    it.each(['android', 'ios'] as const)(
+      'isolates handlers and success/error responses on %s',
+      async (platform) => {
+        Platform.OS = platform;
+        const sheet = jest.fn();
+        const embedded = jest.fn();
+        await register(sheet, embedded, token);
+        for (const [
+          eventName,
+          handler,
+          other,
+          responseCallback,
+          otherResponseCallback,
+        ] of [
+          [event, sheet, embedded, respond, embeddedRespond],
+          [embeddedEvent, embedded, sheet, embeddedRespond, respond],
+        ] as const) {
+          sheet.mockClear();
+          embedded.mockClear();
+          respond.mockClear();
+          embeddedRespond.mockClear();
+          emit(eventName);
+          expect(handler).toHaveBeenCalledTimes(1);
+          expect(other).not.toHaveBeenCalled();
+          const callback = handler.mock.calls[0]![token ? 1 : 2];
+          callback({ clientSecret: 'test-secret' });
+          expect(responseCallback).toHaveBeenLastCalledWith({
+            clientSecret: 'test-secret',
+          });
+          callback({
+            error: { message: 'Test failure', localizedMessage: 'Try again' },
+          });
+          expect(responseCallback).toHaveBeenLastCalledWith({
+            error: { message: 'Test failure', localizedMessage: 'Try again' },
+          });
+          expect(otherResponseCallback).not.toHaveBeenCalled();
+        }
       }
-    });
-
-    it('preserves untagged iOS events and responses', async () => {
-      Platform.OS = 'ios';
-      const sheet = jest.fn();
-      const embedded = jest.fn();
-      await register(sheet, embedded, token);
-      emit(event);
-      for (const handler of [sheet, embedded]) {
-        expect(handler).toHaveBeenCalledTimes(1);
-        handler.mock.calls[0]![token ? 1 : 2]({ clientSecret: 'test-secret' });
-        expect(respond).toHaveBeenLastCalledWith({
-          clientSecret: 'test-secret',
-        });
-      }
-    });
+    );
   }
 );

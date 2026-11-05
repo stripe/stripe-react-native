@@ -4,6 +4,8 @@ import Foundation
     func emitCheckoutServerUpdateRequested(_ value: [String: Any])
     func emitOnConfirmHandlerCallback(_ value: [String: Any])
     func emitOnConfirmationTokenHandlerCallback(_ value: [String: Any])
+    func emitOnEmbeddedConfirmHandlerCallback(_ value: [String: Any])
+    func emitOnEmbeddedConfirmationTokenHandlerCallback(_ value: [String: Any])
     func emitOnFinancialConnectionsEvent(_ value: [String: Any])
     func emitOnOrderTrackingCallback()
     func emitOnCustomerAdapterFetchPaymentMethodsCallback()
