@@ -229,13 +229,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             resolve(Errors.createError(ErrorType.Failed, "No intent creation callback was set"))
             return
         }
-        if let clientSecret = result["clientSecret"] as? String {
-            paymentSheetIntentCreationCallback(.success(clientSecret))
-        } else {
-            let errorParams = result["error"] as? NSDictionary
-            let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
-            paymentSheetIntentCreationCallback(.failure(error))
-        }
+        paymentSheetIntentCreationCallback(StripeSdkImpl.intentCreationResult(from: result))
     }
 
     @objc(confirmationTokenCreationCallback:resolver:rejecter:)
@@ -246,13 +240,15 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             resolve(Errors.createError(ErrorType.Failed, "No confirmation token intent creation callback was set"))
             return
         }
+        paymentSheetConfirmationTokenIntentCreationCallback(StripeSdkImpl.intentCreationResult(from: result))
+    }
+
+    static func intentCreationResult(from result: NSDictionary) -> Result<String, Error> {
         if let clientSecret = result["clientSecret"] as? String {
-            paymentSheetConfirmationTokenIntentCreationCallback(.success(clientSecret))
-        } else {
-            let errorParams = result["error"] as? NSDictionary
-            let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
-            paymentSheetConfirmationTokenIntentCreationCallback(.failure(error))
+            return .success(clientSecret)
         }
+        let errorParams = result["error"] as? NSDictionary
+        return .failure(ConfirmationError(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred."))
     }
 
     @objc(customPaymentMethodResultCallback:resolver:rejecter:)

@@ -22,13 +22,7 @@ extension StripeSdkImpl {
       resolve(Errors.createError(ErrorType.Failed, "No intent creation callback was set"))
       return
     }
-    if let clientSecret = result["clientSecret"] as? String {
-      callback(.success(clientSecret))
-    } else {
-      let errorParams = result["error"] as? NSDictionary
-      let error = ConfirmationError(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
-      callback(.failure(error))
-    }
+    callback(StripeSdkImpl.intentCreationResult(from: result))
   }
 
   @objc(embeddedConfirmationTokenCreationCallback:resolver:rejecter:)
@@ -39,13 +33,7 @@ extension StripeSdkImpl {
       resolve(Errors.createError(ErrorType.Failed, "No confirmation token intent creation callback was set"))
       return
     }
-    if let clientSecret = result["clientSecret"] as? String {
-      callback(.success(clientSecret))
-    } else {
-      let errorParams = result["error"] as? NSDictionary
-      let error = ConfirmationError(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
-      callback(.failure(error))
-    }
+    callback(StripeSdkImpl.intentCreationResult(from: result))
   }
 
   @objc(createEmbeddedPaymentElement:configuration:resolve:reject:)
