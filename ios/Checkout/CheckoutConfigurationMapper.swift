@@ -22,7 +22,7 @@ enum CheckoutConfigurationMapper {
         params: NSDictionary,
         merchantIdentifier: String?,
         didSelectPaymentOption: @escaping () -> Void,
-        expressCheckoutCompletion: @escaping ExpressCheckoutElement.Configuration.CompletionHandler = { _ in }
+        expressCheckoutCompletion: @escaping ExpressCheckoutElement.Configuration.CompletionHandler
     ) throws -> CheckoutElementsController.Configuration {
         let clientSecret = params["clientSecret"] as? String ?? ""
         let returnURL = params["returnURL"] as? String ?? ""

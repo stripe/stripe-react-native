@@ -39,14 +39,18 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
 
     func test_map_expressCheckoutIsOptInAndUsesNativeDefaults() throws {
         let disabled = try CheckoutConfigurationMapper.map(
-            params: [:], merchantIdentifier: nil, didSelectPaymentOption: {}
+            params: [:],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
         XCTAssertNil(disabled.expressCheckoutElement)
         for merchantIdentifier: String? in [nil, "", "merchant.com.example"] {
             let configuration = try CheckoutConfigurationMapper.map(
                 params: ["expressCheckoutElement": [:]],
                 merchantIdentifier: merchantIdentifier,
-                didSelectPaymentOption: {}
+                didSelectPaymentOption: {},
+                expressCheckoutCompletion: { _ in }
             )
             let express = try XCTUnwrap(configuration.expressCheckoutElement)
             XCTAssertEqual(express.applePayConfiguration != nil, merchantIdentifier == "merchant.com.example")
@@ -72,7 +76,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
             XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
                 params: ["expressCheckoutElement": params],
                 merchantIdentifier: "merchant.com.example",
-                didSelectPaymentOption: {}
+                didSelectPaymentOption: {},
+                expressCheckoutCompletion: { _ in }
             )) { error in
                 XCTAssertEqual(
                     error as? CheckoutConfigurationMapperError,
@@ -83,7 +88,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
             params: ["expressCheckoutElement": ["applePay": [:]]],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )) { error in
             XCTAssertEqual(error as? CheckoutConfigurationMapperError, .missingMerchantIdentifier)
         }
@@ -108,7 +114,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 ],
             ],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
 
         let appearance = try XCTUnwrap(configuration.currencySelectorElement?.appearance)
@@ -170,7 +177,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 ],
             ],
             merchantIdentifier: "merchant.com.example",
-            didSelectPaymentOption: { selectionCount += 1 }
+            didSelectPaymentOption: { selectionCount += 1 },
+            expressCheckoutCompletion: { _ in }
         )
 
         XCTAssertEqual(configuration.clientSecret, "cs_test_secret_123")
@@ -218,7 +226,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 "returnURL": "example://checkout",
             ],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
 
         XCTAssertNil(configuration.merchantDisplayName)
@@ -246,7 +255,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                         ],
                     ],
                     merchantIdentifier: merchantIdentifier,
-                    didSelectPaymentOption: {}
+                    didSelectPaymentOption: {},
+                    expressCheckoutCompletion: { _ in }
                 )
             ) { error in
                 XCTAssertEqual(
@@ -276,7 +286,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                     ],
                 ],
                 merchantIdentifier: testCase.merchantIdentifier,
-                didSelectPaymentOption: {}
+                didSelectPaymentOption: {},
+                expressCheckoutCompletion: { _ in }
             )
 
             let paymentElement = try XCTUnwrap(configuration.paymentElement)
@@ -296,7 +307,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
             params: ["paymentElement": ["applePay": ["display": "invalid"]]],
             merchantIdentifier: "merchant.com.example",
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )) { error in
             XCTAssertEqual(
                 error as? CheckoutConfigurationMapperError,
@@ -309,7 +321,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         let configuration = try CheckoutConfigurationMapper.map(
             params: [:],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
 
         XCTAssertEqual(configuration.clientSecret, "")
@@ -326,7 +339,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 ],
             ],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         ))
     }
 
