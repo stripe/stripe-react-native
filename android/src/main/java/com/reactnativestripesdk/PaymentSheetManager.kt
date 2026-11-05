@@ -94,8 +94,7 @@ class PaymentSheetManager(
     get() = context.getNativeModule(StripeSdkModule::class.java)?.intentCreationRequests
   private var keepJsAwake: KeepJsAwakeTask? = null
   private var lastConfigureWasCustomFlow: Boolean? = null
-  private var paymentSheetCallbackKind: CallbackKind? = null
-  private var flowControllerCallbackKind: CallbackKind? = null
+  private var hasDeferredCallbacks = false
 
   private enum class CallbackKind { None, IntentCreation, ConfirmationToken }
 
@@ -202,14 +201,13 @@ class PaymentSheetManager(
   }
 
   private fun replaceIntentCallbackOwnerIfNeeded() {
-    val hasDeferredCallbacks = listOf(paymentSheetCallbackKind, flowControllerCallbackKind)
-      .any { it == CallbackKind.IntentCreation || it == CallbackKind.ConfirmationToken }
     if (intentConfiguration != null || hasDeferredCallbacks) {
       intentCreationRequests?.retire(intentCallbackOwner)
       intentCallbackOwner = IntentCreationRequestRouter.Owner()
       paymentSheet = null
       flowController = null
     }
+    hasDeferredCallbacks = intentConfiguration != null
   }
 
   private inline fun <T> resolvePaymentSheetValue(
@@ -249,7 +247,7 @@ class PaymentSheetManager(
     // Native intent-creation callbacks are registered by the builder, not by configure/present.
     if (args.getBooleanOr("customFlow", false)) {
       lastConfigureWasCustomFlow = true
-      if (flowController == null || flowControllerCallbackKind != callbackKind) {
+      if (flowController == null) {
         initFlowController(callbackKind, promise)
       }
       configureFlowController(promise)
@@ -257,7 +255,7 @@ class PaymentSheetManager(
     }
 
     lastConfigureWasCustomFlow = false
-    if (paymentSheet == null || paymentSheetCallbackKind != callbackKind) {
+    if (paymentSheet == null) {
       signal.unregister()
       initPaymentSheet(callbackKind, promise)
     }
@@ -283,7 +281,6 @@ class PaymentSheetManager(
     }
     @SuppressLint("RestrictedApi")
     paymentSheet = builder.confirmCustomPaymentMethodCallback(this).build(activity, signal)
-    paymentSheetCallbackKind = callbackKind
   }
 
   private fun initFlowController(
@@ -308,22 +305,20 @@ class PaymentSheetManager(
       CallbackKind.None -> Unit
     }
     flowController = builder.confirmCustomPaymentMethodCallback(this).build(activity)
-    flowControllerCallbackKind = callbackKind
   }
 
   internal fun buildCreateConfirmationTokenCallback(): CreateIntentWithConfirmationTokenCallback {
     val owner = intentCallbackOwner
     return CreateIntentWithConfirmationTokenCallback { confirmationToken ->
-      val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+      val module = context.getNativeModule(StripeSdkModule::class.java)
+        ?: return@CreateIntentWithConfirmationTokenCallback CreateIntentResult.Failure(
+          cause = IllegalStateException("StripeSdkModule is unavailable"),
+          displayMessage = "An unexpected error occurred",
+        )
       val params =
         Arguments.createMap().apply {
           putMap("confirmationToken", mapFromConfirmationToken(confirmationToken))
         }
-
-      val module = stripeSdkModule ?: return@CreateIntentWithConfirmationTokenCallback CreateIntentResult.Failure(
-        cause = IllegalStateException("StripeSdkModule is unavailable"),
-        displayMessage = "An unexpected error occurred",
-      )
       module.intentCreationRequests.request(
         owner, IntentCreationRequestRouter.Component.PaymentSheet,
         IntentCreationRequestRouter.Kind.ConfirmationToken, params,
@@ -335,17 +330,16 @@ class PaymentSheetManager(
   internal fun buildIntentCreationCallback(): CreateIntentCallback {
     val owner = intentCallbackOwner
     return CreateIntentCallback { paymentMethod, shouldSavePaymentMethod ->
-      val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+      val module = context.getNativeModule(StripeSdkModule::class.java)
+        ?: return@CreateIntentCallback CreateIntentResult.Failure(
+          cause = IllegalStateException("StripeSdkModule is unavailable"),
+          displayMessage = "An unexpected error occurred",
+        )
       val params =
         Arguments.createMap().apply {
           putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
           putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
         }
-
-      val module = stripeSdkModule ?: return@CreateIntentCallback CreateIntentResult.Failure(
-        cause = IllegalStateException("StripeSdkModule is unavailable"),
-        displayMessage = "An unexpected error occurred",
-      )
       module.intentCreationRequests.request(
         owner, IntentCreationRequestRouter.Component.PaymentSheet,
         IntentCreationRequestRouter.Kind.PaymentMethod, params,

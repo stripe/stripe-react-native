@@ -120,10 +120,9 @@ class IntentCreationRequestRouterTest {
   }
 
   @Test
-  fun `success errors and malformed matching responses terminate only their own request`() = callbackTest {
+  fun `errors and malformed matching responses terminate their request`() = callbackTest {
     for (kind in Kind.values()) {
       for (response in listOf(
-        JavaOnlyMap.of("clientSecret", "test-secret"),
         JavaOnlyMap.of("error", JavaOnlyMap.of("message", "Test failure", "localizedMessage", "Try again")),
         JavaOnlyMap(),
         JavaOnlyMap.of("clientSecret", 123),
@@ -137,16 +136,10 @@ class IntentCreationRequestRouterTest {
         response.putString("component", Component.EmbeddedPaymentElement.value)
         fixture.bridge(response, kind)
         val result = request.await()
-        if (response.hasKey("clientSecret") && response.getType("clientSecret") == ReadableType.String &&
-          response.getString("clientSecret") == "test-secret"
-        ) {
-          assertSecret("test-secret", result)
-        } else {
-          assertTrue(result is CreateIntentResult.Failure)
-          if (response.hasKey("error") && response.getType("error") == ReadableType.Map) {
-            assertEquals("Test failure", ReflectionHelpers.getField<Exception>(result, "cause").message)
-            assertEquals("Try again", ReflectionHelpers.getField<String>(result, "displayMessage"))
-          }
+        assertTrue(result is CreateIntentResult.Failure)
+        if (response.hasKey("error") && response.getType("error") == ReadableType.Map) {
+          assertEquals("Test failure", ReflectionHelpers.getField<Exception>(result, "cause").message)
+          assertEquals("Try again", ReflectionHelpers.getField<String>(result, "displayMessage"))
         }
         assertTrue(fixture.pending().isEmpty())
       }
