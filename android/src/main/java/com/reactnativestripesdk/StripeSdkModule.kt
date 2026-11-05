@@ -131,10 +131,8 @@ class StripeSdkModule(
 
   @Volatile private var checkoutControllersInvalidated = false
 
-  internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
-  internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
+  internal val intentCreationRequests = IntentCreationRequestRouter()
   internal var customPaymentMethodResultCallback = CompletableDeferred<ReadableMap>()
-  internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
 
@@ -145,6 +143,7 @@ class StripeSdkModule(
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
 
   override fun invalidate() {
+    intentCreationRequests.close()
     application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
     checkoutControllersInvalidated = true
     super.invalidate()
@@ -332,14 +331,8 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    embeddedIntentCreationCallback.complete(params)
-
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
-    }
-
-    paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
+    intentCreationRequests.complete(params, IntentCreationRequestRouter.Kind.PaymentMethod)
+    promise.resolve(null)
   }
 
   @ReactMethod
@@ -359,15 +352,8 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    embeddedConfirmationTokenCreationCallback.complete(params)
-    paymentSheetConfirmationTokenCreationCallback.complete(params)
-
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
-    }
-
-    paymentSheetManager?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
+    intentCreationRequests.complete(params, IntentCreationRequestRouter.Kind.ConfirmationToken)
+    promise.resolve(null)
   }
 
   @ReactMethod

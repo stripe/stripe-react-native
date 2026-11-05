@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentActivity
 import app.cash.turbine.Turbine
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
+import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.google.common.truth.Truth.assertThat
@@ -170,7 +171,12 @@ class PaymentSheetManagerHostTest {
   ) = runTest {
     val firstHostController = Robolectric.buildActivity(FragmentActivity::class.java).setup()
     val secondHostController = Robolectric.buildActivity(FragmentActivity::class.java).setup()
-    val context = BridgeReactContext(RuntimeEnvironment.getApplication())
+    lateinit var module: StripeSdkModule
+    val context = object : BridgeReactContext(RuntimeEnvironment.getApplication()) {
+      override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
+        nativeModuleInterface.cast(module)
+    }
+    module = StripeSdkModule(context)
     val initPromise = FakePromise()
     val presentPromise = FakePromise()
     val manager = PaymentSheetManager(context, arguments, initPromise)
