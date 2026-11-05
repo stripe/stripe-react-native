@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReadableMap
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -19,46 +20,36 @@ class IntentCreationCallbacksTest {
   @Test
   fun `responses complete only the matching component for both callback kinds`() = runBlocking {
     for (useConfirmationToken in listOf(false, true)) {
-      for (firstComponent in listOf("paymentSheet", "embeddedPaymentElement")) {
+      for (embeddedFirst in listOf(false, true)) {
         val context = BridgeReactContext(RuntimeEnvironment.getApplication())
         try {
           val module = StripeSdkModule(context)
           val manager = PaymentSheetManager(context, JavaOnlyMap(), mock(Promise::class.java))
           ReflectionHelpers.setField(module, "paymentSheetManager", manager)
           val sheet = if (useConfirmationToken) {
-            manager.paymentSheetConfirmationTokenCreationCallback
+            manager.paymentSheetConfirmationTokenCreationCallback to module::confirmationTokenCreationCallback
           } else {
-            manager.paymentSheetIntentCreationCallback
+            manager.paymentSheetIntentCreationCallback to module::intentCreationCallback
+          }
+          val embeddedRespond: (ReadableMap, Promise) -> Unit = if (useConfirmationToken) {
+            module::embeddedConfirmationTokenCreationCallback
+          } else {
+            module::embeddedIntentCreationCallback
           }
           val embedded = if (useConfirmationToken) {
-            module.embeddedConfirmationTokenCreationCallback
+            module.embeddedConfirmationTokenCreationCallback to embeddedRespond
           } else {
-            module.embeddedIntentCreationCallback
+            module.embeddedIntentCreationCallback to embeddedRespond
           }
-          val secondComponent = if (firstComponent == "paymentSheet") "embeddedPaymentElement" else "paymentSheet"
-          val first = if (firstComponent == "paymentSheet") sheet else embedded
-          val second = if (firstComponent == "paymentSheet") embedded else sheet
-          fun respond(component: String, secret: String) {
+          val requests = if (embeddedFirst) listOf(embedded, sheet) else listOf(sheet, embedded)
+          requests.forEachIndexed { index, (request, respond) ->
             val promise = mock(Promise::class.java)
-            val response = JavaOnlyMap.of("clientSecret", secret)
-            if (component == "embeddedPaymentElement") {
-              if (useConfirmationToken) {
-                module.embeddedConfirmationTokenCreationCallback(response, promise)
-              } else {
-                module.embeddedIntentCreationCallback(response, promise)
-              }
-            } else if (useConfirmationToken) {
-              module.confirmationTokenCreationCallback(response, promise)
-            } else {
-              module.intentCreationCallback(response, promise)
-            }
+            val response = JavaOnlyMap.of("clientSecret", "secret-$index")
+            respond(response, promise)
             verify(promise).resolve(null)
+            assertEquals(response, request.await())
+            if (index == 0) assertFalse(requests[1].first.isCompleted)
           }
-          respond(firstComponent, "first-secret")
-          assertEquals("first-secret", first.await().getString("clientSecret"))
-          assertFalse(second.isCompleted)
-          respond(secondComponent, "second-secret")
-          assertEquals("second-secret", second.await().getString("clientSecret"))
         } finally {
           context.destroy()
         }
