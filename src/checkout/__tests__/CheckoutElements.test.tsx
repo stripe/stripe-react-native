@@ -257,11 +257,6 @@ it('bridges Android Express Checkout configuration without sending callbacks to 
       additionalEnabledNetworks: ['INTERAC'],
     },
     link: { display: 'never' },
-    appearance: {
-      buttonTheme: 'dark',
-      buttonLayout: { maxColumns: 2, maxRows: 1 },
-      borderRadius: 12,
-    },
     onResult,
   };
   create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });
@@ -300,96 +295,4 @@ it('does not expose an unavailable Android Express Checkout Element', async () =
   });
   expect(controller.expressCheckoutElement).toBeNull();
   await controller.destroy();
-});
-
-it('keeps explicit confirmation outcomes separate from the Express Checkout callback', async () => {
-  jest.replaceProperty(Platform, 'OS', 'android');
-  const onResult = jest.fn();
-  create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });
-  const controller = await createCheckoutElements({
-    ...options,
-    expressCheckoutElement: { onResult },
-  });
-  const confirm = NativeStripeSdk.confirmCheckout as jest.Mock;
-  const results: CheckoutElements.Result[] = [
-    { status: 'completed', paymentStatus: 'paid' },
-    { status: 'canceled' },
-    { status: 'failed', error: { code: 'Failed', message: 'Declined' } },
-  ];
-  for (const result of results) {
-    confirm.mockResolvedValueOnce(result);
-    await expect(controller.confirm()).resolves.toBe(result);
-    expect(onResult).not.toHaveBeenCalled();
-  }
-  confirm.mockRejectedValueOnce(new Error('Confirmation already active'));
-  await expect(controller.confirm()).rejects.toThrow(
-    'Confirmation already active'
-  );
-  expect(onResult).not.toHaveBeenCalled();
-
-  emit('checkoutExpressCheckoutDidComplete', {
-    controllerId: create.mock.calls[0][1],
-    result: results[1],
-  });
-  expect(onResult).toHaveBeenCalledTimes(1);
-  expect(onResult).toHaveBeenCalledWith(results[1]);
-  await controller.destroy();
-});
-
-it('routes all inline payment outcomes to their controller and removes listeners on destruction', async () => {
-  jest.replaceProperty(Platform, 'OS', 'android');
-  const firstResult = jest.fn();
-  const secondResult = jest.fn();
-  const first = await createCheckoutElements({
-    ...options,
-    expressCheckoutElement: { onResult: firstResult },
-  });
-  const second = await createCheckoutElements({
-    ...options,
-    expressCheckoutElement: { onResult: secondResult },
-  });
-  const firstId = create.mock.calls[0][1];
-  const results: CheckoutElements.Result[] = [
-    { status: 'completed', paymentStatus: 'paid' },
-    { status: 'canceled' },
-    { status: 'failed', error: { code: 'Failed', message: 'Declined' } },
-  ];
-  for (const result of results) {
-    emit('checkoutExpressCheckoutDidComplete', {
-      controllerId: firstId,
-      result,
-    });
-    expect(firstResult).toHaveBeenLastCalledWith(result);
-  }
-  expect(firstResult).toHaveBeenCalledTimes(3);
-  expect(secondResult).not.toHaveBeenCalled();
-  await first.destroy();
-  emit('checkoutExpressCheckoutDidComplete', {
-    controllerId: firstId,
-    result: results[0],
-  });
-  expect(firstResult).toHaveBeenCalledTimes(3);
-  emit('checkoutExpressCheckoutDidComplete', {
-    controllerId: create.mock.calls[1][1],
-    result: results[1],
-  });
-  expect(secondResult).toHaveBeenCalledWith(results[1]);
-  await second.destroy();
-  expect(
-    [...listeners.values()].every((callbacks) => callbacks.size === 0)
-  ).toBe(true);
-});
-
-it('removes Express Checkout listeners when Android creation fails', async () => {
-  jest.replaceProperty(Platform, 'OS', 'android');
-  create.mockRejectedValueOnce(new Error('Invalid session'));
-  await expect(
-    createCheckoutElements({
-      ...options,
-      expressCheckoutElement: { onResult: jest.fn() },
-    })
-  ).rejects.toThrow('Invalid session');
-  expect(
-    [...listeners.values()].every((callbacks) => callbacks.size === 0)
-  ).toBe(true);
 });

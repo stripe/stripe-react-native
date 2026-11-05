@@ -137,8 +137,7 @@ describe('Checkout playground configuration', () => {
   });
 });
 
-it('opts into Android Express Checkout with its result callback and Link display', () => {
-  const onResult = jest.fn();
+it('opts into render-only Android Express Checkout with the Link display', () => {
   const params = {
     clientSecret: 'cs_test_secret',
     settings: {
@@ -148,18 +147,15 @@ it('opts into Android Express Checkout with its result callback and Link display
     },
   };
   jest.replaceProperty(Platform, 'OS', 'android');
+  expect(checkoutConfiguration(params).expressCheckoutElement).toEqual({
+    link: { display: 'never' },
+    onResult: expect.any(Function),
+  });
   expect(
-    checkoutConfiguration(params, onResult).expressCheckoutElement
-  ).toEqual({ link: { display: 'never' }, onResult });
-  expect(
-    checkoutConfiguration(
-      { ...params, settings: defaultPlaygroundSettings },
-      onResult
-    ).expressCheckoutElement
+    checkoutConfiguration({ ...params, settings: defaultPlaygroundSettings })
+      .expressCheckoutElement
   ).toBeUndefined();
   jest.replaceProperty(Platform, 'OS', 'ios');
-  expect(
-    checkoutConfiguration(params, onResult).expressCheckoutElement
-  ).toBeUndefined();
+  expect(checkoutConfiguration(params).expressCheckoutElement).toBeUndefined();
   jest.restoreAllMocks();
 });
