@@ -355,28 +355,18 @@ export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
 ): Promise<InitPaymentSheetResult> => {
   let result;
-  confirmHandlerCallback?.remove();
-  confirmationTokenHandlerCallback?.remove();
-  confirmHandlerCallback = null;
-  confirmationTokenHandlerCallback = null;
   const confirmHandler = params?.intentConfiguration?.confirmHandler;
   if (confirmHandler) {
+    confirmHandlerCallback?.remove();
     confirmHandlerCallback = addListener(
       'onConfirmHandlerCallback',
-      ({ paymentMethod, shouldSavePaymentMethod, component, requestId }) => {
-        if (
-          Platform.OS === 'android' &&
-          (component !== 'paymentSheet' ||
-            typeof requestId !== 'string' ||
-            requestId.length === 0)
-        ) {
+      ({ paymentMethod, shouldSavePaymentMethod, component }) => {
+        if (Platform.OS === 'android' && component !== 'paymentSheet') {
           return;
         }
         confirmHandler(paymentMethod, shouldSavePaymentMethod, (response) =>
           NativeStripeSdk.intentCreationCallback(
-            Platform.OS === 'android'
-              ? { ...response, component, requestId }
-              : response
+            Platform.OS === 'android' ? { ...response, component } : response
           )
         );
       }
@@ -386,22 +376,16 @@ export const initPaymentSheet = async (
   const confirmationTokenHandler =
     params?.intentConfiguration?.confirmationTokenConfirmHandler;
   if (confirmationTokenHandler) {
+    confirmationTokenHandlerCallback?.remove();
     confirmationTokenHandlerCallback = addListener(
       'onConfirmationTokenHandlerCallback',
-      ({ confirmationToken, component, requestId }) => {
-        if (
-          Platform.OS === 'android' &&
-          (component !== 'paymentSheet' ||
-            typeof requestId !== 'string' ||
-            requestId.length === 0)
-        ) {
+      ({ confirmationToken, component }) => {
+        if (Platform.OS === 'android' && component !== 'paymentSheet') {
           return;
         }
         confirmationTokenHandler(confirmationToken, (response) =>
           NativeStripeSdk.confirmationTokenCreationCallback(
-            Platform.OS === 'android'
-              ? { ...response, component, requestId }
-              : response
+            Platform.OS === 'android' ? { ...response, component } : response
           )
         );
       }

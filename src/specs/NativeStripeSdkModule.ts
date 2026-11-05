@@ -55,7 +55,6 @@ type CheckoutCreateResult = UnsafeObject<{
 
 export type IntentCreationRouting = {
   component?: 'paymentSheet' | 'embeddedPaymentElement';
-  requestId?: string;
 };
 
 type IntentCreationResponse = PaymentSheet.IntentCreationCallbackParams &

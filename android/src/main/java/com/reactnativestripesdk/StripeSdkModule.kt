@@ -131,7 +131,8 @@ class StripeSdkModule(
 
   @Volatile private var checkoutControllersInvalidated = false
 
-  internal val intentCreationRequests = IntentCreationRequestRouter()
+  internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
+  internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
   internal var customPaymentMethodResultCallback = CompletableDeferred<ReadableMap>()
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
@@ -143,7 +144,6 @@ class StripeSdkModule(
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
 
   override fun invalidate() {
-    intentCreationRequests.close()
     application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
     checkoutControllersInvalidated = true
     super.invalidate()
@@ -331,7 +331,10 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    intentCreationRequests.complete(params, IntentCreationRequestRouter.Kind.PaymentMethod)
+    when (params.getString("component")) {
+      "embeddedPaymentElement" -> embeddedIntentCreationCallback.complete(params)
+      "paymentSheet" -> paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
+    }
     promise.resolve(null)
   }
 
@@ -352,7 +355,10 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    intentCreationRequests.complete(params, IntentCreationRequestRouter.Kind.ConfirmationToken)
+    when (params.getString("component")) {
+      "embeddedPaymentElement" -> embeddedConfirmationTokenCreationCallback.complete(params)
+      "paymentSheet" -> paymentSheetManager?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
+    }
     promise.resolve(null)
   }
 

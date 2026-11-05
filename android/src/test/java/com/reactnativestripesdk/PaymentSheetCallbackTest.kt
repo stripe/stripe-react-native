@@ -4,16 +4,11 @@ import android.os.Looper
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
-import com.facebook.react.bridge.NativeModule
 import com.google.common.truth.Truth.assertThat
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
-import com.stripe.android.core.reactnative.UnregisterSignal
-import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CreateIntentWithConfirmationTokenCallback
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.PaymentSheet
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
@@ -40,47 +35,14 @@ class PaymentSheetCallbackTest {
         .thenReturn(mock(PaymentSheet.FlowController::class.java))
     }.use { builders ->
       runScenario { manager, promise ->
-        var expectedBuilders = 0
-        callbackSequence.forEach { kind ->
-          manager.configure(arguments(kind), promise)
-          expectedBuilders += 1
-          assertThat(builders.constructed()).hasSize(expectedBuilders)
-          assertCallback(builders.constructed().last(), kind)
-
-          val oldCallback = manager.buildIntentCreationCallback()
-          // Deferred callbacks get a fresh owner on reconfiguration; other controllers can be reused.
-          manager.configure(arguments(kind), promise)
-          if (kind != CallbackKind.None) {
-            expectedBuilders += 1
-            val result = runBlocking {
-              runCatching { oldCallback.onCreateIntent(mock(PaymentMethod::class.java), false) }
-            }
-            assertThat(result.exceptionOrNull()).isInstanceOf(CancellationException::class.java)
-          }
-          assertThat(builders.constructed()).hasSize(expectedBuilders)
-          assertCallback(builders.constructed().last(), kind)
-        }
-      }
-    }
-  }
-
-  @Test
-  fun paymentSheetRebuildsWithTheConfiguredCallbackKind() {
-    val settings = withSettings().defaultAnswer(RETURNS_SELF)
-    mockConstruction(PaymentSheet.Builder::class.java, settings) { builder, _ ->
-      Mockito.`when`(builder.build(any(FragmentActivity::class.java), any(UnregisterSignal::class.java)))
-        .thenReturn(mock(PaymentSheet::class.java))
-    }.use { builders ->
-      runScenario { manager, promise ->
         callbackSequence.forEachIndexed { index, kind ->
-          manager.configure(arguments(kind).apply { putBoolean("customFlow", false) }, promise)
-          promise.resolveCalls.takeItem()
+          manager.configure(arguments(kind), promise)
           assertThat(builders.constructed()).hasSize(index + 1)
-          val builder = builders.constructed().last()
-          verify(builder, Mockito.times(if (kind == CallbackKind.IntentCreation) 1 else 0))
-            .createIntentCallback(any(CreateIntentCallback::class.java))
-          verify(builder, Mockito.times(if (kind == CallbackKind.ConfirmationToken) 1 else 0))
-            .createIntentCallback(any(CreateIntentWithConfirmationTokenCallback::class.java))
+          assertCallback(builders.constructed().last(), kind)
+
+          // Reusing the same callback type must preserve the existing controller.
+          manager.configure(arguments(kind), promise)
+          assertThat(builders.constructed()).hasSize(index + 1)
         }
       }
     }
@@ -95,12 +57,7 @@ class PaymentSheetCallbackTest {
 
   private fun runScenario(block: (PaymentSheetManager, FakePromise) -> Unit) {
     val activityController = Robolectric.buildActivity(FragmentActivity::class.java).setup()
-    lateinit var module: StripeSdkModule
-    val context = object : BridgeReactContext(RuntimeEnvironment.getApplication()) {
-      override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
-        nativeModuleInterface.cast(module)
-    }
-    module = StripeSdkModule(context)
+    val context = BridgeReactContext(RuntimeEnvironment.getApplication())
     context.onHostResume(activityController.get())
     val promise = FakePromise()
     val manager = PaymentSheetManager(context, JavaOnlyMap(), promise)

@@ -58,6 +58,7 @@ import com.stripe.android.paymentsheet.PaymentOptionResultCallback
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -89,12 +90,12 @@ class PaymentSheetManager(
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
   private var confirmPromise: Promise? = null
   private var paymentSheetTimedOut = false
-  private var intentCallbackOwner = IntentCreationRequestRouter.Owner()
-  private val intentCreationRequests
-    get() = context.getNativeModule(StripeSdkModule::class.java)?.intentCreationRequests
+  internal var paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
+  internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
   private var keepJsAwake: KeepJsAwakeTask? = null
   private var lastConfigureWasCustomFlow: Boolean? = null
-  private var hasDeferredCallbacks = false
+  private var paymentSheetCallbackKind: CallbackKind? = null
+  private var flowControllerCallbackKind: CallbackKind? = null
 
   private enum class CallbackKind { None, IntentCreation, ConfirmationToken }
 
@@ -104,7 +105,6 @@ class PaymentSheetManager(
   }
 
   override fun onDestroy() {
-    intentCreationRequests?.retire(intentCallbackOwner)
     super.onDestroy()
     flowController = null
     paymentSheet = null
@@ -196,18 +196,7 @@ class PaymentSheetManager(
       flowController = null
       hostActivityRef = WeakReference(activity)
     }
-    replaceIntentCallbackOwnerIfNeeded()
     configureMode(args, promise)
-  }
-
-  private fun replaceIntentCallbackOwnerIfNeeded() {
-    if (intentConfiguration != null || hasDeferredCallbacks) {
-      intentCreationRequests?.retire(intentCallbackOwner)
-      intentCallbackOwner = IntentCreationRequestRouter.Owner()
-      paymentSheet = null
-      flowController = null
-    }
-    hasDeferredCallbacks = intentConfiguration != null
   }
 
   private inline fun <T> resolvePaymentSheetValue(
@@ -247,7 +236,7 @@ class PaymentSheetManager(
     // Native intent-creation callbacks are registered by the builder, not by configure/present.
     if (args.getBooleanOr("customFlow", false)) {
       lastConfigureWasCustomFlow = true
-      if (flowController == null) {
+      if (flowController == null || flowControllerCallbackKind != callbackKind) {
         initFlowController(callbackKind, promise)
       }
       configureFlowController(promise)
@@ -255,7 +244,7 @@ class PaymentSheetManager(
     }
 
     lastConfigureWasCustomFlow = false
-    if (paymentSheet == null) {
+    if (paymentSheet == null || paymentSheetCallbackKind != callbackKind) {
       signal.unregister()
       initPaymentSheet(callbackKind, promise)
     }
@@ -281,6 +270,7 @@ class PaymentSheetManager(
     }
     @SuppressLint("RestrictedApi")
     paymentSheet = builder.confirmCustomPaymentMethodCallback(this).build(activity, signal)
+    paymentSheetCallbackKind = callbackKind
   }
 
   private fun initFlowController(
@@ -305,53 +295,68 @@ class PaymentSheetManager(
       CallbackKind.None -> Unit
     }
     flowController = builder.confirmCustomPaymentMethodCallback(this).build(activity)
+    flowControllerCallbackKind = callbackKind
   }
 
-  internal fun buildCreateConfirmationTokenCallback(): CreateIntentWithConfirmationTokenCallback {
-    val owner = intentCallbackOwner
+  private fun buildCreateConfirmationTokenCallback(): CreateIntentWithConfirmationTokenCallback {
     return CreateIntentWithConfirmationTokenCallback { confirmationToken ->
-      val module = context.getNativeModule(StripeSdkModule::class.java)
-        ?: return@CreateIntentWithConfirmationTokenCallback CreateIntentResult.Failure(
-          cause = IllegalStateException("StripeSdkModule is unavailable"),
-          displayMessage = "An unexpected error occurred",
-        )
+      val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
       val params =
         Arguments.createMap().apply {
+          putString("component", "paymentSheet")
           putMap("confirmationToken", mapFromConfirmationToken(confirmationToken))
         }
-      module.intentCreationRequests.request(
-        owner, IntentCreationRequestRouter.Component.PaymentSheet,
-        IntentCreationRequestRouter.Kind.ConfirmationToken, params,
-        module.eventEmitter::emitOnConfirmationTokenHandlerCallback,
-      )
+
+      stripeSdkModule?.eventEmitter?.emitOnConfirmationTokenHandlerCallback(params)
+
+      val resultFromJavascript = paymentSheetConfirmationTokenCreationCallback.await()
+      // reset the completable
+      paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
+
+      return@CreateIntentWithConfirmationTokenCallback resultFromJavascript.getString("clientSecret")?.let {
+        CreateIntentResult.Success(clientSecret = it)
+      }
+        ?: run {
+          val errorMap = resultFromJavascript.getMap("error")
+          CreateIntentResult.Failure(
+            cause = Exception(errorMap?.getString("message")),
+            displayMessage = errorMap?.getString("localizedMessage"),
+          )
+        }
     }
   }
 
-  internal fun buildIntentCreationCallback(): CreateIntentCallback {
-    val owner = intentCallbackOwner
+  private fun buildIntentCreationCallback(): CreateIntentCallback {
     return CreateIntentCallback { paymentMethod, shouldSavePaymentMethod ->
-      val module = context.getNativeModule(StripeSdkModule::class.java)
-        ?: return@CreateIntentCallback CreateIntentResult.Failure(
-          cause = IllegalStateException("StripeSdkModule is unavailable"),
-          displayMessage = "An unexpected error occurred",
-        )
+      val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
       val params =
         Arguments.createMap().apply {
+          putString("component", "paymentSheet")
           putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
           putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
         }
-      module.intentCreationRequests.request(
-        owner, IntentCreationRequestRouter.Component.PaymentSheet,
-        IntentCreationRequestRouter.Kind.PaymentMethod, params,
-        module.eventEmitter::emitOnConfirmHandlerCallback,
-      )
+
+      stripeSdkModule?.eventEmitter?.emitOnConfirmHandlerCallback(params)
+
+      val resultFromJavascript = paymentSheetIntentCreationCallback.await()
+      // reset the completable
+      paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
+
+      return@CreateIntentCallback resultFromJavascript.getString("clientSecret")?.let {
+        CreateIntentResult.Success(clientSecret = it)
+      }
+        ?: run {
+          val errorMap = resultFromJavascript.getMap("error")
+          CreateIntentResult.Failure(
+            cause = Exception(errorMap?.getString("message")),
+            displayMessage = errorMap?.getString("localizedMessage"),
+          )
+        }
     }
   }
 
-  internal fun buildPaymentSheetResultCallback(viewModel: PromiseViewModel): PaymentSheetResultCallback {
-    val owner = intentCallbackOwner
-    return PaymentSheetResultCallback { paymentResult ->
-      intentCreationRequests?.cancelPending(owner)
+  private fun buildPaymentSheetResultCallback(viewModel: PromiseViewModel): PaymentSheetResultCallback =
+    PaymentSheetResultCallback { paymentResult ->
       if (paymentSheetTimedOut) {
         paymentSheetTimedOut = false
         resolvePaymentResult(
@@ -383,7 +388,6 @@ class PaymentSheetManager(
         }
       }
     }
-  }
 
   private fun buildPaymentOptionCallback(viewModel: PromiseViewModel): PaymentOptionResultCallback {
     return PaymentOptionResultCallback { paymentOptionResult ->
@@ -471,7 +475,6 @@ class PaymentSheetManager(
     timeout: Long,
     promise: Promise,
   ) {
-    val owner = intentCallbackOwner
     var paymentSheetActivity: Activity? = null
 
     val activityLifecycleCallbacks =
@@ -501,7 +504,6 @@ class PaymentSheetManager(
       .postDelayed(
         {
           paymentSheetActivity?.let {
-            intentCreationRequests?.cancelPending(owner)
             it.finish()
             paymentSheetTimedOut = true
           }

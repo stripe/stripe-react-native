@@ -30,30 +30,21 @@ const mode = { amount: 1000, currencyCode: 'USD' };
 const configuration = { merchantDisplayName: 'Test' };
 const originalPlatform = Platform.OS;
 
-function emit(name: string, payload: object) {
-  listeners.get(name)?.forEach((handler) => handler(payload));
-}
-
 function intent(handler: jest.Mock, token: boolean): IntentConfiguration {
   return token
     ? { mode, confirmationTokenConfirmHandler: handler }
     : { mode, confirmHandler: handler };
 }
 
-async function register(
-  sheet: IntentConfiguration,
-  embedded: IntentConfiguration
-) {
+async function register(sheet: jest.Mock, embedded: jest.Mock, token: boolean) {
   await initPaymentSheet({
     ...configuration,
-    intentConfiguration: sheet,
+    intentConfiguration: intent(sheet, token),
     returnURL: 'test://return',
   });
-  const hook = renderHook(() =>
-    useEmbeddedPaymentElement(embedded, configuration)
-  );
+  const embeddedIntent = intent(embedded, token);
+  renderHook(() => useEmbeddedPaymentElement(embeddedIntent, configuration));
   await act(async () => {});
-  return hook;
 }
 
 beforeEach(() => {
@@ -88,110 +79,60 @@ describe.each([false, true])(
     const payload = token
       ? { confirmationToken: { id: 'test-token' } }
       : { paymentMethod: { id: 'test-method' }, shouldSavePaymentMethod: true };
-    const respond = () =>
-      token
-        ? native.confirmationTokenCreationCallback
-        : native.intentCreationCallback;
+    const respond = token
+      ? native.confirmationTokenCreationCallback
+      : native.intentCreationCallback;
+    const emit = (routing: object) =>
+      listeners
+        .get(event)
+        ?.forEach((handler) => handler({ ...payload, ...routing }));
 
-    it('invokes only the target handler and binds success and error responses to the original request', async () => {
+    it('invokes only the target handler and routes its success and error responses', async () => {
       const sheet = jest.fn();
       const embedded = jest.fn();
-      await register(intent(sheet, token), intent(embedded, token));
+      await register(sheet, embedded, token);
+      emit({});
+      emit({ component: 'unknown' });
+      expect(sheet).not.toHaveBeenCalled();
+      expect(embedded).not.toHaveBeenCalled();
       for (const [component, handler, other] of [
         ['paymentSheet', sheet, embedded],
         ['embeddedPaymentElement', embedded, sheet],
       ] as const) {
         sheet.mockClear();
         embedded.mockClear();
-        const requestId = `request-${component}`;
-        emit(event, { ...payload, component, requestId });
+        emit({ component });
         expect(handler).toHaveBeenCalledTimes(1);
         expect(other).not.toHaveBeenCalled();
         const callback = handler.mock.calls[0]![token ? 1 : 2];
-        callback({
-          clientSecret: 'test-secret',
-          component: 'wrong',
-          requestId: 'wrong',
-        });
-        expect(respond()).toHaveBeenLastCalledWith({
+        callback({ clientSecret: 'test-secret', component: 'wrong' });
+        expect(respond).toHaveBeenLastCalledWith({
           clientSecret: 'test-secret',
           component,
-          requestId,
         });
         callback({
           error: { message: 'Test failure', localizedMessage: 'Try again' },
         });
-        expect(respond()).toHaveBeenLastCalledWith({
+        expect(respond).toHaveBeenLastCalledWith({
           error: { message: 'Test failure', localizedMessage: 'Try again' },
           component,
-          requestId,
         });
       }
-    });
-
-    it('ignores untagged, malformed, and unknown Android routing before invoking handlers', async () => {
-      const sheet = jest.fn();
-      const embedded = jest.fn();
-      await register(intent(sheet, token), intent(embedded, token));
-      for (const routing of [
-        {},
-        { component: 'unknown', requestId: 'request' },
-        { component: 'paymentSheet' },
-        { component: 'embeddedPaymentElement', requestId: '' },
-        { component: 'paymentSheet', requestId: 123 },
-      ]) {
-        emit(event, { ...payload, ...routing });
-      }
-      expect(sheet).not.toHaveBeenCalled();
-      expect(embedded).not.toHaveBeenCalled();
     });
 
     it('preserves untagged iOS events and responses', async () => {
       Platform.OS = 'ios';
       const sheet = jest.fn();
       const embedded = jest.fn();
-      await register(intent(sheet, token), intent(embedded, token));
-      emit(event, payload);
+      await register(sheet, embedded, token);
+      emit({});
       for (const handler of [sheet, embedded]) {
         expect(handler).toHaveBeenCalledTimes(1);
         handler.mock.calls[0]![token ? 1 : 2]({ clientSecret: 'test-secret' });
-        expect(respond()).toHaveBeenLastCalledWith({
+        expect(respond).toHaveBeenLastCalledWith({
           clientSecret: 'test-secret',
         });
       }
-    });
-
-    it('removes obsolete subscriptions when replacing handler kinds or removing handlers', async () => {
-      const oldSheet = jest.fn();
-      const oldEmbedded = jest.fn();
-      const hook = await register(
-        intent(oldSheet, token),
-        intent(oldEmbedded, token)
-      );
-      hook.unmount();
-      const sheet = jest.fn();
-      const embedded = jest.fn();
-      const replacement = await register(
-        intent(sheet, !token),
-        intent(embedded, !token)
-      );
-      emit(event, {
-        ...payload,
-        component: 'paymentSheet',
-        requestId: 'old-sheet',
-      });
-      emit(event, {
-        ...payload,
-        component: 'embeddedPaymentElement',
-        requestId: 'old-embedded',
-      });
-      expect(oldSheet).not.toHaveBeenCalled();
-      expect(oldEmbedded).not.toHaveBeenCalled();
-      expect(listeners.get(event)?.size).toBe(0);
-      replacement.unmount();
-      await register({ mode }, { mode });
-      expect(listeners.get('onConfirmHandlerCallback')?.size).toBe(0);
-      expect(listeners.get('onConfirmationTokenHandlerCallback')?.size).toBe(0);
     });
   }
 );
