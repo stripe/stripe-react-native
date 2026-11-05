@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { Platform, EventSubscription } from 'react-native';
+import { Platform } from 'react-native';
 import { initPaymentSheet } from '../../functions';
 import { useEmbeddedPaymentElement } from '../../types/EmbeddedPaymentElement';
 import type { IntentConfiguration } from '../../types/PaymentSheet';
@@ -23,8 +23,6 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
   },
 }));
 
-type Handler = (event: any) => void;
-const listeners = new Map<string, Set<Handler>>();
 const native = jest.mocked(NativeStripeSdk);
 const mode = { amount: 1000, currencyCode: 'USD' };
 const configuration = { merchantDisplayName: 'Test' };
@@ -49,21 +47,12 @@ async function register(sheet: jest.Mock, embedded: jest.Mock, token: boolean) {
 
 beforeEach(() => {
   jest.resetAllMocks();
-  listeners.clear();
   Platform.OS = 'android';
   native.initPaymentSheet.mockResolvedValue({});
   native.createEmbeddedPaymentElement.mockResolvedValue();
-  jest.mocked(addListener).mockImplementation((name, handler) => {
-    const handlers = listeners.get(name) ?? new Set<Handler>();
-    const callback = handler as Handler;
-    handlers.add(callback);
-    listeners.set(name, handlers);
-    return {
-      remove: () => {
-        handlers.delete(callback);
-      },
-    } as EventSubscription;
-  });
+  jest
+    .mocked(addListener)
+    .mockReturnValue({ remove: () => {} } as ReturnType<typeof addListener>);
 });
 
 afterEach(() => {
@@ -82,10 +71,13 @@ describe.each([false, true])(
     const respond = token
       ? native.confirmationTokenCreationCallback
       : native.intentCreationCallback;
-    const emit = (routing: object) =>
-      listeners
-        .get(event)
-        ?.forEach((handler) => handler({ ...payload, ...routing }));
+    const emit = (routing: object) => {
+      jest.mocked(addListener).mock.calls.forEach(([name, handler]) => {
+        if (name === event) {
+          handler({ ...payload, ...routing });
+        }
+      });
+    };
 
     it('invokes only the target handler and routes its success and error responses', async () => {
       const sheet = jest.fn();
