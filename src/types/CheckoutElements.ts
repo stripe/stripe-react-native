@@ -131,8 +131,7 @@ export interface CheckoutCurrencySelectorElementViewProps {
 }
 
 /**
- * A Checkout-owned Express Checkout Element. Android only; the iOS bridge is
- * not yet implemented.
+ * A Checkout-owned Express Checkout Element.
  *
  * @remarks
  * This API is in private preview and can change without notice.
