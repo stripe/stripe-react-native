@@ -9,14 +9,14 @@ import com.reactnativestripesdk.convertDrawableToBase64
 import com.reactnativestripesdk.toHtmlString
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.isDarkTheme
-import com.stripe.android.checkout.CheckoutController
-import com.stripe.android.checkout.CheckoutController.Session
+import com.stripe.android.checkout.CheckoutElementsController.Session
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
 
 @OptIn(CheckoutSessionPreview::class, ReactNativeSdkInternal::class)
 internal object CheckoutSessionSerializer {
@@ -107,12 +107,17 @@ internal object CheckoutSessionSerializer {
 
   private fun serialize(amount: Session.Amount): WritableMap = Arguments.createMap().apply {
     putString("amount", amount.amount)
-    putDouble("minorUnitsAmount", amount.minorUnitsAmount)
+    putDouble("minorUnitsAmount", amount.minorUnitsAmount.toDouble())
+  }
+
+  private fun serialize(amount: Session.DecimalAmount): WritableMap = Arguments.createMap().apply {
+    putString("amount", amount.amount)
+    putDouble("minorUnitsAmount", amount.minorUnitsAmount.toDouble())
   }
 
   private fun serialize(amount: Session.DiscountAmount): WritableMap = Arguments.createMap().apply {
     putString("amount", amount.amount)
-    putDouble("minorUnitsAmount", amount.minorUnitsAmount)
+    putDouble("minorUnitsAmount", amount.minorUnitsAmount.toDouble())
     putString("displayName", amount.displayName)
     amount.promotionCode?.let { putString("promotionCode", it) }
     amount.percentOff?.let { putDouble("percentOff", it) }
@@ -120,7 +125,7 @@ internal object CheckoutSessionSerializer {
 
   private fun serialize(amount: Session.TaxAmount): WritableMap = Arguments.createMap().apply {
     putString("amount", amount.amount)
-    putDouble("minorUnitsAmount", amount.minorUnitsAmount)
+    putDouble("minorUnitsAmount", amount.minorUnitsAmount.toDouble())
     putBoolean("inclusive", amount.inclusive)
     putString("displayName", amount.displayName)
     amount.percentage?.let { putDouble("percentage", it) }
@@ -156,6 +161,7 @@ internal object CheckoutSessionSerializer {
       item.description?.let { putString("description", it) }
       putArray("items", serializeList(item.items, ::serialize))
     }
+    else -> error("Unsupported Checkout order summary item: ${item.javaClass.simpleName}")
   }
 
   private fun serialize(item: Session.OrderSummaryItem.OneTimePrice.Item): WritableMap = Arguments.createMap().apply {
