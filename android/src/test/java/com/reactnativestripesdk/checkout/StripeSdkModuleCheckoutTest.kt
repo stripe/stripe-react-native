@@ -43,61 +43,47 @@ class StripeSdkModuleCheckoutTest {
 
   @OptIn(CheckoutSessionPreview::class)
   @Test
-  fun `shipping address updates forward null addresses`() = runBlocking {
+  fun `checkout mutations forward null addresses and preserve native operation outcomes`() = runBlocking {
     val module = StripeSdkModule(contextRule.context)
     val controller = mock(CheckoutController::class.java)
     `when`(controller.session).thenReturn(MutableStateFlow(checkoutSession()))
     `when`(controller.isUpdating).thenReturn(MutableStateFlow(false))
     `when`(controller.updateShippingAddress("Jenny", null)).thenReturn(NativeCheckoutFixtures.succeededOperation())
     val controllerId = "controller"
-    module.checkoutControllers[controllerId] = NativeCheckoutControllerInstance(
+    val instance = NativeCheckoutControllerInstance(
       controller,
       mock(EventEmitterCompat::class.java),
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
       contextRule.context,
     )
-    val promise = mock(Promise::class.java)
+    module.checkoutControllers[controllerId] = instance
 
-    module.updateCheckoutShippingAddress(
-      controllerId,
-      JavaOnlyMap.of("name", "Jenny", "address", null),
-      promise,
-    )
-    shadowOf(Looper.getMainLooper()).idle()
-
-    verify(controller).updateShippingAddress("Jenny", null)
-    verify(promise).resolve(null)
-  }
-
-  @OptIn(CheckoutSessionPreview::class)
-  @Test
-  fun `failed native operations preserve failure and cancellation errors`() = runBlocking {
-    for ((error, code) in listOf(
-      IllegalStateException("Operation failed") to "Failed",
-      CancellationException("Operation canceled") to "Canceled",
-    )) {
-      val module = StripeSdkModule(contextRule.context)
-      val controller = mock(CheckoutController::class.java)
-      `when`(controller.updateEmail(null)).thenReturn(NativeCheckoutFixtures.failedOperation(error))
-      val instance = NativeCheckoutControllerInstance(
-        controller,
-        mock(EventEmitterCompat::class.java),
-        CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
-        JavaOnlyMap(),
-        contextRule.context,
-      )
-      module.checkoutControllers["controller"] = instance
+    try {
       val promise = mock(Promise::class.java)
+      module.updateCheckoutShippingAddress(
+        controllerId,
+        JavaOnlyMap.of("name", "Jenny", "address", null),
+        promise,
+      )
+      shadowOf(Looper.getMainLooper()).idle()
 
-      try {
-        module.updateCheckoutEmail("controller", null, promise)
+      verify(controller).updateShippingAddress("Jenny", null)
+      verify(promise).resolve(null)
+
+      for ((error, code) in listOf(
+        IllegalStateException("Operation failed") to "Failed",
+        CancellationException("Operation canceled") to "Canceled",
+      )) {
+        `when`(controller.updateEmail(null)).thenReturn(NativeCheckoutFixtures.failedOperation(error))
+        val failedPromise = mock(Promise::class.java)
+        module.updateCheckoutEmail(controllerId, null, failedPromise)
         shadowOf(Looper.getMainLooper()).idle()
 
-        verify(promise).reject(code, error.message, error)
-      } finally {
-        instance.destroy()
+        verify(failedPromise).reject(code, error.message, error)
       }
+    } finally {
+      instance.destroy()
     }
   }
 
