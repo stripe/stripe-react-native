@@ -8,10 +8,9 @@ import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.EventEmitterCompat
 import com.reactnativestripesdk.ReactContextRule
 import com.reactnativestripesdk.StripeSdkModule
-import com.stripe.android.checkout.CheckoutController
-import com.stripe.android.checkout.CheckoutPresenter
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,6 +32,8 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.LooperMode
+import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
+import com.stripe.android.checkout.CheckoutElementsPresenter as CheckoutPresenter
 
 @RunWith(RobolectricTestRunner::class)
 @LooperMode(LooperMode.Mode.PAUSED)
@@ -47,7 +48,7 @@ class StripeSdkModuleCheckoutTest {
     val controller = mock(CheckoutController::class.java)
     `when`(controller.session).thenReturn(MutableStateFlow(checkoutSession()))
     `when`(controller.isUpdating).thenReturn(MutableStateFlow(false))
-    `when`(controller.updateShippingAddress("Jenny", null)).thenReturn(Result.success(Unit))
+    `when`(controller.updateShippingAddress("Jenny", null)).thenReturn(NativeCheckoutFixtures.succeededOperation())
     val controllerId = "controller"
     module.checkoutControllers[controllerId] = NativeCheckoutControllerInstance(
       controller,
@@ -67,6 +68,37 @@ class StripeSdkModuleCheckoutTest {
 
     verify(controller).updateShippingAddress("Jenny", null)
     verify(promise).resolve(null)
+  }
+
+  @OptIn(CheckoutSessionPreview::class)
+  @Test
+  fun `failed native operations preserve failure and cancellation errors`() = runBlocking {
+    for ((error, code) in listOf(
+      IllegalStateException("Operation failed") to "Failed",
+      CancellationException("Operation canceled") to "Canceled",
+    )) {
+      val module = StripeSdkModule(contextRule.context)
+      val controller = mock(CheckoutController::class.java)
+      `when`(controller.updateEmail(null)).thenReturn(NativeCheckoutFixtures.failedOperation(error))
+      val instance = NativeCheckoutControllerInstance(
+        controller,
+        mock(EventEmitterCompat::class.java),
+        CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
+        JavaOnlyMap(),
+        contextRule.context,
+      )
+      module.checkoutControllers["controller"] = instance
+      val promise = mock(Promise::class.java)
+
+      try {
+        module.updateCheckoutEmail("controller", null, promise)
+        shadowOf(Looper.getMainLooper()).idle()
+
+        verify(promise).reject(code, error.message, error)
+      } finally {
+        instance.destroy()
+      }
+    }
   }
 
   @OptIn(CheckoutSessionPreview::class)

@@ -69,7 +69,6 @@ import com.stripe.android.GooglePayJsonFactory
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
-import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
 import com.stripe.android.core.reactnative.ReactNativeAnalytics
@@ -97,6 +96,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
 
 @ReactModule(name = StripeSdkModule.NAME)
 @OptIn(ReactNativeSdkInternal::class, CheckoutSessionPreview::class)
@@ -1696,11 +1696,18 @@ class StripeSdkModule(
     }
   }
 
+  private fun CheckoutController.OperationResult.getOrThrow() {
+    when (this) {
+      is CheckoutController.OperationResult.Succeeded -> Unit
+      is CheckoutController.OperationResult.Failed -> throw error
+    }
+  }
+
   @Suppress("TooGenericExceptionCaught")
   private fun performCheckoutMutation(
     controllerId: String,
     promise: Promise,
-    operation: suspend (CheckoutController) -> Result<Unit>,
+    operation: suspend (CheckoutController) -> CheckoutController.OperationResult,
   ) {
     UiThreadUtil.runOnUiThread {
       val instance = checkoutControllers[controllerId]

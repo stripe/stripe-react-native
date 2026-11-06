@@ -2,10 +2,10 @@ package com.reactnativestripesdk.checkout
 
 import android.graphics.drawable.Drawable
 import androidx.compose.ui.text.AnnotatedString
-import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.intrinsics.startCoroutineUninterceptedOrReturn
+import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
 
 @OptIn(CheckoutSessionPreview::class)
 internal fun checkoutSession(
