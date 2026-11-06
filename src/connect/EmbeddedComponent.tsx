@@ -177,6 +177,7 @@ type EmbeddedFinancialConnectionsResult =
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const [dynamicWebview, setDynamicWebview] = useState<{
     WebView: typeof WebView | null;
+    version?: string;
   } | null>(null);
 
   // Store pending authenticated webview promises (for Android Custom Tabs)
@@ -209,7 +210,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
     try {
       const mod = await import('react-native-webview');
-      setDynamicWebview({ WebView: mod.WebView });
+      // Imported like the module, so it resolves whenever the module does.
+      const version = await import('react-native-webview/package.json').then(
+        (pkg) => pkg.version,
+        () => undefined
+      );
+      setDynamicWebview({ WebView: mod.WebView, version });
     } catch (err) {
       console.error('Failed to import react-native-webview:', err);
     }
@@ -850,12 +856,13 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       webviewDebuggingEnabled={DEVELOPMENT_MODE}
       source={source}
       userAgent={userAgent}
-      // injectedObjectScript defines injectedObjectJson() read-only, so it takes
-      // precedence over injectedJavaScriptObject, which corrupts values
-      // containing double quotes or backslashes. Keep the prop: on Android,
-      // react-native-webview 13.6.0-13.13.0 serves it from a Java method that
-      // page scripts can't override.
-      injectedJavaScriptObject={injectedObject}
+      // injectedObjectScript defines injectedObjectJson() read-only. The prop
+      // is only passed where react-native-webview needs it and serves it safely.
+      injectedJavaScriptObject={
+        shouldPassInjectedJavaScriptObject(dynamicWebview?.version)
+          ? injectedObject
+          : undefined
+      }
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={injectedObjectScript}
       onMessage={onMessageCallback}
@@ -871,6 +878,34 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
 const DEFAULT_FONT =
   "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'";
+
+// react-native-webview's injectedJavaScriptObject embeds the JSON in a JS
+// template literal on iOS and on Android from 13.13.1, so a backtick or `${` in
+// any value runs as script in the Connect page. injectedObjectScript serves the
+// same object safely there. On Android before 13.13.1 the prop is served from a
+// Java method, which is safe, and the page doesn't see injectedObjectScript's
+// definition, so the prop is still needed. An unknown version keeps the prop.
+// https://github.com/react-native-webview/react-native-webview/issues/3957
+// https://github.com/react-native-webview/react-native-webview/issues/3942
+// TODO: Remove injectedJavaScriptObject and this check once the minimum
+// supported react-native-webview version is 13.13.1 or later.
+function shouldPassInjectedJavaScriptObject(
+  webViewVersion: string | undefined
+): boolean {
+  if (Platform.OS !== 'android') return false;
+
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(webViewVersion ?? '');
+  if (!match) return true;
+
+  const [major, minor, patch] = match.slice(1).map(Number) as [
+    number,
+    number,
+    number,
+  ];
+  if (major !== 13) return major < 13;
+  if (minor !== 13) return minor < 13;
+  return patch < 1;
+}
 
 // Returns appearance with fontFamily set if not defined
 function withDefaultFontFamily(appearance: any) {
