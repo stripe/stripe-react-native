@@ -25,7 +25,7 @@
     <ID>LongMethod:CardFormView.kt:CardFormView$private fun setListeners</ID>
     <ID>LongMethod:CustomerSheetManager.kt:CustomerSheetManager$override fun onCreate</ID>
     <ID>LongMethod:EmbeddedPaymentElementView.kt:EmbeddedPaymentElementView$@SuppressLint("RestrictedApi") @Composable override fun Content</ID>
-    <ID>LongMethod:EmbeddedPaymentElementViewManager.kt:EmbeddedPaymentElementViewManager$@SuppressLint("RestrictedApi") @OptIn( ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, CardFundingFilteringPrivatePreview::class, ) private fun parseElementConfiguration: EmbeddedPaymentElement.Configuration</ID>
+    <ID>LongMethod:EmbeddedPaymentElementViewManager.kt:EmbeddedPaymentElementViewManager$@SuppressLint("RestrictedApi") @OptIn( ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, CardFundingFilteringPrivatePreview::class, ) internal fun parseElementConfiguration: EmbeddedPaymentElement.Configuration</ID>
     <ID>LongMethod:Mappers.kt:@SuppressLint("RestrictedApi") internal fun mapNextAction: WritableMap?</ID>
     <ID>LongMethod:Mappers.kt:fun mapToUICustomization: PaymentAuthConfig.Stripe3ds2UiCustomization</ID>
     <ID>LongMethod:Mappers.kt:internal fun mapFromPaymentMethod: WritableMap</ID>

@@ -118,7 +118,7 @@ class EmbeddedPaymentElementViewManager :
     ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
     CardFundingFilteringPrivatePreview::class,
   )
-  private fun parseElementConfiguration(
+  internal fun parseElementConfiguration(
     map: ReadableMap,
     context: Context,
   ): EmbeddedPaymentElement.Configuration {
@@ -181,7 +181,7 @@ class EmbeddedPaymentElementViewManager :
     return configurationBuilder.build()
   }
 
-  private fun parseIntentConfiguration(map: ReadableMap): PaymentSheet.IntentConfiguration {
+  internal fun parseIntentConfiguration(map: ReadableMap): PaymentSheet.IntentConfiguration {
     val intentConfig = buildIntentConfiguration(map)
     return intentConfig ?: throw IllegalArgumentException("IntentConfiguration is null")
   }
@@ -212,7 +212,7 @@ class EmbeddedPaymentElementViewManager :
     }
   }
 
-  private fun jsonToWritableMap(json: JSONObject): WritableMap {
+  internal fun jsonToWritableMap(json: JSONObject): WritableMap {
     val map = Arguments.createMap()
     val keys = json.keys()
     while (keys.hasNext()) {
