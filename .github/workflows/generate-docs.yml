@@ -15,9 +15,17 @@ jobs:
       - name: checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
+      - name: Setup Node.js environment
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: '.node-version'
+
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         id: yarn-cache
@@ -27,14 +35,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: '.node-version'
-
       - name: Install Dependencies
         run: |
-          yarn example && yarn
+          yarn install --immutable
+          yarn example
 
       - name: Build docs
         run: yarn docs

@@ -2,5 +2,10 @@
   "name": "@stripe/typescript-config",
   "version": "0.0.0",
   "private": true,
-  "description": "Private shell. Does not export the legacy package."
+  "description": "Private shell. Does not export the legacy package.",
+  "scripts": {
+    "lint": "yarn run -T eslint --ignore-path ../../.gitignore --no-error-on-unmatched-pattern \"**/*.{js,ts,tsx}\"",
+    "test": "yarn run -T jest --passWithNoTests",
+    "pack": "yarn pack"
+  }
 }

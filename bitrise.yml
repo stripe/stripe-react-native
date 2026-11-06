@@ -330,13 +330,18 @@ workflows:
           inputs:
             - node_version: $NODE_VERSION
       - script@1:
-          title: Use Yarn v1
+          title: Use the pinned Yarn
           inputs:
             - content: |
-                corepack disable || true
-                npm i -g yarn@1.22.22
-                YARN_CACHE_DIR="$(yarn cache dir)"
-                envman add --key YARN_CACHE_DIR --value "$YARN_CACHE_DIR"
+                set -euo pipefail
+                corepack enable
+                # Runs before git-clone, so Yarn cannot read the repo config yet; pin Yarn 4's global folder instead.
+                # Yarn 4 reads every YARN_* variable as a setting, so only export real settings with that prefix.
+                YARN_GLOBAL_FOLDER="$HOME/.yarn/berry"
+                JS_YARN_CACHE_PATH="$YARN_GLOBAL_FOLDER/cache"
+                mkdir -p "$JS_YARN_CACHE_PATH"
+                envman add --key YARN_GLOBAL_FOLDER --value "$YARN_GLOBAL_FOLDER"
+                envman add --key JS_YARN_CACHE_PATH --value "$JS_YARN_CACHE_PATH"
       - restore-cache@2:
           title: Restore Yarn Cache
           inputs:
@@ -353,7 +358,7 @@ workflows:
           inputs:
             - key: yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}-{{ checksum "example/yarn.lock" }}
             - paths: |
-                $YARN_CACHE_DIR
+                $JS_YARN_CACHE_PATH
 
   _prepare_js:
     before_run:
@@ -364,6 +369,10 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@8: {}
+      - script@1:
+          title: Install Root Dependencies
+          inputs:
+            - content: yarn install --immutable
       - yarn@0:
           title: Install Dependencies (No Pods)
           inputs:
@@ -382,6 +391,10 @@ workflows:
       #     inputs:
       #       - key: pods-{{ .Arch }}-{{ checksum "example/ios/Podfile.lock" }}
       - activate-build-cache-for-xcode: {}
+      - script@1:
+          title: Install Root Dependencies
+          inputs:
+            - content: yarn install --immutable
       - yarn@0:
           title: Bootstrap Project
           inputs:
@@ -418,6 +431,10 @@ workflows:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@8: {}
       - restore-gradle-cache@2: {}
+      - script@1:
+          title: Install Root Dependencies
+          inputs:
+            - content: yarn install --immutable
       - yarn@0:
           title: Install Dependencies (No Pods)
           inputs:
@@ -480,6 +497,10 @@ workflows:
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: $BUILD_WORKFLOW
+      - script@1:
+          title: Install Root Dependencies
+          inputs:
+            - content: yarn install --immutable
       - script@1:
           title: Install Maestro CLI
           inputs:
