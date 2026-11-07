@@ -19,6 +19,7 @@ import com.reactnativestripesdk.mapPaymentDetailsType
 import com.reactnativestripesdk.mapSamsungPayConfig
 import com.reactnativestripesdk.mapToComplianceIdentifiers
 import com.reactnativestripesdk.mapToIdType
+import com.reactnativestripesdk.mapToKycInfo
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.core.model.CountryCode
@@ -651,6 +652,27 @@ class OnrampMappersTest {
   fun mapToIdType_NullOrUnknown_UsesDefault() {
     assertEquals(IdType.SocialSecurityNumber, mapToIdType(null))
     assertEquals(IdType.SocialSecurityNumber, mapToIdType("unknown"))
+  }
+
+  @Test
+  fun mapToKycInfo_assignsIdTypeBirthPlaceAndNationalities() {
+    val kycInfo =
+      mapToKycInfo(
+        readableMapOf(
+          "idType" to "ca_sin",
+          "birthCountry" to "fr",
+          "birthCity" to "Paris",
+          "nationalities" to readableArrayOf("us", "de"),
+        ),
+      )
+
+    assertEquals(IdType.CanadianSocialInsuranceNumber, kycInfo.idType)
+    assertEquals(CountryCode.create("FR"), kycInfo.birthCountry)
+    assertEquals("Paris", kycInfo.birthCity)
+    assertEquals(
+      listOf(CountryCode.create("US"), CountryCode.create("DE")),
+      kycInfo.nationalities,
+    )
   }
 
   @Test

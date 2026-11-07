@@ -27,16 +27,12 @@ import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createResult
-import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
-import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
-import com.stripe.android.crypto.onramp.model.KycInfo
-import com.stripe.android.crypto.onramp.model.LinkUserInfo
 import com.stripe.android.crypto.onramp.model.OnrampAttachKycInfoResult
 import com.stripe.android.crypto.onramp.model.OnrampAuthorizeResult
 import com.stripe.android.crypto.onramp.model.OnrampCallbacks
@@ -62,7 +58,6 @@ import com.stripe.android.link.LinkController.PaymentMethodPreview
 import com.stripe.android.link.LinkControllerPreview
 import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.model.CardBrand
-import com.stripe.android.model.DateOfBirth
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -352,15 +347,7 @@ class OnrampSdkModule(
         return
       }
     CoroutineScope(Dispatchers.IO).launch {
-      val linkUserInfo =
-        LinkUserInfo(
-          email = info.getString("email") ?: "",
-          phone = info.getString("phone") ?: "",
-          country = info.getString("country") ?: "",
-          fullName = info.getString("fullName"),
-        )
-
-      val result = coordinator.registerLinkUser(linkUserInfo)
+      val result = coordinator.registerLinkUser(mapToLinkUserInfo(info))
       when (result) {
         is OnrampRegisterLinkUserResult.Completed -> {
           promise.resolveString("customerId", result.customerId)
@@ -494,48 +481,7 @@ class OnrampSdkModule(
         return
       }
     CoroutineScope(Dispatchers.IO).launch {
-      val firstName = kycInfo.getString("firstName")
-      val lastName = kycInfo.getString("lastName")
-      val idNumber = kycInfo.getString("idNumber")
-
-      val dateOfBirthMap = kycInfo.getMap("dateOfBirth")
-      val dob =
-        if (
-          dateOfBirthMap != null &&
-          dateOfBirthMap.hasKey("day") &&
-          dateOfBirthMap.hasKey("month") &&
-          dateOfBirthMap.hasKey("year")
-        ) {
-          DateOfBirth(
-            day = dateOfBirthMap.getInt("day"),
-            month = dateOfBirthMap.getInt("month"),
-            year = dateOfBirthMap.getInt("year"),
-          )
-        } else {
-          null
-      }
-
-      val addressMap = kycInfo.getMap("address")
-      val addressObj = mapToPaymentSheetAddress(addressMap)
-      val birthCountry = kycInfo.getString("birthCountry")?.let(CountryCode::create)
-      val birthCity = kycInfo.getString("birthCity")
-      val nationalities =
-        kycInfo.getStringList("nationalities")
-          ?.map(CountryCode::create)
-          ?.takeIf { it.isNotEmpty() }
-
-      val kycInfoObj =
-        KycInfo(
-          firstName = firstName,
-          lastName = lastName,
-          idNumber = idNumber,
-          idType = mapToIdType(kycInfo.getString("idType")),
-          dateOfBirth = dob,
-          address = addressObj,
-          birthCountry = birthCountry,
-          birthCity = birthCity,
-          nationalities = nationalities,
-        )
+      val kycInfoObj = mapToKycInfo(kycInfo)
 
       when (val result = coordinator.attachKycInfo(kycInfoObj)) {
         is OnrampAttachKycInfoResult.Completed -> {
