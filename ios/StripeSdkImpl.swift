@@ -102,9 +102,22 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var applePayCouponCodeErrors: [Error]?
 
     // LinkController - Private Preview
-    var linkController: LinkController?
+    var linkController: LinkControllerBridging?
     var linkControllerEmail: String?
     var linkControllerPhone: String?
+    var createLinkController: (
+        LinkAppearance?,
+        LinkConfiguration,
+        @escaping (Result<LinkControllerBridging, Error>) -> Void
+    ) -> Void = { appearance, configuration, completion in
+        LinkController.create(
+            apiClient: STPAPIClient.shared,
+            appearance: appearance,
+            configuration: configuration
+        ) { result in
+            completion(result.map { $0 as LinkControllerBridging })
+        }
+    }
 
     var customerSheetConfiguration = CustomerSheet.Configuration()
     var customerSheet: CustomerSheet?
