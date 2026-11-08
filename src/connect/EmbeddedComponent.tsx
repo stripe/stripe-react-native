@@ -928,12 +928,19 @@ function isValidUrl(url: string): boolean {
   }
 }
 
+// Matches only: http(s)://<allowed host>[:port] followed by "/", "?", "#" or end of string.
+const ALLOWED_STRIPE_HOST_PATTERN = new RegExp(
+  `^https?://(?:${ALLOWED_STRIPE_HOSTS.map((h) => h.replace(/\./g, '\\.')).join('|')})(?::\\d*)?(?:[/?#]|$)`,
+  'i'
+);
+
 export function isAllowedStripeHost(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
-    return ALLOWED_STRIPE_HOSTS.some(
+    const allowedByRuntimeParser = ALLOWED_STRIPE_HOSTS.some(
       (host) => parsedUrl.hostname === host || parsedUrl.host === host
     );
+    return allowedByRuntimeParser && ALLOWED_STRIPE_HOST_PATTERN.test(url);
   } catch {
     return false;
   }
