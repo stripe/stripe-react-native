@@ -345,10 +345,31 @@ class PaymentMethodMessagingElementConfigTest {
   fun parseAppearance_WithInvalidTextColorHex_ThrowsException() {
     val params =
       readableMapOf(
-        "textColor" to "#FF",
+        "textColor" to "#F",
       )
 
     parseAppearance(params, context)
+  }
+
+  @Test
+  fun parseAppearance_WithThreeDigitRgbHex_Success() {
+    val params =
+      readableMapOf(
+        "textColor" to "#F00",
+      )
+
+    val result = parseAppearance(params, context)
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
+        val colors =
+          PaymentMethodMessagingElement.Appearance
+            .Colors()
+            .textColor("#FF0000".toColorInt())
+        colors(colors)
+      }
+
+    checkEquals(expected, result)
   }
 
   @Test

@@ -12,6 +12,10 @@
 * [Fixed] iOS: Declared the iOS 15 deployment target in the podspec to match the pinned Stripe iOS SDK.
 * [Fixed] Exclude Android unit test sources and other test globs from the published npm package.
 * [Fixed] CI: Made Bitrise Maestro end-to-end test shards fail clearly when the CLI install is incomplete and invoke the installed binary directly.
+* [Fixed] Android: Report `PaymentMethodMessagingElement` configuration and appearance errors to JavaScript instead of crashing the host.
+* [Fixed] `PaymentMethodMessagingElement` now surfaces native configuration error messages in the `onStateChange` failed state.
+* [Fixed] Corrected the `PaymentMethodMessagingElement` documentation example property names and removed the undeclared `onLoadComplete` iOS export.
+* [Fixed] `PaymentMethodMessagingElement` events are scoped to each mounted element when multiple instances are on screen.
 
 ## 0.85.0 - 2026-11-03
 

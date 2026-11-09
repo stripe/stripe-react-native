@@ -42,10 +42,11 @@ class PaymentMethodMessagingElementViewManager :
     value: Dynamic?,
   ) {
     val readableMap = value?.asMapOrNull() ?: return
-    view?.let {
-      val appearance = parseAppearance(readableMap, view.context)
-      view.appearance(appearance)
-    }
+    val target = view ?: return
+
+    runCatching { parseAppearance(readableMap, target.context) }
+      .onSuccess { target.appearance(it) }
+      .onFailure { error -> target.reportConfigureFailed(error) }
   }
 
   @ReactProp(name = "configuration")
@@ -55,12 +56,14 @@ class PaymentMethodMessagingElementViewManager :
   ) {
     val readableMap = cfg.asMapOrNull() ?: return
 
-    val elementConfig = parseElementConfiguration(readableMap)
-    view.latestElementConfig = elementConfig
-    view.configure(elementConfig)
-    view.post {
-      view.requestLayout()
-      view.invalidate()
-    }
+    runCatching { parseElementConfiguration(readableMap) }
+      .onSuccess { elementConfig ->
+        view.latestElementConfig = elementConfig
+        view.configure(elementConfig)
+        view.post {
+          view.requestLayout()
+          view.invalidate()
+        }
+      }.onFailure { error -> view.reportConfigureFailed(error) }
   }
 }

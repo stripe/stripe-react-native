@@ -136,15 +136,23 @@ private fun dynamicColorFromParams(
 @Throws(PaymentMethodMessagingElementAppearanceException::class)
 private fun colorFromHex(hexString: String?): Int? =
   hexString?.trim()?.replace("#", "")?.let {
-    if (it.length == HEX_COLOR_LENGTH_RGB || it.length == HEX_COLOR_LENGTH_ARGB) {
-      "#$it".toColorInt()
+    val normalized =
+      when (it.length) {
+        HEX_COLOR_LENGTH_RGB_SHORT ->
+          it.map { char -> "$char$char" }.joinToString(separator = "")
+        HEX_COLOR_LENGTH_RGB, HEX_COLOR_LENGTH_ARGB -> it
+        else -> null
+      }
+    if (normalized != null) {
+      "#$normalized".toColorInt()
     } else {
       throw PaymentMethodMessagingElementAppearanceException(
-        "Failed to set appearance. Expected hex string of length 6 or 8, but received: $it",
+        "Failed to set appearance. Expected hex string of length 3, 6, or 8, but received: $it",
       )
     }
   }
 
 private const val DEFAULT_FONT_SIZE = 16.0
+private const val HEX_COLOR_LENGTH_RGB_SHORT = 3
 private const val HEX_COLOR_LENGTH_RGB = 6
 private const val HEX_COLOR_LENGTH_ARGB = 8

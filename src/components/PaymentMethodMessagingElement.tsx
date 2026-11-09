@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityProps,
+  findNodeHandle,
   HostComponent,
   LayoutAnimation,
 } from 'react-native';
@@ -20,6 +21,46 @@ export interface Props extends AccessibilityProps {
   onStateChange?(event: PaymentMethodMessagingElementState): void;
 }
 
+const GENERIC_CONFIGURE_FAILED_MESSAGE =
+  'Failed to configure payment method messaging element';
+
+type ConfigureResultPayload = {
+  status?: string;
+  message?: string;
+  code?: string;
+  viewTag?: number;
+  error?: { message?: string; code?: string };
+};
+
+function isForView(
+  payload: { viewTag?: number },
+  viewTag: number | null
+): boolean {
+  if (payload.viewTag == null) {
+    return true;
+  }
+  if (viewTag == null) {
+    return false;
+  }
+  return payload.viewTag === viewTag;
+}
+
+function failedStateFromPayload(payload: ConfigureResultPayload): {
+  status: 'failed';
+  error: Error;
+} {
+  const message =
+    payload.message ??
+    payload.error?.message ??
+    GENERIC_CONFIGURE_FAILED_MESSAGE;
+  const error = new Error(message);
+  const code = payload.code ?? payload.error?.code;
+  if (code != null) {
+    (error as Error & { code?: string }).code = code;
+  }
+  return { status: 'failed', error };
+}
+
 /**
  * This feature is in Public Preview. It may not be feature complete and have breaking changes as we develop and update functionality.
  * Payment Method Messaging Element to display promotional information about available BNPL plans.
@@ -28,22 +69,21 @@ export interface Props extends AccessibilityProps {
  * ```tsx
  * <PaymentMethodMessagingElement
  *    appearance={{
- *      style: Style.Dark,
+ *      style: PaymentMethodMessagingElementStyle.Dark,
  *      textColor: '#FFFFFF',
- *      infoIconColor: '#CCCCCC',
  *      font: {
  *        family: 'Courier',
  *        size: 16,
  *      },
  *    }}
  *    configuration={{
- *      currencyCode: 'usd',
+ *      currency: 'usd',
  *      amount: 5000,
- *      countryCode: 'US',
+ *      country: 'US',
  *    }}
  *    onStateChange={(event) => {
  *      console.log('PMME loaded with result:', event);
- *    }
+ *    }}
  * />
  * ```
  * @param __namedParameters Props
@@ -57,28 +97,41 @@ export const PaymentMethodMessagingElement = ({
   ...props
 }: Props) => {
   const viewRef = useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
+  const viewTagRef = useRef<number | null>(null);
 
   const [height, setHeight] = useState<number | undefined>();
 
+  const assignRef = useCallback(
+    (node: React.ComponentRef<HostComponent<NativeProps>> | null) => {
+      viewRef.current = node;
+      viewTagRef.current = node != null ? findNodeHandle(node) : null;
+    },
+    []
+  );
+
   useEffect(() => {
-    // listen for height changes
     const sub = addListener(
       'paymentMethodMessagingElementDidUpdateHeight',
-      ({ height: h }) => {
+      (payload: { height?: number; viewTag?: number }) => {
+        if (!isForView(payload, viewTagRef.current)) {
+          return;
+        }
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setHeight(h);
+        setHeight(payload.height);
       }
     );
     return () => sub.remove();
-  });
+  }, []);
 
   useEffect(() => {
-    // listen for load complete
     const sub = addListener(
       'paymentMethodMessagingElementConfigureResult',
-      ({ status: s }) => {
+      (payload: ConfigureResultPayload) => {
+        if (!isForView(payload, viewTagRef.current)) {
+          return;
+        }
         let state: PaymentMethodMessagingElementState;
-
+        const s = payload.status;
         if (s === 'loaded') {
           state = { status: 'loaded' };
         } else if (s === 'loading') {
@@ -86,12 +139,7 @@ export const PaymentMethodMessagingElement = ({
         } else if (s === 'no_content') {
           state = { status: 'no_content' };
         } else {
-          state = {
-            status: 'failed',
-            error: new Error(
-              'Failed to configure payment method messaging element'
-            ),
-          };
+          state = failedStateFromPayload(payload);
         }
         onStateChange?.(state);
       }
@@ -105,7 +153,7 @@ export const PaymentMethodMessagingElement = ({
       style={[{ width: '100%', height: height }]}
       configuration={configuration}
       {...props}
-      ref={viewRef}
+      ref={assignRef}
     />
   );
 };

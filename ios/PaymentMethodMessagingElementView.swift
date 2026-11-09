@@ -84,7 +84,9 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
 
         // Notify if changed
         if desiredHeight != previousHeight {
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": desiredHeight])
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(
+                payloadWithViewTag(["height": desiredHeight])
+            )
             self.previousHeight = desiredHeight
         }
     }
@@ -101,7 +103,9 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         let height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: self.messagingInstance?.view.bounds.width ?? 0, height: UIView.layoutFittingCompressedSize.height)).height
         self.previousHeight = height ?? 0
 
-        StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
+        StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(
+            payloadWithViewTag(["height": height ?? 0])
+        )
         NSLayoutConstraint.activate([
             messagingElementView.topAnchor.constraint(equalTo: topAnchor),
             messagingElementView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -128,10 +132,12 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         let configResult = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: config)
 
         if let error = configResult.error {
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult([
-                "status": "failed",
-                "error": error,
-            ])
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(
+                payloadWithViewTag([
+                    "status": "failed",
+                    "error": error,
+                ])
+            )
             return
         }
 
@@ -144,7 +150,6 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
             configuration.appearance = appearance
         }
 
-        var resultMap: [String: String] = [:]
         var height: CGFloat? = 0
 
         pendingCreateTask = Task { @MainActor in
@@ -153,13 +158,16 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
             // event or kick off an already-pointless create() call.
             guard !Task.isCancelled else { return }
 
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(["status": "loading"])
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(
+                payloadWithViewTag(["status": "loading"])
+            )
             let result = await PaymentMethodMessagingElement.create(configuration: configuration)
 
             // Discard results from a request that's been superseded by a more
             // recent `appearance` or `configuration` prop update.
             guard !Task.isCancelled else { return }
 
+            var resultMap: [String: Any] = [:]
             switch result {
             case .success(let paymentMethodMessagingElement):
                 self.messagingInstance = paymentMethodMessagingElement
@@ -174,9 +182,21 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
                 resultMap["message"] = error.localizedDescription
             }
 
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(resultMap)
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(
+                payloadWithViewTag(["height": height ?? 0])
+            )
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(
+                payloadWithViewTag(resultMap)
+            )
             attachPaymentElementIfAvailable()
         }
+    }
+
+    private func payloadWithViewTag(_ payload: [String: Any]) -> [String: Any] {
+        var result = payload
+        if let tag = reactTag {
+            result["viewTag"] = tag.intValue
+        }
+        return result
     }
 }
