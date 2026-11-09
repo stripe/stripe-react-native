@@ -100,6 +100,9 @@ export default function CryptoOnrampFlow() {
     getWalletOwnershipChallenge,
     submitWalletOwnershipSignature,
     presentUserAttestation,
+    presentTermsOfServiceIfNeeded,
+    presentTermsAndConditionsIfNeeded,
+    fulfillKycRequirements,
     presentKycInfoVerification,
     updatePhoneNumber,
     collectPaymentMethod,
@@ -545,6 +548,87 @@ export default function CryptoOnrampFlow() {
     setUserAttestationStatus(result.status);
     showSuccess('User attestation confirmed.');
   }, [presentUserAttestation, withReauth, authorize, linkAuthIntentId]);
+
+  const handlePresentTermsOfService = useCallback(async () => {
+    const result = await withReauth(
+      () => presentTermsOfServiceIfNeeded(),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result.error) {
+      if (result.error.code === 'Canceled') {
+        showCanceled('Terms of service canceled.');
+      } else {
+        showError(
+          `Failed to present terms of service: ${result.error.message}.`
+        );
+      }
+      return;
+    }
+
+    showSuccess(
+      result.status === 'Accepted'
+        ? 'Terms of service accepted.'
+        : 'Terms of service acceptance is not required.'
+    );
+  }, [presentTermsOfServiceIfNeeded, withReauth, authorize, linkAuthIntentId]);
+
+  const handlePresentTermsAndConditions = useCallback(async () => {
+    const result = await withReauth(
+      () => presentTermsAndConditionsIfNeeded(),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result.error) {
+      if (result.error.code === 'Canceled') {
+        showCanceled('Terms and conditions canceled.');
+      } else {
+        showError(
+          `Failed to present terms and conditions: ${result.error.message}.`
+        );
+      }
+      return;
+    }
+
+    showSuccess(
+      result.status === 'Accepted'
+        ? 'Terms and conditions accepted.'
+        : 'Terms and conditions acceptance is not required.'
+    );
+  }, [
+    presentTermsAndConditionsIfNeeded,
+    withReauth,
+    authorize,
+    linkAuthIntentId,
+  ]);
+
+  const handleFulfillKycRequirements = useCallback(async () => {
+    const result = await withReauth(
+      () => fulfillKycRequirements(),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result.error) {
+      if (result.error.code === 'Canceled') {
+        showCanceled('Additional KYC collection canceled.');
+      } else {
+        showError(`Failed to fulfill additional KYC: ${result.error.message}.`);
+      }
+      return;
+    }
+
+    switch (result.status) {
+      case 'Submitted':
+        showSuccess('Additional KYC submitted for verification.');
+        break;
+      case 'PendingVerification':
+        showSuccess('Additional KYC verification is pending.');
+        break;
+      case 'NotRequired':
+        showSuccess('No additional KYC is required.');
+        break;
+    }
+  }, [fulfillKycRequirements, withReauth, authorize, linkAuthIntentId]);
 
   const handlePresentKycVerification = useCallback(
     async (updatedAddress: Address | null) => {
@@ -1355,6 +1439,9 @@ export default function CryptoOnrampFlow() {
             handleVerifyIdentity={handleVerifyIdentity}
             handlePresentUserAttestation={handlePresentUserAttestation}
             userAttestationStatus={userAttestationStatus}
+            handlePresentTermsOfService={handlePresentTermsOfService}
+            handlePresentTermsAndConditions={handlePresentTermsAndConditions}
+            handleFulfillKycRequirements={handleFulfillKycRequirements}
           />
           <PaymentCollectionSection
             isPlatformPaySupported={isPlatformPayAvailable}

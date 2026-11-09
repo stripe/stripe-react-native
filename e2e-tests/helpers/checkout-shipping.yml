@@ -1,23 +1,27 @@
 appId: ${APP_ID}
 ---
+# Callers select the US test address so saving does not depend on autocomplete.
 - scrollUntilVisible:
     element:
-      text: 'Add shipping address'
+      text: '(?s)(Add|Edit) shipping address.*'
     centerElement: true
-- tapOn: 'Add shipping address'
+- tapOn: '(?s)(Add|Edit) shipping address.*'
 - extendedWaitUntil:
-    visible: 'Shipping address'
+    visible: '(?i)Shipping address'
+    timeout: 30000
+- assertVisible: 'Full name'
+- assertVisible: 'Jenny Rosen'
+- assertVisible: '510 Townsend St'
+- scrollUntilVisible:
+    element:
+      text: 'Save address'
+    centerElement: true
+- tapOn: 'Save address'
+- extendedWaitUntil:
+    notVisible: 'Save address'
     timeout: 30000
 - scrollUntilVisible:
     element:
-      text: 'Save Address'
-    centerElement: true
-- tapOn: 'Save Address'
-- extendedWaitUntil:
-    notVisible: 'Save Address'
-    timeout: 30000
-- scrollUntilVisible:
-    element:
-      text: '(?s).*510 Townsend St.*'
+      text: '(?s)Edit shipping address, Jenny Rosen.*510 Townsend St.*'
     centerElement: true
     timeout: 30000

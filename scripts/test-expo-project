@@ -22,11 +22,19 @@ OPTIONS:
   --platforms       Comma separated list of platforms to build (android, ios). Default: android,ios
   --disable-spm     Opt out of Swift Package Manager resolution via the Expo
                     plugin's disableSPM option, exercising the CocoaPods
-                    fallback path (iOS keeps Expo's static-frameworks default)
+                    fallback path (iOS keeps Expo's default static linkage)
   --skip-build      Stop after `expo prebuild` and the iOS integration checks,
                     without running the native builds
   --keep-project    Do not delete the temporary project directory (helpful for debugging failures)
   -h, --help        Print this help message
+
+iOS TROUBLESHOOTING:
+  If pod install reports static linkage despite useFrameworks: "dynamic",
+  rerun this script with --keep-project to preserve the generated app.
+  In that app, upgrade to Expo 58.0.19 or later (expo-modules-autolinking
+  58.0.15 or later), update its dependencies and lockfile, then run
+  npx expo prebuild --platform ios from the app directory. This fixes Expo's
+  precompiled-module linkage override; keep dynamic frameworks enabled.
 EOF
 }
 

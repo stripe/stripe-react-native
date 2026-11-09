@@ -1,4 +1,4 @@
-import type { Checkout } from '@stripe/stripe-react-native';
+import type { CheckoutElements } from '@stripe/stripe-react-native/src/types/CheckoutElements';
 import { hostedBackendURL } from './backend';
 
 export type PaymentElementMode = 'sheet' | 'view';
@@ -239,13 +239,13 @@ export function buildSessionParameters(
 
 export function checkoutConfiguration(
   params: CheckoutCartParams
-): Checkout.CreateOptions {
+): CheckoutElements.CreateOptions {
   const { clientSecret, settings } = params;
   const address =
     settings.defaultShippingAddressOption === 'usTestAddress'
       ? usTestAddress
       : settings.customShippingAddress;
-  const defaults: Checkout.Defaults = {};
+  const defaults: CheckoutElements.Defaults = {};
   if (settings.emailSource === 'local') {
     defaults.email = resolvedEmail(settings) ?? undefined;
   }
@@ -273,5 +273,6 @@ export function checkoutConfiguration(
     ...(settings.adaptivePricingCountry !== 'none'
       ? { currencySelectorElement: {} }
       : {}),
+    ...(settings.collectShippingAddress ? { shippingAddressElement: {} } : {}),
   };
 }

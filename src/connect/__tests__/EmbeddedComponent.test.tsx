@@ -45,7 +45,6 @@ jest.mock('../../specs/NativeStripeSdkModule', () =>
     collectFinancialConnectionsAccounts: jest.fn(),
     openAuthenticatedWebView: jest.fn(),
     downloadAndShareFile: jest.fn(),
-    presentExternalWebPage: jest.fn(),
   })
 );
 
@@ -415,31 +414,6 @@ describe('EmbeddedComponent', () => {
 
         expect(shouldLoad).toBe(false);
         expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
-      } finally {
-        openUrl.mockRestore();
-        Platform.OS = previousPlatform;
-      }
-    });
-
-    it('uses the configured in-app browser for Android external navigations', async () => {
-      const previousPlatform = Platform.OS;
-      Platform.OS = 'android' as any;
-      const openInApp = NativeStripeSdk.presentExternalWebPage as jest.Mock;
-      openInApp.mockResolvedValue(undefined);
-      const openUrl = jest.spyOn(Linking, 'openURL');
-
-      try {
-        const onShouldStartLoad = await getNavigationHandler({
-          presentExternalLinksInApp: true,
-        });
-        const shouldLoad = onShouldStartLoad({
-          url: 'https://example.com/help',
-          navigationType: 'other',
-        });
-
-        expect(shouldLoad).toBe(false);
-        expect(openInApp).toHaveBeenCalledWith('https://example.com/help');
-        expect(openUrl).not.toHaveBeenCalled();
       } finally {
         openUrl.mockRestore();
         Platform.OS = previousPlatform;

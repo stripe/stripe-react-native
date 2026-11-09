@@ -189,6 +189,7 @@ export enum CryptoNetwork {
   sui = 'sui',
   arbitrum = 'arbitrum',
   tempo = 'tempo',
+  celo = 'celo',
 }
 
 /**
@@ -448,6 +449,25 @@ export type CryptoOnrampError =
   | UnsupportedNetworkError
   | UncategorizedApiError
   | AppAttestationUnavailableError;
+
+/**
+ * Outcome of collecting additional KYC documents and questionnaire answers.
+ * Cancellation is returned as an error with code `Canceled`.
+ */
+export type FulfillKycRequirementsResult =
+  | {
+      status: 'Submitted' | 'PendingVerification' | 'NotRequired';
+      error?: undefined;
+    }
+  | { status?: undefined; error: CryptoOnrampError };
+
+/**
+ * Outcome of checking and presenting partner terms.
+ * Cancellation is returned as an error with code `Canceled`.
+ */
+export type PartnerTermsResult =
+  | { status: 'Accepted' | 'NotRequired'; error?: undefined }
+  | { status?: undefined; error: CryptoOnrampError };
 
 /**
  * Result of retrieving missing compliance identifiers.

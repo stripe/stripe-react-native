@@ -1,6 +1,6 @@
 import Combine
 import React
-@_spi(STP) import StripePaymentSheet
+@_spi(InternalOnlyAPI) import StripePaymentSheet
 import UIKit
 
 /// Hosts the UIKit view owned by a registered Checkout controller.

@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-@_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
+@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
 import UIKit
 
 /// Owns a native Checkout controller and its session observation for the bridge.
@@ -13,7 +13,7 @@ final class NativeCheckoutControllerInstance {
         case confirming
     }
 
-    let checkout: CheckoutController
+    let checkout: CheckoutElementsController
     let currencySelectorElement: CurrencySelectorElement?
     let shippingAddressElement: ShippingAddressElement?
     private(set) lazy var session = CheckoutSessionSerializer.serialize(checkout.session)
@@ -25,12 +25,12 @@ final class NativeCheckoutControllerInstance {
     private var isDestroyed = false
     private var confirmation: (
         task: Task<Void, Never>,
-        completion: (Result<CheckoutController.ConfirmResult, Error>) -> Void
+        completion: (Result<CheckoutElementsController.ConfirmResult, Error>) -> Void
     )?
     private var serverUpdateContinuations: [String: CheckedContinuation<Void, Error>] = [:]
 
     init(
-        checkout: CheckoutController,
+        checkout: CheckoutElementsController,
         currencySelectorElement: CurrencySelectorElement? = nil,
         shippingAddressElement: ShippingAddressElement? = nil,
         emitEvent: @escaping ([String: Any]) -> Void
@@ -59,7 +59,7 @@ final class NativeCheckoutControllerInstance {
     /// Adapts native confirmation to the lifetime of this bridge controller.
     func confirm(
         from presenter: UIViewController,
-        completion: @escaping (Result<CheckoutController.ConfirmResult, Error>) -> Void
+        completion: @escaping (Result<CheckoutElementsController.ConfirmResult, Error>) -> Void
     ) throws {
         guard !isDestroyed else { throw CheckoutBridgeError.destroyed }
         guard confirmation == nil else { throw CheckoutBridgeError.confirmationInProgress }

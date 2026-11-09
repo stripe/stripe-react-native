@@ -1,10 +1,10 @@
 import { addListener } from '../events';
-import type { Checkout, CheckoutController } from '../types/Checkout';
+import type { CheckoutElements } from '../types/CheckoutElements';
 
 export interface CheckoutControllerUpdate {
   controllerId: string;
-  status: CheckoutController['status'];
-  session: Checkout.Session;
+  status: CheckoutElements['status'];
+  session: CheckoutElements.Session;
 }
 
 /** Creates identifiers for controllers and server-update operations. */

@@ -1,9 +1,8 @@
 import type {
-  Checkout,
-  CheckoutController,
+  CheckoutElements,
   CheckoutCurrencySelectorElement,
   CheckoutPaymentElement,
-} from '../types/Checkout';
+} from '../types/CheckoutElements';
 import type { StripeError } from '../types/Errors';
 import { runServerUpdate } from './runServerUpdate';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
@@ -43,9 +42,9 @@ export function getCheckoutPaymentElementId(
 
 const CHECKOUT_DESTROYED_MESSAGE = 'This Checkout controller was destroyed.';
 
-type CheckoutOperationError = Error & StripeError<Checkout.ErrorCode>;
+type CheckoutOperationError = Error & StripeError<CheckoutElements.ErrorCode>;
 
-const checkoutErrorCodes = new Set<Checkout.ErrorCode>([
+const checkoutErrorCodes = new Set<CheckoutElements.ErrorCode>([
   'Failed',
   'InvalidClientSecret',
   'SessionNotOpen',
@@ -55,7 +54,7 @@ const checkoutErrorCodes = new Set<Checkout.ErrorCode>([
 ]);
 
 function checkoutError(
-  code: Checkout.ErrorCode,
+  code: CheckoutElements.ErrorCode,
   message: string
 ): CheckoutOperationError {
   const error = new Error(message) as CheckoutOperationError;
@@ -76,8 +75,8 @@ export function normalizeCheckoutError(error: unknown): CheckoutOperationError {
 }
 
 function nativeCreateOptions(
-  options: Checkout.CreateOptions
-): Checkout.CreateOptions {
+  options: CheckoutElements.CreateOptions
+): CheckoutElements.CreateOptions {
   const rowSelectionBehavior = options.paymentElement?.rowSelectionBehavior;
   if (!rowSelectionBehavior || rowSelectionBehavior.type === 'default') {
     return options;
@@ -99,24 +98,31 @@ function nativeCreateOptions(
  * @remarks
  * This API is in private preview and can change without notice.
  *
+ * @internal
  * @CheckoutSessionPrivatePreview
  */
-export async function createCheckout(
-  options: Checkout.CreateOptions
-): Promise<CheckoutController> {
+export async function createCheckoutElements(
+  options: CheckoutElements.CreateOptions
+): Promise<CheckoutElements> {
   return createCheckoutController(options);
 }
 
-/** Creates a controller and reports its native state changes to useCheckout. */
+/** Creates a controller and reports its native state changes to useCheckoutElements. */
 export async function createCheckoutController(
-  options: Checkout.CreateOptions,
-  onUpdate?: (controller: CheckoutController) => void
-): Promise<CheckoutController> {
+  options: CheckoutElements.CreateOptions,
+  onUpdate?: (controller: CheckoutElements) => void
+): Promise<CheckoutElements> {
+  // TODO: Bridge Express Checkout configuration, availability, and payment results.
+  if (options.expressCheckoutElement) {
+    throw new Error(
+      'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
+    );
+  }
   const controllerId = createCheckoutBridgeId();
-  let status: CheckoutController['status'] = 'ready';
-  let session: Checkout.Session | undefined;
+  let status: CheckoutElements['status'] = 'ready';
+  let session: CheckoutElements.Session | undefined;
   let destroyPromise: Promise<void> | undefined;
-  let controller: CheckoutController | undefined;
+  let controller: CheckoutElements | undefined;
   // Subscribe before creating native so initial updates cannot be lost.
   const subscription = addCheckoutControllerListener(controllerId, (update) => {
     if (status !== 'destroyed') {
@@ -193,6 +199,7 @@ export async function createCheckoutController(
       paymentElement,
       shippingAddressElement,
       currencySelectorElement,
+      expressCheckoutElement: null,
       updateEmail: (email) =>
         performOperation(() =>
           NativeStripeSdk.updateCheckoutEmail(controllerId, email)

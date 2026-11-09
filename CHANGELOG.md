@@ -1,6 +1,27 @@
 # CHANGELOG
 
-## Unreleased
+## 0.85.0 - 2026-11-03
+
+**Features**
+
+* [Added] Added `fulfillKycRequirements` to Crypto Onramp for collecting additional KYC documents and questionnaire answers.
+* [Added] Added `presentTermsAndConditionsIfNeeded` and `presentTermsOfServiceIfNeeded` to Crypto Onramp for collecting acceptance of transaction terms and partner terms of service.
+* [Added] Added Celo network support to Crypto Onramp.
+
+**Changes**
+
+* Updated Stripe iOS SDK from 26.15.1 to 26.16.0.
+
+**Fixes**
+
+* [Fixed] iOS: Fixed a race condition where `PaymentMethodMessagingElement` could render with a stale `appearance` or `configuration` when both props updated in quick succession. ([#2779](https://github.com/stripe/stripe-react-native/pull/2779))
+
+## 0.84.0 - 2026-10-27
+
+**Breaking changes**
+
+* [Removed] iOS: The `disableSPM` Expo option and `$StripeDisableSPM = true` Podfile flag are no longer supported because the Stripe iOS SDK no longer supports CocoaPods resolution. Remove these options and use dynamic frameworks with Swift Package Manager. See the [migration guide](MIGRATING.md#ios-swift-package-manager-dependency-resolution-and-dynamic-linking).
+* [Removed] Support for React Native versions below 0.75. React Native 0.75 or later is now required.
 
 **Fixes**
 

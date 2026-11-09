@@ -3,9 +3,9 @@
 #
 # == Why this exists
 #
-# The Stripe native iOS SDK is ending support for CocoaPods. The
-# stripe-react-native SDK depends on multiple `Stripe*` pods from stripe-ios,
-# which will now only be published via SPM, not CocoaPods. 
+# The Stripe native iOS SDK no longer supports CocoaPods. Its releases are
+# now published via SPM. The stripe-react-native SDK resolves the Stripe
+# products through SPM instead of depending on `Stripe*` pods from stripe-ios.
 # The stripe-react-native pod itself is unaffected since it is loaded from
 # node_modules rather than the CocoaPods registry.
 # This file's job is to replace the `s.dependency 'Stripe*'` commands from
@@ -92,21 +92,15 @@
 # phase msut be idempotent, and we must remove it again if SPM resolution
 # is turned off.
 #
-# == Supported modes
+# == Dependency resolution
 #
-#   React Native >= 0.75 (default)        -> Stripe via Swift Package Manager
-#   React Native >= 0.75, opt-out below   -> Stripe via CocoaPods registry
-#   React Native <  0.75                  -> Stripe via CocoaPods registry
-#                                            (no `spm_dependency` available)
+# React Native >= 0.75 resolves Stripe via Swift Package Manager. SPM mode
+# additionally requires CocoaPods >= MINIMUM_COCOAPODS_VERSION and fails the
+# install with instructions otherwise.
 #
-# SPM mode additionally requires CocoaPods >= MINIMUM_COCOAPODS_VERSION and
-# fails the install with instructions otherwise; the CocoaPods registry modes
-# have no version requirement of their own.
-#
-# To opt out and resolve Stripe through CocoaPods instead (available while
-# Stripe continues to publish pods), add this at the top of your Podfile:
-#
-#   $StripeDisableSPM = true
+# The legacy CocoaPods fallback infrastructure is retained for possible ad hoc
+# releases that depend on older stripe-ios versions. The $StripeDisableSPM
+# opt-out is rejected for current releases.
 
 module StripeSPM
   # The lightweight SPM mirror of stripe-ios.
@@ -240,13 +234,9 @@ module StripeSPM
       raise Pod::PlainInformative, <<~MESSAGE.chomp
         [stripe-react-native] Resolving the Stripe iOS SDK through Swift Package
         Manager requires CocoaPods #{MINIMUM_COCOAPODS_VERSION} or newer, but this
-        install is running CocoaPods #{Pod::VERSION}. Either:
-          * update CocoaPods (React Native's project template requires 1.13 or
-            newer; if your project has a Gemfile, run `bundle exec pod install`
-            to use the version it pins), or
-          * add `$StripeDisableSPM = true` at the top of your Podfile to resolve
-            Stripe through CocoaPods instead (available while Stripe continues
-            to publish pods)
+        install is running CocoaPods #{Pod::VERSION}. Update CocoaPods (React
+        Native's project template requires 1.13 or newer; if your project has a
+        Gemfile, run `bundle exec pod install` to use the version it pins)
       MESSAGE
     end
 
@@ -422,8 +412,6 @@ module StripeSPM
         please report it at
         https://github.com/stripe/stripe-react-native/issues (including your
         React Native and CocoaPods versions).
-        To temporarily fix this, set `$StripeDisableSPM = true` at
-        the top of your Podfile.
       MESSAGE
     end
 
@@ -457,10 +445,12 @@ module StripeSPM
         Manager requires dynamic frameworks, but #{POD_NAME} is building as
         #{current}. To fix, add `use_frameworks! :linkage => :dynamic` to your Podfile
         (for Expo, set `"useFrameworks": "dynamic"` via the expo-build-properties plugin).
-        If you MUST continue to use static linkage, you can temporarily add
-        `$StripeDisableSPM = true` at the top of your Podfile to resolve Stripe
-        through CocoaPods instead. WARNING: THIS IS DEPRECATED AND FUTURE STRIPE SDK
-        VERSIONS WILL NOT SUPPORT THIS OPTION.
+
+        If Expo still reports static linkage with dynamic frameworks enabled,
+        upgrade to Expo 58.0.19 or later (expo-modules-autolinking 58.0.15 or later).
+        Earlier Expo versions with precompiled modules enabled can override
+        the dynamic-framework setting. Update your dependencies and lockfile,
+        then rerun `npx expo prebuild --platform ios`, keeping dynamic frameworks enabled.
       MESSAGE
     end
 
@@ -587,18 +577,20 @@ end
 # True when the Stripe iOS SDK should be resolved through Swift Package
 # Manager for this install. Evaluated by the podspec.
 #
-# `defined?(spm_dependency)` effectively checks if the React Native version is
-# >= 0.75 since this is the version that introduces `spm_dependency`. The user's
-# Podfile will require `react_native_pods.rb`, which defines `spm_dependency` as
-# a top-level function, so the function is visibile here exactly when the app's
-# React Native version supports it.
+# All supported React Native versions provide `spm_dependency`.
 #
-# `$StripeDisableSPM` is the user-facing opt-out. The value is compared to
-# `true` (not just "defined") so tooling that emits `$StripeDisableSPM =
-# false` gets SPM resolution as expected.
+# Reject the legacy opt-out explicitly so existing Podfiles fail with migration
+# instructions before attempting to resolve Stripe pods that no longer exist.
+# A value of false still gets SPM resolution as expected.
 def stripe_spm_enabled?
-  return false unless defined?(spm_dependency)
-  return false if defined?($StripeDisableSPM) && $StripeDisableSPM == true
+  if defined?($StripeDisableSPM) && $StripeDisableSPM == true
+    raise Pod::PlainInformative, <<~MESSAGE.chomp
+      [stripe-react-native] $StripeDisableSPM is no longer supported because the
+      Stripe iOS SDK no longer supports CocoaPods resolution. Remove
+      `$StripeDisableSPM = true` from your Podfile and add
+      `use_frameworks! :linkage => :dynamic` to use Swift Package Manager
+    MESSAGE
+  end
 
   true
 end

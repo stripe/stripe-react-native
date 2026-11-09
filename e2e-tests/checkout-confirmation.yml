@@ -12,6 +12,12 @@ appId: ${APP_ID}
     visible: 'Create Checkout Session'
     timeout: 60000
 - tapOn: 'Reset'
+- scrollUntilVisible:
+    element:
+      text: 'Default Shipping Address'
+    centerElement: true
+- tapOn: 'Default Shipping Address'
+- tapOn: 'US test address'
 - tapOn:
     id: 'checkout-create-session'
 - extendedWaitUntil:

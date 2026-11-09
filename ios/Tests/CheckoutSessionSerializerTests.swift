@@ -1,10 +1,22 @@
 @testable import stripe_react_native
-@testable @_spi(ReactNativeSDK) @_spi(STP) import StripePaymentSheet
+@testable @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
 import UIKit
 import XCTest
 
 @MainActor
 final class CheckoutSessionSerializerTests: XCTestCase {
+    func test_serialize_includesUnavailableExpressPaymentMethods() throws {
+        let result = CheckoutSessionSerializer.serialize(try CheckoutTestFixtures.session())
+        let methods = try XCTUnwrap(result["availableExpressCheckoutPaymentMethods"] as? [String: Any])
+
+        XCTAssertEqual(methods as NSDictionary, [
+            "applePay": ["available": false, "type": "apple_pay"],
+            "googlePay": ["available": false, "type": "google_pay"],
+            "link": ["available": false, "type": "link"],
+        ] as NSDictionary)
+        XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
+    }
+
     func test_serialize_preservesNativeAmountsAndItemStructure() throws {
         let session = try CheckoutTestFixtures.session()
         let result = CheckoutSessionSerializer.serialize(session)
@@ -32,7 +44,7 @@ final class CheckoutSessionSerializerTests: XCTestCase {
     }
 
     func test_serialize_preservesPartialBillingAddressesAndMandateLinks() throws {
-        let billingDetails = CheckoutController.Session.PaymentOptionDisplayData.BillingDetails(
+        let billingDetails = CheckoutElementsController.Session.PaymentOptionDisplayData.BillingDetails(
             address: .init(
                 city: nil,
                 country: nil,
@@ -49,7 +61,7 @@ final class CheckoutSessionSerializerTests: XCTestCase {
             UIColor.red.setFill()
             context.fill(CGRect(x: 0, y: 0, width: 2, height: 2))
         }
-        let option = CheckoutController.Session.PaymentOptionDisplayData(
+        let option = CheckoutElementsController.Session.PaymentOptionDisplayData(
             image: image,
             label: "Visa",
             sublabel: "•••• 4242",
@@ -78,21 +90,21 @@ final class CheckoutSessionSerializerTests: XCTestCase {
     }
 
     func test_serializeConfirmationResults() throws {
-        let statuses: [(CheckoutController.Session.Status.PaymentStatus, String)] = [
+        let statuses: [(CheckoutElementsController.Session.Status.PaymentStatus, String)] = [
             (.paid, "paid"), (.unpaid, "unpaid"), (.noPaymentRequired, "noPaymentRequired"),
         ]
         for (nativeStatus, expected) in statuses {
             let result = CheckoutSessionSerializer.serialize(
-                CheckoutController.ConfirmResult.completed(paymentStatus: nativeStatus)
+                CheckoutElementsController.ConfirmResult.completed(paymentStatus: nativeStatus)
             )
             XCTAssertEqual(result as NSDictionary, ["status": "completed", "paymentStatus": expected])
         }
         XCTAssertEqual(
-            CheckoutSessionSerializer.serialize(CheckoutController.ConfirmResult.canceled) as NSDictionary,
+            CheckoutSessionSerializer.serialize(CheckoutElementsController.ConfirmResult.canceled) as NSDictionary,
             ["status": "canceled"]
         )
         let error = NSError(domain: "CheckoutTest", code: 1, userInfo: [NSLocalizedDescriptionKey: "Payment failed"])
-        let result = CheckoutSessionSerializer.serialize(CheckoutController.ConfirmResult.failed(error))
+        let result = CheckoutSessionSerializer.serialize(CheckoutElementsController.ConfirmResult.failed(error))
         XCTAssertEqual(result["status"] as? String, "failed")
         let mappedError = try XCTUnwrap(result["error"] as? [String: Any])
         XCTAssertEqual(mappedError["code"] as? String, "Failed")

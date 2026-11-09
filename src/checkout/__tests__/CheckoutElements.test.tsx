@@ -1,8 +1,8 @@
 import { checkoutSession as session } from '../__fixtures__/session';
 import { addListener } from '../../events';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
-import type { Checkout } from '../../types/Checkout';
-import { createCheckout } from '../createCheckout';
+import type { CheckoutElements } from '../../types/CheckoutElements';
+import { createCheckoutElements } from '../createCheckoutElements';
 
 jest.mock('../../events', () => ({ addListener: jest.fn() }));
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
@@ -20,7 +20,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
   },
 }));
 
-const options: Checkout.CreateOptions = {
+const options: CheckoutElements.CreateOptions = {
   clientSecret: 'cs_test_secret',
   returnURL: 'example://checkout',
 };
@@ -48,9 +48,61 @@ beforeEach(() => {
   create.mockImplementation(async () => ({ session }));
 });
 
+it('rejects Express Checkout configuration before invoking native or subscribing', async () => {
+  const onResult = jest.fn<void, [CheckoutElements.Result]>();
+  await expect(
+    createCheckoutElements({
+      ...options,
+      expressCheckoutElement: {
+        applePay: { buttonType: 'checkout' },
+        googlePay: {
+          display: 'automatic',
+          label: 'Total',
+          buttonType: 'pay',
+          additionalEnabledNetworks: ['INTERAC'],
+        },
+        link: { display: 'never' },
+        appearance: {
+          buttonTheme: 'dark',
+          buttonLayout: { maxColumns: 2, maxRows: 1 },
+        },
+        onResult,
+      },
+    })
+  ).rejects.toThrow(
+    'does not include native support for Express Checkout Element'
+  );
+  expect(create).not.toHaveBeenCalled();
+  expect(addListener).not.toHaveBeenCalled();
+  expect(onResult).not.toHaveBeenCalled();
+});
+
+it('preserves native session snapshots and their express payment method availability', async () => {
+  const controller = await createCheckoutElements(options);
+  expect(controller.expressCheckoutElement).toBeNull();
+  expect(controller.session).toBe(session);
+
+  const updated = {
+    ...session,
+    email: 'updated@example.com',
+    availableExpressCheckoutPaymentMethods: {
+      ...session.availableExpressCheckoutPaymentMethods,
+      link: { available: true, type: 'link' },
+    },
+  };
+
+  emit('checkoutControllerDidUpdate', {
+    controllerId: create.mock.calls[0][1],
+    status: 'updating',
+    session: updated,
+  });
+  expect(controller.session).toBe(updated);
+  await controller.destroy();
+});
+
 it('keeps one nullable Currency Selector handle for the controller lifetime', async () => {
   create.mockResolvedValueOnce({ session, isCurrencySelectorAvailable: true });
-  const controller = await createCheckout({
+  const controller = await createCheckoutElements({
     ...options,
     currencySelectorElement: {},
   });
@@ -72,7 +124,7 @@ it('keeps initial snapshots and routes updates and selection to the owning contr
     });
     return { session };
   });
-  const first = await createCheckout({
+  const first = await createCheckoutElements({
     ...options,
     paymentElement: {
       rowSelectionBehavior: {
@@ -81,7 +133,7 @@ it('keeps initial snapshots and routes updates and selection to the owning contr
       },
     },
   });
-  const second = await createCheckout(options);
+  const second = await createCheckoutElements(options);
   const firstId = create.mock.calls[0][1];
   expect(firstId).not.toBe(create.mock.calls[1][1]);
   expect(first.session).toBe(updated);
@@ -108,7 +160,7 @@ it('keeps initial snapshots and routes updates and selection to the owning contr
 });
 
 it('forwards mutations and preserves native errors', async () => {
-  const controller = await createCheckout(options);
+  const controller = await createCheckoutElements(options);
   const id = create.mock.calls[0][1];
   const address = { address: { country: 'US' } };
   await controller.updateEmail(null);
@@ -156,14 +208,14 @@ it('forwards mutations and preserves native errors', async () => {
 it('removes listeners when creation fails', async () => {
   const error = new Error('Invalid client secret');
   create.mockRejectedValueOnce(error);
-  await expect(createCheckout(options)).rejects.toBe(error);
+  await expect(createCheckoutElements(options)).rejects.toBe(error);
   expect(
     [...listeners.values()].every((callbacks) => callbacks.size === 0)
   ).toBe(true);
 });
 
 it('returns native confirmation outcomes and preserves rejection errors', async () => {
-  const controller = await createCheckout(options);
+  const controller = await createCheckoutElements(options);
   const id = create.mock.calls[0][1];
   const confirm = NativeStripeSdk.confirmCheckout as jest.Mock;
   const failure = { code: 'Failed', message: 'Payment declined' };

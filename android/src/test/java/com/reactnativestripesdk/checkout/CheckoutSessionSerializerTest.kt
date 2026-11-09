@@ -26,6 +26,19 @@ class CheckoutSessionSerializerTest {
   private val context = ApplicationProvider.getApplicationContext<Context>()
 
   @Test
+  fun `serialize includes unavailable express payment methods`() = runTest {
+    val result = CheckoutSessionSerializer.serialize(checkoutSession(), context)
+    val methods = result.getMap("availableExpressCheckoutPaymentMethods")!!
+
+    assertEquals(setOf("applePay", "googlePay", "link"), methods.toHashMap().keys)
+    for ((key, type) in mapOf("applePay" to "apple_pay", "googlePay" to "google_pay", "link" to "link")) {
+      val method = methods.getMap(key)!!
+      assertFalse(method.getBoolean("available"))
+      assertEquals(type, method.getString("type"))
+    }
+  }
+
+  @Test
   fun `confirmation results preserve native outcomes and completed payment status`() {
     val completed = NativeCheckoutFixtures.completedResult()
     val completedResult = CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.completeStatus())

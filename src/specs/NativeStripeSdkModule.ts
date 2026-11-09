@@ -41,7 +41,7 @@ import type {
   EmbeddedPaymentElementResult,
 } from '../types/EmbeddedPaymentElement';
 import type { IntentConfiguration } from '../types/PaymentSheet';
-import type { Checkout } from '../types/Checkout';
+import type { CheckoutElements } from '../types/CheckoutElements';
 import type { UnsafeObject } from './utils';
 
 type CustomerSheetInitResult = UnsafeObject<{
@@ -49,7 +49,7 @@ type CustomerSheetInitResult = UnsafeObject<{
 }>;
 
 type CheckoutCreateResult = UnsafeObject<{
-  session: Checkout.Session;
+  session: CheckoutElements.Session;
   isCurrencySelectorAvailable: boolean;
 }>;
 
@@ -225,8 +225,6 @@ export interface Spec extends TurboModule {
     url: string
   ): Promise<{ url?: string } | null>;
 
-  presentExternalWebPage(url: string): Promise<void>;
-
   downloadAndShareFile(
     url: string,
     filename?: string | null
@@ -255,7 +253,7 @@ export interface Spec extends TurboModule {
 
   /** @CheckoutSessionPrivatePreview */
   createCheckout(
-    params: UnsafeObject<Checkout.CreateOptions>,
+    params: UnsafeObject<CheckoutElements.CreateOptions>,
     controllerId: string
   ): Promise<CheckoutCreateResult>;
 
@@ -268,7 +266,7 @@ export interface Spec extends TurboModule {
   /** @CheckoutSessionPrivatePreview */
   updateCheckoutShippingAddress(
     controllerId: string,
-    params: UnsafeObject<Checkout.UpdateShippingAddressParams>
+    params: UnsafeObject<CheckoutElements.UpdateShippingAddressParams>
   ): Promise<void>;
 
   /** @CheckoutSessionPrivatePreview */
@@ -284,7 +282,9 @@ export interface Spec extends TurboModule {
   clearCheckoutPaymentOption(controllerId: string): Promise<void>;
 
   /** @CheckoutSessionPrivatePreview */
-  confirmCheckout(controllerId: string): Promise<UnsafeObject<Checkout.Result>>;
+  confirmCheckout(
+    controllerId: string
+  ): Promise<UnsafeObject<CheckoutElements.Result>>;
 
   /** @CheckoutSessionPrivatePreview */
   presentCheckoutPaymentElement(controllerId: string): Promise<void>;
