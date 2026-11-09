@@ -26,6 +26,23 @@ import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingE
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 
+internal fun configureFailurePayload(
+  error: Throwable,
+  viewTag: Int,
+): WritableMap {
+  val msg = error.localizedMessage ?: error.toString()
+  return Arguments.createMap().apply {
+    putMap(
+      "result",
+      Arguments.createMap().apply {
+        putString("status", "failed")
+        putString("message", msg)
+        putInt("viewTag", viewTag)
+      },
+    )
+  }
+}
+
 @OptIn(PaymentMethodMessagingElementPreview::class)
 class PaymentMethodMessagingElementView(
   context: Context,
@@ -41,7 +58,6 @@ class PaymentMethodMessagingElementView(
   }
 
   var latestElementConfig: PaymentMethodMessagingElement.Configuration? = null
-  internal var eventDispatcherForTest: ((String, WritableMap?) -> Unit)? = null
 
   private val reactContext get() = context as ThemedReactContext
   private val events = Channel<ViewEvent>(Channel.UNLIMITED)
@@ -146,14 +162,16 @@ class PaymentMethodMessagingElementView(
         putDouble("height", height.toDouble())
         putInt("viewTag", id)
       }
-    dispatchEvent(PaymentMethodMessagingElementHeightEvent.EVENT_NAME, payload) {
+    dispatchEvent {
       PaymentMethodMessagingElementHeightEvent(reactContext.surfaceId, id, payload)
     }
   }
 
   fun reportConfigureFailed(error: Throwable) {
-    val msg = error.localizedMessage ?: error.toString()
-    reportConfigureResult(status = "failed", message = msg)
+    val payload = configureFailurePayload(error, id)
+    dispatchEvent {
+      PaymentMethodMessagingElementConfigureEvent(reactContext.surfaceId, id, payload)
+    }
     reportHeightChange(0f)
   }
 
@@ -174,22 +192,12 @@ class PaymentMethodMessagingElementView(
           },
         )
       }
-    dispatchEvent(PaymentMethodMessagingElementConfigureEvent.EVENT_NAME, payload) {
+    dispatchEvent {
       PaymentMethodMessagingElementConfigureEvent(reactContext.surfaceId, id, payload)
     }
   }
 
-  private fun dispatchEvent(
-    eventName: String,
-    payload: WritableMap,
-    eventFactory: () -> Event<*>,
-  ) {
-    val testDispatcher = eventDispatcherForTest
-    if (testDispatcher != null) {
-      testDispatcher(eventName, payload)
-      return
-    }
-
+  private fun dispatchEvent(eventFactory: () -> Event<*>) {
     UIManagerHelper
       .getEventDispatcherForReactTag(reactContext, id)
       ?.dispatchEvent(eventFactory())
