@@ -8,6 +8,8 @@
     @"onOrderTrackingCallback",
     @"onConfirmHandlerCallback",
     @"onConfirmationTokenHandlerCallback",
+    @"onEmbeddedConfirmHandlerCallback",
+    @"onEmbeddedConfirmationTokenHandlerCallback",
     @"onCustomerAdapterFetchPaymentMethodsCallback",
     @"onCustomerAdapterAttachPaymentMethodCallback",
     @"onCustomerAdapterDetachPaymentMethodCallback",
@@ -41,6 +43,16 @@
 - (void)emitOnConfirmationTokenHandlerCallback:(NSDictionary *)value
 {
   [self sendEventWithName:@"onConfirmationTokenHandlerCallback" body:value];
+}
+
+- (void)emitOnEmbeddedConfirmHandlerCallback:(NSDictionary *)value
+{
+  [self sendEventWithName:@"onEmbeddedConfirmHandlerCallback" body:value];
+}
+
+- (void)emitOnEmbeddedConfirmationTokenHandlerCallback:(NSDictionary *)value
+{
+  [self sendEventWithName:@"onEmbeddedConfirmationTokenHandlerCallback" body:value];
 }
 
 - (void)emitOnFinancialConnectionsEvent:(NSDictionary *)value

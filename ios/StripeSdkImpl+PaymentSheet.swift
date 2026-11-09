@@ -341,22 +341,7 @@ extension StripeSdkImpl {
         captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod,
         useConfirmationTokenCallback: Bool
     ) -> PaymentSheet.IntentConfiguration {
-        var mode: PaymentSheet.IntentConfiguration.Mode
-        if let amount = modeParams["amount"] as? Int {
-            mode = PaymentSheet.IntentConfiguration.Mode.payment(
-                amount: amount,
-                currency: modeParams["currencyCode"] as? String ?? "",
-                setupFutureUsage: StripeSdkImpl.setupFutureUsageFromString(from: modeParams["setupFutureUsage"] as? String ?? ""),
-                captureMethod: captureMethod,
-                paymentMethodOptions: StripeSdkImpl.buildPaymentMethodOptions(paymentMethodOptionsParams: modeParams["paymentMethodOptions"] as? NSDictionary ?? [:])
-            )
-        } else {
-            mode = PaymentSheet.IntentConfiguration.Mode.setup(
-                currency: modeParams["currencyCode"] as? String,
-                setupFutureUsage: modeParams["setupFutureUsage"] as? String == "OffSession" ? .offSession : .onSession
-            )
-        }
-
+        let mode = StripeSdkImpl.buildIntentConfigurationMode(modeParams: modeParams, captureMethod: captureMethod)
         if useConfirmationTokenCallback {
             return PaymentSheet.IntentConfiguration.init(
                 mode: mode,
@@ -365,15 +350,10 @@ extension StripeSdkImpl {
                 confirmationTokenConfirmHandler: { confirmationToken in
                     return try await withCheckedThrowingContinuation { continuation in
                         self.paymentSheetConfirmationTokenIntentCreationCallback = { result in
-                            switch result {
-                            case .success(let clientSecret):
-                                continuation.resume(returning: clientSecret)
-                            case .failure(let error):
-                                continuation.resume(throwing: error)
-                            }
+                            continuation.resume(with: result)
                         }
                         self.emitter?.emitOnConfirmationTokenHandlerCallback([
-                            "confirmationToken": Mappers.mapFromConfirmationToken(confirmationToken) ?? NSNull()
+                            "confirmationToken": Mappers.mapFromConfirmationToken(confirmationToken) ?? NSNull(),
                         ])
                     }
                 })
@@ -389,6 +369,26 @@ extension StripeSdkImpl {
                         "shouldSavePaymentMethod": shouldSavePaymentMethod,
                     ])
                 })
+        }
+    }
+
+    static func buildIntentConfigurationMode(
+        modeParams: NSDictionary,
+        captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod
+    ) -> PaymentSheet.IntentConfiguration.Mode {
+        if let amount = modeParams["amount"] as? Int {
+            return .payment(
+                amount: amount,
+                currency: modeParams["currencyCode"] as? String ?? "",
+                setupFutureUsage: StripeSdkImpl.setupFutureUsageFromString(from: modeParams["setupFutureUsage"] as? String ?? ""),
+                captureMethod: captureMethod,
+                paymentMethodOptions: StripeSdkImpl.buildPaymentMethodOptions(paymentMethodOptionsParams: modeParams["paymentMethodOptions"] as? NSDictionary ?? [:])
+            )
+        } else {
+            return .setup(
+                currency: modeParams["currencyCode"] as? String,
+                setupFutureUsage: modeParams["setupFutureUsage"] as? String == "OffSession" ? .offSession : .onSession
+            )
         }
     }
 

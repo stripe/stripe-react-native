@@ -217,7 +217,7 @@ class EmbeddedPaymentElementView(
                     putMap("confirmationToken", mapFromConfirmationToken(confirmationToken))
                   }
 
-                stripeSdkModule.eventEmitter.emitOnConfirmationTokenHandlerCallback(params)
+                stripeSdkModule.eventEmitter.emitOnEmbeddedConfirmationTokenHandlerCallback(params)
 
                 val resultFromJavascript = stripeSdkModule.embeddedConfirmationTokenCreationCallback.await()
                 // reset the completable
@@ -265,7 +265,7 @@ class EmbeddedPaymentElementView(
                     putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
                   }
 
-                stripeSdkModule.eventEmitter.emitOnConfirmHandlerCallback(params)
+                stripeSdkModule.eventEmitter.emitOnEmbeddedConfirmHandlerCallback(params)
 
                 val resultFromJavascript = stripeSdkModule.embeddedIntentCreationCallback.await()
                 // reset the completable

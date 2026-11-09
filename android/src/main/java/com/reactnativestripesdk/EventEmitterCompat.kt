@@ -28,6 +28,14 @@ class EventEmitterCompat(
     invoke("onConfirmationTokenHandlerCallback", value)
   }
 
+  fun emitOnEmbeddedConfirmHandlerCallback(value: ReadableMap?) {
+    invoke("onEmbeddedConfirmHandlerCallback", value)
+  }
+
+  fun emitOnEmbeddedConfirmationTokenHandlerCallback(value: ReadableMap?) {
+    invoke("onEmbeddedConfirmationTokenHandlerCallback", value)
+  }
+
   fun emitOnFinancialConnectionsEvent(value: ReadableMap?) {
     invoke("onFinancialConnectionsEvent", value)
   }

@@ -1,3 +1,4 @@
+import React
 @testable import stripe_react_native
 @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(InternalOnlyAPI) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 import XCTest
@@ -523,6 +524,45 @@ class PaymentSheetUtilsTests: XCTestCase {
         XCTAssertEqual(result[1].id, "cpmt_valid2")
     }
 
+    @MainActor
+    func test_intentCreationCallbacks_doNotCrossComponentsOrKinds() {
+        let sdk = StripeSdkImpl()
+        var received: [String: String] = [:]
+        func record(_ route: String, _ result: Result<String, Error>) {
+            switch result {
+            case .success(let secret):
+                received[route] = secret
+            case .failure(let error):
+                received[route] = error.localizedDescription
+            }
+        }
+        sdk.paymentSheetIntentCreationCallback = { record("sheet", $0) }
+        sdk.paymentSheetConfirmationTokenIntentCreationCallback = { record("sheetToken", $0) }
+        sdk.embeddedIntentCreationCallback = { record("embedded", $0) }
+        sdk.embeddedConfirmationTokenIntentCreationCallback = { record("embeddedToken", $0) }
+        let resolve: RCTPromiseResolveBlock = { _ in XCTFail("Unexpected missing callback") }
+        let reject: RCTPromiseRejectBlock = { _, _, _ in XCTFail("Unexpected rejection") }
+
+        sdk.embeddedIntentCreationCallback(result: ["clientSecret": "embedded-secret"], resolver: resolve, rejecter: reject)
+        XCTAssertEqual(received, ["embedded": "embedded-secret"])
+        sdk.intentCreationCallback(result: ["clientSecret": "sheet-secret"], resolver: resolve, rejecter: reject)
+        XCTAssertEqual(received, ["embedded": "embedded-secret", "sheet": "sheet-secret"])
+        sdk.confirmationTokenCreationCallback(result: ["clientSecret": "sheet-token-secret"], resolver: resolve, rejecter: reject)
+        XCTAssertEqual(received, ["embedded": "embedded-secret", "sheet": "sheet-secret", "sheetToken": "sheet-token-secret"])
+        sdk.embeddedConfirmationTokenCreationCallback(result: ["clientSecret": "embedded-token-secret"], resolver: resolve, rejecter: reject)
+        XCTAssertEqual(received, ["embedded": "embedded-secret", "sheet": "sheet-secret", "sheetToken": "sheet-token-secret", "embeddedToken": "embedded-token-secret"])
+
+        received.removeAll()
+        sdk.embeddedConfirmationTokenCreationCallback(result: ["error": ["localizedMessage": "Embedded token failed"]], resolver: resolve, rejecter: reject)
+        XCTAssertEqual(received, ["embeddedToken": "Embedded token failed"])
+        sdk.confirmationTokenCreationCallback(result: ["error": ["localizedMessage": "Sheet token failed"]], resolver: resolve, rejecter: reject)
+        XCTAssertEqual(received, ["embeddedToken": "Embedded token failed", "sheetToken": "Sheet token failed"])
+        sdk.intentCreationCallback(result: ["error": ["localizedMessage": "Sheet failed"]], resolver: resolve, rejecter: reject)
+        XCTAssertEqual(received, ["embeddedToken": "Embedded token failed", "sheetToken": "Sheet token failed", "sheet": "Sheet failed"])
+        sdk.embeddedIntentCreationCallback(result: ["error": ["localizedMessage": "Embedded failed"]], resolver: resolve, rejecter: reject)
+        XCTAssertEqual(received, ["embeddedToken": "Embedded token failed", "sheetToken": "Sheet token failed", "sheet": "Sheet failed", "embedded": "Embedded failed"])
+    }
+
     // MARK: - buildIntentConfiguration captureMethod Tests
 
     func test_buildIntentConfiguration_manualCaptureMethod() {
@@ -532,20 +572,24 @@ class PaymentSheetUtilsTests: XCTestCase {
             "captureMethod": "Manual",
         ]
 
-        let config = StripeSdkImpl.shared.buildIntentConfiguration(
-            modeParams: modeParams,
-            paymentMethodTypes: nil,
-            onBehalfOf: nil,
-            captureMethod: StripeSdkImpl.mapCaptureMethod(modeParams["captureMethod"] as? String),
-            useConfirmationTokenCallback: false
-        )
+        for build in [StripeSdkImpl.shared.buildIntentConfiguration, StripeSdkImpl.shared.buildEmbeddedIntentConfiguration] {
+            for useConfirmationToken in [false, true] {
+                let config = build(
+                    modeParams,
+                    nil,
+                    nil,
+                    StripeSdkImpl.mapCaptureMethod(modeParams["captureMethod"] as? String),
+                    useConfirmationToken
+                )
 
-        if case .payment(let amount, let currency, _, let captureMethod, _) = config.mode {
-            XCTAssertEqual(amount, 1099)
-            XCTAssertEqual(currency, "usd")
-            XCTAssertEqual(captureMethod, .manual)
-        } else {
-            XCTFail("Expected payment mode")
+                if case .payment(let amount, let currency, _, let captureMethod, _) = config.mode {
+                    XCTAssertEqual(amount, 1099)
+                    XCTAssertEqual(currency, "usd")
+                    XCTAssertEqual(captureMethod, .manual)
+                } else {
+                    XCTFail("Expected payment mode")
+                }
+            }
         }
     }
 

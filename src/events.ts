@@ -41,6 +41,8 @@ type Events = {
   onConfirmationTokenHandlerCallback: EventEmitter<{
     confirmationToken: UnsafeObject<ConfirmationTokenResult>;
   }>;
+  onEmbeddedConfirmHandlerCallback: Events['onConfirmHandlerCallback'];
+  onEmbeddedConfirmationTokenHandlerCallback: Events['onConfirmationTokenHandlerCallback'];
   onFinancialConnectionsEvent: EventEmitter<
     UnsafeObject<FinancialConnectionsEvent>
   >;
