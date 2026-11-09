@@ -55,7 +55,10 @@ export type CreateOptions = {
 
 export type ConfirmOptions = CreateOptions;
 
-export type ShippingDetails = BillingDetails;
+export type ShippingDetails = BillingDetails & {
+  carrier?: string;
+  trackingNumber?: string;
+};
 
 export type CardParams =
   | {
