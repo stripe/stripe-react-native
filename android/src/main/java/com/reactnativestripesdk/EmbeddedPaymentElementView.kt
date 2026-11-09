@@ -322,8 +322,11 @@ class EmbeddedPaymentElementView(
               )
 
             handleUpdateResult(result)
-
-            latestIntentConfig = ev.intentConfiguration
+            latestIntentConfig =
+              when (result) {
+                is EmbeddedPaymentElement.ConfigureResult.Succeeded -> ev.intentConfiguration
+                is EmbeddedPaymentElement.ConfigureResult.Failed -> null
+              }
           }
 
           is Event.Confirm -> {
@@ -443,14 +446,26 @@ class EmbeddedPaymentElementView(
     emitUpdateFailed(IllegalStateException("Cannot update: no element configuration exists"))
   }
 
+  fun reportConfigurationLoadingFailed(error: Throwable) {
+    emitEmbeddedLoadingFailed(error)
+  }
+
+  fun reportUpdateLoadingFailed(error: Throwable) {
+    emitUpdateFailed(error)
+  }
+
   private fun emitUpdateFailed(error: Throwable) {
+    emitEmbeddedLoadingFailed(error)
+    requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(null)
+  }
+
+  private fun emitEmbeddedLoadingFailed(error: Throwable) {
     val msg = error.localizedMessage ?: error.toString()
     val payload =
       Arguments.createMap().apply {
         putString("message", msg)
       }
     requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementLoadingFailed(payload)
-    requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(null)
   }
 
   // APIs

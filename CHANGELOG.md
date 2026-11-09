@@ -8,6 +8,7 @@
 
 **Fixes**
 
+* [Fixed] Android: Embedded Payment Element reports invalid configuration through `embeddedPaymentElementLoadingFailed` instead of crashing when props cannot be parsed.
 * [Fixed] iOS: Declared the iOS 15 deployment target in the podspec to match the pinned Stripe iOS SDK.
 * [Fixed] Exclude Android unit test sources and other test globs from the published npm package.
 * [Fixed] CI: Made Bitrise Maestro end-to-end test shards fail clearly when the CLI install is incomplete and invoke the installed binary directly.
