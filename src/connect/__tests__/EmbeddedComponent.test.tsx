@@ -478,6 +478,59 @@ describe('EmbeddedComponent', () => {
       }
     );
 
+    it('allows the wrapper document and its same-URL reload on iOS, blocks lookalikes', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'ios' as any;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const wrapperUrl = mockWebViewProps.source.uri as string;
+
+        // Initial load and the forced same-URL reload: both top-frame, both the
+        // trusted wrapper document.
+        expect(
+          onShouldStartLoad({ url: wrapperUrl, navigationType: 'other' })
+        ).toBe(true);
+        expect(
+          onShouldStartLoad({ url: wrapperUrl, navigationType: 'reload' })
+        ).toBe(true);
+        expect(openUrl).not.toHaveBeenCalled();
+
+        // Wrong fragment, port, scheme, and path must all be rejected: each is
+        // a different document, not the one the SDK trusts with the secret-key
+        // fragment.
+        const [origin, hash] = wrapperUrl.split('#');
+        const wrongFragment = `${origin}#component=other`;
+        const wrongPort = wrapperUrl.replace(
+          'connect-js.stripe.com',
+          'connect-js.stripe.com:1234'
+        );
+        const wrongScheme = wrapperUrl.replace('https://', 'http://');
+        const wrongPath = wrapperUrl.replace(
+          '/v1.0/react_native_webview.html',
+          '/v1.0/other.html'
+        );
+
+        for (const badUrl of [
+          wrongFragment,
+          wrongPort,
+          wrongScheme,
+          wrongPath,
+        ]) {
+          expect(
+            onShouldStartLoad({ url: badUrl, navigationType: 'other' })
+          ).toBe(false);
+        }
+        expect(hash).toBeTruthy();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
     it('shares CSV exports without opening them externally', async () => {
       const previousPlatform = Platform.OS;
       Platform.OS = 'android' as any;
@@ -1124,7 +1177,6 @@ describe('EmbeddedComponent', () => {
       'https://connect.stripe.com/path',
       'https://verify.stripe.com/verify',
       'https://connect.stripe.com:8443/x',
-      'http://connect.stripe.com/x',
     ];
 
     it('rejects userinfo/host-confusion URLs and non-http(s) inputs', () => {
@@ -1143,10 +1195,14 @@ describe('EmbeddedComponent', () => {
       });
     });
 
-    it('still allows legitimate Stripe URLs (ports, http)', () => {
+    it('still allows legitimate Stripe URLs (ports)', () => {
       REAL_STRIPE_URLS.forEach((url) => {
         expect([url, isAllowedStripeHost(url)]).toEqual([url, true]);
       });
+    });
+
+    it('rejects a production Stripe host over plain http', () => {
+      expect(isAllowedStripeHost('http://connect.stripe.com/x')).toBe(false);
     });
 
     describe('with a runtime URL parser that mis-parses "@" in query/fragment', () => {

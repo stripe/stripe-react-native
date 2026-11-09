@@ -52,6 +52,19 @@ const DEVELOPMENT_URL =
 const PRODUCTION_URL = 'https://connect-js.stripe.com';
 const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
+// The wrapper document is the only page the SDK trusts to receive secrets
+// (fetchClientSecret replies, Financial Connections results, auth redirect
+// URLs...). Its origin is derived from BASE_URL, not hardcoded separately, so
+// DEVELOPMENT_MODE pins the dev origin automatically.
+const WRAPPER_PATH = '/v1.0/react_native_webview.html';
+const WRAPPER_URL = new URL(`${BASE_URL}${WRAPPER_PATH}`);
+
+// Explicit allowlist of non-http(s) schemes that are safe to hand to the OS
+// via Linking. Anything not https: or in this list is dropped silently by
+// routeOutside -- in particular custom app schemes, intent:, javascript: and
+// plain http:.
+const EXTERNAL_LINK_SCHEMES = ['mailto:', 'tel:'];
+
 const sdkVersion = pjson.version;
 
 // Android deep link polling configuration
@@ -79,12 +92,20 @@ const userAgent = [
   `stripe-react_native/${sdkVersion}`,
 ].join(' - ');
 
-// Allowed domains for in-WebView navigation (matching iOS SDK behavior)
-const ALLOWED_STRIPE_HOSTS = [
+// Allowed domains for in-WebView navigation (matching iOS SDK behavior).
+// Production Stripe hosts are https-only. DEVELOPMENT_MODE dev hosts may
+// still use http, since the local dev server doesn't have TLS.
+const PRODUCTION_STRIPE_HOSTS = [
   'connect-js.stripe.com',
   'connect.stripe.com',
   'verify.stripe.com',
-  ...(DEVELOPMENT_MODE ? ['10.0.2.2:3001', 'localhost:3001'] : []),
+];
+const DEVELOPMENT_STRIPE_HOSTS = DEVELOPMENT_MODE
+  ? ['10.0.2.2:3001', 'localhost:3001']
+  : [];
+const ALLOWED_STRIPE_HOSTS = [
+  ...PRODUCTION_STRIPE_HOSTS,
+  ...DEVELOPMENT_STRIPE_HOSTS,
 ];
 
 export interface CommonComponentProps {
@@ -410,7 +431,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     )
     .join('&');
 
-  const connectURL = `${BASE_URL}/v1.0/react_native_webview.html#${hash}`;
+  const connectURL = `${BASE_URL}${WRAPPER_PATH}#${hash}`;
   const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
   const ref = useRef<WebViewHandle>(null);
@@ -454,6 +475,44 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Unexpected error: ${errorMessage}`);
   }, []);
+
+  // Shared by onShouldStartLoadWithRequest and onOpenWindow (D4): a popup or
+  // a navigation that doesn't stay in-WebView is routed to the OS by scheme,
+  // never loaded into the bridged WebView.
+  const routeOutside = useCallback(
+    (url: string) => {
+      let protocol: string;
+      try {
+        protocol = new URL(url).protocol;
+      } catch {
+        return;
+      }
+
+      if (isCsvExportUrl(url)) {
+        NativeStripeSdk.downloadAndShareFile(url, null)
+          .then((result) => {
+            if (!result.success) {
+              console.warn('CSV export share failed:', result.error);
+            }
+          })
+          .catch((error) => {
+            handleUnexpectedError(error);
+          });
+        return;
+      }
+
+      // https: and the explicit mailto:/tel: allowlist are handed to the OS.
+      // Everything else (http:, javascript:, data:, custom app schemes,
+      // intent:, ...) is dropped silently: we never auto-launch an arbitrary
+      // scheme handler for content we don't trust.
+      if (protocol === 'https:' || EXTERNAL_LINK_SCHEMES.includes(protocol)) {
+        Linking.openURL(url).catch((error) => {
+          handleUnexpectedError(error);
+        });
+      }
+    },
+    [handleUnexpectedError]
+  );
 
   const WebViewComponent = dynamicWebview?.WebView;
 
@@ -794,9 +853,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const onShouldStartLoadWithRequest = useCallback(
     (event: ShouldStartLoadRequest) => {
-      const { url } = event;
+      const { url, navigationType, isTopFrame, mainDocumentURL } = event;
 
-      // Handle CSV export downloads
+      // CSV exports are handled first, before any frame/host classification:
+      // a Payouts CSV download navigates straight to a presigned, one-time
+      // export URL that isn't part of any document we'd otherwise trust.
       if (isCsvExportUrl(url)) {
         NativeStripeSdk.downloadAndShareFile(url, null)
           .then((result) => {
@@ -807,22 +868,68 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           .catch((error) => {
             handleUnexpectedError(error);
           });
-        return false; // Block WebView navigation
+        return false;
       }
 
-      // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
-      if (isAllowedStripeHost(url)) {
-        return true; // Allow in-WebView navigation
+      if (Platform.OS === 'ios') {
+        // iOS computes isTopFrame by comparing the request URL to
+        // mainDocumentURL. Treat a missing mainDocumentURL as top-frame too
+        // (fail closed, D5): we'd rather apply the stricter main-frame policy
+        // to a navigation we can't classify than let it slip through as a
+        // harmless subframe load.
+        const isMainFrame = isTopFrame === true || !mainDocumentURL;
+
+        if (isMainFrame) {
+          // The only privileged top document is the exact Connect wrapper
+          // (D1): no legitimate flow ever navigates the top frame away from
+          // it (auth and Financial Connections are native; verify.stripe.com
+          // is only ever an iframe). So any other top-frame navigation, of
+          // ANY navigationType -- including a reload, backforward, or
+          // form(re)submit to a different URL -- is routed outside and never
+          // loaded in place.
+          if (isTrustedWrapperDocument(url, hash)) {
+            return true;
+          }
+          routeOutside(url);
+          return false;
+        }
+
+        // Subframe navigation (e.g. the verify.stripe.com iframe, or a
+        // benign resource load). A non-click load of a scheme that can't
+        // itself trigger further navigation is allowed to render in place.
+        if (navigationType !== 'click') {
+          return (
+            url.startsWith('https:') ||
+            url.startsWith('about:') ||
+            url.startsWith('blob:') ||
+            url.startsWith('data:')
+          );
+        }
+
+        // A user click in a subframe may only land on an allowed Stripe
+        // host; anything else is routed outside.
+        if (isAllowedStripeHost(url)) {
+          return true;
+        }
+        routeOutside(url);
+        return false;
       }
 
-      // Open external links in system browser
-      Linking.openURL(url).catch((error) => {
-        handleUnexpectedError(error);
-      });
-
-      return false; // Block in-WebView navigation for external links
+      // Android (D2): react-native-webview hardcodes isTopFrame: true and
+      // navigationType: 'other' for every navigation, so main-frame vs.
+      // subframe and click vs. programmatic navigations can't be told apart.
+      // The only policy that's safe for all of them is: keep in-WebView
+      // navigation to the trusted wrapper or an https allowed Stripe host,
+      // and route everything else outside. Documented residual risk (D2):
+      // an allowlisted Stripe host replacing the main frame on Android can't
+      // be distinguished from a benign subframe/resource load.
+      if (isTrustedWrapperDocument(url, hash) || isAllowedStripeHost(url)) {
+        return true;
+      }
+      routeOutside(url);
+      return false;
     },
-    [handleUnexpectedError]
+    [handleUnexpectedError, hash, routeOutside]
   );
 
   const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
@@ -974,15 +1081,20 @@ function isValidUrl(url: string): boolean {
   }
 }
 
-// Matches only: http(s)://<allowed host>[:port] followed by "/", "?", "#" or end of string.
-// The authority is read from the raw string, so the decision doesn't depend on
-// the runtime's URL class (React Native's can misread "@" in a query or fragment).
-function hasAllowedStripeAuthority(url: string): boolean {
-  const match = /^https?:\/\/([^/?#]*)/i.exec(url);
+// Matches `url`'s authority (host[:port]) against `hosts`, requiring
+// `scheme`. The authority is read from the raw string, so the decision
+// doesn't depend on the runtime's URL class (React Native's can misread "@"
+// in a query or fragment).
+function hasAllowedStripeAuthority(
+  url: string,
+  hosts: readonly string[],
+  scheme: 'https' | 'https?'
+): boolean {
+  const match = new RegExp(`^${scheme}:\\/\\/([^/?#]*)`, 'i').exec(url);
   if (!match) return false;
   const authority = match[1]!.toLowerCase();
   const authorityWithoutPort = authority.replace(/:\d*$/, '');
-  return ALLOWED_STRIPE_HOSTS.some(
+  return hosts.some(
     (host) => authority === host || authorityWithoutPort === host
   );
 }
@@ -993,21 +1105,49 @@ export function isAllowedStripeHost(url: string): boolean {
     const allowedByRuntimeParser = ALLOWED_STRIPE_HOSTS.some(
       (host) => parsedUrl.hostname === host || parsedUrl.host === host
     );
-    return allowedByRuntimeParser && hasAllowedStripeAuthority(url);
+    if (!allowedByRuntimeParser) return false;
+
+    // Production hosts are https-only. DEVELOPMENT_MODE dev hosts may be
+    // http or https.
+    return (
+      hasAllowedStripeAuthority(url, PRODUCTION_STRIPE_HOSTS, 'https') ||
+      hasAllowedStripeAuthority(url, DEVELOPMENT_STRIPE_HOSTS, 'https?')
+    );
   } catch {
     return false;
   }
 }
 
-// Detects Stripe CSV export URLs
+// Detects Stripe CSV export URLs. Only exact export hosts count: a path that
+// merely contains "stripe-data-exports" is not evidence of anything, since
+// any host can serve a path with that substring.
 function isCsvExportUrl(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
     return (
-      parsedUrl.hostname === 'stripe-data-exports.com' ||
-      parsedUrl.hostname.endsWith('.stripe-data-exports.com') ||
-      parsedUrl.hostname === 'stripe-data-exports.s3.amazonaws.com' ||
-      parsedUrl.pathname.includes('stripe-data-exports')
+      parsedUrl.protocol === 'https:' &&
+      (parsedUrl.hostname === 'stripe-data-exports.com' ||
+        parsedUrl.hostname.endsWith('.stripe-data-exports.com') ||
+        parsedUrl.hostname === 'stripe-data-exports.s3.amazonaws.com')
+    );
+  } catch {
+    return false;
+  }
+}
+
+// Is `url` the exact wrapper document the SDK trusts with the secret-key
+// fragment? Scheme, host (incl. port) and pathname must match exactly, and
+// the fragment must equal the expected hash exactly -- not merely start with
+// it. Never log `url`: the fragment carries apiKeyOverride, a live session
+// key.
+function isTrustedWrapperDocument(url: string, expectedHash: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return (
+      parsedUrl.protocol === WRAPPER_URL.protocol &&
+      parsedUrl.host === WRAPPER_URL.host &&
+      parsedUrl.pathname === WRAPPER_URL.pathname &&
+      parsedUrl.hash === `#${expectedHash}`
     );
   } catch {
     return false;
