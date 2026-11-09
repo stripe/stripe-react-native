@@ -1247,6 +1247,165 @@ describe('EmbeddedComponent', () => {
     });
   });
 
+  describe('deliverToWrapper guard', () => {
+    const WRAPPER_ORIGIN = 'https://connect-js.stripe.com';
+    const WRAPPER_PATH = '/v1.0/react_native_webview.html';
+
+    // Evaluates the injected script the way the page would see it: window
+    // is unforgeable from RN's side, so this is the actual security check.
+    const runScript = (
+      script: string,
+      location: { origin: string; pathname: string }
+    ) => {
+      const resolve = jest.fn();
+      const win: Record<string, unknown> = {
+        location,
+        clientSecretDeferred: { resolve },
+      };
+      // eslint-disable-next-line no-new-func
+      new Function('window', script)(win);
+      return resolve;
+    };
+
+    const triggerFetchClientSecret = async () => {
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      await act(async () => {
+        webViewOnMessage?.({
+          nativeEvent: { data: JSON.stringify({ type: 'fetchClientSecret' }) },
+        });
+      });
+
+      return mockInjectJavaScript.mock.calls[
+        mockInjectJavaScript.mock.calls.length - 1
+      ]?.[0];
+    };
+
+    it('delivers the client secret only inside the wrapper document', async () => {
+      const script = await triggerFetchClientSecret();
+
+      expect(
+        runScript(script, { origin: WRAPPER_ORIGIN, pathname: WRAPPER_PATH })
+      ).toHaveBeenCalledWith('secret_123');
+    });
+
+    it.each([
+      [
+        'a foreign origin',
+        { origin: 'https://evil.example', pathname: WRAPPER_PATH },
+      ],
+      [
+        'https://connect-js.stripe.com/other.html',
+        { origin: WRAPPER_ORIGIN, pathname: '/other.html' },
+      ],
+      [
+        'http://connect-js.stripe.com/v1.0/react_native_webview.html',
+        { origin: 'http://connect-js.stripe.com', pathname: WRAPPER_PATH },
+      ],
+    ])('does not deliver the client secret for %s', async (_desc, location) => {
+      const script = await triggerFetchClientSecret();
+
+      expect(runScript(script, location)).not.toHaveBeenCalled();
+    });
+
+    const expectGuarded = (script: string | undefined) => {
+      expect(script).toContain('window.location.origin');
+      expect(script).toContain('window.location.pathname');
+      expect(script).toContain(JSON.stringify(WRAPPER_ORIGIN));
+      expect(script).toContain(JSON.stringify(WRAPPER_PATH));
+    };
+
+    const lastInjectedScript = () =>
+      mockInjectJavaScript.mock.calls[
+        mockInjectJavaScript.mock.calls.length - 1
+      ]?.[0];
+
+    it('guards the appearance/locale update', async () => {
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+
+      act(() => {
+        connectInstance.update({ locale: 'fr' });
+      });
+
+      await waitFor(() => expectGuarded(lastInjectedScript()));
+    });
+
+    it('guards a componentProps setter injection', async () => {
+      mockLoadWebView = true;
+      const { rerender } = renderComponent({
+        componentProps: { setPayment: 'pi_123' },
+      });
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+
+      rerender(
+        <ConnectComponentsProvider connectInstance={connectInstance}>
+          <EmbeddedComponent
+            component="payments"
+            componentProps={{ setPayment: 'pi_456' }}
+            onLoaderStart={jest.fn()}
+            onLoadError={jest.fn()}
+            onPageDidLoad={jest.fn()}
+          />
+        </ConnectComponentsProvider>
+      );
+
+      await waitFor(() => expectGuarded(lastInjectedScript()));
+    });
+
+    it('guards the authenticated webview result', async () => {
+      Platform.OS = 'ios' as any;
+      (NativeStripeSdk.openAuthenticatedWebView as jest.Mock).mockResolvedValue(
+        { url: 'https://connect.stripe.com/return' }
+      );
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      await act(async () => {
+        webViewOnMessage?.({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: 'openAuthenticatedWebView',
+              data: { id: 'auth_1', url: 'https://connect.stripe.com/start' },
+            }),
+          },
+        });
+      });
+
+      await waitFor(() => expectGuarded(lastInjectedScript()));
+    });
+
+    it('guards the Financial Connections result', async () => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue(
+        {}
+      );
+      mockLoadWebView = true;
+      renderComponent({ component: 'account-onboarding' });
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      await act(async () => {
+        webViewOnMessage?.({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: 'openFinancialConnections',
+              data: {
+                id: 'request',
+                clientSecret: 'client_secret',
+                connectedAccountId: 'connected_account',
+              },
+            }),
+          },
+        });
+      });
+
+      await waitFor(() => expectGuarded(lastInjectedScript()));
+    });
+  });
+
   describe('toStripeJsBankAccountToken', () => {
     it('maps camelCase token to snake_case Stripe.js shape', () => {
       const result = toStripeJsBankAccountToken({

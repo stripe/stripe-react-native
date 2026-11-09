@@ -449,12 +449,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
     const patchedAppearance = withDefaultFontFamily(appearance);
 
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.updateConnectInstance(${JSON.stringify({ appearance: patchedAppearance, locale })});
-        true;
-      })();
-    `);
+    ref.current?.injectJavaScript(
+      deliverToWrapper(
+        `window.updateConnectInstance(${JSON.stringify({ appearance: patchedAppearance, locale })});`
+      )
+    );
   }
 
   const [prevComponentProps, setPrevComponentProps] = useState(componentProps);
@@ -462,15 +461,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     setPrevComponentProps(componentProps);
 
     Object.entries(componentProps || {}).forEach(([key, value]) => {
-      ref.current?.injectJavaScript(`
-        (function() {
-          window.callSetterWithSerializableValue(${JSON.stringify({
+      ref.current?.injectJavaScript(
+        deliverToWrapper(
+          `window.callSetterWithSerializableValue(${JSON.stringify({
             setter: key,
             value,
-          })});
-          true;
-        })();
-      `);
+          })});`
+        )
+      );
     });
   }
 
@@ -556,15 +554,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   }, [hasBeenViewed, componentAnalytics]);
 
   const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.returnedFromAuthenticatedWebView(${JSON.stringify({
+    ref.current?.injectJavaScript(
+      deliverToWrapper(
+        `window.returnedFromAuthenticatedWebView(${JSON.stringify({
           id,
           url: resultUrl,
-        })});
-        true;
-      })();
-    `);
+        })});`
+      )
+    );
   };
 
   const handleFinancialConnectionsResult = (
@@ -597,15 +594,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       };
     }
 
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.callSetterWithSerializableValue(${JSON.stringify({
+    ref.current?.injectJavaScript(
+      deliverToWrapper(
+        `window.callSetterWithSerializableValue(${JSON.stringify({
           setter: 'setCollectMobileFinancialConnectionsResult',
           value,
-        })});
-        true;
-      })();
-    `);
+        })});`
+      )
+    );
   };
 
   const onMessageCallback = useCallback(
@@ -628,11 +624,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         });
         if (!clientSecret) return;
 
-        ref.current?.injectJavaScript(`
-            window.clientSecretDeferred.resolve(${JSON.stringify(
-              clientSecret
-            )});
-          `);
+        ref.current?.injectJavaScript(
+          deliverToWrapper(
+            `window.clientSecretDeferred.resolve(${JSON.stringify(clientSecret)});`
+          )
+        );
       } else if (message.type === 'debug') {
         // message.data is of type string
         console.debug(`[EmbeddedComponent ${component}]: ${message.data}`);
@@ -1157,6 +1153,28 @@ function isCsvExportUrl(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+// Wraps `payloadScript` so it only runs inside the trusted wrapper document
+// (D3, the security boundary). window.location is unforgeable from RN's
+// side, and this check runs atomically inside whichever document actually
+// receives and executes the script -- closing the race between an RN-side
+// check and native script execution. A generation counter (kept separately)
+// is hygiene on top of this, not a substitute for it: it can only drop a
+// reply before it's sent, while this guard is what actually decides whether
+// the reply takes effect once delivered.
+function deliverToWrapper(payloadScript: string): string {
+  return `
+    (function() {
+      if (
+        window.location.origin === ${JSON.stringify(WRAPPER_URL.origin)} &&
+        window.location.pathname === ${JSON.stringify(WRAPPER_PATH)}
+      ) {
+        ${payloadScript}
+      }
+      true;
+    })();
+  `;
 }
 
 // Is `url` the exact wrapper document the SDK trusts with the secret-key
