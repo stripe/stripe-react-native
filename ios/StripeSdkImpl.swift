@@ -234,6 +234,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
             paymentSheetIntentCreationCallback(.failure(error))
         }
+        resolve(nil)
     }
 
     @objc(confirmationTokenCreationCallback:resolver:rejecter:)
@@ -251,6 +252,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
             paymentSheetConfirmationTokenIntentCreationCallback(.failure(error))
         }
+        resolve(nil)
     }
 
     @objc(customPaymentMethodResultCallback:resolver:rejecter:)

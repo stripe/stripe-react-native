@@ -158,6 +158,7 @@ class CustomerSheetManager(
           "You must provide either `customerEphemeralKeySecret` or `intentConfiguration`, but not both",
         ),
       )
+      return
     }
 
     customerSheet?.configure(configuration.build())
