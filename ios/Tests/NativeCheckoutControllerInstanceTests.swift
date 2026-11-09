@@ -6,6 +6,29 @@ import XCTest
 
 @MainActor
 final class NativeCheckoutControllerInstanceTests: XCTestCase {
+    func test_creationRejectsEmptyClientSecretBeforeLoading() async {
+        let sdk = StripeSdkImpl()
+        let configurations: [NSDictionary] = [["clientSecret": ""], ["clientSecret": NSNull()], [:]]
+        for params in configurations {
+            let rejected = expectation(description: "Empty client secret rejected")
+            sdk.createCheckout(params: params, controllerId: "empty-secret", resolver: { _ in
+                XCTFail("An empty client secret must not load a Checkout Session")
+            }, rejecter: { code, message, _ in
+                XCTAssertEqual(code, "InvalidClientSecret")
+                XCTAssertEqual(message, "Checkout was initialized with an empty client secret.")
+                rejected.fulfill()
+            })
+            await fulfillment(of: [rejected], timeout: 2)
+            XCTAssertTrue(sdk.checkoutControllers.isEmpty)
+            XCTAssertTrue(sdk.pendingCheckoutCreations.isEmpty)
+        }
+    }
+
+    func test_errorMapperPreservesCancellationAndFallsBackForUnknownErrors() {
+        XCTAssertEqual(checkoutErrorCode(for: CancellationError()), "Canceled")
+        XCTAssertEqual(checkoutErrorCode(for: NSError(domain: "test", code: 1)), "Failed")
+    }
+
     func test_observesNativeSnapshotsAndStopsOnDestruction() async throws {
         let checkout = try await makeCheckout()
         var events: [[String: Any]] = []

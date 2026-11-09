@@ -319,14 +319,16 @@ export namespace CheckoutElements {
 
   /**
    * Error codes returned by Checkout APIs.
+   * `InvalidClientSecret` indicates an empty client secret.
+   * `Timeout` indicates an Android coroutine timeout.
+   * `Canceled` indicates a canceled operation.
+   * Other native errors use `Failed`, including nonexistent secrets and inactive Sessions.
    * @internal
    * @CheckoutSessionPrivatePreview
    */
   export type ErrorCode =
     | 'Failed'
     | 'InvalidClientSecret'
-    | 'SessionNotOpen'
-    | 'SheetCurrentlyPresented'
     | 'Timeout'
     | 'Canceled';
 
@@ -1119,6 +1121,7 @@ export namespace CheckoutElements {
 
   /**
    * The lifecycle status of a Checkout Session.
+   * Loading an expired or completed Session fails without returning its status.
    * @internal
    * @CheckoutSessionPrivatePreview
    */

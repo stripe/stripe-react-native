@@ -47,8 +47,6 @@ type CheckoutOperationError = Error & StripeError<CheckoutElements.ErrorCode>;
 const checkoutErrorCodes = new Set<CheckoutElements.ErrorCode>([
   'Failed',
   'InvalidClientSecret',
-  'SessionNotOpen',
-  'SheetCurrentlyPresented',
   'Timeout',
   'Canceled',
 ]);

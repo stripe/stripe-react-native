@@ -1440,6 +1440,12 @@ class StripeSdkModule(
       if (checkoutControllersInvalidated) {
         return@runOnUiThread promise.reject("Failed", "Stripe SDK was invalidated.")
       }
+      if (params.getString("clientSecret").isNullOrEmpty()) {
+        return@runOnUiThread promise.reject(
+          "InvalidClientSecret",
+          "Checkout was initialized with an empty client secret.",
+        )
+      }
       val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
       pendingCheckoutCreationScopes.add(scope)
       scope.launch {
@@ -1491,7 +1497,7 @@ class StripeSdkModule(
           checkoutControllers.remove(controllerId)
           controller?.destroy()
           scope.cancel()
-          promise.reject("Failed", error.message, error)
+          promise.reject(checkoutErrorCode(error), error.message, error)
         } finally {
           pendingCheckoutCreationScopes.remove(scope)
         }

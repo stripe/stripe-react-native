@@ -40,6 +40,19 @@ class StripeSdkModuleCheckoutTest {
   @get:Rule
   internal val contextRule = ReactContextRule()
 
+  @Test
+  fun `creation rejects empty client secrets before loading`() {
+    val module = StripeSdkModule(contextRule.context)
+    listOf(JavaOnlyMap.of("clientSecret", ""), JavaOnlyMap.of("clientSecret", null), JavaOnlyMap()).forEach { params ->
+      val promise = mock(Promise::class.java)
+      module.createCheckout(params, "empty-secret", promise)
+      shadowOf(Looper.getMainLooper()).idle()
+
+      verify(promise).reject("InvalidClientSecret", "Checkout was initialized with an empty client secret.")
+      assertEquals(0, module.checkoutControllers.size)
+    }
+  }
+
   @OptIn(CheckoutSessionPreview::class)
   @Test
   fun `shipping address updates forward null addresses`() = runBlocking {

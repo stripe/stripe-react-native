@@ -16,6 +16,10 @@ extension StripeSdkImpl {
                 reject("Failed", "Stripe SDK is unavailable.", nil)
                 return
             }
+            guard let clientSecret = params["clientSecret"] as? String, !clientSecret.isEmpty else {
+                reject("InvalidClientSecret", "Checkout was initialized with an empty client secret.", nil)
+                return
+            }
 
             pendingCheckoutCreations[controllerId] = Task { @MainActor [weak self] in
                 guard let self else {
@@ -60,7 +64,7 @@ extension StripeSdkImpl {
                         "isCurrencySelectorAvailable": currencySelectorElement != nil,
                     ])
                 } catch {
-                    reject("Failed", error.localizedDescription, error)
+                    reject(checkoutErrorCode(for: error), error.localizedDescription, error)
                 }
             }
         }

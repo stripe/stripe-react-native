@@ -170,20 +170,23 @@ it('destroys a controller created after unmount', async () => {
   expect(destroy).toHaveBeenCalledWith(controllerId());
 });
 
-it('reports initialization errors and recovers on reload', async () => {
-  create.mockRejectedValueOnce(
-    Object.assign(new Error('Expired secret'), { code: 'InvalidClientSecret' })
-  );
-  const hook = renderCheckout();
-  await waitFor(() => expect(hook.result.current.status).toBe('error'));
-  expect(hook.result.current.error).toMatchObject({
-    code: 'InvalidClientSecret',
-    message: 'Expired secret',
-  });
+it.each(['InvalidClientSecret', 'Timeout', 'Canceled', 'Failed'])(
+  'reports %s initialization errors and recovers on reload',
+  async (code) => {
+    create.mockRejectedValueOnce(
+      Object.assign(new Error('Initialization failed'), { code })
+    );
+    const hook = renderCheckout();
+    await waitFor(() => expect(hook.result.current.status).toBe('error'));
+    expect(hook.result.current.error).toMatchObject({
+      code,
+      message: 'Initialization failed',
+    });
 
-  await act(() => hook.result.current.reload());
-  expect(hook.result.current).toMatchObject({ status: 'ready', error: null });
-});
+    await act(() => hook.result.current.reload());
+    expect(hook.result.current).toMatchObject({ status: 'ready', error: null });
+  }
+);
 
 it('reports unsupported Express Checkout configuration through its error state', async () => {
   const hook = renderCheckout({
