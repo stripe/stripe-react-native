@@ -24,6 +24,7 @@ import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.views.imagehelper.ResourceDrawableIdHelper
 import com.reactnativestripesdk.utils.createError
+import org.json.JSONObject
 
 @SuppressLint("ViewConstructor")
 class AddToWalletButtonView(
@@ -184,7 +185,7 @@ class AddToWalletButtonView(
   }
 
   fun setEphemeralKey(map: ReadableMap) {
-    ephemeralKey = map.toHashMap().toString()
+    ephemeralKey = JSONObject(map.toHashMap() as Map<*, *>).toString()
   }
 
   fun setToken(map: ReadableMap?) {

@@ -5,6 +5,7 @@ import android.content.res.ColorStateList
 import android.widget.FrameLayout
 import androidx.core.graphics.toColorInt
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.google.android.material.shape.CornerFamily
@@ -83,13 +84,13 @@ class AuBECSDebitFormView(
       MaterialShapeDrawable(
         ShapeAppearanceModel()
           .toBuilder()
-          .setAllCorners(CornerFamily.ROUNDED, (borderRadius * 2).toFloat())
+          .setAllCorners(CornerFamily.ROUNDED, PixelUtil.toPixelFromDIP(borderRadius.toDouble()).toFloat())
           .build(),
       ).also { shape ->
         shape.strokeWidth = 0.0f
         shape.strokeColor = ColorStateList.valueOf("#000000".toColorInt())
         shape.fillColor = ColorStateList.valueOf("#FFFFFF".toColorInt())
-        borderWidth?.let { shape.strokeWidth = (it * 2).toFloat() }
+        borderWidth?.let { shape.strokeWidth = PixelUtil.toPixelFromDIP(it.toDouble()).toFloat() }
         borderColor?.let { shape.strokeColor = ColorStateList.valueOf(it.toColorInt()) }
         backgroundColor?.let {
           shape.fillColor = ColorStateList.valueOf(it.toColorInt())
