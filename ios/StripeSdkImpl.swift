@@ -613,6 +613,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         let uiCustomization = Mappers.mapUICustomization(params)
 
         threeDSCustomizationSettings.uiCustomization = uiCustomization
+        if let timeout = params["timeout"] as? NSNumber {
+            threeDSCustomizationSettings.authenticationTimeout = timeout.intValue
+        }
     }
 
     @objc(createPaymentMethod:options:resolver:rejecter:)

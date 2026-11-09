@@ -9,6 +9,10 @@
 
 **Fixes**
 
+* [Fixed] Android: 3D Secure `textField` customization is now applied to the challenge UI.
+* [Fixed] Card `metadata` is now included when creating or confirming card payment methods on Android and when using CardField on iOS.
+* [Fixed] iOS: 3D Secure `timeout` now sets the authentication timeout (in minutes).
+* [Fixed] Declared optional card `metadata` on `PaymentMethod.CardParams` and `shippingDetails` on `PaymentIntent.CardParams`.
 * [Fixed] iOS: `CardForm` emits `onFocusChange` when card fields gain or lose focus, enabling keyboard dismissal with `StripeContainer`. ([#954](https://github.com/stripe/stripe-react-native/issues/954))
 * [Fixed] iOS: `CardForm` keeps entered card details when style-related props update without changing the form type.
 * [Fixed] iOS: `AuBECSDebitForm` keeps entered bank details when only style props change.

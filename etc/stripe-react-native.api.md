@@ -850,6 +850,7 @@ type CardParams = {
     paymentMethodData?: {
         token?: string;
         billingDetails?: BillingDetails;
+        shippingDetails?: BillingDetails;
         mandateData?: MandateData;
         metadata?: MetaData;
     };
@@ -859,6 +860,7 @@ type CardParams = {
         paymentMethodId: string;
         cvc?: string;
         billingDetails?: BillingDetails;
+        shippingDetails?: BillingDetails;
         mandateData?: MandateData;
         metadata?: MetaData;
     };
@@ -870,6 +872,7 @@ type CardParams_2 = {
     paymentMethodData?: {
         token?: string;
         billingDetails?: BillingDetails;
+        metadata?: MetaData_2;
     };
 } | {
     paymentMethodType: 'Card';
@@ -877,6 +880,7 @@ type CardParams_2 = {
         paymentMethodId: string;
         cvc?: string;
         billingDetails?: BillingDetails;
+        metadata?: MetaData_2;
     };
 };
 
@@ -4519,8 +4523,9 @@ interface WeChatPayParams_2 {
 // src/connect/connectTypes.ts:208:3 - (ae-forgotten-export) The symbol "AppearanceOptions" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CssFontSource" needs to be exported by the entry point index.d.ts
 // src/connect/connectTypes.ts:218:3 - (ae-forgotten-export) The symbol "CustomFontSource" needs to be exported by the entry point index.d.ts
-// src/types/PaymentIntent.ts:280:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
-// src/types/PaymentMethod.ts:301:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
+// src/types/PaymentIntent.ts:282:5 - (ae-forgotten-export) The symbol "MetaData" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:70:9 - (ae-forgotten-export) The symbol "MetaData_2" needs to be exported by the entry point index.d.ts
+// src/types/PaymentMethod.ts:307:3 - (ae-forgotten-export) The symbol "UserInterfaceStyle" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

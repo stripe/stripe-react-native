@@ -1,4 +1,5 @@
 export interface ConfigurationParams extends Props {
+  // Timeout for 3DS2 authentication, in minutes.
   timeout?: number;
   label?: LabelProps;
   navigationBar?: NavigationBarProps;

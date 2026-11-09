@@ -193,6 +193,7 @@ class PaymentMethodFactory {
                 }
             }
             params.billingDetails = billingDetailsParams
+            params.metadata = metadata
             return params
         }
         if let params = cardFormView?.cardParams as? STPPaymentMethodCardParams {

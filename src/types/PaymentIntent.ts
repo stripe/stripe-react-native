@@ -101,6 +101,7 @@ export type CardParams =
       paymentMethodData?: {
         token?: string;
         billingDetails?: BillingDetails;
+        shippingDetails?: BillingDetails;
         mandateData?: MandateData;
         metadata?: MetaData;
       };
@@ -111,6 +112,7 @@ export type CardParams =
         paymentMethodId: string;
         cvc?: string;
         billingDetails?: BillingDetails;
+        shippingDetails?: BillingDetails;
         mandateData?: MandateData;
         metadata?: MetaData;
       };
