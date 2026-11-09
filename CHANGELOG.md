@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+**Fixes**
+
+* [Fixed] Exclude Android unit test sources and other test globs from the published npm package.
+
 ## 0.85.0 - 2026-11-03
 
 **Features**
