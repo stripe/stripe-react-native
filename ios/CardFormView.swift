@@ -12,6 +12,7 @@ public class CardFormView: UIView, STPCardFormViewDelegate {
 
     @objc public var dangerouslyGetFullCardDetails: Bool = false
     @objc public var onFormComplete: RCTDirectEventBlock?
+    @objc public var onFocusChange: RCTDirectEventBlock?
     @objc public var autofocus: Bool = false
     @objc public var disabled: Bool = false
     @objc public var preferredNetworks: [Int]? {
@@ -20,22 +21,34 @@ public class CardFormView: UIView, STPCardFormViewDelegate {
         }
     }
 
+    private var configuredCardStyleType: String?
+    private var textFieldFocusObservers: [NSObjectProtocol] = []
+
     @objc public func didSetProps() {
-        if let cardForm = self.cardForm {
-            cardForm.removeFromSuperview()
+        let styleType = (cardStyle["type"] as? String) ?? "standard"
+        let needsRebuild = cardForm == nil || configuredCardStyleType != styleType
+
+        if needsRebuild {
+            removeFocusObservers()
+            if let cardForm = self.cardForm {
+                cardForm.removeFromSuperview()
+            }
+
+            configuredCardStyleType = styleType
+            let style = styleType == "borderless" ? STPCardFormViewStyle.borderless : STPCardFormViewStyle.standard
+            let _cardForm = STPCardFormView(style: style)
+            _cardForm.delegate = self
+            self.cardForm = _cardForm
+            self.addSubview(_cardForm)
+
+            if autofocus == true {
+                _ = _cardForm.becomeFirstResponder()
+            }
+
+            installFocusObservers()
         }
 
-        let style = self.cardStyle["type"] as? String == "borderless" ? STPCardFormViewStyle.borderless : STPCardFormViewStyle.standard
-        let _cardForm = STPCardFormView(style: style)
-        _cardForm.delegate = self
-        _cardForm.isUserInteractionEnabled = !disabled
-
-        if autofocus == true {
-            _ = _cardForm.becomeFirstResponder()
-        }
-
-        self.cardForm = _cardForm
-        self.addSubview(_cardForm)
+        cardForm?.isUserInteractionEnabled = !disabled
         setStyles()
         setPreferredNetworks()
     }
@@ -115,10 +128,74 @@ public class CardFormView: UIView, STPCardFormViewDelegate {
         }
     }
 
+    private func installFocusObservers() {
+        let center = NotificationCenter.default
+        let beginObserver = center.addObserver(
+            forName: UITextField.textDidBeginEditingNotification,
+            object: nil,
+            queue: nil
+        ) { [weak self] notification in
+            self?.handleTextFieldFocusChange(notification, beganEditing: true)
+        }
+        let endObserver = center.addObserver(
+            forName: UITextField.textDidEndEditingNotification,
+            object: nil,
+            queue: nil
+        ) { [weak self] notification in
+            self?.handleTextFieldFocusChange(notification, beganEditing: false)
+        }
+        textFieldFocusObservers = [beginObserver, endObserver]
+    }
+
+    private func removeFocusObservers() {
+        let center = NotificationCenter.default
+        textFieldFocusObservers.forEach { center.removeObserver($0) }
+        textFieldFocusObservers = []
+    }
+
+    private func handleTextFieldFocusChange(_ notification: Notification, beganEditing: Bool) {
+        guard let textField = notification.object as? UITextField,
+              let cardForm = cardForm,
+              textField.isDescendant(of: cardForm) else {
+            return
+        }
+
+        if beganEditing {
+            let focusedField = focusedFieldName(for: textField, in: cardForm) ?? ""
+            onFocusChange?(["focusedField": focusedField])
+        } else {
+            onFocusChange?(["focusedField": ""])
+        }
+    }
+
+    private func focusedFieldName(for textField: UITextField, in cardForm: STPCardFormView) -> String? {
+        guard textField.isDescendant(of: cardForm) else {
+            return nil
+        }
+        let className = NSStringFromClass(type(of: textField))
+        if className.contains("CardNumberInput") {
+            return "CardNumber"
+        }
+        if className.contains("CardCVCInput") || className.contains("CVCInput") {
+            return "Cvc"
+        }
+        if className.contains("CardExpiryInput") || className.contains("ExpiryInput") {
+            return "ExpiryDate"
+        }
+        if className.contains("PostalCodeInput") {
+            return "PostalCode"
+        }
+        return nil
+    }
+
     override public init(frame: CGRect) {
         super.init(frame: frame)
 
         StripeSdkImpl.shared.cardFormView = self
+    }
+
+    deinit {
+        removeFocusObservers()
     }
 
     override public func layoutSubviews() {
