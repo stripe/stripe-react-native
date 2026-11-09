@@ -1474,6 +1474,265 @@ describe('EmbeddedComponent', () => {
         expect.stringContaining('secret_on_time')
       );
     });
+
+    const flushMicrotasks = async () => {
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+    };
+
+    it('drops a delayed Financial Connections reply after a new top-frame load starts', async () => {
+      let resolveToken: (result: any) => void = () => {};
+      const tokenPromise = new Promise((resolve) => {
+        resolveToken = resolve;
+      });
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockReturnValue(
+        tokenPromise
+      );
+
+      mockLoadWebView = true;
+      renderComponent({ component: 'account-onboarding' });
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      act(() => {
+        webViewOnMessage?.({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: 'openFinancialConnections',
+              data: {
+                id: 'request',
+                clientSecret: 'client_secret',
+                connectedAccountId: 'connected_account',
+              },
+            }),
+          },
+        });
+      });
+
+      act(() => {
+        mockWebViewProps.onLoadStart({
+          nativeEvent: {
+            url: `${WRAPPER_URL}#component=other`,
+            navigationType: 'other',
+          },
+        });
+      });
+
+      resolveToken({ session: { id: 'session', accounts: [] } });
+      await flushMicrotasks();
+
+      expect(mockInjectJavaScript).not.toHaveBeenCalled();
+    });
+
+    it('drops a delayed iOS auth-webview reply after a new top-frame load starts', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'ios' as any;
+      let resolveAuth: (result: any) => void = () => {};
+      const authPromise = new Promise((resolve) => {
+        resolveAuth = resolve;
+      });
+      (NativeStripeSdk.openAuthenticatedWebView as jest.Mock).mockReturnValue(
+        authPromise
+      );
+
+      try {
+        mockLoadWebView = true;
+        renderComponent();
+        await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+        act(() => {
+          webViewOnMessage?.({
+            nativeEvent: {
+              data: JSON.stringify({
+                type: 'openAuthenticatedWebView',
+                data: {
+                  id: 'auth_ios',
+                  url: 'https://connect.stripe.com/start',
+                },
+              }),
+            },
+          });
+        });
+
+        act(() => {
+          mockWebViewProps.onLoadStart({
+            nativeEvent: {
+              url: `${WRAPPER_URL}#component=other`,
+              navigationType: 'other',
+            },
+          });
+        });
+
+        resolveAuth({ url: 'https://connect.stripe.com/return' });
+        await flushMicrotasks();
+
+        expect(mockInjectJavaScript).not.toHaveBeenCalled();
+      } finally {
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it('drops an Android auth cancellation reply if a new load started before the grace period elapses', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      (NativeStripeSdk.openAuthenticatedWebView as jest.Mock).mockResolvedValue(
+        {}
+      );
+      const appStateListeners: Array<(state: string) => void> = [];
+      const previousAddEventListener = AppState.addEventListener;
+      (AppState.addEventListener as jest.Mock) = jest.fn((_event, handler) => {
+        appStateListeners.push(handler);
+        return { remove: jest.fn() };
+      });
+      (AppState.currentState as any) = 'active';
+
+      try {
+        mockLoadWebView = true;
+        renderComponent();
+        await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+        await act(async () => {
+          await webViewOnMessage?.({
+            nativeEvent: {
+              data: JSON.stringify({
+                type: 'openAuthenticatedWebView',
+                data: {
+                  id: 'auth_android',
+                  url: 'https://connect.stripe.com/start',
+                },
+              }),
+            },
+          });
+        });
+
+        act(() => {
+          appStateListeners[0]?.('background');
+          appStateListeners[0]?.('active');
+        });
+
+        act(() => {
+          mockWebViewProps.onLoadStart({
+            nativeEvent: {
+              url: `${WRAPPER_URL}#component=other`,
+              navigationType: 'other',
+            },
+          });
+        });
+
+        // DEEP_LINK_GRACE_PERIOD_MS is 500; wait past it for the fallback
+        // cancellation timeout to fire.
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 700));
+        });
+
+        expect(mockInjectJavaScript).not.toHaveBeenCalled();
+      } finally {
+        Platform.OS = previousPlatform;
+        (AppState.addEventListener as jest.Mock) =
+          previousAddEventListener as any;
+      }
+    });
+
+    it('delivers a secret requested after the forced iOS reload load-start', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'ios' as any;
+      let resolveSecret: (value: string) => void = () => {};
+      const secretPromise = new Promise<string>((resolve) => {
+        resolveSecret = resolve;
+      });
+      connectInstance = loadConnectAndInitialize({
+        ...mockInitParams,
+        fetchClientSecret: jest.fn(() => secretPromise),
+      });
+
+      try {
+        mockLoadWebView = true;
+        renderComponent();
+        await waitFor(() => expect(mockWebViewProps).toBeDefined());
+        await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+        const wrapperUrl = mockWebViewProps.source.uri as string;
+
+        // Initial load, then the forced same-URL reload workaround: both
+        // bump the generation (D3). A same-URL reload is still a new
+        // document load, not a no-op.
+        act(() => {
+          mockWebViewProps.onLoadStart({
+            nativeEvent: { url: wrapperUrl, navigationType: 'other' },
+          });
+        });
+        act(() => {
+          mockWebViewProps.onLoadStart({
+            nativeEvent: { url: wrapperUrl, navigationType: 'reload' },
+          });
+        });
+
+        const messagePromise = webViewOnMessage?.({
+          nativeEvent: { data: JSON.stringify({ type: 'fetchClientSecret' }) },
+        });
+
+        resolveSecret('secret_after_reload');
+        await act(async () => {
+          await messagePromise;
+        });
+
+        expect(mockInjectJavaScript).toHaveBeenCalledWith(
+          expect.stringContaining('secret_after_reload')
+        );
+      } finally {
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it('does not drop a pending reply for a fragment-only change', async () => {
+      let resolveSecret: (value: string) => void = () => {};
+      const secretPromise = new Promise<string>((resolve) => {
+        resolveSecret = resolve;
+      });
+      connectInstance = loadConnectAndInitialize({
+        ...mockInitParams,
+        fetchClientSecret: jest.fn(() => secretPromise),
+      });
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      const wrapperUrl = mockWebViewProps.source.uri as string;
+
+      act(() => {
+        mockWebViewProps.onLoadStart({
+          nativeEvent: { url: wrapperUrl, navigationType: 'other' },
+        });
+      });
+
+      const messagePromise = webViewOnMessage?.({
+        nativeEvent: { data: JSON.stringify({ type: 'fetchClientSecret' }) },
+      });
+
+      // A pure fragment change (e.g. client-side routing) within the same
+      // document isn't a new document load, so it shouldn't drop the
+      // in-flight request above.
+      act(() => {
+        mockWebViewProps.onLoadStart({
+          nativeEvent: {
+            url: `${wrapperUrl.split('#')[0]}#component=other`,
+            navigationType: 'other',
+          },
+        });
+      });
+
+      resolveSecret('secret_fragment_only');
+      await act(async () => {
+        await messagePromise;
+      });
+
+      expect(mockInjectJavaScript).toHaveBeenCalledWith(
+        expect.stringContaining('secret_fragment_only')
+      );
+    });
   });
 
   describe('toStripeJsBankAccountToken', () => {

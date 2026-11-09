@@ -227,6 +227,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       {
         callback: (id: string, url: string | null) => void;
         timeoutId?: NodeJS.Timeout;
+        // The document generation when this auth flow was requested (D3
+        // hygiene). Checked before `callback` runs, since the deep link /
+        // app-state timeout that invokes it can fire well after a newer
+        // top-frame load has started.
+        requestGeneration: number;
       }
     >
   >(new Map());
@@ -320,7 +325,13 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
                 // Remove from Map and invoke callback
                 pendingAuthWebViewPromises.current.delete(id);
-                promiseData.callback(id, url);
+                // Hygiene (D3): drop the reply if a new top-frame load
+                // started while this deep link was in flight.
+                if (
+                  documentGeneration.current === promiseData.requestGeneration
+                ) {
+                  promiseData.callback(id, url);
+                }
 
                 // Reset the Android flag
                 NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(() => {
@@ -357,7 +368,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                 const stillPending = pendingAuthWebViewPromises.current.get(id);
                 if (stillPending) {
                   pendingAuthWebViewPromises.current.delete(id);
-                  stillPending.callback(id, null);
+                  // Hygiene (D3): drop the cancellation reply if a new
+                  // top-frame load started while this auth flow was pending.
+                  if (
+                    documentGeneration.current ===
+                    stillPending.requestGeneration
+                  ) {
+                    stillPending.callback(id, null);
+                  }
                 }
               }, DEEP_LINK_GRACE_PERIOD_MS);
 
@@ -736,6 +754,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
+        const requestGeneration = documentGeneration.current;
         const resultPromise: Promise<FinancialConnections.TokenResult> =
           NativeStripeSdk.collectBankAccountToken(clientSecret, {
             connectedAccountId,
@@ -743,6 +762,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         resultPromise
           .then((result) => {
+            // Hygiene (D3): drop the reply if a new top-frame load started
+            // while Financial Connections was running.
+            if (documentGeneration.current !== requestGeneration) return;
+
             if (result.error) {
               if (
                 result.error.code === FinancialConnectionsSheetError.Canceled
@@ -776,6 +799,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           })
           .catch((unexpectedError) => {
             handleUnexpectedError(unexpectedError);
+            if (documentGeneration.current !== requestGeneration) return;
             handleFinancialConnectionsResult(id, {
               error: {
                 code: 'UnexpectedError',
@@ -829,9 +853,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         // On Android, we need to wait for the deep link callback
         // On iOS, the promise resolves with the redirect URL
+        const requestGeneration = documentGeneration.current;
         NativeStripeSdk.openAuthenticatedWebView(id, url)
           .then((result) => {
             if (Platform.OS === 'ios') {
+              // Hygiene (D3): drop the reply if a new top-frame load started
+              // while the auth webview was open.
+              if (documentGeneration.current !== requestGeneration) return;
+
               // iOS returns the redirect URL directly
               const resultUrl = result?.url ?? null;
               if (resultUrl) {
@@ -841,8 +870,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               }
               handleAuthWebViewResult(id, resultUrl);
             } else {
-              // Android: Store promise in Map to be resolved by deep link listener
+              // Android: Store promise in Map to be resolved by deep link
+              // listener. requestGeneration travels with it so the deep
+              // link / app-state callback below can apply the same hygiene
+              // check once it actually fires.
               pendingAuthWebViewPromises.current.set(id, {
+                requestGeneration,
                 callback: (authId: string, resultUrl: string | null) => {
                   if (resultUrl) {
                     componentAnalytics.logAuthenticatedWebViewRedirected(
