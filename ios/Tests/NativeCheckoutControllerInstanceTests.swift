@@ -9,7 +9,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
     func test_observesNativeSnapshotsAndStopsOnDestruction() async throws {
         let checkout = try await makeCheckout()
         var events: [[String: Any]] = []
-        let instance = NativeCheckoutControllerInstance(checkout: checkout) {
+        let instance = NativeCheckoutControllerInstance(checkout: checkout, userInterfaceStyle: .automatic) {
             events.append($0)
         }
         let controllerId = "controller-1"
@@ -54,8 +54,8 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
 
     func test_inlineViewReleasesReplacedAndDestroyedControllers() async throws {
         let sdk = StripeSdkImpl.shared
-        let first = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
-        let second = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let first = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), userInterfaceStyle: .alwaysDark, emitEvent: { _ in })
+        let second = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), userInterfaceStyle: .alwaysLight, emitEvent: { _ in })
         let firstElement = first.checkout.getPaymentElement()
         let secondElement = second.checkout.getPaymentElement()
         let firstId = "first"
@@ -74,6 +74,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         window.addSubview(view)
         view.layoutIfNeeded()
         XCTAssertTrue(view.subviews.first === firstElement.uiView)
+        XCTAssertEqual(view.overrideUserInterfaceStyle, .dark)
         XCTAssertGreaterThan(heights.first ?? 0, 0)
         let measurements = heights.count
         view.setNeedsLayout()
@@ -85,16 +86,86 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertNil(firstElement.uiView.delegate)
         sdk.checkoutControllers.removeValue(forKey: firstId)?.destroy()
         XCTAssertTrue(view.subviews.first === secondElement.uiView)
+        XCTAssertEqual(view.overrideUserInterfaceStyle, .light)
         sdk.checkoutControllers.removeValue(forKey: secondId)?.destroy()
         XCTAssertTrue(view.subviews.isEmpty)
         XCTAssertNil(secondElement.uiView.delegate)
+        XCTAssertEqual(view.overrideUserInterfaceStyle, .unspecified)
         view.removeFromSuperview()
+    }
+
+    func test_inlineViewsUseCheckoutStyleForCurrencyColors() async throws {
+        let cases: [(style: String, host: UIUserInterfaceStyle, container: UIUserInterfaceStyle, color: String)] = [
+            ("alwaysDark", .light, .dark, "#000000"),
+            ("alwaysLight", .dark, .light, "#FFFFFF"),
+            ("automatic", .dark, .unspecified, "#000000"),
+        ]
+        for testCase in cases {
+            // Given a light or dark host and a Checkout appearance with both palettes
+            let configuration = try CheckoutConfigurationMapper.map(
+                params: [
+                    "clientSecret": "cs_test_secret_123",
+                    "returnURL": "https://example.com/checkout",
+                    "style": testCase.style,
+                    "currencySelectorElement": [
+                        "appearance": [
+                            "colors": [
+                                "light": ["background": "#FFFFFF"],
+                                "dark": ["background": "#000000"],
+                            ],
+                        ],
+                    ],
+                ],
+                merchantIdentifier: nil,
+                didSelectPaymentOption: {}
+            )
+            let checkout = try await makeCheckout(configuration: configuration, adaptivePricing: true)
+            let currencySelector = try XCTUnwrap(checkout.getCurrencySelectorElement())
+            let instance = NativeCheckoutControllerInstance(
+                checkout: checkout,
+                userInterfaceStyle: configuration.userInterfaceStyle,
+                currencySelectorElement: currencySelector,
+                emitEvent: { _ in }
+            )
+            let controllerId = "appearance-\(testCase.style)"
+            let sdk = StripeSdkImpl.shared
+            sdk.checkoutControllers[controllerId] = instance
+            defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+
+            // When both inline views attach to that Checkout controller
+            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+            let host = UIViewController()
+            window.rootViewController = host
+            host.overrideUserInterfaceStyle = testCase.host
+            window.makeKeyAndVisible()
+            let paymentView = CheckoutPaymentElementContainerView(frame: window.bounds)
+            let currencyView = CheckoutCurrencySelectorElementContainerView(frame: window.bounds)
+            paymentView.controllerId = controllerId
+            currencyView.controllerId = controllerId
+            host.view.addSubview(paymentView)
+            host.view.addSubview(currencyView)
+            host.view.layoutIfNeeded()
+
+            // Then both views use the configured style and the selector resolves its matching palette
+            XCTAssertEqual(paymentView.overrideUserInterfaceStyle, testCase.container)
+            XCTAssertEqual(currencyView.overrideUserInterfaceStyle, testCase.container)
+            XCTAssertTrue(paymentView.subviews.first === checkout.getPaymentElement().uiView)
+            XCTAssertTrue(currencySelector.uiView.superview === currencyView)
+            let expectedStyle = testCase.container == .unspecified ? testCase.host : testCase.container
+            XCTAssertEqual(paymentView.subviews.first?.traitCollection.userInterfaceStyle, expectedStyle)
+            XCTAssertEqual(currencySelector.uiView.traitCollection.userInterfaceStyle, expectedStyle)
+            let color = try XCTUnwrap(configuration.currencySelectorElement?.appearance.background)
+            XCTAssertEqual(
+                color.resolvedColor(with: currencySelector.uiView.traitCollection),
+                UIColor(hexString: testCase.color)
+            )
+        }
     }
 
     func test_sheetRejectsMissingPresenterAndDestroyedController() async throws {
         let sdk = StripeSdkImpl()
         sdk.checkoutPresentingViewControllerProvider = { nil }
-        let instance = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let instance = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), userInterfaceStyle: .automatic, emitEvent: { _ in })
         let controllerId = "controller-1"
         sdk.checkoutControllers[controllerId] = instance
         defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
@@ -130,7 +201,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
     func test_confirmationRejectsConcurrentAttemptsAndSettlesOnDestruction() async throws {
         let checkout = try await makeCheckout()
         var statuses: [String] = []
-        let instance = NativeCheckoutControllerInstance(checkout: checkout) { event in
+        let instance = NativeCheckoutControllerInstance(checkout: checkout, userInterfaceStyle: .automatic) { event in
             statuses.append(event["status"] as! String)
         }
         instance.start(controllerId: "confirming")
@@ -156,32 +227,37 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         })
     }
 
-    private func makeCheckout() async throws -> CheckoutElementsController {
+    private func makeCheckout(
+        configuration providedConfiguration: CheckoutElementsController.Configuration? = nil,
+        adaptivePricing: Bool = false
+    ) async throws -> CheckoutElementsController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]
         let apiClient = STPAPIClient(publishableKey: "pk_test_123")
-        apiClient.apiURL = URL(string: "https://checkout.test")!
+        apiClient.apiURL = URL(string: adaptivePricing ? "https://adaptive-pricing.checkout.test" : "https://checkout.test")!
         apiClient.urlSession = URLSession(configuration: sessionConfiguration)
-        var configuration = CheckoutElementsController.Configuration(
+        var configuration = providedConfiguration ?? CheckoutElementsController.Configuration(
             clientSecret: "cs_test_secret_123",
             returnURL: "https://example.com/checkout"
         )
         configuration.apiClient = apiClient
-        configuration.paymentElement = .init()
+        if configuration.paymentElement == nil { configuration.paymentElement = .init() }
         return try await CheckoutElementsController(configuration: configuration)
     }
 }
 
 private final class CheckoutFixtureURLProtocol: URLProtocol {
     override static func canInit(with request: URLRequest) -> Bool {
-        request.url?.host == "checkout.test"
+        request.url?.host == "checkout.test" || request.url?.host == "adaptive-pricing.checkout.test"
     }
 
     override static func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
         do {
-            let data = try JSONSerialization.data(withJSONObject: CheckoutTestFixtures.response())
+            let data = try JSONSerialization.data(withJSONObject: CheckoutTestFixtures.response(
+                adaptivePricing: request.url?.host == "adaptive-pricing.checkout.test"
+            ))
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: data)

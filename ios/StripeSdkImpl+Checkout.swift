@@ -45,6 +45,7 @@ extension StripeSdkImpl {
                         : checkout.getCurrencySelectorElement()
                     let instance = NativeCheckoutControllerInstance(
                         checkout: checkout,
+                        userInterfaceStyle: configuration.userInterfaceStyle,
                         currencySelectorElement: currencySelectorElement,
                         shippingAddressElement: configuration.shippingAddressElement == nil
                             ? nil

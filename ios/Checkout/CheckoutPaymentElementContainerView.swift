@@ -36,6 +36,7 @@ public final class CheckoutPaymentElementContainerView: UIView {
             return
         }
         elementView = view
+        overrideUserInterfaceStyle = instance.overrideUserInterfaceStyle
         view.delegate = nativeDelegate
         addSubview(view)
         destruction = instance.observeDestruction { [weak self] in self?.detach() }
@@ -48,6 +49,7 @@ public final class CheckoutPaymentElementContainerView: UIView {
         elementView?.delegate = nil
         elementView?.removeFromSuperview()
         elementView = nil
+        overrideUserInterfaceStyle = .unspecified
         reportedHeight = nil
     }
 

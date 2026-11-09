@@ -22,9 +22,10 @@ enum CheckoutTestFixtures {
 
     static func response(
         status: String = "open",
-        paymentStatus: String = "unpaid"
+        paymentStatus: String = "unpaid",
+        adaptivePricing: Bool = false
     ) -> [String: Any] {
-        [
+        var response: [String: Any] = [
             "id": "cs_test",
             "ui_mode": "mobile_elements",
             "livemode": false,
@@ -64,5 +65,18 @@ enum CheckoutTestFixtures {
             "elements_session_id": "es_test",
             "ordered_payment_method_types_and_wallets": ["card"],
         ]
+        if adaptivePricing {
+            response["adaptive_pricing_info"] = [
+                "integration_currency_option": ["currency": "usd", "amount": 2250],
+                "local_currency_options": [
+                    [
+                        "currency": "eur",
+                        "amount": 2000,
+                        "disclosure": ["caption": "1 EUR = 1.125 USD", "details": "Currency conversion details"],
+                    ],
+                ],
+            ]
+        }
+        return response
     }
 }

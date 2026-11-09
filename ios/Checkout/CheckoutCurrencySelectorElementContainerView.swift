@@ -38,6 +38,7 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
             return
         }
         self.element = element
+        overrideUserInterfaceStyle = instance.overrideUserInterfaceStyle
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
         NSLayoutConstraint.activate([
@@ -65,6 +66,7 @@ public final class CheckoutCurrencySelectorElementContainerView: UIView {
         element?.delegate = nil
         element?.uiView.removeFromSuperview()
         element = nil
+        overrideUserInterfaceStyle = .unspecified
         reportedHeight = nil
     }
 
