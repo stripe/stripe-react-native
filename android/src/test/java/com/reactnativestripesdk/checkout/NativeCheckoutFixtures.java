@@ -4,9 +4,10 @@ import android.graphics.drawable.Drawable;
 import androidx.compose.runtime.Composer;
 import androidx.compose.ui.text.AnnotatedString;
 import androidx.compose.ui.graphics.painter.Painter;
-import com.stripe.android.checkout.CheckoutController;
-import com.stripe.android.checkout.CheckoutController.Session;
+import com.stripe.android.checkout.CheckoutElementsController;
+import com.stripe.android.checkout.CheckoutElementsController.Session;
 import com.stripe.android.paymentsheet.model.PaymentOptionResource;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 import kotlin.coroutines.Continuation;
@@ -22,12 +23,12 @@ final class NativeCheckoutFixtures {
       Session.Status status,
       Session.Tax.Status taxStatus,
       Session.PaymentOptionDisplayData paymentOption) {
-    Session.Amount subtotal = new Session.Amount("$21.00", 2100.0);
-    Session.Amount total = new Session.Amount("$22.50", 2250.0);
-    Session.Amount zero = new Session.Amount("$0.00", 0.0);
+    Session.Amount subtotal = new Session.Amount("$21.00", 2100L);
+    Session.Amount total = new Session.Amount("$22.50", 2250L);
+    Session.Amount zero = new Session.Amount("$0.00", 0L);
     Session.OrderSummaryItem.OneTimePrice.Item item = new Session.OrderSummaryItem.OneTimePrice.Item(
-        "item_1", "Shirt", Collections.emptyList(), new Session.Amount("$10.50", 1050.0),
-        new Session.Amount("$10.5025", 1050.25), null, 2, new Session.AdjustableQuantity(true, 5, 1),
+        "item_1", "Shirt", Collections.emptyList(), new Session.Amount("$10.50", 1050L),
+        new Session.DecimalAmount("$10.5025", new BigDecimal("1050.25")), null, 2, new Session.AdjustableQuantity(true, 5, 1),
         new Session.OrderSummaryItem.OneTimePrice.Item.AmountDetails(total, subtotal, null, zero, zero));
     return new Session(
         "cs_test", "Test business", status, false, "usd", null, Collections.emptyList(), email,
@@ -36,9 +37,17 @@ final class NativeCheckoutFixtures {
         new Session.Totals(subtotal, zero, zero, zero, total), null, Collections.emptyList());
   }
 
-  static CheckoutController.Result completedResult() { return new CheckoutController.Result.Completed(); }
-  static CheckoutController.Result canceledResult() { return new CheckoutController.Result.Canceled(); }
-  static CheckoutController.Result failedResult(Throwable error) { return new CheckoutController.Result.Failed(error); }
+  static CheckoutElementsController.OperationResult succeededOperation() {
+    return new CheckoutElementsController.OperationResult.Succeeded();
+  }
+
+  static CheckoutElementsController.OperationResult failedOperation(Throwable error) {
+    return new CheckoutElementsController.OperationResult.Failed(error, null);
+  }
+
+  static CheckoutElementsController.Result completedResult() { return new CheckoutElementsController.Result.Completed(); }
+  static CheckoutElementsController.Result canceledResult() { return new CheckoutElementsController.Result.Canceled(); }
+  static CheckoutElementsController.Result failedResult(Throwable error) { return new CheckoutElementsController.Result.Failed(error, null); }
 
   static Session.Status openStatus() { return new Session.Status.Open(); }
   static Session.Status expiredStatus() { return new Session.Status.Expired(); }
@@ -63,7 +72,7 @@ final class NativeCheckoutFixtures {
         throw new UnsupportedOperationException("This fixture only loads the icon");
       }
     };
-    return new Session.PaymentOptionDisplayData(resource, "Visa", "•••• 4242", billingDetails, "card", mandateText);
+    return new Session.PaymentOptionDisplayData(resource, "Visa", "•••• 4242", billingDetails, "card", () -> mandateText);
   }
 
   static Session.PaymentOptionDisplayData.BillingDetails postalBillingDetails(String postalCode) {

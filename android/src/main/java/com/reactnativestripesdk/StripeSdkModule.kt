@@ -69,7 +69,7 @@ import com.stripe.android.GooglePayJsonFactory
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
-import com.stripe.android.checkout.CheckoutController
+import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
 import com.stripe.android.core.reactnative.ReactNativeAnalytics
@@ -1443,14 +1443,14 @@ class StripeSdkModule(
       val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
       pendingCheckoutCreationScopes.add(scope)
       scope.launch {
-        var controller: CheckoutController? = null
+        var controller: CheckoutElementsController? = null
         try {
           val mapped = CheckoutConfigurationMapper.map(
             params = params,
             context = reactApplicationContext,
             didSelectPaymentOption = { emitCheckoutPaymentOptionSelection(controllerId) },
           )
-          controller = CheckoutController.Builder(
+          controller = CheckoutElementsController.Builder(
             reactApplicationContext.applicationContext as Application,
             SavedStateHandle(),
           ).resultCallback { result ->
@@ -1696,11 +1696,18 @@ class StripeSdkModule(
     }
   }
 
+  private fun CheckoutElementsController.OperationResult.getOrThrow() {
+    when (this) {
+      is CheckoutElementsController.OperationResult.Succeeded -> Unit
+      is CheckoutElementsController.OperationResult.Failed -> throw error
+    }
+  }
+
   @Suppress("TooGenericExceptionCaught")
   private fun performCheckoutMutation(
     controllerId: String,
     promise: Promise,
-    operation: suspend (CheckoutController) -> Result<Unit>,
+    operation: suspend (CheckoutElementsController) -> CheckoutElementsController.OperationResult,
   ) {
     UiThreadUtil.runOnUiThread {
       val instance = checkoutControllers[controllerId]

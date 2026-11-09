@@ -9,8 +9,8 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.EventEmitterCompat
-import com.stripe.android.checkout.CheckoutController
-import com.stripe.android.checkout.CheckoutPresenter
+import com.stripe.android.checkout.CheckoutElementsController
+import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.elements.ShippingAddressElement
@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 @OptIn(CheckoutSessionPreview::class, ExperimentalCoroutinesApi::class)
 @Suppress("TooManyFunctions")
 internal class NativeCheckoutControllerInstance(
-  val controller: CheckoutController,
+  val controller: CheckoutElementsController,
   private val eventEmitter: EventEmitterCompat,
   private val scope: CoroutineScope,
   initialSession: WritableMap,
@@ -42,9 +42,9 @@ internal class NativeCheckoutControllerInstance(
   private var controllerId: String? = null
   private var latestSession = initialSession
   private var destroyed = false
-  private var confirmation: CompletableDeferred<CheckoutController.Result>? = null
+  private var confirmation: CompletableDeferred<CheckoutElementsController.Result>? = null
   private val destructionObservers = mutableSetOf<() -> Unit>()
-  private var presenter: CheckoutPresenter? = null
+  private var presenter: CheckoutElementsPresenter? = null
   private var activity: ComponentActivity? = null
   private val activityObserver = LifecycleEventObserver { _, event ->
     if (event == Lifecycle.Event.ON_DESTROY) {
@@ -67,7 +67,7 @@ internal class NativeCheckoutControllerInstance(
     return getPresenter(activity).shippingAddressElement()
   }
 
-  private fun getPresenter(activity: ComponentActivity): CheckoutPresenter {
+  private fun getPresenter(activity: ComponentActivity): CheckoutElementsPresenter {
     check(!destroyed) { "Checkout controller was destroyed." }
     if (this.activity !== activity) {
       releasePresenter()
@@ -85,11 +85,11 @@ internal class NativeCheckoutControllerInstance(
 
   /** Waits for the controller's result callback within the bridge controller's lifetime. */
   @MainThread
-  suspend fun confirm(activity: ComponentActivity): CheckoutController.Result {
+  suspend fun confirm(activity: ComponentActivity): CheckoutElementsController.Result {
     UiThreadUtil.assertOnUiThread()
     check(!destroyed) { "Checkout controller was destroyed." }
     check(confirmation == null) { "Checkout confirmation is already in progress." }
-    val result = CompletableDeferred<CheckoutController.Result>()
+    val result = CompletableDeferred<CheckoutElementsController.Result>()
     confirmation = result
     try {
       emit("confirming")
@@ -104,7 +104,7 @@ internal class NativeCheckoutControllerInstance(
   }
 
   @MainThread
-  fun onConfirmationResult(result: CheckoutController.Result) {
+  fun onConfirmationResult(result: CheckoutElementsController.Result) {
     UiThreadUtil.assertOnUiThread()
     confirmation?.complete(result)
   }
