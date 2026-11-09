@@ -58,10 +58,13 @@ const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
 // The wrapper document is the only page the SDK trusts to receive secrets
 // (fetchClientSecret replies, Financial Connections results, auth redirect
-// URLs...). Its origin is derived from BASE_URL, not hardcoded separately, so
-// DEVELOPMENT_MODE pins the dev origin automatically.
+// URLs...). Its origin is BASE_URL itself (not hardcoded separately, so
+// DEVELOPMENT_MODE pins the dev origin automatically). We deliberately never
+// build a URL object out of these: React Native's global `URL` is the
+// regex-based polyfill in react-native/Libraries/Blob/URL.js, not a WHATWG
+// parser, and it disagrees with real browsers on pathname/hostname for many
+// inputs. All wrapper-identity checks below are plain string operations.
 const WRAPPER_PATH = '/v1.0/react_native_webview.html';
-const WRAPPER_URL = new URL(`${BASE_URL}${WRAPPER_PATH}`);
 
 // Explicit allowlist of non-http(s) schemes that are safe to hand to the OS
 // via Linking. Anything not https: or in this list is dropped silently by
@@ -475,8 +478,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     // A pure fragment change within the same document (e.g. client-side
     // routing) isn't a new document load, so it shouldn't invalidate
     // in-flight requests. A same-URL reload -- including the forced iOS
-    // reload below -- is still treated as a new load.
+    // reload below -- is still treated as a new load. This only applies on
+    // iOS: Android's onLoadStart carries no real navigationType (it's
+    // always 'other') and isn't emitted at all for a same-document fragment
+    // change, so every Android event here is already a new load.
     if (
+      Platform.OS === 'ios' &&
       previousUrl !== null &&
       navigationType !== 'reload' &&
       isSameDocumentExceptFragment(previousUrl, url)
@@ -529,12 +536,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   // never loaded into the bridged WebView.
   const routeOutside = useCallback(
     (url: string) => {
-      let protocol: string;
-      try {
-        protocol = new URL(url).protocol;
-      } catch {
+      // Never hand a URL carrying the wrapper's path to the OS, even if it
+      // failed the exact match elsewhere (e.g. a stale hash after a config
+      // change, a different scheme/port, or a URL that normalizes
+      // differently): its fragment carries apiKeyOverride, a live session
+      // key. A substring check, not a prefix one, so a lookalike scheme or
+      // host doesn't slip through. Drop it silently; never log it.
+      if (url.includes(WRAPPER_PATH)) {
         return;
       }
+
+      // Scheme via regex, not `new URL(url).protocol`: see the module-level
+      // comment above. The constructor also throws for some valid
+      // non-http(s) URLs (e.g. `mailto:x#y`) under the RN polyfill.
+      const schemeMatch = /^([a-z][a-z0-9+.-]*):/i.exec(url);
+      const protocol = schemeMatch ? `${schemeMatch[1]!.toLowerCase()}:` : '';
 
       if (isCsvExportUrl(url)) {
         NativeStripeSdk.downloadAndShareFile(url, null)
@@ -926,15 +942,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       // a Payouts CSV download navigates straight to a presigned, one-time
       // export URL that isn't part of any document we'd otherwise trust.
       if (isCsvExportUrl(url)) {
-        NativeStripeSdk.downloadAndShareFile(url, null)
-          .then((result) => {
-            if (!result.success) {
-              console.warn('CSV export share failed:', result.error);
-            }
-          })
-          .catch((error) => {
-            handleUnexpectedError(error);
-          });
+        routeOutside(url);
         return false;
       }
 
@@ -954,7 +962,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           // ANY navigationType -- including a reload, backforward, or
           // form(re)submit to a different URL -- is routed outside and never
           // loaded in place.
-          if (isTrustedWrapperDocument(url, hash)) {
+          if (isTrustedWrapperDocument(url, connectURL)) {
             return true;
           }
           routeOutside(url);
@@ -990,13 +998,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       // and route everything else outside. Documented residual risk (D2):
       // an allowlisted Stripe host replacing the main frame on Android can't
       // be distinguished from a benign subframe/resource load.
-      if (isTrustedWrapperDocument(url, hash) || isAllowedStripeHost(url)) {
+      if (
+        isTrustedWrapperDocument(url, connectURL) ||
+        isAllowedStripeHost(url)
+      ) {
         return true;
       }
       routeOutside(url);
       return false;
     },
-    [handleUnexpectedError, hash, routeOutside]
+    [connectURL, routeOutside]
   );
 
   // Always registered, on both platforms (D4): a popup must never load into
@@ -1209,34 +1220,33 @@ export function isAllowedStripeHost(url: string): boolean {
 
 // Detects Stripe CSV export URLs. Only exact export hosts count: a path that
 // merely contains "stripe-data-exports" is not evidence of anything, since
-// any host can serve a path with that substring.
+// any host can serve a path with that substring. An anchored regex on the
+// raw string, like isAllowedStripeHost's pattern -- not URL parsing (see the
+// module-level comment above): React Native's URL polyfill mishandles
+// "@" userinfo, so e.g. `https://evil.example/@stripe-data-exports.s3.amazonaws.com/x.csv`
+// would otherwise report the trusted host.
+const CSV_EXPORT_HOST_PATTERN =
+  /^https:\/\/(?:stripe-data-exports\.com|(?:[a-z0-9-]+\.)+stripe-data-exports\.com|stripe-data-exports\.s3\.amazonaws\.com)(?::\d+)?(?:[/?#]|$)/i;
+
 function isCsvExportUrl(url: string): boolean {
-  try {
-    const parsedUrl = new URL(url);
-    return (
-      parsedUrl.protocol === 'https:' &&
-      (parsedUrl.hostname === 'stripe-data-exports.com' ||
-        parsedUrl.hostname.endsWith('.stripe-data-exports.com') ||
-        parsedUrl.hostname === 'stripe-data-exports.s3.amazonaws.com')
-    );
-  } catch {
-    return false;
-  }
+  return CSV_EXPORT_HOST_PATTERN.test(url);
 }
 
 // Wraps `payloadScript` so it only runs inside the trusted wrapper document
-// (D3, the security boundary). window.location is unforgeable from RN's
-// side, and this check runs atomically inside whichever document actually
-// receives and executes the script -- closing the race between an RN-side
-// check and native script execution. A generation counter (kept separately)
-// is hygiene on top of this, not a substitute for it: it can only drop a
-// reply before it's sent, while this guard is what actually decides whether
-// the reply takes effect once delivered.
+// (D3, the security boundary). Page script can't override `window.location`
+// or its `origin`/`pathname` getters, and this check runs atomically inside
+// whichever document actually receives and executes the script -- closing
+// the race between an RN-side check and native script execution. A
+// generation counter (kept separately) is hygiene on top of this, not a
+// substitute for it: it can only drop a reply before it's sent, while this
+// guard is what actually decides whether the reply takes effect once
+// delivered. This runs inside the WebView's own JS engine, not RN's, so it
+// isn't affected by the RN `URL` polyfill issues noted above.
 function deliverToWrapper(payloadScript: string): string {
   return `
     (function() {
       if (
-        window.location.origin === ${JSON.stringify(WRAPPER_URL.origin)} &&
+        window.location.origin === ${JSON.stringify(BASE_URL)} &&
         window.location.pathname === ${JSON.stringify(WRAPPER_PATH)}
       ) {
         ${payloadScript}
@@ -1249,40 +1259,20 @@ function deliverToWrapper(payloadScript: string): string {
 // Is `nextUrl` the same document as `prevUrl`, differing only in the
 // fragment (e.g. client-side routing within the wrapper)? Used by the
 // generation counter to tell a pure fragment change apart from a real
-// document load.
+// document load. A plain string comparison, not URL parsing -- see the
+// module-level comment above.
 function isSameDocumentExceptFragment(
   prevUrl: string,
   nextUrl: string
 ): boolean {
-  try {
-    const prev = new URL(prevUrl);
-    const next = new URL(nextUrl);
-    return (
-      prev.protocol === next.protocol &&
-      prev.host === next.host &&
-      prev.pathname === next.pathname &&
-      prev.search === next.search
-    );
-  } catch {
-    return false;
-  }
+  return prevUrl.split('#')[0] === nextUrl.split('#')[0];
 }
 
 // Is `url` the exact wrapper document the SDK trusts with the secret-key
-// fragment? Scheme, host (incl. port) and pathname must match exactly, and
-// the fragment must equal the expected hash exactly -- not merely start with
-// it. Never log `url`: the fragment carries apiKeyOverride, a live session
-// key.
-function isTrustedWrapperDocument(url: string, expectedHash: string): boolean {
-  try {
-    const parsedUrl = new URL(url);
-    return (
-      parsedUrl.protocol === WRAPPER_URL.protocol &&
-      parsedUrl.host === WRAPPER_URL.host &&
-      parsedUrl.pathname === WRAPPER_URL.pathname &&
-      parsedUrl.hash === `#${expectedHash}`
-    );
-  } catch {
-    return false;
-  }
+// fragment? `connectURL` is built from BASE_URL, WRAPPER_PATH and the
+// current hash, so an exact string match also implies scheme, host, port,
+// path and fragment all match exactly -- not merely a prefix. Never log
+// `url`: the fragment carries apiKeyOverride, a live session key.
+function isTrustedWrapperDocument(url: string, connectURL: string): boolean {
+  return url === connectURL;
 }
