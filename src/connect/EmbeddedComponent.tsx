@@ -4,6 +4,8 @@ import React, {
   useMemo,
   useRef,
   useState,
+  type ComponentType,
+  type RefAttributes,
 } from 'react';
 import {
   ActivityIndicator,
@@ -16,7 +18,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import type { WebView, WebViewMessageEvent } from 'react-native-webview';
+import type { WebViewMessageEvent, WebViewProps } from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
@@ -32,6 +34,17 @@ import type { FinancialConnections, StripeError } from '../types';
 import { FinancialConnectionsSheetError } from '../types/FinancialConnections';
 import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
 import { buildInjectedObjectScript } from './injectedObjectScript';
+
+// react-native-webview 14 declares WebView<P = undefined>, which collapses
+// Component props to never when used as typeof WebView. Type the dynamic
+// load against WebViewProps (plus ref) instead.
+type WebViewHandle = {
+  injectJavaScript: (script: string) => void;
+  reload: () => void;
+};
+type WebViewComponentType = ComponentType<
+  WebViewProps & RefAttributes<WebViewHandle>
+>;
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -176,7 +189,7 @@ type EmbeddedFinancialConnectionsResult =
 
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const [dynamicWebview, setDynamicWebview] = useState<{
-    WebView: typeof WebView | null;
+    WebView: WebViewComponentType | null;
     version?: string;
   } | null>(null);
 
@@ -400,7 +413,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const connectURL = `${BASE_URL}/v1.0/react_native_webview.html#${hash}`;
   const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
-  const ref = useRef<WebView>(null);
+  const ref = useRef<WebViewHandle>(null);
   const hasTriedSourceReload = useRef(false);
 
   const [prevAppearance, setPrevAppearance] = useState(appearance);
