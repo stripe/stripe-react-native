@@ -14,8 +14,6 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.EmbeddedPaymentElementViewManagerDelegate
 import com.facebook.react.viewmanagers.EmbeddedPaymentElementViewManagerInterface
 import com.reactnativestripesdk.addresssheet.AddressSheetView
-import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
-import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.asMapOrNull
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getIntegerList
@@ -65,14 +63,16 @@ class EmbeddedPaymentElementViewManager :
     val rowSelectionBehaviorType = mapToRowSelectionBehaviorType(readableMap)
     view.rowSelectionBehaviorType.value = rowSelectionBehaviorType
 
-    val elementConfig = parseElementConfiguration(readableMap, view.context)
-    view.latestElementConfig = elementConfig
-    if (configureIfReady(view, elementConfig)) {
-      view.post {
-        view.requestLayout()
-        view.invalidate()
-      }
-    }
+    runCatching { parseElementConfiguration(readableMap, view.context) }
+      .onSuccess { elementConfig ->
+        view.latestElementConfig = elementConfig
+        if (configureIfReady(view, elementConfig)) {
+          view.post {
+            view.requestLayout()
+            view.invalidate()
+          }
+        }
+      }.onFailure { error -> view.reportConfigurationLoadingFailed(error) }
   }
 
   @ReactProp(name = "intentConfiguration")
@@ -84,8 +84,11 @@ class EmbeddedPaymentElementViewManager :
 
     view.setUseConfirmationTokenCallback(readableMap.hasKey("confirmationTokenConfirmHandler"))
 
-    view.latestIntentConfig = parseIntentConfiguration(readableMap)
-    view.latestElementConfig?.let { configureIfReady(view, it) }
+    runCatching { parseIntentConfiguration(readableMap) }
+      .onSuccess { intentConfig ->
+        view.latestIntentConfig = intentConfig
+        view.latestElementConfig?.let { configureIfReady(view, it) }
+      }.onFailure { error -> view.reportConfigurationLoadingFailed(error) }
   }
 
   /**
@@ -117,12 +120,7 @@ class EmbeddedPaymentElementViewManager :
     val allowsDelayedPaymentMethods = map.getBooleanOr("allowsDelayedPaymentMethods", false)
     val defaultBillingDetails = buildBillingDetails(map.getMap("defaultBillingDetails"))
 
-    val customerConfiguration =
-      try {
-        buildCustomerConfiguration(map)
-      } catch (_: PaymentSheetException) {
-        throw Error() // TODO handle error
-      }
+    val customerConfiguration = buildCustomerConfiguration(map)
 
     val googlePayConfig = buildGooglePayConfig(map.getMap("googlePay"))
     val linkConfig = buildLinkConfig(map.getMap("link"))
@@ -130,12 +128,7 @@ class EmbeddedPaymentElementViewManager :
       map.getMap("defaultShippingDetails")?.let {
         AddressSheetView.buildAddressDetails(it)
       }
-    val appearance =
-      try {
-        buildPaymentSheetAppearance(map.getMap("appearance"), context)
-      } catch (_: PaymentSheetAppearanceException) {
-        throw Error() // TODO handle error
-      }
+    val appearance = buildPaymentSheetAppearance(map.getMap("appearance"), context)
     val billingDetailsConfig =
       buildBillingDetailsCollectionConfiguration(
         map.getMap("billingDetailsCollectionConfiguration"),
