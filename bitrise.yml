@@ -6,12 +6,10 @@ project_type: react-native
 trigger_map:
   - push_branch: 'master'
     pipeline: main-trigger-pipeline
+  - push_branch: 'ga'
+    pipeline: main-trigger-pipeline
   - pull_request_source_branch: '*'
     pipeline: main-trigger-pipeline
-  - type: push
-    pipeline: main-trigger-pipeline
-    push_branch:
-      regex: ga
 
 app:
   envs:
@@ -197,15 +195,13 @@ workflows:
           title: Expo prebuild + build (SPM mode)
           timeout: 2700
           inputs:
-            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
-                --platforms ios
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION" --platforms ios
       - script@1:
           title: Expo prebuild, CocoaPods fallback (plugin disableSPM)
           run_if: 'false'
           timeout: 1200
           inputs:
-            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
-                --platforms ios --disable-spm --skip-build
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION" --platforms ios --disable-spm --skip-build
       - deploy-to-bitrise-io@2:
           inputs:
             - notify_user_groups: none
@@ -335,8 +331,7 @@ workflows:
           title: Save Yarn Cache
           is_always_run: true
           inputs:
-            - key: yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}-{{ checksum
-                "example/yarn.lock" }}
+            - key: yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}-{{ checksum "example/yarn.lock" }}
             - paths: |
                 $YARN_CACHE_DIR
 
@@ -420,9 +415,16 @@ workflows:
             - api_level: $ANDROID_API_LEVEL
             - tag: 'google_apis'
             - start_command_flags: >
-                -camera-back none -camera-front none -netdelay none -netspeed
-                full -memory 8192 -no-snapshot -no-audio -no-window -gpu
-                swiftshader_indirect -no-boot-anim
+                -camera-back none
+                -camera-front none
+                -netdelay none
+                -netspeed full
+                -memory 8192
+                -no-snapshot
+                -no-audio
+                -no-window
+                -gpu swiftshader_indirect
+                -no-boot-anim
 
   _e2e_build_android:
     before_run:
