@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## Unreleased
+
+**Changes**
+
+* Updated Stripe Android SDK from 23.25.1 to 23.25.2.
+
+**Fixes**
+
+* [Fixed] Exclude Android unit test sources and other test globs from the published npm package.
+
 ## 0.85.0 - 2026-11-03
 
 **Features**

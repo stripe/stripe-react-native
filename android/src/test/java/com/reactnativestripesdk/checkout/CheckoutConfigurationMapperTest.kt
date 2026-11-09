@@ -8,7 +8,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
-import com.stripe.android.checkout.CheckoutController
+import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.elements.PaymentElement.Configuration.Appearance.Embedded.RowStyle
@@ -195,7 +195,7 @@ class CheckoutConfigurationMapperTest {
     assertEquals("cs_test_secret_123", result.clientSecret)
     assertEquals("Example Store", result.configuration.readField<String>("merchantDisplayName"))
 
-    val defaults = result.configuration.readField<CheckoutController.Configuration.Defaults>("defaults")
+    val defaults = result.configuration.readField<CheckoutElementsController.Configuration.Defaults>("defaults")
     assertContactDetails(defaults.readField("billingDetails"), "US")
     assertContactDetails(defaults.readField("shippingDetails"), "CA")
     assertEquals("jenny@example.com", defaults.readField<String>("email"))
@@ -415,11 +415,11 @@ class CheckoutConfigurationMapperTest {
     )
 
   private fun assertContactDetails(
-    details: CheckoutController.Configuration.Defaults.ContactDetails,
+    details: CheckoutElementsController.Configuration.Defaults.ContactDetails,
     country: String,
   ) {
     assertEquals("Jenny Rosen", details.readField<String>("name"))
-    val address = details.readField<CheckoutController.Address>("address")
+    val address = details.readField<CheckoutElementsController.Address>("address")
     assertEquals(country, address.readField<String>("country"))
     assertEquals("510 Townsend Street", address.readField<String>("line1"))
     assertEquals("94103", address.readField<String>("postalCode"))

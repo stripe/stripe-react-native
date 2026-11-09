@@ -13,8 +13,8 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.EventEmitterCompat
-import com.stripe.android.checkout.CheckoutController
-import com.stripe.android.checkout.CheckoutPresenter
+import com.stripe.android.checkout.CheckoutElementsController
+import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.utils.mapAsStateFlow
 import kotlinx.coroutines.CancellationException
@@ -397,11 +397,11 @@ class NativeCheckoutControllerInstanceTest {
   }
 
   private class Fixture {
-    val controller = mock(CheckoutController::class.java)
-    val presenter = mock(CheckoutPresenter::class.java)
+    val controller = mock(CheckoutElementsController::class.java)
+    val presenter = mock(CheckoutElementsPresenter::class.java)
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    val sessions = MutableStateFlow<CheckoutController.Session?>(checkoutSession())
+    val sessions = MutableStateFlow<CheckoutElementsController.Session?>(checkoutSession())
     val updating = MutableStateFlow(false)
     val events = mutableListOf<ReadableMap>()
     val context = mock(ReactApplicationContext::class.java)
