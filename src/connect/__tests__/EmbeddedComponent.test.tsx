@@ -1,3 +1,7 @@
+// Must run before EmbeddedComponent is imported: installs the device URL
+// polyfill so this suite exercises what devices actually run.
+import './installReactNativeURL';
+
 // Mock dependencies BEFORE imports
 import { mockCreateNativeStripeSdkMock } from '../testUtils';
 
@@ -547,6 +551,48 @@ describe('EmbeddedComponent', () => {
           ).toBe(false);
         }
         expect(hash).toBeTruthy();
+        // None of the rejected lookalikes may ever reach Linking: they all
+        // carry the wrapper's origin+path, and the fragment carries
+        // apiKeyOverride, a live session key.
+        openUrl.mock.calls.forEach(([openedUrl]) => {
+          expect(openedUrl).not.toContain('react_native_webview.html');
+        });
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it('allows the wrapper initial load and reload using the real iOS event shape', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'ios' as any;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const wrapperUrl = mockWebViewProps.source.uri as string;
+
+        // iOS computes isTopFrame by comparing the URL to mainDocumentURL;
+        // for the initial load and a same-URL reload both equal wrapperUrl.
+        expect(
+          onShouldStartLoad({
+            url: wrapperUrl,
+            navigationType: 'other',
+            isTopFrame: true,
+            mainDocumentURL: wrapperUrl,
+          })
+        ).toBe(true);
+        expect(
+          onShouldStartLoad({
+            url: wrapperUrl,
+            navigationType: 'reload',
+            isTopFrame: true,
+            mainDocumentURL: wrapperUrl,
+          })
+        ).toBe(true);
+        expect(openUrl).not.toHaveBeenCalled();
       } finally {
         openUrl.mockRestore();
         Platform.OS = previousPlatform;
@@ -703,6 +749,37 @@ describe('EmbeddedComponent', () => {
         Platform.OS = previousPlatform;
       }
     });
+
+    it.each([
+      'https://evil.example/@stripe-data-exports.s3.amazonaws.com/x.csv',
+      'https://evil.example/?@stripe-data-exports.s3.amazonaws.com/x.csv',
+      'https://evil.example/#@stripe-data-exports.s3.amazonaws.com/x.csv',
+    ])(
+      'does not treat a userinfo-confused URL %s as a CSV export',
+      async (url) => {
+        const previousPlatform = Platform.OS;
+        Platform.OS = 'android' as any;
+        const downloadAndShare =
+          NativeStripeSdk.downloadAndShareFile as jest.Mock;
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url,
+            navigationType: 'other',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(downloadAndShare).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+          Platform.OS = previousPlatform;
+        }
+      }
+    );
 
     it('does not treat a foreign host with "stripe-data-exports" in its path as a CSV export', async () => {
       const previousPlatform = Platform.OS;
@@ -1768,6 +1845,52 @@ describe('EmbeddedComponent', () => {
       expect(mockInjectJavaScript).toHaveBeenCalledWith(
         expect.stringContaining('secret_fragment_only')
       );
+    });
+
+    it('bumps the generation on every Android onLoadStart, even a same-URL one with no navigationType', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      let resolveSecret: (value: string) => void = () => {};
+      const secretPromise = new Promise<string>((resolve) => {
+        resolveSecret = resolve;
+      });
+      connectInstance = loadConnectAndInitialize({
+        ...mockInitParams,
+        fetchClientSecret: jest.fn(() => secretPromise),
+      });
+
+      try {
+        mockLoadWebView = true;
+        renderComponent();
+        await waitFor(() => expect(mockWebViewProps).toBeDefined());
+        await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+        const wrapperUrl = mockWebViewProps.source.uri as string;
+
+        act(() => {
+          mockWebViewProps.onLoadStart({ nativeEvent: { url: wrapperUrl } });
+        });
+
+        const messagePromise = webViewOnMessage?.({
+          nativeEvent: { data: JSON.stringify({ type: 'fetchClientSecret' }) },
+        });
+
+        // Android's onLoadStart carries no real navigationType and isn't
+        // emitted for same-document fragment changes, so every event there
+        // is treated as a new load -- even one with the exact same URL.
+        act(() => {
+          mockWebViewProps.onLoadStart({ nativeEvent: { url: wrapperUrl } });
+        });
+
+        resolveSecret('secret_dropped_android');
+        await act(async () => {
+          await messagePromise;
+        });
+
+        expect(mockInjectJavaScript).not.toHaveBeenCalled();
+      } finally {
+        Platform.OS = previousPlatform;
+      }
     });
   });
 
