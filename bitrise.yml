@@ -6,6 +6,8 @@ project_type: react-native
 trigger_map:
   - push_branch: 'master'
     pipeline: main-trigger-pipeline
+  - push_branch: 'ga'
+    pipeline: main-trigger-pipeline
   - pull_request_source_branch: '*'
     pipeline: main-trigger-pipeline
 
