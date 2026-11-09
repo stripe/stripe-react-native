@@ -3,7 +3,7 @@ package com.reactnativestripesdk.checkout
 import android.content.Context
 import androidx.compose.ui.text.AnnotatedString
 import androidx.test.core.app.ApplicationProvider
-import com.stripe.android.checkout.CheckoutController
+import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -72,14 +72,14 @@ class CheckoutSessionSerializerTest {
       assertEquals("jenny@example.com", result.getString("email"))
       assertFalse(result.getBoolean("livemode"))
       assertEquals(expected, result.getMap("status")?.getString("type"))
-      if (status is CheckoutController.Session.Status.Complete) {
+      if (status is CheckoutElementsController.Session.Status.Complete) {
         assertEquals("paid", result.getMap("status")!!.getString("paymentStatus"))
       }
       assertEquals("Test business", result.getString("businessName"))
       assertEquals(100, result.getInt("minorUnitsAmountDivisor"))
       val total = result.getMap("totals")!!.getMap("total")!!
       assertEquals("$22.50", total.getString("amount"))
-      assertEquals(2250.0, total.getDouble("minorUnitsAmount"), 0.0)
+      assertEquals(2250L, total.getLong("minorUnitsAmount"))
       val item = result.getArray("orderSummaryItems")!!.getMap(0)!!.getArray("items")!!.getMap(0)!!
       assertEquals("item_1", item.getString("key"))
       assertEquals(1050.25, item.getMap("unitAmountDecimal")!!.getDouble("minorUnitsAmount"), 0.0)
