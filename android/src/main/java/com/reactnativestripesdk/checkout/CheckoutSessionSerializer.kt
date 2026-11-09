@@ -110,7 +110,7 @@ internal object CheckoutSessionSerializer {
 
   private fun serialize(amount: Session.Amount): WritableMap = Arguments.createMap().apply {
     putString("amount", amount.amount)
-    putDouble("minorUnitsAmount", amount.minorUnitsAmount.toDouble())
+    putLong("minorUnitsAmount", amount.minorUnitsAmount)
   }
 
   private fun serialize(amount: Session.DecimalAmount): WritableMap = Arguments.createMap().apply {
@@ -120,7 +120,7 @@ internal object CheckoutSessionSerializer {
 
   private fun serialize(amount: Session.DiscountAmount): WritableMap = Arguments.createMap().apply {
     putString("amount", amount.amount)
-    putDouble("minorUnitsAmount", amount.minorUnitsAmount.toDouble())
+    putLong("minorUnitsAmount", amount.minorUnitsAmount)
     putString("displayName", amount.displayName)
     amount.promotionCode?.let { putString("promotionCode", it) }
     amount.percentOff?.let { putDouble("percentOff", it) }
@@ -128,7 +128,7 @@ internal object CheckoutSessionSerializer {
 
   private fun serialize(amount: Session.TaxAmount): WritableMap = Arguments.createMap().apply {
     putString("amount", amount.amount)
-    putDouble("minorUnitsAmount", amount.minorUnitsAmount.toDouble())
+    putLong("minorUnitsAmount", amount.minorUnitsAmount)
     putBoolean("inclusive", amount.inclusive)
     putString("displayName", amount.displayName)
     amount.percentage?.let { putDouble("percentage", it) }

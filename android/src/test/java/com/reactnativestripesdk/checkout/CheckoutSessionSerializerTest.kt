@@ -79,7 +79,7 @@ class CheckoutSessionSerializerTest {
       assertEquals(100, result.getInt("minorUnitsAmountDivisor"))
       val total = result.getMap("totals")!!.getMap("total")!!
       assertEquals("$22.50", total.getString("amount"))
-      assertEquals(2250.0, total.getDouble("minorUnitsAmount"), 0.0)
+      assertEquals(2250L, total.getLong("minorUnitsAmount"))
       val item = result.getArray("orderSummaryItems")!!.getMap(0)!!.getArray("items")!!.getMap(0)!!
       assertEquals("item_1", item.getString("key"))
       assertEquals(1050.25, item.getMap("unitAmountDecimal")!!.getDouble("minorUnitsAmount"), 0.0)
