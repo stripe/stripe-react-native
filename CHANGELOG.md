@@ -9,6 +9,7 @@
 
 **Fixes**
 
+* [Fixed] Added web platform stand-ins for native specs so Expo SDK 58 apps using the default template (`web.output: "server"`) no longer fail native release builds when a route imports the SDK; calling Stripe APIs on web still returns `WebUnsupported` errors.
 * [Fixed] Declared `paymentMethodOrder` on Customer Sheet initialization params (Android).
 * [Fixed] Android: Embedded Payment Element reports invalid configuration through `embeddedPaymentElementLoadingFailed` instead of crashing when props cannot be parsed.
 * [Fixed] iOS: Declared the iOS 15 deployment target in the podspec to match the pinned Stripe iOS SDK.
