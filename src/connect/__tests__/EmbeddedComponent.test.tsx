@@ -7,6 +7,7 @@ let webViewOnMessage: ((event: any) => void) | undefined;
 let mockLoadWebView = false;
 let mockWebViewComponent: any;
 let mockWebViewProps: any;
+let mockWebViewVersion: string | undefined;
 
 jest.mock('react', () => {
   const React = jest.requireActual('react');
@@ -16,7 +17,10 @@ jest.mock('react', () => {
       let resolvedInitialState = initialState;
       if (mockLoadWebView && initialState === null) {
         mockLoadWebView = false;
-        resolvedInitialState = { WebView: mockWebViewComponent };
+        resolvedInitialState = {
+          WebView: mockWebViewComponent,
+          version: mockWebViewVersion,
+        };
       }
       return React.useState(resolvedInitialState);
     },
@@ -663,7 +667,27 @@ describe('EmbeddedComponent', () => {
       return JSON.parse(page.ReactNativeWebView.injectedObjectJson());
     };
 
-    it('defines injectedObjectJson in a script as well as injectedJavaScriptObject', async () => {
+    // Renders with the WebView already loaded as the given
+    // react-native-webview version.
+    const renderWithWebView = async (
+      platform: typeof Platform.OS,
+      version: string | undefined,
+      props: any = {}
+    ) => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = platform as any;
+      mockWebViewVersion = version;
+      mockLoadWebView = true;
+      try {
+        renderComponent(props);
+        await waitFor(() => expect(mockWebViewProps).toBeDefined());
+      } finally {
+        Platform.OS = previousPlatform;
+        mockWebViewVersion = undefined;
+      }
+    };
+
+    it('defines injectedObjectJson in a script', async () => {
       // A value that react-native-webview's injectedJavaScriptObject corrupts.
       const appearance = {
         variables: { fontFamily: '"Courier New", Courier, monospace' },
@@ -677,23 +701,18 @@ describe('EmbeddedComponent', () => {
 
       await waitFor(() => expect(mockWebViewProps).toBeDefined());
 
-      const expected = {
-        initParams: { appearance, locale: 'en' },
-        appInfo: {},
-      };
-      expect(mockWebViewProps.injectedJavaScriptObject).toEqual(expected);
       expect(
         readInjectedObject(
           mockWebViewProps.injectedJavaScriptBeforeContentLoaded
         )
-      ).toEqual(expected);
+      ).toEqual({
+        initParams: { appearance, locale: 'en' },
+        appInfo: {},
+      });
     });
 
     it('passes the default font family in the script too', async () => {
-      mockLoadWebView = true;
-      renderComponent();
-
-      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+      await renderWithWebView('android', '13.13.0');
 
       const injected = readInjectedObject(
         mockWebViewProps.injectedJavaScriptBeforeContentLoaded
@@ -703,6 +722,60 @@ describe('EmbeddedComponent', () => {
           .variables.fontFamily
       );
       expect(injected.initParams.appearance.variables.fontFamily).toBeTruthy();
+    });
+
+    // react-native-webview runs injectedJavaScriptObject as a template literal
+    // on iOS and on Android from 13.13.1, and serves it from a Java method on
+    // Android before that.
+    it.each([
+      ['ios', '13.8.0', false],
+      ['ios', '14.0.1', false],
+      ['ios', undefined, false],
+      ['android', '13.6.0', true],
+      ['android', '13.13.0', true],
+      ['android', '13.13.1', false],
+      ['android', '13.16.0', false],
+      ['android', '14.0.1', false],
+      ['android', undefined, true],
+      ['android', 'not-a-version', true],
+      ['android', '13.13.1-rc.0', true],
+    ] as const)(
+      'on %s with react-native-webview %s, passes injectedJavaScriptObject: %s',
+      async (platform, version, passed) => {
+        await renderWithWebView(platform, version);
+
+        if (passed) {
+          expect(mockWebViewProps.injectedJavaScriptObject).toEqual(
+            readInjectedObject(
+              mockWebViewProps.injectedJavaScriptBeforeContentLoaded
+            )
+          );
+        } else {
+          expect(mockWebViewProps.injectedJavaScriptObject).toBeUndefined();
+        }
+      }
+    );
+
+    it('serves a value that breaks out of a template literal as data', async () => {
+      const breakout =
+        '`; }[(window.__f9Executed = true)]; window.ReactNativeWebView.injectedObjectJson = function () { return `';
+      const interpolation = '${(window.__f9Interpolated = true)}';
+      const componentProps = { setForm: { breakout, interpolation } };
+      await renderWithWebView('ios', '14.0.1', { componentProps });
+
+      expect(mockWebViewProps.injectedJavaScriptObject).toBeUndefined();
+
+      const page: any = {};
+      page.window = page;
+      vm.createContext(page);
+      vm.runInContext(
+        mockWebViewProps.injectedJavaScriptBeforeContentLoaded,
+        page
+      );
+      const injected = JSON.parse(page.ReactNativeWebView.injectedObjectJson());
+      expect(injected.initComponentProps).toEqual(componentProps);
+      expect(page.__f9Executed).toBeUndefined();
+      expect(page.__f9Interpolated).toBeUndefined();
     });
   });
 
