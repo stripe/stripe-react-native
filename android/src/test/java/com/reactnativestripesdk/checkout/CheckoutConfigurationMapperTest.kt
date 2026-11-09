@@ -131,6 +131,87 @@ class CheckoutConfigurationMapperTest {
   }
 
   @Test
+  fun `map uses a light-only payment element palette for both modes`() {
+    val appearance = mapPaymentElementAppearance(
+      readableMapOf(
+        "colors" to readableMapOf("light" to readableMapOf("primary" to "#112233")),
+        "primaryButton" to readableMapOf(
+          "colors" to readableMapOf("light" to readableMapOf("background" to "#445566")),
+        ),
+      ),
+    )
+
+    assertPaymentElementColors(appearance, primary = "#112233", primaryButtonBackground = "#445566")
+  }
+
+  @Test
+  fun `map uses a dark-only payment element palette for both modes`() {
+    val appearance = mapPaymentElementAppearance(
+      readableMapOf(
+        "colors" to readableMapOf("dark" to readableMapOf("primary" to "#112233")),
+        "primaryButton" to readableMapOf(
+          "colors" to readableMapOf("dark" to readableMapOf("background" to "#445566")),
+        ),
+      ),
+    )
+
+    assertPaymentElementColors(appearance, primary = "#112233", primaryButtonBackground = "#445566")
+  }
+
+  @Test
+  @Config(qualifiers = "night")
+  fun `map uses a light-only currency selector palette in dark mode`() {
+    val configuration = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "currencySelectorElement" to readableMapOf(
+          "appearance" to readableMapOf(
+            "colors" to readableMapOf("light" to readableMapOf("background" to "#112233")),
+          ),
+        ),
+      ),
+      context,
+    ) {}.configuration.readField<CurrencySelectorElement.Configuration>("currencySelectorElementConfiguration")
+
+    assertEquals(
+      Color("#112233".toColorInt()),
+      configuration.readField<CurrencySelectorElement.Configuration.Appearance>("appearance")
+        .readField<Color>("background"),
+    )
+  }
+
+  private fun mapPaymentElementAppearance(appearance: ReadableMap): PaymentElement.Configuration.Appearance =
+    CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "paymentElement" to readableMapOf("appearance" to appearance),
+      ),
+      context,
+    ) {}.configuration
+      .readField<PaymentElement.Configuration>("paymentElementConfiguration")
+      .readField("appearance")
+
+  private fun assertPaymentElementColors(
+    appearance: PaymentElement.Configuration.Appearance,
+    primary: String,
+    primaryButtonBackground: String,
+  ) {
+    val primaryButton =
+      appearance.readField<PaymentElement.Configuration.Appearance.PrimaryButton>("primaryButton")
+    for (mode in listOf("colorsLight", "colorsDark")) {
+      assertEquals(
+        primary.toColorInt(),
+        appearance.readField<PaymentElement.Configuration.Appearance.Colors>(mode).readField<Int>("primary"),
+      )
+      assertEquals(
+        primaryButtonBackground.toColorInt(),
+        primaryButton.readField<PaymentElement.Configuration.Appearance.PrimaryButton.Colors>(mode)
+          .readField<Int>("background"),
+      )
+    }
+  }
+
+  @Test
   @Suppress("LongMethod")
   fun `map maps supported configuration fields`() {
     var selectionCount = 0

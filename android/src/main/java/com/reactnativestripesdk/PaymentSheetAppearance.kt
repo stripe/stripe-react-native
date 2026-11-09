@@ -22,8 +22,8 @@ fun buildPaymentSheetAppearance(
   context: Context,
 ): PaymentSheet.Appearance {
   val colorParams = userParams?.getMap(PaymentSheetAppearanceKeys.COLORS)
-  val lightColorParams = colorParams?.getMap(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
-  val darkColorParams = colorParams?.getMap(PaymentSheetAppearanceKeys.DARK) ?: colorParams
+  val lightColorParams = colorParams?.colorPalette(isLight = true)
+  val darkColorParams = colorParams?.colorPalette(isLight = false)
   val insetParams = userParams?.getMap(PaymentSheetAppearanceKeys.FORM_INSETS)
 
   val embeddedAppearance =
@@ -169,8 +169,8 @@ private fun buildPrimaryButton(
   val fontParams = params.getMap(PaymentSheetAppearanceKeys.FONT) ?: Arguments.createMap()
   val shapeParams = params.getMap(PaymentSheetAppearanceKeys.SHAPES) ?: Arguments.createMap()
   val colorParams = params.getMap(PaymentSheetAppearanceKeys.COLORS) ?: Arguments.createMap()
-  val lightColorParams = colorParams.getMap(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
-  val darkColorParams = colorParams.getMap(PaymentSheetAppearanceKeys.DARK) ?: colorParams
+  val lightColorParams = colorParams.colorPalette(isLight = true)
+  val darkColorParams = colorParams.colorPalette(isLight = false)
 
   return PaymentSheet.PrimaryButton(
     colorsLight =
@@ -532,6 +532,17 @@ private fun dynamicColorFromParams(
 
   // Check if it's a single color string
   return colorFromHex(params.getString(key))
+}
+
+/**
+ * Returns the palette to use for light or dark mode from a `colors` map. If only one of `light`
+ * or `dark` is provided, that palette is used for both modes. If neither is provided, the map
+ * itself is used for both modes.
+ */
+internal fun ReadableMap.colorPalette(isLight: Boolean): ReadableMap {
+  val light = getMap(PaymentSheetAppearanceKeys.LIGHT)
+  val dark = getMap(PaymentSheetAppearanceKeys.DARK)
+  return (if (isLight) light ?: dark else dark ?: light) ?: this
 }
 
 @Throws(PaymentSheetAppearanceException::class)

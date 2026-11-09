@@ -223,6 +223,50 @@ class PaymentSheetAppearanceTest {
   }
 
   @Test
+  fun testSingleModeColorsApplyToBothModes() {
+    for (mode in listOf("light", "dark")) {
+      val json =
+        """
+        {
+          "colors": {
+            "$mode": { "primary": "#123456" }
+          },
+          "primaryButton": {
+            "colors": {
+              "$mode": { "background": "#ABCDEF" }
+            }
+          }
+        }
+        """.trimIndent()
+
+      val appearance = buildPaymentSheetAppearance(jsonToMap(json), context)
+
+      val expectedAppearance =
+        PaymentSheet.Appearance.Builder()
+          .typography(PaymentSheet.Typography.Builder().build())
+          .colorsLight(PaymentSheet.Colors.Builder.light().primary(Color.parseColor("#123456")).build())
+          .colorsDark(PaymentSheet.Colors.Builder.dark().primary(Color.parseColor("#123456")).build())
+          .shapes(PaymentSheet.Shapes.Builder().build())
+          .primaryButton(
+            PaymentSheet.PrimaryButton(
+              colorsLight =
+                PaymentSheet.PrimaryButtonColors.Builder.light()
+                  .background(Color.parseColor("#ABCDEF"))
+                  .build(),
+              colorsDark =
+                PaymentSheet.PrimaryButtonColors.Builder.dark()
+                  .background(Color.parseColor("#ABCDEF"))
+                  .build(),
+              shape = PaymentSheet.PrimaryButtonShape(),
+              typography = PaymentSheet.PrimaryButtonTypography(),
+            ),
+          ).build()
+
+      assertEquals(mode, expectedAppearance, appearance)
+    }
+  }
+
+  @Test
   fun testFullEmbeddedAppearance_FlatWithRadio() {
     val json =
       """

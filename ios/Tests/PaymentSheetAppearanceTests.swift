@@ -377,25 +377,60 @@ class PaymentSheetAppearanceTests: XCTestCase {
         }
     }
 
-    func test_buildAppearanceFromParams_mismatchedAppearanceModes_throwsError() throws {
+    func test_buildAppearanceFromParams_lightOnlyColors_appliesToBothModes() throws {
         let params: NSDictionary = [
             "colors": [
                 "light": [
                     "primary": "#123456"
                 ],
-                // Missing dark mode
+            ],
+            "primaryButton": [
+                "colors": [
+                    "light": [
+                        "background": "#ABCDEF"
+                    ],
+                ],
             ],
         ]
 
-        XCTAssertThrowsError(
-            try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
-        ) { error in
-            XCTAssertTrue(error is PaymentSheetAppearanceError)
-            if case PaymentSheetAppearanceError.missingAppearanceMode = error {
-                // Success
-            } else {
-                XCTFail("Expected missingAppearanceMode error")
-            }
+        let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
+
+        assertColor(appearance.colors.primary, resolvesTo: "#123456")
+        assertColor(appearance.primaryButton.backgroundColor, resolvesTo: "#ABCDEF")
+    }
+
+    func test_buildAppearanceFromParams_darkOnlyColors_appliesToBothModes() throws {
+        let params: NSDictionary = [
+            "colors": [
+                "dark": [
+                    "primary": "#123456"
+                ],
+            ],
+            "primaryButton": [
+                "colors": [
+                    "dark": [
+                        "background": "#ABCDEF"
+                    ],
+                ],
+            ],
+        ]
+
+        let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
+
+        assertColor(appearance.colors.primary, resolvesTo: "#123456")
+        assertColor(appearance.primaryButton.backgroundColor, resolvesTo: "#ABCDEF")
+    }
+
+    private func assertColor(
+        _ color: UIColor?,
+        resolvesTo hexString: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let expected = UIColor(hexString: hexString)
+        for style in [UIUserInterfaceStyle.light, .dark] {
+            let traits = UITraitCollection(userInterfaceStyle: style)
+            XCTAssertEqual(color?.resolvedColor(with: traits), expected.resolvedColor(with: traits), file: file, line: line)
         }
     }
 }

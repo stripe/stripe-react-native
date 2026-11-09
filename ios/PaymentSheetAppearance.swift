@@ -67,13 +67,7 @@ internal class PaymentSheetAppearance {
     private class func buildColors(params: NSDictionary) throws -> PaymentSheet.Appearance.Colors {
         var colors = PaymentSheet.Appearance.Colors()
 
-        if params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && params.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
-            params.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil {
-            throw PaymentSheetAppearanceError.missingAppearanceMode
-        }
-
-        let lightModeParams = params[PaymentSheetAppearanceKeys.LIGHT] as? NSDictionary ?? params
-        let darkModeParams = params[PaymentSheetAppearanceKeys.DARK] as? NSDictionary ?? params
+        let (lightModeParams, darkModeParams) = buildModeParams(colorParams: params)
 
         colors.primary = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.PRIMARY, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.primary
         colors.background = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.background
@@ -88,6 +82,15 @@ internal class PaymentSheetAppearance {
         colors.danger = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.ERROR, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.danger
 
         return colors
+    }
+
+    /// Returns the palettes to use in light and dark mode. If only one of `light` or `dark` is
+    /// provided, that palette is used for both modes. If neither is provided, `colorParams` itself
+    /// is used for both modes.
+    private class func buildModeParams(colorParams: NSDictionary) -> (light: NSDictionary, dark: NSDictionary) {
+        let light = colorParams[PaymentSheetAppearanceKeys.LIGHT] as? NSDictionary
+        let dark = colorParams[PaymentSheetAppearanceKeys.DARK] as? NSDictionary
+        return (light ?? dark ?? colorParams, dark ?? light ?? colorParams)
     }
 
     private class func buildShadow(params: NSDictionary) throws -> PaymentSheet.Appearance.Shadow {
@@ -135,13 +138,7 @@ internal class PaymentSheetAppearance {
             }
         }
         if let colorParams = params[PaymentSheetAppearanceKeys.COLORS] as? NSDictionary {
-            if colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
-                colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil {
-                throw PaymentSheetAppearanceError.missingAppearanceMode
-            }
-
-            let lightModeParams = colorParams[PaymentSheetAppearanceKeys.LIGHT] as? NSDictionary ?? colorParams
-            let darkModeParams = colorParams[PaymentSheetAppearanceKeys.DARK] as? NSDictionary ?? colorParams
+            let (lightModeParams, darkModeParams) = buildModeParams(colorParams: colorParams)
 
             primaryButton.backgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams)
             primaryButton.textColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.TEXT, lightParams: lightModeParams, darkParams: darkModeParams)
@@ -386,7 +383,6 @@ internal class PaymentSheetAppearance {
 
 enum PaymentSheetAppearanceError: Error {
     case missingFont(String)
-    case missingAppearanceMode
     case unexpectedHexStringLength(String)
     case invalidRowStyle(String)
 }
@@ -396,8 +392,6 @@ extension PaymentSheetAppearanceError: LocalizedError {
         switch self {
         case .missingFont(let fontFamily):
             return NSLocalizedString("Failed to set Payment Sheet appearance. Unable to find font: \(fontFamily)", comment: "Failed to set font")
-        case .missingAppearanceMode:
-            return NSLocalizedString("Failed to set Payment Sheet appearance. When providing 'colors.light' or 'colors.dark', you must provide both.", comment: "Failed to set colors")
         case .unexpectedHexStringLength(let hexString):
             return NSLocalizedString("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: \(hexString)", comment: "Failed to set color")
         case .invalidRowStyle(let styleString):

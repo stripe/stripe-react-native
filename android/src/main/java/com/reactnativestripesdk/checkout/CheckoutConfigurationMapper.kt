@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
+import com.reactnativestripesdk.colorPalette
 import com.reactnativestripesdk.getFontResId
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.forEachKey
@@ -91,8 +92,8 @@ internal object CheckoutConfigurationMapper {
       )
     }
     appearanceParams?.getMap("colors")?.let { colors ->
-      appearance.colorsLight(mapShippingAddressColors(colors.getMap("light") ?: colors, true))
-      appearance.colorsDark(mapShippingAddressColors(colors.getMap("dark") ?: colors, false))
+      appearance.colorsLight(mapShippingAddressColors(colors.colorPalette(isLight = true), true))
+      appearance.colorsDark(mapShippingAddressColors(colors.colorPalette(isLight = false), false))
     }
     appearanceParams?.getMap("primaryButton")?.let { buttonParams ->
       appearance.primaryButton(mapShippingAddressPrimaryButton(buttonParams, context))
@@ -117,8 +118,8 @@ internal object CheckoutConfigurationMapper {
   ): ShippingAddressAppearance.PrimaryButton {
     val button = ShippingAddressAppearance.PrimaryButton()
     params.getMap("colors")?.let { colors ->
-      button.colorsLight(mapShippingAddressButtonColors(colors.getMap("light") ?: colors, true))
-      button.colorsDark(mapShippingAddressButtonColors(colors.getMap("dark") ?: colors, false))
+      button.colorsLight(mapShippingAddressButtonColors(colors.colorPalette(isLight = true), true))
+      button.colorsDark(mapShippingAddressButtonColors(colors.colorPalette(isLight = false), false))
     }
     params.getMap("shapes")?.let { shapes ->
       button.shape(
@@ -236,7 +237,7 @@ internal object CheckoutConfigurationMapper {
         "alwaysDark" -> false
         else -> !context.resources.configuration.isDarkTheme()
       }
-      val palette = colors.getMap(if (isLight) "light" else "dark") ?: colors
+      val palette = colors.colorPalette(isLight)
       palette.color("border", isLight)?.let { appearance.borderColor(Color(it)) }
       palette.color("background", isLight)?.let { appearance.background(Color(it)) }
       palette.color("selectedBackground", isLight)?.let { appearance.selectedBackground(Color(it)) }
@@ -417,8 +418,8 @@ internal object CheckoutConfigurationMapper {
     style?.let { appearance.themeMode(mapThemeMode(it)) }
     val colors = params?.getMap("colors")
     if (colors != null) {
-      appearance.colorsLight(mapColors(colors.getMap("light") ?: colors, isLight = true))
-      appearance.colorsDark(mapColors(colors.getMap("dark") ?: colors, isLight = false))
+      appearance.colorsLight(mapColors(colors.colorPalette(isLight = true), isLight = true))
+      appearance.colorsDark(mapColors(colors.colorPalette(isLight = false), isLight = false))
     }
     params?.getMap("primaryButton")?.let { appearance.primaryButton(mapPrimaryButton(it, context)) }
     params?.getMap("font")?.let { font ->
@@ -590,8 +591,8 @@ internal object CheckoutConfigurationMapper {
     val primaryButton = PaymentElement.Configuration.Appearance.PrimaryButton()
     val colors = params.getMap("colors")
     if (colors != null) {
-      primaryButton.colorsLight(mapPrimaryButtonColors(colors.getMap("light") ?: colors, true))
-      primaryButton.colorsDark(mapPrimaryButtonColors(colors.getMap("dark") ?: colors, false))
+      primaryButton.colorsLight(mapPrimaryButtonColors(colors.colorPalette(isLight = true), true))
+      primaryButton.colorsDark(mapPrimaryButtonColors(colors.colorPalette(isLight = false), false))
     }
 
     params.getMap("shapes")?.let { shapes ->

@@ -4,6 +4,7 @@
 
 **Fixes**
 
+* [Fixed] Appearance `colors` with only `light` or only `dark` now apply that palette in both modes. Previously, iOS failed with a "you must provide both" error and Android used default colors for the missing mode.
 * [Fixed] Exclude Android unit test sources and other test globs from the published npm package.
 
 ## 0.85.0 - 2026-11-03
