@@ -21,6 +21,7 @@ import {
 import type { WebViewMessageEvent, WebViewProps } from 'react-native-webview';
 import type {
   ShouldStartLoadRequest,
+  WebViewNavigationEvent,
   WebViewOpenWindowEvent,
 } from 'react-native-webview/lib/WebViewTypes';
 import type { EventSubscription } from 'react-native';
@@ -440,6 +441,34 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const ref = useRef<WebViewHandle>(null);
   const hasTriedSourceReload = useRef(false);
 
+  // D3 hygiene, NOT the security boundary (that's deliverToWrapper's
+  // origin/path guard, which runs inside the document itself). Bumping this
+  // on every new top-frame document load lets async completions drop a
+  // reply whose request predates a newer load, instead of injecting it into
+  // a document that never asked for it.
+  const documentGeneration = useRef(0);
+  const lastLoadStartUrl = useRef<string | null>(null);
+
+  const onLoadStart = useCallback((event: WebViewNavigationEvent) => {
+    const { url, navigationType } = event.nativeEvent;
+    const previousUrl = lastLoadStartUrl.current;
+    lastLoadStartUrl.current = url;
+
+    // A pure fragment change within the same document (e.g. client-side
+    // routing) isn't a new document load, so it shouldn't invalidate
+    // in-flight requests. A same-URL reload -- including the forced iOS
+    // reload below -- is still treated as a new load.
+    if (
+      previousUrl !== null &&
+      navigationType !== 'reload' &&
+      isSameDocumentExceptFragment(previousUrl, url)
+    ) {
+      return;
+    }
+
+    documentGeneration.current += 1;
+  }, []);
+
   const [prevAppearance, setPrevAppearance] = useState(appearance);
   const [prevLocale, setPrevLocale] = useState(locale);
 
@@ -618,11 +647,17 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }
 
       if (message.type === 'fetchClientSecret') {
+        const requestGeneration = documentGeneration.current;
         const clientSecret = await fetchClientSecret().catch((error) => {
           handleUnexpectedError(error);
           return null;
         });
         if (!clientSecret) return;
+        // Hygiene (D3): a new top-frame load started while fetchClientSecret
+        // was pending, so the document that asked for this secret may no
+        // longer be running. Each wrapper document requests its own secret
+        // during init, so dropping a stale first-load reply is safe.
+        if (documentGeneration.current !== requestGeneration) return;
 
         ref.current?.injectJavaScript(
           deliverToWrapper(
@@ -993,6 +1028,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={injectedObjectScript}
+      onLoadStart={onLoadStart}
       onMessage={onMessageCallback}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
       onOpenWindow={onOpenWindow}
@@ -1175,6 +1211,28 @@ function deliverToWrapper(payloadScript: string): string {
       true;
     })();
   `;
+}
+
+// Is `nextUrl` the same document as `prevUrl`, differing only in the
+// fragment (e.g. client-side routing within the wrapper)? Used by the
+// generation counter to tell a pure fragment change apart from a real
+// document load.
+function isSameDocumentExceptFragment(
+  prevUrl: string,
+  nextUrl: string
+): boolean {
+  try {
+    const prev = new URL(prevUrl);
+    const next = new URL(nextUrl);
+    return (
+      prev.protocol === next.protocol &&
+      prev.host === next.host &&
+      prev.pathname === next.pathname &&
+      prev.search === next.search
+    );
+  } catch {
+    return false;
+  }
 }
 
 // Is `url` the exact wrapper document the SDK trusts with the secret-key

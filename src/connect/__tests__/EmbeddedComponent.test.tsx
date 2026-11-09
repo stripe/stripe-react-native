@@ -1406,6 +1406,76 @@ describe('EmbeddedComponent', () => {
     });
   });
 
+  describe('Generation counter (D3 hygiene)', () => {
+    const WRAPPER_URL =
+      'https://connect-js.stripe.com/v1.0/react_native_webview.html';
+
+    it('drops a delayed fetchClientSecret reply after a new top-frame load starts', async () => {
+      let resolveSecret: (value: string) => void = () => {};
+      const secretPromise = new Promise<string>((resolve) => {
+        resolveSecret = resolve;
+      });
+      connectInstance = loadConnectAndInitialize({
+        ...mockInitParams,
+        fetchClientSecret: jest.fn(() => secretPromise),
+      });
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      const messagePromise = webViewOnMessage?.({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'fetchClientSecret' }),
+        },
+      });
+
+      act(() => {
+        mockWebViewProps.onLoadStart({
+          nativeEvent: {
+            url: `${WRAPPER_URL}#component=other`,
+            navigationType: 'other',
+          },
+        });
+      });
+
+      resolveSecret('secret_late');
+      await act(async () => {
+        await messagePromise;
+      });
+
+      expect(mockInjectJavaScript).not.toHaveBeenCalled();
+    });
+
+    it('delivers a fetchClientSecret reply when no load intervenes', async () => {
+      let resolveSecret: (value: string) => void = () => {};
+      const secretPromise = new Promise<string>((resolve) => {
+        resolveSecret = resolve;
+      });
+      connectInstance = loadConnectAndInitialize({
+        ...mockInitParams,
+        fetchClientSecret: jest.fn(() => secretPromise),
+      });
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      const messagePromise = webViewOnMessage?.({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'fetchClientSecret' }),
+        },
+      });
+
+      resolveSecret('secret_on_time');
+      await act(async () => {
+        await messagePromise;
+      });
+
+      expect(mockInjectJavaScript).toHaveBeenCalledWith(
+        expect.stringContaining('secret_on_time')
+      );
+    });
+  });
+
   describe('toStripeJsBankAccountToken', () => {
     it('maps camelCase token to snake_case Stripe.js shape', () => {
       const result = toStripeJsBankAccountToken({
