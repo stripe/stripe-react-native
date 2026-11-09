@@ -9,6 +9,7 @@
 
 **Fixes**
 
+* [Fixed] Example iOS CocoaPods bootstrap on Ruby 3.4 by pinning CocoaPods 1.16.2 and json below 3; align root `react-native-webview` with the example app and type Connect's dynamic WebView load for that release.
 * [Fixed] Android: `updateEmbeddedPaymentElement` now resolves with a Failed error instead of hanging.
 * [Fixed] Android: Customer Sheet adapter callbacks now resolve after completing their deferred work, including decode failures on attach and detach.
 * [Fixed] Android: `initCustomerSheet` no longer resolves twice when both an ephemeral key and an intent configuration are provided.
