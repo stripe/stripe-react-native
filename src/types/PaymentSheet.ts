@@ -218,7 +218,7 @@ export enum TermsDisplay {
 export type AppearanceParams = RecursivePartial<{
   /** Describes the appearance of fonts in your PaymentSheet */
   font: FontConfig;
-  /** Describes the colors in your PaymentSheet. Provide either a base config, or `light` and `dark` configs, which will be used based on whether the user is in Light or Dark mode. If only one of `light` or `dark` is provided, it's used in both modes. */
+  /** Describes the colors in your PaymentSheet. Provide either a base config, or `light` and/or `dark` configs, which will be useed based on whether the user is in Light or Dark mode.  */
   colors:
     | GlobalColorConfig
     | { light: GlobalColorConfig; dark: GlobalColorConfig };
@@ -357,7 +357,7 @@ export type PrimaryButtonConfig = {
    * @default The root `appearance.font.family`
    */
   font: Pick<FontConfig, 'family'>;
-  /** The colors used specifically for the primary button. Provide either a base config, or `light` and `dark` configs, which will be used based on whether the user is in Light or Dark mode. If only one of `light` or `dark` is provided, it's used in both modes. */
+  /** The colors used specifically for the primary button. Provide either a base config, or `light` and/or `dark` configs, which will be useed based on whether the user is in Light or Dark mode.  */
   colors:
     | PrimaryButtonColorConfig
     | { light: PrimaryButtonColorConfig; dark: PrimaryButtonColorConfig };
