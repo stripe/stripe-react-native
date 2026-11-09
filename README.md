@@ -109,7 +109,7 @@ implementation 'com.google.android.material:material:<version>'
 
 #### iOS
 
-The Stripe React Native SDK supports all [Apple supported Xcode versions](https://developer.apple.com/news/upcoming-requirements/) and is compatible with apps targeting iOS 13 or above. For iOS 12 support, please use [`@stripe/stripe-react-native@0.19.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.19.0).
+The Stripe React Native SDK supports all [Apple supported Xcode versions](https://developer.apple.com/news/upcoming-requirements/) and is compatible with apps targeting iOS 15 or above. For iOS 12 support, please use [`@stripe/stripe-react-native@0.19.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.19.0).
 
 The SDK requires that your app uses dynamic linkage. See more details below.
 
