@@ -218,7 +218,7 @@ export enum TermsDisplay {
 export type AppearanceParams = RecursivePartial<{
   /** Describes the appearance of fonts in your PaymentSheet */
   font: FontConfig;
-  /** Describes the colors in your PaymentSheet. Provide a base config, a `light` config, a `dark` config, or both mode configs. */
+  /** Describes the colors in your PaymentSheet. Provide a base config, a `light` config, a `dark` config, or both mode configs. An omitted mode uses its default colors. */
   colors:
     | GlobalColorConfig
     | { light: GlobalColorConfig; dark: GlobalColorConfig };

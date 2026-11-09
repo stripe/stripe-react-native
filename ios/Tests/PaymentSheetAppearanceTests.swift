@@ -435,6 +435,28 @@ class PaymentSheetAppearanceTests: XCTestCase {
         XCTAssertEqual(appearance.colors.background.resolvedColor(with: darkTraits), UIColor(hexString: "#654321"))
     }
 
+    func test_buildAppearanceFromParams_singleModeColors_preservesLiquidGlassDefaults() throws {
+        guard #available(iOS 26.0, *),
+              Bundle.main.infoDictionary?["UIDesignRequiresCompatibility"] as? Bool != true else {
+            return
+        }
+
+        var defaults = PaymentSheet.Appearance()
+        defaults.applyLiquidGlass()
+        let params: NSDictionary = [
+            "applyLiquidGlass": true,
+            "colors": ["light": ["primary": "#123456"]],
+        ]
+        let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
+        let lightTraits = UITraitCollection(userInterfaceStyle: .light)
+        let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+
+        XCTAssertEqual(appearance.colors.primary.resolvedColor(with: lightTraits), UIColor(hexString: "#123456"))
+        XCTAssertEqual(appearance.colors.primary.resolvedColor(with: darkTraits), defaults.colors.primary.resolvedColor(with: darkTraits))
+        XCTAssertEqual(appearance.colors.background.resolvedColor(with: lightTraits), defaults.colors.background.resolvedColor(with: lightTraits))
+        XCTAssertEqual(appearance.colors.background.resolvedColor(with: darkTraits), defaults.colors.background.resolvedColor(with: darkTraits))
+    }
+
     func test_buildAppearanceFromParams_singleModePrimaryButtonColors_usesDefaultBackgroundForOtherMode() throws {
         let params: NSDictionary = [
             "colors": ["primary": "#112233"],

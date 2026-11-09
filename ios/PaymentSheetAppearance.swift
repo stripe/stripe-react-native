@@ -28,7 +28,7 @@ internal class PaymentSheetAppearance {
             appearance.font = try buildFont(params: fontParams)
         }
         if let colorParams = userParams[PaymentSheetAppearanceKeys.COLORS] as? NSDictionary {
-            appearance.colors = try buildColors(params: colorParams)
+            appearance.colors = try buildColors(params: colorParams, defaults: appearance.colors)
         }
         if let shapeParams = userParams[PaymentSheetAppearanceKeys.SHAPES] as? NSDictionary {
             appearance.cornerRadius = shapeParams[PaymentSheetAppearanceKeys.BORDER_RADIUS] as? CGFloat ?? PaymentSheet.Appearance.default.cornerRadius
@@ -64,8 +64,8 @@ internal class PaymentSheetAppearance {
         return font
     }
 
-    private class func buildColors(params: NSDictionary) throws -> PaymentSheet.Appearance.Colors {
-        var colors = PaymentSheet.Appearance.Colors()
+    private class func buildColors(params: NSDictionary, defaults: PaymentSheet.Appearance.Colors) throws -> PaymentSheet.Appearance.Colors {
+        var colors = defaults
 
         let lightModeParams = params[PaymentSheetAppearanceKeys.LIGHT] as? NSDictionary ?? params
         let darkModeParams = params[PaymentSheetAppearanceKeys.DARK] as? NSDictionary ?? params
@@ -161,7 +161,7 @@ internal class PaymentSheetAppearance {
         if #available(iOS 13.0, *) {
             return UIColor.init { traits in
                 let color = traits.userInterfaceStyle == .dark ? darkColor : lightColor
-                // Optional button colors have no SDK default to resolve, so reuse the provided mode's color.
+                // An optional SDK override has no concrete default, so use the provided color in both modes.
                 return color ?? defaultColor?.resolvedColor(with: traits) ?? providedColor
             }
         } else {
