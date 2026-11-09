@@ -155,17 +155,22 @@ export async function createCheckoutController(
         throw checkoutError('Failed', CHECKOUT_DESTROYED_MESSAGE);
       }
     };
-    const performOperation = async <T>(
+    const invokeIfActive = async <T>(
       operation: () => Promise<T>
     ): Promise<T> => {
       assertActive();
       try {
-        const operationResult = await operation();
-        assertActive();
-        return operationResult;
+        return await operation();
       } catch (error) {
         throw normalizeCheckoutError(error);
       }
+    };
+    const performOperation = async <T>(
+      operation: () => Promise<T>
+    ): Promise<T> => {
+      const operationResult = await invokeIfActive(operation);
+      assertActive();
+      return operationResult;
     };
 
     const paymentElement = {
@@ -226,7 +231,7 @@ export async function createCheckoutController(
           NativeStripeSdk.clearCheckoutPaymentOption(controllerId)
         ),
       confirm: () =>
-        performOperation(() => NativeStripeSdk.confirmCheckout(controllerId)),
+        invokeIfActive(() => NativeStripeSdk.confirmCheckout(controllerId)),
       destroy: () => {
         if (destroyPromise) {
           return destroyPromise;

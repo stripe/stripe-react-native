@@ -23,10 +23,7 @@ final class NativeCheckoutControllerInstance {
     private var controllerId: String?
     private var destructionObservers: [UUID: () -> Void] = [:]
     private var isDestroyed = false
-    private var confirmation: (
-        task: Task<Void, Never>,
-        completion: (Result<CheckoutElementsController.ConfirmResult, Error>) -> Void
-    )?
+    private var isConfirming = false
     private var serverUpdateContinuations: [String: CheckedContinuation<Void, Error>] = [:]
 
     init(
@@ -52,28 +49,34 @@ final class NativeCheckoutControllerInstance {
             .sink { [weak self] session, isUpdating in
                 guard let self, !isDestroyed else { return }
                 self.session = session
-                emit(status: confirmation != nil ? .confirming : (isUpdating ? .updating : .ready))
+                emit(status: isConfirming ? .confirming : (isUpdating ? .updating : .ready))
             }
     }
 
     /// Adapts native confirmation to the lifetime of this bridge controller.
     func confirm(
         from presenter: UIViewController,
-        completion: @escaping (Result<CheckoutElementsController.ConfirmResult, Error>) -> Void
+        completion: @escaping (CheckoutElementsController.ConfirmResult) -> Void
     ) throws {
         guard !isDestroyed else { throw CheckoutBridgeError.destroyed }
-        guard confirmation == nil else { throw CheckoutBridgeError.confirmationInProgress }
-        let task = Task { @MainActor [weak self, checkout] in
-            guard !Task.isCancelled else { return }
-            let result = await checkout.confirm(from: presenter)
-            guard let self, let confirmation else { return }
-            self.confirmation = nil
-            session = CheckoutSessionSerializer.serialize(checkout.session)
-            emit(status: checkout.isUpdating ? .updating : .ready)
-            confirmation.completion(.success(result))
-        }
-        confirmation = (task, completion)
+        guard !isConfirming else { throw CheckoutBridgeError.confirmationInProgress }
+        isConfirming = true
         emit(status: .confirming)
+        // Retains self so destruction can't drop the result.
+        Task { @MainActor [self] in
+            guard !isDestroyed else {
+                isConfirming = false
+                completion(.canceled)
+                return
+            }
+            let result = await checkout.confirm(from: presenter)
+            isConfirming = false
+            if !isDestroyed {
+                session = CheckoutSessionSerializer.serialize(checkout.session)
+                emit(status: checkout.isUpdating ? .updating : .ready)
+            }
+            completion(result)
+        }
     }
 
     func runServerUpdate(
@@ -124,11 +127,6 @@ final class NativeCheckoutControllerInstance {
     func destroy() {
         guard !isDestroyed else { return }
         isDestroyed = true
-        if let confirmation {
-            self.confirmation = nil
-            confirmation.task.cancel()
-            confirmation.completion(.failure(CancellationError()))
-        }
         let observers = Array(destructionObservers.values)
         destructionObservers.removeAll()
         observers.forEach { $0() }

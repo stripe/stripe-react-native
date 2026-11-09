@@ -255,7 +255,7 @@ class NativeCheckoutControllerInstanceTest {
     fixture.instance.onConfirmationResult(completed)
     fixture.updating.value = false
     fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
-    assertEquals(completed, pending.await())
+    assertEquals("completed", pending.await().getString("status"))
     assertEquals("complete", fixture.events.last().getMap("session")!!.getMap("status")!!.getString("type"))
     assertEquals("ready", fixture.events.last().getString("status"))
   }
@@ -271,13 +271,13 @@ class NativeCheckoutControllerInstanceTest {
     verify(fixture.presenter, times(1)).confirm()
     val canceled = NativeCheckoutFixtures.canceledResult()
     fixture.instance.onConfirmationResult(canceled)
-    assertEquals(canceled, first.await())
+    assertEquals("canceled", first.await().getString("status"))
 
     doAnswer {
       fixture.instance.onConfirmationResult(canceled)
       null
     }.`when`(fixture.presenter).confirm()
-    assertEquals(canceled, fixture.instance.confirm(fixture.activity.get()))
+    assertEquals("canceled", fixture.instance.confirm(fixture.activity.get()).getString("status"))
     verify(fixture.controller, times(1)).createPresenter(fixture.activity.get())
   }
 
@@ -293,24 +293,54 @@ class NativeCheckoutControllerInstanceTest {
       fixture.instance.onConfirmationResult(canceled)
       null
     }.`when`(fixture.presenter).confirm()
-    assertEquals(canceled, fixture.instance.confirm(fixture.activity.get()))
+    assertEquals("canceled", fixture.instance.confirm(fixture.activity.get()).getString("status"))
   }
 
   @Test
-  fun `destruction cancels pending confirmation and ignores late callbacks`() = withFixture { fixture ->
+  fun `destruction waits for a pending confirmation before releasing native resources`() = withFixture { fixture ->
     fixture.start()
-    var cancellation: Throwable? = null
-    fixture.instance.launchMutation {
-      cancellation = runCatching { fixture.instance.confirm(fixture.activity.get()) }.exceptionOrNull()
-    }
+    var result: WritableMap? = null
+    fixture.instance.launchMutation { result = fixture.instance.confirm(fixture.activity.get()) }
+    runCurrent()
     val eventCountBeforeDestroy = fixture.events.size
     fixture.instance.destroy()
     runCurrent()
-    assertTrue(cancellation is CancellationException)
-    assertEquals(eventCountBeforeDestroy, fixture.events.size)
+    assertEquals(null, result)
+    verify(fixture.controller, times(0)).destroy()
+
+    fixture.sessions.value = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
     fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
     runCurrent()
+    assertEquals("completed", result?.getString("status"))
+    verify(fixture.controller, times(1)).destroy()
     assertEquals(eventCountBeforeDestroy, fixture.events.size)
+  }
+
+  @Test
+  fun `destroyed activity fails a confirmation pending after destruction`() = withFixture { fixture ->
+    fixture.start()
+    var error: Throwable? = null
+    fixture.instance.launchMutation {
+      error = runCatching { fixture.instance.confirm(fixture.activity.get()) }.exceptionOrNull()
+    }
+    runCurrent()
+    fixture.instance.destroy()
+    fixture.activity.pause().stop().destroy()
+    runCurrent()
+    assertTrue(error is IllegalStateException)
+    verify(fixture.controller, times(1)).destroy()
+  }
+
+  @Test
+  fun `destruction settles a server update while confirmation keeps running`() = withFixture { fixture ->
+    fixture.start()
+    fixture.instance.launchMutation { fixture.instance.confirm(fixture.activity.get()) }
+    var result: Result<Unit>? = null
+    fixture.instance.launchMutation { result = fixture.instance.requestServerUpdate("update-1") {} }
+    fixture.instance.destroy()
+    runCurrent()
+    assertTrue(result?.exceptionOrNull() is CancellationException)
+    fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
   }
 
   private fun withFixture(test: suspend TestScope.(Fixture) -> Unit) = runTest {
@@ -364,7 +394,7 @@ class NativeCheckoutControllerInstanceTest {
     suspend fun close() {
       instance.destroy()
       scope.coroutineContext.job.join()
-      activity.pause().stop().destroy()
+      if (!activity.get().isDestroyed) activity.pause().stop().destroy()
     }
   }
 }

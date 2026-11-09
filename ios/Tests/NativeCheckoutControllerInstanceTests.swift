@@ -127,29 +127,31 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         }
     }
 
-    func test_confirmationRejectsConcurrentAttemptsAndSettlesOnDestruction() async throws {
+    func test_confirmationRejectsConcurrentAttemptsAndCancelsIfDestroyedBeforeStarting() async throws {
         let checkout = try await makeCheckout()
         var statuses: [String] = []
         let instance = NativeCheckoutControllerInstance(checkout: checkout) { event in
             statuses.append(event["status"] as! String)
         }
         instance.start(controllerId: "confirming")
-        var results: [Result<CheckoutElementsController.ConfirmResult, Error>] = []
         let presenter = UIViewController()
+        let finished = expectation(description: "Confirmation finished")
+        var result: CheckoutElementsController.ConfirmResult?
 
-        try instance.confirm(from: presenter) { results.append($0) }
+        try instance.confirm(from: presenter) {
+            result = $0
+            finished.fulfill()
+        }
         XCTAssertEqual(statuses.last, "confirming")
         XCTAssertThrowsError(try instance.confirm(from: presenter) { _ in
             XCTFail("A second confirmation must not start.")
         })
         instance.destroy()
-        await Task.yield()
+        await fulfillment(of: [finished], timeout: 2)
 
-        XCTAssertEqual(results.count, 1)
-        guard case .failure(let error) = results.first else {
-            return XCTFail("Destruction must reject pending confirmation.")
+        guard case .canceled = result else {
+            return XCTFail("Expected .canceled, got \(String(describing: result)).")
         }
-        XCTAssertTrue(error is CancellationError)
         XCTAssertEqual(statuses, ["ready", "confirming"])
         XCTAssertThrowsError(try instance.confirm(from: presenter) { _ in
             XCTFail("A destroyed controller must not confirm.")

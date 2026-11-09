@@ -13,6 +13,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
     createCheckout: jest.fn(),
     destroyCheckout: jest.fn(),
     updateCheckoutEmail: jest.fn(),
+    confirmCheckout: jest.fn(),
     runCheckoutServerUpdate: jest.fn(),
     completeCheckoutServerUpdate: jest.fn(),
   },
@@ -27,6 +28,7 @@ const events = addListener as jest.Mock;
 const create = NativeStripeSdk.createCheckout as jest.Mock;
 const destroy = NativeStripeSdk.destroyCheckout as jest.Mock;
 const updateEmail = NativeStripeSdk.updateCheckoutEmail as jest.Mock;
+const confirm = NativeStripeSdk.confirmCheckout as jest.Mock;
 const startServerUpdate = NativeStripeSdk.runCheckoutServerUpdate as jest.Mock;
 const completeServerUpdate =
   NativeStripeSdk.completeCheckoutServerUpdate as jest.Mock;
@@ -112,6 +114,21 @@ it('loads while enabled and follows native updates', async () => {
   expect(configuration).toHaveBeenCalledTimes(1);
   hook.unmount();
   await waitFor(() => expect(destroy).toHaveBeenCalledWith(controllerId()));
+});
+
+it('returns the result of a confirmation pending at unmount', async () => {
+  const hook = renderCheckout();
+  await waitFor(() => expect(hook.result.current.status).toBe('ready'));
+  const nativeConfirmation = deferred<CheckoutElements.Result>();
+  confirm.mockReturnValueOnce(nativeConfirmation.promise);
+  const confirmation = hook.result.current.confirm();
+
+  hook.unmount();
+  await waitFor(() => expect(destroy).toHaveBeenCalledWith(controllerId()));
+  const completed = { status: 'completed', paymentStatus: 'paid' } as const;
+  nativeConfirmation.resolve(completed);
+
+  await expect(confirmation).resolves.toBe(completed);
 });
 
 it('reloads with the latest configuration and ignores old events', async () => {

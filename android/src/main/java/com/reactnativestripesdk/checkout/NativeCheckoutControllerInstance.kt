@@ -15,6 +15,7 @@ import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.elements.ShippingAddressElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -49,6 +50,15 @@ internal class NativeCheckoutControllerInstance(
   private val activityObserver = LifecycleEventObserver { _, event ->
     if (event == Lifecycle.Event.ON_DESTROY) {
       releasePresenter()
+      // A destroyed controller can't recreate its presenter to receive the result.
+      if (destroyed) {
+        confirmation?.completeExceptionally(
+          IllegalStateException(
+            "The activity was destroyed before Checkout confirmation finished. " +
+              "Check the Checkout Session status before retrying.",
+          ),
+        )
+      }
     }
   }
 
@@ -85,7 +95,7 @@ internal class NativeCheckoutControllerInstance(
 
   /** Waits for the controller's result callback within the bridge controller's lifetime. */
   @MainThread
-  suspend fun confirm(activity: ComponentActivity): CheckoutController.Result {
+  suspend fun confirm(activity: ComponentActivity): WritableMap {
     UiThreadUtil.assertOnUiThread()
     check(!destroyed) { "Checkout controller was destroyed." }
     check(confirmation == null) { "Checkout confirmation is already in progress." }
@@ -95,11 +105,15 @@ internal class NativeCheckoutControllerInstance(
       emit("confirming")
       getPresenter(activity).confirm()
       val confirmationResult = result.await()
-      publishCurrentState()
-      return confirmationResult
+      if (!destroyed) publishCurrentState()
+      return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status)
     } finally {
       confirmation = null
-      if (!destroyed) emit(if (controller.isUpdating.value) "updating" else "ready")
+      if (destroyed) {
+        releaseNativeResources()
+      } else {
+        emit(if (controller.isUpdating.value) "updating" else "ready")
+      }
     }
   }
 
@@ -207,6 +221,13 @@ internal class NativeCheckoutControllerInstance(
     val observers = destructionObservers.toList()
     destructionObservers.clear()
     observers.forEach { it() }
+    serverUpdateCompletions.values.forEach {
+      it.complete(Result.failure(CancellationException("Checkout controller was destroyed.")))
+    }
+    if (confirmation == null) releaseNativeResources()
+  }
+
+  private fun releaseNativeResources() {
     releasePresenter()
     scope.cancel()
     controller.destroy()
