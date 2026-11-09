@@ -72,7 +72,10 @@ class EmbeddedPaymentElementViewManager :
             view.invalidate()
           }
         }
-      }.onFailure { error -> view.reportConfigurationLoadingFailed(error) }
+      }.onFailure { error ->
+        view.reportConfigurationLoadingFailed(error)
+        view.latestElementConfig = null
+      }
   }
 
   @ReactProp(name = "intentConfiguration")
@@ -88,7 +91,10 @@ class EmbeddedPaymentElementViewManager :
       .onSuccess { intentConfig ->
         view.latestIntentConfig = intentConfig
         view.latestElementConfig?.let { configureIfReady(view, it) }
-      }.onFailure { error -> view.reportConfigurationLoadingFailed(error) }
+      }.onFailure { error ->
+        view.reportConfigurationLoadingFailed(error)
+        view.latestIntentConfig = null
+      }
   }
 
   /**
@@ -193,15 +199,15 @@ class EmbeddedPaymentElementViewManager :
     intentConfigurationJson: String?,
   ) {
     intentConfigurationJson?.let { json ->
-      try {
+      runCatching {
         val jsonObject = JSONObject(json)
         val cfg = jsonToWritableMap(jsonObject)
-        val intentConfig = buildIntentConfiguration(cfg)
-        if (intentConfig != null) {
-          view.update(intentConfig)
-        }
-      } catch (e: Exception) {
-        android.util.Log.e("EmbeddedPaymentElement", "Failed to parse intent config JSON", e)
+        parseIntentConfiguration(cfg)
+      }.onSuccess { intentConfig ->
+        view.update(intentConfig)
+      }.onFailure { error ->
+        view.latestIntentConfig = null
+        view.reportUpdateLoadingFailed(error)
       }
     }
   }

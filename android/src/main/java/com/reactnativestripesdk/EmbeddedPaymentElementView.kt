@@ -322,8 +322,11 @@ class EmbeddedPaymentElementView(
               )
 
             handleUpdateResult(result)
-
-            latestIntentConfig = ev.intentConfiguration
+            latestIntentConfig =
+              when (result) {
+                is EmbeddedPaymentElement.ConfigureResult.Succeeded -> ev.intentConfiguration
+                is EmbeddedPaymentElement.ConfigureResult.Failed -> null
+              }
           }
 
           is Event.Confirm -> {
@@ -445,6 +448,10 @@ class EmbeddedPaymentElementView(
 
   fun reportConfigurationLoadingFailed(error: Throwable) {
     emitEmbeddedLoadingFailed(error)
+  }
+
+  fun reportUpdateLoadingFailed(error: Throwable) {
+    emitUpdateFailed(error)
   }
 
   private fun emitUpdateFailed(error: Throwable) {
