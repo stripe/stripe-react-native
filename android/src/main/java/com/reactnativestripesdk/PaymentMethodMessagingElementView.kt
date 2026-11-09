@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.uimanager.events.Event
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElement
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElementPreview
 import kotlinx.coroutines.channels.Channel
@@ -28,20 +30,21 @@ import kotlinx.coroutines.flow.consumeAsFlow
 class PaymentMethodMessagingElementView(
   context: Context,
 ) : StripeAbstractComposeView(context) {
-  private sealed interface Event {
+  private sealed interface ViewEvent {
     data class Configure(
       val configuration: PaymentMethodMessagingElement.Configuration,
-    ) : Event
+    ) : ViewEvent
 
     data class Appearance(
       val appearance: PaymentMethodMessagingElement.Appearance,
-    ) : Event
+    ) : ViewEvent
   }
 
   var latestElementConfig: PaymentMethodMessagingElement.Configuration? = null
+  internal var eventDispatcherForTest: ((String, WritableMap?) -> Unit)? = null
 
   private val reactContext get() = context as ThemedReactContext
-  private val events = Channel<Event>(Channel.UNLIMITED)
+  private val events = Channel<ViewEvent>(Channel.UNLIMITED)
 
   @SuppressLint("RestrictedApi")
   @Composable
@@ -56,41 +59,30 @@ class PaymentMethodMessagingElementView(
     LaunchedEffect(Unit) {
       events.consumeAsFlow().collect { ev ->
         when (ev) {
-          is Event.Configure -> {
-            val loadingPayload =
-              Arguments.createMap().apply {
-                putString("status", "loading")
-                putViewTag()
-              }
-            requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(loadingPayload)
+          is ViewEvent.Configure -> {
+            reportConfigureResult(status = "loading")
             val result =
               messagingElement.configure(
                 configuration = ev.configuration,
               )
 
-            val payload =
-              Arguments.createMap().apply {
-                putViewTag()
-                when (result) {
-                  is PaymentMethodMessagingElement.ConfigureResult.Succeeded -> {
-                    putString("status", "loaded")
-                  }
-                  is PaymentMethodMessagingElement.ConfigureResult.NoContent -> {
-                    putString("status", "no_content")
-                    reportHeightChange(0f)
-                  }
-                  is PaymentMethodMessagingElement.ConfigureResult.Failed -> {
-                    val err = result.error
-                    val msg = err.localizedMessage ?: err.toString()
-                    putString("status", "failed")
-                    putString("message", msg)
-                    reportHeightChange(0f)
-                  }
-                }
+            when (result) {
+              is PaymentMethodMessagingElement.ConfigureResult.Succeeded -> {
+                reportConfigureResult(status = "loaded")
               }
-            requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(payload)
+              is PaymentMethodMessagingElement.ConfigureResult.NoContent -> {
+                reportHeightChange(0f)
+                reportConfigureResult(status = "no_content")
+              }
+              is PaymentMethodMessagingElement.ConfigureResult.Failed -> {
+                val err = result.error
+                val msg = err.localizedMessage ?: err.toString()
+                reportHeightChange(0f)
+                reportConfigureResult(status = "failed", message = msg)
+              }
+            }
           }
-          is Event.Appearance -> {
+          is ViewEvent.Appearance -> {
             appearance = ev.appearance
           }
         }
@@ -149,38 +141,96 @@ class PaymentMethodMessagingElementView(
   }
 
   private fun reportHeightChange(height: Float) {
-    val params =
+    val payload =
       Arguments.createMap().apply {
         putDouble("height", height.toDouble())
-        putViewTag()
+        putInt("viewTag", id)
       }
-    requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementDidUpdateHeight(params)
+    dispatchEvent(PaymentMethodMessagingElementHeightEvent.EVENT_NAME, payload) {
+      PaymentMethodMessagingElementHeightEvent(reactContext.surfaceId, id, payload)
+    }
   }
 
   fun reportConfigureFailed(error: Throwable) {
     val msg = error.localizedMessage ?: error.toString()
-    val payload =
-      Arguments.createMap().apply {
-        putString("status", "failed")
-        putString("message", msg)
-        putViewTag()
-      }
-    requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(payload)
+    reportConfigureResult(status = "failed", message = msg)
     reportHeightChange(0f)
   }
 
-  private fun WritableMap.putViewTag() {
-    putInt("viewTag", id)
+  private fun reportConfigureResult(
+    status: String,
+    message: String? = null,
+    code: String? = null,
+  ) {
+    val payload =
+      Arguments.createMap().apply {
+        putMap(
+          "result",
+          Arguments.createMap().apply {
+            putString("status", status)
+            message?.let { putString("message", it) }
+            code?.let { putString("code", it) }
+            putInt("viewTag", id)
+          },
+        )
+      }
+    dispatchEvent(PaymentMethodMessagingElementConfigureEvent.EVENT_NAME, payload) {
+      PaymentMethodMessagingElementConfigureEvent(reactContext.surfaceId, id, payload)
+    }
+  }
+
+  private fun dispatchEvent(
+    eventName: String,
+    payload: WritableMap,
+    eventFactory: () -> Event<*>,
+  ) {
+    val testDispatcher = eventDispatcherForTest
+    if (testDispatcher != null) {
+      testDispatcher(eventName, payload)
+      return
+    }
+
+    UIManagerHelper
+      .getEventDispatcherForReactTag(reactContext, id)
+      ?.dispatchEvent(eventFactory())
   }
 
   // APIs
   fun configure(config: PaymentMethodMessagingElement.Configuration) {
-    events.trySend(Event.Configure(config))
+    events.trySend(ViewEvent.Configure(config))
   }
 
   fun appearance(appearance: PaymentMethodMessagingElement.Appearance) {
-    events.trySend(Event.Appearance(appearance))
+    events.trySend(ViewEvent.Appearance(appearance))
   }
+}
 
-  private fun requireStripeSdkModule() = requireNotNull(reactContext.getNativeModule(StripeSdkModule::class.java))
+internal class PaymentMethodMessagingElementConfigureEvent(
+  surfaceId: Int,
+  viewId: Int,
+  private val payload: WritableMap,
+) : Event<PaymentMethodMessagingElementConfigureEvent>(surfaceId, viewId) {
+  override fun getEventName() = EVENT_NAME
+
+  override fun getEventData(): WritableMap = payload
+
+  override fun canCoalesce() = false
+
+  companion object {
+    const val EVENT_NAME = "topConfigureResult"
+  }
+}
+
+private class PaymentMethodMessagingElementHeightEvent(
+  surfaceId: Int,
+  viewId: Int,
+  private val payload: WritableMap,
+) : Event<PaymentMethodMessagingElementHeightEvent>(surfaceId, viewId) {
+  override fun getEventName() = EVENT_NAME
+
+  override fun getEventData(): WritableMap = payload
+
+  companion object {
+    const val EVENT_NAME = "topHeightChanged"
+  }
 }

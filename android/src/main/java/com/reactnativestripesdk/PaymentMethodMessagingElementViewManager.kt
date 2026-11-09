@@ -28,6 +28,12 @@ class PaymentMethodMessagingElementViewManager :
   override fun createViewInstance(ctx: ThemedReactContext): PaymentMethodMessagingElementView =
     PaymentMethodMessagingElementView(ctx)
 
+  override fun getExportedCustomDirectEventTypeConstants() =
+    mutableMapOf(
+      "topConfigureResult" to mutableMapOf("registrationName" to "onConfigureResult"),
+      "topHeightChanged" to mutableMapOf("registrationName" to "onHeightChanged"),
+    )
+
   override fun onDropViewInstance(view: PaymentMethodMessagingElementView) {
     super.onDropViewInstance(view)
 

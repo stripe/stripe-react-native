@@ -3,17 +3,16 @@
 package com.reactnativestripesdk
 
 import androidx.appcompat.view.ContextThemeWrapper
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.DynamicFromObject
-import com.facebook.react.bridge.JavaScriptModule
-import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.uimanager.DisplayMetricsHolder
 import com.facebook.react.uimanager.ThemedReactContext
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElementPreview
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,6 +37,10 @@ class PaymentMethodMessagingElementViewManagerTest {
       assertEquals("failed", result.getString("status"))
       assertEquals("`currency` is required", result.getString("message"))
       assertEquals(301, result.getInt("viewTag"))
+      assertEquals(
+        listOf("topConfigureResult", "topHeightChanged"),
+        fixture.eventNames,
+      )
     } finally {
       fixture.close()
     }
@@ -61,14 +64,47 @@ class PaymentMethodMessagingElementViewManagerTest {
         result.getString("message"),
       )
       assertEquals(302, result.getInt("viewTag"))
+      assertEquals(
+        listOf("topConfigureResult", "topHeightChanged"),
+        fixture.eventNames,
+      )
     } finally {
       fixture.close()
     }
   }
 
+  @Test
+  fun getExportedCustomDirectEventTypeConstants_RegistersConfigureAndHeightEvents() {
+    val manager = PaymentMethodMessagingElementViewManager()
+
+    val eventTypes = manager.getExportedCustomDirectEventTypeConstants()
+
+    assertEquals(
+      "onConfigureResult",
+      (eventTypes["topConfigureResult"] as Map<*, *>)["registrationName"],
+    )
+    assertEquals(
+      "onHeightChanged",
+      (eventTypes["topHeightChanged"] as Map<*, *>)["registrationName"],
+    )
+  }
+
+  @Test
+  fun configureEvent_DoesNotCoalesce() {
+    val event =
+      PaymentMethodMessagingElementConfigureEvent(
+        surfaceId = 1,
+        viewId = 303,
+        payload = Arguments.createMap(),
+      )
+
+    assertFalse(event.canCoalesce())
+  }
+
   private class MessagingElementFixture(
     val view: PaymentMethodMessagingElementView,
     val configureResults: MutableList<ReadableMap>,
+    val eventNames: MutableList<String>,
     private val bridgeContext: BridgeReactContext,
   ) {
     fun close() {
@@ -80,34 +116,20 @@ class PaymentMethodMessagingElementViewManagerTest {
     val app = RuntimeEnvironment.getApplication()
     DisplayMetricsHolder.initDisplayMetricsIfNotInitialized(app)
     val configureResults = mutableListOf<ReadableMap>()
+    val eventNames = mutableListOf<String>()
     val bridgeContext =
-      object : BridgeReactContext(app) {
-        private val stripeSdkModule by lazy { StripeSdkModule(this).also { it.initialize() } }
-
-        override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
-          nativeModuleInterface.cast(stripeSdkModule)
-
-        override fun <T : JavaScriptModule> getJSModule(jsInterface: Class<T>): T =
-          requireNotNull(
-            jsInterface.cast(
-              object : DeviceEventManagerModule.RCTDeviceEventEmitter {
-                override fun emit(
-                  eventName: String,
-                  data: Any?,
-                ) {
-                  if (eventName == "paymentMethodMessagingElementConfigureResult") {
-                    configureResults.add(data as ReadableMap)
-                  }
-                }
-              },
-            ),
-          )
-      }
+      BridgeReactContext(app)
     val themed =
       ContextThemeWrapper(app, com.google.android.material.R.style.Theme_MaterialComponents_Light)
     val themedContext = ThemedReactContext(bridgeContext, themed, null, -1)
     val view = PaymentMethodMessagingElementView(themedContext)
     view.id = viewTag
-    return MessagingElementFixture(view, configureResults, bridgeContext)
+    view.eventDispatcherForTest = { eventName, eventData ->
+      eventNames.add(eventName)
+      if (eventName == "topConfigureResult") {
+        configureResults.add(requireNotNull(eventData).getMap("result")!!)
+      }
+    }
+    return MessagingElementFixture(view, configureResults, eventNames, bridgeContext)
   }
 }
