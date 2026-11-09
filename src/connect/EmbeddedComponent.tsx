@@ -19,7 +19,10 @@ import {
   ViewStyle,
 } from 'react-native';
 import type { WebViewMessageEvent, WebViewProps } from 'react-native-webview';
-import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import type {
+  ShouldStartLoadRequest,
+  WebViewOpenWindowEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
@@ -932,6 +935,17 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     [handleUnexpectedError, hash, routeOutside]
   );
 
+  // Always registered, on both platforms (D4): a popup must never load into
+  // the bridged WebView. Registering onOpenWindow makes react-native-webview
+  // report it here instead of silently falling back to loading the popup's
+  // request into the existing WebView (iOS) or dropping it (Android).
+  const onOpenWindow = useCallback(
+    (event: WebViewOpenWindowEvent) => {
+      routeOutside(event.nativeEvent.targetUrl);
+    },
+    [routeOutside]
+  );
+
   const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
   const textColor = appearance?.variables?.colorText || '#000000';
 
@@ -985,6 +999,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       injectedJavaScriptBeforeContentLoaded={injectedObjectScript}
       onMessage={onMessageCallback}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      onOpenWindow={onOpenWindow}
+      // react-native-webview checks originWhitelist (default http(s) only)
+      // before calling onShouldStartLoadWithRequest, and auto-opens anything
+      // that fails it via Linking (WebViewShared.tsx). That would run before
+      // our own scheme policy and bypass routeOutside's CSV/mailto/tel
+      // handling, so widen it to '*' and let onShouldStartLoadWithRequest and
+      // onOpenWindow make every decision instead. This isn't a loosening:
+      // those two callbacks are the actual gate, and they're stricter than
+      // the default whitelist, not looser.
+      originWhitelist={['*']}
       onLayout={handleLayout}
       // Camera/Media Permissions - matches iOS SDK behavior
       mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"

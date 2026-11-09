@@ -754,6 +754,106 @@ describe('EmbeddedComponent', () => {
         Platform.OS = previousPlatform;
       }
     });
+
+    it('sets originWhitelist to [*] so react-native-webview never auto-opens a URL before onShouldStartLoadWithRequest runs', async () => {
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+
+      expect(mockWebViewProps.originWhitelist).toEqual(['*']);
+    });
+
+    describe('onOpenWindow / popups', () => {
+      const getOpenWindowHandler = async () => {
+        mockLoadWebView = true;
+        renderComponent();
+
+        await waitFor(() => {
+          expect(mockWebViewProps?.onOpenWindow).toEqual(expect.any(Function));
+        });
+
+        return mockWebViewProps.onOpenWindow;
+      };
+
+      it.each(['ios', 'android'])(
+        'is registered by default on %s',
+        async (platform) => {
+          const previousPlatform = Platform.OS;
+          Platform.OS = platform as any;
+          try {
+            await getOpenWindowHandler();
+          } finally {
+            Platform.OS = previousPlatform;
+          }
+        }
+      );
+
+      it.each([
+        ['https://example.com/popup', 'https:'],
+        ['mailto:someone@example.com', 'mailto:'],
+      ])('opens a popup targetUrl of scheme %s', async (targetUrl) => {
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+
+        try {
+          const onOpenWindow = await getOpenWindowHandler();
+          onOpenWindow({ nativeEvent: { targetUrl } });
+
+          await waitFor(() => {
+            expect(openUrl).toHaveBeenCalledWith(targetUrl);
+          });
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+
+      it.each([
+        'javascript:alert(1)',
+        'http://example.com/popup',
+        'myapp://action',
+      ])('drops a popup targetUrl of %s', async (targetUrl) => {
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+
+        try {
+          const onOpenWindow = await getOpenWindowHandler();
+          onOpenWindow({ nativeEvent: { targetUrl } });
+
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+
+      it('sends a CSV export popup targetUrl to the native share sheet', async () => {
+        const downloadAndShare =
+          NativeStripeSdk.downloadAndShareFile as jest.Mock;
+        downloadAndShare.mockResolvedValue({ success: true });
+        const openUrl = jest.spyOn(Linking, 'openURL');
+
+        try {
+          const onOpenWindow = await getOpenWindowHandler();
+          onOpenWindow({
+            nativeEvent: {
+              targetUrl: 'https://stripe-data-exports.com/report.csv',
+            },
+          });
+
+          await waitFor(() => {
+            expect(downloadAndShare).toHaveBeenCalledWith(
+              'https://stripe-data-exports.com/report.csv',
+              null
+            );
+          });
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+    });
   });
 
   describe('Font Handling', () => {
