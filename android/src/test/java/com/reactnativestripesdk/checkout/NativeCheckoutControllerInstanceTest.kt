@@ -12,8 +12,6 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.EventEmitterCompat
-import com.stripe.android.checkout.CheckoutController
-import com.stripe.android.checkout.CheckoutPresenter
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.utils.mapAsStateFlow
 import kotlinx.coroutines.CancellationException
@@ -51,6 +49,8 @@ import org.mockito.Mockito.`when`
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.atomic.AtomicReference
+import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
+import com.stripe.android.checkout.CheckoutElementsPresenter as CheckoutPresenter
 
 @OptIn(CheckoutSessionPreview::class, ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)

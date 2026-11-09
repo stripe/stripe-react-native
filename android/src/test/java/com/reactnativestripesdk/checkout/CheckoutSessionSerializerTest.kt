@@ -3,7 +3,6 @@ package com.reactnativestripesdk.checkout
 import android.content.Context
 import androidx.compose.ui.text.AnnotatedString
 import androidx.test.core.app.ApplicationProvider
-import com.stripe.android.checkout.CheckoutController
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -19,6 +18,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.concurrent.atomic.AtomicReference
+import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
 
 @OptIn(CheckoutSessionPreview::class)
 @RunWith(RobolectricTestRunner::class)
