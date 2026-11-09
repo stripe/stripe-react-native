@@ -16,6 +16,7 @@ import com.reactnativestripesdk.utils.getIntegerList
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.isDarkTheme
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
+import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.elements.CurrencySelectorElement
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.elements.PaymentElement.Configuration.Appearance.Embedded.RowStyle
@@ -23,13 +24,12 @@ import com.stripe.android.elements.ShippingAddressElement
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.StripeThemeDefaults
-import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
 import com.stripe.android.elements.ShippingAddressElement.Configuration.Appearance as ShippingAddressAppearance
 
 @OptIn(CheckoutSessionPreview::class)
 internal data class MappedCheckoutConfiguration(
   val clientSecret: String,
-  val configuration: CheckoutController.Configuration,
+  val configuration: CheckoutElementsController.Configuration,
   val rowSelectionBehavior: PaymentElement.RowSelectionBehavior,
 )
 
@@ -44,7 +44,7 @@ internal object CheckoutConfigurationMapper {
     val clientSecret = params.getString("clientSecret").orEmpty()
     val paymentElementParams = params.getMap("paymentElement")
 
-    val configuration = CheckoutController.Configuration()
+    val configuration = CheckoutElementsController.Configuration()
     params.getString("merchantDisplayName")?.let(configuration::merchantDisplayName)
     params.getMap("defaults")?.let { configuration.defaults(mapDefaults(it)) }
     configuration.paymentElement(
@@ -247,8 +247,8 @@ internal object CheckoutConfigurationMapper {
     }
   }
 
-  private fun mapDefaults(params: ReadableMap): CheckoutController.Configuration.Defaults {
-    val defaults = CheckoutController.Configuration.Defaults()
+  private fun mapDefaults(params: ReadableMap): CheckoutElementsController.Configuration.Defaults {
+    val defaults = CheckoutElementsController.Configuration.Defaults()
     params.getMap("billingDetails")?.let {
       defaults.billingDetails(mapContactDetails(it))
     }
@@ -266,16 +266,16 @@ internal object CheckoutConfigurationMapper {
 
   private fun mapContactDetails(
     params: ReadableMap,
-  ): CheckoutController.Configuration.Defaults.ContactDetails =
-    CheckoutController.Configuration.Defaults.ContactDetails().apply {
+  ): CheckoutElementsController.Configuration.Defaults.ContactDetails =
+    CheckoutElementsController.Configuration.Defaults.ContactDetails().apply {
       name(params.getString("name"))
       params.getMap("address")?.let { address(mapAddress(it)) }
     }
 
   fun mapAddress(
     params: ReadableMap,
-  ): CheckoutController.Address {
-    return CheckoutController.Address(params.getString("country").orEmpty())
+  ): CheckoutElementsController.Address {
+    return CheckoutElementsController.Address(params.getString("country").orEmpty())
       .line1(params.getString("line1"))
       .line2(params.getString("line2"))
       .city(params.getString("city"))

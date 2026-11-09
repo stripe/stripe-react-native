@@ -3,6 +3,7 @@ package com.reactnativestripesdk.checkout
 import android.content.Context
 import androidx.compose.ui.text.AnnotatedString
 import androidx.test.core.app.ApplicationProvider
+import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -18,7 +19,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.concurrent.atomic.AtomicReference
-import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
 
 @OptIn(CheckoutSessionPreview::class)
 @RunWith(RobolectricTestRunner::class)
@@ -72,7 +72,7 @@ class CheckoutSessionSerializerTest {
       assertEquals("jenny@example.com", result.getString("email"))
       assertFalse(result.getBoolean("livemode"))
       assertEquals(expected, result.getMap("status")?.getString("type"))
-      if (status is CheckoutController.Session.Status.Complete) {
+      if (status is CheckoutElementsController.Session.Status.Complete) {
         assertEquals("paid", result.getMap("status")!!.getString("paymentStatus"))
       }
       assertEquals("Test business", result.getString("businessName"))

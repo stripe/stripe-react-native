@@ -8,6 +8,8 @@ import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.EventEmitterCompat
 import com.reactnativestripesdk.ReactContextRule
 import com.reactnativestripesdk.StripeSdkModule
+import com.stripe.android.checkout.CheckoutElementsController
+import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CancellationException
@@ -32,8 +34,6 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.LooperMode
-import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
-import com.stripe.android.checkout.CheckoutElementsPresenter as CheckoutPresenter
 
 @RunWith(RobolectricTestRunner::class)
 @LooperMode(LooperMode.Mode.PAUSED)
@@ -45,7 +45,7 @@ class StripeSdkModuleCheckoutTest {
   @Test
   fun `checkout mutations forward null addresses and preserve native operation outcomes`() = runBlocking {
     val module = StripeSdkModule(contextRule.context)
-    val controller = mock(CheckoutController::class.java)
+    val controller = mock(CheckoutElementsController::class.java)
     `when`(controller.session).thenReturn(MutableStateFlow(checkoutSession()))
     `when`(controller.isUpdating).thenReturn(MutableStateFlow(false))
     `when`(controller.updateShippingAddress("Jenny", null)).thenReturn(NativeCheckoutFixtures.succeededOperation())
@@ -92,8 +92,8 @@ class StripeSdkModuleCheckoutTest {
   fun `sheet requests resolve after native invocation and reuse the payment element`() {
     val context = contextRule.context
     val module = StripeSdkModule(context)
-    val controller = mock(CheckoutController::class.java)
-    val presenter = mock(CheckoutPresenter::class.java)
+    val controller = mock(CheckoutElementsController::class.java)
+    val presenter = mock(CheckoutElementsPresenter::class.java)
     val element = mock(PaymentElement::class.java)
     val session = checkoutSession()
     `when`(controller.session).thenReturn(MutableStateFlow(session))
@@ -142,8 +142,8 @@ class StripeSdkModuleCheckoutTest {
   fun `confirmation invokes native and resolves from the controller callback`() {
     val context = contextRule.context
     val module = StripeSdkModule(context)
-    val controller = mock(CheckoutController::class.java)
-    val presenter = mock(CheckoutPresenter::class.java)
+    val controller = mock(CheckoutElementsController::class.java)
+    val presenter = mock(CheckoutElementsPresenter::class.java)
     val session = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
     `when`(controller.session).thenReturn(MutableStateFlow(session))
     `when`(controller.isUpdating).thenReturn(MutableStateFlow(false))

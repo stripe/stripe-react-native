@@ -69,6 +69,7 @@ import com.stripe.android.GooglePayJsonFactory
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
+import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
 import com.stripe.android.core.reactnative.ReactNativeAnalytics
@@ -96,7 +97,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import com.stripe.android.checkout.CheckoutElementsController as CheckoutController
 
 @ReactModule(name = StripeSdkModule.NAME)
 @OptIn(ReactNativeSdkInternal::class, CheckoutSessionPreview::class)
@@ -1443,14 +1443,14 @@ class StripeSdkModule(
       val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
       pendingCheckoutCreationScopes.add(scope)
       scope.launch {
-        var controller: CheckoutController? = null
+        var controller: CheckoutElementsController? = null
         try {
           val mapped = CheckoutConfigurationMapper.map(
             params = params,
             context = reactApplicationContext,
             didSelectPaymentOption = { emitCheckoutPaymentOptionSelection(controllerId) },
           )
-          controller = CheckoutController.Builder(
+          controller = CheckoutElementsController.Builder(
             reactApplicationContext.applicationContext as Application,
             SavedStateHandle(),
           ).resultCallback { result ->
@@ -1696,10 +1696,10 @@ class StripeSdkModule(
     }
   }
 
-  private fun CheckoutController.OperationResult.getOrThrow() {
+  private fun CheckoutElementsController.OperationResult.getOrThrow() {
     when (this) {
-      is CheckoutController.OperationResult.Succeeded -> Unit
-      is CheckoutController.OperationResult.Failed -> throw error
+      is CheckoutElementsController.OperationResult.Succeeded -> Unit
+      is CheckoutElementsController.OperationResult.Failed -> throw error
     }
   }
 
@@ -1707,7 +1707,7 @@ class StripeSdkModule(
   private fun performCheckoutMutation(
     controllerId: String,
     promise: Promise,
-    operation: suspend (CheckoutController) -> CheckoutController.OperationResult,
+    operation: suspend (CheckoutElementsController) -> CheckoutElementsController.OperationResult,
   ) {
     UiThreadUtil.runOnUiThread {
       val instance = checkoutControllers[controllerId]
