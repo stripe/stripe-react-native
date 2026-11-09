@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Changes**
+
+* Updated Stripe Android SDK from 23.25.1 to 23.25.2.
+
 **Fixes**
 
 * [Fixed] iOS: Declared the iOS 15 deployment target in the podspec to match the pinned Stripe iOS SDK.
