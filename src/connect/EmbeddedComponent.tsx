@@ -840,10 +840,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'openAuthenticatedWebView') {
         const { url, id } = message.data as { id: string; url: string };
 
-        // Validate URL before opening
+        // Validate URL before opening. Never log `url` itself.
         if (!isValidUrl(url)) {
           handleUnexpectedError(
-            new Error(`Invalid URL for authenticated webview: ${url}`)
+            new Error('Invalid URL for authenticated webview')
           );
           return;
         }

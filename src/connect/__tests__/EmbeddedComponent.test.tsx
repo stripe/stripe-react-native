@@ -1049,6 +1049,42 @@ describe('EmbeddedComponent', () => {
     });
   });
 
+  describe('Logging hygiene', () => {
+    it('does not log the URL for an invalid authenticated webview request', async () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+      try {
+        mockLoadWebView = true;
+        renderComponent();
+        await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+        await act(async () => {
+          webViewOnMessage?.({
+            nativeEvent: {
+              data: JSON.stringify({
+                type: 'openAuthenticatedWebView',
+                data: {
+                  id: 'auth_bad',
+                  url: 'javascript:alert(document.cookie)//secret_in_url',
+                },
+              }),
+            },
+          });
+        });
+
+        expect(consoleError).toHaveBeenCalled();
+        const loggedMessages = consoleError.mock.calls.map((call) =>
+          call.join(' ')
+        );
+        loggedMessages.forEach((message) => {
+          expect(message).not.toContain('secret_in_url');
+        });
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
+  });
+
   describe('Financial Connections bridge', () => {
     const mockSession = {
       id: 'session',
