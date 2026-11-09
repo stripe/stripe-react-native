@@ -1,0 +1,6 @@
+{
+  "name": "@stripe/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Private shell. Does not export the legacy package."
+}
