@@ -1530,7 +1530,6 @@ export enum CustomerSheetError {
 
 // Warning: (ae-forgotten-export) The symbol "CustomerAdapterInitParams" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "CustomerSessionInitParams" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "CustomerSheetOptionalInitParams" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export type CustomerSheetInitParams = (CustomerAdapterInitParams | CustomerSessionInitParams) & CustomerSheetOptionalInitParams;
@@ -1539,6 +1538,25 @@ export type CustomerSheetInitParams = (CustomerAdapterInitParams | CustomerSessi
 export type CustomerSheetIntentConfiguration = {
     paymentMethodTypes?: Array<string>;
     onBehalfOf?: string;
+};
+
+// @public (undocumented)
+export type CustomerSheetOptionalInitParams = {
+    style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
+    appearance?: PaymentSheet.AppearanceParams;
+    merchantDisplayName?: string;
+    headerTextForSelectionScreen?: string;
+    defaultBillingDetails?: BillingDetails;
+    billingDetailsCollectionConfiguration?: PaymentSheet.BillingDetailsCollectionConfiguration;
+    returnURL?: string;
+    removeSavedPaymentMethodMessage?: string;
+    applePayEnabled?: boolean;
+    googlePayEnabled?: boolean;
+    paymentMethodOrder?: string[];
+    preferredNetworks?: Array<CardBrand>;
+    allowsRemovalOfLastSavedPaymentMethod?: boolean;
+    cardBrandAcceptance?: PaymentSheet.CardBrandAcceptance;
+    opensCardScannerAutomatically?: boolean;
 };
 
 // @public (undocumented)
@@ -2212,7 +2230,6 @@ export const initStripe: (params: InitStripeParams) => Promise<void>;
 
 // @public (undocumented)
 export interface InitStripeParams {
-    // (undocumented)
     merchantIdentifier?: string;
     // (undocumented)
     publishableKey: string;

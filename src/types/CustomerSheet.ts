@@ -7,7 +7,7 @@ import type {
   CardBrand,
 } from '../types';
 
-type CustomerSheetOptionalInitParams = {
+export type CustomerSheetOptionalInitParams = {
   /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. iOS only. */
   style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
   /** Configuration for the look and feel of the UI. */
@@ -24,10 +24,16 @@ type CustomerSheetOptionalInitParams = {
   returnURL?: string;
   /** Optional configuration to display a custom message when a saved payment method is removed. iOS only. */
   removeSavedPaymentMethodMessage?: string;
-  /** Whether to show Apple Pay as an option. Defaults to false. */
+  /** Whether to show Apple Pay as an option. Defaults to false. iOS only. */
   applePayEnabled?: boolean;
-  /** Whether to show Google Pay as an option. Defaults to false. */
+  /** Whether to show Google Pay as an option. Defaults to false. Android only. */
   googlePayEnabled?: boolean;
+  /** By default, CustomerSheet will use a dynamic ordering that optimizes payment method display for the customer.
+   * You can override the default order in which payment methods are displayed with a list of payment method types.
+   * Android only.
+   *  - Example: ["card", "klarna"]
+   */
+  paymentMethodOrder?: string[];
   /** The list of preferred networks that should be used to process payments made with a co-branded card.
    * This value will only be used if your user hasn't selected a network themselves. */
   preferredNetworks?: Array<CardBrand>;

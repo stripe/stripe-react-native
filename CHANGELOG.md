@@ -5,9 +5,11 @@
 **Changes**
 
 * Updated Stripe Android SDK from 23.25.1 to 23.25.2.
+* [Changed] Documented platform support for Payment Sheet, Embedded Payment Element, Customer Sheet, Onramp, and `initStripe` options that apply on a single platform only.
 
 **Fixes**
 
+* [Fixed] Declared `paymentMethodOrder` on Customer Sheet initialization params (Android).
 * [Fixed] Android: Embedded Payment Element reports invalid configuration through `embeddedPaymentElementLoadingFailed` instead of crashing when props cannot be parsed.
 * [Fixed] iOS: Declared the iOS 15 deployment target in the podspec to match the pinned Stripe iOS SDK.
 * [Fixed] Exclude Android unit test sources and other test globs from the published npm package.
