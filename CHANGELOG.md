@@ -4,6 +4,7 @@
 
 **Fixes**
 
+* [Fixed] iOS: Declared the iOS 15 deployment target in the podspec to match the pinned Stripe iOS SDK.
 * [Fixed] Exclude Android unit test sources and other test globs from the published npm package.
 
 ## 0.85.0 - 2026-11-03
