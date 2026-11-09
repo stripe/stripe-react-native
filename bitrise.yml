@@ -464,8 +464,14 @@ workflows:
           title: Install Maestro CLI
           inputs:
             - content: |
-                curl -Ls "https://get.maestro.mobile.dev" | bash
-                echo "${HOME}/.maestro/bin" >> $BITRISE_STEP_SOURCE_DIR/envs.txt
+                set -euo pipefail
+
+                curl -fsSL "https://get.maestro.mobile.dev" | bash
+                MAESTRO_BIN="${HOME}/.maestro/bin/maestro"
+                if [ ! -x "$MAESTRO_BIN" ]; then
+                  echo "Maestro install did not create an executable at $MAESTRO_BIN"
+                  exit 1
+                fi
       - wait-for-android-emulator@1:
           inputs:
             - boot_timeout: 600
@@ -478,7 +484,13 @@ workflows:
           timeout: 2400
           inputs:
             - content: |
-                export PATH="${HOME}/.maestro/bin:$PATH"
+                set -euo pipefail
+
+                export MAESTRO_BIN="${HOME}/.maestro/bin/maestro"
+                if [ ! -x "$MAESTRO_BIN" ]; then
+                  echo "Maestro CLI is missing or not executable at $MAESTRO_BIN"
+                  exit 1
+                fi
                 yarn test:e2e:android --record-on-failure
       - deploy-to-bitrise-io@2:
           is_always_run: true
@@ -569,14 +581,26 @@ workflows:
           title: Install Maestro CLI
           inputs:
             - content: |
-                curl -Ls "https://get.maestro.mobile.dev" | bash
-                echo "${HOME}/.maestro/bin" >> $BITRISE_STEP_SOURCE_DIR/envs.txt
+                set -euo pipefail
+
+                curl -fsSL "https://get.maestro.mobile.dev" | bash
+                MAESTRO_BIN="${HOME}/.maestro/bin/maestro"
+                if [ ! -x "$MAESTRO_BIN" ]; then
+                  echo "Maestro install did not create an executable at $MAESTRO_BIN"
+                  exit 1
+                fi
       - script@1:
           title: Run iOS E2E Tests (Maestro)
           timeout: 2400
           inputs:
             - content: |
-                export PATH="${HOME}/.maestro/bin:$PATH"
+                set -euo pipefail
+
+                export MAESTRO_BIN="${HOME}/.maestro/bin/maestro"
+                if [ ! -x "$MAESTRO_BIN" ]; then
+                  echo "Maestro CLI is missing or not executable at $MAESTRO_BIN"
+                  exit 1
+                fi
                 yarn test:e2e:ios --record-on-failure
       - deploy-to-bitrise-io@2:
           is_always_run: true
