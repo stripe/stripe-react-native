@@ -1,6 +1,6 @@
 // Must run before EmbeddedComponent is imported: installs the device URL
 // polyfill so this suite exercises what devices actually run.
-import './installReactNativeURL';
+import '../installReactNativeURLForTests';
 
 // Mock dependencies BEFORE imports
 import { mockCreateNativeStripeSdkMock } from '../testUtils';
