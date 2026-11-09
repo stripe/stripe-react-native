@@ -103,6 +103,22 @@ failedFinancialConnectionsTests=()
 # Ensure artifacts directory exists even if shard has no tests
 mkdir -p e2e-artifacts
 
+if [ -n "${MAESTRO_BIN:-}" ]; then
+  if [ ! -x "$MAESTRO_BIN" ]; then
+    echo "Error! MAESTRO_BIN is set but is not executable: $MAESTRO_BIN"
+    exit 1
+  fi
+elif [ -x "${HOME}/.maestro/bin/maestro" ]; then
+  MAESTRO_BIN="${HOME}/.maestro/bin/maestro"
+elif command -v maestro >/dev/null 2>&1; then
+  MAESTRO_BIN="$(command -v maestro)"
+else
+  echo "Error! Maestro CLI not found. Set MAESTRO_BIN or install maestro in ${HOME}/.maestro/bin."
+  exit 1
+fi
+
+echo "Using Maestro CLI: $MAESTRO_BIN"
+
 # Optional sharding configuration via environment variables
 # Set SHARD_COUNT to the total number of shards and SHARD_INDEX to the index for this job (0-based)
 SHARD_COUNT=${SHARD_COUNT:-}
@@ -132,7 +148,6 @@ idx=0
 for file in $allTestFiles
 do
   testName=$(basename "${file%.*}")
-  testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" --flatten-debug-output"
 
   # Shard filter: only run files where (idx % SHARD_COUNT) == SHARD_INDEX
   if [ -n "$SHARD_COUNT" ]; then
@@ -157,7 +172,7 @@ do
       start_recording "$artifactDir"
     fi
 
-    if eval "$testCmd --debug-output $artifactDir"; then
+    if "$MAESTRO_BIN" test "$file" -e APP_ID="$APPID" --flatten-debug-output --debug-output "$artifactDir"; then
       # Stop recording if it was running
       if [ "$attempt" -gt 1 ] && [ "$RECORD_ON_FAILURE" = "true" ]; then
         stop_recording "$artifactDir"
