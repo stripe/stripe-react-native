@@ -7,6 +7,7 @@ import android.content.res.Resources
 import android.graphics.drawable.ColorDrawable
 import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
@@ -317,7 +318,7 @@ class NativeCheckoutControllerInstanceTest {
   }
 
   @Test
-  fun `destroyed activity fails a confirmation pending after destruction`() = withFixture { fixture ->
+  fun `finishing activity fails a pending confirmation`() = withFixture { fixture ->
     fixture.start()
     var error: Throwable? = null
     fixture.instance.launchMutation {
@@ -325,10 +326,51 @@ class NativeCheckoutControllerInstanceTest {
     }
     runCurrent()
     fixture.instance.destroy()
+    fixture.activity.get().finish()
     fixture.activity.pause().stop().destroy()
     runCurrent()
     assertTrue(error is IllegalStateException)
     verify(fixture.controller, times(1)).destroy()
+  }
+
+  @Test
+  fun `recreated activity receives a confirmation after the controller is destroyed`() = withFixture { fixture ->
+    fixture.start()
+    var result: WritableMap? = null
+    fixture.instance.launchMutation { result = fixture.instance.confirm(fixture.activity.get()) }
+    runCurrent()
+
+    // React Native unmounts the old screen, and its controller, after the activity is destroyed.
+    val recreated = fixture.recreateActivity()
+    fixture.instance.destroy()
+    runCurrent()
+    assertEquals(null, result)
+    verify(fixture.controller, times(0)).destroy()
+
+    fixture.resumeHost(recreated)
+    verify(fixture.controller, times(1)).createPresenter(recreated)
+    fixture.sessions.value = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
+    fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
+    runCurrent()
+    assertEquals("completed", result?.getString("status"))
+    verify(fixture.controller, times(1)).destroy()
+    verify(fixture.context).removeLifecycleEventListener(checkNotNull(fixture.hostListener))
+  }
+
+  @Test
+  fun `recreated activity receives a confirmation for a live controller`() = withFixture { fixture ->
+    fixture.start()
+    val pending = async { fixture.instance.confirm(fixture.activity.get()) }
+    runCurrent()
+
+    val recreated = fixture.recreateActivity()
+    runCurrent()
+    assertFalse(pending.isCompleted)
+
+    fixture.resumeHost(recreated)
+    fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+    assertEquals("canceled", pending.await().getString("status"))
+    verify(fixture.controller, times(1)).createPresenter(recreated)
   }
 
   @Test
@@ -364,8 +406,13 @@ class NativeCheckoutControllerInstanceTest {
     val events = mutableListOf<ReadableMap>()
     val context = mock(ReactApplicationContext::class.java)
     val instance: NativeCheckoutControllerInstance
+    var hostListener: LifecycleEventListener? = null
 
     init {
+      doAnswer { invocation ->
+        hostListener = invocation.getArgument(0)
+        null
+      }.`when`(context).addLifecycleEventListener(any())
       `when`(controller.createPresenter(activity.get())).thenReturn(presenter)
       `when`(controller.session).thenReturn(sessions)
       `when`(controller.isUpdating).thenReturn(updating)
@@ -389,6 +436,19 @@ class NativeCheckoutControllerInstanceTest {
 
     fun start() {
       instance.start("controller-1")
+    }
+
+    /** Recreates the activity the way a configuration change does, with no React Native host yet. */
+    fun recreateActivity(): ComponentActivity {
+      activity.recreate()
+      val recreated = activity.get()
+      `when`(controller.createPresenter(recreated)).thenReturn(presenter)
+      return recreated
+    }
+
+    fun resumeHost(activity: Activity) {
+      `when`(context.currentActivity).thenReturn(activity)
+      checkNotNull(hostListener).onHostResume()
     }
 
     suspend fun close() {

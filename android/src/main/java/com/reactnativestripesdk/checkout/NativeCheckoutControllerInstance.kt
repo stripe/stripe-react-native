@@ -1,10 +1,12 @@
 package com.reactnativestripesdk.checkout
 
+import android.app.Activity
 import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
@@ -47,11 +49,12 @@ internal class NativeCheckoutControllerInstance(
   private val destructionObservers = mutableSetOf<() -> Unit>()
   private var presenter: CheckoutPresenter? = null
   private var activity: ComponentActivity? = null
-  private val activityObserver = LifecycleEventObserver { _, event ->
+  private val activityObserver = LifecycleEventObserver { source, event ->
     if (event == Lifecycle.Event.ON_DESTROY) {
       releasePresenter()
-      // A destroyed controller can't recreate its presenter to receive the result.
-      if (destroyed) {
+      // Android delivers a pending confirmation result to the activity that replaces this one, and
+      // [confirmationHostListener] rebinds to it. A finishing activity has no replacement.
+      if ((source as? Activity)?.isFinishing == true) {
         confirmation?.completeExceptionally(
           IllegalStateException(
             "The activity was destroyed before Checkout confirmation finished. " +
@@ -60,6 +63,18 @@ internal class NativeCheckoutControllerInstance(
         )
       }
     }
+  }
+
+  /** Rebinds a pending confirmation to a recreated activity, even after this controller is destroyed. */
+  private val confirmationHostListener = object : LifecycleEventListener {
+    override fun onHostResume() {
+      val activity = context.currentActivity as? ComponentActivity ?: return
+      if (confirmation != null && presenter == null) bindPresenter(activity)
+    }
+
+    override fun onHostPause() = Unit
+
+    override fun onHostDestroy() = Unit
   }
 
   /** Reuses the native Payment Element for the lifetime of its activity. */
@@ -79,6 +94,11 @@ internal class NativeCheckoutControllerInstance(
 
   private fun getPresenter(activity: ComponentActivity): CheckoutPresenter {
     check(!destroyed) { "Checkout controller was destroyed." }
+    return bindPresenter(activity)
+  }
+
+  /** Registers the native result handlers on [activity], which receives confirmation results. */
+  private fun bindPresenter(activity: ComponentActivity): CheckoutPresenter {
     if (this.activity !== activity) {
       releasePresenter()
       presenter = controller.createPresenter(activity).also { newPresenter ->
@@ -101,6 +121,7 @@ internal class NativeCheckoutControllerInstance(
     check(confirmation == null) { "Checkout confirmation is already in progress." }
     val result = CompletableDeferred<CheckoutController.Result>()
     confirmation = result
+    context.addLifecycleEventListener(confirmationHostListener)
     try {
       emit("confirming")
       getPresenter(activity).confirm()
@@ -109,6 +130,7 @@ internal class NativeCheckoutControllerInstance(
       return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status)
     } finally {
       confirmation = null
+      context.removeLifecycleEventListener(confirmationHostListener)
       if (destroyed) {
         releaseNativeResources()
       } else {
