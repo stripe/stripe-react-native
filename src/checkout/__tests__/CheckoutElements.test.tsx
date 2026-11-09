@@ -237,3 +237,20 @@ it('returns native confirmation outcomes and preserves rejection errors', async 
   await expect(controller.confirm()).rejects.toThrow('destroyed');
   expect(confirm).toHaveBeenCalledTimes(4);
 });
+
+it('returns the result of a confirmation that was pending when destroyed', async () => {
+  const controller = await createCheckoutElements(options);
+  const id = create.mock.calls[0][1];
+  let finishConfirmation!: (result: CheckoutElements.Result) => void;
+  (NativeStripeSdk.confirmCheckout as jest.Mock).mockReturnValueOnce(
+    new Promise((resolve) => (finishConfirmation = resolve))
+  );
+  const confirmation = controller.confirm();
+
+  await controller.destroy();
+  expect(destroy).toHaveBeenCalledWith(id);
+  const completed = { status: 'completed', paymentStatus: 'paid' } as const;
+  finishConfirmation(completed);
+
+  await expect(confirmation).resolves.toBe(completed);
+});

@@ -1444,6 +1444,7 @@ class StripeSdkModule(
       pendingCheckoutCreationScopes.add(scope)
       scope.launch {
         var controller: CheckoutElementsController? = null
+        var instance: NativeCheckoutControllerInstance? = null
         try {
           val mapped = CheckoutConfigurationMapper.map(
             params = params,
@@ -1454,7 +1455,7 @@ class StripeSdkModule(
             reactApplicationContext.applicationContext as Application,
             SavedStateHandle(),
           ).resultCallback { result ->
-            UiThreadUtil.runOnUiThread { checkoutControllers[controllerId]?.onConfirmationResult(result) }
+            UiThreadUtil.runOnUiThread { instance?.onConfirmationResult(result) }
           }.rowSelectionBehavior(mapped.rowSelectionBehavior)
             // Native uses this name as its Payment Element callback identifier.
             .integrationName("stripe-react-native-$controllerId")
@@ -1466,7 +1467,7 @@ class StripeSdkModule(
           }
           val serializedSession =
             CheckoutSessionSerializer.serialize(nativeSession, reactApplicationContext.checkoutIconContext())
-          val instance = NativeCheckoutControllerInstance(
+          val newInstance = NativeCheckoutControllerInstance(
             controller = controller,
             eventEmitter = eventEmitter,
             scope = scope,
@@ -1476,8 +1477,9 @@ class StripeSdkModule(
           )
           check(!checkoutControllersInvalidated) { "Stripe SDK was invalidated." }
           scope.coroutineContext.ensureActive()
-          checkoutControllers[controllerId] = instance
-          instance.start(controllerId)
+          instance = newInstance
+          checkoutControllers[controllerId] = newInstance
+          newInstance.start(controllerId)
           promise.resolve(
             Arguments.createMap().apply {
               putMap("session", serializedSession.copy())
@@ -1605,8 +1607,7 @@ class StripeSdkModule(
       }
       instance.launchMutation {
         try {
-          val result = instance.confirm(activity)
-          promise.resolve(CheckoutSessionSerializer.serialize(result, instance.controller.session.value?.status))
+          promise.resolve(instance.confirm(activity))
         } catch (error: Exception) {
           promise.reject(checkoutErrorCode(error), error.message, error)
         }

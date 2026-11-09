@@ -162,12 +162,7 @@ extension StripeSdkImpl {
             }
             do {
                 try instance.confirm(from: presenter) { result in
-                    switch result {
-                    case .success(let result):
-                        resolve(CheckoutSessionSerializer.serialize(result))
-                    case .failure(let error):
-                        reject(checkoutErrorCode(for: error), error.localizedDescription, error)
-                    }
+                    resolve(CheckoutSessionSerializer.serialize(result))
                 }
             } catch {
                 reject(checkoutErrorCode(for: error), error.localizedDescription, error)
