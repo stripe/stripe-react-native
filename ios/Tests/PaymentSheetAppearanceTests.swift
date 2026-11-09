@@ -56,6 +56,11 @@ class PaymentSheetAppearanceTests: XCTestCase {
         XCTAssertEqual(appearance.cornerRadius, 42.0)
         XCTAssertEqual(appearance.borderWidth, 42.0)
         XCTAssertEqual(appearance.font.sizeScaleFactor, 42.0)
+        for style in [UIUserInterfaceStyle.light, .dark] {
+            let traits = UITraitCollection(userInterfaceStyle: style)
+            XCTAssertEqual(appearance.colors.primary.resolvedColor(with: traits), UIColor(hexString: "#123456"))
+            XCTAssertEqual(appearance.primaryButton.backgroundColor?.resolvedColor(with: traits), UIColor(hexString: "#123456"))
+        }
 
         // Verify primary button
         XCTAssertEqual(appearance.primaryButton.cornerRadius, 42.0)
@@ -377,25 +382,90 @@ class PaymentSheetAppearanceTests: XCTestCase {
         }
     }
 
-    func test_buildAppearanceFromParams_mismatchedAppearanceModes_throwsError() throws {
-        let params: NSDictionary = [
-            "colors": [
-                "light": [
-                    "primary": "#123456"
-                ],
-                // Missing dark mode
-            ],
+    func test_buildAppearanceFromParams_singleModeColors_preservesDefaultsForOtherMode() throws {
+        let defaultPrimary = PaymentSheet.Appearance.default.colors.primary
+        let defaultBackground = PaymentSheet.Appearance.default.colors.background
+        let cases: [(mode: String, configuredStyle: UIUserInterfaceStyle, defaultStyle: UIUserInterfaceStyle)] = [
+            ("light", .light, .dark),
+            ("dark", .dark, .light),
         ]
 
-        XCTAssertThrowsError(
-            try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
-        ) { error in
-            XCTAssertTrue(error is PaymentSheetAppearanceError)
-            if case PaymentSheetAppearanceError.missingAppearanceMode = error {
-                // Success
-            } else {
-                XCTFail("Expected missingAppearanceMode error")
+        for testCase in cases {
+            let params: NSDictionary = [
+                "colors": [
+                    testCase.mode: ["primary": "#123456", "background": "#654321"],
+                ],
+            ]
+            let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
+
+            XCTAssertEqual(
+                appearance.colors.primary.resolvedColor(with: UITraitCollection(userInterfaceStyle: testCase.configuredStyle)),
+                UIColor(hexString: "#123456")
+            )
+            XCTAssertEqual(
+                appearance.colors.primary.resolvedColor(with: UITraitCollection(userInterfaceStyle: testCase.defaultStyle)),
+                defaultPrimary.resolvedColor(with: UITraitCollection(userInterfaceStyle: testCase.defaultStyle))
+            )
+            XCTAssertEqual(
+                appearance.colors.background.resolvedColor(with: UITraitCollection(userInterfaceStyle: testCase.configuredStyle)),
+                UIColor(hexString: "#654321")
+            )
+            XCTAssertEqual(
+                appearance.colors.background.resolvedColor(with: UITraitCollection(userInterfaceStyle: testCase.defaultStyle)),
+                defaultBackground.resolvedColor(with: UITraitCollection(userInterfaceStyle: testCase.defaultStyle))
+            )
+        }
+    }
+
+    func test_buildAppearanceFromParams_partialModeColors_preservesDefaultsPerKey() throws {
+        let params: NSDictionary = [
+            "colors": [
+                "light": ["primary": "#123456"],
+                "dark": ["background": "#654321"],
+            ],
+        ]
+        let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
+        let defaults = PaymentSheet.Appearance.default.colors
+        let lightTraits = UITraitCollection(userInterfaceStyle: .light)
+        let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+
+        XCTAssertEqual(appearance.colors.primary.resolvedColor(with: lightTraits), UIColor(hexString: "#123456"))
+        XCTAssertEqual(appearance.colors.primary.resolvedColor(with: darkTraits), defaults.primary.resolvedColor(with: darkTraits))
+        XCTAssertEqual(appearance.colors.background.resolvedColor(with: lightTraits), defaults.background.resolvedColor(with: lightTraits))
+        XCTAssertEqual(appearance.colors.background.resolvedColor(with: darkTraits), UIColor(hexString: "#654321"))
+    }
+
+    func test_buildAppearanceFromParams_singleModePrimaryButtonColors_usesDefaultBackgroundForOtherMode() throws {
+        let params: NSDictionary = [
+            "colors": ["primary": "#112233"],
+            "primaryButton": [
+                "colors": [
+                    "light": ["background": "#445566", "border": "#778899"],
+                ],
+            ],
+        ]
+        let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
+        let buttonBackground = try XCTUnwrap(appearance.primaryButton.backgroundColor)
+        let lightTraits = UITraitCollection(userInterfaceStyle: .light)
+        let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+
+        XCTAssertEqual(buttonBackground.resolvedColor(with: lightTraits), UIColor(hexString: "#445566"))
+        XCTAssertEqual(buttonBackground.resolvedColor(with: darkTraits), UIColor(hexString: "#112233"))
+        XCTAssertEqual(appearance.primaryButton.borderColor.resolvedColor(with: lightTraits), UIColor(hexString: "#778899"))
+        XCTAssertEqual(
+            appearance.primaryButton.borderColor.resolvedColor(with: darkTraits),
+            PaymentSheet.Appearance.default.primaryButton.borderColor.resolvedColor(with: darkTraits)
+        )
+    }
+
+    func test_buildAppearanceFromParams_invalidSingleModeHexColor_throwsError() throws {
+        let params: NSDictionary = ["colors": ["light": ["primary": "#12"]]]
+
+        XCTAssertThrowsError(try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)) { error in
+            guard case PaymentSheetAppearanceError.unexpectedHexStringLength(let hexString) = error else {
+                return XCTFail("Expected unexpectedHexStringLength error")
             }
+            XCTAssertEqual(hexString, "#12")
         }
     }
 }

@@ -5,6 +5,32 @@ import XCTest
 
 @MainActor
 final class CheckoutConfigurationMapperTests: XCTestCase {
+    func test_map_acceptsPaymentElementAppearanceWithOnlyLightColors() throws {
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: [
+                "clientSecret": "cs_test_secret_123",
+                "returnURL": "example://checkout",
+                "paymentElement": [
+                    "appearance": [
+                        "colors": ["light": ["primary": "#123456", "background": "#654321"]],
+                    ],
+                ],
+            ],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {}
+        )
+
+        let appearance = try XCTUnwrap(configuration.paymentElement?.appearance)
+        let lightTraits = UITraitCollection(userInterfaceStyle: .light)
+        let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+        XCTAssertEqual(appearance.colors.primary.resolvedColor(with: lightTraits), UIColor(hexString: "#123456"))
+        XCTAssertEqual(appearance.colors.background.resolvedColor(with: lightTraits), UIColor(hexString: "#654321"))
+        XCTAssertEqual(
+            appearance.colors.primary.resolvedColor(with: darkTraits),
+            PaymentSheet.Appearance.default.colors.primary.resolvedColor(with: darkTraits)
+        )
+    }
+
     func test_map_mapsCurrencySelectorElementAppearance() throws {
         let configuration = try CheckoutConfigurationMapper.map(
             params: [

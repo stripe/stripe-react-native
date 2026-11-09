@@ -38,7 +38,7 @@ internal class PaymentSheetAppearance {
             }
         }
         if let primaryButtonParams = userParams[PaymentSheetAppearanceKeys.PRIMARY_BUTTON] as? NSDictionary {
-            appearance.primaryButton = try buildPrimaryButton(params: primaryButtonParams)
+            appearance.primaryButton = try buildPrimaryButton(params: primaryButtonParams, defaultBackgroundColor: appearance.colors.primary)
         }
 
         if let embeddedPaymentElementParams = userParams[PaymentSheetAppearanceKeys.EMBEDDED_PAYMENT_ELEMENT] as? NSDictionary {
@@ -67,25 +67,20 @@ internal class PaymentSheetAppearance {
     private class func buildColors(params: NSDictionary) throws -> PaymentSheet.Appearance.Colors {
         var colors = PaymentSheet.Appearance.Colors()
 
-        if params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && params.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
-            params.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil {
-            throw PaymentSheetAppearanceError.missingAppearanceMode
-        }
-
         let lightModeParams = params[PaymentSheetAppearanceKeys.LIGHT] as? NSDictionary ?? params
         let darkModeParams = params[PaymentSheetAppearanceKeys.DARK] as? NSDictionary ?? params
 
-        colors.primary = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.PRIMARY, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.primary
-        colors.background = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.background
-        colors.componentBackground = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.COMPONENT_BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentBackground
-        colors.componentBorder = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.COMPONENT_BORDER, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentBorder
-        colors.componentDivider = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.COMPONENT_DIVIDER, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentDivider
-        colors.text = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.PRIMARY_TEXT, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.text
-        colors.textSecondary = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SECONDARY_TEXT, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.textSecondary
-        colors.componentText = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.COMPONENT_TEXT, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentText
-        colors.componentPlaceholderText = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.PLACEHOLDER_TEXT, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentPlaceholderText
-        colors.icon = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.ICON, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.icon
-        colors.danger = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.ERROR, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.danger
+        colors.primary = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.PRIMARY, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.primary) ?? colors.primary
+        colors.background = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.background) ?? colors.background
+        colors.componentBackground = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.COMPONENT_BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.componentBackground) ?? colors.componentBackground
+        colors.componentBorder = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.COMPONENT_BORDER, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.componentBorder) ?? colors.componentBorder
+        colors.componentDivider = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.COMPONENT_DIVIDER, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.componentDivider) ?? colors.componentDivider
+        colors.text = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.PRIMARY_TEXT, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.text) ?? colors.text
+        colors.textSecondary = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SECONDARY_TEXT, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.textSecondary) ?? colors.textSecondary
+        colors.componentText = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.COMPONENT_TEXT, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.componentText) ?? colors.componentText
+        colors.componentPlaceholderText = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.PLACEHOLDER_TEXT, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.componentPlaceholderText) ?? colors.componentPlaceholderText
+        colors.icon = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.ICON, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.icon) ?? colors.icon
+        colors.danger = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.ERROR, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: colors.danger) ?? colors.danger
 
         return colors
     }
@@ -93,7 +88,7 @@ internal class PaymentSheetAppearance {
     private class func buildShadow(params: NSDictionary) throws -> PaymentSheet.Appearance.Shadow {
         var shadow = PaymentSheet.Appearance.Shadow()
 
-        if let color = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SHADOW_COLOR, lightParams: params, darkParams: params) {
+        if let color = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SHADOW_COLOR, lightParams: params, darkParams: params, defaultColor: shadow.color) {
             shadow.color = color
         }
         if let opacity = params[PaymentSheetAppearanceKeys.OPACITY] as? CGFloat {
@@ -111,7 +106,7 @@ internal class PaymentSheetAppearance {
         return shadow
     }
 
-    private class func buildPrimaryButton(params: NSDictionary) throws -> PaymentSheet.Appearance.PrimaryButton {
+    private class func buildPrimaryButton(params: NSDictionary, defaultBackgroundColor: UIColor) throws -> PaymentSheet.Appearance.PrimaryButton {
         var primaryButton = PaymentSheet.Appearance.PrimaryButton()
 
         if let fontName = (params[PaymentSheetAppearanceKeys.FONT] as? NSDictionary)?[PaymentSheetAppearanceKeys.FAMILY] as? String {
@@ -135,46 +130,42 @@ internal class PaymentSheetAppearance {
             }
         }
         if let colorParams = params[PaymentSheetAppearanceKeys.COLORS] as? NSDictionary {
-            if colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
-                colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil {
-                throw PaymentSheetAppearanceError.missingAppearanceMode
-            }
-
             let lightModeParams = colorParams[PaymentSheetAppearanceKeys.LIGHT] as? NSDictionary ?? colorParams
             let darkModeParams = colorParams[PaymentSheetAppearanceKeys.DARK] as? NSDictionary ?? colorParams
 
-            primaryButton.backgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams)
-            primaryButton.textColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.TEXT, lightParams: lightModeParams, darkParams: darkModeParams)
-            primaryButton.borderColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BORDER, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.primaryButton.borderColor
-            primaryButton.successBackgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SUCCESS_BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.primaryButton.successBackgroundColor
-            primaryButton.successTextColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SUCCESS_TEXT, lightParams: lightModeParams, darkParams: darkModeParams)
+            primaryButton.backgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: defaultBackgroundColor)
+            primaryButton.textColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.TEXT, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: nil)
+            primaryButton.borderColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BORDER, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: primaryButton.borderColor) ?? primaryButton.borderColor
+            primaryButton.successBackgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SUCCESS_BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: primaryButton.successBackgroundColor) ?? primaryButton.successBackgroundColor
+            primaryButton.successTextColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SUCCESS_TEXT, lightParams: lightModeParams, darkParams: darkModeParams, defaultColor: primaryButton.textColor)
         }
 
         return primaryButton
     }
 
-    private class func buildUserInterfaceStyleAwareColor(key: String, lightParams: NSDictionary, darkParams: NSDictionary) throws -> UIColor? {
-        guard let lightHexString = lightParams[key] as? String, let darkHexString = darkParams[key] as? String else {
-            return nil
+    private class func buildUserInterfaceStyleAwareColor(key: String, lightParams: NSDictionary, darkParams: NSDictionary, defaultColor: UIColor?) throws -> UIColor? {
+        let lightHexString = lightParams[key] as? String
+        let darkHexString = darkParams[key] as? String
+
+        for hexString in [lightHexString, darkHexString].compactMap({ $0 }) {
+            let count = hexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).count
+            if count != 6 && count != 8 {
+                throw PaymentSheetAppearanceError.unexpectedHexStringLength(hexString)
+            }
         }
 
-        let darkCount = darkHexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).count
-        let lightCount = lightHexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).count
-        if lightCount != 6 && lightCount != 8 {
-            throw PaymentSheetAppearanceError.unexpectedHexStringLength(lightHexString)
-        } else if darkCount != 6 && darkCount != 8 {
-            throw PaymentSheetAppearanceError.unexpectedHexStringLength(darkHexString)
-        }
-
-        let lightColor = UIColor(hexString: lightHexString)
-        let darkColor = UIColor(hexString: darkHexString)
+        let lightColor = lightHexString.map { UIColor(hexString: $0) }
+        let darkColor = darkHexString.map { UIColor(hexString: $0) }
+        guard let providedColor = lightColor ?? darkColor else { return nil }
 
         if #available(iOS 13.0, *) {
             return UIColor.init { traits in
-                return traits.userInterfaceStyle == .dark ? darkColor : lightColor
+                let color = traits.userInterfaceStyle == .dark ? darkColor : lightColor
+                // Optional button colors have no SDK default to resolve, so reuse the provided mode's color.
+                return color ?? defaultColor?.resolvedColor(with: traits) ?? providedColor
             }
         } else {
-            return lightColor
+            return lightColor ?? defaultColor ?? providedColor
         }
     }
 
@@ -386,7 +377,6 @@ internal class PaymentSheetAppearance {
 
 enum PaymentSheetAppearanceError: Error {
     case missingFont(String)
-    case missingAppearanceMode
     case unexpectedHexStringLength(String)
     case invalidRowStyle(String)
 }
@@ -396,8 +386,6 @@ extension PaymentSheetAppearanceError: LocalizedError {
         switch self {
         case .missingFont(let fontFamily):
             return NSLocalizedString("Failed to set Payment Sheet appearance. Unable to find font: \(fontFamily)", comment: "Failed to set font")
-        case .missingAppearanceMode:
-            return NSLocalizedString("Failed to set Payment Sheet appearance. When providing 'colors.light' or 'colors.dark', you must provide both.", comment: "Failed to set colors")
         case .unexpectedHexStringLength(let hexString):
             return NSLocalizedString("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: \(hexString)", comment: "Failed to set color")
         case .invalidRowStyle(let styleString):
