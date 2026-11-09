@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+**Fixes**
+
+* [Fixed] iOS: Checkout accepts Payment Element appearance colors with only a `light` or `dark` palette.
+
 ## 0.85.0 - 2026-11-03
 
 **Features**
