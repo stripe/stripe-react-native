@@ -444,6 +444,28 @@ describe('EmbeddedComponent', () => {
       }
     });
 
+    it('does not keep an http Connect host in the component on Android', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'http://connect.stripe.com/embedded',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(openUrl).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
     it.each([
       'click',
       'other',
@@ -531,6 +553,75 @@ describe('EmbeddedComponent', () => {
       }
     });
 
+    describe('iOS subframe navigation', () => {
+      const previousPlatform = Platform.OS;
+
+      beforeEach(() => {
+        Platform.OS = 'ios' as any;
+      });
+
+      afterEach(() => {
+        Platform.OS = previousPlatform;
+      });
+
+      it.each([
+        ['https://js.stripe.com/v3/', 'https:'],
+        ['blob:https://connect-js.stripe.com/abcd-1234', 'blob:'],
+        ['about:srcdoc', 'about:'],
+      ])('allows a non-click subframe load of %s (%s)', async (url) => {
+        const onShouldStartLoad = await getNavigationHandler();
+
+        expect(
+          onShouldStartLoad({
+            url,
+            navigationType: 'other',
+            isTopFrame: false,
+            mainDocumentURL: 'https://connect-js.stripe.com/other-doc',
+          })
+        ).toBe(true);
+      });
+
+      it('routes a click to a foreign host outside', async () => {
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url: 'https://example.com/help',
+            navigationType: 'click',
+            isTopFrame: false,
+            mainDocumentURL: 'https://connect-js.stripe.com/other-doc',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+
+      it('blocks a custom-scheme subframe load without calling Linking', async () => {
+        const openUrl = jest.spyOn(Linking, 'openURL');
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url: 'customscheme://action',
+            navigationType: 'other',
+            isTopFrame: false,
+            mainDocumentURL: 'https://connect-js.stripe.com/other-doc',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+    });
+
     it('shares CSV exports without opening them externally', async () => {
       const previousPlatform = Platform.OS;
       Platform.OS = 'android' as any;
@@ -602,6 +693,30 @@ describe('EmbeddedComponent', () => {
         const onShouldStartLoad = await getNavigationHandler();
         const shouldLoad = onShouldStartLoad({
           url: 'https://stripe-data-exports.s3.amazonaws.com.attacker.example/x.csv',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(downloadAndShare).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it('does not treat a foreign host with "stripe-data-exports" in its path as a CSV export', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const downloadAndShare =
+        NativeStripeSdk.downloadAndShareFile as jest.Mock;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://attacker.example/stripe-data-exports/payload.csv',
           navigationType: 'other',
         });
 
