@@ -794,7 +794,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const onShouldStartLoadWithRequest = useCallback(
     (event: ShouldStartLoadRequest) => {
-      const { url, navigationType } = event;
+      const { url } = event;
 
       // Handle CSV export downloads
       if (isCsvExportUrl(url)) {
@@ -809,8 +809,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           });
         return false; // Block WebView navigation
       }
-
-      if (Platform.OS === 'ios' && navigationType !== 'click') return true;
 
       // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
       if (isAllowedStripeHost(url)) {

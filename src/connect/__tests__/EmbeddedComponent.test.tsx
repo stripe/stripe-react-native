@@ -445,11 +445,15 @@ describe('EmbeddedComponent', () => {
     });
 
     it.each([
-      ['click', false],
-      ['other', true],
+      'click',
+      'other',
+      'reload',
+      'backforward',
+      'formsubmit',
+      'formresubmit',
     ])(
-      'preserves iOS %s navigation behavior',
-      async (navigationType, expected) => {
+      'blocks and routes outside a foreign iOS top-frame %s navigation',
+      async (navigationType) => {
         const previousPlatform = Platform.OS;
         Platform.OS = 'ios' as any;
         const openUrl = jest
@@ -458,17 +462,15 @@ describe('EmbeddedComponent', () => {
 
         try {
           const onShouldStartLoad = await getNavigationHandler();
+          // No isTopFrame/mainDocumentURL is passed here, matching the
+          // fail-closed rule: a missing mainDocumentURL is treated as top-frame.
           const shouldLoad = onShouldStartLoad({
             url: 'https://example.com/help',
             navigationType,
           });
 
-          expect(shouldLoad).toBe(expected);
-          if (expected) {
-            expect(openUrl).not.toHaveBeenCalled();
-          } else {
-            expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
-          }
+          expect(shouldLoad).toBe(false);
+          expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
         } finally {
           openUrl.mockRestore();
           Platform.OS = previousPlatform;
