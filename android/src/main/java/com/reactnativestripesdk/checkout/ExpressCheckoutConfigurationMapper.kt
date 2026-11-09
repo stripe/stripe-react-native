@@ -19,22 +19,46 @@ internal object ExpressCheckoutConfigurationMapper {
 
   private fun mapGooglePay(params: ReadableMap): ExpressGooglePay = ExpressGooglePay().apply {
     params.getString("display")?.let {
-      display(mapEnum("googlePay.display", it))
+      display(
+        when (it) {
+          "automatic" -> ExpressGooglePay.Display.Automatic
+          "never" -> ExpressGooglePay.Display.Never
+          else -> unsupportedValue("googlePay.display", it)
+        },
+      )
     }
     params.getString("label")?.let(::label)
     params.getStringList("additionalEnabledNetworks")?.let(::additionalEnabledNetworks)
-    params.getString("buttonType")?.let { buttonType(mapEnum("googlePay.buttonType", it)) }
+    params.getString("buttonType")?.let { buttonType(mapGooglePayButtonType(it)) }
   }
 
   private fun mapLink(params: ReadableMap): ExpressLink = ExpressLink().apply {
-    params.getString("display")?.let { display(mapEnum("link.display", it)) }
+    params.getString("display")?.let {
+      display(
+        when (it) {
+          "automatic" -> ExpressLink.Display.Automatic
+          "never" -> ExpressLink.Display.Never
+          else -> unsupportedValue("link.display", it)
+        },
+      )
+    }
   }
 
-  // Follow native enum names so newly supported native values do not need another bridge switch case.
-  // Keep invalid values as configuration errors, matching the other Checkout mappers.
-  private inline fun <reified T : Enum<T>> mapEnum(path: String, value: String): T =
-    enumValues<T>().firstOrNull { it.name.equals(value, ignoreCase = true) }
-      ?: throw IllegalArgumentException(
+  private fun mapGooglePayButtonType(value: String): ExpressGooglePay.ButtonType =
+    when (value) {
+      "buy" -> ExpressGooglePay.ButtonType.Buy
+      "book" -> ExpressGooglePay.ButtonType.Book
+      "checkout" -> ExpressGooglePay.ButtonType.Checkout
+      "donate" -> ExpressGooglePay.ButtonType.Donate
+      "order" -> ExpressGooglePay.ButtonType.Order
+      "subscribe" -> ExpressGooglePay.ButtonType.Subscribe
+      "plain" -> ExpressGooglePay.ButtonType.Plain
+      "pay" -> ExpressGooglePay.ButtonType.Pay
+      else -> unsupportedValue("googlePay.buttonType", value)
+    }
+
+  private fun unsupportedValue(path: String, value: String): Nothing =
+    throw IllegalArgumentException(
       "Unsupported Checkout configuration value `$value` for `expressCheckoutElement.$path`.",
     )
 }

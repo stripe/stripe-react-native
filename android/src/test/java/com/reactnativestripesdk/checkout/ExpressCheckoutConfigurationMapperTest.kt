@@ -70,39 +70,81 @@ class ExpressCheckoutConfigurationMapperTest {
   }
 
   @Test
-  fun `maps every native enum value without a hardcoded bridge list`() {
-    for (type in ExpressGooglePay.ButtonType.entries) {
-      val configuration = ExpressCheckoutConfigurationMapper.map(
-        readableMapOf("googlePay" to readableMapOf("buttonType" to type.name.lowercase())),
-      )
-      assertEquals(type, configuration.readField<ExpressGooglePay>("googlePayConfiguration").readField("buttonType"))
-    }
-    for (display in ExpressGooglePay.Display.entries) {
-      val configuration = ExpressCheckoutConfigurationMapper.map(
-        readableMapOf("googlePay" to readableMapOf("display" to display.name.lowercase())),
-      )
-      assertEquals(display, configuration.readField<ExpressGooglePay>("googlePayConfiguration").readField("display"))
-    }
-    for (display in ExpressLink.Display.entries) {
-      val configuration = ExpressCheckoutConfigurationMapper.map(
-        readableMapOf("link" to readableMapOf("display" to display.name.lowercase())),
-      )
-      assertEquals(display, configuration.readField<ExpressLink>("linkConfiguration").readField("display"))
-    }
-  }
+  fun `maps Google Pay buy button`() = assertGooglePayButtonType("buy", ExpressGooglePay.ButtonType.Buy)
 
   @Test
-  fun `rejects unsupported enum values`() {
-    val invalidOptions = listOf(
-      "googlePay" to "buttonType",
-      "googlePay" to "display",
-      "link" to "display",
+  fun `maps Google Pay book button`() = assertGooglePayButtonType("book", ExpressGooglePay.ButtonType.Book)
+
+  @Test
+  fun `maps Google Pay checkout button`() = assertGooglePayButtonType("checkout", ExpressGooglePay.ButtonType.Checkout)
+
+  @Test
+  fun `maps Google Pay donate button`() = assertGooglePayButtonType("donate", ExpressGooglePay.ButtonType.Donate)
+
+  @Test
+  fun `maps Google Pay order button`() = assertGooglePayButtonType("order", ExpressGooglePay.ButtonType.Order)
+
+  @Test
+  fun `maps Google Pay subscribe button`() =
+    assertGooglePayButtonType("subscribe", ExpressGooglePay.ButtonType.Subscribe)
+
+  @Test
+  fun `maps Google Pay plain button`() = assertGooglePayButtonType("plain", ExpressGooglePay.ButtonType.Plain)
+
+  @Test
+  fun `maps Google Pay pay button`() = assertGooglePayButtonType("pay", ExpressGooglePay.ButtonType.Pay)
+
+  @Test
+  fun `maps automatic Google Pay display`() = assertGooglePayDisplay("automatic", ExpressGooglePay.Display.Automatic)
+
+  @Test
+  fun `maps never Google Pay display`() = assertGooglePayDisplay("never", ExpressGooglePay.Display.Never)
+
+  @Test
+  fun `maps automatic Link display`() = assertLinkDisplay("automatic", ExpressLink.Display.Automatic)
+
+  @Test
+  fun `maps never Link display`() = assertLinkDisplay("never", ExpressLink.Display.Never)
+
+  @Test
+  fun `rejects native enum names instead of wire button types`() =
+    assertUnsupportedValue("googlePay", "buttonType", "Checkout")
+
+  @Test
+  fun `rejects unsupported Google Pay display`() = assertUnsupportedValue("googlePay", "display", "invalid")
+
+  @Test
+  fun `rejects unsupported Link display`() = assertUnsupportedValue("link", "display", "invalid")
+
+  private fun assertGooglePayButtonType(value: String, expected: ExpressGooglePay.ButtonType) {
+    val configuration = ExpressCheckoutConfigurationMapper.map(
+      readableMapOf("googlePay" to readableMapOf("buttonType" to value)),
     )
-    for ((key, option) in invalidOptions) {
-      assertThrows(IllegalArgumentException::class.java) {
-        ExpressCheckoutConfigurationMapper.map(readableMapOf(key to readableMapOf(option to "invalid")))
-      }
+    assertEquals(expected, configuration.readField<ExpressGooglePay>("googlePayConfiguration").readField("buttonType"))
+  }
+
+  private fun assertGooglePayDisplay(value: String, expected: ExpressGooglePay.Display) {
+    val configuration = ExpressCheckoutConfigurationMapper.map(
+      readableMapOf("googlePay" to readableMapOf("display" to value)),
+    )
+    assertEquals(expected, configuration.readField<ExpressGooglePay>("googlePayConfiguration").readField("display"))
+  }
+
+  private fun assertLinkDisplay(value: String, expected: ExpressLink.Display) {
+    val configuration = ExpressCheckoutConfigurationMapper.map(
+      readableMapOf("link" to readableMapOf("display" to value)),
+    )
+    assertEquals(expected, configuration.readField<ExpressLink>("linkConfiguration").readField("display"))
+  }
+
+  private fun assertUnsupportedValue(configuration: String, field: String, value: String) {
+    val error = assertThrows(IllegalArgumentException::class.java) {
+      ExpressCheckoutConfigurationMapper.map(readableMapOf(configuration to readableMapOf(field to value)))
     }
+    assertEquals(
+      "Unsupported Checkout configuration value `$value` for `expressCheckoutElement.$configuration.$field`.",
+      error.message,
+    )
   }
 
   @Suppress("UNCHECKED_CAST")
