@@ -6,6 +6,7 @@
 
 * [Fixed] iOS: Connect now blocks top-frame WebView navigation away from the hosted Connect page for every navigation type (previously only navigation triggered by a click was blocked), and routes it to the system browser instead.
 * [Fixed] Connect popups (e.g. links that open a new window) now open in the system browser on both platforms. Previously they were silently dropped on Android.
+* [Fixed] Connect links now open in the system browser only for `https:`, `mailto:` and `tel:` links, plus Stripe's CSV export storage. Links with other schemes (including custom app schemes and `http:`) are no longer opened. On Android, Connect hosts must now also be served over https.
 
 ## 0.85.1 - 2026-11-10
 
