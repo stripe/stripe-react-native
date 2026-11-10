@@ -3,8 +3,11 @@
 
 /// Fabric component-view coverage without production test sinks.
 /// Pending-event enqueue/invalidate/flush behavior is unit-tested in
-/// `PMMEDirectEventQueueTests`. Direct configure failures and recycle callback
-/// clearing are covered by `PaymentMethodMessagingElementViewTests`.
+/// `PMMEDirectEventQueueTests`. Direct configure failures, equal-prop
+/// reassignment, and recycle callback clearing are covered by
+/// `PaymentMethodMessagingElementViewTests`. Height-only Fabric prop updates
+/// are guarded in `updateProps` by comparing appearance/configuration against
+/// `_props` before touching Swift setters.
 @interface PaymentMethodMessagingElementComponentViewTests : XCTestCase
 @end
 

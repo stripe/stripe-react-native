@@ -105,9 +105,17 @@ using namespace facebook::react;
            oldProps:(const facebook::react::Props::Shared &)oldProps
 {
   const auto &newViewProps = *std::static_pointer_cast<const PaymentMethodMessagingElementViewProps>(props);
+  // Compare against the currently applied props (`_props`). Height write-backs from
+  // `onHeightChanged` are style-only updates; re-assigning unchanged appearance /
+  // configuration would re-enter Swift `didSet`s and restart create().
+  const auto &oldViewProps = *std::static_pointer_cast<const PaymentMethodMessagingElementViewProps>(_props);
 
-  _view.appearance = stripe::react::convertFollyDynamicToNSDictionaryOrNil(newViewProps.appearance);
-  _view.configuration = stripe::react::convertFollyDynamicToNSDictionary(newViewProps.configuration);
+  if (oldViewProps.appearance != newViewProps.appearance) {
+    _view.appearance = stripe::react::convertFollyDynamicToNSDictionaryOrNil(newViewProps.appearance);
+  }
+  if (oldViewProps.configuration != newViewProps.configuration) {
+    _view.configuration = stripe::react::convertFollyDynamicToNSDictionary(newViewProps.configuration);
+  }
 
   [super updateProps:props oldProps:oldProps];
 }

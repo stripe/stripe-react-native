@@ -35,6 +35,10 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
 
     @objc public var appearance: NSDictionary? {
         didSet {
+            // Content-equal reassignment (common when Fabric rebuilds dictionaries from
+            // unchanged folly dynamics, or Old Arch re-sets props) must not cancel
+            // in-flight create or re-emit loading.
+            guard appearance != oldValue else { return }
             if let appearance = appearance {
                 appearanceConfig = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: appearance)
                 // Re-initialize if configuration already exists
@@ -47,6 +51,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
 
     @objc public var configuration: NSDictionary? {
         didSet {
+            guard configuration != oldValue else { return }
             if let configuration = configuration {
                 lastConfig = configuration
                 initMessagingElement(config: configuration)
