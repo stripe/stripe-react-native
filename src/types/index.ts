@@ -203,6 +203,7 @@ export interface InitStripeParams {
   publishableKey: string;
   stripeAccountId?: string;
   threeDSecureParams?: ThreeDSecure.ConfigurationParams;
+  /** iOS only. */
   merchantIdentifier?: string;
   urlScheme?: string;
   setReturnUrlSchemeOnAndroid?: boolean;

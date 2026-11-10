@@ -25,11 +25,11 @@ export enum OnrampErrorStatus {
 /**
  * Configuration used to initialize and customize the crypto onramp experience.
  *
- * - `merchantDisplayName` is shown in Stripe-provided UI (e.g., Link, Identity).
+ * - `merchantDisplayName` is shown in Stripe-provided UI (e.g., Link, Identity). Android only.
  * - `appearance` customizes colors and primary button styling for Stripe UI.
  */
 export type Configuration = {
-  /** Merchant name to display in Stripe-provided UI. */
+  /** Merchant name to display in Stripe-provided UI. Android only. */
   merchantDisplayName: string;
   /** Appearance overrides for Stripe-provided UI used during onramp. */
   appearance: LinkAppearance;

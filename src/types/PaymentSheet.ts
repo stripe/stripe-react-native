@@ -30,9 +30,9 @@ export type SetupParamsBase = IntentParams & {
   googlePay?: GooglePayParams;
   /** Configuration for Link */
   link?: LinkParams;
-  /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. */
+  /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. iOS only. */
   style?: UserInterfaceStyle;
-  /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
+  /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2. iOS only. */
   returnURL?: string;
   /** Configuration for how billing details are collected during checkout. */
   billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
