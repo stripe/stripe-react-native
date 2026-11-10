@@ -31,13 +31,13 @@ final class CheckoutSessionSerializerTests: XCTestCase {
         XCTAssertNil(groups.first?["amountDetails"])
         XCTAssertEqual(item["key"] as? String, "item_1")
         XCTAssertEqual(item["quantity"] as? Int, 2)
-        XCTAssertEqual(total["minorUnitsAmount"] as? Double, 2250)
-        XCTAssertEqual(unitAmount["minorUnitsAmount"] as? Double, 1050)
+        XCTAssertEqual(total["minorUnitsAmount"] as? Int, 2250)
+        XCTAssertEqual(unitAmount["minorUnitsAmount"] as? Int, 1050)
         XCTAssertEqual(decimal["minorUnitsAmount"] as? Double, 1050.25)
         if case .oneTimePrice(let group) = session.orderSummaryItems[0] {
             XCTAssertEqual(total["amount"] as? String, group.items[0].amountDetails.total.amount)
         }
-        XCTAssertEqual(item["adjustableQuantity"] as? NSDictionary, ["enabled": true, "minimum": 1, "maximum": 5])
+        XCTAssertEqual(item["adjustableQuantity"] as? NSDictionary, ["minimum": 1, "maximum": 5])
         XCTAssertNil(result["paymentOption"])
         XCTAssertNil(result["shippingAddress"])
         XCTAssertTrue(JSONSerialization.isValidJSONObject(result))

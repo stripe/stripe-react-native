@@ -600,7 +600,7 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
               testID="checkout-snapshot-currency"
               style={styles.diagnosticsMetadata}
             >
-              Currency: {session.currency.toUpperCase()}
+              Currency: {session.currency?.toUpperCase() ?? 'None'}
             </Text>
           </View>
           <Text

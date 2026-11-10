@@ -39,14 +39,15 @@ internal object CheckoutSessionSerializer {
         },
       )
       putBoolean("livemode", session.livemode)
-      putString("currency", session.currency)
+      // Like iOS, omit the currency when the session has none.
+      session.currency?.let { putString("currency", it) }
       session.email?.let { putString("email", it) }
       session.tax?.let { putMap("tax", serializeTax(it)) }
       putMap("status", serializeStatus(session.status))
       session.paymentOption?.let {
         putMap("paymentOption", serializePaymentOption(it, context))
       }
-      putInt("minorUnitsAmountDivisor", session.minorUnitsAmountDivisor)
+      session.minorUnitsAmountDivisor?.let { putInt("minorUnitsAmountDivisor", it) }
       session.businessName?.let { putString("businessName", it) }
       session.presentmentDetails?.let {
         putMap(
@@ -175,11 +176,11 @@ internal object CheckoutSessionSerializer {
     item.unitAmountDecimal?.let { putMap("unitAmountDecimal", serialize(it)) }
     item.unitLabel?.let { putString("unitLabel", it) }
     putInt("quantity", item.quantity)
+    // Native Checkout only provides `adjustableQuantity` when adjustment is enabled.
     item.adjustableQuantity?.let {
       putMap(
           "adjustableQuantity",
           Arguments.createMap().apply {
-        putBoolean("enabled", it.enabled)
         putInt("minimum", it.minimum)
         putInt("maximum", it.maximum)
       }
