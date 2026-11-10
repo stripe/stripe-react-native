@@ -354,7 +354,11 @@ class PaymentMethodCreateParamsFactory(
       throw PaymentMethodCreateParamsException("Card details not complete")
     }
 
-    return PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
+    return PaymentMethodCreateParams.create(
+      cardParams,
+      billingDetailsParams,
+      metadata = metadataParams,
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)

@@ -12,6 +12,7 @@ import com.reactnativestripesdk.utils.mapToBillingDetails
 import com.reactnativestripesdk.utils.mapToPaymentMethodType
 import com.reactnativestripesdk.utils.mapToPreCollectedConsent
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
+import com.reactnativestripesdk.utils.mapToUICustomization
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
@@ -516,6 +517,36 @@ class MappersTest {
     val result = parseCustomPaymentMethods(params)
     assertEquals(1, result.size)
     assertEquals("cpmt_valid", result[0].id)
+  }
+
+  @Test
+  fun mapToUICustomization_appliesTextBoxCustomization() {
+    val result =
+      mapToUICustomization(
+        readableMapOf(
+          "textField" to
+            readableMapOf(
+              "borderColor" to "#FF0000",
+              "textColor" to "#00FF00",
+              "borderWidth" to 2,
+              "borderRadius" to 4,
+              "textFontSize" to 16,
+            ),
+        ),
+      )
+
+    // StripeUiCustomization lives in stripe-3ds2-android and is not on the unit-test
+    // compile classpath, so assert through reflection without naming that type.
+    val stripeUi = result.javaClass.getMethod("getUiCustomization").invoke(result)
+    assertNotNull(stripeUi)
+    val textBox =
+      stripeUi!!.javaClass.getMethod("getTextBoxCustomization").invoke(stripeUi)
+    assertNotNull(textBox)
+    assertEquals("#FF0000", textBox!!.javaClass.getMethod("getBorderColor").invoke(textBox))
+    assertEquals("#00FF00", textBox.javaClass.getMethod("getTextColor").invoke(textBox))
+    assertEquals(2, textBox.javaClass.getMethod("getBorderWidth").invoke(textBox))
+    assertEquals(4, textBox.javaClass.getMethod("getCornerRadius").invoke(textBox))
+    assertEquals(16, textBox.javaClass.getMethod("getTextFontSize").invoke(textBox))
   }
 }
 

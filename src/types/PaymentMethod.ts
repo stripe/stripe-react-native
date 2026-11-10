@@ -57,12 +57,17 @@ export type ConfirmOptions = CreateOptions;
 
 export type ShippingDetails = BillingDetails;
 
+type MetaData = {
+  [key: string]: string;
+};
+
 export type CardParams =
   | {
       paymentMethodType: 'Card';
       paymentMethodData?: {
         token?: string;
         billingDetails?: BillingDetails;
+        metadata?: MetaData;
       };
     }
   | {
@@ -71,6 +76,7 @@ export type CardParams =
         paymentMethodId: string;
         cvc?: string;
         billingDetails?: BillingDetails;
+        metadata?: MetaData;
       };
     };
 

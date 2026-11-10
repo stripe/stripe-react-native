@@ -887,6 +887,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
       .Builder()
       .setLabelCustomization(labelCustomizationBuilder.build())
       .setToolbarCustomization(toolbarCustomizationBuilder.build())
+      .setTextBoxCustomization(textBoxCustomizationBuilder.build())
       .setButtonCustomization(
         submitButtonCustomizationBuilder.build(),
         PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.SUBMIT,
