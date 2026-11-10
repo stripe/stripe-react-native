@@ -4,11 +4,15 @@
 
 **Changes**
 
-* Updated Stripe Android SDK from 23.25.1 to 23.25.2.
+* Updated Stripe Android SDK from 23.25.1 to 23.26.0.
+* Updated Stripe iOS SDK from 26.16.0 to 26.16.1.
 * [Changed] Documented platform support for Payment Sheet, Embedded Payment Element, Customer Sheet, Onramp, and `initStripe` options that apply on a single platform only.
+* [Changed] iOS: Changed the title shown above the card entry form from "Add card" to "Add a card".
 
 **Fixes**
 
+* [Fixed] Android: Fixed an issue that caused the Bank payment method to be hidden unnecessarily.
+* [Fixed] Android: Fixed a memory leak where PaymentSheet could retain its Activity when closed before passive CAPTCHA warm-up finished.
 * [Fixed] Android: 3D Secure `textField` customization is now applied to the challenge UI.
 * [Fixed] Card `metadata` is now included when creating or confirming card payment methods on Android and when using CardField on iOS.
 * [Fixed] iOS: 3D Secure `timeout` now sets the authentication timeout (in minutes).
