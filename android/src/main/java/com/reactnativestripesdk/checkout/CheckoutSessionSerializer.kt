@@ -46,7 +46,7 @@ internal object CheckoutSessionSerializer {
       session.paymentOption?.let {
         putMap("paymentOption", serializePaymentOption(it, context))
       }
-      putInt("minorUnitsAmountDivisor", session.minorUnitsAmountDivisor)
+      session.minorUnitsAmountDivisor?.let { putInt("minorUnitsAmountDivisor", it) }
       session.businessName?.let { putString("businessName", it) }
       session.presentmentDetails?.let {
         putMap(

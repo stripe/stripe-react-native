@@ -4,7 +4,8 @@
 
 **Changes**
 
-* Updated Stripe Android SDK from 23.25.1 to 23.25.2.
+* Updated Stripe Android SDK from 23.25.1 to 23.26.0.
+* Updated Stripe iOS SDK from 26.16.0 to 26.16.1.
 * [Changed] Documented platform support for Payment Sheet, Embedded Payment Element, Customer Sheet, Onramp, and `initStripe` options that apply on a single platform only.
 
 **Fixes**
