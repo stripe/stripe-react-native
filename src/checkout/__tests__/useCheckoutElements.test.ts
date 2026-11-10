@@ -11,6 +11,7 @@ jest.mock('../../events', () => ({ addListener: jest.fn() }));
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
   default: {
+    getConstants: jest.fn(() => ({})),
     createCheckout: jest.fn(),
     destroyCheckout: jest.fn(),
     updateCheckoutEmail: jest.fn(),
@@ -99,6 +100,8 @@ it('loads while enabled and follows native updates', async () => {
   expect(hook.result.current.expressCheckoutElement).toBeNull();
   await hook.result.current.reload();
   expect(configuration).not.toHaveBeenCalled();
+  await hook.result.current.clearLocalCustomerData();
+  expect(clearLocalCustomerData).toHaveBeenCalledTimes(1);
 
   hook.rerender({ enabled: true, getConfiguration: configuration });
   await waitFor(() => expect(hook.result.current.status).toBe('ready'));
@@ -115,8 +118,6 @@ it('loads while enabled and follows native updates', async () => {
   });
   await hook.result.current.updateEmail('jenny@example.com');
   expect(updateEmail).toHaveBeenCalledWith(controllerId(), 'jenny@example.com');
-  await hook.result.current.clearLocalCustomerData();
-  expect(clearLocalCustomerData).toHaveBeenCalledTimes(1);
 
   hook.rerender({ enabled: true, getConfiguration: configuration });
   expect(hook.result.current.updateEmail).toBe(firstUpdateEmail);

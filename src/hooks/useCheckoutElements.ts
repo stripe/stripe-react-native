@@ -3,6 +3,7 @@ import {
   createCheckoutController,
   normalizeCheckoutError,
 } from '../checkout/createCheckoutElements';
+import { clearCheckoutLocalCustomerData } from '../functions';
 import type { CheckoutElements } from '../types/CheckoutElements';
 
 type State = Pick<
@@ -156,8 +157,7 @@ export function useCheckoutElements(
       removePromotionCode: async () =>
         currentController().removePromotionCode(),
       clearPaymentOption: async () => currentController().clearPaymentOption(),
-      clearLocalCustomerData: async () =>
-        currentController().clearLocalCustomerData(),
+      clearLocalCustomerData: clearCheckoutLocalCustomerData,
       runServerUpdate: async (callback) =>
         currentController().runServerUpdate(callback),
       confirm: async () => currentController().confirm(),
