@@ -1110,5 +1110,136 @@ describe('EmbeddedComponent', () => {
       expect(isAllowedStripeHost('not-a-url')).toBe(false);
       expect(isAllowedStripeHost('')).toBe(false);
     });
+
+    const ATTACKER_URLS = [
+      'https://attacker.invalid/?x=@connect.stripe.com',
+      'https://attacker.invalid/#@connect.stripe.com',
+      'https://attacker.invalid/landing?next=https://@verify.stripe.com',
+    ];
+
+    const REAL_STRIPE_URLS = [
+      'https://connect-js.stripe.com/v1.0/react_native_webview.html#component=payouts',
+      'https://connect.stripe.com/path',
+      'https://verify.stripe.com/verify',
+      'https://connect.stripe.com:8443/x',
+      'http://connect.stripe.com/x',
+    ];
+
+    it('rejects userinfo/host-confusion URLs and non-http(s) inputs', () => {
+      const urls = [
+        ...ATTACKER_URLS,
+        'https://connect.stripe.com@evil.com/',
+        'https://connect.stripe.com:80@evil.com/',
+        'https://connect.stripe.com\\@evil.com',
+        'https://connect.stripe.com.evil.com/',
+        'https://connect.stripe.com\t.evil.com',
+        'about:blank',
+        '',
+      ];
+      urls.forEach((url) => {
+        expect([url, isAllowedStripeHost(url)]).toEqual([url, false]);
+      });
+    });
+
+    it('still allows legitimate Stripe URLs (ports, http)', () => {
+      REAL_STRIPE_URLS.forEach((url) => {
+        expect([url, isAllowedStripeHost(url)]).toEqual([url, true]);
+      });
+    });
+
+    describe('with a runtime URL parser that mis-parses "@" in query/fragment', () => {
+      const RealURL = global.URL;
+
+      class BuggyURL {
+        private _url: string;
+        constructor(url: string) {
+          if (!/^https?:\/\//i.test(url)) {
+            throw new TypeError('Invalid URL');
+          }
+          this._url = url;
+        }
+        get hostname(): string {
+          return this._url.match(/^https?:\/\/(?:[^@]+@)?([^:/?#]+)/)![1]!;
+        }
+        get host(): string {
+          return this.hostname;
+        }
+      }
+
+      beforeEach(() => {
+        (global as any).URL = BuggyURL;
+      });
+
+      afterEach(() => {
+        (global as any).URL = RealURL;
+      });
+
+      it('sanity: the fake parser reports the trusted host for attacker URLs', () => {
+        expect(new URL(ATTACKER_URLS[0]!).hostname).toBe('connect.stripe.com');
+      });
+
+      it('rejects attacker URLs and still allows real Stripe URLs', () => {
+        ATTACKER_URLS.forEach((url) => {
+          expect([url, isAllowedStripeHost(url)]).toEqual([url, false]);
+        });
+        REAL_STRIPE_URLS.forEach((url) => {
+          expect([url, isAllowedStripeHost(url)]).toEqual([url, true]);
+        });
+      });
+    });
+
+    it('never allows a URL that the previous implementation rejected', () => {
+      // Copy of the original implementation (dev hosts are disabled in tests).
+      const oldIsAllowed = (url: string): boolean => {
+        try {
+          const parsedUrl = new URL(url);
+          return [
+            'connect-js.stripe.com',
+            'connect.stripe.com',
+            'verify.stripe.com',
+          ].some(
+            (host) => parsedUrl.hostname === host || parsedUrl.host === host
+          );
+        } catch {
+          return false;
+        }
+      };
+
+      const urls = [
+        ...ATTACKER_URLS,
+        ...REAL_STRIPE_URLS,
+        'https://connect.stripe.com@evil.com/',
+        'https://connect.stripe.com:80@evil.com/',
+        'https://connect.stripe.com\\@evil.com',
+        'https://connect.stripe.com.evil.com/',
+        'https://connect.stripe.com\t.evil.com',
+        'about:blank',
+        '',
+        'https://connect.stripe.com',
+        'https://connect.stripe.com/',
+        'https://connect.stripe.com?x=1',
+        'https://connect.stripe.com#frag',
+        'https://connect.stripe.com:443/path',
+        'https://connect.stripe.com:/path',
+        'https://connect.stripe.com:abc/path',
+        'https://user:pass@connect.stripe.com/path',
+        'https://user:pass@evil.com/',
+        'https://user@connect.stripe.com:8443/x',
+        'ftp://connect.stripe.com/x',
+        'https:/connect.stripe.com',
+        'https:connect.stripe.com',
+        'https://verify.stripe.com/?next=https://evil.com',
+        'https://verify.stripe.com/#https://evil.com@x',
+        'https://sub.connect.stripe.com/x',
+        'https://evilconnect.stripe.com/x',
+        ' https://connect.stripe.com/x',
+      ];
+      expect(urls.length).toBeGreaterThanOrEqual(30);
+      urls.forEach((url) => {
+        if (isAllowedStripeHost(url)) {
+          expect([url, oldIsAllowed(url)]).toEqual([url, true]);
+        }
+      });
+    });
   });
 });

@@ -23,7 +23,7 @@ $StripeDisableSPM = true if disable_spm
 use_frameworks! :linkage => :dynamic unless disable_spm
 
 ENV['RCT_USE_RN_DEP'] = '1'
-ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
+ENV['RCT_USE_PREBUILT_RNCORE'] = ENV.fetch('RCT_USE_PREBUILT_RNCORE', '1')
 options = {
   :bridgeless_enabled => true,
   :fabric_enabled => true,
