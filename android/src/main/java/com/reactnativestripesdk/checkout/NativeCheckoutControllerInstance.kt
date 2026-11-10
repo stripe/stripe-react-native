@@ -155,7 +155,6 @@ internal class NativeCheckoutControllerInstance(
   }
 
   @MainThread
-  @Suppress("TooGenericExceptionCaught")
   fun onConfirmationResult(result: CheckoutElementsController.Result) {
     UiThreadUtil.assertOnUiThread()
     val pendingConfirmation = confirmation
@@ -167,25 +166,30 @@ internal class NativeCheckoutControllerInstance(
       // immediateAction integration confirms through our confirm(), which installs the deferred
       // before invoking the presenter. Thus only ECE results reach this branch, not those from
       // confirming a Google Pay/Link option selected in Payment Element.
-      scope.launch {
-        val serializedResult = try {
-          // Publish the refreshed session before the merchant handles the payment result.
-          publishCurrentState()
-          CheckoutSessionSerializer.serialize(result, controller.session.value?.status)
-        } catch (error: CancellationException) {
-          throw error
-        } catch (error: Exception) {
-          // Match explicit confirmation's bridge error handling rather than crashing the coroutine.
-          createError(checkoutErrorCode(error), error).apply { putString("status", "failed") }
-        }
-        if (!destroyed) {
-          eventEmitter.emitCheckoutExpressCheckoutDidComplete(
-            Arguments.createMap().apply {
-              putString("controllerId", controllerId)
-              putMap("result", serializedResult)
-            },
-          )
-        }
+      onExpressCheckoutConfirmationResult(result)
+    }
+  }
+
+  @Suppress("TooGenericExceptionCaught")
+  private fun onExpressCheckoutConfirmationResult(result: CheckoutElementsController.Result) {
+    scope.launch {
+      val serializedResult = try {
+        // Publish the refreshed session before the merchant handles the payment result.
+        publishCurrentState()
+        CheckoutSessionSerializer.serialize(result, controller.session.value?.status)
+      } catch (error: CancellationException) {
+        throw error
+      } catch (error: Exception) {
+        // Match explicit confirmation's bridge error handling rather than crashing the coroutine.
+        createError(checkoutErrorCode(error), error).apply { putString("status", "failed") }
+      }
+      if (!destroyed) {
+        eventEmitter.emitCheckoutExpressCheckoutDidComplete(
+          Arguments.createMap().apply {
+            putString("controllerId", controllerId)
+            putMap("result", serializedResult)
+          },
+        )
       }
     }
   }
