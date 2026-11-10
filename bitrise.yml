@@ -131,6 +131,22 @@ workflows:
           title: Check Android Lint
           inputs:
             - content: yarn lint:android
+      - script@1:
+          title: Pre-download Robolectric SDKs
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -euo pipefail
+                # Transient Maven/CDN failures (Connection refused) are common for
+                # android-all-instrumented; fetch into mavenLocal with retries before
+                # android-unit-test so Robolectric does not download mid-suite.
+                # shellcheck source=scripts/ci/retry.sh
+                source "$BITRISE_SOURCE_DIR/scripts/ci/retry.sh"
+                cd "$BITRISE_SOURCE_DIR/example/android"
+                retry --attempts "${RETRY_MAX_ATTEMPTS:-5}" \
+                  --sleep "${RETRY_SLEEP_SLOW:-${RETRY_SLEEP_FAST:-10}}" \
+                  --backoff 2 -- \
+                  ./gradlew :stripe_stripe-react-native:robolectricSdkDownload --no-daemon
       - android-unit-test:
           inputs:
             - project_location: $BITRISE_SOURCE_DIR/example/android

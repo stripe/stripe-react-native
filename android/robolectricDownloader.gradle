@@ -1,0 +1,86 @@
+/**
+ * Pre-downloads Robolectric android-all-instrumented jars into mavenLocal (~/.m2).
+ *
+ * From the example Android project:
+ *   ./gradlew :stripe_stripe-react-native:robolectricSdkDownload
+ *
+ * Approach: resolve each SDK jar through a dedicated Gradle configuration, then
+ * copy the resolved artifacts (and POM) into mavenLocal so unit tests can reuse
+ * them without a mid-test Maven fetch. Inspired by the public gists
+ * https://gist.github.com/xian/05c4f27da6d4156b9827842217c2cd5c and
+ * https://gist.github.com/simtel12/13ff3e57c37e78e468502b51ebb0f4f2
+ * (original script for this repo; not a copy of any third-party project sources).
+ *
+ * Version list source of truth for Robolectric itself:
+ *   https://github.com/robolectric/robolectric/blob/robolectric-4.10/robolectric/src/main/java/org/robolectric/plugins/DefaultSdkProvider.java
+ * The trailing `-iN` suffix is PREINSTRUMENTED_VERSION from that class
+ * (Robolectric 4.10 uses N=4 → `-i4`).
+ *
+ * When to update this list:
+ *   - Bumping `org.robolectric:robolectric` in android/build.gradle
+ *   - Changing `sdk=` in android/src/test/resources/robolectric.properties
+ *   - Adding `@Config(sdk = …)` on a test
+ *   - CI failing to fetch a new `org.robolectric:android-all-instrumented:…` artifact
+ *
+ * Maintainer discovery steps (scoped; do not wipe all of ~/.m2):
+ *   1. Remove only the instrumented jars cache:
+ *        rm -rf ~/.m2/repository/org/robolectric/android-all-instrumented
+ *   2. Run Android unit tests so Robolectric re-fetches what it needs:
+ *        yarn test:unit:android
+ *      or:
+ *        cd example/android && ./gradlew :stripe_stripe-react-native:testDebugUnitTest
+ *   3. List what was downloaded:
+ *        find ~/.m2/repository/org/robolectric/android-all-instrumented -type d -name '*-robolectric-*'
+ *   4. Update `robolectricAndroidSdkVersions` below (and the `-iN` suffix if
+ *      PREINSTRUMENTED_VERSION changed) to match those directories.
+ */
+
+import java.nio.file.Files
+
+// Keep this list minimal: only SDKs this package's unit tests actually need.
+// Today: sdk=28 in robolectric.properties → android-all-instrumented 9-robolectric-4913185-2-i4.
+def robolectricAndroidSdkVersions = [
+        [androidVersion: "9", frameworkSdkBuildVersion: "4913185-2"],
+]
+
+// Aggregate task shown by `./gradlew … :tasks --all` / `robolectricSdkDownload`.
+tasks.register('robolectricSdkDownload') {
+    group = "Dependencies"
+    description = "Downloads Robolectric android-all-instrumented SDKs into mavenLocal"
+}
+
+robolectricAndroidSdkVersions.forEach { robolectricSdkVersion ->
+    // Trailing `-i4` matches Robolectric 4.10 DefaultSdkProvider.PREINSTRUMENTED_VERSION.
+    def version = "${robolectricSdkVersion['androidVersion']}-robolectric-${robolectricSdkVersion['frameworkSdkBuildVersion']}-i4"
+
+    def sdkConfig = configurations.create(version)
+    dependencies.add(version, "org.robolectric:android-all-instrumented:${version}")
+
+    def mavenLocalFile = new File(repositories.mavenLocal().url)
+    def mavenRobolectric = new File(mavenLocalFile, "org/robolectric/android-all-instrumented/${version}")
+
+    tasks.register("robolectricSdkDownload-${version}", Copy) {
+        from sdkConfig
+        into mavenRobolectric
+
+        doLast {
+            ArtifactResolutionResult result = dependencies.createArtifactResolutionQuery()
+                .forModule("org.robolectric", "android-all-instrumented", version)
+                .withArtifacts(MavenModule, MavenPomArtifact)
+                .execute()
+
+            for (component in result.resolvedComponents) {
+                def componentId = component.id
+
+                if (componentId instanceof ModuleComponentIdentifier) {
+                    File pomFile = component.getArtifacts(MavenPomArtifact)[0].file
+                    File dest = new File(mavenRobolectric, pomFile.name)
+                    if (!dest.exists()) {
+                        Files.copy(pomFile.toPath(), dest.toPath())
+                    }
+                }
+            }
+        }
+    }
+    robolectricSdkDownload.configure { dependsOn "robolectricSdkDownload-${version}" }
+}
