@@ -48,9 +48,21 @@ type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
 }>;
 
+export type CheckoutCreateOptions = Omit<
+  CheckoutElements.CreateOptions,
+  'expressCheckoutElement'
+> & {
+  expressCheckoutElement?: Omit<
+    CheckoutElements.ExpressCheckoutElementConfiguration,
+    'onResult'
+  >;
+};
+
 type CheckoutCreateResult = UnsafeObject<{
   session: CheckoutElements.Session;
   isCurrencySelectorAvailable: boolean;
+  /** Android only until the iOS Express Checkout bridge is implemented. */
+  isExpressCheckoutAvailable?: boolean;
 }>;
 
 export interface Spec extends TurboModule {
@@ -253,7 +265,7 @@ export interface Spec extends TurboModule {
 
   /** @CheckoutSessionPrivatePreview */
   createCheckout(
-    params: UnsafeObject<CheckoutElements.CreateOptions>,
+    params: UnsafeObject<CheckoutCreateOptions>,
     controllerId: string
   ): Promise<CheckoutCreateResult>;
 

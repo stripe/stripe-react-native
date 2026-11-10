@@ -2,15 +2,32 @@ import type {
   CheckoutElements,
   CheckoutCurrencySelectorElement,
   CheckoutPaymentElement,
+  ExpressCheckoutElement,
 } from '../types/CheckoutElements';
 import type { StripeError } from '../types/Errors';
 import { runServerUpdate } from './runServerUpdate';
-import NativeStripeSdk from '../specs/NativeStripeSdkModule';
+import NativeStripeSdk, {
+  type CheckoutCreateOptions,
+} from '../specs/NativeStripeSdkModule';
+import { Platform } from 'react-native';
 import {
   addCheckoutControllerListener,
   addCheckoutControllerSelectionListener,
   createCheckoutBridgeId,
 } from './CheckoutControllerEventEmitter';
+
+const expressCheckoutElementIds = new WeakMap<ExpressCheckoutElement, string>();
+
+/** Resolves an Express Checkout Element owned by a Checkout controller. */
+export function getCheckoutExpressCheckoutElementId(
+  element: ExpressCheckoutElement
+): string {
+  const id = expressCheckoutElementIds.get(element);
+  if (!id) {
+    throw new Error('Express Checkout Element was not created by this SDK.');
+  }
+  return id;
+}
 
 const paymentElementIds = new WeakMap<CheckoutPaymentElement, string>();
 const currencySelectorElementIds = new WeakMap<
@@ -76,19 +93,23 @@ export function normalizeCheckoutError(error: unknown): CheckoutOperationError {
 
 function nativeCreateOptions(
   options: CheckoutElements.CreateOptions
-): CheckoutElements.CreateOptions {
-  const rowSelectionBehavior = options.paymentElement?.rowSelectionBehavior;
-  if (!rowSelectionBehavior || rowSelectionBehavior.type === 'default') {
-    return options;
+): CheckoutCreateOptions {
+  const { expressCheckoutElement, ...rest } = options;
+  const nativeOptions: CheckoutCreateOptions = { ...rest };
+  if (expressCheckoutElement) {
+    // Payment callbacks stay in JS; only data crosses the native bridge.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { onResult: _onResult, ...configuration } = expressCheckoutElement;
+    nativeOptions.expressCheckoutElement = configuration;
   }
-
-  return {
-    ...options,
-    paymentElement: {
+  const rowSelectionBehavior = options.paymentElement?.rowSelectionBehavior;
+  if (rowSelectionBehavior && rowSelectionBehavior.type !== 'default') {
+    nativeOptions.paymentElement = {
       ...options.paymentElement,
       rowSelectionBehavior: { type: rowSelectionBehavior.type },
-    },
-  };
+    };
+  }
+  return nativeOptions;
 }
 
 /**
@@ -112,8 +133,8 @@ export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,
   onUpdate?: (controller: CheckoutElements) => void
 ): Promise<CheckoutElements> {
-  // TODO: Bridge Express Checkout configuration, availability, and payment results.
-  if (options.expressCheckoutElement) {
+  // Keep the iOS bridge unsupported until its native implementation is available.
+  if (options.expressCheckoutElement && Platform.OS !== 'android') {
     throw new Error(
       'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
     );
@@ -194,6 +215,10 @@ export async function createCheckoutController(
       ? {}
       : null;
 
+    const expressCheckoutElement = result.isExpressCheckoutAvailable
+      ? {}
+      : null;
+
     controller = {
       get status() {
         return status;
@@ -204,7 +229,7 @@ export async function createCheckoutController(
       paymentElement,
       shippingAddressElement,
       currencySelectorElement,
-      expressCheckoutElement: null,
+      expressCheckoutElement,
       updateEmail: (email) =>
         performOperation(() =>
           NativeStripeSdk.updateCheckoutEmail(controllerId, email)
@@ -252,6 +277,9 @@ export async function createCheckoutController(
     paymentElementIds.set(paymentElement, controllerId);
     if (currencySelectorElement) {
       currencySelectorElementIds.set(currencySelectorElement, controllerId);
+    }
+    if (expressCheckoutElement) {
+      expressCheckoutElementIds.set(expressCheckoutElement, controllerId);
     }
     return controller;
   } catch (error) {

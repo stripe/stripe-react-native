@@ -1,4 +1,5 @@
 import { checkoutSession as session } from '../__fixtures__/session';
+import { Platform } from 'react-native';
 import { addListener } from '../../events';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import type { CheckoutElements } from '../../types/CheckoutElements';
@@ -19,6 +20,8 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
     confirmCheckout: jest.fn(),
   },
 }));
+
+afterEach(() => jest.restoreAllMocks());
 
 const options: CheckoutElements.CreateOptions = {
   clientSecret: 'cs_test_secret',
@@ -48,7 +51,8 @@ beforeEach(() => {
   create.mockImplementation(async () => ({ session }));
 });
 
-it('rejects Express Checkout configuration before invoking native or subscribing', async () => {
+it('keeps iOS Express Checkout unsupported before invoking native or subscribing', async () => {
+  jest.replaceProperty(Platform, 'OS', 'ios');
   const onResult = jest.fn<void, [CheckoutElements.Result]>();
   await expect(
     createCheckoutElements({
@@ -81,6 +85,10 @@ it('preserves native session snapshots and their express payment method availabi
   const controller = await createCheckoutElements(options);
   expect(controller.expressCheckoutElement).toBeNull();
   expect(controller.session).toBe(session);
+  expect(addListener).not.toHaveBeenCalledWith(
+    'checkoutExpressCheckoutDidComplete',
+    expect.any(Function)
+  );
 
   const updated = {
     ...session,
@@ -253,4 +261,55 @@ it('returns the result of a confirmation that was pending when destroyed', async
   finishConfirmation(completed);
 
   await expect(confirmation).resolves.toBe(completed);
+});
+
+it('bridges Android Express Checkout configuration without sending callbacks to native', async () => {
+  jest.replaceProperty(Platform, 'OS', 'android');
+  const onResult = jest.fn();
+  const configuration: CheckoutElements.ExpressCheckoutElementConfiguration = {
+    googlePay: {
+      display: 'automatic',
+      label: 'Total',
+      buttonType: 'checkout',
+      additionalEnabledNetworks: ['INTERAC'],
+    },
+    link: { display: 'never' },
+    onResult,
+  };
+  create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });
+  const controller = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: configuration,
+    paymentElement: {
+      rowSelectionBehavior: {
+        type: 'immediateAction',
+        onSelectPaymentOption: jest.fn(),
+      },
+    },
+  });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { onResult: _callback, ...nativeConfiguration } = configuration;
+  expect(create.mock.calls[0][0].expressCheckoutElement).toEqual(
+    nativeConfiguration
+  );
+  expect(create.mock.calls[0][0].paymentElement.rowSelectionBehavior).toEqual({
+    type: 'immediateAction',
+  });
+  expect(configuration.onResult).toBe(onResult);
+  expect(controller.expressCheckoutElement).not.toBeNull();
+  expect(controller.expressCheckoutElement).toBe(
+    controller.expressCheckoutElement
+  );
+  await controller.destroy();
+});
+
+it('does not expose an unavailable Android Express Checkout Element', async () => {
+  jest.replaceProperty(Platform, 'OS', 'android');
+  create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: false });
+  const controller = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: { onResult: jest.fn() },
+  });
+  expect(controller.expressCheckoutElement).toBeNull();
+  await controller.destroy();
 });

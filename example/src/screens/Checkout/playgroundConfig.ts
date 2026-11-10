@@ -1,4 +1,5 @@
 import type { CheckoutElements } from '@stripe/stripe-react-native/src/types/CheckoutElements';
+import { Platform } from 'react-native';
 import { hostedBackendURL } from './backend';
 
 export type PaymentElementMode = 'sheet' | 'view';
@@ -30,6 +31,7 @@ export type ShippingAddressDraft = {
 
 export type PlaygroundSettings = {
   paymentElementMode: PaymentElementMode;
+  expressCheckoutEnabled: boolean;
   currency: Currency;
   customerType: CustomerType;
   backendOption: BackendOption;
@@ -70,6 +72,7 @@ export const usTestAddress: ShippingAddressDraft = {
 
 export const defaultPlaygroundSettings: PlaygroundSettings = {
   paymentElementMode: 'sheet',
+  expressCheckoutEnabled: false,
   currency: 'usd',
   customerType: 'guest',
   backendOption: 'hosted',
@@ -274,5 +277,14 @@ export function checkoutConfiguration(
       ? { currencySelectorElement: {} }
       : {}),
     ...(settings.collectShippingAddress ? { shippingAddressElement: {} } : {}),
+    ...(Platform.OS === 'android' && settings.expressCheckoutEnabled
+      ? {
+          expressCheckoutElement: {
+            link: { display: settings.linkMode },
+            // Render-only preview; completion handling is bridged in a follow-up.
+            onResult: () => {},
+          },
+        }
+      : {}),
   };
 }

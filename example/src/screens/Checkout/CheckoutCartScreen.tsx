@@ -1,3 +1,4 @@
+import { ExpressCheckoutElementView } from '@stripe/stripe-react-native/src/components/ExpressCheckoutElementView';
 import { CheckoutCurrencySelectorElementView } from '@stripe/stripe-react-native/src/components/CheckoutCurrencySelectorElementView';
 import { CheckoutPaymentElementView } from '@stripe/stripe-react-native/src/components/CheckoutPaymentElementView';
 import { useCheckoutElements } from '@stripe/stripe-react-native/src/hooks/useCheckoutElements';
@@ -266,6 +267,14 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
           >
             <CheckoutCurrencySelectorElementView
               element={checkout.currencySelectorElement}
+            />
+          </View>
+        )}
+
+        {checkout.expressCheckoutElement && (
+          <View testID="checkout-express-checkout">
+            <ExpressCheckoutElementView
+              element={checkout.expressCheckoutElement}
             />
           </View>
         )}
