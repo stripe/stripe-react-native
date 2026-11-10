@@ -333,13 +333,8 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     embeddedIntentCreationCallback.complete(params)
-
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
-    }
-
     paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
+    promise.resolve(null)
   }
 
   @ReactMethod
@@ -361,13 +356,8 @@ class StripeSdkModule(
   ) {
     embeddedConfirmationTokenCreationCallback.complete(params)
     paymentSheetConfirmationTokenCreationCallback.complete(params)
-
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
-      return
-    }
-
     paymentSheetManager?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
+    promise.resolve(null)
   }
 
   @ReactMethod
@@ -1281,9 +1271,9 @@ class StripeSdkModule(
         }
       }
       fragment.customerAdapter?.fetchPaymentMethodsCallback?.complete(paymentMethods)
+      promise.resolve(Arguments.createMap())
     } ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
     }
   }
 
@@ -1294,18 +1284,35 @@ class StripeSdkModule(
   ) {
     customerSheetManager?.let {
       val paymentMethod =
-        PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap() as HashMap<*, *>))
+        try {
+          PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap() as HashMap<*, *>))
+        } catch (error: IllegalArgumentException) {
+          Log.e(
+            "StripeReactNative",
+            "There was an error converting Payment Method JSON to a Stripe Payment Method",
+            error,
+          )
+          null
+        } catch (error: org.json.JSONException) {
+          Log.e(
+            "StripeReactNative",
+            "There was an error converting Payment Method JSON to a Stripe Payment Method",
+            error,
+          )
+          null
+        }
       if (paymentMethod == null) {
-        Log.e(
-          "StripeReactNative",
-          "There was an error converting Payment Method JSON to a Stripe Payment Method",
-        )
+        val message =
+          "There was an error converting Payment Method JSON to a Stripe Payment Method"
+        Log.e("StripeReactNative", message)
+        it.customerAdapter?.attachPaymentMethodCallback?.completeExceptionally(Exception(message))
+        promise.resolve(createError(ErrorType.Failed.toString(), message))
         return
       }
       it.customerAdapter?.attachPaymentMethodCallback?.complete(paymentMethod)
+      promise.resolve(Arguments.createMap())
     } ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
     }
   }
 
@@ -1316,18 +1323,35 @@ class StripeSdkModule(
   ) {
     customerSheetManager?.let {
       val paymentMethod =
-        PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap() as HashMap<*, *>))
+        try {
+          PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap() as HashMap<*, *>))
+        } catch (error: IllegalArgumentException) {
+          Log.e(
+            "StripeReactNative",
+            "There was an error converting Payment Method JSON to a Stripe Payment Method",
+            error,
+          )
+          null
+        } catch (error: org.json.JSONException) {
+          Log.e(
+            "StripeReactNative",
+            "There was an error converting Payment Method JSON to a Stripe Payment Method",
+            error,
+          )
+          null
+        }
       if (paymentMethod == null) {
-        Log.e(
-          "StripeReactNative",
-          "There was an error converting Payment Method JSON to a Stripe Payment Method",
-        )
+        val message =
+          "There was an error converting Payment Method JSON to a Stripe Payment Method"
+        Log.e("StripeReactNative", message)
+        it.customerAdapter?.detachPaymentMethodCallback?.completeExceptionally(Exception(message))
+        promise.resolve(createError(ErrorType.Failed.toString(), message))
         return
       }
       it.customerAdapter?.detachPaymentMethodCallback?.complete(paymentMethod)
+      promise.resolve(Arguments.createMap())
     } ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
     }
   }
 
@@ -1335,9 +1359,9 @@ class StripeSdkModule(
   override fun customerAdapterSetSelectedPaymentOptionCallback(promise: Promise) {
     customerSheetManager?.let {
       it.customerAdapter?.setSelectedPaymentOptionCallback?.complete(Unit)
+      promise.resolve(Arguments.createMap())
     } ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
     }
   }
 
@@ -1348,9 +1372,9 @@ class StripeSdkModule(
   ) {
     customerSheetManager?.let {
       it.customerAdapter?.fetchSelectedPaymentOptionCallback?.complete(paymentOption)
+      promise.resolve(Arguments.createMap())
     } ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
     }
   }
 
@@ -1361,9 +1385,9 @@ class StripeSdkModule(
   ) {
     customerSheetManager?.let {
       it.customerAdapter?.setupIntentClientSecretForCustomerAttachCallback?.complete(clientSecret)
+      promise.resolve(Arguments.createMap())
     } ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
     }
   }
 
@@ -1781,7 +1805,12 @@ class StripeSdkModule(
     intentConfig: ReadableMap,
     promise: Promise,
   ) {
-    // TODO:
+    promise.resolve(
+      createError(
+        ErrorType.Failed.toString(),
+        "not supported on Android; use the hook's update",
+      ),
+    )
   }
 
   @ReactMethod
@@ -2061,6 +2090,7 @@ class StripeSdkModule(
 
   override fun dismissPlatformPay(promise: Promise?) {
     // noop, iOS only.
+    promise?.resolve(false)
   }
 
   override fun updatePlatformPaySheet(
@@ -2070,6 +2100,7 @@ class StripeSdkModule(
     promise: Promise?,
   ) {
     // noop, iOS only.
+    promise?.resolve(Arguments.createMap())
   }
 
   /**

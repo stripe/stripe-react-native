@@ -9,6 +9,11 @@
 
 **Fixes**
 
+* [Fixed] Android: `updateEmbeddedPaymentElement` now resolves with a Failed error instead of hanging.
+* [Fixed] Android: Customer Sheet adapter callbacks now resolve after completing their deferred work, including decode failures on attach and detach.
+* [Fixed] Android: `initCustomerSheet` no longer resolves twice when both an ephemeral key and an intent configuration are provided.
+* [Fixed] Android: `dismissPlatformPay` and `updatePlatformPaySheet` now settle their promises.
+* [Fixed] iOS and Android: `intentCreationCallback` and `confirmationTokenCreationCallback` now resolve after completing; Android no longer returns a Payment Sheet missing-init error when only Embedded was waiting.
 * [Fixed] Android: 3D Secure `textField` customization is now applied to the challenge UI.
 * [Fixed] Card `metadata` is now included when creating or confirming card payment methods on Android and when using CardField on iOS.
 * [Fixed] iOS: 3D Secure `timeout` now sets the authentication timeout (in minutes).
