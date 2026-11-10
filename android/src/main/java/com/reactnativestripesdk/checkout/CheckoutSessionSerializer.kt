@@ -39,7 +39,7 @@ internal object CheckoutSessionSerializer {
         },
       )
       putBoolean("livemode", session.livemode)
-      putString("currency", session.currency)
+      session.currency?.let { putString("currency", it) }
       session.email?.let { putString("email", it) }
       session.tax?.let { putMap("tax", serializeTax(it)) }
       putMap("status", serializeStatus(session.status))

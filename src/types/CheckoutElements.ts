@@ -864,8 +864,8 @@ export namespace CheckoutElements {
     businessName?: string;
     /** Whether the Checkout Session is in live mode. */
     livemode: boolean;
-    /** Three-letter ISO 4217 currency code in lowercase. */
-    currency: string;
+    /** Three-letter ISO 4217 currency code in lowercase, if the session has a currency. */
+    currency?: string;
     /** Factor used to convert minor currency units to major units. */
     minorUnitsAmountDivisor?: number;
     /** Currency presentation details for the customer. */
