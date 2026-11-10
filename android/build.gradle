@@ -193,6 +193,10 @@ dependencies {
   implementation "androidx.compose.foundation:foundation-layout:1.7.8"
 }
 
+// One-shot CLI to pre-fetch Robolectric android-all-instrumented jars into mavenLocal.
+// Bitrise unit-test-android runs this (with retries) before android-unit-test.
+apply from: file("${projectDir}/robolectricDownloader.gradle")
+
 def lintRulesJar = file("$projectDir/lint-rules/build/libs/lint-rules-1.0.0.jar")
 if (lintRulesJar.exists()) {
   dependencies {
