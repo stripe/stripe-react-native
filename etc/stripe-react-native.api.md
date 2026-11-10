@@ -943,6 +943,9 @@ export interface CheckmarkConfig {
     color?: ThemedColor;
 }
 
+// @internal
+export const clearCheckoutLocalCustomerData: () => Promise<void>;
+
 // @public (undocumented)
 export interface ClientSecretProvider {
     provideCustomerSessionClientSecret(): Promise<CustomerSessionClientSecret>;
