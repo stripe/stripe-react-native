@@ -9,6 +9,9 @@
 
 **Fixes**
 
+* [Fixed] Android: `CardField` `clear()` resets validation and error states on all fields, not only the text.
+* [Fixed] Android: `AuBECSDebitForm` `borderWidth` and `borderRadius` use density-independent pixels, matching `CardField` and iOS (this may change appearance for apps that tuned around the previous scaling).
+* [Fixed] Android: `AddToWalletButton` passes the ephemeral key map to Google Pay as JSON instead of Kotlin map text.
 * [Fixed] Added web platform stand-ins for native specs so Expo SDK 58 apps using the default template (`web.output: "server"`) no longer fail native release builds when a route imports the SDK; calling Stripe APIs on web still returns `WebUnsupported` errors.
 * [Fixed] Declared `paymentMethodOrder` on Customer Sheet initialization params (Android).
 * [Fixed] Android: Embedded Payment Element reports invalid configuration through `embeddedPaymentElementLoadingFailed` instead of crashing when props cannot be parsed.

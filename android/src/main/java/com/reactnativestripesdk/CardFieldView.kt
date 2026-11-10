@@ -89,9 +89,7 @@ class CardFieldView(
   }
 
   fun requestClearFromJS() {
-    cardInputWidgetBinding.cardNumberEditText.setText("")
-    cardInputWidgetBinding.cvcEditText.setText("")
-    cardInputWidgetBinding.expiryDateEditText.setText("")
+    mCardWidget.clear()
     if (mCardWidget.postalCodeEnabled) {
       cardInputWidgetBinding.postalCodeEditText.setText("")
     }
