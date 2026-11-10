@@ -75,7 +75,7 @@ enum CheckoutSessionSerializer {
         result.setIfPresent("unitAmountDecimal", item.unitAmountDecimal.map(serialize))
         result.setIfPresent("unitLabel", item.unitLabel)
         result.setIfPresent("adjustableQuantity", item.adjustableQuantity.map {
-            ["enabled": $0.enabled, "minimum": $0.minimum, "maximum": $0.maximum]
+            ["enabled": true, "minimum": $0.minimum, "maximum": $0.maximum]
         })
         return result
     }
@@ -97,6 +97,13 @@ enum CheckoutSessionSerializer {
         [
             "amount": amount.amount,
             "minorUnitsAmount": amount.minorUnitsAmount,
+        ]
+    }
+
+    private static func serialize(_ amount: CheckoutElementsController.Session.DecimalAmount) -> [String: Any] {
+        [
+            "amount": amount.amount,
+            "minorUnitsAmount": NSDecimalNumber(decimal: amount.minorUnitsAmount).doubleValue,
         ]
     }
 

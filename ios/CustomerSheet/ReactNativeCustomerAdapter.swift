@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(PrivateBetaCustomerSheet) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) @_spi(PrivateBetaCustomerSheet) @_spi(InternalOnlyAPI) import StripePaymentSheet
 
 class ReactNativeCustomerAdapter: StripeCustomerAdapter {
     var overridesFetchPaymentMethods: Bool
