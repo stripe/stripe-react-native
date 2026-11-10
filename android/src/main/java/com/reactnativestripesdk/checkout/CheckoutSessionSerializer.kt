@@ -54,7 +54,7 @@ internal object CheckoutSessionSerializer {
 
   @SuppressLint("RestrictedApi")
   private fun serializeExpressPaymentMethods(session: Session): WritableMap {
-    val availableTypes = session.availableExpressCheckoutPaymentMethods.toSet()
+    val availableTypes = session.availableExpressCheckoutPaymentMethods.map { it.type }.toSet()
     return Arguments.createMap().apply {
       // Apple Pay remains unavailable on Android. Native eligibility and display settings
       // determine Google Pay and Link availability for every session snapshot.
