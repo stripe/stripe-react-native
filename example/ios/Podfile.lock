@@ -1844,7 +1844,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-react-native (0.85.0):
+  - stripe-react-native (0.85.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1865,32 +1865,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - stripe-react-native/Core (= 0.85.0)
-    - stripe-react-native/NewArch (= 0.85.0)
+    - stripe-react-native/Core (= 0.85.1)
+    - stripe-react-native/NewArch (= 0.85.1)
     - Yoga
-  - stripe-react-native/Core (0.85.0):
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-Core-prebuilt
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - Yoga
-  - stripe-react-native/NewArch (0.85.0):
+  - stripe-react-native/Core (0.85.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1912,7 +1890,29 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-react-native/Onramp (0.85.0):
+  - stripe-react-native/NewArch (0.85.1):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - stripe-react-native/Onramp (0.85.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2247,9 +2247,9 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: c8407cc394627a3a4cf56b457d594bfa822b6ab8
   RNCPicker: 0a2e0c924f89d88878cbda326b0fe1655e35967f
   RNScreens: 30e3e86744e6dd0c46ebee546f7f79d70b382c69
-  stripe-react-native: 3ed890830f4b4daec969df93b67b5a5ace239446
+  stripe-react-native: 120be58a44ae0b23fcb884c53ca4946a428c4c4a
   Yoga: 65431d43277b661ebc7289c6c5d82f64ce42cfe0
 
-PODFILE CHECKSUM: 865bd37bc8f1b842d6d516040eb0f9e7504c60bb
+PODFILE CHECKSUM: 9d67a74f01b02fbce7af0eb3123c831c21fed053
 
 COCOAPODS: 1.16.2
