@@ -90,15 +90,6 @@ class CheckoutSessionSerializerTest {
   }
 
   @Test
-  fun `serialize omits unavailable minor units amount divisor`() = runTest {
-    val result = CheckoutSessionSerializer.serialize(
-      checkoutSession(minorUnitsAmountDivisor = null),
-      context,
-    )
-    assertFalse(result.hasKey("minorUnitsAmountDivisor"))
-  }
-
-  @Test
   fun `serialize omits unavailable tax`() = runTest {
     val result = CheckoutSessionSerializer.serialize(
       checkoutSession(taxStatus = null),

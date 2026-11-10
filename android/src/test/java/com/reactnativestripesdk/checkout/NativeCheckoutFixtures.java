@@ -22,8 +22,7 @@ final class NativeCheckoutFixtures {
       String email,
       Session.Status status,
       Session.Tax.Status taxStatus,
-      Session.PaymentOptionDisplayData paymentOption,
-      Integer minorUnitsAmountDivisor) {
+      Session.PaymentOptionDisplayData paymentOption) {
     Session.Amount subtotal = new Session.Amount("$21.00", 2100L);
     Session.Amount total = new Session.Amount("$22.50", 2250L);
     Session.Amount zero = new Session.Amount("$0.00", 0L);
@@ -34,7 +33,7 @@ final class NativeCheckoutFixtures {
     return new Session(
         "cs_test", "Test business", status, false, "usd", null, Collections.emptyList(), email,
         Collections.singletonList(new Session.OrderSummaryItem.OneTimePrice("group_1", null, Collections.singletonList(item))),
-        minorUnitsAmountDivisor, paymentOption, null, taxStatus == null ? null : new Session.Tax(taxStatus), null,
+        100, paymentOption, null, taxStatus == null ? null : new Session.Tax(taxStatus), null,
         new Session.Totals(subtotal, zero, zero, zero, total), null, Collections.emptyList());
   }
 

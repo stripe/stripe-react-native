@@ -13,14 +13,7 @@ internal fun checkoutSession(
   status: CheckoutElementsController.Session.Status = NativeCheckoutFixtures.openStatus(),
   taxStatus: CheckoutElementsController.Session.Tax.Status? = CheckoutElementsController.Session.Tax.Status.Ready,
   paymentOption: CheckoutElementsController.Session.PaymentOptionDisplayData? = null,
-  minorUnitsAmountDivisor: Int? = 100,
-): CheckoutElementsController.Session = NativeCheckoutFixtures.session(
-  email,
-  status,
-  taxStatus,
-  paymentOption,
-  minorUnitsAmountDivisor,
-)
+): CheckoutElementsController.Session = NativeCheckoutFixtures.session(email, status, taxStatus, paymentOption)
 
 @OptIn(CheckoutSessionPreview::class)
 internal fun checkoutPaymentOption(

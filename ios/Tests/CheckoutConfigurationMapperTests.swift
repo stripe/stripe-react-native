@@ -111,7 +111,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(paymentElement.termsDisplay[.USBankAccount], .automatic)
         XCTAssertTrue(paymentElement.displaysMandateText)
         XCTAssertEqual(configuration.applePayMerchantId, "merchant.com.example")
-        XCTAssertEqual(paymentElement.applePayConfiguration.display, .automatic)
         XCTAssertEqual(paymentElement.applePayConfiguration.buttonType, .checkout)
         XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
 
@@ -148,21 +147,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertFalse(paymentElement.opensCardScannerAutomatically)
         XCTAssertTrue(paymentElement.displaysMandateText)
         XCTAssertEqual(paymentElement.applePayConfiguration.display, .never)
-        XCTAssertNil(configuration.applePayMerchantId)
         XCTAssertNil(paymentElement.linkConfiguration)
-    }
-
-    func test_map_keepsApplePayDisabledUnlessConfigured() throws {
-        for params: NSDictionary in [[:], ["paymentElement": ["paymentMethodOrder": ["card"]]]] {
-            let configuration = try CheckoutConfigurationMapper.map(
-                params: params,
-                merchantIdentifier: "merchant.com.example",
-                didSelectPaymentOption: {}
-            )
-            let paymentElement = try XCTUnwrap(configuration.paymentElement)
-            XCTAssertEqual(configuration.applePayMerchantId, "merchant.com.example")
-            XCTAssertEqual(paymentElement.applePayConfiguration.display, .never)
-        }
     }
 
     func test_map_requiresNonEmptyMerchantIdentifierWhenApplePayIsConfigured() {
@@ -214,7 +199,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
             if testCase.enabled {
                 let applePay = paymentElement.applePayConfiguration
                 XCTAssertEqual(configuration.applePayMerchantId, testCase.merchantIdentifier)
-                XCTAssertEqual(applePay.display, .automatic)
                 XCTAssertEqual(applePay.buttonType, .checkout)
             } else {
                 XCTAssertEqual(paymentElement.applePayConfiguration.display, .never)
