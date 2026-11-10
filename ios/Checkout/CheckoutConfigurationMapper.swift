@@ -31,6 +31,8 @@ enum CheckoutConfigurationMapper {
             returnURL: returnURL
         )
         configuration.merchantDisplayName = params["merchantDisplayName"] as? String
+        // Preserve RN's Apple Pay opt-in behavior. The native automatic default would enable
+        // Apple Pay with the provider's merchant ID even if paymentElement.applePay was omitted.
         if (params["paymentElement"] as? NSDictionary)?["applePay"] is NSDictionary {
             configuration.applePayMerchantId = merchantIdentifier
         }
