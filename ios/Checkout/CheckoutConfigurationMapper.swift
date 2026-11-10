@@ -31,7 +31,9 @@ enum CheckoutConfigurationMapper {
             returnURL: returnURL
         )
         configuration.merchantDisplayName = params["merchantDisplayName"] as? String
-        configuration.applePayMerchantId = merchantIdentifier
+        if (params["paymentElement"] as? NSDictionary)?["applePay"] is NSDictionary {
+            configuration.applePayMerchantId = merchantIdentifier
+        }
         if let style = params["style"] as? String {
             configuration.userInterfaceStyle = try mapUserInterfaceStyle(style)
         }
@@ -237,7 +239,6 @@ enum CheckoutConfigurationMapper {
         didSelectPaymentOption: @escaping () -> Void
     ) throws -> PaymentElement.Configuration {
         var configuration = PaymentElement.Configuration()
-        configuration.applePayConfiguration.display = .never
         guard let params else {
             return configuration
         }
