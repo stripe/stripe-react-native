@@ -971,7 +971,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           // is only ever an iframe). So any other top-frame navigation, of
           // ANY navigationType -- including a reload, backforward, or
           // form(re)submit to a different URL -- is routed outside and never
-          // loaded in place.
+          // loaded in place. This pinning is what makes deliverToWrapper's
+          // origin+pathname guard an exact-document check on iOS: only the
+          // real wrapper document can ever be running in the main frame for
+          // that guard to authorize.
           if (isTrustedWrapperDocument(url, connectURL)) {
             return true;
           }
@@ -1007,7 +1010,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       // navigation to the trusted wrapper or an https allowed Stripe host,
       // and route everything else outside. Documented residual risk (D2):
       // an allowlisted Stripe host replacing the main frame on Android can't
-      // be distinguished from a benign subframe/resource load.
+      // be distinguished from a benign subframe/resource load -- and because
+      // nothing here pins the main frame to the exact wrapper document the
+      // way D1 does on iOS, any non-wrapper page that runs script on
+      // connect-js.stripe.com itself could also occupy the main frame and
+      // satisfy deliverToWrapper's origin+pathname guard (e.g. via the
+      // History API). See the deliverToWrapper comment below.
       if (
         isTrustedWrapperDocument(url, connectURL) ||
         isAllowedStripeHost(url)
@@ -1242,16 +1250,24 @@ function isCsvExportUrl(url: string): boolean {
   return CSV_EXPORT_HOST_PATTERN.test(url);
 }
 
-// Wraps `payloadScript` so it only runs inside the trusted wrapper document
-// (D3, the security boundary). Page script can't override `window.location`
-// or its `origin`/`pathname` getters, and this check runs atomically inside
-// whichever document actually receives and executes the script -- closing
-// the race between an RN-side check and native script execution. A
-// generation counter (kept separately) is hygiene on top of this, not a
-// substitute for it: it can only drop a reply before it's sent, while this
-// guard is what actually decides whether the reply takes effect once
-// delivered. This runs inside the WebView's own JS engine, not RN's, so it
-// isn't affected by the RN `URL` polyfill issues noted above.
+// Wraps `payloadScript` so it only runs inside a document on the wrapper's
+// ORIGIN (D3, the security boundary). Page script can't override
+// `window.location` or its `origin`/`pathname` getters, and this check runs
+// atomically inside whichever document actually receives and executes the
+// script -- closing the race between an RN-side check and native script
+// execution. The pathname comparison is defence in depth, not document
+// identity: the History API (`pushState`/`replaceState`) can change
+// `location.pathname` without loading the wrapper, so it doesn't prove this
+// is the specific document that requested a reply, only that it's some
+// document on the wrapper's origin currently reporting that path. Exact
+// wrapper-document identity comes from navigation pinning (D1) on iOS; on
+// Android, any https document on an allowed host (including a non-wrapper
+// page on this origin) can reach the main frame (D2) -- a documented
+// residual risk. A generation counter (kept separately) is hygiene on top
+// of this, not a substitute for it: it can only drop a reply before it's
+// sent, while this guard is what actually decides whether the reply takes
+// effect once delivered. This runs inside the WebView's own JS engine, not
+// RN's, so it isn't affected by the RN `URL` polyfill issues noted above.
 function deliverToWrapper(payloadScript: string): string {
   return `
     (function() {

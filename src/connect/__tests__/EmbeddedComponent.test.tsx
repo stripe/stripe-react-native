@@ -1364,8 +1364,9 @@ describe('EmbeddedComponent', () => {
     const WRAPPER_ORIGIN = 'https://connect-js.stripe.com';
     const WRAPPER_PATH = '/v1.0/react_native_webview.html';
 
-    // Evaluates the injected script the way the page would see it: window
-    // is unforgeable from RN's side, so this is the actual security check.
+    // Evaluates the injected script the way the page would see it: page
+    // script can't override window.location or its origin/pathname
+    // getters, so this is the actual security check.
     const runScript = (
       script: string,
       location: { origin: string; pathname: string }
@@ -1396,7 +1397,7 @@ describe('EmbeddedComponent', () => {
       ]?.[0];
     };
 
-    it('delivers the client secret only inside the wrapper document', async () => {
+    it('trusts any document on the wrapper origin that reports the wrapper path (History API can set it; identity comes from navigation pinning on iOS)', async () => {
       const script = await triggerFetchClientSecret();
 
       expect(
