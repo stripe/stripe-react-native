@@ -1639,6 +1639,55 @@ describe('EmbeddedComponent', () => {
       expect(mockInjectJavaScript).not.toHaveBeenCalled();
     });
 
+    it('does not drop a pending Financial Connections reply across an Android history-update onLoadStart', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      let resolveToken: (result: any) => void = () => {};
+      const tokenPromise = new Promise((resolve) => {
+        resolveToken = resolve;
+      });
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockReturnValue(
+        tokenPromise
+      );
+
+      try {
+        mockLoadWebView = true;
+        renderComponent({ component: 'account-onboarding' });
+        await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+        act(() => {
+          webViewOnMessage?.({
+            nativeEvent: {
+              data: JSON.stringify({
+                type: 'openFinancialConnections',
+                data: {
+                  id: 'request',
+                  clientSecret: 'client_secret',
+                  connectedAccountId: 'connected_account',
+                },
+              }),
+            },
+          });
+        });
+
+        act(() => {
+          mockWebViewProps.onLoadStart({
+            nativeEvent: {
+              url: `${WRAPPER_URL}#component=other`,
+              navigationType: 'other',
+            },
+          });
+        });
+
+        resolveToken({ session: { id: 'session', accounts: [] } });
+        await flushMicrotasks();
+
+        expect(mockInjectJavaScript).toHaveBeenCalled();
+      } finally {
+        Platform.OS = previousPlatform;
+      }
+    });
+
     it('drops a delayed iOS auth-webview reply after a new top-frame load starts', async () => {
       const previousPlatform = Platform.OS;
       Platform.OS = 'ios' as any;
@@ -1687,7 +1736,7 @@ describe('EmbeddedComponent', () => {
       }
     });
 
-    it('drops an Android auth cancellation reply if a new load started before the grace period elapses', async () => {
+    it('does not drop a pending Android auth cancellation reply across a history-update onLoadStart', async () => {
       const previousPlatform = Platform.OS;
       Platform.OS = 'android' as any;
       (NativeStripeSdk.openAuthenticatedWebView as jest.Mock).mockResolvedValue(
@@ -1725,6 +1774,9 @@ describe('EmbeddedComponent', () => {
           appStateListeners[0]?.('active');
         });
 
+        // A same-document history update (e.g. pushState), reported via
+        // Android's doUpdateVisitedHistory-backed onLoadStart, must not
+        // drop the pending cancellation reply below.
         act(() => {
           mockWebViewProps.onLoadStart({
             nativeEvent: {
@@ -1740,7 +1792,7 @@ describe('EmbeddedComponent', () => {
           await new Promise((resolve) => setTimeout(resolve, 700));
         });
 
-        expect(mockInjectJavaScript).not.toHaveBeenCalled();
+        expect(mockInjectJavaScript).toHaveBeenCalled();
       } finally {
         Platform.OS = previousPlatform;
         (AppState.addEventListener as jest.Mock) =
@@ -1847,51 +1899,73 @@ describe('EmbeddedComponent', () => {
       );
     });
 
-    it('bumps the generation on every Android onLoadStart, even a same-URL one with no navigationType', async () => {
-      const previousPlatform = Platform.OS;
-      Platform.OS = 'android' as any;
-      let resolveSecret: (value: string) => void = () => {};
-      const secretPromise = new Promise<string>((resolve) => {
-        resolveSecret = resolve;
-      });
-      connectInstance = loadConnectAndInitialize({
-        ...mockInitParams,
-        fetchClientSecret: jest.fn(() => secretPromise),
-      });
-
-      try {
-        mockLoadWebView = true;
-        renderComponent();
-        await waitFor(() => expect(mockWebViewProps).toBeDefined());
-        await waitFor(() => expect(webViewOnMessage).toBeDefined());
-
-        const wrapperUrl = mockWebViewProps.source.uri as string;
-
-        act(() => {
-          mockWebViewProps.onLoadStart({ nativeEvent: { url: wrapperUrl } });
+    it.each([
+      [
+        'a fragment-only change of the wrapper URL',
+        (wrapperUrl: string) => `${wrapperUrl.split('#')[0]}#component=other`,
+      ],
+      [
+        'a pushState to a sub-path on the same origin',
+        (wrapperUrl: string) =>
+          `${wrapperUrl.replace('/v1.0/react_native_webview.html', '/v1.0/react_native_webview.html/sub')}`,
+      ],
+      ['the identical URL', (wrapperUrl: string) => wrapperUrl],
+    ])(
+      'does not drop a pending secret reply for an Android history update: %s',
+      async (_description, nextUrl) => {
+        const previousPlatform = Platform.OS;
+        Platform.OS = 'android' as any;
+        let resolveSecret: (value: string) => void = () => {};
+        const secretPromise = new Promise<string>((resolve) => {
+          resolveSecret = resolve;
+        });
+        connectInstance = loadConnectAndInitialize({
+          ...mockInitParams,
+          fetchClientSecret: jest.fn(() => secretPromise),
         });
 
-        const messagePromise = webViewOnMessage?.({
-          nativeEvent: { data: JSON.stringify({ type: 'fetchClientSecret' }) },
-        });
+        try {
+          mockLoadWebView = true;
+          renderComponent();
+          await waitFor(() => expect(mockWebViewProps).toBeDefined());
+          await waitFor(() => expect(webViewOnMessage).toBeDefined());
 
-        // Android's onLoadStart carries no real navigationType and isn't
-        // emitted for same-document fragment changes, so every event there
-        // is treated as a new load -- even one with the exact same URL.
-        act(() => {
-          mockWebViewProps.onLoadStart({ nativeEvent: { url: wrapperUrl } });
-        });
+          const wrapperUrl = mockWebViewProps.source.uri as string;
 
-        resolveSecret('secret_dropped_android');
-        await act(async () => {
-          await messagePromise;
-        });
+          act(() => {
+            mockWebViewProps.onLoadStart({ nativeEvent: { url: wrapperUrl } });
+          });
 
-        expect(mockInjectJavaScript).not.toHaveBeenCalled();
-      } finally {
-        Platform.OS = previousPlatform;
+          const messagePromise = webViewOnMessage?.({
+            nativeEvent: {
+              data: JSON.stringify({ type: 'fetchClientSecret' }),
+            },
+          });
+
+          // react-native-webview's Android onLoadStart is emitted from
+          // doUpdateVisitedHistory, which fires for pushState/replaceState
+          // and hash changes too, not just real navigations. There's no
+          // navigationType to tell them apart, so this must not drop the
+          // in-flight request above.
+          act(() => {
+            mockWebViewProps.onLoadStart({
+              nativeEvent: { url: nextUrl(wrapperUrl) },
+            });
+          });
+
+          resolveSecret('secret_kept_android');
+          await act(async () => {
+            await messagePromise;
+          });
+
+          expect(mockInjectJavaScript).toHaveBeenCalledWith(
+            expect.stringContaining('secret_kept_android')
+          );
+        } finally {
+          Platform.OS = previousPlatform;
+        }
       }
-    });
+    );
   });
 
   describe('toStripeJsBankAccountToken', () => {

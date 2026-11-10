@@ -471,6 +471,20 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const lastLoadStartUrl = useRef<string | null>(null);
 
   const onLoadStart = useCallback((event: WebViewNavigationEvent) => {
+    // Android's onLoadStart is emitted from WebViewClient's
+    // doUpdateVisitedHistory (RNCWebViewClient.java), which fires for real
+    // navigations AND for same-document pushState/replaceState/hash
+    // changes, with no field to tell them apart (no navigationType, no
+    // isReload). Bumping on it risks dropping a reply while the document
+    // that requested it is still alive, which can stall the component.
+    // There's no reliable new-document signal on Android -- onLoadEnd's
+    // timing relative to the document's own request isn't guaranteed
+    // either -- so the generation counter (hygiene only; the deliverToWrapper
+    // guard is the security boundary) simply never bumps there.
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+
     const { url, navigationType } = event.nativeEvent;
     const previousUrl = lastLoadStartUrl.current;
     lastLoadStartUrl.current = url;
@@ -478,12 +492,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     // A pure fragment change within the same document (e.g. client-side
     // routing) isn't a new document load, so it shouldn't invalidate
     // in-flight requests. A same-URL reload -- including the forced iOS
-    // reload below -- is still treated as a new load. This only applies on
-    // iOS: Android's onLoadStart carries no real navigationType (it's
-    // always 'other') and isn't emitted at all for a same-document fragment
-    // change, so every Android event here is already a new load.
+    // reload below -- is still treated as a new load.
     if (
-      Platform.OS === 'ios' &&
       previousUrl !== null &&
       navigationType !== 'reload' &&
       isSameDocumentExceptFragment(previousUrl, url)
