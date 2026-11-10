@@ -10,18 +10,27 @@ public class AuBECSDebitFormView: UIView, STPAUBECSDebitFormViewDelegate {
     @objc public var onCompleteAction: RCTDirectEventBlock?
     @objc public var companyName: NSString?
 
+    private var configuredCompanyName: String?
+
     @objc public func didSetProps() {
-        if let auBecsFormView = self.auBecsFormView {
-            auBecsFormView.removeFromSuperview()
+        let name = (companyName ?? "") as String
+        let needsRebuild = auBecsFormView == nil || configuredCompanyName != name
+
+        if needsRebuild {
+            if let auBecsFormView = self.auBecsFormView {
+                auBecsFormView.removeFromSuperview()
+            }
+
+            configuredCompanyName = name
+            self.auBecsFormView = STPAUBECSDebitFormView(companyName: name)
+            self.auBecsFormView?.becsDebitFormDelegate = self
+
+            if let auBecsFormView = self.auBecsFormView {
+                self.addSubview(auBecsFormView)
+            }
         }
 
-        self.auBecsFormView = STPAUBECSDebitFormView(companyName: (companyName ?? "") as String)
-        self.auBecsFormView?.becsDebitFormDelegate = self
-
-        if let auBecsFormView = self.auBecsFormView {
-            self.addSubview(auBecsFormView)
-            setStyles()
-        }
+        setStyles()
     }
 
     @objc public var formStyle: NSDictionary = NSDictionary() {

@@ -9,6 +9,9 @@
 
 **Fixes**
 
+* [Fixed] iOS: `CardForm` emits `onFocusChange` when card fields gain or lose focus, enabling keyboard dismissal with `StripeContainer`. ([#954](https://github.com/stripe/stripe-react-native/issues/954))
+* [Fixed] iOS: `CardForm` keeps entered card details when style-related props update without changing the form type.
+* [Fixed] iOS: `AuBECSDebitForm` keeps entered bank details when only style props change.
 * [Fixed] Android: `CardField` `clear()` resets validation and error states on all fields, not only the text.
 * [Fixed] Android: `AuBECSDebitForm` `borderWidth` and `borderRadius` use density-independent pixels, matching `CardField` and iOS (this may change appearance for apps that tuned around the previous scaling).
 * [Fixed] Android: `AddToWalletButton` passes the ephemeral key map to Google Pay as JSON instead of Kotlin map text.

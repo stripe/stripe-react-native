@@ -53,6 +53,31 @@ using namespace stripe::react;
     std::static_pointer_cast<const CardFormEventEmitter>(strongSelf->_eventEmitter)
         ->onFormComplete(std::move(emitterEvent));
   };
+
+  _view.onFocusChange = ^(NSDictionary *event) {
+    __typeof(self) strongSelf = weakSelf;
+    if (!strongSelf || !strongSelf->_eventEmitter) {
+      return;
+    }
+    NSString *focusedField = event[@"focusedField"];
+    if (focusedField.length == 0) {
+      return;
+    }
+    CardFormEventEmitter::OnFocusChange emitterEvent;
+    if ([focusedField isEqualToString:@"CardNumber"]) {
+      emitterEvent.focusedField = CardFormEventEmitter::OnFocusChangeFocusedField::CardNumber;
+    } else if ([focusedField isEqualToString:@"Cvc"]) {
+      emitterEvent.focusedField = CardFormEventEmitter::OnFocusChangeFocusedField::Cvc;
+    } else if ([focusedField isEqualToString:@"ExpiryDate"]) {
+      emitterEvent.focusedField = CardFormEventEmitter::OnFocusChangeFocusedField::ExpiryDate;
+    } else if ([focusedField isEqualToString:@"PostalCode"]) {
+      emitterEvent.focusedField = CardFormEventEmitter::OnFocusChangeFocusedField::PostalCode;
+    } else {
+      return;
+    }
+    std::static_pointer_cast<const CardFormEventEmitter>(strongSelf->_eventEmitter)
+        ->onFocusChange(std::move(emitterEvent));
+  };
 }
 
 - (void)updateProps:(const facebook::react::Props::Shared &)props
