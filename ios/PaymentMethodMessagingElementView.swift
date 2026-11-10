@@ -17,6 +17,9 @@ class PaymentMethodMessagingElementView: RCTViewManager {
 
 @objc(PaymentMethodMessagingElementContainerView)
 public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecognizerDelegate {
+    @objc public var onConfigureResult: RCTDirectEventBlock?
+    @objc public var onHeightChanged: RCTDirectEventBlock?
+
     private var paymentMethodMessagingElementView: UIView?
     private var messagingInstance: PaymentMethodMessagingElement?
     private var appearanceConfig: PaymentMethodMessagingElement.Appearance?
@@ -30,8 +33,12 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     // those are independently-dispatched RN props that can race each other.
     private var pendingCreateTask: Task<Void, Never>?
 
-    @objc var appearance: NSDictionary? {
+    @objc public var appearance: NSDictionary? {
         didSet {
+            // Content-equal reassignment (common when Fabric rebuilds dictionaries from
+            // unchanged folly dynamics, or Old Arch re-sets props) must not cancel
+            // in-flight create or re-emit loading.
+            guard appearance != oldValue else { return }
             if let appearance = appearance {
                 appearanceConfig = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: appearance)
                 // Re-initialize if configuration already exists
@@ -42,8 +49,9 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         }
     }
 
-    @objc var configuration: NSDictionary? {
+    @objc public var configuration: NSDictionary? {
         didSet {
+            guard configuration != oldValue else { return }
             if let configuration = configuration {
                 lastConfig = configuration
                 initMessagingElement(config: configuration)
@@ -84,7 +92,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
 
         // Notify if changed
         if desiredHeight != previousHeight {
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": desiredHeight])
+            emitHeightChanged(desiredHeight)
             self.previousHeight = desiredHeight
         }
     }
@@ -101,7 +109,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         let height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: self.messagingInstance?.view.bounds.width ?? 0, height: UIView.layoutFittingCompressedSize.height)).height
         self.previousHeight = height ?? 0
 
-        StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
+        emitHeightChanged(height ?? 0)
         NSLayoutConstraint.activate([
             messagingElementView.topAnchor.constraint(equalTo: topAnchor),
             messagingElementView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -128,10 +136,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         let configResult = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: config)
 
         if let error = configResult.error {
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult([
-                "status": "failed",
-                "error": error,
-            ])
+            emitConfigureResult(status: "failed", message: error["message"] as? String, code: error["code"] as? String)
             return
         }
 
@@ -144,7 +149,6 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
             configuration.appearance = appearance
         }
 
-        var resultMap: [String: String] = [:]
         var height: CGFloat? = 0
 
         pendingCreateTask = Task { @MainActor in
@@ -153,7 +157,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
             // event or kick off an already-pointless create() call.
             guard !Task.isCancelled else { return }
 
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(["status": "loading"])
+            self.emitConfigureResult(status: "loading")
             let result = await PaymentMethodMessagingElement.create(configuration: configuration)
 
             // Discard results from a request that's been superseded by a more
@@ -164,19 +168,52 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
             case .success(let paymentMethodMessagingElement):
                 self.messagingInstance = paymentMethodMessagingElement
                 height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
-                resultMap["status"] = "loaded"
+                self.emitConfigureResult(status: "loaded")
             case .noContent:
-                resultMap["status"] = "no_content"
                 self.messagingInstance = nil
+                self.emitConfigureResult(status: "no_content")
             case .failed(let error):
                 self.messagingInstance = nil
-                resultMap["status"] = "failed"
-                resultMap["message"] = error.localizedDescription
+                self.emitConfigureResult(status: "failed", message: error.localizedDescription)
             }
 
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
-            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(resultMap)
+            self.emitHeightChanged(height ?? 0)
             attachPaymentElementIfAvailable()
         }
+    }
+
+    private func emitConfigureResult(status: String, message: String? = nil, code: String? = nil) {
+        var payload: [String: Any] = ["status": status]
+        if let message = message {
+            payload["message"] = message
+        }
+        if let code = code {
+            payload["code"] = code
+        }
+        onConfigureResult?(["result": payloadWithViewTag(payload)])
+    }
+
+    private func emitHeightChanged(_ height: CGFloat) {
+        onHeightChanged?(payloadWithViewTag(["height": height]))
+    }
+
+    private func payloadWithViewTag(_ payload: [String: Any]) -> [String: Any] {
+        var result = payload
+        if let tag = reactTag {
+            result["viewTag"] = tag.intValue
+        }
+        return result
+    }
+
+    /// Cancels in-flight create work and drops event callbacks so Fabric recycle
+    /// cannot deliver a late completion into the next element's pending slots.
+    @objc public func prepareForRecycle() {
+        onConfigureResult = nil
+        onHeightChanged = nil
+        pendingCreateTask?.cancel()
+        pendingCreateTask = nil
+        removePaymentMethodMessagingElement()
+        messagingInstance = nil
+        previousHeight = nil
     }
 }

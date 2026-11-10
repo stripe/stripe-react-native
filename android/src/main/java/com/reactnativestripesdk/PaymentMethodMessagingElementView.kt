@@ -17,30 +17,76 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.uimanager.events.Event
+import com.facebook.react.uimanager.events.EventDispatcher
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElement
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElementPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
+import java.util.concurrent.atomic.AtomicInteger
+
+/** Matches iOS validation failures (`InvalidConfiguration`). */
+internal const val CONFIGURE_FAILURE_CODE = "InvalidConfiguration"
+
+internal fun configureFailurePayload(
+  error: Throwable,
+  viewTag: Int,
+): WritableMap {
+  val msg = error.localizedMessage ?: error.toString()
+  return Arguments.createMap().apply {
+    putMap(
+      "result",
+      Arguments.createMap().apply {
+        putString("status", "failed")
+        putString("message", msg)
+        putString("code", CONFIGURE_FAILURE_CODE)
+        putInt("viewTag", viewTag)
+      },
+    )
+  }
+}
 
 @OptIn(PaymentMethodMessagingElementPreview::class)
-class PaymentMethodMessagingElementView(
+open class PaymentMethodMessagingElementView(
   context: Context,
 ) : StripeAbstractComposeView(context) {
-  private sealed interface Event {
+  private sealed interface ViewEvent {
     data class Configure(
       val configuration: PaymentMethodMessagingElement.Configuration,
-    ) : Event
+      val generation: Int,
+    ) : ViewEvent
 
     data class Appearance(
       val appearance: PaymentMethodMessagingElement.Appearance,
-    ) : Event
+    ) : ViewEvent
   }
 
   var latestElementConfig: PaymentMethodMessagingElement.Configuration? = null
 
+  // Bumped when a parse failure invalidates in-flight / queued configure work so a
+  // later channel consumer cannot emit loaded after JS already saw failed.
+  private val configureGeneration = AtomicInteger(0)
+
   private val reactContext get() = context as ThemedReactContext
-  private val events = Channel<Event>(Channel.UNLIMITED)
+  private val events = Channel<ViewEvent>(Channel.UNLIMITED)
+
+  internal fun currentConfigureGeneration(): Int = configureGeneration.get()
+
+  internal fun isConfigureGenerationCurrent(generation: Int): Boolean =
+    generation == configureGeneration.get()
+
+  /**
+   * Drop any queued/in-flight configure and clear [latestElementConfig], mirroring iOS
+   * cancelling `pendingCreateTask` before returning a validation error.
+   */
+  fun invalidatePendingConfigure() {
+    configureGeneration.incrementAndGet()
+    latestElementConfig = null
+  }
 
   @SuppressLint("RestrictedApi")
   @Composable
@@ -55,37 +101,39 @@ class PaymentMethodMessagingElementView(
     LaunchedEffect(Unit) {
       events.consumeAsFlow().collect { ev ->
         when (ev) {
-          is Event.Configure -> {
-            val loadingPayload = Arguments.createMap()
-            loadingPayload.putString("status", "loading")
-            requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(loadingPayload)
+          is ViewEvent.Configure -> {
+            if (!isConfigureGenerationCurrent(ev.generation)) {
+              return@collect
+            }
+            reportConfigureResult(status = "loading")
             val result =
               messagingElement.configure(
                 configuration = ev.configuration,
               )
 
-            val payload = Arguments.createMap()
+            // A parse failure (or newer configure) may have superseded this request
+            // while configure() was suspended — do not deliver a stale terminal status.
+            if (!isConfigureGenerationCurrent(ev.generation)) {
+              return@collect
+            }
+
             when (result) {
               is PaymentMethodMessagingElement.ConfigureResult.Succeeded -> {
-                payload.putString("status", "loaded")
+                reportConfigureResult(status = "loaded")
               }
               is PaymentMethodMessagingElement.ConfigureResult.NoContent -> {
-                payload.putString("status", "no_content")
                 reportHeightChange(0f)
+                reportConfigureResult(status = "no_content")
               }
               is PaymentMethodMessagingElement.ConfigureResult.Failed -> {
-                // send the error back to JS
                 val err = result.error
                 val msg = err.localizedMessage ?: err.toString()
-                // build a RN map
-                payload.putString("status", "failed")
-                payload.putString("message", msg)
                 reportHeightChange(0f)
+                reportConfigureResult(status = "failed", message = msg)
               }
             }
-            requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(payload)
           }
-          is Event.Appearance -> {
+          is ViewEvent.Appearance -> {
             appearance = ev.appearance
           }
         }
@@ -144,21 +192,102 @@ class PaymentMethodMessagingElementView(
   }
 
   private fun reportHeightChange(height: Float) {
-    val params =
+    val payload =
       Arguments.createMap().apply {
         putDouble("height", height.toDouble())
+        putInt("viewTag", id)
       }
-    requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementDidUpdateHeight(params)
+    dispatchEvent {
+      PaymentMethodMessagingElementHeightEvent(reactContext.surfaceId, id, payload)
+    }
+  }
+
+  fun reportConfigureFailed(error: Throwable) {
+    // Cancel queued/in-flight configure before emitting failed, so JS cannot observe
+    // failed followed by a stale loaded from an earlier channel item.
+    invalidatePendingConfigure()
+    val payload = configureFailurePayload(error, id)
+    dispatchEvent {
+      PaymentMethodMessagingElementConfigureEvent(reactContext.surfaceId, id, payload)
+    }
+    reportHeightChange(0f)
+  }
+
+  private fun reportConfigureResult(
+    status: String,
+    message: String? = null,
+    code: String? = null,
+  ) {
+    val payload =
+      Arguments.createMap().apply {
+        putMap(
+          "result",
+          Arguments.createMap().apply {
+            putString("status", status)
+            message?.let { putString("message", it) }
+            code?.let { putString("code", it) }
+            putInt("viewTag", id)
+          },
+        )
+      }
+    dispatchEvent {
+      PaymentMethodMessagingElementConfigureEvent(reactContext.surfaceId, id, payload)
+    }
+  }
+
+  private fun eventDispatcher(): EventDispatcher? =
+    UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
+
+  /**
+   * Dispatches a Fabric/UIManager event. Open so unit tests in `src/test` can subclass and
+   * observe events without a release-path injection sink.
+   */
+  internal open fun dispatchEvent(eventFactory: () -> Event<*>) {
+    eventDispatcher()?.dispatchEvent(eventFactory())
   }
 
   // APIs
   fun configure(config: PaymentMethodMessagingElement.Configuration) {
-    events.trySend(Event.Configure(config))
+    // Supersede any earlier queued/in-flight configure (same role as iOS cancelling
+    // `pendingCreateTask` before starting a new create).
+    val generation = configureGeneration.incrementAndGet()
+    events.trySend(ViewEvent.Configure(config, generation))
   }
 
   fun appearance(appearance: PaymentMethodMessagingElement.Appearance) {
-    events.trySend(Event.Appearance(appearance))
+    events.trySend(ViewEvent.Appearance(appearance))
   }
+}
 
-  private fun requireStripeSdkModule() = requireNotNull(reactContext.getNativeModule(StripeSdkModule::class.java))
+internal class PaymentMethodMessagingElementConfigureEvent(
+  surfaceId: Int,
+  viewId: Int,
+  private val payload: WritableMap,
+) : Event<PaymentMethodMessagingElementConfigureEvent>(surfaceId, viewId) {
+  override fun getEventName() = EVENT_NAME
+
+  override fun getEventData(): WritableMap = payload
+
+  /** Package-visible for unit tests; RN's `getEventData` is protected. */
+  fun resultMap(): ReadableMap? = payload.getMap("result")
+
+  override fun canCoalesce() = false
+
+  companion object {
+    const val EVENT_NAME = "topConfigureResult"
+  }
+}
+
+private class PaymentMethodMessagingElementHeightEvent(
+  surfaceId: Int,
+  viewId: Int,
+  private val payload: WritableMap,
+) : Event<PaymentMethodMessagingElementHeightEvent>(surfaceId, viewId) {
+  override fun getEventName() = EVENT_NAME
+
+  override fun getEventData(): WritableMap = payload
+
+  companion object {
+    const val EVENT_NAME = "topHeightChanged"
+  }
 }
