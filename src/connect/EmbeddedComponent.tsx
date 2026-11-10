@@ -976,12 +976,26 @@ function isValidUrl(url: string): boolean {
   }
 }
 
+// Matches only: http(s)://<allowed host>[:port] followed by "/", "?", "#" or end of string.
+// The authority is read from the raw string, so the decision doesn't depend on
+// the runtime's URL class (React Native's can misread "@" in a query or fragment).
+function hasAllowedStripeAuthority(url: string): boolean {
+  const match = /^https?:\/\/([^/?#]*)/i.exec(url);
+  if (!match) return false;
+  const authority = match[1]!.toLowerCase();
+  const authorityWithoutPort = authority.replace(/:\d*$/, '');
+  return ALLOWED_STRIPE_HOSTS.some(
+    (host) => authority === host || authorityWithoutPort === host
+  );
+}
+
 export function isAllowedStripeHost(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
-    return ALLOWED_STRIPE_HOSTS.some(
+    const allowedByRuntimeParser = ALLOWED_STRIPE_HOSTS.some(
       (host) => parsedUrl.hostname === host || parsedUrl.host === host
     );
+    return allowedByRuntimeParser && hasAllowedStripeAuthority(url);
   } catch {
     return false;
   }
