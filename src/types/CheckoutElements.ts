@@ -864,8 +864,8 @@ export namespace CheckoutElements {
     businessName?: string;
     /** Whether the Checkout Session is in live mode. */
     livemode: boolean;
-    /** Three-letter ISO 4217 currency code in lowercase. */
-    currency: string;
+    /** Three-letter ISO 4217 currency code in lowercase, when the session has a currency. */
+    currency?: string;
     /** Factor used to convert minor currency units to major units. */
     minorUnitsAmountDivisor?: number;
     /** Currency presentation details for the customer. */
@@ -1011,7 +1011,7 @@ export namespace CheckoutElements {
     unitLabel?: string;
     /** The quantity being purchased. */
     quantity: number;
-    /** Limits for customer-adjustable quantity, when enabled. */
+    /** Limits for customer-adjustable quantity. Absent when the customer can't adjust the quantity. */
     adjustableQuantity?: AdjustableQuantity;
     /** Computed amounts for this item. */
     amountDetails: AmountDetails;
@@ -1067,8 +1067,6 @@ export namespace CheckoutElements {
    * @CheckoutSessionPrivatePreview
    */
   export interface AdjustableQuantity {
-    /** Whether the customer can adjust the quantity. */
-    enabled: boolean;
     /** The minimum allowed quantity. */
     minimum: number;
     /** The maximum allowed quantity. */

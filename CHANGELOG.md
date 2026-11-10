@@ -4,11 +4,15 @@
 
 **Changes**
 
-* Updated Stripe Android SDK from 23.25.1 to 23.25.2.
+* Updated Stripe iOS SDK from 26.16.0 to 26.16.1.
+* Updated Stripe Android SDK from 23.25.1 to 23.26.0.
+* [Changed] iOS: Payment Sheet now titles the card entry form "Add a card" instead of "Add card".
 * [Changed] Documented platform support for Payment Sheet, Embedded Payment Element, Customer Sheet, Onramp, and `initStripe` options that apply on a single platform only.
 
 **Fixes**
 
+* [Fixed] Android: Payment Sheet no longer hides the Bank payment method unnecessarily.
+* [Fixed] Android: Payment Sheet no longer leaks its Activity when closed before passive CAPTCHA warm-up finishes.
 * [Fixed] Android: `updateEmbeddedPaymentElement` now resolves with a Failed error instead of hanging.
 * [Fixed] Android: Customer Sheet adapter callbacks now resolve after completing their deferred work, including decode failures on attach and detach.
 * [Fixed] Android: `initCustomerSheet` no longer resolves twice when both an ephemeral key and an intent configuration are provided.

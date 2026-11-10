@@ -110,8 +110,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(paymentElement.termsDisplay[.card], .never)
         XCTAssertEqual(paymentElement.termsDisplay[.USBankAccount], .automatic)
         XCTAssertTrue(paymentElement.displaysMandateText)
-        XCTAssertEqual(paymentElement.applePayConfiguration?.merchantId, "merchant.com.example")
-        XCTAssertEqual(paymentElement.applePayConfiguration?.buttonType, .checkout)
+        XCTAssertEqual(configuration.applePayMerchantId, "merchant.com.example")
+        XCTAssertEqual(paymentElement.applePayConfiguration.buttonType, .checkout)
         XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
 
         if case .vertical = paymentElement.paymentMethodLayout {
@@ -146,7 +146,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         let paymentElement = try XCTUnwrap(configuration.paymentElement)
         XCTAssertFalse(paymentElement.opensCardScannerAutomatically)
         XCTAssertTrue(paymentElement.displaysMandateText)
-        XCTAssertNil(paymentElement.applePayConfiguration)
+        XCTAssertNil(configuration.applePayMerchantId)
         XCTAssertNil(paymentElement.linkConfiguration)
     }
 
@@ -197,11 +197,12 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
 
             let paymentElement = try XCTUnwrap(configuration.paymentElement)
             if testCase.enabled {
-                let applePay = try XCTUnwrap(paymentElement.applePayConfiguration)
-                XCTAssertEqual(applePay.merchantId, testCase.merchantIdentifier)
-                XCTAssertEqual(applePay.buttonType, .checkout)
+                XCTAssertEqual(configuration.applePayMerchantId, testCase.merchantIdentifier)
+                XCTAssertEqual(paymentElement.applePayConfiguration.display, .automatic)
+                XCTAssertEqual(paymentElement.applePayConfiguration.buttonType, .checkout)
             } else {
-                XCTAssertNil(paymentElement.applePayConfiguration)
+                XCTAssertNil(configuration.applePayMerchantId)
+                XCTAssertEqual(paymentElement.applePayConfiguration.display, .never)
             }
             XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
             XCTAssertEqual(paymentElement.paymentMethodOrder, ["card"])
