@@ -15,7 +15,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
     destroyCheckout: jest.fn(),
     updateCheckoutEmail: jest.fn(),
     confirmCheckout: jest.fn(),
-    resetCheckoutCustomer: jest.fn(),
+    clearCheckoutLocalCustomerData: jest.fn(),
     runCheckoutServerUpdate: jest.fn(),
     completeCheckoutServerUpdate: jest.fn(),
   },
@@ -31,7 +31,8 @@ const create = NativeStripeSdk.createCheckout as jest.Mock;
 const destroy = NativeStripeSdk.destroyCheckout as jest.Mock;
 const updateEmail = NativeStripeSdk.updateCheckoutEmail as jest.Mock;
 const confirm = NativeStripeSdk.confirmCheckout as jest.Mock;
-const resetCustomer = NativeStripeSdk.resetCheckoutCustomer as jest.Mock;
+const clearLocalCustomerData =
+  NativeStripeSdk.clearCheckoutLocalCustomerData as jest.Mock;
 const startServerUpdate = NativeStripeSdk.runCheckoutServerUpdate as jest.Mock;
 const completeServerUpdate =
   NativeStripeSdk.completeCheckoutServerUpdate as jest.Mock;
@@ -82,7 +83,7 @@ beforeEach(() => {
   }));
   destroy.mockReset().mockResolvedValue(undefined);
   updateEmail.mockReset().mockResolvedValue(undefined);
-  resetCustomer.mockReset().mockResolvedValue(undefined);
+  clearLocalCustomerData.mockReset().mockResolvedValue(undefined);
   startServerUpdate.mockReset();
   completeServerUpdate.mockReset().mockResolvedValue(undefined);
 });
@@ -114,8 +115,8 @@ it('loads while enabled and follows native updates', async () => {
   });
   await hook.result.current.updateEmail('jenny@example.com');
   expect(updateEmail).toHaveBeenCalledWith(controllerId(), 'jenny@example.com');
-  await hook.result.current.resetCustomer();
-  expect(resetCustomer).toHaveBeenCalledTimes(1);
+  await hook.result.current.clearLocalCustomerData();
+  expect(clearLocalCustomerData).toHaveBeenCalledTimes(1);
 
   hook.rerender({ enabled: true, getConfiguration: configuration });
   expect(hook.result.current.updateEmail).toBe(firstUpdateEmail);

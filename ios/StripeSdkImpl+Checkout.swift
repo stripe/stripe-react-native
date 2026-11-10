@@ -4,12 +4,12 @@ import React
 
 extension StripeSdkImpl {
 
-    @objc(resetCheckoutCustomer:rejecter:)
-    public func resetCheckoutCustomer(
+    @objc(clearCheckoutLocalCustomerData:rejecter:)
+    public func clearCheckoutLocalCustomerData(
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        CheckoutElementsController.resetCustomer()
+        CheckoutElementsController.clearLocalCustomerData()
         resolve(nil)
     }
 

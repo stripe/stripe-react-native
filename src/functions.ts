@@ -503,8 +503,8 @@ export const resetPaymentSheetCustomer = async (): Promise<null> => {
  * @internal
  * @CheckoutSessionPrivatePreview
  */
-export const resetCheckoutCustomer = async (): Promise<void> => {
-  await NativeStripeSdk.resetCheckoutCustomer();
+export const clearCheckoutLocalCustomerData = async (): Promise<void> => {
+  await NativeStripeSdk.clearCheckoutLocalCustomerData();
 };
 
 export const collectBankAccountForPayment = async (

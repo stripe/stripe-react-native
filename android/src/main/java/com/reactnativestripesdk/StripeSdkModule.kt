@@ -1454,8 +1454,8 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  override fun resetCheckoutCustomer(promise: Promise) {
-    CheckoutElementsController.resetCustomer(context = reactApplicationContext)
+  override fun clearCheckoutLocalCustomerData(promise: Promise) {
+    CheckoutElementsController.clearLocalCustomerData(context = reactApplicationContext)
     promise.resolve(null)
   }
 

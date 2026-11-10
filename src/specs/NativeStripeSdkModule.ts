@@ -270,7 +270,7 @@ export interface Spec extends TurboModule {
   ): Promise<CheckoutCreateResult>;
 
   /** @CheckoutSessionPrivatePreview */
-  resetCheckoutCustomer(): Promise<void>;
+  clearCheckoutLocalCustomerData(): Promise<void>;
 
   /** @CheckoutSessionPrivatePreview */
   updateCheckoutEmail(
