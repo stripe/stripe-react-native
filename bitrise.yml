@@ -17,6 +17,10 @@ app:
     - JAVA_VERSION: '17'
     - ANDROID_API_LEVEL: '33'
     - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
+    # Pin Maestro CLI installs (stripe-android style); installer fetches
+    # github.com/mobile-dev-inc/maestro/releases/download/cli-$MAESTRO_VERSION/maestro.zip
+    - MAESTRO_VERSION: '2.12.1'
+    - RETRY_MAX_ATTEMPTS: 5
     - RETRY_SLEEP_FAST: 10
     - RETRY_SLEEP_SLOW: 45
 
@@ -465,13 +469,8 @@ workflows:
           inputs:
             - content: |
                 set -euo pipefail
-
-                curl -fsSL "https://get.maestro.mobile.dev" | bash
-                MAESTRO_BIN="${HOME}/.maestro/bin/maestro"
-                if [ ! -x "$MAESTRO_BIN" ]; then
-                  echo "Maestro install did not create an executable at $MAESTRO_BIN"
-                  exit 1
-                fi
+                # Retries whole install + maestro -v (corrupt zip / incomplete install).
+                "$BITRISE_SOURCE_DIR/scripts/ci/install-maestro.sh"
       - wait-for-android-emulator@1:
           inputs:
             - boot_timeout: 600
@@ -582,13 +581,8 @@ workflows:
           inputs:
             - content: |
                 set -euo pipefail
-
-                curl -fsSL "https://get.maestro.mobile.dev" | bash
-                MAESTRO_BIN="${HOME}/.maestro/bin/maestro"
-                if [ ! -x "$MAESTRO_BIN" ]; then
-                  echo "Maestro install did not create an executable at $MAESTRO_BIN"
-                  exit 1
-                fi
+                # Retries whole install + maestro -v (corrupt zip / incomplete install).
+                "$BITRISE_SOURCE_DIR/scripts/ci/install-maestro.sh"
       - script@1:
           title: Run iOS E2E Tests (Maestro)
           timeout: 2400
