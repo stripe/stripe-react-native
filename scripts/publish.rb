@@ -4,6 +4,8 @@ require 'optparse'
 require 'shellwords'
 require_relative 'helpers'
 
+NPM_REGISTRY = "https://registry.npmjs.org/"
+
 @is_dry_run = false
 @step_index = 1
 
@@ -25,11 +27,11 @@ def ensure_node_version
 end
 
 def ensure_npm_logged_in
-  stdout, _, status = Open3.capture3("npm whoami")
+  stdout, _, status = Open3.capture3("npm whoami --registry=#{NPM_REGISTRY}")
   if status.success?
     puts "Logged into npm as #{stdout.strip}"
   else
-    abort "Error! Not logged into npm. Please run `npm login` and try again."
+    abort "Error! Not logged into npm. Please run `npm login --registry=#{NPM_REGISTRY}` and try again."
   end
 end
 
@@ -68,7 +70,7 @@ def publish_to_npm
 
   if @is_dry_run
     puts ""
-    puts "[dry-run] Would publish to npm with: npm publish --ignore-scripts --access=public"
+    puts "[dry-run] Would publish to npm with: npm publish --ignore-scripts --access=public --registry=#{NPM_REGISTRY}"
     puts "[dry-run] Would push tag v#{version} to origin"
     puts "[dry-run] Would create a GitHub release"
     puts ""
@@ -76,7 +78,7 @@ def publish_to_npm
     execute("git tag -d v#{version}")
   else
     puts "Publishing release"
-    execute_or_fail("npm publish --ignore-scripts --access=public")
+    execute_or_fail("npm publish --ignore-scripts --access=public --registry=#{NPM_REGISTRY}")
     puts "Published to npm!"
 
     puts "Pushing git tag"
