@@ -133,8 +133,11 @@ export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,
   onUpdate?: (controller: CheckoutElements) => void
 ): Promise<CheckoutElements> {
-  // Keep the iOS bridge unsupported until its native implementation is available.
-  if (options.expressCheckoutElement && Platform.OS !== 'android') {
+  if (
+    options.expressCheckoutElement &&
+    Platform.OS !== 'android' &&
+    Platform.OS !== 'ios'
+  ) {
     throw new Error(
       'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
     );

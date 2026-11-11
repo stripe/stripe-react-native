@@ -5,8 +5,7 @@ import NativeCheckoutExpressCheckoutElement from '../specs/NativeCheckoutExpress
 import type { ExpressCheckoutElementViewProps } from '../types/CheckoutElements';
 
 /**
- * Renders the Checkout-owned Express Checkout Element inline on Android.
- * The iOS bridge is not yet implemented.
+ * Renders the Checkout-owned Express Checkout Element inline on iOS and Android.
  *
  * @remarks
  * This API is in private preview and can change without notice.
@@ -17,7 +16,7 @@ import type { ExpressCheckoutElementViewProps } from '../types/CheckoutElements'
 export function ExpressCheckoutElementView({
   element,
 }: ExpressCheckoutElementViewProps): React.JSX.Element {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     throw new Error(
       'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
     );

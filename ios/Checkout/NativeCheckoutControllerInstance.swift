@@ -23,7 +23,7 @@ final class NativeCheckoutControllerInstance {
     private var observation: AnyCancellable?
     private var controllerId: String?
     private var destructionObservers: [UUID: () -> Void] = [:]
-    private var isDestroyed = false
+    private(set) var isDestroyed = false
     private var isConfirming = false
     private var serverUpdateContinuations: [String: CheckedContinuation<Void, Error>] = [:]
 
