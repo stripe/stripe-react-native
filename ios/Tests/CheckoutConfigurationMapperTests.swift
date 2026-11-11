@@ -5,7 +5,8 @@ import XCTest
 
 @MainActor
 final class CheckoutConfigurationMapperTests: XCTestCase {
-    func test_map_mapsExpressCheckoutConfiguration() throws {
+    func test_map_mapsExpressCheckoutConfigurationAndCompletion() throws {
+        var completed = false
         let configuration = try CheckoutConfigurationMapper.map(
             params: ["expressCheckoutElement": [
                 "applePay": ["buttonType": "checkout"],
@@ -18,7 +19,10 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 ],
             ]],
             merchantIdentifier: "merchant.com.example",
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { result in
+                if case .canceled = result { completed = true }
+            }
         )
         let element = try XCTUnwrap(configuration.expressCheckoutElement)
         XCTAssertEqual(element.applePayConfiguration.buttonType, .checkout)
@@ -29,6 +33,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(element.appearance.cornerRadius, 12)
         XCTAssertEqual(configuration.applePayMerchantId, "merchant.com.example")
         XCTAssertEqual(configuration.paymentElement?.applePayConfiguration.display, .never)
+        element.completion(.canceled)
+        XCTAssertTrue(completed)
     }
 
     func test_map_expressCheckoutEnablesApplePayWithoutExplicitOptionsAndAllowsLinkOnly() throws {

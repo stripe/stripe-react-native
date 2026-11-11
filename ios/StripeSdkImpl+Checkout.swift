@@ -36,6 +36,13 @@ extension StripeSdkImpl {
                             emitter?.emitCheckoutControllerDidSelectPaymentOption([
                                 "controllerId": controllerId,
                             ])
+                        },
+                        expressCheckoutCompletion: { [weak self] result in
+                            guard let self, let instance = checkoutControllers[controllerId], !instance.isDestroyed else { return }
+                            emitter?.emitCheckoutExpressCheckoutDidComplete([
+                                "controllerId": controllerId,
+                                "result": CheckoutSessionSerializer.serialize(result),
+                            ])
                         }
                     )
                     let checkout = try await CheckoutElementsController(configuration: configuration)

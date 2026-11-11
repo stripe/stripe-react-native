@@ -22,7 +22,8 @@ enum CheckoutConfigurationMapper {
     static func map(
         params: NSDictionary,
         merchantIdentifier: String?,
-        didSelectPaymentOption: @escaping () -> Void
+        didSelectPaymentOption: @escaping () -> Void,
+        expressCheckoutCompletion: @escaping (CheckoutElementsController.ConfirmResult) -> Void = { _ in }
     ) throws -> CheckoutElementsController.Configuration {
         let clientSecret = params["clientSecret"] as? String ?? ""
         let returnURL = params["returnURL"] as? String ?? ""
@@ -52,7 +53,7 @@ enum CheckoutConfigurationMapper {
         if let expressParams = params["expressCheckoutElement"] as? NSDictionary {
             configuration.expressCheckoutElement = try mapExpressCheckoutElement(
                 expressParams,
-                completion: { _ in }
+                completion: expressCheckoutCompletion
             )
             if let merchantIdentifier, !merchantIdentifier.isEmpty {
                 configuration.applePayMerchantId = merchantIdentifier

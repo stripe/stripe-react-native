@@ -13,6 +13,7 @@ import { Platform } from 'react-native';
 import {
   addCheckoutControllerListener,
   addCheckoutControllerSelectionListener,
+  addCheckoutExpressCheckoutResultListener,
   createCheckoutBridgeId,
 } from './CheckoutControllerEventEmitter';
 
@@ -163,6 +164,15 @@ export async function createCheckoutController(
       ? options.paymentElement.rowSelectionBehavior.onSelectPaymentOption
       : undefined
   );
+  const onExpressCheckoutResult = options.expressCheckoutElement?.onResult;
+  const expressCheckoutSubscription =
+    Platform.OS === 'ios' && onExpressCheckoutResult
+      ? addCheckoutExpressCheckoutResultListener(controllerId, (result) => {
+          if (status !== 'destroyed') {
+            onExpressCheckoutResult(result);
+          }
+        })
+      : undefined;
   try {
     // Keep handle availability consistent if options change during native creation.
     const isShippingAddressElementConfigured = Boolean(
@@ -271,6 +281,7 @@ export async function createCheckoutController(
         status = 'destroyed';
         subscription.remove();
         selectionSubscription.remove();
+        expressCheckoutSubscription?.remove();
         destroyPromise = Promise.resolve().then(() =>
           NativeStripeSdk.destroyCheckout(controllerId)
         );
@@ -286,8 +297,10 @@ export async function createCheckoutController(
     }
     return controller;
   } catch (error) {
+    status = 'destroyed';
     subscription.remove();
     selectionSubscription.remove();
+    expressCheckoutSubscription?.remove();
     throw error;
   }
 }

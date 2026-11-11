@@ -282,11 +282,79 @@ it('bridges Android Express Checkout configuration without sending callbacks to 
     type: 'immediateAction',
   });
   expect(configuration.onResult).toBe(onResult);
+  expect(addListener).not.toHaveBeenCalledWith(
+    'checkoutExpressCheckoutDidComplete',
+    expect.any(Function)
+  );
   expect(controller.expressCheckoutElement).not.toBeNull();
   expect(controller.expressCheckoutElement).toBe(
     controller.expressCheckoutElement
   );
   await controller.destroy();
+});
+
+it('subscribes to iOS wallet results before create, isolates controllers, and stops after destroy', async () => {
+  jest.replaceProperty(Platform, 'OS', 'ios');
+  const onResult = jest.fn();
+  const otherResult = jest.fn();
+  const canceled = { status: 'canceled' } as const;
+  create.mockImplementationOnce(async (configuration, controllerId) => {
+    expect(configuration.expressCheckoutElement).toEqual({
+      applePay: { buttonType: 'checkout' },
+      appearance: { buttonLayout: { maxColumns: 2, maxRows: 1 } },
+    });
+    emit('checkoutExpressCheckoutDidComplete', {
+      controllerId,
+      result: canceled,
+    });
+    return { session, isExpressCheckoutAvailable: true };
+  });
+  const first = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: {
+      applePay: { buttonType: 'checkout' },
+      appearance: { buttonLayout: { maxColumns: 2, maxRows: 1 } },
+      onResult,
+    },
+  });
+  const second = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: { onResult: otherResult },
+  });
+  expect(first.expressCheckoutElement).not.toBeNull();
+  expect(onResult).toHaveBeenCalledWith(canceled);
+  const controllerId = create.mock.calls[0][1];
+  const completed = { status: 'completed', paymentStatus: 'paid' } as const;
+  const callback = [
+    ...listeners.get('checkoutExpressCheckoutDidComplete')!,
+  ][0]!;
+  emit('checkoutExpressCheckoutDidComplete', {
+    controllerId,
+    result: completed,
+  });
+  expect(onResult).toHaveBeenLastCalledWith(completed);
+  expect(otherResult).not.toHaveBeenCalled();
+  await first.destroy();
+  callback({ controllerId, result: canceled });
+  emit('checkoutExpressCheckoutDidComplete', {
+    controllerId,
+    result: canceled,
+  });
+  expect(onResult).toHaveBeenCalledTimes(2);
+  await second.destroy();
+  expect(listeners.get('checkoutExpressCheckoutDidComplete')?.size).toBe(0);
+});
+
+it('removes the iOS wallet result listener after failed creation', async () => {
+  jest.replaceProperty(Platform, 'OS', 'ios');
+  create.mockRejectedValueOnce(new Error('Creation failed'));
+  await expect(
+    createCheckoutElements({
+      ...options,
+      expressCheckoutElement: { onResult: jest.fn() },
+    })
+  ).rejects.toThrow('Creation failed');
+  expect(listeners.get('checkoutExpressCheckoutDidComplete')?.size).toBe(0);
 });
 
 it('does not expose an unavailable Android Express Checkout Element', async () => {
