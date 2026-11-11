@@ -19,6 +19,7 @@ import { PaymentMethod } from './types';
 import { UnsafeObject } from './specs/utils';
 import { FinancialConnectionsEvent } from './types/FinancialConnections';
 import { Result as ConfirmationTokenResult } from './types/ConfirmationToken';
+import type { CheckoutElements } from './types/CheckoutElements';
 import type { CheckoutControllerUpdate } from './checkout/CheckoutControllerEventEmitter';
 
 const compatEventEmitter =
@@ -30,6 +31,9 @@ const compatEventEmitter =
 // Versions before RN 0.80 crash sometimes when setting the event emitter callback.
 // Move this back to the NativeStripeSdkModule spec once we drop support for RN < 0.80.
 type Events = {
+  checkoutExpressCheckoutDidComplete: EventEmitter<
+    UnsafeObject<{ controllerId: string; result: CheckoutElements.Result }>
+  >;
   checkoutServerUpdateRequested: EventEmitter<{
     controllerId: string;
     operationId: string;

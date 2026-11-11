@@ -20,6 +20,7 @@ import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.utils.mapAsStateFlow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,6 +56,7 @@ import org.mockito.Mockito.`when`
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.EmptyCoroutineContext
 
 @OptIn(CheckoutSessionPreview::class, ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -396,6 +398,159 @@ class NativeCheckoutControllerInstanceTest {
   }
 
   @Test
+  fun `inline express outcomes publish current session before their result`() =
+    withFixture(expressConfigured = true) { fixture ->
+      fixture.start()
+      advanceUntilIdle()
+      val outcomes = listOf(
+        NativeCheckoutFixtures.completedResult() to "completed",
+        NativeCheckoutFixtures.canceledResult() to "canceled",
+        NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")) to "failed",
+      )
+      for ((result, status) in outcomes) {
+        fixture.sessions.value = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
+        fixture.instance.onConfirmationResult(result)
+        advanceUntilIdle()
+        assertEquals(status, fixture.expressResults.last().getMap("result")!!.getString("status"))
+        assertEquals("controller-1", fixture.expressResults.last().getString("controllerId"))
+        assertEquals("complete", fixture.events.last().getMap("session")!!.getMap("status")!!.getString("type"))
+        assertEquals("checkoutExpressCheckoutDidComplete", fixture.eventNames.last())
+        assertEquals("checkoutControllerDidUpdate", fixture.eventNames[fixture.eventNames.lastIndex - 1])
+      }
+      assertEquals("paid", fixture.expressResults.first().getMap("result")!!.getString("paymentStatus"))
+      assertEquals("Declined", fixture.expressResults.last().getMap("result")!!.getMap("error")!!.getString("message"))
+    }
+
+  @Test
+  fun `express result serialization failure propagates without a payment result`() {
+    val uncaughtErrors = mutableListOf<Throwable>()
+    withFixture(
+      expressConfigured = true,
+      exceptionHandler = CoroutineExceptionHandler { _, error -> uncaughtErrors.add(error) },
+    ) { fixture ->
+      fixture.start()
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
+      advanceUntilIdle()
+
+      val error = uncaughtErrors.single()
+      assertTrue(error is IllegalStateException)
+      assertEquals("Checkout completed without a complete session.", error.message)
+      assertTrue(fixture.expressResults.isEmpty())
+    }
+  }
+
+  @Test
+  fun `explicit result serialization failure propagates without an express result`() =
+    withFixture { fixture ->
+      fixture.start()
+      val pending = async { runCatching { fixture.instance.confirm(fixture.activity.get()) } }
+      runCurrent()
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
+
+      val error = pending.await().exceptionOrNull()
+      assertTrue(error is IllegalStateException)
+      assertEquals(
+        "Checkout completed without a complete session.",
+        error?.message,
+      )
+      assertTrue(fixture.expressResults.isEmpty())
+    }
+
+  @Test
+  fun `express results before start are ignored`() = withFixture(expressConfigured = true) { fixture ->
+    fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+    advanceUntilIdle()
+    assertTrue(fixture.expressResults.isEmpty())
+    assertTrue(fixture.events.isEmpty())
+  }
+
+  @Test
+  fun `explicit confirmation outcomes never also emit express results`() =
+    withFixture(expressConfigured = true) { fixture ->
+      fixture.start()
+      fixture.sessions.value = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
+      val outcomes = listOf(
+        NativeCheckoutFixtures.completedResult() to "completed",
+        NativeCheckoutFixtures.canceledResult() to "canceled",
+        NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")) to "failed",
+      )
+      for ((result, status) in outcomes) {
+        val pending = async { fixture.instance.confirm(fixture.activity.get()) }
+        runCurrent()
+        fixture.instance.onConfirmationResult(result)
+        assertEquals(status, pending.await().getString("status"))
+        advanceUntilIdle()
+        assertTrue(fixture.expressResults.isEmpty())
+      }
+    }
+
+  @Test
+  fun `destroyed express controller completes pending explicit confirmation without an express result`() =
+    withFixture(expressConfigured = true) { fixture ->
+      fixture.start()
+      val pending = async { fixture.instance.confirm(fixture.activity.get()) }
+      runCurrent()
+      fixture.instance.destroy()
+      runCurrent()
+      assertFalse(pending.isCompleted)
+      verify(fixture.controller, times(0)).destroy()
+
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+      assertEquals("canceled", pending.await().getString("status"))
+      advanceUntilIdle()
+      assertTrue(fixture.expressResults.isEmpty())
+      verify(fixture.controller, times(1)).destroy()
+    }
+
+  @Test
+  fun `synchronous confirm rejection during an express flow belongs only to the explicit caller`() =
+    withFixture(expressConfigured = true) { fixture ->
+      fixture.start()
+      fixture.updating.value = true
+      val rejected = NativeCheckoutFixtures.failedResult(
+        IllegalStateException("Cannot confirm checkout while another confirmation is in progress."),
+      )
+      doAnswer {
+        fixture.instance.onConfirmationResult(rejected)
+        null
+      }.`when`(fixture.presenter).confirm()
+      val result = fixture.instance.confirm(fixture.activity.get())
+      assertEquals("failed", result.getString("status"))
+      assertEquals(
+        "Cannot confirm checkout while another confirmation is in progress.",
+        result.getMap("error")!!.getString("message"),
+      )
+      assertTrue(fixture.expressResults.isEmpty())
+
+      fixture.updating.value = false
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+      advanceUntilIdle()
+      assertEquals("canceled", fixture.expressResults.single().getMap("result")!!.getString("status"))
+    }
+
+  @Test
+  fun `unconfigured express results are ignored`() = withFixture { fixture ->
+    fixture.start()
+    advanceUntilIdle()
+    val eventCount = fixture.events.size
+    fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+    advanceUntilIdle()
+    assertEquals(eventCount, fixture.events.size)
+    assertTrue(fixture.expressResults.isEmpty())
+  }
+
+  @Test
+  fun `destroy cancels pending express result publication and ignores late results`() =
+    withFixture(expressConfigured = true) { fixture ->
+      fixture.start()
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
+      fixture.instance.destroy()
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+      advanceUntilIdle()
+      assertTrue(fixture.expressResults.isEmpty())
+    }
+
+  @Test
   fun `express element shares the presenter and registers wallets after activity recreation`() =
     withFixture(expressConfigured = true) { fixture ->
       val element = mock(ExpressCheckoutElement::class.java)
@@ -423,9 +578,13 @@ class NativeCheckoutControllerInstanceTest {
       }
     }
 
-  private fun withFixture(expressConfigured: Boolean = false, test: suspend TestScope.(Fixture) -> Unit) = runTest {
+  private fun withFixture(
+    expressConfigured: Boolean = false,
+    exceptionHandler: CoroutineExceptionHandler? = null,
+    test: suspend TestScope.(Fixture) -> Unit,
+  ) = runTest {
     Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-    val fixture = Fixture(expressConfigured)
+    val fixture = Fixture(expressConfigured, exceptionHandler)
     try {
       test(fixture)
     } finally {
@@ -434,14 +593,18 @@ class NativeCheckoutControllerInstanceTest {
     }
   }
 
-  private class Fixture(expressConfigured: Boolean) {
+  private class Fixture(expressConfigured: Boolean, exceptionHandler: CoroutineExceptionHandler?) {
     val controller = mock(CheckoutElementsController::class.java)
     val presenter = mock(CheckoutElementsPresenter::class.java)
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
-    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    val scope = CoroutineScope(
+      SupervisorJob() + Dispatchers.Main.immediate + (exceptionHandler ?: EmptyCoroutineContext),
+    )
     val sessions = MutableStateFlow<CheckoutElementsController.Session?>(checkoutSession())
     val updating = MutableStateFlow(false)
     val events = mutableListOf<ReadableMap>()
+    val expressResults = mutableListOf<ReadableMap>()
+    val eventNames = mutableListOf<String>()
     val context = mock(ReactApplicationContext::class.java)
     val instance: NativeCheckoutControllerInstance
     var hostListener: LifecycleEventListener? = null
@@ -458,9 +621,10 @@ class NativeCheckoutControllerInstanceTest {
       val emitter = mock(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       `when`(context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)).thenReturn(emitter)
       doAnswer { invocation ->
-        assertEquals("checkoutControllerDidUpdate", invocation.getArgument<String>(0))
+        val name = invocation.getArgument<String>(0)
+        eventNames.add(name)
         val event = invocation.getArgument<ReadableMap>(1)
-        events.add(event)
+        if (name == "checkoutExpressCheckoutDidComplete") expressResults.add(event) else events.add(event)
         null
       }.`when`(emitter).emit(anyString(), any())
       instance = NativeCheckoutControllerInstance(

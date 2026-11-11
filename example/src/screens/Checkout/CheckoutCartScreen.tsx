@@ -1,5 +1,5 @@
-import { ExpressCheckoutElementView } from '@stripe/stripe-react-native/src/components/ExpressCheckoutElementView';
 import { CheckoutCurrencySelectorElementView } from '@stripe/stripe-react-native/src/components/CheckoutCurrencySelectorElementView';
+import { ExpressCheckoutElementView } from '@stripe/stripe-react-native/src/components/ExpressCheckoutElementView';
 import { CheckoutPaymentElementView } from '@stripe/stripe-react-native/src/components/CheckoutPaymentElementView';
 import { useCheckoutElements } from '@stripe/stripe-react-native/src/hooks/useCheckoutElements';
 import type { CheckoutElements } from '@stripe/stripe-react-native/src/types/CheckoutElements';
@@ -127,9 +127,27 @@ function formatAddress(
 
 export default function CheckoutCartScreen({ route, navigation }: Props) {
   const { settings } = route.params;
+  const handleResult = useCallback(
+    (result: CheckoutElements.Result) => {
+      switch (result.status) {
+        case 'completed':
+          Alert.alert('Success', `Payment status: ${result.paymentStatus}`, [
+            { text: 'OK', onPress: () => navigation.goBack() },
+          ]);
+          break;
+        case 'canceled':
+          Alert.alert('Canceled', 'The payment was canceled.');
+          break;
+        case 'failed':
+          Alert.alert('Unable to complete checkout', result.error.message);
+          break;
+      }
+    },
+    [navigation]
+  );
   const getConfiguration = useCallback(
-    async () => checkoutConfiguration(route.params),
-    [route.params]
+    async () => checkoutConfiguration(route.params, handleResult),
+    [route.params, handleResult]
   );
   const checkout = useCheckoutElements({ getConfiguration });
   const [paymentElementVisible, setPaymentElementVisible] = useState(false);
@@ -180,28 +198,7 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
 
   const confirm = async () => {
     const result = await run(checkout.confirm);
-    if (!result) {
-      return;
-    }
-    switch ((result as CheckoutElements.Result).status) {
-      case 'completed':
-        Alert.alert(
-          'Success',
-          `Payment status: ${(result as Extract<CheckoutElements.Result, { status: 'completed' }>).paymentStatus}`,
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
-        break;
-      case 'canceled':
-        Alert.alert('Canceled', 'The payment was canceled.');
-        break;
-      case 'failed':
-        Alert.alert(
-          'Unable to complete checkout',
-          (result as Extract<CheckoutElements.Result, { status: 'failed' }>)
-            .error.message
-        );
-        break;
-    }
+    if (result) handleResult(result as CheckoutElements.Result);
   };
 
   const saveEmail = async (email: string | null) => {
