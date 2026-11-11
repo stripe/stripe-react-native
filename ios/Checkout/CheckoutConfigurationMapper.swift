@@ -1,3 +1,4 @@
+import CoreFoundation
 import Foundation
 import PassKit
 @_spi(ReactNativeSDK) import StripePaymentSheet
@@ -90,7 +91,34 @@ enum CheckoutConfigurationMapper {
             default: throw unsupported(display, at: "expressCheckoutElement.link.display")
             }
         }
+        if let appearance = params["appearance"] as? NSDictionary {
+            if let theme = appearance["buttonTheme"] as? String {
+                guard let theme = ExpressCheckoutElement.Configuration.Appearance.ButtonTheme(rawValue: theme) else {
+                    throw unsupported(theme, at: "expressCheckoutElement.appearance.buttonTheme")
+                }
+                configuration.appearance.buttonTheme = theme
+            }
+            if let layout = appearance["buttonLayout"] as? NSDictionary {
+                configuration.appearance.buttonLayout.maxColumns = try mapExpressLayoutLimit(layout, key: "maxColumns")
+                configuration.appearance.buttonLayout.maxRows = try mapExpressLayoutLimit(layout, key: "maxRows")
+            }
+            if let radius = appearance["borderRadius"] as? NSNumber {
+                configuration.appearance.cornerRadius = CGFloat(truncating: radius)
+            }
+        }
         return configuration
+    }
+
+    private static func mapExpressLayoutLimit(_ params: NSDictionary, key: String) throws -> Int? {
+        guard let value = params[key] else { return nil }
+        guard let number = value as? NSNumber,
+              CFGetTypeID(number) != CFBooleanGetTypeID(),
+              number.doubleValue.isFinite,
+              (1...10).contains(number.doubleValue),
+              number.doubleValue.rounded() == number.doubleValue else {
+            throw unsupported(String(describing: value), at: "expressCheckoutElement.appearance.buttonLayout.\(key)")
+        }
+        return number.intValue
     }
 
     private static func mapShippingAddressAppearance(
