@@ -39,7 +39,7 @@ internal class NativeCheckoutControllerInstance(
   private val scope: CoroutineScope,
   initialSession: WritableMap,
   private val context: ReactApplicationContext,
-  private val isShippingAddressElementConfigured: Boolean = false,
+  val isShippingAddressElementConfigured: Boolean = false,
   private val isExpressCheckoutElementConfigured: Boolean = false,
 ) {
 

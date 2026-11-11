@@ -1461,7 +1461,7 @@ class StripeSdkModule(
   ) {
     UiThreadUtil.runOnUiThread {
       if (checkoutControllersInvalidated) {
-        return@runOnUiThread promise.reject("Failed", "Stripe SDK was invalidated.")
+        return@runOnUiThread promise.rejectCheckout("Failed", "Stripe SDK was invalidated.", reactApplicationContext)
       }
       val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
       pendingCheckoutCreationScopes.add(scope)
@@ -1547,7 +1547,7 @@ class StripeSdkModule(
     UiThreadUtil.runOnUiThread {
       val instance = checkoutControllers.remove(controllerId)
       if (instance == null) {
-        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        promise.rejectCheckout("Failed", "Checkout controller `$controllerId` does not exist.", reactApplicationContext)
         return@runOnUiThread
       }
 
@@ -1624,14 +1624,14 @@ class StripeSdkModule(
     UiThreadUtil.runOnUiThread {
       val instance = checkoutControllers[controllerId]
       if (instance == null) {
-        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        promise.rejectCheckout("Failed", "Checkout controller `$controllerId` does not exist.", reactApplicationContext)
         return@runOnUiThread
       }
       val activity = reactApplicationContext.currentActivity as? ComponentActivity
       if (activity == null || activity.isFinishing ||
         !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
       ) {
-        promise.reject("Failed", "Checkout requires a resumed activity to confirm.")
+        promise.rejectCheckout("Failed", "Checkout requires a resumed activity to confirm.", reactApplicationContext)
         return@runOnUiThread
       }
       instance.launchMutation {
@@ -1650,14 +1650,18 @@ class StripeSdkModule(
     UiThreadUtil.runOnUiThread {
       val instance = checkoutControllers[controllerId]
       if (instance == null) {
-        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        promise.rejectCheckout("Failed", "Checkout controller `$controllerId` does not exist.", reactApplicationContext)
         return@runOnUiThread
       }
       val activity = reactApplicationContext.currentActivity as? ComponentActivity
       if (activity == null || activity.isFinishing ||
         !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
       ) {
-        promise.reject("Failed", "Checkout requires a resumed activity to present Payment Element.")
+        promise.rejectCheckout(
+          "Failed",
+          "Checkout requires a resumed activity to present Payment Element.",
+          reactApplicationContext,
+        )
         return@runOnUiThread
       }
       try {
@@ -1675,14 +1679,26 @@ class StripeSdkModule(
     UiThreadUtil.runOnUiThread {
       val instance = checkoutControllers[controllerId]
       if (instance == null) {
-        promise.reject("Failed", "Checkout controller `$controllerId` does not exist.")
+        promise.rejectCheckout("Failed", "Checkout controller `$controllerId` does not exist.", reactApplicationContext)
+        return@runOnUiThread
+      }
+      if (!instance.isShippingAddressElementConfigured) {
+        promise.rejectCheckout(
+          "Failed",
+          "Shipping Address Element was not configured for this Checkout controller.",
+          reactApplicationContext,
+        )
         return@runOnUiThread
       }
       val activity = reactApplicationContext.currentActivity as? ComponentActivity
       if (activity == null || activity.isFinishing ||
         !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
       ) {
-        promise.reject("Failed", "Checkout requires a resumed activity to present Shipping Address Element.")
+        promise.rejectCheckout(
+          "Failed",
+          "Checkout requires a resumed activity to present Shipping Address Element.",
+          reactApplicationContext,
+        )
         return@runOnUiThread
       }
       try {
@@ -1743,9 +1759,10 @@ class StripeSdkModule(
     UiThreadUtil.runOnUiThread {
       val instance = checkoutControllers[controllerId]
       if (instance == null) {
-        promise.reject(
+        promise.rejectCheckout(
           "Failed",
           "Checkout controller `$controllerId` does not exist.",
+          reactApplicationContext,
         )
         return@runOnUiThread
       }
@@ -1754,9 +1771,10 @@ class StripeSdkModule(
           operation(instance.controller).getOrThrow()
           instance.publishCurrentState()
           if (checkoutControllers[controllerId] !== instance) {
-            promise.reject(
+            promise.rejectCheckout(
               "Canceled",
               "The Checkout controller was destroyed before the operation completed.",
+              reactApplicationContext,
             )
             return@launchMutation
           }

@@ -1,4 +1,5 @@
 import Foundation
+import React
 @_spi(InternalOnlyAPI) import StripeCore
 @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
 
@@ -27,6 +28,13 @@ func checkoutRejectionError(_ error: Error) -> NSError {
     var userInfo = nsError.userInfo
     userInfo["localizedMessage"] = checkoutLocalizedMessage(for: error)
     return NSError(domain: nsError.domain, code: nsError.code, userInfo: userInfo)
+}
+
+/// The rejection error for a bridge precondition failure, such as a missing controller, which has
+/// no underlying error. Customers see a generic message.
+func checkoutRejectionError() -> NSError {
+    // Keep the domain React Native reports for rejections without an error.
+    NSError(domain: RCTErrorDomain, code: 0, userInfo: ["localizedMessage": NSError.stp_unexpectedErrorMessage()])
 }
 
 /// Returns the message to display to the customer for a Checkout failure.

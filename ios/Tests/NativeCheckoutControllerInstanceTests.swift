@@ -103,9 +103,14 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         sdk.confirmCheckout(controllerId: controllerId, resolver: { _ in
             XCTFail("Invalid confirmation should reject")
             confirmationRejected.fulfill()
-        }, rejecter: { code, message, _ in
+        }, rejecter: { code, message, error in
             XCTAssertEqual(code, "Failed")
             XCTAssertEqual(message, "Checkout requires a visible presenting view controller.")
+            // Bridge precondition failures show customers a generic message.
+            XCTAssertEqual(
+                (error as NSError?)?.userInfo["localizedMessage"] as? String,
+                NSError.stp_unexpectedErrorMessage()
+            )
             confirmationRejected.fulfill()
         })
         await fulfillment(of: [confirmationRejected], timeout: 2)
