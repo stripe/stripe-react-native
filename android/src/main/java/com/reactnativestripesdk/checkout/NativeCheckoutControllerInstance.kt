@@ -1,7 +1,6 @@
 package com.reactnativestripesdk.checkout
 
 import android.app.Activity
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
 import androidx.lifecycle.Lifecycle
@@ -12,7 +11,6 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.EventEmitterCompat
-import com.reactnativestripesdk.utils.createError
 import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.elements.CurrencySelectorElement
@@ -142,7 +140,8 @@ internal class NativeCheckoutControllerInstance(
       emit("confirming")
       getPresenter(activity).confirm()
       val confirmationResult = result.await()
-      return serializeConfirmationResult(confirmationResult)
+      if (!destroyed) publishCurrentState()
+      return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status)
     } finally {
       confirmation = null
       context.removeLifecycleEventListener(confirmationHostListener)
@@ -168,17 +167,11 @@ internal class NativeCheckoutControllerInstance(
     }
   }
 
-  @Suppress("TooGenericExceptionCaught")
   private fun onExpressCheckoutConfirmationResult(result: CheckoutElementsController.Result) {
     val controllerId = controllerId ?: return
     scope.launch {
-      val serializedResult = try {
-        serializeConfirmationResult(result)
-      } catch (error: CancellationException) {
-        throw error
-      } catch (error: Exception) {
-        createError(checkoutErrorCode(error), error).apply { putString("status", "failed") }
-      }
+      publishCurrentState()
+      val serializedResult = CheckoutSessionSerializer.serialize(result, controller.session.value?.status)
       if (!destroyed) {
         eventEmitter.emitCheckoutExpressCheckoutDidComplete(
           Arguments.createMap().apply {
@@ -187,28 +180,6 @@ internal class NativeCheckoutControllerInstance(
           },
         )
       }
-    }
-  }
-
-  @Suppress("TooGenericExceptionCaught")
-  private suspend fun serializeConfirmationResult(result: CheckoutElementsController.Result): WritableMap {
-    if (!destroyed) {
-      try {
-        publishCurrentState()
-      } catch (error: CancellationException) {
-        throw error
-      } catch (error: Exception) {
-        Log.w("StripeReactNative", "Failed to publish the Checkout Session after confirmation.", error)
-      }
-    }
-    return try {
-      CheckoutSessionSerializer.serialize(result, controller.session.value?.status)
-    } catch (error: Exception) {
-      throw IllegalStateException(
-        "Unable to report the Checkout confirmation result. " +
-          "Check the Checkout Session status before retrying.",
-        error,
-      )
     }
   }
 

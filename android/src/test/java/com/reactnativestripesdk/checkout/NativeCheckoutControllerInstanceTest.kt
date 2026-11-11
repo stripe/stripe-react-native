@@ -20,6 +20,7 @@ import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.uicore.utils.mapAsStateFlow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,6 +56,7 @@ import org.mockito.Mockito.`when`
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.EmptyCoroutineContext
 
 @OptIn(CheckoutSessionPreview::class, ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -420,73 +422,25 @@ class NativeCheckoutControllerInstanceTest {
     }
 
   @Test
-  fun `express result serialization errors are reported without crashing`() =
-    withFixture(expressConfigured = true) { fixture ->
+  fun `express result serialization failure propagates without a payment result`() {
+    val uncaughtErrors = mutableListOf<Throwable>()
+    withFixture(
+      expressConfigured = true,
+      exceptionHandler = CoroutineExceptionHandler { _, error -> uncaughtErrors.add(error) },
+    ) { fixture ->
       fixture.start()
       fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
       advanceUntilIdle()
-      val result = fixture.expressResults.single().getMap("result")!!
-      assertEquals("failed", result.getString("status"))
-      assertEquals("Failed", result.getMap("error")!!.getString("code"))
-      assertEquals(
-        "Unable to report the Checkout confirmation result. Check the Checkout Session status before retrying.",
-        result.getMap("error")!!.getString("message"),
-      )
-    }
 
-  @Test
-  fun `express completed result survives snapshot publication failure`() =
-    withFixture(expressConfigured = true) { fixture ->
-      failSnapshotPublication(fixture, NativeCheckoutFixtures.completeStatus())
-      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
-      advanceUntilIdle()
-
-      val result = fixture.expressResults.single().getMap("result")!!
-      assertEquals("completed", result.getString("status"))
-      assertEquals("paid", result.getString("paymentStatus"))
-      assertFalse(result.hasKey("error"))
-    }
-
-  @Test
-  fun `express canceled result survives snapshot publication failure`() =
-    withFixture(expressConfigured = true) { fixture ->
-      failSnapshotPublication(fixture, NativeCheckoutFixtures.openStatus())
-      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
-      advanceUntilIdle()
-
-      val result = fixture.expressResults.single().getMap("result")!!
-      assertEquals("canceled", result.getString("status"))
-      assertFalse(result.hasKey("error"))
-    }
-
-  @Test
-  fun `express failed result preserves native error after snapshot publication failure`() =
-    withFixture(expressConfigured = true) { fixture ->
-      failSnapshotPublication(fixture, NativeCheckoutFixtures.openStatus())
-      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")))
-      advanceUntilIdle()
-
-      val result = fixture.expressResults.single().getMap("result")!!
-      assertEquals("failed", result.getString("status"))
-      assertEquals("Declined", result.getMap("error")!!.getString("message"))
-    }
-
-  @Test
-  fun `explicit completed result survives snapshot publication failure`() =
-    withFixture(expressConfigured = true) { fixture ->
-      failSnapshotPublication(fixture, NativeCheckoutFixtures.completeStatus())
-      val pending = async { fixture.instance.confirm(fixture.activity.get()) }
-      runCurrent()
-      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
-
-      val result = pending.await()
-      assertEquals("completed", result.getString("status"))
-      assertEquals("paid", result.getString("paymentStatus"))
+      val error = uncaughtErrors.single()
+      assertTrue(error is IllegalStateException)
+      assertEquals("Checkout completed without a complete session.", error.message)
       assertTrue(fixture.expressResults.isEmpty())
     }
+  }
 
   @Test
-  fun `explicit result serialization failure instructs checking the session before retrying`() =
+  fun `explicit result serialization failure propagates without an express result`() =
     withFixture { fixture ->
       fixture.start()
       val pending = async { runCatching { fixture.instance.confirm(fixture.activity.get()) } }
@@ -496,7 +450,7 @@ class NativeCheckoutControllerInstanceTest {
       val error = pending.await().exceptionOrNull()
       assertTrue(error is IllegalStateException)
       assertEquals(
-        "Unable to report the Checkout confirmation result. Check the Checkout Session status before retrying.",
+        "Checkout completed without a complete session.",
         error?.message,
       )
       assertTrue(fixture.expressResults.isEmpty())
@@ -624,19 +578,13 @@ class NativeCheckoutControllerInstanceTest {
       }
     }
 
-  private fun TestScope.failSnapshotPublication(fixture: Fixture, status: CheckoutElementsController.Session.Status) {
-    fixture.sessions.value = checkoutSession(
-      status = status,
-      paymentOption = checkoutPaymentOption(imageLoader = { ColorDrawable() }),
-    )
-    fixture.start()
-    advanceUntilIdle()
-    `when`(fixture.context.resources).thenThrow(IllegalStateException("Snapshot unavailable"))
-  }
-
-  private fun withFixture(expressConfigured: Boolean = false, test: suspend TestScope.(Fixture) -> Unit) = runTest {
+  private fun withFixture(
+    expressConfigured: Boolean = false,
+    exceptionHandler: CoroutineExceptionHandler? = null,
+    test: suspend TestScope.(Fixture) -> Unit,
+  ) = runTest {
     Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-    val fixture = Fixture(expressConfigured)
+    val fixture = Fixture(expressConfigured, exceptionHandler)
     try {
       test(fixture)
     } finally {
@@ -645,11 +593,13 @@ class NativeCheckoutControllerInstanceTest {
     }
   }
 
-  private class Fixture(expressConfigured: Boolean) {
+  private class Fixture(expressConfigured: Boolean, exceptionHandler: CoroutineExceptionHandler?) {
     val controller = mock(CheckoutElementsController::class.java)
     val presenter = mock(CheckoutElementsPresenter::class.java)
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
-    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    val scope = CoroutineScope(
+      SupervisorJob() + Dispatchers.Main.immediate + (exceptionHandler ?: EmptyCoroutineContext),
+    )
     val sessions = MutableStateFlow<CheckoutElementsController.Session?>(checkoutSession())
     val updating = MutableStateFlow(false)
     val events = mutableListOf<ReadableMap>()
