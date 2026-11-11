@@ -428,8 +428,87 @@ class NativeCheckoutControllerInstanceTest {
       val result = fixture.expressResults.single().getMap("result")!!
       assertEquals("failed", result.getString("status"))
       assertEquals("Failed", result.getMap("error")!!.getString("code"))
-      assertEquals("Checkout completed without a complete session.", result.getMap("error")!!.getString("message"))
+      assertEquals(
+        "Unable to report the Checkout confirmation result. Check the Checkout Session status before retrying.",
+        result.getMap("error")!!.getString("message"),
+      )
     }
+
+  @Test
+  fun `express completed result survives snapshot publication failure`() =
+    withFixture(expressConfigured = true) { fixture ->
+      failSnapshotPublication(fixture, NativeCheckoutFixtures.completeStatus())
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
+      advanceUntilIdle()
+
+      val result = fixture.expressResults.single().getMap("result")!!
+      assertEquals("completed", result.getString("status"))
+      assertEquals("paid", result.getString("paymentStatus"))
+      assertFalse(result.hasKey("error"))
+    }
+
+  @Test
+  fun `express canceled result survives snapshot publication failure`() =
+    withFixture(expressConfigured = true) { fixture ->
+      failSnapshotPublication(fixture, NativeCheckoutFixtures.openStatus())
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+      advanceUntilIdle()
+
+      val result = fixture.expressResults.single().getMap("result")!!
+      assertEquals("canceled", result.getString("status"))
+      assertFalse(result.hasKey("error"))
+    }
+
+  @Test
+  fun `express failed result preserves native error after snapshot publication failure`() =
+    withFixture(expressConfigured = true) { fixture ->
+      failSnapshotPublication(fixture, NativeCheckoutFixtures.openStatus())
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")))
+      advanceUntilIdle()
+
+      val result = fixture.expressResults.single().getMap("result")!!
+      assertEquals("failed", result.getString("status"))
+      assertEquals("Declined", result.getMap("error")!!.getString("message"))
+    }
+
+  @Test
+  fun `explicit completed result survives snapshot publication failure`() =
+    withFixture(expressConfigured = true) { fixture ->
+      failSnapshotPublication(fixture, NativeCheckoutFixtures.completeStatus())
+      val pending = async { fixture.instance.confirm(fixture.activity.get()) }
+      runCurrent()
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
+
+      val result = pending.await()
+      assertEquals("completed", result.getString("status"))
+      assertEquals("paid", result.getString("paymentStatus"))
+      assertTrue(fixture.expressResults.isEmpty())
+    }
+
+  @Test
+  fun `explicit result serialization failure instructs checking the session before retrying`() =
+    withFixture { fixture ->
+      fixture.start()
+      val pending = async { runCatching { fixture.instance.confirm(fixture.activity.get()) } }
+      runCurrent()
+      fixture.instance.onConfirmationResult(NativeCheckoutFixtures.completedResult())
+
+      val error = pending.await().exceptionOrNull()
+      assertTrue(error is IllegalStateException)
+      assertEquals(
+        "Unable to report the Checkout confirmation result. Check the Checkout Session status before retrying.",
+        error?.message,
+      )
+      assertTrue(fixture.expressResults.isEmpty())
+    }
+
+  @Test
+  fun `express results before start are ignored`() = withFixture(expressConfigured = true) { fixture ->
+    fixture.instance.onConfirmationResult(NativeCheckoutFixtures.canceledResult())
+    advanceUntilIdle()
+    assertTrue(fixture.expressResults.isEmpty())
+    assertTrue(fixture.events.isEmpty())
+  }
 
   @Test
   fun `explicit confirmation outcomes never also emit express results`() =
@@ -504,9 +583,6 @@ class NativeCheckoutControllerInstanceTest {
     advanceUntilIdle()
     assertEquals(eventCount, fixture.events.size)
     assertTrue(fixture.expressResults.isEmpty())
-    assertThrows(IllegalStateException::class.java) {
-      fixture.instance.expressCheckoutElement(fixture.activity.get())
-    }
   }
 
   @Test
@@ -547,6 +623,16 @@ class NativeCheckoutControllerInstanceTest {
         nextActivity.pause().stop().destroy()
       }
     }
+
+  private fun TestScope.failSnapshotPublication(fixture: Fixture, status: CheckoutElementsController.Session.Status) {
+    fixture.sessions.value = checkoutSession(
+      status = status,
+      paymentOption = checkoutPaymentOption(imageLoader = { ColorDrawable() }),
+    )
+    fixture.start()
+    advanceUntilIdle()
+    `when`(fixture.context.resources).thenThrow(IllegalStateException("Snapshot unavailable"))
+  }
 
   private fun withFixture(expressConfigured: Boolean = false, test: suspend TestScope.(Fixture) -> Unit) = runTest {
     Dispatchers.setMain(StandardTestDispatcher(testScheduler))

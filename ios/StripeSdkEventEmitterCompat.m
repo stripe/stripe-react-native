@@ -30,6 +30,7 @@
     @"checkoutControllerDidUpdate",
     @"checkoutServerUpdateRequested",
     @"checkoutControllerDidSelectPaymentOption",
+    @"checkoutExpressCheckoutDidComplete",
   ];
 }
 

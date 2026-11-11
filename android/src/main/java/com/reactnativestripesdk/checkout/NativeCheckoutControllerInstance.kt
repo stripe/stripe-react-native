@@ -1,6 +1,7 @@
 package com.reactnativestripesdk.checkout
 
 import android.app.Activity
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
 import androidx.lifecycle.Lifecycle
@@ -141,8 +142,7 @@ internal class NativeCheckoutControllerInstance(
       emit("confirming")
       getPresenter(activity).confirm()
       val confirmationResult = result.await()
-      if (!destroyed) publishCurrentState()
-      return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status)
+      return serializeConfirmationResult(confirmationResult)
     } finally {
       confirmation = null
       context.removeLifecycleEventListener(confirmationHostListener)
@@ -161,26 +161,22 @@ internal class NativeCheckoutControllerInstance(
     if (pendingConfirmation != null) {
       pendingConfirmation.complete(result)
     } else if (!destroyed && isExpressCheckoutElementConfigured) {
-      // In the pinned native SDK, only CheckoutElementsPresenter.confirm() and ECE buttons deliver
-      // controller results. Payment Element's sheets/rows only select payment options; even an
-      // immediateAction integration confirms through our confirm(), which installs the deferred
-      // before invoking the presenter. Thus only ECE results reach this branch, not those from
-      // confirming a Google Pay/Link option selected in Payment Element.
+      // In Android SDK 23.25.2, confirmation results come from confirm() or Express Checkout Element.
+      // confirm() installs a pending confirmation before calling native, so only ECE results reach
+      // this branch.
       onExpressCheckoutConfirmationResult(result)
     }
   }
 
   @Suppress("TooGenericExceptionCaught")
   private fun onExpressCheckoutConfirmationResult(result: CheckoutElementsController.Result) {
+    val controllerId = controllerId ?: return
     scope.launch {
       val serializedResult = try {
-        // Publish the refreshed session before the merchant handles the payment result.
-        publishCurrentState()
-        CheckoutSessionSerializer.serialize(result, controller.session.value?.status)
+        serializeConfirmationResult(result)
       } catch (error: CancellationException) {
         throw error
       } catch (error: Exception) {
-        // Match explicit confirmation's bridge error handling rather than crashing the coroutine.
         createError(checkoutErrorCode(error), error).apply { putString("status", "failed") }
       }
       if (!destroyed) {
@@ -191,6 +187,28 @@ internal class NativeCheckoutControllerInstance(
           },
         )
       }
+    }
+  }
+
+  @Suppress("TooGenericExceptionCaught")
+  private suspend fun serializeConfirmationResult(result: CheckoutElementsController.Result): WritableMap {
+    if (!destroyed) {
+      try {
+        publishCurrentState()
+      } catch (error: CancellationException) {
+        throw error
+      } catch (error: Exception) {
+        Log.w("StripeReactNative", "Failed to publish the Checkout Session after confirmation.", error)
+      }
+    }
+    return try {
+      CheckoutSessionSerializer.serialize(result, controller.session.value?.status)
+    } catch (error: Exception) {
+      throw IllegalStateException(
+        "Unable to report the Checkout confirmation result. " +
+          "Check the Checkout Session status before retrying.",
+        error,
+      )
     }
   }
 
