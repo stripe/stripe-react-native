@@ -1,5 +1,5 @@
 @testable import stripe_react_native
-@testable @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@testable @_spi(ReactNativeSDK) import StripePaymentSheet
 import UIKit
 import XCTest
 

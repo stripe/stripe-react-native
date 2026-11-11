@@ -1453,6 +1453,12 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  override fun clearCheckoutLocalCustomerData(promise: Promise) {
+    CheckoutElementsController.clearLocalCustomerData(context = reactApplicationContext)
+    promise.resolve(null)
+  }
+
+  @ReactMethod
   @Suppress("TooGenericExceptionCaught", "LongMethod")
   override fun createCheckout(
     params: ReadableMap,

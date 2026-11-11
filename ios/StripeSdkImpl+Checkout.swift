@@ -1,8 +1,17 @@
 import Foundation
 import React
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 extension StripeSdkImpl {
+
+    @objc(clearCheckoutLocalCustomerData:rejecter:)
+    public func clearCheckoutLocalCustomerData(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        CheckoutElementsController.clearLocalCustomerData()
+        resolve(nil)
+    }
 
     @objc(createCheckout:controllerId:resolver:rejecter:)
     public func createCheckout(

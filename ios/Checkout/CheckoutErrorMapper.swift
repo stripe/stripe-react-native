@@ -1,7 +1,7 @@
 import Foundation
 import React
-@_spi(InternalOnlyAPI) import StripeCore
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripeCore
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 enum CheckoutBridgeError: LocalizedError {
     case confirmationInProgress

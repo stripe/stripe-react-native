@@ -53,6 +53,8 @@ export interface CheckoutElements {
   runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
   /** Clears the customer's currently selected payment option. */
   clearPaymentOption(): Promise<void>;
+  /** Clears persisted Checkout customer authentication state on logout. */
+  clearLocalCustomerData(): Promise<void>;
   /** Confirms the Checkout Session for the selected payment option. */
   confirm(): Promise<CheckoutElements.Result>;
   /** Releases the controller's native resources and clears its loaded state. */
@@ -285,6 +287,8 @@ export namespace CheckoutElements {
     runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
     /** Clears the customer's currently selected payment option. */
     clearPaymentOption(): Promise<void>;
+    /** Clears persisted Checkout customer authentication state on logout. */
+    clearLocalCustomerData(): Promise<void>;
     /** Confirms the Checkout Session for the selected payment option. */
     confirm(): Promise<Result>;
   }

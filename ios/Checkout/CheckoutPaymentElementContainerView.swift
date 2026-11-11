@@ -1,6 +1,6 @@
 import Combine
 import React
-@_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 import UIKit
 
 /// Hosts the UIKit view owned by a registered Checkout controller.

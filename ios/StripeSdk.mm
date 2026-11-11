@@ -153,6 +153,12 @@ RCT_EXPORT_METHOD(createCheckout:(nonnull NSDictionary *)params
   [StripeSdkImpl.shared createCheckout:params controllerId:controllerId resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(clearCheckoutLocalCustomerData:(nonnull RCTPromiseResolveBlock)resolve
+                               reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared clearCheckoutLocalCustomerData:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(createPlatformPayPaymentMethod:(nonnull NSDictionary *)params
                          usesDeprecatedTokenFlow:(BOOL)usesDeprecatedTokenFlow
                                          resolve:(nonnull RCTPromiseResolveBlock)resolve
