@@ -432,7 +432,7 @@ extension StripeSdkImpl {
     }
 
     func buildCustomerHandlersForPaymentSheet(applePayParams: NSDictionary) -> PaymentSheet.ApplePayConfiguration.Handlers? {
-        if applePayParams["request"] == nil {
+        guard let requestParams = applePayParams["request"] as? NSDictionary else {
             return nil
         }
         let authorizationResultHandler: PaymentSheet.ApplePayConfiguration.Handlers.AuthorizationResultHandler? = {
@@ -451,7 +451,7 @@ extension StripeSdkImpl {
         }()
         return PaymentSheet.ApplePayConfiguration.Handlers(paymentRequestHandler: { request in
             do {
-                try request.configureRequestType(requestParams: applePayParams)
+                try request.configureRequestType(requestParams: requestParams)
             } catch {
                 // At this point, we can't resolve a promise with an error object, so our best option is to create a redbox error
                 RCTMakeAndLogError(error.localizedDescription, nil, nil)
