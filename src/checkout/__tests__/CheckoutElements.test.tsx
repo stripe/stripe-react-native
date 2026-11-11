@@ -192,6 +192,18 @@ it('forwards mutations and preserves native errors', async () => {
   updateEmail.mockRejectedValueOnce(canceled);
   await expect(controller.updateEmail(null)).rejects.toBe(canceled);
 
+  // Native sends its customer-facing message in the rejection's userInfo.
+  const invalidCode = Object.assign(new Error('No such promotion code'), {
+    code: 'Failed',
+    userInfo: { localizedMessage: 'This promotion code is invalid.' },
+  });
+  updateEmail.mockRejectedValueOnce(invalidCode);
+  await expect(controller.updateEmail(null)).rejects.toMatchObject({
+    code: 'Failed',
+    message: 'No such promotion code',
+    localizedMessage: 'This promotion code is invalid.',
+  });
+
   updateEmail.mockRejectedValueOnce(new Error('Unknown native error'));
   await expect(controller.updateEmail(null)).rejects.toMatchObject({
     code: 'Failed',
@@ -214,9 +226,13 @@ it('forwards mutations and preserves native errors', async () => {
 });
 
 it('removes listeners when creation fails', async () => {
-  const error = new Error('Invalid client secret');
+  const error = Object.assign(new Error('Invalid client secret'), {
+    code: 'Failed',
+    userInfo: { localizedMessage: 'Something went wrong' },
+  });
   create.mockRejectedValueOnce(error);
   await expect(createCheckoutElements(options)).rejects.toBe(error);
+  expect(error).toMatchObject({ localizedMessage: 'Something went wrong' });
   expect(
     [...listeners.values()].every((callbacks) => callbacks.size === 0)
   ).toBe(true);

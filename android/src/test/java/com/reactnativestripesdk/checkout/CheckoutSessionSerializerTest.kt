@@ -41,21 +41,25 @@ class CheckoutSessionSerializerTest {
   @Test
   fun `confirmation results preserve native outcomes and completed payment status`() {
     val completed = NativeCheckoutFixtures.completedResult()
-    val completedResult = CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.completeStatus())
+    val completedResult =
+      CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.completeStatus(), context)
     assertEquals("completed", completedResult.getString("status"))
     assertEquals("paid", completedResult.getString("paymentStatus"))
     assertThrows(IllegalStateException::class.java) {
-      CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.openStatus())
+      CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.openStatus(), context)
     }
-    val canceled = CheckoutSessionSerializer.serialize(NativeCheckoutFixtures.canceledResult(), null)
+    val canceled = CheckoutSessionSerializer.serialize(NativeCheckoutFixtures.canceledResult(), null, context)
     assertEquals("canceled", canceled.getString("status"))
     val failed = CheckoutSessionSerializer.serialize(
-      NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")),
+      NativeCheckoutFixtures.failedResult(IllegalStateException("Declined"), "Your card was declined."),
       null,
+      context,
     )
     assertEquals("failed", failed.getString("status"))
     assertEquals("Failed", failed.getMap("error")!!.getString("code"))
     assertEquals("Declined", failed.getMap("error")!!.getString("message"))
+    // The customer-facing message comes from native Checkout, not the diagnostic error.
+    assertEquals("Your card was declined.", failed.getMap("error")!!.getString("localizedMessage"))
   }
 
   @Test

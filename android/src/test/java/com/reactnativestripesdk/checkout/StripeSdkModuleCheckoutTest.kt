@@ -6,12 +6,14 @@ import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.EventEmitterCompat
+import com.reactnativestripesdk.FakePromise
 import com.reactnativestripesdk.ReactContextRule
 import com.reactnativestripesdk.StripeSdkModule
 import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
+import com.stripe.android.paymentsheet.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -71,16 +74,23 @@ class StripeSdkModuleCheckoutTest {
       verify(controller).updateShippingAddress("Jenny", null)
       verify(promise).resolve(null)
 
-      for ((error, code) in listOf(
-        IllegalStateException("Operation failed") to "Failed",
-        CancellationException("Operation canceled") to "Canceled",
+      val genericMessage = contextRule.context.getString(R.string.stripe_something_went_wrong)
+      for ((error, code, displayMessage) in listOf(
+        Triple(IllegalStateException("Operation failed"), "Failed", "This promotion code is invalid."),
+        Triple(CancellationException("Operation canceled"), "Canceled", null),
       )) {
-        `when`(controller.updateEmail(null)).thenReturn(NativeCheckoutFixtures.failedOperation(error))
-        val failedPromise = mock(Promise::class.java)
+        `when`(controller.updateEmail(null))
+          .thenReturn(NativeCheckoutFixtures.failedOperation(error, displayMessage))
+        val failedPromise = FakePromise()
         module.updateCheckoutEmail(controllerId, null, failedPromise)
         shadowOf(Looper.getMainLooper()).idle()
 
-        verify(failedPromise).reject(code, error.message, error)
+        val rejection = failedPromise.rejectCalls.awaitItem()
+        assertEquals(code, rejection.code)
+        assertEquals(error.message, rejection.message)
+        assertSame(error, rejection.throwable)
+        // JS displays native Checkout's message, or a generic one when native has none.
+        assertEquals(displayMessage ?: genericMessage, rejection.userInfo?.getString("localizedMessage"))
       }
     } finally {
       instance.destroy()

@@ -29,10 +29,11 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
 import com.reactnativestripesdk.checkout.CheckoutConfigurationMapper
+import com.reactnativestripesdk.checkout.CheckoutOperationException
 import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
 import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
-import com.reactnativestripesdk.checkout.checkoutErrorCode
 import com.reactnativestripesdk.checkout.checkoutIconContext
+import com.reactnativestripesdk.checkout.rejectCheckout
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
@@ -87,12 +88,10 @@ import com.stripe.android.model.Token
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
@@ -1523,7 +1522,7 @@ class StripeSdkModule(
           checkoutControllers.remove(controllerId)
           controller?.destroy()
           scope.cancel()
-          promise.reject("Failed", error.message, error)
+          promise.rejectCheckout(error, reactApplicationContext, code = "Failed")
         } finally {
           pendingCheckoutCreationScopes.remove(scope)
         }
@@ -1639,7 +1638,7 @@ class StripeSdkModule(
         try {
           promise.resolve(instance.confirm(activity))
         } catch (error: Exception) {
-          promise.reject(checkoutErrorCode(error), error.message, error)
+          promise.rejectCheckout(error, reactApplicationContext)
         }
       }
     }
@@ -1730,7 +1729,8 @@ class StripeSdkModule(
   private fun CheckoutElementsController.OperationResult.getOrThrow() {
     when (this) {
       is CheckoutElementsController.OperationResult.Succeeded -> Unit
-      is CheckoutElementsController.OperationResult.Failed -> throw error
+      // Keep the customer-facing message for the bridge rejection.
+      is CheckoutElementsController.OperationResult.Failed -> throw CheckoutOperationException(error, displayMessage)
     }
   }
 
@@ -1762,16 +1762,7 @@ class StripeSdkModule(
           }
           promise.resolve(null)
         } catch (error: Exception) {
-          val code = when (error) {
-            is TimeoutCancellationException -> "Timeout"
-            is CancellationException -> "Canceled"
-            else -> "Failed"
-          }
-          promise.reject(
-            code,
-            error.message,
-            error,
-          )
+          promise.rejectCheckout(error, reactApplicationContext)
         }
       }
     }

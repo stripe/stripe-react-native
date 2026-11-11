@@ -40,6 +40,9 @@ enum CheckoutSessionSerializer {
         case .canceled:
             return ["status": "canceled"]
         case .failed(let error):
+            // The error's localizedMessage is native Checkout's customer-facing description.
+            // TODO: Native Checkout doesn't yet fall back to a generic message when the server's
+            // error message is null. Remove this note once the native SDK provides that fallback.
             var result = Errors.createError(checkoutErrorCode(for: error), error) as! [String: Any]
             result["status"] = "failed"
             return result

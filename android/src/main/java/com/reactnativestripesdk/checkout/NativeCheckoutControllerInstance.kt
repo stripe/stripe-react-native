@@ -141,7 +141,7 @@ internal class NativeCheckoutControllerInstance(
       getPresenter(activity).confirm()
       val confirmationResult = result.await()
       if (!destroyed) publishCurrentState()
-      return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status)
+      return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status, context)
     } finally {
       confirmation = null
       context.removeLifecycleEventListener(confirmationHostListener)

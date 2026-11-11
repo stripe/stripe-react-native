@@ -1,4 +1,5 @@
 import Foundation
+@_spi(InternalOnlyAPI) import StripeCore
 @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
 
 enum CheckoutBridgeError: LocalizedError {
@@ -17,4 +18,28 @@ enum CheckoutBridgeError: LocalizedError {
 
 func checkoutErrorCode(for error: Error) -> String {
     error is CancellationError ? "Canceled" : "Failed"
+}
+
+/// Adds the customer-facing message that JavaScript reads from a rejection's `userInfo` and
+/// exposes as the error's `localizedMessage`.
+func checkoutRejectionError(_ error: Error) -> NSError {
+    let nsError = error as NSError
+    var userInfo = nsError.userInfo
+    userInfo["localizedMessage"] = checkoutLocalizedMessage(for: error)
+    return NSError(domain: nsError.domain, code: nsError.code, userInfo: userInfo)
+}
+
+/// Returns the message to display to the customer for a Checkout failure.
+func checkoutLocalizedMessage(for error: Error) -> String {
+    switch error {
+    case is CancellationError, is CheckoutBridgeError, is CheckoutConfigurationMapperError:
+        // Bridge errors describe integration problems, so customers see a generic message.
+        return NSError.stp_unexpectedErrorMessage()
+    default:
+        // Native Checkout vends its customer-facing message as the localized description.
+        // TODO: Native Checkout doesn't yet fall back to a generic message when the server's error
+        // message is null, so this can be a system placeholder such as "The operation couldn’t be
+        // completed." Remove this note once the native SDK provides that fallback.
+        return error.localizedDescription
+    }
 }

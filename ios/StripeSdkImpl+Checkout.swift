@@ -60,7 +60,7 @@ extension StripeSdkImpl {
                         "isCurrencySelectorAvailable": currencySelectorElement != nil,
                     ])
                 } catch {
-                    reject("Failed", error.localizedDescription, error)
+                    reject("Failed", error.localizedDescription, checkoutRejectionError(error))
                 }
             }
         }
@@ -165,7 +165,7 @@ extension StripeSdkImpl {
                     resolve(CheckoutSessionSerializer.serialize(result))
                 }
             } catch {
-                reject(checkoutErrorCode(for: error), error.localizedDescription, error)
+                reject(checkoutErrorCode(for: error), error.localizedDescription, checkoutRejectionError(error))
             }
         }
     }
@@ -278,7 +278,11 @@ extension StripeSdkImpl {
                 }
                 resolve(nil)
             } catch {
-                reject(error is CancellationError ? "Canceled" : "Failed", error.localizedDescription, error)
+                reject(
+                    error is CancellationError ? "Canceled" : "Failed",
+                    error.localizedDescription,
+                    checkoutRejectionError(error)
+                )
             }
         }
     }

@@ -7,10 +7,11 @@ import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.convertDrawableToBase64
 import com.reactnativestripesdk.toHtmlString
-import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.isDarkTheme
+import com.reactnativestripesdk.utils.mapError
 import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.checkout.CheckoutElementsController.Session
+import com.stripe.android.core.exception.StripeException
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CancellationException
@@ -67,6 +68,7 @@ internal object CheckoutSessionSerializer {
   fun serialize(
     result: CheckoutElementsController.Result,
     sessionStatus: Session.Status?,
+    context: Context,
   ): WritableMap = when (result) {
     is CheckoutElementsController.Result.Completed -> Arguments.createMap().apply {
       val completeStatus = checkNotNull(sessionStatus as? Session.Status.Complete) {
@@ -76,10 +78,20 @@ internal object CheckoutSessionSerializer {
       putString("paymentStatus", serializePaymentStatus(completeStatus.paymentStatus))
     }
     is CheckoutElementsController.Result.Canceled -> Arguments.createMap().apply { putString("status", "canceled") }
-    is CheckoutElementsController.Result.Failed ->
-      createError(checkoutErrorCode(result.error), result.error).apply {
+    is CheckoutElementsController.Result.Failed -> {
+      val stripeError = (result.error as? StripeException)?.stripeError
+      mapError(
+        code = checkoutErrorCode(result.error),
+        message = result.error.message,
+        // Checkout reports its customer-facing message separately from the diagnostic error.
+        localizedMessage = checkoutLocalizedMessage(result.displayMessage, context),
+        declineCode = stripeError?.declineCode,
+        type = stripeError?.type,
+        stripeErrorCode = stripeError?.code,
+      ).apply {
         putString("status", "failed")
       }
+    }
   }
 
   private fun serializeTax(tax: Session.Tax): WritableMap {

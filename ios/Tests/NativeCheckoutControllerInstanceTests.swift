@@ -127,6 +127,25 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         }
     }
 
+    func test_rejectionErrorAddsCustomerFacingMessage() {
+        let nativeError = NSError(
+            domain: "CheckoutTest",
+            code: 7,
+            userInfo: [NSLocalizedDescriptionKey: "This promotion code is invalid."]
+        )
+        let rejection = checkoutRejectionError(nativeError)
+        XCTAssertEqual(rejection.domain, "CheckoutTest")
+        XCTAssertEqual(rejection.code, 7)
+        XCTAssertEqual(rejection.localizedDescription, "This promotion code is invalid.")
+        XCTAssertEqual(rejection.userInfo["localizedMessage"] as? String, "This promotion code is invalid.")
+
+        // Bridge errors describe integration problems, so customers see a generic message.
+        XCTAssertEqual(
+            checkoutRejectionError(CheckoutBridgeError.destroyed).userInfo["localizedMessage"] as? String,
+            NSError.stp_unexpectedErrorMessage()
+        )
+    }
+
     func test_confirmationRejectsConcurrentAttemptsAndCancelsIfDestroyedBeforeStarting() async throws {
         let checkout = try await makeCheckout()
         var statuses: [String] = []
