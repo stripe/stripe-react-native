@@ -497,6 +497,16 @@ export const resetPaymentSheetCustomer = async (): Promise<null> => {
   return await NativeStripeSdk.resetPaymentSheetCustomer();
 };
 
+/**
+ * Clears persisted Checkout customer authentication state when the user logs out.
+ *
+ * @internal
+ * @CheckoutSessionPrivatePreview
+ */
+export const clearCheckoutLocalCustomerData = async (): Promise<void> => {
+  await NativeStripeSdk.clearCheckoutLocalCustomerData();
+};
+
 export const collectBankAccountForPayment = async (
   clientSecret: string,
   params: PaymentMethod.CollectBankAccountParams

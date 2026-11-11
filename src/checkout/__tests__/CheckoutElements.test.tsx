@@ -16,6 +16,7 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
     applyCheckoutPromotionCode: jest.fn(),
     removeCheckoutPromotionCode: jest.fn(),
     clearCheckoutPaymentOption: jest.fn(),
+    clearCheckoutLocalCustomerData: jest.fn(),
     presentCheckoutPaymentElement: jest.fn(),
     confirmCheckout: jest.fn(),
   },
@@ -176,6 +177,7 @@ it('forwards mutations and preserves native errors', async () => {
   await controller.applyPromotionCode(' SAVE10 ');
   await controller.removePromotionCode();
   await controller.clearPaymentOption();
+  await controller.clearLocalCustomerData();
   expect(NativeStripeSdk.updateCheckoutEmail).toHaveBeenCalledWith(id, null);
   expect(NativeStripeSdk.updateCheckoutShippingAddress).toHaveBeenCalledWith(
     id,
@@ -187,6 +189,9 @@ it('forwards mutations and preserves native errors', async () => {
   );
   expect(NativeStripeSdk.removeCheckoutPromotionCode).toHaveBeenCalledWith(id);
   expect(NativeStripeSdk.clearCheckoutPaymentOption).toHaveBeenCalledWith(id);
+  expect(NativeStripeSdk.clearCheckoutLocalCustomerData).toHaveBeenCalledTimes(
+    1
+  );
   const updateEmail = NativeStripeSdk.updateCheckoutEmail as jest.Mock;
   const canceled = Object.assign(new Error('Canceled'), { code: 'Canceled' });
   updateEmail.mockRejectedValueOnce(canceled);
