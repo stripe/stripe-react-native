@@ -6,11 +6,10 @@ enum CheckoutSessionSerializer {
     static func serialize(_ session: CheckoutElementsController.Session) -> [String: Any] {
         var result: [String: Any] = [
             "id": session.id,
-            // Default availability for the Express Checkout API stub.
             "availableExpressCheckoutPaymentMethods": [
-                "applePay": ["available": false, "type": "apple_pay"],
+                "applePay": ["available": session.availableExpressCheckoutPaymentMethods.contains(.applePay), "type": "apple_pay"],
                 "googlePay": ["available": false, "type": "google_pay"],
-                "link": ["available": false, "type": "link"],
+                "link": ["available": session.availableExpressCheckoutPaymentMethods.contains(.link), "type": "link"],
             ],
             "livemode": session.livemode,
             "orderSummaryItems": session.orderSummaryItems.map(serialize),

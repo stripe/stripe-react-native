@@ -45,6 +45,9 @@ extension StripeSdkImpl {
                         : checkout.getCurrencySelectorElement()
                     let instance = NativeCheckoutControllerInstance(
                         checkout: checkout,
+                        expressCheckoutElement: configuration.expressCheckoutElement == nil
+                            ? nil
+                            : checkout.getExpressCheckoutElement(),
                         currencySelectorElement: currencySelectorElement,
                         shippingAddressElement: configuration.shippingAddressElement == nil
                             ? nil
@@ -58,6 +61,7 @@ extension StripeSdkImpl {
                     resolve([
                         "session": instance.session,
                         "isCurrencySelectorAvailable": currencySelectorElement != nil,
+                        "isExpressCheckoutAvailable": instance.expressCheckoutElement != nil,
                     ])
                 } catch {
                     reject("Failed", error.localizedDescription, error)
