@@ -6,23 +6,28 @@ import Foundation
 enum CheckoutTestFixtures {
     static func session(
         status: String = "open",
-        paymentStatus: String = "unpaid"
+        paymentStatus: String = "unpaid",
+        configuration: CheckoutElementsController.Configuration? = nil,
+        paymentMethods: [String] = ["card"]
     ) throws -> CheckoutElementsController.Session {
         let data = try JSONSerialization.data(withJSONObject: response(
             status: status,
-            paymentStatus: paymentStatus
+            paymentStatus: paymentStatus,
+            paymentMethods: paymentMethods
         ))
         let response = try StripeJSONDecoder().decode(CheckoutClientAPIResponse.self, from: data)
         return CheckoutElementsController.Session(
             apiResponse: response,
             clientSecret: "cs_test_secret",
-            localState: .empty
+            localState: .empty,
+            configuration: configuration
         )
     }
 
     static func response(
         status: String = "open",
-        paymentStatus: String = "unpaid"
+        paymentStatus: String = "unpaid",
+        paymentMethods: [String] = ["card"]
     ) -> [String: Any] {
         [
             "id": "cs_test",
@@ -62,7 +67,7 @@ enum CheckoutTestFixtures {
             ], ],
             "merchant_info": ["country": "US"],
             "elements_session_id": "es_test",
-            "ordered_payment_method_types_and_wallets": ["card"],
+            "ordered_payment_method_types_and_wallets": paymentMethods,
         ]
     }
 }

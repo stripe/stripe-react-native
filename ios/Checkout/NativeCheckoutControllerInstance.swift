@@ -14,6 +14,7 @@ final class NativeCheckoutControllerInstance {
     }
 
     let checkout: CheckoutElementsController
+    let expressCheckoutElement: ExpressCheckoutElement?
     let currencySelectorElement: CurrencySelectorElement?
     let shippingAddressElement: ShippingAddressElement?
     private(set) lazy var session = CheckoutSessionSerializer.serialize(checkout.session)
@@ -22,17 +23,19 @@ final class NativeCheckoutControllerInstance {
     private var observation: AnyCancellable?
     private var controllerId: String?
     private var destructionObservers: [UUID: () -> Void] = [:]
-    private var isDestroyed = false
+    private(set) var isDestroyed = false
     private var isConfirming = false
     private var serverUpdateContinuations: [String: CheckedContinuation<Void, Error>] = [:]
 
     init(
         checkout: CheckoutElementsController,
+        expressCheckoutElement: ExpressCheckoutElement? = nil,
         currencySelectorElement: CurrencySelectorElement? = nil,
         shippingAddressElement: ShippingAddressElement? = nil,
         emitEvent: @escaping ([String: Any]) -> Void
     ) {
         self.checkout = checkout
+        self.expressCheckoutElement = expressCheckoutElement
         self.currencySelectorElement = currencySelectorElement
         self.shippingAddressElement = shippingAddressElement
         self.emitEvent = emitEvent

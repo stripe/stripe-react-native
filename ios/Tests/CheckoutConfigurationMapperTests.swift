@@ -5,6 +5,133 @@ import XCTest
 
 @MainActor
 final class CheckoutConfigurationMapperTests: XCTestCase {
+    func test_map_mapsExpressCheckoutConfigurationAndCompletion() throws {
+        var completed = false
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: ["expressCheckoutElement": [
+                "applePay": ["buttonType": "checkout"],
+                "googlePay": ["display": "never"],
+                "link": ["display": "never"],
+                "appearance": [
+                    "buttonTheme": "dark",
+                    "buttonLayout": ["maxColumns": 2, "maxRows": 10],
+                    "borderRadius": 12,
+                ],
+            ]],
+            merchantIdentifier: "merchant.com.example",
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { result in
+                if case .canceled = result { completed = true }
+            }
+        )
+        let element = try XCTUnwrap(configuration.expressCheckoutElement)
+        XCTAssertEqual(element.applePayConfiguration.buttonType, .checkout)
+        XCTAssertEqual(element.linkConfiguration.display, .never)
+        XCTAssertEqual(element.appearance.buttonTheme, .dark)
+        XCTAssertEqual(element.appearance.buttonLayout.maxColumns, 2)
+        XCTAssertEqual(element.appearance.buttonLayout.maxRows, 10)
+        XCTAssertEqual(element.appearance.cornerRadius, 12)
+        XCTAssertEqual(configuration.applePayMerchantId, "merchant.com.example")
+        XCTAssertEqual(configuration.paymentElement?.applePayConfiguration.display, .never)
+        element.completion(.canceled)
+        XCTAssertTrue(completed)
+    }
+
+    func test_map_expressCheckoutEnablesApplePayWithoutExplicitOptionsAndAllowsLinkOnly() throws {
+        for merchantIdentifier: String? in [nil, "", "merchant.com.example"] {
+            for paymentApplePay: NSDictionary? in [nil, ["display": "never"], ["display": "automatic"]] {
+                if paymentApplePay?["display"] as? String == "automatic", merchantIdentifier?.isEmpty != false {
+                    continue
+                }
+                var params: [String: Any] = ["expressCheckoutElement": [:]]
+                if let paymentApplePay { params["paymentElement"] = ["applePay": paymentApplePay] }
+                let configuration = try CheckoutConfigurationMapper.map(
+                    params: params as NSDictionary,
+                    merchantIdentifier: merchantIdentifier,
+                    didSelectPaymentOption: {}
+                )
+                XCTAssertNotNil(configuration.expressCheckoutElement)
+                XCTAssertEqual(configuration.applePayMerchantId, merchantIdentifier?.isEmpty == false ? merchantIdentifier : nil)
+                XCTAssertEqual(
+                    configuration.paymentElement?.applePayConfiguration.display,
+                    paymentApplePay?["display"] as? String == "automatic" ? .automatic : .never
+                )
+            }
+        }
+        let paymentOnly = try CheckoutConfigurationMapper.map(
+            params: [:], merchantIdentifier: "merchant.com.example", didSelectPaymentOption: {}
+        )
+        XCTAssertNil(paymentOnly.applePayMerchantId)
+        XCTAssertNil(paymentOnly.expressCheckoutElement)
+    }
+
+    func test_map_expressCheckoutDefaultsAndValidLayoutLimits() throws {
+        for theme in ["automatic", "light", "dark"] {
+            let configuration = try CheckoutConfigurationMapper.map(
+                params: ["expressCheckoutElement": ["appearance": [
+                    "buttonTheme": theme,
+                    "buttonLayout": ["maxRows": 1, "maxColumns": 10],
+                ]]],
+                merchantIdentifier: nil,
+                didSelectPaymentOption: {}
+            )
+            let element = try XCTUnwrap(configuration.expressCheckoutElement)
+            XCTAssertEqual(element.appearance.buttonTheme.rawValue, theme)
+            XCTAssertEqual(element.appearance.buttonLayout.maxRows, 1)
+            XCTAssertEqual(element.appearance.buttonLayout.maxColumns, 10)
+            XCTAssertEqual(element.linkConfiguration.display, .automatic)
+            XCTAssertNil(element.applePayConfiguration.buttonType)
+            XCTAssertNil(element.appearance.cornerRadius)
+        }
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: ["expressCheckoutElement": [:]],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {}
+        )
+        let element = try XCTUnwrap(configuration.expressCheckoutElement)
+        XCTAssertEqual(element.appearance.buttonTheme, .automatic)
+        XCTAssertNil(element.appearance.buttonLayout.maxRows)
+        XCTAssertNil(element.appearance.buttonLayout.maxColumns)
+    }
+
+    func test_map_rejectsInvalidExpressCheckoutLayoutWithoutNativeAssertions() {
+        let invalidValues: [Any] = [0, 11, -1, 1.5, Double.nan, Double.infinity, true, "2", NSNull()]
+        for key in ["maxRows", "maxColumns"] {
+            for value in invalidValues {
+                XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
+                    params: ["expressCheckoutElement": ["appearance": ["buttonLayout": [key: value]]]],
+                    merchantIdentifier: nil,
+                    didSelectPaymentOption: {}
+                )) { error in
+                    guard case .unsupportedValue(let path, _) = error as? CheckoutConfigurationMapperError else {
+                        return XCTFail("Expected an unsupported layout value")
+                    }
+                    XCTAssertEqual(path, "expressCheckoutElement.appearance.buttonLayout.\(key)")
+                }
+            }
+        }
+    }
+
+    func test_map_rejectsInvalidExpressCheckoutEnumsWithCorrectPaths() {
+        let cases: [(NSDictionary, String)] = [
+            (["applePay": ["buttonType": "invalid"]], "applePay.buttonType"),
+            (["link": ["display": "invalid"]], "link.display"),
+            (["appearance": ["buttonTheme": "invalid"]], "appearance.buttonTheme"),
+        ]
+        for (params, path) in cases {
+            XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
+                params: ["expressCheckoutElement": params],
+                merchantIdentifier: nil,
+                didSelectPaymentOption: {}
+            )) { error in
+                XCTAssertEqual(
+                    error as? CheckoutConfigurationMapperError,
+                    .unsupportedValue(path: "expressCheckoutElement.\(path)", value: "invalid")
+                )
+            }
+        }
+    }
+
     func test_map_mapsCurrencySelectorElementAppearance() throws {
         let configuration = try CheckoutConfigurationMapper.map(
             params: [

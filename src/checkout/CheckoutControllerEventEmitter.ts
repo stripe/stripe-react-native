@@ -30,6 +30,18 @@ export function addCheckoutControllerListener(
   });
 }
 
+/** Forwards wallet confirmation results for this controller. */
+export function addCheckoutExpressCheckoutResultListener(
+  controllerId: string,
+  listener: (result: CheckoutElements.Result) => void
+) {
+  return addListener('checkoutExpressCheckoutDidComplete', (event) => {
+    if (event.controllerId === controllerId) {
+      listener(event.result);
+    }
+  });
+}
+
 /** Forwards the native immediate-action callback for this controller. */
 export function addCheckoutControllerSelectionListener(
   controllerId: string,

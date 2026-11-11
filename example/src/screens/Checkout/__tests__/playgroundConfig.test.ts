@@ -137,25 +137,30 @@ describe('Checkout playground configuration', () => {
   });
 });
 
-it('opts into render-only Android Express Checkout with the Link display', () => {
-  const params = {
-    clientSecret: 'cs_test_secret',
-    settings: {
-      ...defaultPlaygroundSettings,
-      expressCheckoutEnabled: true,
-      linkMode: 'never' as const,
-    },
-  };
-  jest.replaceProperty(Platform, 'OS', 'android');
-  expect(checkoutConfiguration(params).expressCheckoutElement).toEqual({
-    link: { display: 'never' },
-    onResult: expect.any(Function),
-  });
-  expect(
-    checkoutConfiguration({ ...params, settings: defaultPlaygroundSettings })
-      .expressCheckoutElement
-  ).toBeUndefined();
-  jest.replaceProperty(Platform, 'OS', 'ios');
-  expect(checkoutConfiguration(params).expressCheckoutElement).toBeUndefined();
-  jest.restoreAllMocks();
-});
+it.each(['ios', 'android'] as const)(
+  'opts into Express Checkout with the Link display on %s',
+  (platform) => {
+    const params = {
+      clientSecret: 'cs_test_secret',
+      settings: {
+        ...defaultPlaygroundSettings,
+        expressCheckoutEnabled: true,
+        linkMode: 'never' as const,
+      },
+    };
+    jest.replaceProperty(Platform, 'OS', platform);
+    expect(checkoutConfiguration(params).expressCheckoutElement).toEqual({
+      link: { display: 'never' },
+      onResult: expect.any(Function),
+    });
+    expect(
+      checkoutConfiguration({ ...params, settings: defaultPlaygroundSettings })
+        .expressCheckoutElement
+    ).toBeUndefined();
+    jest.replaceProperty(Platform, 'OS', 'web');
+    expect(
+      checkoutConfiguration(params).expressCheckoutElement
+    ).toBeUndefined();
+    jest.restoreAllMocks();
+  }
+);

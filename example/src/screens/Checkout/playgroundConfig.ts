@@ -277,11 +277,11 @@ export function checkoutConfiguration(
       ? { currencySelectorElement: {} }
       : {}),
     ...(settings.collectShippingAddress ? { shippingAddressElement: {} } : {}),
-    ...(Platform.OS === 'android' && settings.expressCheckoutEnabled
+    ...((Platform.OS === 'android' || Platform.OS === 'ios') &&
+    settings.expressCheckoutEnabled
       ? {
           expressCheckoutElement: {
             link: { display: settings.linkMode },
-            // Render-only preview; completion handling is bridged in a follow-up.
             onResult: () => {},
           },
         }

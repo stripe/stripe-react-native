@@ -205,8 +205,8 @@ it('reports initialization errors and recovers on reload', async () => {
   expect(hook.result.current).toMatchObject({ status: 'ready', error: null });
 });
 
-it('reports unsupported iOS Express Checkout configuration through its error state', async () => {
-  jest.replaceProperty(Platform, 'OS', 'ios');
+it('reports unsupported web Express Checkout configuration through its error state', async () => {
+  jest.replaceProperty(Platform, 'OS', 'web');
   const hook = renderCheckout({
     getConfiguration: async () => ({
       ...options,
@@ -263,21 +263,24 @@ it('cancels an active server update during reload', async () => {
   expect(controllerId(1)).not.toBe(id);
 });
 
-it('loads Android Express Checkout and replaces its handle on reload', async () => {
-  jest.replaceProperty(Platform, 'OS', 'android');
-  create.mockResolvedValue({ session, isExpressCheckoutAvailable: true });
-  const onResult = jest.fn();
-  const hook = renderCheckout({
-    getConfiguration: async () => ({
-      ...options,
-      expressCheckoutElement: { onResult },
-    }),
-  });
-  await waitFor(() => expect(hook.result.current.status).toBe('ready'));
-  const firstElement = hook.result.current.expressCheckoutElement;
-  expect(firstElement).not.toBeNull();
-  await act(() => hook.result.current.reload());
-  expect(hook.result.current.expressCheckoutElement).not.toBe(firstElement);
-  hook.unmount();
-  await waitFor(() => expect(destroy).toHaveBeenCalledWith(controllerId(1)));
-});
+it.each(['ios', 'android'] as const)(
+  'loads Express Checkout on %s and replaces its handle on reload',
+  async (platform) => {
+    jest.replaceProperty(Platform, 'OS', platform);
+    create.mockResolvedValue({ session, isExpressCheckoutAvailable: true });
+    const onResult = jest.fn();
+    const hook = renderCheckout({
+      getConfiguration: async () => ({
+        ...options,
+        expressCheckoutElement: { onResult },
+      }),
+    });
+    await waitFor(() => expect(hook.result.current.status).toBe('ready'));
+    const firstElement = hook.result.current.expressCheckoutElement;
+    expect(firstElement).not.toBeNull();
+    await act(() => hook.result.current.reload());
+    expect(hook.result.current.expressCheckoutElement).not.toBe(firstElement);
+    hook.unmount();
+    await waitFor(() => expect(destroy).toHaveBeenCalledWith(controllerId(1)));
+  }
+);

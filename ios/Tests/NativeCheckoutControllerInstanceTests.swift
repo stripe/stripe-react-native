@@ -158,7 +158,66 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         })
     }
 
-    private func makeCheckout() async throws -> CheckoutElementsController {
+    func test_expressCheckoutViewMeasuresReplaysAndDetaches() async throws {
+        let checkout = try await makeCheckout(expressCheckout: true)
+        let element = checkout.getExpressCheckoutElement()
+        let instance = NativeCheckoutControllerInstance(checkout: checkout, expressCheckoutElement: element, emitEvent: { _ in })
+        let sdk = StripeSdkImpl.shared
+        let controllerId = "express-view"
+        sdk.checkoutControllers[controllerId] = instance
+        defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+        let view = CheckoutExpressCheckoutElementContainerView(frame: CGRect(x: 0, y: 0, width: 320, height: 1))
+        var heights: [CGFloat] = []
+        view.controllerId = controllerId
+        view.onHeightChanged = { event in heights.append(event?["height"] as? CGFloat ?? -1) }
+        window.addSubview(view)
+        view.layoutIfNeeded()
+        XCTAssertTrue(element.uiView.superview === view)
+        XCTAssertEqual(heights.last, 0)
+
+        var configuration = CheckoutElementsController.Configuration(clientSecret: "cs_test_secret", returnURL: "example://checkout")
+        configuration.expressCheckoutElement = .init(completion: { _ in })
+        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session(
+            configuration: configuration, paymentMethods: ["card", "link"]
+        ))
+        let updated = expectation(description: "Session height updated")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { updated.fulfill() }
+        await fulfillment(of: [updated], timeout: 2)
+        view.layoutIfNeeded()
+        XCTAssertEqual(heights.last, 44)
+        let count = heights.count
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        XCTAssertEqual(heights.count, count)
+        view.replayHeight()
+        view.layoutIfNeeded()
+        XCTAssertEqual(heights.count, count + 1)
+        view.frame.size.width = 200
+        view.layoutIfNeeded()
+        XCTAssertEqual(element.uiView.bounds.width, 200)
+        XCTAssertEqual(heights.last, 44)
+
+        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session())
+        let collapsed = expectation(description: "Unavailable wallets collapse the element")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { collapsed.fulfill() }
+        await fulfillment(of: [collapsed], timeout: 2)
+        view.layoutIfNeeded()
+        XCTAssertEqual(heights.last, 0)
+
+        view.removeFromSuperview()
+        XCTAssertNil(element.uiView.superview)
+        window.addSubview(view)
+        view.layoutIfNeeded()
+        XCTAssertTrue(element.uiView.superview === view)
+        XCTAssertEqual(heights.last, 0)
+        instance.destroy()
+        XCTAssertNil(element.uiView.superview)
+        XCTAssertTrue(view.subviews.isEmpty)
+        view.controllerId = nil
+    }
+
+    private func makeCheckout(expressCheckout: Bool = false) async throws -> CheckoutElementsController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]
         let apiClient = STPAPIClient(publishableKey: "pk_test_123")
@@ -170,6 +229,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         )
         configuration.apiClient = apiClient
         configuration.paymentElement = .init()
+        if expressCheckout { configuration.expressCheckoutElement = .init(completion: { _ in }) }
         return try await CheckoutElementsController(configuration: configuration)
     }
 }

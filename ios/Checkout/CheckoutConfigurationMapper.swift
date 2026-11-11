@@ -1,3 +1,4 @@
+import CoreFoundation
 import Foundation
 import PassKit
 @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
@@ -21,7 +22,8 @@ enum CheckoutConfigurationMapper {
     static func map(
         params: NSDictionary,
         merchantIdentifier: String?,
-        didSelectPaymentOption: @escaping () -> Void
+        didSelectPaymentOption: @escaping () -> Void,
+        expressCheckoutCompletion: @escaping (CheckoutElementsController.ConfirmResult) -> Void = { _ in }
     ) throws -> CheckoutElementsController.Configuration {
         let clientSecret = params["clientSecret"] as? String ?? ""
         let returnURL = params["returnURL"] as? String ?? ""
@@ -43,10 +45,24 @@ enum CheckoutConfigurationMapper {
             paymentElementParams,
             didSelectPaymentOption: didSelectPaymentOption
         )
+        let paymentApplePayParams = paymentElementParams?["applePay"] as? NSDictionary
         configuration.applePayMerchantId = try mapApplePayMerchantId(
-            paymentElementParams?["applePay"] as? NSDictionary,
+            paymentApplePayParams,
             merchantIdentifier: merchantIdentifier
         )
+        if let expressParams = params["expressCheckoutElement"] as? NSDictionary {
+            configuration.expressCheckoutElement = try mapExpressCheckoutElement(
+                expressParams,
+                completion: expressCheckoutCompletion
+            )
+            if let merchantIdentifier, !merchantIdentifier.isEmpty {
+                configuration.applePayMerchantId = merchantIdentifier
+            }
+            // The shared merchant ID must not opt Payment Element into Apple Pay.
+            if paymentApplePayParams == nil {
+                configuration.paymentElement?.applePayConfiguration.display = .never
+            }
+        }
         if let shippingParams = params["shippingAddressElement"] as? NSDictionary {
             var shippingConfiguration = ShippingAddressElement.Configuration()
             if let title = shippingParams["title"] as? String {
@@ -68,6 +84,53 @@ enum CheckoutConfigurationMapper {
             configuration.currencySelectorElement = currencySelectorConfiguration
         }
         return configuration
+    }
+
+    private static func mapExpressCheckoutElement(
+        _ params: NSDictionary,
+        completion: @escaping (CheckoutElementsController.ConfirmResult) -> Void
+    ) throws -> ExpressCheckoutElement.Configuration {
+        var configuration = ExpressCheckoutElement.Configuration(completion: completion)
+        if let applePay = params["applePay"] as? NSDictionary {
+            configuration.applePayConfiguration.buttonType = try mapApplePayButtonType(
+                applePay["buttonType"] as? String,
+                path: "expressCheckoutElement.applePay.buttonType"
+            )
+        }
+        if let link = params["link"] as? NSDictionary, let display = link["display"] as? String {
+            guard let display = ExpressCheckoutElement.Configuration.LinkConfiguration.Display(rawValue: display) else {
+                throw unsupported(display, at: "expressCheckoutElement.link.display")
+            }
+            configuration.linkConfiguration.display = display
+        }
+        if let appearance = params["appearance"] as? NSDictionary {
+            if let theme = appearance["buttonTheme"] as? String {
+                guard let theme = ExpressCheckoutElement.Configuration.Appearance.ButtonTheme(rawValue: theme) else {
+                    throw unsupported(theme, at: "expressCheckoutElement.appearance.buttonTheme")
+                }
+                configuration.appearance.buttonTheme = theme
+            }
+            if let layout = appearance["buttonLayout"] as? NSDictionary {
+                configuration.appearance.buttonLayout.maxColumns = try mapExpressLayoutLimit(layout, key: "maxColumns")
+                configuration.appearance.buttonLayout.maxRows = try mapExpressLayoutLimit(layout, key: "maxRows")
+            }
+            if let radius = appearance["borderRadius"] as? NSNumber {
+                configuration.appearance.cornerRadius = CGFloat(truncating: radius)
+            }
+        }
+        return configuration
+    }
+
+    private static func mapExpressLayoutLimit(_ params: NSDictionary, key: String) throws -> Int? {
+        guard let value = params[key] else { return nil }
+        guard let number = value as? NSNumber,
+              CFGetTypeID(number) != CFBooleanGetTypeID(),
+              number.doubleValue.isFinite,
+              (1...10).contains(number.doubleValue),
+              number.doubleValue.rounded() == number.doubleValue else {
+            throw unsupported(String(describing: value), at: "expressCheckoutElement.appearance.buttonLayout.\(key)")
+        }
+        return number.intValue
     }
 
     private static func mapShippingAddressAppearance(
@@ -337,8 +400,7 @@ enum CheckoutConfigurationMapper {
         )
     }
 
-    /// Checkout shares one Apple Pay merchant ID across its elements, and leaving it `nil` disables
-    /// Apple Pay. Only set it when Payment Element opts in to Apple Pay.
+    /// Validates Payment Element's explicit Apple Pay opt-in before sharing a merchant ID.
     private static func mapApplePayMerchantId(
         _ applePayParams: NSDictionary?,
         merchantIdentifier: String?
@@ -352,7 +414,10 @@ enum CheckoutConfigurationMapper {
         return merchantIdentifier
     }
 
-    private static func mapApplePayButtonType(_ value: String?) throws -> PKPaymentButtonType? {
+    private static func mapApplePayButtonType(
+        _ value: String?,
+        path: String = "paymentElement.applePay.buttonType"
+    ) throws -> PKPaymentButtonType? {
         guard let value else {
             return nil
         }
@@ -374,7 +439,7 @@ enum CheckoutConfigurationMapper {
         case "contribute": 14
         case "tip": 15
         case "continue": 16
-        default: throw unsupported(value, at: "paymentElement.applePay.buttonType")
+        default: throw unsupported(value, at: path)
         }
         return PKPaymentButtonType(rawValue: rawValue)
     }

@@ -17,6 +17,18 @@ final class CheckoutSessionSerializerTests: XCTestCase {
         XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
     }
 
+    func test_serialize_usesNativeExpressPaymentMethodAvailability() throws {
+        var configuration = CheckoutElementsController.Configuration(clientSecret: "cs_test_secret", returnURL: "example://checkout")
+        configuration.expressCheckoutElement = .init(completion: { _ in })
+        let session = try CheckoutTestFixtures.session(configuration: configuration, paymentMethods: ["card", "link"])
+        XCTAssertTrue(session.availableExpressCheckoutPaymentMethods.contains(.link))
+        let result = CheckoutSessionSerializer.serialize(session)
+        let methods = try XCTUnwrap(result["availableExpressCheckoutPaymentMethods"] as? [String: [String: Any]])
+        XCTAssertEqual(methods["link"]?["available"] as? Bool, true)
+        XCTAssertEqual(methods["applePay"]?["available"] as? Bool, session.availableExpressCheckoutPaymentMethods.contains(.applePay))
+        XCTAssertEqual(methods["googlePay"]?["available"] as? Bool, false)
+    }
+
     func test_serialize_preservesNativeAmountsAndItemStructure() throws {
         let session = try CheckoutTestFixtures.session()
         let result = CheckoutSessionSerializer.serialize(session)

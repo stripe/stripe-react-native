@@ -694,7 +694,7 @@ export default function CheckoutPlaygroundScreen() {
         )}
 
         <Section title="Express Checkout Element">
-          {Platform.OS === 'android' ? (
+          {Platform.OS === 'android' || Platform.OS === 'ios' ? (
             <>
               <ToggleRow
                 label="Enable Express Checkout"
@@ -702,17 +702,15 @@ export default function CheckoutPlaygroundScreen() {
                 onChange={(enabled) => set('expressCheckoutEnabled', enabled)}
               />
               <Text style={styles.helperText}>
-                Displays Google Pay and Link when available. Link follows the
-                display setting above. Render-only preview: completion
-                callbacks, appearance, and availability diagnostics are not
-                bridged yet.
+                Displays Apple Pay on iOS, Google Pay on Android, and Link when
+                available. Link follows the display setting above.
               </Text>
             </>
           ) : (
             <View style={styles.availabilityCard}>
-              <Text style={styles.availabilityTitle}>Not bridged on iOS</Text>
+              <Text style={styles.availabilityTitle}>Not supported on web</Text>
               <Text style={styles.helperText}>
-                Express Checkout is currently available on Android only.
+                Express Checkout is available on iOS and Android.
               </Text>
             </View>
           )}

@@ -19,6 +19,7 @@ import { PaymentMethod } from './types';
 import { UnsafeObject } from './specs/utils';
 import { FinancialConnectionsEvent } from './types/FinancialConnections';
 import { Result as ConfirmationTokenResult } from './types/ConfirmationToken';
+import type { CheckoutElements } from './types/CheckoutElements';
 import type { CheckoutControllerUpdate } from './checkout/CheckoutControllerEventEmitter';
 
 const compatEventEmitter =
@@ -73,6 +74,10 @@ type Events = {
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
   paymentMethodMessagingElementConfigureResult: EventEmitter<UnsafeObject<any>>;
+  checkoutExpressCheckoutDidComplete: EventEmitter<{
+    controllerId: string;
+    result: UnsafeObject<CheckoutElements.Result>;
+  }>;
   checkoutControllerDidUpdate: EventEmitter<
     UnsafeObject<CheckoutControllerUpdate>
   >;
