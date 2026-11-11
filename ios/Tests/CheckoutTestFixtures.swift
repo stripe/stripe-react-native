@@ -1,6 +1,6 @@
 import Foundation
-@_spi(InternalOnlyAPI) import StripeCore
-@testable @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripeCore
+@testable @_spi(ReactNativeSDK) import StripePaymentSheet
 
 /// Uses the native decoder so bridge tests exercise real Checkout session models.
 enum CheckoutTestFixtures {

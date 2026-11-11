@@ -1,6 +1,6 @@
 import Foundation
 import React
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 extension StripeSdkImpl {
 
