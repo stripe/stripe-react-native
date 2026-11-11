@@ -169,8 +169,13 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
         let view = CheckoutExpressCheckoutElementContainerView(frame: CGRect(x: 0, y: 0, width: 320, height: 1))
         var heights: [CGFloat] = []
+        var heightUpdate: XCTestExpectation?
         view.controllerId = controllerId
-        view.onHeightChanged = { event in heights.append(event?["height"] as? CGFloat ?? -1) }
+        view.onHeightChanged = { event in
+            heights.append(event?["height"] as? CGFloat ?? -1)
+            heightUpdate?.fulfill()
+            heightUpdate = nil
+        }
         window.addSubview(view)
         view.layoutIfNeeded()
         XCTAssertTrue(element.uiView.superview === view)
@@ -178,13 +183,12 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
 
         var configuration = CheckoutElementsController.Configuration(clientSecret: "cs_test_secret", returnURL: "example://checkout")
         configuration.expressCheckoutElement = .init(completion: { _ in })
+        let updated = expectation(description: "Session height updated")
+        heightUpdate = updated
         checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session(
             configuration: configuration, paymentMethods: ["card", "link"]
         ))
-        let updated = expectation(description: "Session height updated")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { updated.fulfill() }
         await fulfillment(of: [updated], timeout: 2)
-        view.layoutIfNeeded()
         XCTAssertEqual(heights.last, 44)
         let count = heights.count
         view.setNeedsLayout()
@@ -198,11 +202,10 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertEqual(element.uiView.bounds.width, 200)
         XCTAssertEqual(heights.last, 44)
 
-        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session())
         let collapsed = expectation(description: "Unavailable wallets collapse the element")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { collapsed.fulfill() }
+        heightUpdate = collapsed
+        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session())
         await fulfillment(of: [collapsed], timeout: 2)
-        view.layoutIfNeeded()
         XCTAssertEqual(heights.last, 0)
 
         view.removeFromSuperview()

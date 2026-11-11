@@ -57,7 +57,6 @@ using namespace facebook::react;
 
 - (void)prepareForRecycle
 {
-  [_view detach];
   _view.controllerId = nil;
   [super prepareForRecycle];
 }

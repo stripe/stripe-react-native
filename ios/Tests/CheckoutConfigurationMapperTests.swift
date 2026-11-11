@@ -79,9 +79,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
             XCTAssertEqual(element.appearance.buttonTheme.rawValue, theme)
             XCTAssertEqual(element.appearance.buttonLayout.maxRows, 1)
             XCTAssertEqual(element.appearance.buttonLayout.maxColumns, 10)
-            XCTAssertEqual(element.linkConfiguration.display, .automatic)
-            XCTAssertNil(element.applePayConfiguration.buttonType)
-            XCTAssertNil(element.appearance.cornerRadius)
         }
         let configuration = try CheckoutConfigurationMapper.map(
             params: ["expressCheckoutElement": [:]],
@@ -92,6 +89,9 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(element.appearance.buttonTheme, .automatic)
         XCTAssertNil(element.appearance.buttonLayout.maxRows)
         XCTAssertNil(element.appearance.buttonLayout.maxColumns)
+        XCTAssertEqual(element.linkConfiguration.display, .automatic)
+        XCTAssertNil(element.applePayConfiguration.buttonType)
+        XCTAssertNil(element.appearance.cornerRadius)
     }
 
     func test_map_rejectsInvalidExpressCheckoutLayoutWithoutNativeAssertions() {

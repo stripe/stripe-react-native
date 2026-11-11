@@ -5,28 +5,25 @@ import XCTest
 
 @MainActor
 final class CheckoutSessionSerializerTests: XCTestCase {
-    func test_serialize_includesUnavailableExpressPaymentMethods() throws {
-        let result = CheckoutSessionSerializer.serialize(try CheckoutTestFixtures.session())
-        let methods = try XCTUnwrap(result["availableExpressCheckoutPaymentMethods"] as? [String: Any])
-
-        XCTAssertEqual(methods as NSDictionary, [
-            "applePay": ["available": false, "type": "apple_pay"],
-            "googlePay": ["available": false, "type": "google_pay"],
-            "link": ["available": false, "type": "link"],
-        ] as NSDictionary)
-        XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
-    }
-
     func test_serialize_usesNativeExpressPaymentMethodAvailability() throws {
         var configuration = CheckoutElementsController.Configuration(clientSecret: "cs_test_secret", returnURL: "example://checkout")
         configuration.expressCheckoutElement = .init(completion: { _ in })
-        let session = try CheckoutTestFixtures.session(configuration: configuration, paymentMethods: ["card", "link"])
-        XCTAssertTrue(session.availableExpressCheckoutPaymentMethods.contains(.link))
-        let result = CheckoutSessionSerializer.serialize(session)
-        let methods = try XCTUnwrap(result["availableExpressCheckoutPaymentMethods"] as? [String: [String: Any]])
-        XCTAssertEqual(methods["link"]?["available"] as? Bool, true)
-        XCTAssertEqual(methods["applePay"]?["available"] as? Bool, session.availableExpressCheckoutPaymentMethods.contains(.applePay))
-        XCTAssertEqual(methods["googlePay"]?["available"] as? Bool, false)
+        for linkAvailable in [false, true] {
+            let session = try CheckoutTestFixtures.session(
+                configuration: linkAvailable ? configuration : nil,
+                paymentMethods: ["card", "link"]
+            )
+            XCTAssertEqual(session.availableExpressCheckoutPaymentMethods.contains(.link), linkAvailable)
+            XCTAssertFalse(session.availableExpressCheckoutPaymentMethods.contains(.applePay))
+            let result = CheckoutSessionSerializer.serialize(session)
+            let methods = try XCTUnwrap(result["availableExpressCheckoutPaymentMethods"] as? NSDictionary)
+            XCTAssertEqual(methods, [
+                "applePay": ["available": session.availableExpressCheckoutPaymentMethods.contains(.applePay), "type": "apple_pay"],
+                "googlePay": ["available": false, "type": "google_pay"],
+                "link": ["available": linkAvailable, "type": "link"],
+            ] as NSDictionary)
+            XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
+        }
     }
 
     func test_serialize_preservesNativeAmountsAndItemStructure() throws {

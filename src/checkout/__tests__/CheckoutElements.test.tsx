@@ -57,21 +57,7 @@ it('keeps web Express Checkout unsupported before invoking native or subscribing
   await expect(
     createCheckoutElements({
       ...options,
-      expressCheckoutElement: {
-        applePay: { buttonType: 'checkout' },
-        googlePay: {
-          display: 'automatic',
-          label: 'Total',
-          buttonType: 'pay',
-          additionalEnabledNetworks: ['INTERAC'],
-        },
-        link: { display: 'never' },
-        appearance: {
-          buttonTheme: 'dark',
-          buttonLayout: { maxColumns: 2, maxRows: 1 },
-        },
-        onResult,
-      },
+      expressCheckoutElement: { onResult },
     })
   ).rejects.toThrow(
     'does not include native support for Express Checkout Element'
