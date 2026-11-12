@@ -1,3 +1,4 @@
+import type { StripeError } from '@stripe/stripe-react-native';
 import { CheckoutCurrencySelectorElementView } from '@stripe/stripe-react-native/src/components/CheckoutCurrencySelectorElementView';
 import { ExpressCheckoutElementView } from '@stripe/stripe-react-native/src/components/ExpressCheckoutElementView';
 import { CheckoutPaymentElementView } from '@stripe/stripe-react-native/src/components/CheckoutPaymentElementView';
@@ -125,6 +126,18 @@ function formatAddress(
     .join('\n');
 }
 
+/**
+ * Checkout errors carry a customer-facing `localizedMessage`; their `message`
+ * is diagnostic. When no `localizedMessage` is provided, show a placeholder
+ * so testers can tell the SDK returned none.
+ */
+function customerErrorMessage(error: unknown): string {
+  return (
+    (error as Partial<StripeError<string>> | null)?.localizedMessage ??
+    '[No localizedMessage was returned]'
+  );
+}
+
 export default function CheckoutCartScreen({ route, navigation }: Props) {
   const { settings } = route.params;
   const handleResult = useCallback(
@@ -138,9 +151,15 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
         case 'canceled':
           Alert.alert('Canceled', 'The payment was canceled.');
           break;
-        case 'failed':
-          Alert.alert('Unable to complete checkout', result.error.message);
+        case 'failed': {
+          const { error } = result;
+          console.log('Checkout confirmation failed', error);
+          Alert.alert(
+            'Unable to complete checkout',
+            customerErrorMessage(error)
+          );
           break;
+        }
       }
     },
     [navigation]
@@ -178,9 +197,9 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
     try {
       return await operation();
     } catch (failure) {
-      setActionError(
-        failure instanceof Error ? failure.message : String(failure)
-      );
+      // Log diagnostic details, but show the customer only the customer-facing message.
+      console.log('Checkout operation failed', failure);
+      setActionError(customerErrorMessage(failure));
       return undefined;
     }
   };
@@ -220,7 +239,9 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
     return (
       <View style={styles.loadingScreen}>
         <Text style={styles.failureTitle}>Failed to load cart.</Text>
-        <Text style={styles.errorText}>{checkout.error?.message}</Text>
+        <Text style={styles.errorText}>
+          {customerErrorMessage(checkout.error)}
+        </Text>
         <Pressable style={styles.secondaryButton} onPress={checkout.reload}>
           <Text style={styles.secondaryButtonText}>Retry</Text>
         </Pressable>
@@ -242,7 +263,7 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
           <View style={styles.errorBanner}>
             <Text style={styles.errorTitle}>Error</Text>
             <Text selectable style={styles.errorText}>
-              {actionError ?? checkout.error?.message}
+              {actionError ?? customerErrorMessage(checkout.error)}
             </Text>
           </View>
         )}

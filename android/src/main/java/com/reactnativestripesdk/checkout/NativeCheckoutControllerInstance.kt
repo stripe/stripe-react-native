@@ -39,7 +39,7 @@ internal class NativeCheckoutControllerInstance(
   private val scope: CoroutineScope,
   initialSession: WritableMap,
   private val context: ReactApplicationContext,
-  private val isShippingAddressElementConfigured: Boolean = false,
+  val isShippingAddressElementConfigured: Boolean = false,
   private val isExpressCheckoutElementConfigured: Boolean = false,
 ) {
 
@@ -141,7 +141,7 @@ internal class NativeCheckoutControllerInstance(
       getPresenter(activity).confirm()
       val confirmationResult = result.await()
       if (!destroyed) publishCurrentState()
-      return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status)
+      return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status, context)
     } finally {
       confirmation = null
       context.removeLifecycleEventListener(confirmationHostListener)
@@ -171,7 +171,7 @@ internal class NativeCheckoutControllerInstance(
     val controllerId = controllerId ?: return
     scope.launch {
       publishCurrentState()
-      val serializedResult = CheckoutSessionSerializer.serialize(result, controller.session.value?.status)
+      val serializedResult = CheckoutSessionSerializer.serialize(result, controller.session.value?.status, context)
       if (!destroyed) {
         eventEmitter.emitCheckoutExpressCheckoutDidComplete(
           Arguments.createMap().apply {

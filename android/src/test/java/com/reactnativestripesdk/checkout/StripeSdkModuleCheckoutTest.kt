@@ -5,13 +5,16 @@ import androidx.activity.ComponentActivity
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.EventEmitterCompat
+import com.reactnativestripesdk.FakePromise
 import com.reactnativestripesdk.ReactContextRule
 import com.reactnativestripesdk.StripeSdkModule
 import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.elements.PaymentElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
+import com.stripe.android.paymentsheet.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,12 +23,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.isNull
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -40,6 +46,16 @@ import org.robolectric.annotation.LooperMode
 class StripeSdkModuleCheckoutTest {
   @get:Rule
   internal val contextRule = ReactContextRule()
+
+  /** Verifies a bridge precondition rejection, which carries the generic customer-facing message. */
+  private fun Promise.verifyGenericRejection(code: String, message: String) {
+    val userInfo = ArgumentCaptor.forClass(WritableMap::class.java)
+    verify(this).reject(eq(code), eq(message), isNull<Throwable>(), userInfo.capture())
+    assertEquals(
+      contextRule.context.getString(R.string.stripe_something_went_wrong),
+      userInfo.value.getString("localizedMessage"),
+    )
+  }
 
   @OptIn(CheckoutSessionPreview::class)
   @Test
@@ -71,16 +87,23 @@ class StripeSdkModuleCheckoutTest {
       verify(controller).updateShippingAddress("Jenny", null)
       verify(promise).resolve(null)
 
-      for ((error, code) in listOf(
-        IllegalStateException("Operation failed") to "Failed",
-        CancellationException("Operation canceled") to "Canceled",
+      val genericMessage = contextRule.context.getString(R.string.stripe_something_went_wrong)
+      for ((error, code, displayMessage) in listOf(
+        Triple(IllegalStateException("Operation failed"), "Failed", "This promotion code is invalid."),
+        Triple(CancellationException("Operation canceled"), "Canceled", null),
       )) {
-        `when`(controller.updateEmail(null)).thenReturn(NativeCheckoutFixtures.failedOperation(error))
-        val failedPromise = mock(Promise::class.java)
+        `when`(controller.updateEmail(null))
+          .thenReturn(NativeCheckoutFixtures.failedOperation(error, displayMessage))
+        val failedPromise = FakePromise()
         module.updateCheckoutEmail(controllerId, null, failedPromise)
         shadowOf(Looper.getMainLooper()).idle()
 
-        verify(failedPromise).reject(code, error.message, error)
+        val rejection = failedPromise.rejectCalls.awaitItem()
+        assertEquals(code, rejection.code)
+        assertEquals(error.message, rejection.message)
+        assertSame(error, rejection.throwable)
+        // JS displays native Checkout's message, or a generic one when native has none.
+        assertEquals(displayMessage ?: genericMessage, rejection.userInfo?.getString("localizedMessage"))
       }
     } finally {
       instance.destroy()
@@ -109,7 +132,7 @@ class StripeSdkModuleCheckoutTest {
     val missingActivity = mock(Promise::class.java)
     module.presentCheckoutPaymentElement(controllerId, missingActivity)
     shadowOf(Looper.getMainLooper()).idle()
-    verify(missingActivity).reject("Failed", "Checkout requires a resumed activity to present Payment Element.")
+    missingActivity.verifyGenericRejection("Failed", "Checkout requires a resumed activity to present Payment Element.")
 
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     try {
@@ -129,7 +152,7 @@ class StripeSdkModuleCheckoutTest {
       val staleRequest = mock(Promise::class.java)
       module.presentCheckoutPaymentElement(controllerId, staleRequest)
       shadowOf(Looper.getMainLooper()).idle()
-      verify(staleRequest).reject("Failed", "Checkout controller `$controllerId` does not exist.")
+      staleRequest.verifyGenericRejection("Failed", "Checkout controller `$controllerId` does not exist.")
       verify(element, times(2)).present()
     } finally {
       module.checkoutControllers.remove(controllerId)?.destroy()
@@ -158,7 +181,7 @@ class StripeSdkModuleCheckoutTest {
     val missingActivity = mock(Promise::class.java)
     module.confirmCheckout("controller", missingActivity)
     shadowOf(Looper.getMainLooper()).idle()
-    verify(missingActivity).reject("Failed", "Checkout requires a resumed activity to confirm.")
+    missingActivity.verifyGenericRejection("Failed", "Checkout requires a resumed activity to confirm.")
     val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     try {
       context.onHostResume(activity.get())
@@ -179,7 +202,7 @@ class StripeSdkModuleCheckoutTest {
       val missingController = mock(Promise::class.java)
       module.confirmCheckout("controller", missingController)
       shadowOf(Looper.getMainLooper()).idle()
-      verify(missingController).reject("Failed", "Checkout controller `controller` does not exist.")
+      missingController.verifyGenericRejection("Failed", "Checkout controller `controller` does not exist.")
     } finally {
       module.checkoutControllers.remove("controller")?.destroy()
       activity.pause().stop().destroy()
@@ -199,7 +222,7 @@ class StripeSdkModuleCheckoutTest {
     module.invalidate()
     shadowOf(Looper.getMainLooper()).idle()
 
-    verify(promise).reject("Failed", "Stripe SDK was invalidated.")
+    promise.verifyGenericRejection("Failed", "Stripe SDK was invalidated.")
     assertEquals(0, module.checkoutControllers.size)
   }
 }

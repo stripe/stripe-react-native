@@ -405,7 +405,7 @@ class NativeCheckoutControllerInstanceTest {
       val outcomes = listOf(
         NativeCheckoutFixtures.completedResult() to "completed",
         NativeCheckoutFixtures.canceledResult() to "canceled",
-        NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")) to "failed",
+        NativeCheckoutFixtures.failedResult(IllegalStateException("Declined"), "Declined") to "failed",
       )
       for ((result, status) in outcomes) {
         fixture.sessions.value = checkoutSession(status = NativeCheckoutFixtures.completeStatus())
@@ -472,7 +472,7 @@ class NativeCheckoutControllerInstanceTest {
       val outcomes = listOf(
         NativeCheckoutFixtures.completedResult() to "completed",
         NativeCheckoutFixtures.canceledResult() to "canceled",
-        NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")) to "failed",
+        NativeCheckoutFixtures.failedResult(IllegalStateException("Declined"), "Declined") to "failed",
       )
       for ((result, status) in outcomes) {
         val pending = async { fixture.instance.confirm(fixture.activity.get()) }
@@ -509,6 +509,7 @@ class NativeCheckoutControllerInstanceTest {
       fixture.updating.value = true
       val rejected = NativeCheckoutFixtures.failedResult(
         IllegalStateException("Cannot confirm checkout while another confirmation is in progress."),
+        "Cannot confirm checkout while another confirmation is in progress.",
       )
       doAnswer {
         fixture.instance.onConfirmationResult(rejected)

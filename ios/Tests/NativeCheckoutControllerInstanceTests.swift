@@ -103,9 +103,14 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         sdk.confirmCheckout(controllerId: controllerId, resolver: { _ in
             XCTFail("Invalid confirmation should reject")
             confirmationRejected.fulfill()
-        }, rejecter: { code, message, _ in
+        }, rejecter: { code, message, error in
             XCTAssertEqual(code, "Failed")
             XCTAssertEqual(message, "Checkout requires a visible presenting view controller.")
+            // Bridge precondition failures show customers a generic message.
+            XCTAssertEqual(
+                (error as NSError?)?.userInfo["localizedMessage"] as? String,
+                checkoutUnexpectedErrorMessage()
+            )
             confirmationRejected.fulfill()
         })
         await fulfillment(of: [confirmationRejected], timeout: 2)
@@ -125,6 +130,25 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
             })
             await fulfillment(of: [rejected], timeout: 2)
         }
+    }
+
+    func test_rejectionErrorAddsCustomerFacingMessage() {
+        let nativeError = NSError(
+            domain: "CheckoutTest",
+            code: 7,
+            userInfo: [NSLocalizedDescriptionKey: "This promotion code is invalid."]
+        )
+        let rejection = checkoutRejectionError(nativeError)
+        XCTAssertEqual(rejection.domain, "CheckoutTest")
+        XCTAssertEqual(rejection.code, 7)
+        XCTAssertEqual(rejection.localizedDescription, "This promotion code is invalid.")
+        XCTAssertEqual(rejection.userInfo["localizedMessage"] as? String, "This promotion code is invalid.")
+
+        // Bridge errors describe integration problems, so customers see a generic message.
+        XCTAssertEqual(
+            checkoutRejectionError(CheckoutBridgeError.destroyed).userInfo["localizedMessage"] as? String,
+            checkoutUnexpectedErrorMessage()
+        )
     }
 
     func test_confirmationRejectsConcurrentAttemptsAndCancelsIfDestroyedBeforeStarting() async throws {
