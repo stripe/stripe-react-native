@@ -17,7 +17,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                     "buttonLayout": ["maxColumns": 2, "maxRows": 10],
                     "borderRadius": 12,
                 ],
-            ]],
+            ], ],
             merchantIdentifier: "merchant.com.example",
             didSelectPaymentOption: {},
             expressCheckoutCompletion: { result in
@@ -79,7 +79,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 params: ["expressCheckoutElement": ["appearance": [
                     "buttonTheme": theme,
                     "buttonLayout": ["maxRows": 1, "maxColumns": 10],
-                ]]],
+                ], ], ],
                 merchantIdentifier: nil,
                 didSelectPaymentOption: {}
             )
