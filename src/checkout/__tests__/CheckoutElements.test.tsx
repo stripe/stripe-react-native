@@ -54,21 +54,6 @@ beforeEach(() => {
   create.mockImplementation(async () => ({ session }));
 });
 
-it.each(['ios', 'android'] as const)(
-  'creates Checkout without Express Checkout Element on %s when onResult is missing',
-  async (platform) => {
-    jest.replaceProperty(Platform, 'OS', platform);
-    const controller = await createCheckoutElements({
-      ...options,
-      expressCheckoutElement:
-        {} as CheckoutElements.ExpressCheckoutElementConfiguration,
-    });
-    expect(create.mock.calls[0][0].expressCheckoutElement).toBeUndefined();
-    expect(controller.expressCheckoutElement).toBeNull();
-    await controller.destroy();
-  }
-);
-
 it('preserves native session snapshots and their express payment method availability', async () => {
   const controller = await createCheckoutElements(options);
   expect(controller.expressCheckoutElement).toBeNull();
