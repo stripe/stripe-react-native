@@ -54,6 +54,36 @@ beforeEach(() => {
   create.mockImplementation(async () => ({ session }));
 });
 
+it('keeps iOS Express Checkout unsupported before invoking native or subscribing', async () => {
+  jest.replaceProperty(Platform, 'OS', 'ios');
+  const onResult = jest.fn<void, [CheckoutElements.Result]>();
+  await expect(
+    createCheckoutElements({
+      ...options,
+      expressCheckoutElement: {
+        applePay: { buttonType: 'checkout' },
+        googlePay: {
+          display: 'automatic',
+          label: 'Total',
+          buttonType: 'pay',
+          additionalEnabledNetworks: ['INTERAC'],
+        },
+        link: { display: 'never' },
+        appearance: {
+          buttonTheme: 'dark',
+          buttonLayout: { maxColumns: 2, maxRows: 1 },
+        },
+        onResult,
+      },
+    })
+  ).rejects.toThrow(
+    'does not include native support for Express Checkout Element'
+  );
+  expect(create).not.toHaveBeenCalled();
+  expect(addListener).not.toHaveBeenCalled();
+  expect(onResult).not.toHaveBeenCalled();
+});
+
 it('preserves native session snapshots and their express payment method availability', async () => {
   const controller = await createCheckoutElements(options);
   expect(controller.expressCheckoutElement).toBeNull();

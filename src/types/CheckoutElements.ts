@@ -757,7 +757,11 @@ export namespace CheckoutElements {
     displaysMandateText?: boolean;
     /** Controls selection in the embedded view. */
     rowSelectionBehavior?: PaymentElementConfiguration.RowSelectionBehavior;
-    /** Apple Pay configuration for Payment Element. iOS only. */
+    /**
+     * Apple Pay configuration for Payment Element. iOS only. Enabled when a
+     * merchantIdentifier is provided through StripeProvider; set `display` to
+     * `never` to hide Apple Pay from Payment Element.
+     */
     applePay?: PaymentElementConfiguration.ApplePayConfiguration;
     /** Google Pay configuration for Payment Element. Android only. */
     googlePay?: PaymentElementConfiguration.GooglePayConfiguration;

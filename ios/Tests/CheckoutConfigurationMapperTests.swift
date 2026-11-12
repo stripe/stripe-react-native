@@ -24,57 +24,37 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(configuration.paymentElement?.applePayConfiguration.display, .automatic)
     }
 
-    func test_map_expressCheckoutOmitsApplePayWithoutMerchantIdentifierInsteadOfErroring() throws {
-        for merchantIdentifier: String? in [nil, ""] {
-            let configuration = try CheckoutConfigurationMapper.map(
-                params: ["expressCheckoutElement": ["applePay": ["buttonType": "checkout"]]],
-                merchantIdentifier: merchantIdentifier,
-                didSelectPaymentOption: {}
-            )
-            XCTAssertNotNil(configuration.expressCheckoutElement)
-            XCTAssertNil(configuration.applePayMerchantId)
-        }
-    }
-
-    func test_map_omitsApplePayWithoutMerchantIdentifierEvenWhenExplicitlyConfigured() throws {
-        let configuration = try CheckoutConfigurationMapper.map(
-            params: [
-                "paymentElement": ["applePay": [:]],
-                "expressCheckoutElement": [:],
-            ],
-            merchantIdentifier: nil,
-            didSelectPaymentOption: {}
-        )
-        XCTAssertNil(configuration.applePayMerchantId)
-    }
-
-    func test_map_expressCheckoutEnablesApplePayWithoutExplicitOptionsAndAllowsLinkOnly() throws {
-        for merchantIdentifier: String? in [nil, "", "merchant.com.example"] {
-            for paymentApplePay: NSDictionary? in [nil, ["display": "never"], ["display": "automatic"]] {
-                var params: [String: Any] = ["expressCheckoutElement": [:]]
-                if let paymentApplePay { params["paymentElement"] = ["applePay": paymentApplePay] }
-                let configuration = try CheckoutConfigurationMapper.map(
-                    params: params as NSDictionary,
-                    merchantIdentifier: merchantIdentifier,
-                    didSelectPaymentOption: {}
-                )
-                XCTAssertNotNil(configuration.expressCheckoutElement)
-                XCTAssertEqual(configuration.applePayMerchantId, merchantIdentifier?.isEmpty == false ? merchantIdentifier : nil)
-                // Payment Element's own display is unaffected by Express's configuration;
-                // it's only ever .never when explicitly set that way.
-                XCTAssertEqual(
-                    configuration.paymentElement?.applePayConfiguration.display,
-                    paymentApplePay?["display"] as? String == "never" ? .never : .automatic
-                )
+    func test_map_sharesMerchantIdentifier() throws {
+        for isExpressConfigured in [false, true] {
+            for merchantIdentifier: String? in [nil, "", "merchant.com.example"] {
+                for display: String? in [nil, "automatic", "never"] {
+                    var paymentElement: [String: Any] = [:]
+                    if let display { paymentElement["applePay"] = ["display": display] }
+                    var params: [String: Any] = ["paymentElement": paymentElement]
+                    if isExpressConfigured { params["expressCheckoutElement"] = [:] }
+                    let configuration = try CheckoutConfigurationMapper.map(
+                        params: params as NSDictionary,
+                        merchantIdentifier: merchantIdentifier,
+                        didSelectPaymentOption: {}
+                    )
+                    let context = "express: \(isExpressConfigured), merchant: \(merchantIdentifier ?? "nil"), display: \(display ?? "nil")"
+                    // The merchant ID is shared checkout-wide whenever one is provided; it is never
+                    // an error to omit it.
+                    XCTAssertEqual(
+                        configuration.applePayMerchantId,
+                        merchantIdentifier?.isEmpty == false ? merchantIdentifier : nil,
+                        context
+                    )
+                    // Payment Element hides Apple Pay through its own display option.
+                    XCTAssertEqual(
+                        configuration.paymentElement?.applePayConfiguration.display,
+                        display == "never" ? .never : .automatic,
+                        context
+                    )
+                    XCTAssertEqual(configuration.expressCheckoutElement != nil, isExpressConfigured, context)
+                }
             }
         }
-        // Payment Element's ApplePayConfiguration defaults to `display: .automatic`, so a
-        // merchant ID alone enables it even without ever configuring `applePay`.
-        let paymentOnly = try CheckoutConfigurationMapper.map(
-            params: [:], merchantIdentifier: "merchant.com.example", didSelectPaymentOption: {}
-        )
-        XCTAssertEqual(paymentOnly.applePayMerchantId, "merchant.com.example")
-        XCTAssertNil(paymentOnly.expressCheckoutElement)
     }
 
     func test_map_rejectsInvalidExpressCheckoutEnumsWithCorrectPaths() {
@@ -241,23 +221,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertNil(paymentElement.linkConfiguration)
     }
 
-    func test_map_omitsApplePayWithoutNonEmptyMerchantIdentifierInsteadOfErroring() throws {
-        for merchantIdentifier: String? in [nil, ""] {
-            let configuration = try CheckoutConfigurationMapper.map(
-                params: [
-                    "clientSecret": "cs_test_secret_123",
-                    "returnURL": "example://checkout",
-                    "paymentElement": [
-                        "applePay": [:],
-                    ],
-                ],
-                merchantIdentifier: merchantIdentifier,
-                didSelectPaymentOption: {}
-            )
-            XCTAssertNil(configuration.applePayMerchantId)
-        }
-    }
-
     func test_map_mapsApplePayDisplay() throws {
         let cases: [(display: String?, merchantIdentifier: String?, expectedDisplay: PaymentElement.Configuration.ApplePayConfiguration.Display)] = [
             (nil, "merchant.com.example", .automatic),
@@ -287,29 +250,6 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
             XCTAssertEqual(paymentElement.applePayConfiguration.buttonType, .checkout)
             XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
             XCTAssertEqual(paymentElement.paymentMethodOrder, ["card"])
-        }
-    }
-
-    func test_map_setsSharedMerchantIdentifierRegardlessOfPaymentElementApplePayDisplay() throws {
-        for isExpressConfigured in [false, true] {
-            for display in ["automatic", "never"] {
-                var params: [String: Any] = ["paymentElement": ["applePay": ["display": display]]]
-                if isExpressConfigured { params["expressCheckoutElement"] = [:] }
-                let configuration = try CheckoutConfigurationMapper.map(
-                    params: params as NSDictionary,
-                    merchantIdentifier: "merchant.com.example",
-                    didSelectPaymentOption: {}
-                )
-                XCTAssertEqual(
-                    configuration.applePayMerchantId, "merchant.com.example",
-                    "express: \(isExpressConfigured), display: \(display)"
-                )
-                XCTAssertEqual(
-                    configuration.paymentElement?.applePayConfiguration.display,
-                    display == "never" ? .never : .automatic
-                )
-                XCTAssertEqual(configuration.expressCheckoutElement != nil, isExpressConfigured)
-            }
         }
     }
 
