@@ -81,7 +81,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                     "buttonLayout": ["maxRows": 1, "maxColumns": 10],
                 ], ], ],
                 merchantIdentifier: nil,
-                didSelectPaymentOption: {}
+                didSelectPaymentOption: {},
+                expressCheckoutCompletion: { _ in }
             )
             let element = try XCTUnwrap(configuration.expressCheckoutElement)
             XCTAssertEqual(element.appearance.buttonTheme.rawValue, theme)
@@ -91,7 +92,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         let configuration = try CheckoutConfigurationMapper.map(
             params: ["expressCheckoutElement": [:]],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
         let element = try XCTUnwrap(configuration.expressCheckoutElement)
         XCTAssertEqual(element.appearance.buttonTheme, .automatic)
@@ -109,7 +111,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
                     params: ["expressCheckoutElement": ["appearance": ["buttonLayout": [key: value]]]],
                     merchantIdentifier: nil,
-                    didSelectPaymentOption: {}
+                    didSelectPaymentOption: {},
+                    expressCheckoutCompletion: { _ in }
                 )) { error in
                     guard case .unsupportedValue(let path, _) = error as? CheckoutConfigurationMapperError else {
                         return XCTFail("Expected an unsupported layout value")

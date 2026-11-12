@@ -306,7 +306,6 @@ it('subscribes to Express Checkout results before create, isolates controllers, 
   create.mockImplementationOnce(async (configuration, controllerId) => {
     expect(configuration.expressCheckoutElement).toEqual({
       applePay: { buttonType: 'checkout' },
-      appearance: { buttonLayout: { maxColumns: 2, maxRows: 1 } },
     });
     emit('checkoutExpressCheckoutDidComplete', {
       controllerId,
@@ -318,7 +317,6 @@ it('subscribes to Express Checkout results before create, isolates controllers, 
     ...options,
     expressCheckoutElement: {
       applePay: { buttonType: 'checkout' },
-      appearance: { buttonLayout: { maxColumns: 2, maxRows: 1 } },
       onResult,
     },
   });
