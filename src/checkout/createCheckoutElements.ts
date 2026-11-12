@@ -9,7 +9,6 @@ import { runServerUpdate } from './runServerUpdate';
 import NativeStripeSdk, {
   type CheckoutCreateOptions,
 } from '../specs/NativeStripeSdkModule';
-import { Platform } from 'react-native';
 import {
   addCheckoutControllerListener,
   addCheckoutControllerSelectionListener,
@@ -111,7 +110,11 @@ function nativeCreateOptions(
 ): CheckoutCreateOptions {
   const { expressCheckoutElement, ...rest } = options;
   const nativeOptions: CheckoutCreateOptions = { ...rest };
-  if (expressCheckoutElement) {
+  // Express Checkout Element can't be used without a way to report its result.
+  if (
+    expressCheckoutElement &&
+    typeof expressCheckoutElement.onResult === 'function'
+  ) {
     // Payment callbacks stay in JS; only data crosses the native bridge.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { onResult: _onResult, ...configuration } = expressCheckoutElement;
@@ -148,12 +151,6 @@ export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,
   onUpdate?: (controller: CheckoutElements) => void
 ): Promise<CheckoutElements> {
-  // Keep the iOS bridge unsupported until its native implementation is available.
-  if (options.expressCheckoutElement && Platform.OS !== 'android') {
-    throw new Error(
-      'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
-    );
-  }
   const controllerId = createCheckoutBridgeId();
   let status: CheckoutElements['status'] = 'ready';
   let session: CheckoutElements.Session | undefined;
