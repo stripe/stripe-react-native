@@ -1,0 +1,96 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn: 'Reset'
+- scrollUntilVisible:
+    element:
+      text: 'Automatic Payment Methods'
+    centerElement: true
+- tapOn: 'Automatic Payment Methods'
+- scrollUntilVisible:
+    element:
+      text: 'Enable Express Checkout'
+# Move the final toggle above the fixed Create Checkout Session footer.
+- swipe:
+    direction: UP
+- tapOn: 'Enable Express Checkout'
+- assertVisible:
+    text: 'Enable Express Checkout'
+    checked: true
+- scrollUntilVisible:
+    element:
+      text: 'Express button theme'
+    centerElement: true
+- tapOn: 'Express button theme'
+- tapOn: 'Light'
+- scrollUntilVisible:
+    element:
+      text: 'Express border radius'
+    centerElement: true
+- tapOn: 'Express border radius'
+- tapOn: '0 dp'
+- scrollUntilVisible:
+    element:
+      text: 'Express max rows'
+    centerElement: true
+- tapOn: 'Express max rows'
+- tapOn: '2'
+- scrollUntilVisible:
+    element:
+      text: 'Express max columns'
+    centerElement: true
+- tapOn: 'Express max columns'
+- tapOn: '1'
+- tapOn:
+    id: 'checkout-create-session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- assertVisible:
+    id: 'checkout-express-checkout'
+
+# The Express button sits above Items; the Payment Element's Apple Pay option sits below.
+- assertVisible:
+    text: '.*Apple.?Pay.*'
+    above:
+      text: 'Items'
+- tapOn:
+    text: '.*Apple.?Pay.*'
+    above:
+      text: 'Items'
+- tapOn: 'close'
+- extendedWaitUntil:
+    visible: 'Canceled'
+    timeout: 60000
+- assertVisible: 'The payment was canceled.'
+- tapOn: 'OK'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 30000
+- assertVisible:
+    text: '.*Apple.?Pay.*'
+    above:
+      text: 'Items'
+
+# Verify wallet eligibility in the live session diagnostics after cancellation.
+- tapOn: 'Session diagnostics'
+- assertVisible:
+    id: 'checkout-express-availability-applePay'
+    text: 'apple_pay: available'
+- assertVisible:
+    id: 'checkout-express-availability-googlePay'
+    text: 'google_pay: unavailable'
+- assertVisible:
+    id: 'checkout-express-availability-link'
+- takeScreenshot: checkout-express-checkout-availability-ios
+- tapOn: 'Cancel'
