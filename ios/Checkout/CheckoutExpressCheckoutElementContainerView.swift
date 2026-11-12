@@ -1,6 +1,6 @@
 import Combine
 import React
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 import UIKit
 
 /// Hosts the Express Checkout Element owned by a registered Checkout controller.
@@ -27,7 +27,7 @@ public final class CheckoutExpressCheckoutElementContainerView: UIView {
 
     private func attach() {
         guard window != nil, element == nil, let controllerId,
-              let instance = StripeSdkImpl.shared.checkoutControllers[controllerId], !instance.isDestroyed,
+              let instance = StripeSdkImpl.shared.checkoutControllers[controllerId],
               let element = instance.expressCheckoutElement else { return }
         let view = element.uiView
         guard view.superview == nil else {
@@ -37,11 +37,11 @@ public final class CheckoutExpressCheckoutElementContainerView: UIView {
         self.element = element
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
-        // Let the native intrinsic height determine its size, independent of JS height write-backs.
         NSLayoutConstraint.activate([
             view.topAnchor.constraint(equalTo: topAnchor),
             view.leadingAnchor.constraint(equalTo: leadingAnchor),
             view.trailingAnchor.constraint(equalTo: trailingAnchor),
+            view.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
         destruction = instance.observeDestruction { [weak self] in self?.detach() }
         sessionObservation = instance.checkout.$session
