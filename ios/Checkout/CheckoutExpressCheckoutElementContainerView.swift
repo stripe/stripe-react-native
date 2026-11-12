@@ -14,9 +14,7 @@ public final class CheckoutExpressCheckoutElementContainerView: UIView {
             attach()
         }
     }
-    @objc public var onHeightChanged: RCTDirectEventBlock? {
-        didSet { replayHeight() }
-    }
+    @objc public var onHeightChanged: RCTDirectEventBlock?
     private var element: ExpressCheckoutElement?
     private var destruction: AnyCancellable?
     private var sessionObservation: AnyCancellable?
@@ -48,13 +46,9 @@ public final class CheckoutExpressCheckoutElementContainerView: UIView {
         destruction = instance.observeDestruction { [weak self] in self?.detach() }
         sessionObservation = instance.checkout.$session
             .dropFirst()
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                // The SDK also delivers its view updates asynchronously on the main queue.
-                DispatchQueue.main.async { [weak self] in
-                    self?.setNeedsLayout()
-                    self?.layoutIfNeeded()
-                }
+                self?.setNeedsLayout()
+                self?.layoutIfNeeded()
             }
         setNeedsLayout()
     }
@@ -69,11 +63,6 @@ public final class CheckoutExpressCheckoutElementContainerView: UIView {
         reportedHeight = nil
     }
 
-    @objc public func replayHeight() {
-        reportedHeight = nil
-        setNeedsLayout()
-    }
-
     override public func layoutSubviews() {
         super.layoutSubviews()
         guard let view = element?.uiView, bounds.width > 0 else { return }
@@ -83,9 +72,9 @@ public final class CheckoutExpressCheckoutElementContainerView: UIView {
             verticalFittingPriority: .fittingSizeLevel
         )
         let height = ceil(size.height)
-        if height != reportedHeight, let onHeightChanged {
+        if height != reportedHeight {
             reportedHeight = height
-            onHeightChanged(["height": height])
+            onHeightChanged?(["height": height])
         }
     }
 }

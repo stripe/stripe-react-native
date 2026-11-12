@@ -218,9 +218,6 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         view.setNeedsLayout()
         view.layoutIfNeeded()
         XCTAssertEqual(heights.count, count)
-        view.replayHeight()
-        view.layoutIfNeeded()
-        XCTAssertEqual(heights.count, count + 1)
         view.frame.size.width = 200
         view.layoutIfNeeded()
         XCTAssertEqual(element.uiView.bounds.width, 200)

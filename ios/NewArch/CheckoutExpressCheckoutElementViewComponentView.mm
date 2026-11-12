@@ -44,12 +44,6 @@ using namespace facebook::react;
   [super updateProps:props oldProps:oldProps];
 }
 
-- (void)updateEventEmitter:(const EventEmitter::Shared &)eventEmitter
-{
-  [super updateEventEmitter:eventEmitter];
-  [_view replayHeight];
-}
-
 + (ComponentDescriptorProvider)componentDescriptorProvider
 {
   return concreteComponentDescriptorProvider<CheckoutExpressCheckoutElementViewComponentDescriptor>();
@@ -57,8 +51,9 @@ using namespace facebook::react;
 
 - (void)prepareForRecycle
 {
-  _view.controllerId = nil;
   [super prepareForRecycle];
+  [_view detach];
+  _view.controllerId = nil;
 }
 
 @end
