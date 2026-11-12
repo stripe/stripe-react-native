@@ -110,7 +110,11 @@ function nativeCreateOptions(
 ): CheckoutCreateOptions {
   const { expressCheckoutElement, ...rest } = options;
   const nativeOptions: CheckoutCreateOptions = { ...rest };
-  if (expressCheckoutElement) {
+  // Express Checkout Element can't be used without a way to report its result.
+  if (
+    expressCheckoutElement &&
+    typeof expressCheckoutElement.onResult === 'function'
+  ) {
     // Payment callbacks stay in JS; only data crosses the native bridge.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { onResult: _onResult, ...configuration } = expressCheckoutElement;

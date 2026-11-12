@@ -55,16 +55,16 @@ beforeEach(() => {
 });
 
 it.each(['ios', 'android'] as const)(
-  'forwards Express Checkout Element to native on %s even when onResult is missing',
+  'creates Checkout without Express Checkout Element on %s when onResult is missing',
   async (platform) => {
     jest.replaceProperty(Platform, 'OS', platform);
-    create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });
     const controller = await createCheckoutElements({
       ...options,
-      expressCheckoutElement: {},
+      expressCheckoutElement:
+        {} as CheckoutElements.ExpressCheckoutElementConfiguration,
     });
-    expect(create.mock.calls[0][0].expressCheckoutElement).toEqual({});
-    expect(controller.expressCheckoutElement).not.toBeNull();
+    expect(create.mock.calls[0][0].expressCheckoutElement).toBeUndefined();
+    expect(controller.expressCheckoutElement).toBeNull();
     await controller.destroy();
   }
 );
