@@ -37,9 +37,6 @@ public final class CheckoutExpressCheckoutElementContainerView: UIView {
         self.element = element
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
-        // Intentionally no bottom anchor: let the native view size itself, independent of the JS
-        // height write-back. Pinning the bottom made the Apple Pay button ignore its corner radius
-        // on iOS 26 (observed on 26.2; works on 18.5).
         NSLayoutConstraint.activate([
             view.topAnchor.constraint(equalTo: topAnchor),
             view.leadingAnchor.constraint(equalTo: leadingAnchor),
