@@ -41,12 +41,7 @@ enum CheckoutConfigurationMapper {
             didSelectPaymentOption: didSelectPaymentOption
         )
         let expressParams = params["expressCheckoutElement"] as? NSDictionary
-        let paymentApplePayParams = paymentElementParams?["applePay"] as? NSDictionary
-        configuration.applePayMerchantId = mapApplePayMerchantId(
-            paymentApplePayParams: paymentApplePayParams,
-            isExpressCheckoutElementConfigured: expressParams != nil,
-            merchantIdentifier: merchantIdentifier
-        )
+        configuration.applePayMerchantId = mapApplePayMerchantId(merchantIdentifier)
         if let expressParams {
             configuration.expressCheckoutElement = try mapExpressCheckoutElement(
                 expressParams,
@@ -367,22 +362,12 @@ enum CheckoutConfigurationMapper {
         )
     }
 
-    /// Computes the Checkout-wide Apple Pay merchant ID shared by Payment Element and
-    /// Express Checkout Element. Both elements' `ApplePayConfiguration` are non-Optional and
-    /// require no merchant ID to construct, so there's nothing to validate here: a merchant
-    /// ID simply enables Apple Pay wherever it isn't explicitly declined. Payment Element can
-    /// decline via `display: .never`; Express Checkout Element has no such option and always
-    /// shares the merchant ID whenever it's configured.
-    private static func mapApplePayMerchantId(
-        paymentApplePayParams: NSDictionary?,
-        isExpressCheckoutElementConfigured: Bool,
-        merchantIdentifier: String?
-    ) -> String? {
-        let paymentElementDeclinedApplePay = paymentApplePayParams?["display"] as? String == "never"
-        guard !paymentElementDeclinedApplePay || isExpressCheckoutElementConfigured,
-              let merchantIdentifier, !merchantIdentifier.isEmpty else {
-            return nil
-        }
+    /// The Checkout-wide Apple Pay merchant ID shared by Payment Element and Express Checkout
+    /// Element. It is set whenever the app provides one. Each element decides what to do with
+    /// it: Payment Element honors its own `applePay.display`, so `.never` hides Apple Pay there
+    /// without affecting Express Checkout Element.
+    private static func mapApplePayMerchantId(_ merchantIdentifier: String?) -> String? {
+        guard let merchantIdentifier, !merchantIdentifier.isEmpty else { return nil }
         return merchantIdentifier
     }
 
