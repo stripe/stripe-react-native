@@ -372,7 +372,7 @@ export namespace CheckoutElements {
     /** Customizes the appearance of Express Checkout Element. */
     appearance?: ExpressCheckoutElementConfiguration.Appearance;
     /** Called when a payment is finalized through Express Checkout Element. */
-    onResult: (result: Result) => void;
+    onResult?: (result: Result) => void;
   }
 
   /**

@@ -61,8 +61,7 @@ it.each(['ios', 'android'] as const)(
     create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });
     const controller = await createCheckoutElements({
       ...options,
-      expressCheckoutElement:
-        {} as CheckoutElements.ExpressCheckoutElementConfiguration,
+      expressCheckoutElement: {},
     });
     expect(create.mock.calls[0][0].expressCheckoutElement).toEqual({});
     expect(controller.expressCheckoutElement).not.toBeNull();
