@@ -18,7 +18,8 @@ final class CheckoutSessionSerializerTests: XCTestCase {
             let result = CheckoutSessionSerializer.serialize(session)
             let methods = try XCTUnwrap(result["availableExpressCheckoutPaymentMethods"] as? NSDictionary)
             XCTAssertEqual(methods, [
-                "applePay": ["available": session.availableExpressCheckoutPaymentMethods.contains(.applePay), "type": "apple_pay"],
+                // The fixture has no Apple Pay merchant ID, so Apple Pay is never available.
+                "applePay": ["available": false, "type": "apple_pay"],
                 "googlePay": ["available": false, "type": "google_pay"],
                 "link": ["available": linkAvailable, "type": "link"],
             ] as NSDictionary)

@@ -8,6 +8,7 @@ enum CheckoutSessionSerializer {
             "id": session.id,
             "availableExpressCheckoutPaymentMethods": [
                 "applePay": ["available": session.availableExpressCheckoutPaymentMethods.contains(.applePay), "type": "apple_pay"],
+                // Google Pay is Android only; it is never available on iOS.
                 "googlePay": ["available": false, "type": "google_pay"],
                 "link": ["available": session.availableExpressCheckoutPaymentMethods.contains(.link), "type": "link"],
             ],
