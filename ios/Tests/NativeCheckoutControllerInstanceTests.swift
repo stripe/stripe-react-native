@@ -211,6 +211,28 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertTrue(emitted.isEmpty)
     }
 
+    func test_isExpressCheckoutAvailableRequiresAConfiguredElementAndAnAvailableWallet() async throws {
+        let checkout = try await makeCheckout(expressCheckout: true)
+        let instance = NativeCheckoutControllerInstance(
+            checkout: checkout,
+            expressCheckoutElement: checkout.getExpressCheckoutElement(),
+            emitEvent: { _ in }
+        )
+        // The default fixture session offers card only, so no wallet is available.
+        XCTAssertFalse(instance.isExpressCheckoutAvailable)
+
+        var configuration = CheckoutElementsController.Configuration(clientSecret: "cs_test_secret", returnURL: "example://checkout")
+        configuration.expressCheckoutElement = .init(completion: { _ in })
+        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session(
+            configuration: configuration, paymentMethods: ["card", "link"]
+        ))
+        XCTAssertTrue(instance.isExpressCheckoutAvailable)
+
+        // A wallet being available is not enough without a configured element.
+        let withoutElement = NativeCheckoutControllerInstance(checkout: checkout, emitEvent: { _ in })
+        XCTAssertFalse(withoutElement.isExpressCheckoutAvailable)
+    }
+
     func test_expressCheckoutViewMeasuresAndDetaches() async throws {
         let checkout = try await makeCheckout(expressCheckout: true)
         let element = checkout.getExpressCheckoutElement()
