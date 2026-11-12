@@ -2,7 +2,7 @@ package com.reactnativestripesdk.checkout
 
 import android.annotation.SuppressLint
 import com.facebook.react.bridge.ReadableMap
-import com.reactnativestripesdk.utils.getFloatOrNull
+import com.reactnativestripesdk.utils.getDoubleOrNull
 import com.reactnativestripesdk.utils.getIntOrNull
 import com.reactnativestripesdk.utils.getStringList
 import com.stripe.android.elements.ExpressCheckoutElement
@@ -59,7 +59,13 @@ internal object ExpressCheckoutConfigurationMapper {
         },
       )
     }
-    params.getFloatOrNull("borderRadius")?.let(::cornerRadiusDp)
+    params.getDoubleOrNull("borderRadius")?.let { borderRadius ->
+      val cornerRadius = borderRadius.toFloat()
+      require(borderRadius >= 0 && cornerRadius.isFinite()) {
+        "expressCheckoutElement.appearance.borderRadius must be finite and greater than or equal to 0."
+      }
+      cornerRadiusDp(cornerRadius)
+    }
     params.getMap("buttonLayout")?.let { layout ->
       buttonLayout(
         ExpressAppearance.ButtonLayout()

@@ -149,6 +149,27 @@ class ExpressCheckoutConfigurationMapperTest {
   fun `rejects unsupported button theme`() = assertUnsupportedValue("appearance", "buttonTheme", "invalid")
 
   @Test
+  fun `accepts zero border radius`() {
+    val appearance = mapAppearance(readableMapOf("borderRadius" to 0))
+    assertEquals(0f, appearance.readField<Float>("cornerRadiusDp"))
+  }
+
+  @Test
+  fun `rejects negative border radius`() = assertInvalidBorderRadius(-1.0)
+
+  @Test
+  fun `rejects negative border radius that underflows native float`() = assertInvalidBorderRadius(-Double.MIN_VALUE)
+
+  @Test
+  fun `rejects NaN border radius`() = assertInvalidBorderRadius(Double.NaN)
+
+  @Test
+  fun `rejects infinite border radius`() = assertInvalidBorderRadius(Double.POSITIVE_INFINITY)
+
+  @Test
+  fun `rejects border radius that overflows native float`() = assertInvalidBorderRadius(Double.MAX_VALUE)
+
+  @Test
   fun `preserves unspecified dimensions and accepts layout boundaries`() {
     for (key in listOf("maxRows", "maxColumns")) {
       for (value in listOf(null, 1, 10)) {
@@ -206,6 +227,16 @@ class ExpressCheckoutConfigurationMapperTest {
   private fun assertButtonTheme(value: String, expected: ExpressAppearance.ButtonTheme) {
     val appearance = mapAppearance(readableMapOf("buttonTheme" to value))
     assertEquals(expected, appearance.readField("buttonTheme"))
+  }
+
+  private fun assertInvalidBorderRadius(value: Double) {
+    val error = assertThrows(IllegalArgumentException::class.java) {
+      mapAppearance(readableMapOf("borderRadius" to value))
+    }
+    assertEquals(
+      "expressCheckoutElement.appearance.borderRadius must be finite and greater than or equal to 0.",
+      error.message,
+    )
   }
 
   private fun mapAppearance(params: ReadableMap): ExpressAppearance =
