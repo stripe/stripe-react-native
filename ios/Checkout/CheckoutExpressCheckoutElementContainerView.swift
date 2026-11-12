@@ -46,9 +46,14 @@ public final class CheckoutExpressCheckoutElementContainerView: UIView {
         destruction = instance.observeDestruction { [weak self] in self?.detach() }
         sessionObservation = instance.checkout.$session
             .dropFirst()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.setNeedsLayout()
-                self?.layoutIfNeeded()
+                // `$session` emits before the value is stored, and the SDK delivers its view
+                // updates asynchronously on the main queue, so measure after both have run.
+                DispatchQueue.main.async { [weak self] in
+                    self?.setNeedsLayout()
+                    self?.layoutIfNeeded()
+                }
             }
         setNeedsLayout()
     }

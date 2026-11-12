@@ -182,7 +182,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         })
     }
 
-    func test_expressCheckoutViewMeasuresReplaysAndDetaches() async throws {
+    func test_expressCheckoutViewMeasuresAndDetaches() async throws {
         let checkout = try await makeCheckout(expressCheckout: true)
         let element = checkout.getExpressCheckoutElement()
         let instance = NativeCheckoutControllerInstance(checkout: checkout, expressCheckoutElement: element, emitEvent: { _ in })
