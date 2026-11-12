@@ -1,6 +1,5 @@
 import Foundation
 import React
-@_spi(ReactNativeSDK) import StripeCore
 @_spi(ReactNativeSDK) import StripePaymentSheet
 
 enum CheckoutBridgeError: LocalizedError {
@@ -34,7 +33,14 @@ func checkoutRejectionError(_ error: Error) -> NSError {
 /// no underlying error. Customers see a generic message.
 func checkoutRejectionError() -> NSError {
     // Keep the domain React Native reports for rejections without an error.
-    NSError(domain: RCTErrorDomain, code: 0, userInfo: ["localizedMessage": NSError.stp_unexpectedErrorMessage()])
+    NSError(domain: RCTErrorDomain, code: 0, userInfo: ["localizedMessage": checkoutUnexpectedErrorMessage()])
+}
+
+/// The generic message customers see when a failure has no customer-facing message of its own.
+func checkoutUnexpectedErrorMessage() -> String {
+    // Temporary workaround until the native SDK exposes `stp_unexpectedErrorMessage()` to React
+    // Native. This public error vends the same localized message.
+    PaymentSheetError.unknown(debugDescription: "").localizedDescription
 }
 
 /// Returns the message to display to the customer for a Checkout failure.
@@ -42,7 +48,7 @@ func checkoutLocalizedMessage(for error: Error) -> String {
     switch error {
     case is CancellationError, is CheckoutBridgeError, is CheckoutConfigurationMapperError:
         // Bridge errors describe integration problems, so customers see a generic message.
-        return NSError.stp_unexpectedErrorMessage()
+        return checkoutUnexpectedErrorMessage()
     default:
         // Native Checkout vends its customer-facing message as the localized description.
         // TODO: Native Checkout doesn't yet fall back to a generic message when the server's error

@@ -109,7 +109,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
             // Bridge precondition failures show customers a generic message.
             XCTAssertEqual(
                 (error as NSError?)?.userInfo["localizedMessage"] as? String,
-                NSError.stp_unexpectedErrorMessage()
+                checkoutUnexpectedErrorMessage()
             )
             confirmationRejected.fulfill()
         })
@@ -147,7 +147,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         // Bridge errors describe integration problems, so customers see a generic message.
         XCTAssertEqual(
             checkoutRejectionError(CheckoutBridgeError.destroyed).userInfo["localizedMessage"] as? String,
-            NSError.stp_unexpectedErrorMessage()
+            checkoutUnexpectedErrorMessage()
         )
     }
 
