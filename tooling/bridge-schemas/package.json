@@ -1,5 +1,5 @@
 {
-  "name": "@stripe/bridge-schemas",
+  "name": "@stripe/react-native-bridge-schemas",
   "version": "0.0.0",
   "private": true,
   "description": "Private shell. Does not export the legacy package.",

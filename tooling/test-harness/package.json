@@ -1,5 +1,5 @@
 {
-  "name": "@stripe/test-harness",
+  "name": "@stripe/react-native-test-harness",
   "version": "0.0.0",
   "private": true,
   "description": "Private shell. Does not export the legacy package.",

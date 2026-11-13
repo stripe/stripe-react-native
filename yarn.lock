@@ -2739,15 +2739,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stripe/bridge-schemas@workspace:tooling/bridge-schemas":
+"@stripe/react-native-bridge-schemas@workspace:tooling/bridge-schemas":
   version: 0.0.0-use.local
-  resolution: "@stripe/bridge-schemas@workspace:tooling/bridge-schemas"
-  languageName: unknown
-  linkType: soft
-
-"@stripe/eslint-config@workspace:tooling/eslint-config":
-  version: 0.0.0-use.local
-  resolution: "@stripe/eslint-config@workspace:tooling/eslint-config"
+  resolution: "@stripe/react-native-bridge-schemas@workspace:tooling/bridge-schemas"
   languageName: unknown
   linkType: soft
 
@@ -2760,6 +2754,12 @@ __metadata:
 "@stripe/react-native-core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@stripe/react-native-core@workspace:packages/core"
+  languageName: unknown
+  linkType: soft
+
+"@stripe/react-native-eslint-config@workspace:tooling/eslint-config":
+  version: 0.0.0-use.local
+  resolution: "@stripe/react-native-eslint-config@workspace:tooling/eslint-config"
   languageName: unknown
   linkType: soft
 
@@ -2784,6 +2784,18 @@ __metadata:
 "@stripe/react-native-payments@workspace:packages/payments":
   version: 0.0.0-use.local
   resolution: "@stripe/react-native-payments@workspace:packages/payments"
+  languageName: unknown
+  linkType: soft
+
+"@stripe/react-native-test-harness@workspace:tooling/test-harness":
+  version: 0.0.0-use.local
+  resolution: "@stripe/react-native-test-harness@workspace:tooling/test-harness"
+  languageName: unknown
+  linkType: soft
+
+"@stripe/react-native-typescript-config@workspace:tooling/typescript-config":
+  version: 0.0.0-use.local
+  resolution: "@stripe/react-native-typescript-config@workspace:tooling/typescript-config"
   languageName: unknown
   linkType: soft
 
@@ -2827,18 +2839,6 @@ __metadata:
       optional: true
     react-native-webview:
       optional: true
-  languageName: unknown
-  linkType: soft
-
-"@stripe/test-harness@workspace:tooling/test-harness":
-  version: 0.0.0-use.local
-  resolution: "@stripe/test-harness@workspace:tooling/test-harness"
-  languageName: unknown
-  linkType: soft
-
-"@stripe/typescript-config@workspace:tooling/typescript-config":
-  version: 0.0.0-use.local
-  resolution: "@stripe/typescript-config@workspace:tooling/typescript-config"
   languageName: unknown
   linkType: soft
 
