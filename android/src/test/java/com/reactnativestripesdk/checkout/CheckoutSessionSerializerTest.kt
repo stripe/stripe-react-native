@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.ui.text.AnnotatedString
 import androidx.test.core.app.ApplicationProvider
 import com.stripe.android.checkout.CheckoutElementsController
-import com.stripe.android.elements.ExpressCheckoutElement.PaymentMethod
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -17,7 +16,6 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
@@ -43,12 +41,10 @@ class CheckoutSessionSerializerTest {
   }
 
   @Test
-  fun `serialize follows native express availability in every snapshot`() = runTest {
+  fun `serialize follows real SDK express payment methods in every snapshot`() = runTest {
     val session = spy(checkoutSession())
-    val googlePay = mock(PaymentMethod.GooglePay::class.java)
-    val link = mock(PaymentMethod.Link::class.java)
-    `when`(googlePay.type).thenReturn("google_pay")
-    `when`(link.type).thenReturn("link")
+    val googlePay = NativeCheckoutFixtures.googlePayPaymentMethod()
+    val link = NativeCheckoutFixtures.linkPaymentMethod()
     for (available in listOf(setOf(googlePay), setOf(link), setOf(googlePay, link), emptySet())) {
       `when`(session.availableExpressCheckoutPaymentMethods).thenReturn(available)
       val methods = CheckoutSessionSerializer.serialize(session, context)
