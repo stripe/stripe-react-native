@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -616,22 +617,28 @@ export default function CheckoutPlaygroundScreen() {
               ]}
               onChange={(value) => set('linkMode', value)}
             />
-            <ToggleRow
-              label="Apple Pay"
-              testID="checkout-apple-pay-toggle"
-              value={settings.applePayEnabled}
-              onChange={(value) => set('applePayEnabled', value)}
-            />
-            <ToggleRow
-              label="Payment Element Apple Pay"
-              testID="checkout-payment-element-apple-pay-toggle"
-              value={
-                settings.applePayEnabled &&
-                settings.paymentElementApplePayEnabled
-              }
-              onChange={(value) => set('paymentElementApplePayEnabled', value)}
-              disabled={!settings.applePayEnabled}
-            />
+            {Platform.OS === 'ios' && (
+              <>
+                <ToggleRow
+                  label="Apple Pay"
+                  testID="checkout-apple-pay-toggle"
+                  value={settings.applePayEnabled}
+                  onChange={(value) => set('applePayEnabled', value)}
+                />
+                <ToggleRow
+                  label="Payment Element Apple Pay"
+                  testID="checkout-payment-element-apple-pay-toggle"
+                  value={
+                    settings.applePayEnabled &&
+                    settings.paymentElementApplePayEnabled
+                  }
+                  onChange={(value) =>
+                    set('paymentElementApplePayEnabled', value)
+                  }
+                  disabled={!settings.applePayEnabled}
+                />
+              </>
+            )}
             <ToggleRow
               label="Automatic Tax"
               value={settings.automaticTax}
