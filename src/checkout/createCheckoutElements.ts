@@ -168,13 +168,11 @@ export async function createCheckoutController(
       ? options.paymentElement.rowSelectionBehavior.onSelectPaymentOption
       : undefined
   );
-  const onExpressCheckoutResult = options.expressCheckoutElement?.onResult;
   const expressResultSubscription = options.expressCheckoutElement
-    ? addCheckoutExpressResultListener(controllerId, (result) => {
-        if (status !== 'destroyed') {
-          onExpressCheckoutResult?.(result);
-        }
-      })
+    ? addCheckoutExpressResultListener(
+        controllerId,
+        options.expressCheckoutElement.onResult
+      )
     : undefined;
   try {
     // Keep handle availability consistent if options change during native creation.
@@ -304,7 +302,6 @@ export async function createCheckoutController(
     }
     return controller;
   } catch (error) {
-    status = 'destroyed';
     subscription.remove();
     selectionSubscription.remove();
     expressResultSubscription?.remove();

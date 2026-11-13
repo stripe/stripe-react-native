@@ -328,9 +328,6 @@ it('subscribes to Express Checkout results before create, isolates controllers, 
   expect(onResult).toHaveBeenCalledWith(canceled);
   const controllerId = create.mock.calls[0][1];
   const completed = { status: 'completed', paymentStatus: 'paid' } as const;
-  const callback = [
-    ...listeners.get('checkoutExpressCheckoutDidComplete')!,
-  ][0]!;
   emit('checkoutExpressCheckoutDidComplete', {
     controllerId,
     result: completed,
@@ -338,7 +335,6 @@ it('subscribes to Express Checkout results before create, isolates controllers, 
   expect(onResult).toHaveBeenLastCalledWith(completed);
   expect(otherResult).not.toHaveBeenCalled();
   await first.destroy();
-  callback({ controllerId, result: canceled });
   emit('checkoutExpressCheckoutDidComplete', {
     controllerId,
     result: canceled,
