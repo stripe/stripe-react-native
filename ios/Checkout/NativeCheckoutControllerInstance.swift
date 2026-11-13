@@ -19,12 +19,6 @@ final class NativeCheckoutControllerInstance {
     let shippingAddressElement: ShippingAddressElement?
     private(set) lazy var session = CheckoutSessionSerializer.serialize(checkout.session)
 
-    /// Whether Checkout created an Express Checkout Element with at least one wallet available.
-    /// Matches Android; JS reads it once, when the Checkout is created.
-    var isExpressCheckoutAvailable: Bool {
-        expressCheckoutElement != nil && !checkout.session.availableExpressCheckoutPaymentMethods.isEmpty
-    }
-
     private let emitEvent: ([String: Any]) -> Void
     private let emitExpressCheckoutResult: ([String: Any]) -> Void
     private var observation: AnyCancellable?

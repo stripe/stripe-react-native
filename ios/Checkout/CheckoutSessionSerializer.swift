@@ -6,12 +6,7 @@ enum CheckoutSessionSerializer {
     static func serialize(_ session: CheckoutElementsController.Session) -> [String: Any] {
         var result: [String: Any] = [
             "id": session.id,
-            "availableExpressCheckoutPaymentMethods": [
-                "applePay": ["available": session.availableExpressCheckoutPaymentMethods.contains(.applePay), "type": "apple_pay"],
-                // Google Pay is Android only; it is never available on iOS.
-                "googlePay": ["available": false, "type": "google_pay"],
-                "link": ["available": session.availableExpressCheckoutPaymentMethods.contains(.link), "type": "link"],
-            ],
+            "availableExpressCheckoutPaymentMethods": serializeExpressPaymentMethods(session),
             "livemode": session.livemode,
             "orderSummaryItems": session.orderSummaryItems.map(serialize),
             "discountAmounts": session.discountAmounts.map(serialize),
@@ -46,6 +41,17 @@ enum CheckoutSessionSerializer {
             var result = Errors.createError(checkoutErrorCode(for: error), error) as! [String: Any]
             result["status"] = "failed"
             return result
+        }
+    }
+
+    private static func serializeExpressPaymentMethods(
+        _ session: CheckoutElementsController.Session
+    ) -> [String: Any] {
+        let availableTypes = Set(session.availableExpressCheckoutPaymentMethods.map(\.rawValue))
+        // Google Pay is Android only, so the native set never contains it on iOS.
+        let types = ["applePay": "apple_pay", "googlePay": "google_pay", "link": "link"]
+        return types.mapValues { type -> [String: Any] in
+            ["available": availableTypes.contains(type), "type": type]
         }
     }
 

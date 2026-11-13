@@ -1,8 +1,14 @@
-import { checkoutSession as session } from '../__fixtures__/session';
+import {
+  checkoutSession as session,
+  checkoutSessionWithExpressWallet as sessionWithWallet,
+} from '../__fixtures__/session';
 import { addListener } from '../../events';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import type { CheckoutElements } from '../../types/CheckoutElements';
-import { createCheckoutElements } from '../createCheckoutElements';
+import {
+  createCheckoutElements,
+  getCheckoutExpressCheckoutElementId,
+} from '../createCheckoutElements';
 
 jest.mock('../../events', () => ({ addListener: jest.fn() }));
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
@@ -272,7 +278,7 @@ it('bridges Express Checkout configuration without sending callbacks to native',
     },
     onResult,
   };
-  create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });
+  create.mockResolvedValueOnce({ session: sessionWithWallet });
   const controller = await createCheckoutElements({
     ...options,
     expressCheckoutElement: configuration,
@@ -311,7 +317,7 @@ it('subscribes to Express Checkout results before create, isolates controllers, 
       controllerId,
       result: canceled,
     });
-    return { session, isExpressCheckoutAvailable: true };
+    return { session: sessionWithWallet };
   });
   const first = await createCheckoutElements({
     ...options,
@@ -344,8 +350,8 @@ it('subscribes to Express Checkout results before create, isolates controllers, 
   expect(listeners.get('checkoutExpressCheckoutDidComplete')?.size).toBe(0);
 });
 
-it('does not expose an unavailable Express Checkout Element', async () => {
-  create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: false });
+it('does not expose an Express Checkout Element while no wallet is available', async () => {
+  create.mockResolvedValueOnce({ session });
   const controller = await createCheckoutElements({
     ...options,
     expressCheckoutElement: { onResult: jest.fn() },
@@ -354,9 +360,47 @@ it('does not expose an unavailable Express Checkout Element', async () => {
   await controller.destroy();
 });
 
+it('follows wallet availability in the live session', async () => {
+  create.mockResolvedValueOnce({ session });
+  const controller = await createCheckoutElements({
+    ...options,
+    expressCheckoutElement: { onResult: jest.fn() },
+  });
+  const controllerId = create.mock.calls[0][1];
+  const update = (next: typeof session) =>
+    emit('checkoutControllerDidUpdate', {
+      controllerId,
+      status: 'ready',
+      session: next,
+    });
+  expect(controller.expressCheckoutElement).toBeNull();
+
+  update(sessionWithWallet);
+  const element = controller.expressCheckoutElement;
+  expect(element).not.toBeNull();
+  expect(getCheckoutExpressCheckoutElementId(element!)).toBe(controllerId);
+
+  update({ ...sessionWithWallet, email: 'updated@example.com' });
+  expect(controller.expressCheckoutElement).toBe(element);
+
+  update(session);
+  expect(controller.expressCheckoutElement).toBeNull();
+
+  update(sessionWithWallet);
+  expect(controller.expressCheckoutElement).toBe(element);
+  await controller.destroy();
+});
+
+it('does not expose an Express Checkout Element that was not configured', async () => {
+  create.mockResolvedValueOnce({ session: sessionWithWallet });
+  const controller = await createCheckoutElements(options);
+  expect(controller.expressCheckoutElement).toBeNull();
+  await controller.destroy();
+});
+
 it('keeps explicit confirmation outcomes separate from the Express Checkout callback', async () => {
   const onResult = jest.fn();
-  create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });
+  create.mockResolvedValueOnce({ session: sessionWithWallet });
   const controller = await createCheckoutElements({
     ...options,
     expressCheckoutElement: { onResult },
