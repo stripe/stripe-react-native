@@ -20,6 +20,7 @@ final class NativeCheckoutControllerInstance {
     private(set) lazy var session = CheckoutSessionSerializer.serialize(checkout.session)
 
     private let emitEvent: ([String: Any]) -> Void
+    private let emitExpressCheckoutResult: ([String: Any]) -> Void
     private var observation: AnyCancellable?
     private var controllerId: String?
     private var destructionObservers: [UUID: () -> Void] = [:]
@@ -32,12 +33,14 @@ final class NativeCheckoutControllerInstance {
         expressCheckoutElement: ExpressCheckoutElement? = nil,
         currencySelectorElement: CurrencySelectorElement? = nil,
         shippingAddressElement: ShippingAddressElement? = nil,
+        emitExpressCheckoutResult: @escaping ([String: Any]) -> Void = { _ in },
         emitEvent: @escaping ([String: Any]) -> Void
     ) {
         self.checkout = checkout
         self.expressCheckoutElement = expressCheckoutElement
         self.currencySelectorElement = currencySelectorElement
         self.shippingAddressElement = shippingAddressElement
+        self.emitExpressCheckoutResult = emitExpressCheckoutResult
         self.emitEvent = emitEvent
     }
 
@@ -84,6 +87,16 @@ final class NativeCheckoutControllerInstance {
         guard !isDestroyed else { return }
         session = CheckoutSessionSerializer.serialize(checkout.session)
         emit(status: isConfirming ? .confirming : (checkout.isUpdating ? .updating : .ready))
+    }
+
+    /// Publishes the current snapshot, then emits an Express Checkout result, unless destroyed.
+    func handleExpressCheckoutResult(_ result: CheckoutElementsController.ConfirmResult) {
+        guard !isDestroyed, let controllerId else { return }
+        publishCurrentState()
+        emitExpressCheckoutResult([
+            "controllerId": controllerId,
+            "result": CheckoutSessionSerializer.serialize(result),
+        ])
     }
 
     func runServerUpdate(

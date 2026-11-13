@@ -47,12 +47,7 @@ extension StripeSdkImpl {
                             ])
                         },
                         expressCheckoutCompletion: { [weak self] result in
-                            guard let self, let instance = checkoutControllers[controllerId] else { return }
-                            instance.publishCurrentState()
-                            emitter?.emitCheckoutExpressCheckoutDidComplete([
-                                "controllerId": controllerId,
-                                "result": CheckoutSessionSerializer.serialize(result),
-                            ])
+                            self?.checkoutControllers[controllerId]?.handleExpressCheckoutResult(result)
                         }
                     )
                     let checkout = try await CheckoutElementsController(configuration: configuration)
@@ -69,6 +64,9 @@ extension StripeSdkImpl {
                         shippingAddressElement: configuration.shippingAddressElement == nil
                             ? nil
                             : checkout.getShippingAddressElement(),
+                        emitExpressCheckoutResult: { [weak self] event in
+                            self?.emitter?.emitCheckoutExpressCheckoutDidComplete(event)
+                        },
                         emitEvent: { [weak self] update in
                             self?.emitter?.emitCheckoutControllerDidUpdate(update)
                         }

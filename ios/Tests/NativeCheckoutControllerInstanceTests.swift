@@ -182,6 +182,32 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         })
     }
 
+    func test_expressCheckoutResultPublishesCurrentSessionBeforeResultAndStopsAfterDestroy() async throws {
+        let checkout = try await makeCheckout()
+        var emitted: [String] = []
+        var results: [[String: Any]] = []
+        let instance = NativeCheckoutControllerInstance(
+            checkout: checkout,
+            emitExpressCheckoutResult: { event in
+                emitted.append("result")
+                results.append(event)
+            },
+            emitEvent: { _ in emitted.append("update") }
+        )
+        instance.start(controllerId: "express-result")
+        emitted.removeAll()
+
+        instance.handleExpressCheckoutResult(.canceled)
+
+        XCTAssertEqual(emitted, ["update", "result"])
+        XCTAssertEqual(results.last?["controllerId"] as? String, "express-result")
+        XCTAssertNotNil(results.last?["result"])
+
+        instance.destroy()
+        instance.handleExpressCheckoutResult(.canceled)
+        XCTAssertEqual(emitted, ["update", "result"])
+    }
+
     func test_expressCheckoutViewMeasuresAndDetaches() async throws {
         let checkout = try await makeCheckout(expressCheckout: true)
         let element = checkout.getExpressCheckoutElement()
