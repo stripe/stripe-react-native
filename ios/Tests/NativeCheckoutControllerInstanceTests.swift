@@ -184,28 +184,31 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
 
     func test_expressCheckoutResultPublishesCurrentSessionBeforeResultAndStopsAfterDestroy() async throws {
         let checkout = try await makeCheckout()
-        var emitted: [String] = []
-        var results: [[String: Any]] = []
+        var emitted: [(kind: String, event: [String: Any])] = []
         let instance = NativeCheckoutControllerInstance(
             checkout: checkout,
-            emitExpressCheckoutResult: { event in
-                emitted.append("result")
-                results.append(event)
-            },
-            emitEvent: { _ in emitted.append("update") }
+            emitExpressCheckoutResult: { emitted.append(("result", $0)) },
+            emitEvent: { emitted.append(("update", $0)) }
         )
         instance.start(controllerId: "express-result")
+        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session(status: "expired"))
         emitted.removeAll()
 
         instance.handleExpressCheckoutResult(.canceled)
 
-        XCTAssertEqual(emitted, ["update", "result"])
-        XCTAssertEqual(results.last?["controllerId"] as? String, "express-result")
-        XCTAssertNotNil(results.last?["result"])
+        XCTAssertEqual(emitted.map(\.kind), ["update", "result"])
+        let update = try XCTUnwrap(emitted.first?.event)
+        let session = try XCTUnwrap(update["session"] as? [String: Any])
+        XCTAssertEqual(session["status"] as? NSDictionary, ["type": "expired"])
+        XCTAssertEqual(update["status"] as? String, "ready")
+        let result = try XCTUnwrap(emitted.last?.event)
+        XCTAssertEqual(result["controllerId"] as? String, "express-result")
+        XCTAssertEqual((result["result"] as? [String: Any])?["status"] as? String, "canceled")
 
         instance.destroy()
+        emitted.removeAll()
         instance.handleExpressCheckoutResult(.canceled)
-        XCTAssertEqual(emitted, ["update", "result"])
+        XCTAssertTrue(emitted.isEmpty)
     }
 
     func test_expressCheckoutViewMeasuresAndDetaches() async throws {
