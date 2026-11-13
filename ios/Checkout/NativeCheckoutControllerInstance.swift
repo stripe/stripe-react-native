@@ -74,12 +74,16 @@ final class NativeCheckoutControllerInstance {
             }
             let result = await checkout.confirm(from: presenter)
             isConfirming = false
-            if !isDestroyed {
-                session = CheckoutSessionSerializer.serialize(checkout.session)
-                emit(status: checkout.isUpdating ? .updating : .ready)
-            }
+            publishCurrentState()
             completion(result)
         }
+    }
+
+    /// Publishes the current native snapshot so JS sees it before an operation or wallet result.
+    func publishCurrentState() {
+        guard !isDestroyed else { return }
+        session = CheckoutSessionSerializer.serialize(checkout.session)
+        emit(status: isConfirming ? .confirming : (checkout.isUpdating ? .updating : .ready))
     }
 
     func runServerUpdate(

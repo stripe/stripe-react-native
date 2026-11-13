@@ -9,7 +9,6 @@ import { runServerUpdate } from './runServerUpdate';
 import NativeStripeSdk, {
   type CheckoutCreateOptions,
 } from '../specs/NativeStripeSdkModule';
-import { Platform } from 'react-native';
 import {
   addCheckoutControllerListener,
   addCheckoutControllerSelectionListener,
@@ -148,12 +147,6 @@ export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,
   onUpdate?: (controller: CheckoutElements) => void
 ): Promise<CheckoutElements> {
-  // Keep the iOS bridge unsupported until its native implementation is available.
-  if (options.expressCheckoutElement && Platform.OS !== 'android') {
-    throw new Error(
-      'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
-    );
-  }
   const controllerId = createCheckoutBridgeId();
   let status: CheckoutElements['status'] = 'ready';
   let session: CheckoutElements.Session | undefined;
@@ -175,11 +168,13 @@ export async function createCheckoutController(
       ? options.paymentElement.rowSelectionBehavior.onSelectPaymentOption
       : undefined
   );
+  const onExpressCheckoutResult = options.expressCheckoutElement?.onResult;
   const expressResultSubscription = options.expressCheckoutElement
-    ? addCheckoutExpressResultListener(
-        controllerId,
-        options.expressCheckoutElement.onResult
-      )
+    ? addCheckoutExpressResultListener(controllerId, (result) => {
+        if (status !== 'destroyed') {
+          onExpressCheckoutResult?.(result);
+        }
+      })
     : undefined;
   try {
     // Keep handle availability consistent if options change during native creation.
@@ -309,6 +304,7 @@ export async function createCheckoutController(
     }
     return controller;
   } catch (error) {
+    status = 'destroyed';
     subscription.remove();
     selectionSubscription.remove();
     expressResultSubscription?.remove();

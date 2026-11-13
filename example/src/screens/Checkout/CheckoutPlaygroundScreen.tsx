@@ -5,7 +5,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -25,6 +24,7 @@ import {
   buildSessionParameters,
   checkoutPlaygroundSettingsKey,
   defaultPlaygroundSettings,
+  playgroundMerchantIdentifier,
   resolvedEmail,
   usTestAddress,
   validateSettings,
@@ -333,7 +333,7 @@ export default function CheckoutPlaygroundScreen() {
       );
       await initStripe({
         publishableKey,
-        merchantIdentifier: 'merchant.com.stripe.react.native',
+        merchantIdentifier: playgroundMerchantIdentifier(settings),
         urlScheme: 'com.stripe.react.native',
       });
       const customerID =
@@ -617,6 +617,22 @@ export default function CheckoutPlaygroundScreen() {
               onChange={(value) => set('linkMode', value)}
             />
             <ToggleRow
+              label="Apple Pay"
+              testID="checkout-apple-pay-toggle"
+              value={settings.applePayEnabled}
+              onChange={(value) => set('applePayEnabled', value)}
+            />
+            <ToggleRow
+              label="Payment Element Apple Pay"
+              testID="checkout-payment-element-apple-pay-toggle"
+              value={
+                settings.applePayEnabled &&
+                settings.paymentElementApplePayEnabled
+              }
+              onChange={(value) => set('paymentElementApplePayEnabled', value)}
+              disabled={!settings.applePayEnabled}
+            />
+            <ToggleRow
               label="Automatic Tax"
               value={settings.automaticTax}
               onChange={(value) => set('automaticTax', value)}
@@ -697,70 +713,59 @@ export default function CheckoutPlaygroundScreen() {
         )}
 
         <Section title="Express Checkout Element">
-          {Platform.OS === 'android' ? (
-            <>
-              <ToggleRow
-                label="Enable Express Checkout"
-                value={settings.expressCheckoutEnabled}
-                onChange={(enabled) => set('expressCheckoutEnabled', enabled)}
+          <ToggleRow
+            label="Enable Express Checkout"
+            value={settings.expressCheckoutEnabled}
+            onChange={(enabled) => set('expressCheckoutEnabled', enabled)}
+          />
+          {settings.expressCheckoutEnabled && (
+            <View style={styles.card}>
+              <PickerRow<ExpressButtonTheme>
+                label="Express button theme"
+                value={settings.expressButtonTheme}
+                choices={[
+                  { label: 'Native default', value: 'default' },
+                  { label: 'Automatic', value: 'automatic' },
+                  { label: 'Light', value: 'light' },
+                  { label: 'Dark', value: 'dark' },
+                ]}
+                onChange={(value) => set('expressButtonTheme', value)}
               />
-              {settings.expressCheckoutEnabled && (
-                <View style={styles.card}>
-                  <PickerRow<ExpressButtonTheme>
-                    label="Express button theme"
-                    value={settings.expressButtonTheme}
-                    choices={[
-                      { label: 'Native default', value: 'default' },
-                      { label: 'Automatic', value: 'automatic' },
-                      { label: 'Light', value: 'light' },
-                      { label: 'Dark', value: 'dark' },
-                    ]}
-                    onChange={(value) => set('expressButtonTheme', value)}
-                  />
-                  <PickerRow<ExpressBorderRadius>
-                    label="Express border radius"
-                    value={settings.expressBorderRadius}
-                    choices={[
-                      { label: 'Native default', value: 'default' },
-                      { label: '0 dp', value: '0' },
-                      { label: '12 dp', value: '12' },
-                      { label: '24 dp', value: '24' },
-                    ]}
-                    onChange={(value) => set('expressBorderRadius', value)}
-                  />
-                  {(
-                    [
-                      ['expressMaxRows', 'Express max rows'],
-                      ['expressMaxColumns', 'Express max columns'],
-                    ] as const
-                  ).map(([key, label]) => (
-                    <PickerRow<ExpressLayoutLimit>
-                      key={key}
-                      label={label}
-                      value={settings[key]}
-                      choices={[
-                        { label: 'Native default', value: 'default' },
-                        { label: '1', value: '1' },
-                        { label: '2', value: '2' },
-                      ]}
-                      onChange={(value) => set(key, value)}
-                    />
-                  ))}
-                </View>
-              )}
-              <Text style={styles.helperText}>
-                Displays Google Pay and Link when available. Link follows the
-                display setting above.
-              </Text>
-            </>
-          ) : (
-            <View style={styles.availabilityCard}>
-              <Text style={styles.availabilityTitle}>Not bridged on iOS</Text>
-              <Text style={styles.helperText}>
-                Express Checkout is currently available on Android only.
-              </Text>
+              <PickerRow<ExpressBorderRadius>
+                label="Express border radius"
+                value={settings.expressBorderRadius}
+                choices={[
+                  { label: 'Native default', value: 'default' },
+                  { label: '0 dp', value: '0' },
+                  { label: '12 dp', value: '12' },
+                  { label: '24 dp', value: '24' },
+                ]}
+                onChange={(value) => set('expressBorderRadius', value)}
+              />
+              {(
+                [
+                  ['expressMaxRows', 'Express max rows'],
+                  ['expressMaxColumns', 'Express max columns'],
+                ] as const
+              ).map(([key, label]) => (
+                <PickerRow<ExpressLayoutLimit>
+                  key={key}
+                  label={label}
+                  value={settings[key]}
+                  choices={[
+                    { label: 'Native default', value: 'default' },
+                    { label: '1', value: '1' },
+                    { label: '2', value: '2' },
+                  ]}
+                  onChange={(value) => set(key, value)}
+                />
+              ))}
             </View>
           )}
+          <Text style={styles.helperText}>
+            Displays Apple Pay on iOS, Google Pay on Android, and Link when
+            available. Link follows the display setting above.
+          </Text>
         </Section>
       </ScrollView>
 
@@ -957,15 +962,6 @@ const styles = StyleSheet.create({
   },
   unavailableText: { color: '#697386', fontSize: 13, fontWeight: '600' },
   availableText: { color: colors.blurple, fontSize: 13, fontWeight: '700' },
-  availabilityCard: {
-    borderRadius: 14,
-    padding: 16,
-    gap: 5,
-    backgroundColor: colors.white,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#D9E2EC',
-  },
-  availabilityTitle: { color: colors.slate, fontSize: 15, fontWeight: '700' },
   createBar: {
     position: 'absolute',
     left: 0,

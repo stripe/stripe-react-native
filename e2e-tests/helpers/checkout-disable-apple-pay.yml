@@ -1,0 +1,11 @@
+appId: ${APP_ID}
+---
+# The playground enables Apple Pay by default, and a wallet is then selected as the
+# payment option as soon as the session is ready. These flows rely on starting with no
+# payment option (the cart reads "Select payment method"), so turn Apple Pay off.
+- scrollUntilVisible:
+    element:
+      id: 'checkout-apple-pay-toggle'
+    centerElement: true
+- tapOn:
+    id: 'checkout-apple-pay-toggle'
