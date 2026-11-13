@@ -7,7 +7,7 @@ import {
 } from '../../components/ExpressCheckoutElementView';
 import { createCheckoutElements } from '../createCheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
-import { checkoutSession as session } from '../__fixtures__/session';
+import { checkoutSessionWithExpressWallet as sessionWithWallet } from '../__fixtures__/session';
 
 jest.mock('../../events', () => ({
   addListener: jest.fn(() => ({ remove: jest.fn() })),
@@ -35,9 +35,7 @@ it('rejects elements that were not created by this SDK', () => {
 
 it('routes the controller ID and native height, resetting height when the handle changes', async () => {
   const create = NativeStripeSdk.createCheckout as jest.Mock;
-  create
-    .mockReset()
-    .mockResolvedValue({ session, isExpressCheckoutAvailable: true });
+  create.mockReset().mockResolvedValue({ session: sessionWithWallet });
   const options = {
     clientSecret: 'cs_test_secret',
     returnURL: 'example://checkout',
