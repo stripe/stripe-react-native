@@ -19,7 +19,11 @@ import {
   ViewStyle,
 } from 'react-native';
 import type { WebViewMessageEvent, WebViewProps } from 'react-native-webview';
-import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import type {
+  ShouldStartLoadRequest,
+  WebViewNavigationEvent,
+  WebViewOpenWindowEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
@@ -52,6 +56,22 @@ const DEVELOPMENT_URL =
 const PRODUCTION_URL = 'https://connect-js.stripe.com';
 const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
+// The wrapper document is the only page the SDK trusts to receive secrets
+// (fetchClientSecret replies, Financial Connections results, auth redirect
+// URLs...). Its origin is BASE_URL itself (not hardcoded separately, so
+// DEVELOPMENT_MODE pins the dev origin automatically). We deliberately never
+// build a URL object out of these: React Native's global `URL` is the
+// regex-based polyfill in react-native/Libraries/Blob/URL.js, not a WHATWG
+// parser, and it disagrees with real browsers on pathname/hostname for many
+// inputs. All wrapper-identity checks below are plain string operations.
+const WRAPPER_PATH = '/v1.0/react_native_webview.html';
+
+// Explicit allowlist of non-http(s) schemes that are safe to hand to the OS
+// via Linking. Anything not https: or in this list is dropped silently by
+// routeOutside -- in particular custom app schemes, intent:, javascript: and
+// plain http:.
+const EXTERNAL_LINK_SCHEMES = ['mailto:', 'tel:'];
+
 const sdkVersion = pjson.version;
 
 // Android deep link polling configuration
@@ -79,12 +99,20 @@ const userAgent = [
   `stripe-react_native/${sdkVersion}`,
 ].join(' - ');
 
-// Allowed domains for in-WebView navigation (matching iOS SDK behavior)
-const ALLOWED_STRIPE_HOSTS = [
+// Allowed domains for in-WebView navigation (matching iOS SDK behavior).
+// Production Stripe hosts are https-only. DEVELOPMENT_MODE dev hosts may
+// still use http, since the local dev server doesn't have TLS.
+const PRODUCTION_STRIPE_HOSTS = [
   'connect-js.stripe.com',
   'connect.stripe.com',
   'verify.stripe.com',
-  ...(DEVELOPMENT_MODE ? ['10.0.2.2:3001', 'localhost:3001'] : []),
+];
+const DEVELOPMENT_STRIPE_HOSTS = DEVELOPMENT_MODE
+  ? ['10.0.2.2:3001', 'localhost:3001']
+  : [];
+const ALLOWED_STRIPE_HOSTS = [
+  ...PRODUCTION_STRIPE_HOSTS,
+  ...DEVELOPMENT_STRIPE_HOSTS,
 ];
 
 export interface CommonComponentProps {
@@ -202,6 +230,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       {
         callback: (id: string, url: string | null) => void;
         timeoutId?: NodeJS.Timeout;
+        // The document generation when this auth flow was requested (D3
+        // hygiene). Checked before `callback` runs, since the deep link /
+        // app-state timeout that invokes it can fire well after a newer
+        // top-frame load has started.
+        requestGeneration: number;
       }
     >
   >(new Map());
@@ -295,7 +328,13 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
                 // Remove from Map and invoke callback
                 pendingAuthWebViewPromises.current.delete(id);
-                promiseData.callback(id, url);
+                // Hygiene (D3): drop the reply if a new top-frame load
+                // started while this deep link was in flight.
+                if (
+                  documentGeneration.current === promiseData.requestGeneration
+                ) {
+                  promiseData.callback(id, url);
+                }
 
                 // Reset the Android flag
                 NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(() => {
@@ -332,7 +371,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                 const stillPending = pendingAuthWebViewPromises.current.get(id);
                 if (stillPending) {
                   pendingAuthWebViewPromises.current.delete(id);
-                  stillPending.callback(id, null);
+                  // Hygiene (D3): drop the cancellation reply if a new
+                  // top-frame load started while this auth flow was pending.
+                  if (
+                    documentGeneration.current ===
+                    stillPending.requestGeneration
+                  ) {
+                    stillPending.callback(id, null);
+                  }
                 }
               }, DEEP_LINK_GRACE_PERIOD_MS);
 
@@ -410,11 +456,53 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     )
     .join('&');
 
-  const connectURL = `${BASE_URL}/v1.0/react_native_webview.html#${hash}`;
+  const connectURL = `${BASE_URL}${WRAPPER_PATH}#${hash}`;
   const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
   const ref = useRef<WebViewHandle>(null);
   const hasTriedSourceReload = useRef(false);
+
+  // D3 hygiene, NOT the security boundary (that's deliverToWrapper's
+  // origin/path guard, which runs inside the document itself). Bumping this
+  // on every new top-frame document load lets async completions drop a
+  // reply whose request predates a newer load, instead of injecting it into
+  // a document that never asked for it.
+  const documentGeneration = useRef(0);
+  const lastLoadStartUrl = useRef<string | null>(null);
+
+  const onLoadStart = useCallback((event: WebViewNavigationEvent) => {
+    // Android's onLoadStart is emitted from WebViewClient's
+    // doUpdateVisitedHistory (RNCWebViewClient.java), which fires for real
+    // navigations AND for same-document pushState/replaceState/hash
+    // changes, with no field to tell them apart (no navigationType, no
+    // isReload). Bumping on it risks dropping a reply while the document
+    // that requested it is still alive, which can stall the component.
+    // There's no reliable new-document signal on Android -- onLoadEnd's
+    // timing relative to the document's own request isn't guaranteed
+    // either -- so the generation counter (hygiene only; the deliverToWrapper
+    // guard is the security boundary) simply never bumps there.
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+
+    const { url, navigationType } = event.nativeEvent;
+    const previousUrl = lastLoadStartUrl.current;
+    lastLoadStartUrl.current = url;
+
+    // A pure fragment change within the same document (e.g. client-side
+    // routing) isn't a new document load, so it shouldn't invalidate
+    // in-flight requests. A same-URL reload -- including the forced iOS
+    // reload below -- is still treated as a new load.
+    if (
+      previousUrl !== null &&
+      navigationType !== 'reload' &&
+      isSameDocumentExceptFragment(previousUrl, url)
+    ) {
+      return;
+    }
+
+    documentGeneration.current += 1;
+  }, []);
 
   const [prevAppearance, setPrevAppearance] = useState(appearance);
   const [prevLocale, setPrevLocale] = useState(locale);
@@ -425,12 +513,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
     const patchedAppearance = withDefaultFontFamily(appearance);
 
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.updateConnectInstance(${JSON.stringify({ appearance: patchedAppearance, locale })});
-        true;
-      })();
-    `);
+    ref.current?.injectJavaScript(
+      deliverToWrapper(
+        `window.updateConnectInstance(${JSON.stringify({ appearance: patchedAppearance, locale })});`
+      )
+    );
   }
 
   const [prevComponentProps, setPrevComponentProps] = useState(componentProps);
@@ -438,15 +525,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     setPrevComponentProps(componentProps);
 
     Object.entries(componentProps || {}).forEach(([key, value]) => {
-      ref.current?.injectJavaScript(`
-        (function() {
-          window.callSetterWithSerializableValue(${JSON.stringify({
+      ref.current?.injectJavaScript(
+        deliverToWrapper(
+          `window.callSetterWithSerializableValue(${JSON.stringify({
             setter: key,
             value,
-          })});
-          true;
-        })();
-      `);
+          })});`
+        )
+      );
     });
   }
 
@@ -454,6 +540,53 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Unexpected error: ${errorMessage}`);
   }, []);
+
+  // Shared by onShouldStartLoadWithRequest and onOpenWindow (D4): a popup or
+  // a navigation that doesn't stay in-WebView is routed to the OS by scheme,
+  // never loaded into the bridged WebView.
+  const routeOutside = useCallback(
+    (url: string) => {
+      // Never hand a URL carrying the wrapper's path to the OS, even if it
+      // failed the exact match elsewhere (e.g. a stale hash after a config
+      // change, a different scheme/port, or a URL that normalizes
+      // differently): its fragment carries apiKeyOverride, a live session
+      // key. A substring check, not a prefix one, so a lookalike scheme or
+      // host doesn't slip through. Drop it silently; never log it.
+      if (url.includes(WRAPPER_PATH)) {
+        return;
+      }
+
+      // Scheme via regex, not `new URL(url).protocol`: see the module-level
+      // comment above. The constructor also throws for some valid
+      // non-http(s) URLs (e.g. `mailto:x#y`) under the RN polyfill.
+      const schemeMatch = /^([a-z][a-z0-9+.-]*):/i.exec(url);
+      const protocol = schemeMatch ? `${schemeMatch[1]!.toLowerCase()}:` : '';
+
+      if (isCsvExportUrl(url)) {
+        NativeStripeSdk.downloadAndShareFile(url, null)
+          .then((result) => {
+            if (!result.success) {
+              console.warn('CSV export share failed:', result.error);
+            }
+          })
+          .catch((error) => {
+            handleUnexpectedError(error);
+          });
+        return;
+      }
+
+      // https: and the explicit mailto:/tel: allowlist are handed to the OS.
+      // Everything else (http:, javascript:, data:, custom app schemes,
+      // intent:, ...) is dropped silently: we never auto-launch an arbitrary
+      // scheme handler for content we don't trust.
+      if (protocol === 'https:' || EXTERNAL_LINK_SCHEMES.includes(protocol)) {
+        Linking.openURL(url).catch((error) => {
+          handleUnexpectedError(error);
+        });
+      }
+    },
+    [handleUnexpectedError]
+  );
 
   const WebViewComponent = dynamicWebview?.WebView;
 
@@ -494,15 +627,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   }, [hasBeenViewed, componentAnalytics]);
 
   const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.returnedFromAuthenticatedWebView(${JSON.stringify({
+    ref.current?.injectJavaScript(
+      deliverToWrapper(
+        `window.returnedFromAuthenticatedWebView(${JSON.stringify({
           id,
           url: resultUrl,
-        })});
-        true;
-      })();
-    `);
+        })});`
+      )
+    );
   };
 
   const handleFinancialConnectionsResult = (
@@ -535,15 +667,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       };
     }
 
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.callSetterWithSerializableValue(${JSON.stringify({
+    ref.current?.injectJavaScript(
+      deliverToWrapper(
+        `window.callSetterWithSerializableValue(${JSON.stringify({
           setter: 'setCollectMobileFinancialConnectionsResult',
           value,
-        })});
-        true;
-      })();
-    `);
+        })});`
+      )
+    );
   };
 
   const onMessageCallback = useCallback(
@@ -560,17 +691,23 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }
 
       if (message.type === 'fetchClientSecret') {
+        const requestGeneration = documentGeneration.current;
         const clientSecret = await fetchClientSecret().catch((error) => {
           handleUnexpectedError(error);
           return null;
         });
         if (!clientSecret) return;
+        // Hygiene (D3): a new top-frame load started while fetchClientSecret
+        // was pending, so the document that asked for this secret may no
+        // longer be running. Each wrapper document requests its own secret
+        // during init, so dropping a stale first-load reply is safe.
+        if (documentGeneration.current !== requestGeneration) return;
 
-        ref.current?.injectJavaScript(`
-            window.clientSecretDeferred.resolve(${JSON.stringify(
-              clientSecret
-            )});
-          `);
+        ref.current?.injectJavaScript(
+          deliverToWrapper(
+            `window.clientSecretDeferred.resolve(${JSON.stringify(clientSecret)});`
+          )
+        );
       } else if (message.type === 'debug') {
         // message.data is of type string
         console.debug(`[EmbeddedComponent ${component}]: ${message.data}`);
@@ -643,6 +780,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
+        const requestGeneration = documentGeneration.current;
         const resultPromise: Promise<FinancialConnections.TokenResult> =
           NativeStripeSdk.collectBankAccountToken(clientSecret, {
             connectedAccountId,
@@ -650,6 +788,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         resultPromise
           .then((result) => {
+            // Hygiene (D3): drop the reply if a new top-frame load started
+            // while Financial Connections was running.
+            if (documentGeneration.current !== requestGeneration) return;
+
             if (result.error) {
               if (
                 result.error.code === FinancialConnectionsSheetError.Canceled
@@ -683,6 +825,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           })
           .catch((unexpectedError) => {
             handleUnexpectedError(unexpectedError);
+            if (documentGeneration.current !== requestGeneration) return;
             handleFinancialConnectionsResult(id, {
               error: {
                 code: 'UnexpectedError',
@@ -723,10 +866,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'openAuthenticatedWebView') {
         const { url, id } = message.data as { id: string; url: string };
 
-        // Validate URL before opening
+        // Validate URL before opening. Never log `url` itself.
         if (!isValidUrl(url)) {
           handleUnexpectedError(
-            new Error(`Invalid URL for authenticated webview: ${url}`)
+            new Error('Invalid URL for authenticated webview')
           );
           return;
         }
@@ -736,9 +879,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         // On Android, we need to wait for the deep link callback
         // On iOS, the promise resolves with the redirect URL
+        const requestGeneration = documentGeneration.current;
         NativeStripeSdk.openAuthenticatedWebView(id, url)
           .then((result) => {
             if (Platform.OS === 'ios') {
+              // Hygiene (D3): drop the reply if a new top-frame load started
+              // while the auth webview was open.
+              if (documentGeneration.current !== requestGeneration) return;
+
               // iOS returns the redirect URL directly
               const resultUrl = result?.url ?? null;
               if (resultUrl) {
@@ -748,8 +896,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               }
               handleAuthWebViewResult(id, resultUrl);
             } else {
-              // Android: Store promise in Map to be resolved by deep link listener
+              // Android: Store promise in Map to be resolved by deep link
+              // listener. requestGeneration travels with it so the deep
+              // link / app-state callback below can apply the same hygiene
+              // check once it actually fires.
               pendingAuthWebViewPromises.current.set(id, {
+                requestGeneration,
                 callback: (authId: string, resultUrl: string | null) => {
                   if (resultUrl) {
                     componentAnalytics.logAuthenticatedWebViewRedirected(
@@ -794,37 +946,97 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const onShouldStartLoadWithRequest = useCallback(
     (event: ShouldStartLoadRequest) => {
-      const { url, navigationType } = event;
+      const { url, navigationType, isTopFrame, mainDocumentURL } = event;
 
-      // Handle CSV export downloads
+      // CSV exports are handled first, before any frame/host classification:
+      // a Payouts CSV download navigates straight to a presigned, one-time
+      // export URL that isn't part of any document we'd otherwise trust.
       if (isCsvExportUrl(url)) {
-        NativeStripeSdk.downloadAndShareFile(url, null)
-          .then((result) => {
-            if (!result.success) {
-              console.warn('CSV export share failed:', result.error);
-            }
-          })
-          .catch((error) => {
-            handleUnexpectedError(error);
-          });
-        return false; // Block WebView navigation
+        routeOutside(url);
+        return false;
       }
 
-      if (Platform.OS === 'ios' && navigationType !== 'click') return true;
+      if (Platform.OS === 'ios') {
+        // iOS computes isTopFrame by comparing the request URL to
+        // mainDocumentURL. Treat a missing mainDocumentURL as top-frame too
+        // (fail closed, D5): we'd rather apply the stricter main-frame policy
+        // to a navigation we can't classify than let it slip through as a
+        // harmless subframe load.
+        const isMainFrame = isTopFrame === true || !mainDocumentURL;
 
-      // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
-      if (isAllowedStripeHost(url)) {
-        return true; // Allow in-WebView navigation
+        if (isMainFrame) {
+          // The only privileged top document is the exact Connect wrapper
+          // (D1): no legitimate flow ever navigates the top frame away from
+          // it (auth and Financial Connections are native; verify.stripe.com
+          // is only ever an iframe). So any other top-frame navigation, of
+          // ANY navigationType -- including a reload, backforward, or
+          // form(re)submit to a different URL -- is routed outside and never
+          // loaded in place. This pinning is what makes deliverToWrapper's
+          // origin+pathname guard an exact-document check on iOS: only the
+          // real wrapper document can ever be running in the main frame for
+          // that guard to authorize.
+          if (isTrustedWrapperDocument(url, connectURL)) {
+            return true;
+          }
+          routeOutside(url);
+          return false;
+        }
+
+        // Subframe navigation (e.g. the verify.stripe.com iframe, or a
+        // benign resource load). A non-click load of a scheme that can't
+        // itself trigger further navigation is allowed to render in place.
+        if (navigationType !== 'click') {
+          return (
+            url.startsWith('https:') ||
+            url.startsWith('about:') ||
+            url.startsWith('blob:') ||
+            url.startsWith('data:')
+          );
+        }
+
+        // A user click in a subframe may only land on an allowed Stripe
+        // host; anything else is routed outside.
+        if (isAllowedStripeHost(url)) {
+          return true;
+        }
+        routeOutside(url);
+        return false;
       }
 
-      // Open external links in system browser
-      Linking.openURL(url).catch((error) => {
-        handleUnexpectedError(error);
-      });
-
-      return false; // Block in-WebView navigation for external links
+      // Android (D2): react-native-webview hardcodes isTopFrame: true and
+      // navigationType: 'other' for every navigation, so main-frame vs.
+      // subframe and click vs. programmatic navigations can't be told apart.
+      // The only policy that's safe for all of them is: keep in-WebView
+      // navigation to the trusted wrapper or an https allowed Stripe host,
+      // and route everything else outside. Documented residual risk (D2):
+      // an allowlisted Stripe host replacing the main frame on Android can't
+      // be distinguished from a benign subframe/resource load -- and because
+      // nothing here pins the main frame to the exact wrapper document the
+      // way D1 does on iOS, any non-wrapper page that runs script on
+      // connect-js.stripe.com itself could also occupy the main frame and
+      // satisfy deliverToWrapper's origin+pathname guard (e.g. via the
+      // History API). See the deliverToWrapper comment below.
+      if (
+        isTrustedWrapperDocument(url, connectURL) ||
+        isAllowedStripeHost(url)
+      ) {
+        return true;
+      }
+      routeOutside(url);
+      return false;
     },
-    [handleUnexpectedError]
+    [connectURL, routeOutside]
+  );
+
+  // Always registered, on both platforms (D4): a popup must never load into
+  // the bridged WebView. Registering onOpenWindow makes react-native-webview
+  // report it here instead of silently falling back to loading the popup's
+  // request into the existing WebView (iOS) or dropping it (Android).
+  const onOpenWindow = useCallback(
+    (event: WebViewOpenWindowEvent) => {
+      routeOutside(event.nativeEvent.targetUrl);
+    },
+    [routeOutside]
   );
 
   const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
@@ -878,8 +1090,19 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={injectedObjectScript}
+      onLoadStart={onLoadStart}
       onMessage={onMessageCallback}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      onOpenWindow={onOpenWindow}
+      // react-native-webview checks originWhitelist (default http(s) only)
+      // before calling onShouldStartLoadWithRequest, and auto-opens anything
+      // that fails it via Linking (WebViewShared.tsx). That would run before
+      // our own scheme policy and bypass routeOutside's CSV/mailto/tel
+      // handling, so widen it to '*' and let onShouldStartLoadWithRequest and
+      // onOpenWindow make every decision instead. This isn't a loosening:
+      // those two callbacks are the actual gate, and they're stricter than
+      // the default whitelist, not looser.
+      originWhitelist={['*']}
       onLayout={handleLayout}
       // Camera/Media Permissions - matches iOS SDK behavior
       mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
@@ -976,15 +1199,20 @@ function isValidUrl(url: string): boolean {
   }
 }
 
-// Matches only: http(s)://<allowed host>[:port] followed by "/", "?", "#" or end of string.
-// The authority is read from the raw string, so the decision doesn't depend on
-// the runtime's URL class (React Native's can misread "@" in a query or fragment).
-function hasAllowedStripeAuthority(url: string): boolean {
-  const match = /^https?:\/\/([^/?#]*)/i.exec(url);
+// Matches `url`'s authority (host[:port]) against `hosts`, requiring
+// `scheme`. The authority is read from the raw string, so the decision
+// doesn't depend on the runtime's URL class (React Native's can misread "@"
+// in a query or fragment).
+function hasAllowedStripeAuthority(
+  url: string,
+  hosts: readonly string[],
+  scheme: 'https' | 'https?'
+): boolean {
+  const match = new RegExp(`^${scheme}:\\/\\/([^/?#]*)`, 'i').exec(url);
   if (!match) return false;
   const authority = match[1]!.toLowerCase();
   const authorityWithoutPort = authority.replace(/:\d*$/, '');
-  return ALLOWED_STRIPE_HOSTS.some(
+  return hosts.some(
     (host) => authority === host || authorityWithoutPort === host
   );
 }
@@ -995,23 +1223,82 @@ export function isAllowedStripeHost(url: string): boolean {
     const allowedByRuntimeParser = ALLOWED_STRIPE_HOSTS.some(
       (host) => parsedUrl.hostname === host || parsedUrl.host === host
     );
-    return allowedByRuntimeParser && hasAllowedStripeAuthority(url);
+    if (!allowedByRuntimeParser) return false;
+
+    // Production hosts are https-only. DEVELOPMENT_MODE dev hosts may be
+    // http or https.
+    return (
+      hasAllowedStripeAuthority(url, PRODUCTION_STRIPE_HOSTS, 'https') ||
+      hasAllowedStripeAuthority(url, DEVELOPMENT_STRIPE_HOSTS, 'https?')
+    );
   } catch {
     return false;
   }
 }
 
-// Detects Stripe CSV export URLs
+// Detects Stripe CSV export URLs. Only exact export hosts count: a path that
+// merely contains "stripe-data-exports" is not evidence of anything, since
+// any host can serve a path with that substring. An anchored regex on the
+// raw string, like isAllowedStripeHost's pattern -- not URL parsing (see the
+// module-level comment above): React Native's URL polyfill mishandles
+// "@" userinfo, so e.g. `https://evil.example/@stripe-data-exports.s3.amazonaws.com/x.csv`
+// would otherwise report the trusted host.
+const CSV_EXPORT_HOST_PATTERN =
+  /^https:\/\/(?:stripe-data-exports\.com|(?:[a-z0-9-]+\.)+stripe-data-exports\.com|stripe-data-exports\.s3\.amazonaws\.com)(?::\d+)?(?:[/?#]|$)/i;
+
 function isCsvExportUrl(url: string): boolean {
-  try {
-    const parsedUrl = new URL(url);
-    return (
-      parsedUrl.hostname === 'stripe-data-exports.com' ||
-      parsedUrl.hostname.endsWith('.stripe-data-exports.com') ||
-      parsedUrl.hostname === 'stripe-data-exports.s3.amazonaws.com' ||
-      parsedUrl.pathname.includes('stripe-data-exports')
-    );
-  } catch {
-    return false;
-  }
+  return CSV_EXPORT_HOST_PATTERN.test(url);
+}
+
+// Wraps `payloadScript` so it only runs inside a document on the wrapper's
+// ORIGIN (D3, the security boundary). Page script can't override
+// `window.location` or its `origin`/`pathname` getters, and this check runs
+// atomically inside whichever document actually receives and executes the
+// script -- closing the race between an RN-side check and native script
+// execution. The pathname comparison is defence in depth, not document
+// identity: the History API (`pushState`/`replaceState`) can change
+// `location.pathname` without loading the wrapper, so it doesn't prove this
+// is the specific document that requested a reply, only that it's some
+// document on the wrapper's origin currently reporting that path. Exact
+// wrapper-document identity comes from navigation pinning (D1) on iOS; on
+// Android, any https document on an allowed host (including a non-wrapper
+// page on this origin) can reach the main frame (D2) -- a documented
+// residual risk. A generation counter (kept separately) is hygiene on top
+// of this, not a substitute for it: it can only drop a reply before it's
+// sent, while this guard is what actually decides whether the reply takes
+// effect once delivered. This runs inside the WebView's own JS engine, not
+// RN's, so it isn't affected by the RN `URL` polyfill issues noted above.
+function deliverToWrapper(payloadScript: string): string {
+  return `
+    (function() {
+      if (
+        window.location.origin === ${JSON.stringify(BASE_URL)} &&
+        window.location.pathname === ${JSON.stringify(WRAPPER_PATH)}
+      ) {
+        ${payloadScript}
+      }
+      true;
+    })();
+  `;
+}
+
+// Is `nextUrl` the same document as `prevUrl`, differing only in the
+// fragment (e.g. client-side routing within the wrapper)? Used by the
+// generation counter to tell a pure fragment change apart from a real
+// document load. A plain string comparison, not URL parsing -- see the
+// module-level comment above.
+function isSameDocumentExceptFragment(
+  prevUrl: string,
+  nextUrl: string
+): boolean {
+  return prevUrl.split('#')[0] === nextUrl.split('#')[0];
+}
+
+// Is `url` the exact wrapper document the SDK trusts with the secret-key
+// fragment? `connectURL` is built from BASE_URL, WRAPPER_PATH and the
+// current hash, so an exact string match also implies scheme, host, port,
+// path and fragment all match exactly -- not merely a prefix. Never log
+// `url`: the fragment carries apiKeyOverride, a live session key.
+function isTrustedWrapperDocument(url: string, connectURL: string): boolean {
+  return url === connectURL;
 }
