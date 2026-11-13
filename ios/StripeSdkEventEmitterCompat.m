@@ -154,6 +154,11 @@
   [self sendEventWithName:@"checkoutControllerDidSelectPaymentOption" body:value];
 }
 
+- (void)emitCheckoutExpressCheckoutDidComplete:(NSDictionary *)value
+{
+  [self sendEventWithName:@"checkoutExpressCheckoutDidComplete" body:value];
+}
+
 - (void)emitCheckoutServerUpdateRequested:(NSDictionary *)value
 {
   [self sendEventWithName:@"checkoutServerUpdateRequested" body:value];

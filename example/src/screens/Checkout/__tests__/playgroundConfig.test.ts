@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import {
   buildSessionParameters,
   checkoutConfiguration,
@@ -6,8 +5,6 @@ import {
   resolvedEmail,
   validateSettings,
 } from '../playgroundConfig';
-
-jest.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 
 describe('Checkout playground configuration', () => {
   it('builds the standard stripe-ios cart request', () => {
@@ -137,7 +134,7 @@ describe('Checkout playground configuration', () => {
   });
 });
 
-it('opts into Android Express Checkout with its result callback and Link display', () => {
+it('opts into Express Checkout with its result callback and Link display', () => {
   const onResult = jest.fn();
   const params = {
     clientSecret: 'cs_test_secret',
@@ -147,7 +144,6 @@ it('opts into Android Express Checkout with its result callback and Link display
       linkMode: 'never' as const,
     },
   };
-  jest.replaceProperty(Platform, 'OS', 'android');
   expect(
     checkoutConfiguration(params, onResult).expressCheckoutElement
   ).toEqual({
@@ -161,15 +157,10 @@ it('opts into Android Express Checkout with its result callback and Link display
       onResult
     ).expressCheckoutElement
   ).toBeUndefined();
-  jest.replaceProperty(Platform, 'OS', 'ios');
-  expect(
-    checkoutConfiguration(params, onResult).expressCheckoutElement
-  ).toBeUndefined();
-  jest.restoreAllMocks();
+  expect(checkoutConfiguration(params).expressCheckoutElement).toBeUndefined();
 });
 
 it('maps playground appearance controls and preserves native defaults', () => {
-  jest.replaceProperty(Platform, 'OS', 'android');
   const onResult = jest.fn();
   const settings = {
     ...defaultPlaygroundSettings,
@@ -200,5 +191,4 @@ it('maps playground appearance controls and preserves native defaults', () => {
     borderRadius: 0,
     buttonLayout: { maxRows: 2, maxColumns: 1 },
   });
-  jest.restoreAllMocks();
 });

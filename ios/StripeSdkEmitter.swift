@@ -25,6 +25,7 @@ import Foundation
     func emitPaymentMethodMessagingElementConfigureResult(_ value: [String: Any])
     func emitCheckoutControllerDidUpdate(_ value: [String: Any])
     func emitCheckoutControllerDidSelectPaymentOption(_ value: [String: Any])
+    func emitCheckoutExpressCheckoutDidComplete(_ value: [String: Any])
 }
 
 @objc public protocol StripeOnrampSdkEmitter {

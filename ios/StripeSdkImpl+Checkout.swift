@@ -45,6 +45,9 @@ extension StripeSdkImpl {
                             emitter?.emitCheckoutControllerDidSelectPaymentOption([
                                 "controllerId": controllerId,
                             ])
+                        },
+                        expressCheckoutCompletion: { [weak self] result in
+                            self?.checkoutControllers[controllerId]?.handleExpressCheckoutResult(result)
                         }
                     )
                     let checkout = try await CheckoutElementsController(configuration: configuration)
@@ -61,6 +64,9 @@ extension StripeSdkImpl {
                         shippingAddressElement: configuration.shippingAddressElement == nil
                             ? nil
                             : checkout.getShippingAddressElement(),
+                        emitExpressCheckoutResult: { [weak self] event in
+                            self?.emitter?.emitCheckoutExpressCheckoutDidComplete(event)
+                        },
                         emitEvent: { [weak self] update in
                             self?.emitter?.emitCheckoutControllerDidUpdate(update)
                         }

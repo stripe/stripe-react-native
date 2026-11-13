@@ -61,8 +61,7 @@ export type CheckoutCreateOptions = Omit<
 type CheckoutCreateResult = UnsafeObject<{
   session: CheckoutElements.Session;
   isCurrencySelectorAvailable: boolean;
-  /** Android only until the iOS Express Checkout bridge is implemented. */
-  isExpressCheckoutAvailable?: boolean;
+  isExpressCheckoutAvailable: boolean;
 }>;
 
 export interface Spec extends TurboModule {

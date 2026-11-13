@@ -125,7 +125,8 @@ final class ShippingAddressAppearanceMapperTests: XCTestCase {
                 "shippingAddressElement": ["appearance": params],
             ],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
         return try XCTUnwrap(configuration.shippingAddressElement?.appearance)
     }

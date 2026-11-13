@@ -20,6 +20,7 @@ final class NativeCheckoutControllerInstance {
     private(set) lazy var session = CheckoutSessionSerializer.serialize(checkout.session)
 
     private let emitEvent: ([String: Any]) -> Void
+    private let emitExpressCheckoutResult: ([String: Any]) -> Void
     private var observation: AnyCancellable?
     private var controllerId: String?
     private var destructionObservers: [UUID: () -> Void] = [:]
@@ -32,12 +33,14 @@ final class NativeCheckoutControllerInstance {
         expressCheckoutElement: ExpressCheckoutElement? = nil,
         currencySelectorElement: CurrencySelectorElement? = nil,
         shippingAddressElement: ShippingAddressElement? = nil,
+        emitExpressCheckoutResult: @escaping ([String: Any]) -> Void = { _ in },
         emitEvent: @escaping ([String: Any]) -> Void
     ) {
         self.checkout = checkout
         self.expressCheckoutElement = expressCheckoutElement
         self.currencySelectorElement = currencySelectorElement
         self.shippingAddressElement = shippingAddressElement
+        self.emitExpressCheckoutResult = emitExpressCheckoutResult
         self.emitEvent = emitEvent
     }
 
@@ -74,12 +77,26 @@ final class NativeCheckoutControllerInstance {
             }
             let result = await checkout.confirm(from: presenter)
             isConfirming = false
-            if !isDestroyed {
-                session = CheckoutSessionSerializer.serialize(checkout.session)
-                emit(status: checkout.isUpdating ? .updating : .ready)
-            }
+            publishCurrentState()
             completion(result)
         }
+    }
+
+    /// Publishes the current native snapshot so JS sees it before an operation or wallet result.
+    func publishCurrentState() {
+        guard !isDestroyed else { return }
+        session = CheckoutSessionSerializer.serialize(checkout.session)
+        emit(status: isConfirming ? .confirming : (checkout.isUpdating ? .updating : .ready))
+    }
+
+    /// Publishes the current snapshot, then emits an Express Checkout result, unless destroyed.
+    func handleExpressCheckoutResult(_ result: CheckoutElementsController.ConfirmResult) {
+        guard !isDestroyed, let controllerId else { return }
+        publishCurrentState()
+        emitExpressCheckoutResult([
+            "controllerId": controllerId,
+            "result": CheckoutSessionSerializer.serialize(result),
+        ])
     }
 
     func runServerUpdate(
