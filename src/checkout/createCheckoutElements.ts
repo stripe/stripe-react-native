@@ -105,6 +105,14 @@ export function normalizeCheckoutError(error: unknown): CheckoutOperationError {
   return checkoutError('Failed', String(error));
 }
 
+function hasAvailableExpressWallet(
+  session: CheckoutElements.Session | undefined
+): boolean {
+  return Object.values(
+    session?.availableExpressCheckoutPaymentMethods ?? {}
+  ).some((method) => method.available);
+}
+
 function nativeCreateOptions(
   options: CheckoutElements.CreateOptions
 ): CheckoutCreateOptions {
@@ -229,9 +237,7 @@ export async function createCheckoutController(
       ? {}
       : null;
 
-    const expressCheckoutElement = result.isExpressCheckoutAvailable
-      ? {}
-      : null;
+    const expressCheckoutElement = options.expressCheckoutElement ? {} : null;
 
     controller = {
       get status() {
@@ -243,7 +249,11 @@ export async function createCheckoutController(
       paymentElement,
       shippingAddressElement,
       currencySelectorElement,
-      expressCheckoutElement,
+      get expressCheckoutElement() {
+        return expressCheckoutElement && hasAvailableExpressWallet(session)
+          ? expressCheckoutElement
+          : null;
+      },
       updateEmail: (email) =>
         performOperation(() =>
           NativeStripeSdk.updateCheckoutEmail(controllerId, email)

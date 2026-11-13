@@ -61,7 +61,6 @@ export type CheckoutCreateOptions = Omit<
 type CheckoutCreateResult = UnsafeObject<{
   session: CheckoutElements.Session;
   isCurrencySelectorAvailable: boolean;
-  isExpressCheckoutAvailable: boolean;
 }>;
 
 export interface Spec extends TurboModule {
