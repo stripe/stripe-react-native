@@ -26,9 +26,12 @@ jobs:
         with:
           node-version-file: '.node-version'
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Get yarn cache directory
         id: yarn-cache-dir
-        run: echo "dir=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
+        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
       - name: Cache yarn
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
@@ -39,7 +42,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Build declarations
         run: yarn bob build

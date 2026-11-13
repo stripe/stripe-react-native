@@ -9,9 +9,9 @@
   nodenv install   # installs the pinned version if not already present
   ```
   Not using nodenv? Install Node 22 via [nodejs.org](https://nodejs.org) or your preferred method.
-- **Yarn 1.x** — install if not already present:
+- **Yarn** — the repo pins Yarn 4 through `packageManager` in `package.json` and a committed release in `.yarn/releases`. Enable Corepack (bundled with Node), or use any global Yarn 1.22 binary; both run the pinned release:
   ```sh
-  npm install --global yarn@1
+  corepack enable
   ```
 - **Watchman** (macOS — required for Metro file watching):
   ```sh
@@ -46,13 +46,15 @@
 ```sh
 git clone https://github.com/stripe/stripe-react-native.git
 cd stripe-react-native
+yarn install
 yarn bootstrap
 ```
 
-`yarn bootstrap` runs three steps:
+Yarn 4 runs `package.json` scripts only after the first `yarn install`, so install before running `yarn bootstrap` or any other script in a fresh clone. `yarn bootstrap` then runs four steps:
 1. `yarn example` — installs JS dependencies for the example app
-2. `yarn` — installs JS dependencies for the SDK itself (and runs `prepare`, which builds the TypeScript)
-3. `yarn pods` — runs `pod install` for the iOS example app
+2. `yarn` — installs JS dependencies for every workspace package
+3. `yarn prepare` — builds the legacy package into `lib/` and installs the Git hooks (Yarn 4 does not run `prepare` on install)
+4. `yarn pods` — runs `pod install` for the iOS example app
 
 If `pod install` fails with a CDN error, retry — CocoaPods CDN can be flaky:
 ```sh
@@ -89,7 +91,28 @@ Or open `example/android` in Android Studio and run the app from there.
 
 - **iOS**: Open `example/ios/example.xcworkspace` in Xcode. Find SDK source files at `Pods > Development Pods > stripe-react-native`.
 - **Android**: Open `example/android` in Android Studio. Find SDK source files under `reactnativestripesdk`.
-- **TypeScript**: Edit files in `src/` and `example/` with your editor of choice. Metro picks up JS/TS changes from `src/` directly, but type definitions are served from `lib/`. If you change the SDK's public API and your editor shows stale types, run `yarn` at the repo root to rebuild `lib/`.
+- **TypeScript**: Edit files in `src/` and `example/` with your editor of choice. Metro picks up JS/TS changes from `src/` directly, but type definitions are served from `lib/`. If you change the SDK's public API and your editor shows stale types, run `yarn build` at the repo root to rebuild `lib/`.
+
+## Workspace packages and Nx
+
+The repository is a Yarn workspace. The legacy `@stripe/stripe-react-native` package lives at the root, and the private packages live under `packages/*` and `tooling/*` (`examples/*` is reserved for workspace example apps). The existing `example/` and `example-stripe-connect/` apps are separate Yarn projects with their own lockfiles.
+
+[Nx](https://nx.dev/) runs the `build`, `typecheck`, `lint`, `test`, and `pack` scripts of every workspace package in dependency order and caches the results locally in `.nx/cache`:
+
+```sh
+yarn nx run-many -t build typecheck lint test     # every package
+yarn nx affected -t build typecheck lint test     # packages changed since `defaultBase` in nx.json, plus their dependents
+yarn nx affected -t test --base=origin/master     # compare against another base
+yarn nx run @stripe/react-native-core:lint        # one target of one package
+yarn nx show projects                             # list workspace packages
+yarn nx reset                                     # clear the local cache
+```
+
+Each package defines whichever of these scripts apply to it in its own `package.json`; Nx skips packages that lack a target. Packages run shared tools from the root with `yarn run -T <tool>`.
+
+Shared dependency versions live in the `catalog` section of `.yarnrc.yml`. Reference them from a `package.json` with `"<name>": "catalog:"` instead of repeating a version range.
+
+Packages import each other by package name and public entry point only. ESLint rejects relative imports that cross a package boundary (`import/no-relative-packages`), and, inside workspace packages, imports of another package's `src` or `lib` paths.
 
 ## Tests
 
@@ -144,7 +167,7 @@ Pre-commit hooks (via [Husky](https://typicode.github.io/husky/)) automatically 
 
 ```sh
 yarn lint                    # ESLint
-yarn typescript              # TypeScript type-check
+yarn typecheck               # TypeScript type-check (also available as `yarn typescript`)
 yarn format:android:check    # Kotlin formatting (spotless)
 yarn format:android:write    # Auto-fix Kotlin formatting
 yarn format:ios:check        # SwiftLint
@@ -211,13 +234,15 @@ React Native versions before 0.80 still require the event-emitter compatibility 
 
 | Script | Description |
 |--------|-------------|
-| `yarn bootstrap` | Install all dependencies and pods |
+| `yarn bootstrap` | Install all dependencies and pods (after the first `yarn install`) |
+| `yarn build` | Build the legacy package into `lib/` |
+| `yarn nx run-many -t build typecheck lint test` | Build, type-check, lint, and test every workspace package |
 | `yarn test` | Run TypeScript unit tests (Jest) |
 | `yarn test:unit:ios` | Run iOS native unit tests (xcodebuild) |
 | `yarn test:unit:android` | Run Android native unit tests (Gradle) |
 | `yarn test:e2e:ios` | Run iOS e2e tests (Maestro) |
 | `yarn test:e2e:android` | Run Android e2e tests (Maestro) |
-| `yarn typescript` | Type-check with TypeScript |
+| `yarn typecheck` | Type-check with TypeScript |
 | `yarn lint` | Lint with ESLint |
 | `yarn example start` | Start Metro bundler |
 | `yarn example ios` | Run example app on iOS simulator |

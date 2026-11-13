@@ -2,14 +2,14 @@ import React from 'react';
 import { Alert, Image, StyleSheet } from 'react-native';
 import { CustomerSheet } from '@stripe/stripe-react-native';
 import { PaymentSheet } from '@stripe/stripe-react-native';
-import Button from '../components/Button';
-import PaymentScreen from '../components/PaymentScreen';
-import { API_URL } from '../Config';
-import {
+import type {
   ClientSecretProvider,
   CustomerSessionClientSecret,
   CustomerSheetInitParams,
-} from '../../../src/types/CustomerSheet';
+} from '@stripe/stripe-react-native';
+import Button from '../components/Button';
+import PaymentScreen from '../components/PaymentScreen';
+import { API_URL } from '../Config';
 
 class MyClientSecretProvider implements ClientSecretProvider {
   customerId?: string | null = null;
