@@ -51,6 +51,19 @@ npm-debug.log
 yarn-debug.log
 yarn-error.log
 
+# Yarn 4
+**/.yarn/*
+!/.yarn/releases
+!/.yarn/patches
+!/.yarn/plugins
+
+# Nx
+.nx/cache
+.nx/workspace-data
+
+# yarn pack
+package.tgz
+
 # BUCK
 buck-out/
 \.buckd/
