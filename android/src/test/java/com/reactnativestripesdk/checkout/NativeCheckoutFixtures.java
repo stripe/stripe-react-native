@@ -6,6 +6,7 @@ import androidx.compose.ui.text.AnnotatedString;
 import androidx.compose.ui.graphics.painter.Painter;
 import com.stripe.android.checkout.CheckoutElementsController;
 import com.stripe.android.checkout.CheckoutElementsController.Session;
+import com.stripe.android.elements.ExpressCheckoutElement;
 import com.stripe.android.paymentsheet.model.PaymentOptionResource;
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -17,6 +18,14 @@ import kotlin.jvm.functions.Function1;
 // Use those constructors for real test models without compiler visibility suppressions.
 final class NativeCheckoutFixtures {
   private NativeCheckoutFixtures() {}
+
+  static ExpressCheckoutElement.PaymentMethod.GooglePay googlePayPaymentMethod() {
+    return new ExpressCheckoutElement.PaymentMethod.GooglePay();
+  }
+
+  static ExpressCheckoutElement.PaymentMethod.Link linkPaymentMethod() {
+    return new ExpressCheckoutElement.PaymentMethod.Link();
+  }
 
   static Session session(
       String email,

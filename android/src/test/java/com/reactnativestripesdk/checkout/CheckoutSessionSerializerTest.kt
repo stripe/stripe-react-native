@@ -16,6 +16,8 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.concurrent.atomic.AtomicReference
@@ -35,6 +37,23 @@ class CheckoutSessionSerializerTest {
       val method = methods.getMap(key)!!
       assertFalse(method.getBoolean("available"))
       assertEquals(type, method.getString("type"))
+    }
+  }
+
+  @Test
+  fun `serialize follows real SDK express payment methods in every snapshot`() = runTest {
+    val session = spy(checkoutSession())
+    val googlePay = NativeCheckoutFixtures.googlePayPaymentMethod()
+    val link = NativeCheckoutFixtures.linkPaymentMethod()
+    for (available in listOf(setOf(googlePay), setOf(link), setOf(googlePay, link), emptySet())) {
+      `when`(session.availableExpressCheckoutPaymentMethods).thenReturn(available)
+      val methods = CheckoutSessionSerializer.serialize(session, context)
+        .getMap("availableExpressCheckoutPaymentMethods")!!
+      assertFalse(methods.getMap("applePay")!!.getBoolean("available"))
+      assertEquals(googlePay in available, methods.getMap("googlePay")!!.getBoolean("available"))
+      assertEquals(link in available, methods.getMap("link")!!.getBoolean("available"))
+      assertEquals("google_pay", methods.getMap("googlePay")!!.getString("type"))
+      assertEquals("link", methods.getMap("link")!!.getString("type"))
     }
   }
 
