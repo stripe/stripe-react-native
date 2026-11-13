@@ -285,6 +285,10 @@ export function checkoutConfiguration(
     merchantDisplayName: 'Stripe Shop',
     defaults,
     paymentElement: {
+      // This playground doesn't yet have a toggle for Apple Pay in Payment Element.
+      // Keep it off explicitly so the shared StripeProvider merchantIdentifier doesn't
+      // silently turn it on via Payment Element's default `display: 'automatic'`.
+      applePay: { display: 'never' },
       link: { display: settings.linkMode },
     },
     ...(settings.adaptivePricingCountry !== 'none'

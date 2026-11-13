@@ -212,27 +212,6 @@ it('reports initialization errors and recovers on reload', async () => {
   expect(hook.result.current).toMatchObject({ status: 'ready', error: null });
 });
 
-it('reports unsupported iOS Express Checkout configuration through its error state', async () => {
-  jest.replaceProperty(Platform, 'OS', 'ios');
-  const hook = renderCheckout({
-    getConfiguration: async () => ({
-      ...options,
-      expressCheckoutElement: { onResult: jest.fn() },
-    }),
-  });
-  await waitFor(() => expect(hook.result.current.status).toBe('error'));
-  expect(hook.result.current).toMatchObject({
-    expressCheckoutElement: null,
-    error: {
-      code: 'Failed',
-      message:
-        'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.',
-    },
-  });
-  expect(create).not.toHaveBeenCalled();
-  hook.unmount();
-});
-
 it('cancels an active server update during reload', async () => {
   const native = deferred<void>();
   const server = deferred<void>();
@@ -270,6 +249,49 @@ it('cancels an active server update during reload', async () => {
   expect(controllerId(1)).not.toBe(id);
 });
 
+it('reports unsupported iOS Express Checkout configuration through its error state', async () => {
+  jest.replaceProperty(Platform, 'OS', 'ios');
+  const hook = renderCheckout({
+    getConfiguration: async () => ({
+      ...options,
+      expressCheckoutElement: { onResult: jest.fn() },
+    }),
+  });
+  await waitFor(() => expect(hook.result.current.status).toBe('error'));
+  expect(hook.result.current).toMatchObject({
+    expressCheckoutElement: null,
+    error: {
+      code: 'Failed',
+      message:
+        'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.',
+    },
+  });
+  expect(create).not.toHaveBeenCalled();
+  hook.unmount();
+});
+
+it('routes Android Express Checkout confirmation results to onResult', async () => {
+  jest.replaceProperty(Platform, 'OS', 'android');
+  create.mockResolvedValue({ session, isExpressCheckoutAvailable: true });
+  const onResult = jest.fn();
+  const hook = renderCheckout({
+    getConfiguration: async () => ({
+      ...options,
+      expressCheckoutElement: { onResult },
+    }),
+  });
+  await waitFor(() => expect(hook.result.current.status).toBe('ready'));
+  const result = { status: 'canceled' };
+  act(() =>
+    listener('checkoutExpressCheckoutDidComplete')({
+      controllerId: controllerId(),
+      result,
+    })
+  );
+  expect(onResult).toHaveBeenCalledWith(result);
+  hook.unmount();
+});
+
 it('loads Android Express Checkout and replaces its handle on reload', async () => {
   jest.replaceProperty(Platform, 'OS', 'android');
   create.mockResolvedValue({ session, isExpressCheckoutAvailable: true });
@@ -283,14 +305,6 @@ it('loads Android Express Checkout and replaces its handle on reload', async () 
   await waitFor(() => expect(hook.result.current.status).toBe('ready'));
   const firstElement = hook.result.current.expressCheckoutElement;
   expect(firstElement).not.toBeNull();
-  const result = { status: 'canceled' };
-  act(() =>
-    listener('checkoutExpressCheckoutDidComplete')({
-      controllerId: controllerId(),
-      result,
-    })
-  );
-  expect(onResult).toHaveBeenCalledWith(result);
   await act(() => hook.result.current.reload());
   expect(hook.result.current.expressCheckoutElement).not.toBe(firstElement);
   hook.unmount();

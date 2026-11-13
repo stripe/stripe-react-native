@@ -40,12 +40,14 @@ function emit(name: string, event: object) {
 
 beforeEach(() => {
   listeners.clear();
-  (addListener as jest.Mock).mockImplementation((name, listener) => {
-    const callbacks = listeners.get(name) ?? new Set();
-    listeners.set(name, callbacks);
-    callbacks.add(listener);
-    return { remove: () => callbacks.delete(listener) };
-  });
+  (addListener as jest.Mock)
+    .mockReset()
+    .mockImplementation((name, listener) => {
+      const callbacks = listeners.get(name) ?? new Set();
+      listeners.set(name, callbacks);
+      callbacks.add(listener);
+      return { remove: () => callbacks.delete(listener) };
+    });
   for (const method of Object.values(NativeStripeSdk)) {
     (method as jest.Mock).mockReset().mockResolvedValue(undefined);
   }

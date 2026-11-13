@@ -57,9 +57,17 @@ it('routes the controller ID, follows native height, and resets height when the 
   const nativeElement = () => UNSAFE_getByType(View);
   expect(nativeElement().props.controllerId).toBe(create.mock.calls[0][1]);
   expect(nativeElement().props.style).toEqual({ width: '100%', height: 1 });
-  fireEvent(nativeElement(), 'heightChanged', { nativeEvent: { height: 56 } });
+  fireEvent(nativeElement(), 'heightChanged', {
+    nativeEvent: { height: 56 },
+  });
   expect(nativeElement().props.style).toEqual({ width: '100%', height: 56 });
-  fireEvent(nativeElement(), 'heightChanged', { nativeEvent: { height: 112 } });
+  fireEvent(nativeElement(), 'heightChanged', {
+    nativeEvent: { height: 0 },
+  });
+  expect(nativeElement().props.style).toEqual({ width: '100%', height: 0 });
+  fireEvent(nativeElement(), 'heightChanged', {
+    nativeEvent: { height: 112 },
+  });
   expect(nativeElement().props.style).toEqual({ width: '100%', height: 112 });
   rerender(
     <ExpressCheckoutElementView element={second.expressCheckoutElement!} />

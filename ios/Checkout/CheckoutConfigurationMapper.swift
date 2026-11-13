@@ -4,14 +4,11 @@ import PassKit
 
 enum CheckoutConfigurationMapperError: LocalizedError, Equatable {
     case unsupportedValue(path: String, value: String)
-    case missingMerchantIdentifier
 
     var errorDescription: String? {
         switch self {
         case .unsupportedValue(let path, let value):
             return "Unsupported Checkout configuration value `\(value)` for `\(path)`."
-        case .missingMerchantIdentifier:
-            return "Apple Pay requires `merchantIdentifier` in StripeProvider or initStripe."
         }
     }
 }
@@ -43,10 +40,14 @@ enum CheckoutConfigurationMapper {
             paymentElementParams,
             didSelectPaymentOption: didSelectPaymentOption
         )
-        configuration.applePayMerchantId = try mapApplePayMerchantId(
-            paymentElementParams?["applePay"] as? NSDictionary,
-            merchantIdentifier: merchantIdentifier
-        )
+        let expressParams = params["expressCheckoutElement"] as? NSDictionary
+        configuration.applePayMerchantId = mapApplePayMerchantId(merchantIdentifier)
+        if let expressParams {
+            configuration.expressCheckoutElement = try mapExpressCheckoutElement(
+                expressParams,
+                completion: { _ in }
+            )
+        }
         if let shippingParams = params["shippingAddressElement"] as? NSDictionary {
             var shippingConfiguration = ShippingAddressElement.Configuration()
             if let title = shippingParams["title"] as? String {
@@ -66,6 +67,27 @@ enum CheckoutConfigurationMapper {
                 currencySelectorParams["appearance"] as? NSDictionary
             )
             configuration.currencySelectorElement = currencySelectorConfiguration
+        }
+        return configuration
+    }
+
+    private static func mapExpressCheckoutElement(
+        _ params: NSDictionary,
+        completion: @escaping (CheckoutElementsController.ConfirmResult) -> Void
+    ) throws -> ExpressCheckoutElement.Configuration {
+        var configuration = ExpressCheckoutElement.Configuration(completion: completion)
+        if let applePay = params["applePay"] as? NSDictionary {
+            configuration.applePayConfiguration.buttonType = try mapApplePayButtonType(
+                applePay["buttonType"] as? String,
+                path: "expressCheckoutElement.applePay.buttonType"
+            )
+        }
+        if let link = params["link"] as? NSDictionary, let display = link["display"] as? String {
+            configuration.linkConfiguration.display = switch display {
+            case "automatic": .automatic
+            case "never": .never
+            default: throw unsupported(display, at: "expressCheckoutElement.link.display")
+            }
         }
         return configuration
     }
@@ -333,26 +355,26 @@ enum CheckoutConfigurationMapper {
         }
         return .init(
             display: display,
-            buttonType: try mapApplePayButtonType(params["buttonType"] as? String)
+            buttonType: try mapApplePayButtonType(
+                params["buttonType"] as? String,
+                path: "paymentElement.applePay.buttonType"
+            )
         )
     }
 
-    /// Checkout shares one Apple Pay merchant ID across its elements, and leaving it `nil` disables
-    /// Apple Pay. Only set it when Payment Element opts in to Apple Pay.
-    private static func mapApplePayMerchantId(
-        _ applePayParams: NSDictionary?,
-        merchantIdentifier: String?
-    ) throws -> String? {
-        guard let applePayParams, applePayParams["display"] as? String != "never" else {
-            return nil
-        }
-        guard let merchantIdentifier, !merchantIdentifier.isEmpty else {
-            throw CheckoutConfigurationMapperError.missingMerchantIdentifier
-        }
+    /// The Checkout-wide Apple Pay merchant ID shared by Payment Element and Express Checkout
+    /// Element. It is set whenever the app provides one. Each element decides what to do with
+    /// it: Payment Element honors its own `applePay.display`, so `.never` hides Apple Pay there
+    /// without affecting Express Checkout Element.
+    private static func mapApplePayMerchantId(_ merchantIdentifier: String?) -> String? {
+        guard let merchantIdentifier, !merchantIdentifier.isEmpty else { return nil }
         return merchantIdentifier
     }
 
-    private static func mapApplePayButtonType(_ value: String?) throws -> PKPaymentButtonType? {
+    private static func mapApplePayButtonType(
+        _ value: String?,
+        path: String
+    ) throws -> PKPaymentButtonType? {
         guard let value else {
             return nil
         }
@@ -374,7 +396,7 @@ enum CheckoutConfigurationMapper {
         case "contribute": 14
         case "tip": 15
         case "continue": 16
-        default: throw unsupported(value, at: "paymentElement.applePay.buttonType")
+        default: throw unsupported(value, at: path)
         }
         return PKPaymentButtonType(rawValue: rawValue)
     }
