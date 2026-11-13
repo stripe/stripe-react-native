@@ -3,6 +3,11 @@ import { Platform } from 'react-native';
 import { hostedBackendURL } from './backend';
 
 export type PaymentElementMode = 'sheet' | 'view';
+export type ExpressButtonTheme =
+  | 'default'
+  | CheckoutElements.ExpressCheckoutElementConfiguration.ButtonTheme;
+export type ExpressBorderRadius = 'default' | '0' | '12' | '24';
+export type ExpressLayoutLimit = 'default' | '1' | '2';
 export type Currency = 'usd' | 'eur' | 'gbp' | 'cad' | 'aud' | 'jpy';
 export type CustomerType = 'guest' | 'new' | 'returning';
 export type EmailSource = 'none' | 'checkoutSession' | 'customer' | 'local';
@@ -32,6 +37,10 @@ export type ShippingAddressDraft = {
 export type PlaygroundSettings = {
   paymentElementMode: PaymentElementMode;
   expressCheckoutEnabled: boolean;
+  expressButtonTheme: ExpressButtonTheme;
+  expressBorderRadius: ExpressBorderRadius;
+  expressMaxRows: ExpressLayoutLimit;
+  expressMaxColumns: ExpressLayoutLimit;
   currency: Currency;
   customerType: CustomerType;
   backendOption: BackendOption;
@@ -73,6 +82,10 @@ export const usTestAddress: ShippingAddressDraft = {
 export const defaultPlaygroundSettings: PlaygroundSettings = {
   paymentElementMode: 'sheet',
   expressCheckoutEnabled: false,
+  expressButtonTheme: 'default',
+  expressBorderRadius: 'default',
+  expressMaxRows: 'default',
+  expressMaxColumns: 'default',
   currency: 'usd',
   customerType: 'guest',
   backendOption: 'hosted',
@@ -282,6 +295,22 @@ export function checkoutConfiguration(
       ? {
           expressCheckoutElement: {
             link: { display: settings.linkMode },
+            appearance: {
+              ...(settings.expressButtonTheme !== 'default'
+                ? { buttonTheme: settings.expressButtonTheme }
+                : {}),
+              ...(settings.expressBorderRadius !== 'default'
+                ? { borderRadius: Number(settings.expressBorderRadius) }
+                : {}),
+              buttonLayout: {
+                ...(settings.expressMaxRows !== 'default'
+                  ? { maxRows: Number(settings.expressMaxRows) }
+                  : {}),
+                ...(settings.expressMaxColumns !== 'default'
+                  ? { maxColumns: Number(settings.expressMaxColumns) }
+                  : {}),
+              },
+            },
             onResult,
           },
         }

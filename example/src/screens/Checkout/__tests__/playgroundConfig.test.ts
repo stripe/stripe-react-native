@@ -150,7 +150,11 @@ it('opts into Android Express Checkout with its result callback and Link display
   jest.replaceProperty(Platform, 'OS', 'android');
   expect(
     checkoutConfiguration(params, onResult).expressCheckoutElement
-  ).toEqual({ link: { display: 'never' }, onResult });
+  ).toEqual({
+    link: { display: 'never' },
+    appearance: { buttonLayout: {} },
+    onResult,
+  });
   expect(
     checkoutConfiguration(
       { ...params, settings: defaultPlaygroundSettings },
@@ -161,5 +165,40 @@ it('opts into Android Express Checkout with its result callback and Link display
   expect(
     checkoutConfiguration(params, onResult).expressCheckoutElement
   ).toBeUndefined();
+  jest.restoreAllMocks();
+});
+
+it('maps playground appearance controls and preserves native defaults', () => {
+  jest.replaceProperty(Platform, 'OS', 'android');
+  const onResult = jest.fn();
+  const settings = {
+    ...defaultPlaygroundSettings,
+    expressCheckoutEnabled: true,
+  };
+  expect(
+    checkoutConfiguration(
+      { clientSecret: 'cs_test_secret', settings },
+      onResult
+    ).expressCheckoutElement?.appearance
+  ).toEqual({ buttonLayout: {} });
+  expect(
+    checkoutConfiguration(
+      {
+        clientSecret: 'cs_test_secret',
+        settings: {
+          ...settings,
+          expressButtonTheme: 'light',
+          expressBorderRadius: '0',
+          expressMaxRows: '2',
+          expressMaxColumns: '1',
+        },
+      },
+      onResult
+    ).expressCheckoutElement?.appearance
+  ).toEqual({
+    buttonTheme: 'light',
+    borderRadius: 0,
+    buttonLayout: { maxRows: 2, maxColumns: 1 },
+  });
   jest.restoreAllMocks();
 });

@@ -295,6 +295,11 @@ it('bridges Android Express Checkout configuration without sending callbacks to 
       additionalEnabledNetworks: ['INTERAC'],
     },
     link: { display: 'never' },
+    appearance: {
+      buttonTheme: 'dark',
+      buttonLayout: { maxColumns: 2, maxRows: 1 },
+      borderRadius: 12,
+    },
     onResult,
   };
   create.mockResolvedValueOnce({ session, isExpressCheckoutAvailable: true });

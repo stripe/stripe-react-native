@@ -35,6 +35,9 @@ import type {
   Currency,
   DefaultShippingAddressOption,
   EmailSource,
+  ExpressButtonTheme,
+  ExpressBorderRadius,
+  ExpressLayoutLimit,
   PaymentElementMode,
   PlaygroundSettings,
 } from './playgroundConfig';
@@ -701,10 +704,53 @@ export default function CheckoutPlaygroundScreen() {
                 value={settings.expressCheckoutEnabled}
                 onChange={(enabled) => set('expressCheckoutEnabled', enabled)}
               />
+              {settings.expressCheckoutEnabled && (
+                <View style={styles.card}>
+                  <PickerRow<ExpressButtonTheme>
+                    label="Express button theme"
+                    value={settings.expressButtonTheme}
+                    choices={[
+                      { label: 'Native default', value: 'default' },
+                      { label: 'Automatic', value: 'automatic' },
+                      { label: 'Light', value: 'light' },
+                      { label: 'Dark', value: 'dark' },
+                    ]}
+                    onChange={(value) => set('expressButtonTheme', value)}
+                  />
+                  <PickerRow<ExpressBorderRadius>
+                    label="Express border radius"
+                    value={settings.expressBorderRadius}
+                    choices={[
+                      { label: 'Native default', value: 'default' },
+                      { label: '0 dp', value: '0' },
+                      { label: '12 dp', value: '12' },
+                      { label: '24 dp', value: '24' },
+                    ]}
+                    onChange={(value) => set('expressBorderRadius', value)}
+                  />
+                  {(
+                    [
+                      ['expressMaxRows', 'Express max rows'],
+                      ['expressMaxColumns', 'Express max columns'],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <PickerRow<ExpressLayoutLimit>
+                      key={key}
+                      label={label}
+                      value={settings[key]}
+                      choices={[
+                        { label: 'Native default', value: 'default' },
+                        { label: '1', value: '1' },
+                        { label: '2', value: '2' },
+                      ]}
+                      onChange={(value) => set(key, value)}
+                    />
+                  ))}
+                </View>
+              )}
               <Text style={styles.helperText}>
                 Displays Google Pay and Link when available. Link follows the
-                display setting above. Appearance and availability diagnostics
-                are not bridged yet.
+                display setting above.
               </Text>
             </>
           ) : (
