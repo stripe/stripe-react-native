@@ -102,6 +102,14 @@ enum CheckoutConfigurationMapper {
                 configuration.appearance.buttonLayout.maxRows = try mapExpressLayoutLimit(layout, key: "maxRows")
             }
             if let radius = appearance["borderRadius"] as? NSNumber {
+                guard CFGetTypeID(radius) != CFBooleanGetTypeID(),
+                      radius.doubleValue.isFinite,
+                      radius.doubleValue >= 0 else {
+                    throw unsupported(
+                        String(describing: radius),
+                        at: "expressCheckoutElement.appearance.borderRadius"
+                    )
+                }
                 configuration.appearance.cornerRadius = CGFloat(truncating: radius)
             }
         }
