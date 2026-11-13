@@ -237,9 +237,7 @@ export async function createCheckoutController(
       ? {}
       : null;
 
-    const expressCheckoutElement = options.expressCheckoutElement
-      ? {}
-      : null;
+    const expressCheckoutElement = options.expressCheckoutElement ? {} : null;
 
     controller = {
       get status() {
