@@ -123,6 +123,34 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         }
     }
 
+    func test_map_expressCheckoutAcceptsZeroBorderRadius() throws {
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: ["expressCheckoutElement": ["appearance": ["borderRadius": 0]]],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
+        )
+        let element = try XCTUnwrap(configuration.expressCheckoutElement)
+        XCTAssertEqual(element.appearance.cornerRadius, 0)
+    }
+
+    func test_map_rejectsInvalidExpressCheckoutBorderRadius() {
+        let invalidValues: [Any] = [-1, -0.5, Double.nan, Double.infinity, -Double.infinity, true]
+        for value in invalidValues {
+            XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
+                params: ["expressCheckoutElement": ["appearance": ["borderRadius": value]]],
+                merchantIdentifier: nil,
+                didSelectPaymentOption: {},
+                expressCheckoutCompletion: { _ in }
+            )) { error in
+                guard case .unsupportedValue(let path, _) = error as? CheckoutConfigurationMapperError else {
+                    return XCTFail("Expected an unsupported border radius")
+                }
+                XCTAssertEqual(path, "expressCheckoutElement.appearance.borderRadius")
+            }
+        }
+    }
+
     func test_map_rejectsInvalidExpressCheckoutEnumsWithCorrectPaths() {
         let cases: [(NSDictionary, String)] = [
             (["applePay": ["buttonType": "invalid"]], "applePay.buttonType"),
