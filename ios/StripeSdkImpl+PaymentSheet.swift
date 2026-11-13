@@ -382,12 +382,21 @@ extension StripeSdkImpl {
                 mode: mode,
                 paymentMethodTypes: paymentMethodTypes,
                 onBehalfOf: onBehalfOf,
-                confirmHandler: { paymentMethod, shouldSavePaymentMethod, intentCreationCallback in
-                    self.paymentSheetIntentCreationCallback = intentCreationCallback
-                    self.emitter?.emitOnConfirmHandlerCallback([
-                        "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? NSNull(),
-                        "shouldSavePaymentMethod": shouldSavePaymentMethod,
-                    ])
+                confirmHandler: { paymentMethod, shouldSavePaymentMethod in
+                    return try await withCheckedThrowingContinuation { continuation in
+                        self.paymentSheetIntentCreationCallback = { result in
+                            switch result {
+                            case .success(let clientSecret):
+                                continuation.resume(returning: clientSecret)
+                            case .failure(let error):
+                                continuation.resume(throwing: error)
+                            }
+                        }
+                        self.emitter?.emitOnConfirmHandlerCallback([
+                            "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? NSNull(),
+                            "shouldSavePaymentMethod": shouldSavePaymentMethod,
+                        ])
+                    }
                 })
         }
     }
