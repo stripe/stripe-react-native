@@ -1,0 +1,143 @@
+# Minimal CI on GitHub Actions while Bitrise is unavailable. Mirrors the
+# js-tests and unit-test-android workflows in bitrise.yml; e2e, iOS, and Expo
+# coverage still run only on Bitrise. rn-ci-gate is the single required check.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  js-tests:
+    name: JS tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: '.node-version'
+
+      - name: Get yarn cache directory
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache yarn
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.yarn-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock', 'example/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: |
+          yarn --cwd example install --frozen-lockfile
+          yarn install --frozen-lockfile
+
+      - name: Run TypeScript checks
+        run: yarn typescript
+
+      - name: Run ESLint
+        run: yarn lint
+
+      - name: Run Jest tests
+        run: yarn test
+
+      - name: Validate package types
+        run: yarn test:package-types
+
+      - name: Run example TypeScript checks
+        working-directory: example
+        run: yarn typescript
+
+  unit-test-android:
+    name: Android unit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      RETRY_MAX_ATTEMPTS: 5
+      RETRY_SLEEP_SLOW: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup Java
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: zulu
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      - name: Get yarn cache directory
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache yarn
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.yarn-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock', 'example/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: |
+          yarn --cwd example install --frozen-lockfile
+          yarn install --frozen-lockfile
+
+      - name: Check Android formatting and lint (detekt)
+        run: yarn lint:android
+
+      - name: Pre-download Robolectric SDKs
+        run: |
+          source scripts/ci/retry.sh
+          cd example/android
+          retry --attempts "$RETRY_MAX_ATTEMPTS" --sleep "$RETRY_SLEEP_SLOW" --backoff 2 -- \
+            ./gradlew :stripe_stripe-react-native:robolectricSdkDownload
+
+      - name: Run Android unit tests
+        run: yarn test:unit:android
+
+  rn-ci-gate:
+    name: rn-ci-gate
+    if: always()
+    needs: [js-tests, unit-test-android]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require all jobs to succeed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error::A required job did not succeed ($result)"
+              exit 1
+            fi
+          done
