@@ -183,7 +183,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertTrue(paymentElement.displaysMandateText)
         XCTAssertEqual(configuration.applePayMerchantId, "merchant.com.example")
         XCTAssertEqual(paymentElement.applePayConfiguration.buttonType, .checkout)
-        XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
+        XCTAssertEqual(paymentElement.linkConfiguration.display, .never)
 
         if case .vertical = paymentElement.paymentMethodLayout {
             // Expected.
@@ -218,7 +218,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertFalse(paymentElement.opensCardScannerAutomatically)
         XCTAssertTrue(paymentElement.displaysMandateText)
         XCTAssertNil(configuration.applePayMerchantId)
-        XCTAssertNil(paymentElement.linkConfiguration)
+        XCTAssertEqual(paymentElement.linkConfiguration.display, .automatic)
     }
 
     func test_map_mapsApplePayDisplay() throws {
@@ -248,7 +248,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
             XCTAssertEqual(configuration.applePayMerchantId, testCase.merchantIdentifier)
             XCTAssertEqual(paymentElement.applePayConfiguration.display, testCase.expectedDisplay)
             XCTAssertEqual(paymentElement.applePayConfiguration.buttonType, .checkout)
-            XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
+            XCTAssertEqual(paymentElement.linkConfiguration.display, .never)
             XCTAssertEqual(paymentElement.paymentMethodOrder, ["card"])
         }
     }
