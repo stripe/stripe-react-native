@@ -92,10 +92,12 @@ enum CheckoutConfigurationMapper {
         }
         if let appearance = params["appearance"] as? NSDictionary {
             if let theme = appearance["buttonTheme"] as? String {
-                guard let theme = ExpressCheckoutElement.Configuration.Appearance.ButtonTheme(rawValue: theme) else {
-                    throw unsupported(theme, at: "expressCheckoutElement.appearance.buttonTheme")
+                configuration.appearance.buttonTheme = switch theme {
+                case "automatic": .automatic
+                case "light": .light
+                case "dark": .dark
+                default: throw unsupported(theme, at: "expressCheckoutElement.appearance.buttonTheme")
                 }
-                configuration.appearance.buttonTheme = theme
             }
             if let layout = appearance["buttonLayout"] as? NSDictionary {
                 configuration.appearance.buttonLayout.maxColumns = try mapExpressLayoutLimit(layout, key: "maxColumns")

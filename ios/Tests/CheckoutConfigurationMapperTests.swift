@@ -102,6 +102,19 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(element.linkConfiguration.display, .automatic)
         XCTAssertNil(element.applePayConfiguration.buttonType)
         XCTAssertNil(element.appearance.cornerRadius)
+
+        // The playground sends an empty layout for "Native default", which must keep native defaults.
+        let emptyLayout = try CheckoutConfigurationMapper.map(
+            params: ["expressCheckoutElement": ["appearance": ["buttonLayout": [:]]]],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
+        )
+        let emptyLayoutElement = try XCTUnwrap(emptyLayout.expressCheckoutElement)
+        XCTAssertEqual(emptyLayoutElement.appearance.buttonTheme, .automatic)
+        XCTAssertNil(emptyLayoutElement.appearance.buttonLayout.maxRows)
+        XCTAssertNil(emptyLayoutElement.appearance.buttonLayout.maxColumns)
+        XCTAssertNil(emptyLayoutElement.appearance.cornerRadius)
     }
 
     func test_map_rejectsInvalidExpressCheckoutLayoutWithoutNativeAssertions() {
