@@ -715,4 +715,42 @@ class PaymentSheetUtilsTests: XCTestCase {
         let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: params)
         XCTAssertNil(result)
     }
+
+    // MARK: - buildIntentConfiguration Tests
+
+    func test_buildIntentConfiguration_withPaymentMethodConfigurationId() {
+        let result = StripeSdkImpl().buildIntentConfiguration(
+            modeParams: ["amount": 1000, "currencyCode": "usd"],
+            paymentMethodTypes: nil,
+            onBehalfOf: nil,
+            paymentMethodConfigurationId: "pmc_123",
+            captureMethod: .automatic,
+            useConfirmationTokenCallback: false
+        )
+        XCTAssertEqual(result.paymentMethodConfigurationId, "pmc_123")
+    }
+
+    func test_buildIntentConfiguration_withPaymentMethodConfigurationId_confirmationToken() {
+        let result = StripeSdkImpl().buildIntentConfiguration(
+            modeParams: ["amount": 1000, "currencyCode": "usd"],
+            paymentMethodTypes: nil,
+            onBehalfOf: nil,
+            paymentMethodConfigurationId: "pmc_123",
+            captureMethod: .automatic,
+            useConfirmationTokenCallback: true
+        )
+        XCTAssertEqual(result.paymentMethodConfigurationId, "pmc_123")
+    }
+
+    func test_buildIntentConfiguration_withoutPaymentMethodConfigurationId_returnsNil() {
+        let result = StripeSdkImpl().buildIntentConfiguration(
+            modeParams: ["amount": 1000, "currencyCode": "usd"],
+            paymentMethodTypes: nil,
+            onBehalfOf: nil,
+            paymentMethodConfigurationId: nil,
+            captureMethod: .automatic,
+            useConfirmationTokenCallback: false
+        )
+        XCTAssertNil(result.paymentMethodConfigurationId)
+    }
 }

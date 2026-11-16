@@ -2257,6 +2257,7 @@ export type IntentConfiguration = {
     mode: Mode;
     paymentMethodTypes?: Array<string>;
     onBehalfOf?: string;
+    paymentMethodConfigurationId?: string;
 };
 
 // @public (undocumented)

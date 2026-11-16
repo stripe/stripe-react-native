@@ -109,6 +109,41 @@ class PaymentElementConfigTest {
   }
 
   @Test
+  fun buildIntentConfiguration_WithPaymentMethodConfigurationId_Success() {
+    val params =
+      readableMapOf(
+        "mode" to
+          readableMapOf(
+            "amount" to 1000,
+            "currencyCode" to "usd",
+          ),
+        "paymentMethodConfigurationId" to "pmc_123",
+      )
+
+    val result = buildIntentConfiguration(params)
+
+    assertNotNull(result)
+    assertEquals("pmc_123", result?.paymentMethodConfigurationId)
+  }
+
+  @Test
+  fun buildIntentConfiguration_WithoutPaymentMethodConfigurationId_ReturnsNull() {
+    val params =
+      readableMapOf(
+        "mode" to
+          readableMapOf(
+            "amount" to 1000,
+            "currencyCode" to "usd",
+          ),
+      )
+
+    val result = buildIntentConfiguration(params)
+
+    assertNotNull(result)
+    assertNull(result?.paymentMethodConfigurationId)
+  }
+
+  @Test
   fun buildIntentConfiguration_WithOnBehalfOf_Failure() {
     val params =
       readableMapOf(
