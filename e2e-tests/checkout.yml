@@ -21,6 +21,8 @@ appId: ${APP_ID}
     centerElement: true
 - assertVisible: 'Classic T-Shirt'
 - assertVisible: 'Zip-Up Hoodie'
+- runFlow:
+    file: helpers/checkout-disable-apple-pay.yml
 - waitForAnimationToEnd
 - tapOn:
     id: 'checkout-create-session'
