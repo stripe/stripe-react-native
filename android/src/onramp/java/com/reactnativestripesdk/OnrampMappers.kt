@@ -68,6 +68,8 @@ internal fun mapConfig(
     .appearance(appearance)
     .cryptoCustomerId(cryptoCustomerId)
     .countryHint(countryHint)
+    .linkCardBrandAcceptance(mapToCardBrandAcceptance(configMap, "linkCardBrandAcceptance"))
+    .googlePayCardBrandAcceptance(mapToCardBrandAcceptance(configMap, "googlePayCardBrandAcceptance"))
     .apply { googlePayConfig?.let { googlePayConfig(it) } }
     .apply { samsungPayConfig?.let { samsungPayConfig(it) } }
     .apply {

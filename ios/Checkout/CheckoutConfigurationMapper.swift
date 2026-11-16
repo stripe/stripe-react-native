@@ -95,10 +95,10 @@ enum CheckoutConfigurationMapper {
 
     private static func mapShippingAddressAppearance(
         _ params: NSDictionary
-    ) throws -> ShippingAddressElement.Appearance {
+    ) throws -> ShippingAddressElement.Configuration.Appearance {
         // Share parsing and validation with Payment Element's appearance options.
         let mapped = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
-        var appearance = ShippingAddressElement.Appearance()
+        var appearance = ShippingAddressElement.Configuration.Appearance()
         appearance.font.base = mapped.font.base
         appearance.font.sizeScaleFactor = mapped.font.sizeScaleFactor
         appearance.colors.primary = mapped.colors.primary
@@ -128,8 +128,8 @@ enum CheckoutConfigurationMapper {
 
     private static func mapShippingAddressShadow(
         _ shadow: PaymentSheet.Appearance.Shadow
-    ) -> ShippingAddressElement.Appearance.Shadow {
-        var mapped = ShippingAddressElement.Appearance.Shadow()
+    ) -> ShippingAddressElement.Configuration.Appearance.Shadow {
+        var mapped = ShippingAddressElement.Configuration.Appearance.Shadow()
         mapped.color = shadow.color
         mapped.opacity = shadow.opacity
         mapped.offset = shadow.offset
@@ -139,8 +139,8 @@ enum CheckoutConfigurationMapper {
 
     private static func mapCurrencySelectorAppearance(
         _ params: NSDictionary?
-    ) throws -> CurrencySelectorElement.Appearance {
-        var appearance = CurrencySelectorElement.Appearance()
+    ) throws -> CurrencySelectorElement.Configuration.Appearance {
+        var appearance = CurrencySelectorElement.Configuration.Appearance()
         guard let params else { return appearance }
 
         if let padding = params["contentVerticalPadding"] as? NSNumber {

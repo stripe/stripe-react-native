@@ -286,7 +286,8 @@ export function useOnramp() {
     /**
      * Creates a `CryptoOnrampCoordinator` to facilitate authentication, identity verification, payment collection, and checkouts.
      *
-     * @param config Configuration object containing merchant display name and appearance settings
+     * @param config Configuration object containing merchant display name, appearance, and payment method settings.
+     * Use `linkCardBrandAcceptance` to filter Link cards and `googlePayCardBrandAcceptance` to filter Google Pay cards on Android.
      * @returns Promise that resolves to an object with an optional error property
      */
     configure: _configure,

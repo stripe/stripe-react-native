@@ -258,8 +258,8 @@ extension StripeSdkImpl {
         }
     }
 
-    internal static func computeCardBrandAcceptance(params: NSDictionary) -> PaymentSheet.CardBrandAcceptance {
-      if let cardBrandAcceptanceParams = params["cardBrandAcceptance"] as? NSDictionary {
+    internal static func computeCardBrandAcceptance(params: NSDictionary, key: String = "cardBrandAcceptance") -> PaymentSheet.CardBrandAcceptance {
+      if let cardBrandAcceptanceParams = params[key] as? NSDictionary {
           if let filter = cardBrandAcceptanceParams["filter"] as? String {
               switch filter {
               case "all":

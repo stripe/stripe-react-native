@@ -346,6 +346,124 @@ class OnrampMappersTest {
   }
 
   @Test
+  fun mapConfig_CardBrandAcceptanceDefaultsToAll() {
+    val result = mapConfig(readableMapOf("merchantDisplayName" to "Test"), "pk_test_123")
+
+    assertEquals(PaymentSheet.CardBrandAcceptance.all(), result.privateField("linkCardBrandAcceptance"))
+    assertEquals(PaymentSheet.CardBrandAcceptance.all(), result.privateField("googlePayCardBrandAcceptance"))
+  }
+
+  @Test
+  fun mapConfig_NullCardBrandAcceptanceDefaultsToAll() {
+    val result = mapConfig(
+      readableMapOf(
+        "merchantDisplayName" to "Test",
+        "linkCardBrandAcceptance" to null,
+        "googlePayCardBrandAcceptance" to null,
+      ),
+      "pk_test_123",
+    )
+
+    assertEquals(PaymentSheet.CardBrandAcceptance.all(), result.privateField("linkCardBrandAcceptance"))
+    assertEquals(PaymentSheet.CardBrandAcceptance.all(), result.privateField("googlePayCardBrandAcceptance"))
+  }
+
+  @Test
+  fun mapConfig_ExplicitAllCardBrandAcceptance() {
+    val result = mapConfig(
+      readableMapOf(
+        "merchantDisplayName" to "Test",
+        "linkCardBrandAcceptance" to readableMapOf("filter" to "all"),
+        "googlePayCardBrandAcceptance" to readableMapOf("filter" to "all"),
+      ),
+      "pk_test_123",
+    )
+
+    assertEquals(PaymentSheet.CardBrandAcceptance.all(), result.privateField("linkCardBrandAcceptance"))
+    assertEquals(PaymentSheet.CardBrandAcceptance.all(), result.privateField("googlePayCardBrandAcceptance"))
+  }
+
+  @Test
+  fun mapConfig_MapsIndependentCardBrandFilters() {
+    val result = mapConfig(
+      readableMapOf(
+        "merchantDisplayName" to "Test",
+        "linkCardBrandAcceptance" to readableMapOf(
+          "filter" to "allowed",
+          "brands" to readableArrayOf("visa", "mastercard", "amex", "discover"),
+        ),
+        "googlePayCardBrandAcceptance" to readableMapOf(
+          "filter" to "disallowed",
+          "brands" to readableArrayOf("amex", "discover"),
+        ),
+        "cardBrandAcceptance" to readableMapOf("filter" to "all"),
+      ),
+      "pk_test_123",
+    )
+
+    assertEquals(
+      PaymentSheet.CardBrandAcceptance.allowed(
+        listOf(
+          PaymentSheet.CardBrandAcceptance.BrandCategory.Visa,
+          PaymentSheet.CardBrandAcceptance.BrandCategory.Mastercard,
+          PaymentSheet.CardBrandAcceptance.BrandCategory.Amex,
+          PaymentSheet.CardBrandAcceptance.BrandCategory.Discover,
+        ),
+      ),
+      result.privateField("linkCardBrandAcceptance"),
+    )
+    assertEquals(
+      PaymentSheet.CardBrandAcceptance.disallowed(
+        listOf(
+          PaymentSheet.CardBrandAcceptance.BrandCategory.Amex,
+          PaymentSheet.CardBrandAcceptance.BrandCategory.Discover,
+        ),
+      ),
+      result.privateField("googlePayCardBrandAcceptance"),
+    )
+  }
+
+  @Test
+  fun mapConfig_LinkCardBrandFilterDoesNotAffectGooglePay() {
+    val result = mapConfig(
+      readableMapOf(
+        "merchantDisplayName" to "Test",
+        "linkCardBrandAcceptance" to readableMapOf(
+          "filter" to "allowed",
+          "brands" to readableArrayOf("visa"),
+        ),
+      ),
+      "pk_test_123",
+    )
+
+    assertEquals(
+      PaymentSheet.CardBrandAcceptance.allowed(listOf(PaymentSheet.CardBrandAcceptance.BrandCategory.Visa)),
+      result.privateField("linkCardBrandAcceptance"),
+    )
+    assertEquals(PaymentSheet.CardBrandAcceptance.all(), result.privateField("googlePayCardBrandAcceptance"))
+  }
+
+  @Test
+  fun mapConfig_GooglePayCardBrandFilterDoesNotAffectLink() {
+    val result = mapConfig(
+      readableMapOf(
+        "merchantDisplayName" to "Test",
+        "googlePayCardBrandAcceptance" to readableMapOf(
+          "filter" to "allowed",
+          "brands" to readableArrayOf("visa"),
+        ),
+      ),
+      "pk_test_123",
+    )
+
+    assertEquals(
+      PaymentSheet.CardBrandAcceptance.allowed(listOf(PaymentSheet.CardBrandAcceptance.BrandCategory.Visa)),
+      result.privateField("googlePayCardBrandAcceptance"),
+    )
+    assertEquals(PaymentSheet.CardBrandAcceptance.all(), result.privateField("linkCardBrandAcceptance"))
+  }
+
+  @Test
   fun mapConfig_WithAppearance() {
     val appearance =
       readableMapOf(

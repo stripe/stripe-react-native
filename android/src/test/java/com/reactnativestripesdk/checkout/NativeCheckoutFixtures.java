@@ -54,7 +54,7 @@ final class NativeCheckoutFixtures {
     return new CheckoutElementsController.OperationResult.Failed(error, displayMessage);
   }
 
-  static CheckoutElementsController.Result completedResult() { return new CheckoutElementsController.Result.Completed(); }
+  static CheckoutElementsController.Result completedResult() { return new CheckoutElementsController.Result.Completed(Session.Status.PaymentStatus.Paid); }
   static CheckoutElementsController.Result canceledResult() { return new CheckoutElementsController.Result.Canceled(); }
   static CheckoutElementsController.Result failedResult(Throwable error, String displayMessage) {
     return new CheckoutElementsController.Result.Failed(error, displayMessage);

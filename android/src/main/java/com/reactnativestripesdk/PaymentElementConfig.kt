@@ -217,8 +217,11 @@ internal fun mapToAddressCollectionMode(
     else -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
   }
 
-internal fun mapToCardBrandAcceptance(params: ReadableMap?): PaymentSheet.CardBrandAcceptance {
-  val cardBrandAcceptanceParams = params?.getMap("cardBrandAcceptance") ?: return PaymentSheet.CardBrandAcceptance.all()
+internal fun mapToCardBrandAcceptance(
+  params: ReadableMap?,
+  key: String = "cardBrandAcceptance",
+): PaymentSheet.CardBrandAcceptance {
+  val cardBrandAcceptanceParams = params?.getMap(key) ?: return PaymentSheet.CardBrandAcceptance.all()
   val filter = cardBrandAcceptanceParams.getString("filter") ?: return PaymentSheet.CardBrandAcceptance.all()
 
   return when (filter) {

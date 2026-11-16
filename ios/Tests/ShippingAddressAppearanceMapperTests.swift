@@ -15,7 +15,7 @@ final class ShippingAddressAppearanceMapperTests: XCTestCase {
 
     func test_map_mapsColorsInBothInterfaceStyles() throws {
         // Distinct values catch colors being dropped or assigned to a different field.
-        let colors: [String: (field: KeyPath<ShippingAddressElement.Appearance.Colors, UIColor>, light: String, dark: String)] = [
+        let colors: [String: (field: KeyPath<ShippingAddressElement.Configuration.Appearance.Colors, UIColor>, light: String, dark: String)] = [
             "primary": (\.primary, "#112233", "#102030"),
             "background": (\.background, "#223344", "#203040"),
             "componentBackground": (\.componentBackground, "#334455", "#304050"),
@@ -55,7 +55,7 @@ final class ShippingAddressAppearanceMapperTests: XCTestCase {
     }
 
     func test_map_mapsInsetsAndPreservesOmittedEdges() throws {
-        let defaults = ShippingAddressElement.Appearance().formInsets
+        let defaults = ShippingAddressElement.Configuration.Appearance().formInsets
         let cases: [(params: NSDictionary, expected: NSDirectionalEdgeInsets)] = [
             ([:], defaults),
             (
@@ -116,7 +116,7 @@ final class ShippingAddressAppearanceMapperTests: XCTestCase {
         }
     }
 
-    private func mapAppearance(_ params: NSDictionary) throws -> ShippingAddressElement.Appearance {
+    private func mapAppearance(_ params: NSDictionary) throws -> ShippingAddressElement.Configuration.Appearance {
         // Exercise the public configuration path, including the shipping-specific copy.
         let configuration = try CheckoutConfigurationMapper.map(
             params: [
