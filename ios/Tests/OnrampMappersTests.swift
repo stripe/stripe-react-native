@@ -22,16 +22,69 @@ class OnrampMappersTests: XCTestCase {
 
         XCTAssertNil(configuration.cryptoCustomerId)
         XCTAssertNil(configuration.countryHint)
+        XCTAssertEqual(configuration.linkCardBrandAcceptance, .all)
     }
 
     func test_mapToOnrampConfiguration_nullPropertiesAreNil() {
         let configuration = Mappers.mapToOnrampConfiguration([
             "cryptoCustomerId": NSNull(),
             "countryHint": NSNull(),
+            "linkCardBrandAcceptance": NSNull(),
         ])
 
         XCTAssertNil(configuration.cryptoCustomerId)
         XCTAssertNil(configuration.countryHint)
+        XCTAssertEqual(configuration.linkCardBrandAcceptance, .all)
+    }
+
+    func test_mapToOnrampConfiguration_acceptsAllLinkCardBrands() {
+        let configuration = Mappers.mapToOnrampConfiguration([
+            "linkCardBrandAcceptance": ["filter": "all"],
+        ])
+
+        XCTAssertEqual(configuration.linkCardBrandAcceptance, .all)
+    }
+
+    func test_mapToOnrampConfiguration_allowsLinkCardBrands() {
+        let configuration = Mappers.mapToOnrampConfiguration([
+            "linkCardBrandAcceptance": [
+                "filter": "allowed",
+                "brands": ["visa", "mastercard", "amex", "discover"],
+            ],
+        ])
+
+        XCTAssertEqual(configuration.linkCardBrandAcceptance, .allowed(brands: [.visa, .mastercard, .amex, .discover]))
+    }
+
+    func test_mapToOnrampConfiguration_disallowsLinkCardBrands() {
+        let configuration = Mappers.mapToOnrampConfiguration([
+            "linkCardBrandAcceptance": [
+                "filter": "disallowed",
+                "brands": ["amex", "discover"],
+            ],
+            "googlePayCardBrandAcceptance": [
+                "filter": "allowed",
+                "brands": ["visa"],
+            ],
+            "cardBrandAcceptance": ["filter": "all"],
+        ])
+
+        XCTAssertEqual(configuration.linkCardBrandAcceptance, .disallowed(brands: [.amex, .discover]))
+    }
+
+    func test_mapToOnrampConfiguration_otherFiltersDoNotAffectLink() {
+        let configuration = Mappers.mapToOnrampConfiguration([
+            "googlePayCardBrandAcceptance": [
+                "filter": "allowed",
+                "brands": ["visa"],
+            ],
+            "cardBrandAcceptance": [
+                "filter": "disallowed",
+                "brands": ["amex"],
+            ],
+        ])
+
+        XCTAssertEqual(configuration.linkCardBrandAcceptance, .all)
     }
 
     func test_mapToLinkAppearance_fullConfigurationMapsDynamicColorsAndPrimaryButton() {
