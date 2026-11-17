@@ -10,6 +10,11 @@ inputs:
   runtime:
     description: iOS simulator runtime version. Leave empty to only select Xcode.
     default: '18.6'
+  runtime-build:
+    description: >-
+      Build number of the runtime, which `xcodebuild -downloadPlatform` takes
+      instead of a version (from Apple's index2.dvtdownloadableindex).
+    default: 22G86
   device:
     description: Simulator device type name.
     default: iPhone 16 Pro Max
@@ -36,6 +41,7 @@ runs:
       shell: bash
       env:
         RUNTIME: ${{ inputs.runtime }}
+        RUNTIME_BUILD: ${{ inputs.runtime-build }}
       run: |
         set -euo pipefail
         has_runtime() {
@@ -45,19 +51,13 @@ runs:
           echo "iOS ${RUNTIME} runtime already installed"
         else
           # Apple's download endpoint intermittently times out, so retry with
-          # backoff. Nothing runs under sudo, so a cancelled run can still stop
-          # every process it started.
-          download_dir="$RUNNER_TEMP/runtime-${RUNTIME}"
+          # backoff. iOS 18 and later ship as cryptex disk images, which xcodes
+          # can't download; xcodebuild installs them without sudo, so a
+          # cancelled run can still stop every process it started.
           for attempt in 1 2 3 4 5; do
-            echo "Installing iOS ${RUNTIME} runtime (attempt ${attempt})..."
-            rm -rf "$download_dir"
-            mkdir -p "$download_dir"
-            if xcodes runtimes download "iOS ${RUNTIME}" --directory "$download_dir"; then
-              dmg="$(find "$download_dir" -name '*.dmg' -print -quit)"
-              if [ -n "$dmg" ] && xcrun simctl runtime add "$dmg"; then
-                rm -rf "$download_dir"
-                break
-              fi
+            echo "Installing iOS ${RUNTIME} (${RUNTIME_BUILD}) runtime (attempt ${attempt})..."
+            if xcodebuild -downloadPlatform iOS -buildVersion "$RUNTIME_BUILD"; then
+              break
             fi
             if [ "$attempt" -eq 5 ]; then
               echo "Could not install the iOS ${RUNTIME} runtime" >&2
