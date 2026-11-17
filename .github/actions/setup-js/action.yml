@@ -1,0 +1,35 @@
+name: Prepare JS CI job
+description: >-
+  Shared Node and Yarn setup for the GitHub Actions port of bitrise.yml
+  (_prepare_js_env, _save_js_env and _prepare_js).
+inputs:
+  install:
+    description: Run `yarn bootstrap-no-pods` after setting up Node and Yarn.
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .node-version
+
+    - name: Use Yarn v1
+      id: yarn
+      shell: bash
+      run: |
+        corepack disable || true
+        npm i -g yarn@1.22.22
+        echo "cache-dir=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
+
+    - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: ${{ steps.yarn.outputs.cache-dir }}
+        key: yarn-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('example/yarn.lock') }}
+        restore-keys: |
+          yarn-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('yarn.lock') }}
+          yarn-cache-${{ runner.os }}-${{ runner.arch }}-
+
+    - name: Install Dependencies (No Pods)
+      if: inputs.install == 'true'
+      shell: bash
+      run: yarn bootstrap-no-pods

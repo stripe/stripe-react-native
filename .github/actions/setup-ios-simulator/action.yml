@@ -1,0 +1,104 @@
+name: Prepare iOS simulator
+description: >-
+  Selects Xcode and makes sure the simulator bitrise.yml tests on (iPhone 16 Pro
+  Max on iOS 18.6, preinstalled on the osx-xcode-26.4.x stack) exists. The
+  macos-26 runner image doesn't ship the iOS 18 runtime.
+inputs:
+  xcode:
+    description: Xcode version under /Applications/Xcode_<version>.app
+    default: 26.4.1
+  runtime:
+    description: iOS simulator runtime version. Leave empty to only select Xcode.
+    default: '18.6'
+  device:
+    description: Simulator device type name.
+    default: iPhone 16 Pro Max
+  boot:
+    description: Boot the simulator and wait for it to finish booting.
+    default: 'false'
+outputs:
+  udid:
+    description: UDID of the simulator.
+    value: ${{ steps.device.outputs.udid }}
+runs:
+  using: composite
+  steps:
+    - name: Select Xcode
+      shell: bash
+      env:
+        XCODE_VERSION: ${{ inputs.xcode }}
+      run: |
+        sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
+        xcodebuild -version
+
+    - name: Install iOS ${{ inputs.runtime }} runtime
+      if: inputs.runtime != ''
+      shell: bash
+      env:
+        RUNTIME: ${{ inputs.runtime }}
+      run: |
+        set -euo pipefail
+        has_runtime() {
+          xcrun simctl list runtimes available | grep -q "^iOS ${RUNTIME} "
+        }
+        if has_runtime; then
+          echo "iOS ${RUNTIME} runtime already installed"
+        else
+          # Apple's download endpoint intermittently times out, so retry with
+          # backoff. Nothing runs under sudo, so a cancelled run can still stop
+          # every process it started.
+          download_dir="$RUNNER_TEMP/runtime-${RUNTIME}"
+          for attempt in 1 2 3 4 5; do
+            echo "Installing iOS ${RUNTIME} runtime (attempt ${attempt})..."
+            rm -rf "$download_dir"
+            mkdir -p "$download_dir"
+            if xcodes runtimes download "iOS ${RUNTIME}" --directory "$download_dir"; then
+              dmg="$(find "$download_dir" -name '*.dmg' -print -quit)"
+              if [ -n "$dmg" ] && xcrun simctl runtime add "$dmg"; then
+                rm -rf "$download_dir"
+                break
+              fi
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "Could not install the iOS ${RUNTIME} runtime" >&2
+              exit 1
+            fi
+            sleep $((attempt * 30))
+          done
+          # simctl mounts and verifies added runtimes in the background.
+          for _ in $(seq 60); do
+            has_runtime && break
+            sleep 5
+          done
+          if ! has_runtime; then
+            echo "iOS ${RUNTIME} runtime didn't become available" >&2
+            xcrun simctl list runtimes
+            exit 1
+          fi
+        fi
+        xcrun simctl list runtimes
+
+    - name: Create ${{ inputs.device }} simulator
+      id: device
+      if: inputs.runtime != ''
+      shell: bash
+      env:
+        RUNTIME: ${{ inputs.runtime }}
+        DEVICE: ${{ inputs.device }}
+      run: |
+        set -euo pipefail
+        runtime_id="$(xcrun simctl list runtimes available | grep "^iOS ${RUNTIME} " | grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.[A-Za-z0-9-]+' | head -n 1)"
+        udid="$(xcrun simctl list devices available "iOS ${RUNTIME}" | grep -F "    ${DEVICE} (" | grep -oE '[A-F0-9-]{36}' | head -n 1 || true)"
+        if [ -z "$udid" ]; then
+          device_type="com.apple.CoreSimulator.SimDeviceType.$(echo "$DEVICE" | tr ' ' '-')"
+          udid="$(xcrun simctl create "$DEVICE" "$device_type" "$runtime_id")"
+        fi
+        echo "Using $DEVICE ($udid) on $runtime_id"
+        echo "udid=$udid" >> "$GITHUB_OUTPUT"
+
+    - name: Boot simulator
+      if: inputs.runtime != '' && inputs.boot == 'true'
+      shell: bash
+      env:
+        UDID: ${{ steps.device.outputs.udid }}
+      run: xcrun simctl bootstatus "$UDID" -b
