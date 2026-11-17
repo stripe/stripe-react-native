@@ -21,7 +21,6 @@ import {
 import type { WebViewMessageEvent, WebViewProps } from 'react-native-webview';
 import type {
   ShouldStartLoadRequest,
-  WebViewNavigationEvent,
   WebViewOpenWindowEvent,
 } from 'react-native-webview/lib/WebViewTypes';
 import type { EventSubscription } from 'react-native';
@@ -230,11 +229,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       {
         callback: (id: string, url: string | null) => void;
         timeoutId?: NodeJS.Timeout;
-        // The document generation when this auth flow was requested (D3
-        // hygiene). Checked before `callback` runs, since the deep link /
-        // app-state timeout that invokes it can fire well after a newer
-        // top-frame load has started.
-        requestGeneration: number;
       }
     >
   >(new Map());
@@ -328,13 +322,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
                 // Remove from Map and invoke callback
                 pendingAuthWebViewPromises.current.delete(id);
-                // Hygiene (D3): drop the reply if a new top-frame load
-                // started while this deep link was in flight.
-                if (
-                  documentGeneration.current === promiseData.requestGeneration
-                ) {
-                  promiseData.callback(id, url);
-                }
+                promiseData.callback(id, url);
 
                 // Reset the Android flag
                 NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(() => {
@@ -371,14 +359,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                 const stillPending = pendingAuthWebViewPromises.current.get(id);
                 if (stillPending) {
                   pendingAuthWebViewPromises.current.delete(id);
-                  // Hygiene (D3): drop the cancellation reply if a new
-                  // top-frame load started while this auth flow was pending.
-                  if (
-                    documentGeneration.current ===
-                    stillPending.requestGeneration
-                  ) {
-                    stillPending.callback(id, null);
-                  }
+                  stillPending.callback(id, null);
                 }
               }, DEEP_LINK_GRACE_PERIOD_MS);
 
@@ -461,48 +442,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const ref = useRef<WebViewHandle>(null);
   const hasTriedSourceReload = useRef(false);
-
-  // D3 hygiene, NOT the security boundary (that's deliverToWrapper's
-  // origin/path guard, which runs inside the document itself). Bumping this
-  // on every new top-frame document load lets async completions drop a
-  // reply whose request predates a newer load, instead of injecting it into
-  // a document that never asked for it.
-  const documentGeneration = useRef(0);
-  const lastLoadStartUrl = useRef<string | null>(null);
-
-  const onLoadStart = useCallback((event: WebViewNavigationEvent) => {
-    // Android's onLoadStart is emitted from WebViewClient's
-    // doUpdateVisitedHistory (RNCWebViewClient.java), which fires for real
-    // navigations AND for same-document pushState/replaceState/hash
-    // changes, with no field to tell them apart (no navigationType, no
-    // isReload). Bumping on it risks dropping a reply while the document
-    // that requested it is still alive, which can stall the component.
-    // There's no reliable new-document signal on Android -- onLoadEnd's
-    // timing relative to the document's own request isn't guaranteed
-    // either -- so the generation counter (hygiene only; the deliverToWrapper
-    // guard is the security boundary) simply never bumps there.
-    if (Platform.OS !== 'ios') {
-      return;
-    }
-
-    const { url, navigationType } = event.nativeEvent;
-    const previousUrl = lastLoadStartUrl.current;
-    lastLoadStartUrl.current = url;
-
-    // A pure fragment change within the same document (e.g. client-side
-    // routing) isn't a new document load, so it shouldn't invalidate
-    // in-flight requests. A same-URL reload -- including the forced iOS
-    // reload below -- is still treated as a new load.
-    if (
-      previousUrl !== null &&
-      navigationType !== 'reload' &&
-      isSameDocumentExceptFragment(previousUrl, url)
-    ) {
-      return;
-    }
-
-    documentGeneration.current += 1;
-  }, []);
 
   const [prevAppearance, setPrevAppearance] = useState(appearance);
   const [prevLocale, setPrevLocale] = useState(locale);
@@ -691,17 +630,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }
 
       if (message.type === 'fetchClientSecret') {
-        const requestGeneration = documentGeneration.current;
         const clientSecret = await fetchClientSecret().catch((error) => {
           handleUnexpectedError(error);
           return null;
         });
         if (!clientSecret) return;
-        // Hygiene (D3): a new top-frame load started while fetchClientSecret
-        // was pending, so the document that asked for this secret may no
-        // longer be running. Each wrapper document requests its own secret
-        // during init, so dropping a stale first-load reply is safe.
-        if (documentGeneration.current !== requestGeneration) return;
 
         ref.current?.injectJavaScript(
           deliverToWrapper(
@@ -780,7 +713,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
-        const requestGeneration = documentGeneration.current;
         const resultPromise: Promise<FinancialConnections.TokenResult> =
           NativeStripeSdk.collectBankAccountToken(clientSecret, {
             connectedAccountId,
@@ -788,10 +720,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         resultPromise
           .then((result) => {
-            // Hygiene (D3): drop the reply if a new top-frame load started
-            // while Financial Connections was running.
-            if (documentGeneration.current !== requestGeneration) return;
-
             if (result.error) {
               if (
                 result.error.code === FinancialConnectionsSheetError.Canceled
@@ -825,7 +753,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           })
           .catch((unexpectedError) => {
             handleUnexpectedError(unexpectedError);
-            if (documentGeneration.current !== requestGeneration) return;
             handleFinancialConnectionsResult(id, {
               error: {
                 code: 'UnexpectedError',
@@ -879,14 +806,9 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         // On Android, we need to wait for the deep link callback
         // On iOS, the promise resolves with the redirect URL
-        const requestGeneration = documentGeneration.current;
         NativeStripeSdk.openAuthenticatedWebView(id, url)
           .then((result) => {
             if (Platform.OS === 'ios') {
-              // Hygiene (D3): drop the reply if a new top-frame load started
-              // while the auth webview was open.
-              if (documentGeneration.current !== requestGeneration) return;
-
               // iOS returns the redirect URL directly
               const resultUrl = result?.url ?? null;
               if (resultUrl) {
@@ -896,12 +818,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               }
               handleAuthWebViewResult(id, resultUrl);
             } else {
-              // Android: Store promise in Map to be resolved by deep link
-              // listener. requestGeneration travels with it so the deep
-              // link / app-state callback below can apply the same hygiene
-              // check once it actually fires.
+              // Android: Store promise in Map to be resolved by deep link listener
               pendingAuthWebViewPromises.current.set(id, {
-                requestGeneration,
                 callback: (authId: string, resultUrl: string | null) => {
                   if (resultUrl) {
                     componentAnalytics.logAuthenticatedWebViewRedirected(
@@ -1090,7 +1008,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={injectedObjectScript}
-      onLoadStart={onLoadStart}
       onMessage={onMessageCallback}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
       onOpenWindow={onOpenWindow}
@@ -1280,18 +1197,6 @@ function deliverToWrapper(payloadScript: string): string {
       true;
     })();
   `;
-}
-
-// Is `nextUrl` the same document as `prevUrl`, differing only in the
-// fragment (e.g. client-side routing within the wrapper)? Used by the
-// generation counter to tell a pure fragment change apart from a real
-// document load. A plain string comparison, not URL parsing -- see the
-// module-level comment above.
-function isSameDocumentExceptFragment(
-  prevUrl: string,
-  nextUrl: string
-): boolean {
-  return prevUrl.split('#')[0] === nextUrl.split('#')[0];
 }
 
 // Is `url` the exact wrapper document the SDK trusts with the secret-key
