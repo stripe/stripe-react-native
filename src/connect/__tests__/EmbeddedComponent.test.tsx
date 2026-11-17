@@ -484,8 +484,6 @@ describe('EmbeddedComponent', () => {
 
         try {
           const onShouldStartLoad = await getNavigationHandler();
-          // No isTopFrame/mainDocumentURL is passed here, matching the
-          // fail-closed rule: a missing mainDocumentURL is treated as top-frame.
           const shouldLoad = onShouldStartLoad({
             url: 'https://example.com/help',
             navigationType,
@@ -511,8 +509,6 @@ describe('EmbeddedComponent', () => {
         const onShouldStartLoad = await getNavigationHandler();
         const wrapperUrl = mockWebViewProps.source.uri as string;
 
-        // Initial load and the forced same-URL reload: both top-frame, both the
-        // trusted wrapper document.
         expect(
           onShouldStartLoad({ url: wrapperUrl, navigationType: 'other' })
         ).toBe(true);
@@ -521,9 +517,6 @@ describe('EmbeddedComponent', () => {
         ).toBe(true);
         expect(openUrl).not.toHaveBeenCalled();
 
-        // Wrong fragment, port, scheme, and path must all be rejected: each is
-        // a different document, not the one the SDK trusts with the secret-key
-        // fragment.
         const [origin, hash] = wrapperUrl.split('#');
         const wrongFragment = `${origin}#component=other`;
         const wrongPort = wrapperUrl.replace(
@@ -547,9 +540,6 @@ describe('EmbeddedComponent', () => {
           ).toBe(false);
         }
         expect(hash).toBeTruthy();
-        // None of the rejected lookalikes may ever reach Linking: they all
-        // carry the wrapper's origin+path, and the fragment carries
-        // apiKeyOverride, a live session key.
         openUrl.mock.calls.forEach(([openedUrl]) => {
           expect(openedUrl).not.toContain('react_native_webview.html');
         });
@@ -570,8 +560,6 @@ describe('EmbeddedComponent', () => {
         const onShouldStartLoad = await getNavigationHandler();
         const wrapperUrl = mockWebViewProps.source.uri as string;
 
-        // iOS computes isTopFrame by comparing the URL to mainDocumentURL;
-        // for the initial load and a same-URL reload both equal wrapperUrl.
         expect(
           onShouldStartLoad({
             url: wrapperUrl,
