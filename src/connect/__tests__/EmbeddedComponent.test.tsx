@@ -1416,14 +1416,21 @@ describe('EmbeddedComponent', () => {
       script: string,
       location: { origin: string; pathname: string }
     ) => {
-      const resolve = jest.fn();
-      const win: Record<string, unknown> = {
+      const win = {
         location,
-        clientSecretDeferred: { resolve },
+        clientSecretDeferred: { resolve: jest.fn() },
+        updateConnectInstance: jest.fn(),
+        callSetterWithSerializableValue: jest.fn(),
+        returnedFromAuthenticatedWebView: jest.fn(),
       };
       // eslint-disable-next-line no-new-func
       new Function('window', script)(win);
-      return resolve;
+      return win;
+    };
+
+    const FOREIGN_LOCATION = {
+      origin: 'https://evil.example',
+      pathname: WRAPPER_PATH,
     };
 
     const triggerFetchClientSecret = async () => {
@@ -1442,19 +1449,21 @@ describe('EmbeddedComponent', () => {
       ]?.[0];
     };
 
-    it('trusts any document on the wrapper origin that reports the wrapper path (History API can set it; identity comes from navigation pinning on iOS)', async () => {
+    it('delivers the client secret on the wrapper origin and path', async () => {
       const script = await triggerFetchClientSecret();
 
-      expect(
-        runScript(script, { origin: WRAPPER_ORIGIN, pathname: WRAPPER_PATH })
-      ).toHaveBeenCalledWith('secret_123');
+      const win = runScript(script, {
+        origin: WRAPPER_ORIGIN,
+        pathname: WRAPPER_PATH,
+      });
+
+      expect(win.clientSecretDeferred.resolve).toHaveBeenCalledWith(
+        'secret_123'
+      );
     });
 
     it.each([
-      [
-        'a foreign origin',
-        { origin: 'https://evil.example', pathname: WRAPPER_PATH },
-      ],
+      ['a foreign origin', FOREIGN_LOCATION],
       [
         'https://connect-js.stripe.com/other.html',
         { origin: WRAPPER_ORIGIN, pathname: '/other.html' },
@@ -1466,22 +1475,17 @@ describe('EmbeddedComponent', () => {
     ])('does not deliver the client secret for %s', async (_desc, location) => {
       const script = await triggerFetchClientSecret();
 
-      expect(runScript(script, location)).not.toHaveBeenCalled();
-    });
+      const win = runScript(script, location);
 
-    const expectGuarded = (script: string | undefined) => {
-      expect(script).toContain('window.location.origin');
-      expect(script).toContain('window.location.pathname');
-      expect(script).toContain(JSON.stringify(WRAPPER_ORIGIN));
-      expect(script).toContain(JSON.stringify(WRAPPER_PATH));
-    };
+      expect(win.clientSecretDeferred.resolve).not.toHaveBeenCalled();
+    });
 
     const lastInjectedScript = () =>
       mockInjectJavaScript.mock.calls[
         mockInjectJavaScript.mock.calls.length - 1
       ]?.[0];
 
-    it('guards the appearance/locale update', async () => {
+    it('calls window.updateConnectInstance on the wrapper origin and path, not a foreign origin', async () => {
       mockLoadWebView = true;
       renderComponent();
       await waitFor(() => expect(mockWebViewProps).toBeDefined());
@@ -1490,10 +1494,21 @@ describe('EmbeddedComponent', () => {
         connectInstance.update({ locale: 'fr' });
       });
 
-      await waitFor(() => expectGuarded(lastInjectedScript()));
+      await waitFor(() => expect(lastInjectedScript()).toBeDefined());
+      const script = lastInjectedScript();
+
+      expect(
+        runScript(script, {
+          origin: WRAPPER_ORIGIN,
+          pathname: WRAPPER_PATH,
+        }).updateConnectInstance
+      ).toHaveBeenCalled();
+      expect(
+        runScript(script, FOREIGN_LOCATION).updateConnectInstance
+      ).not.toHaveBeenCalled();
     });
 
-    it('guards a componentProps setter injection', async () => {
+    it('calls window.callSetterWithSerializableValue for a componentProps setter on the wrapper origin and path, not a foreign origin', async () => {
       mockLoadWebView = true;
       const { rerender } = renderComponent({
         componentProps: { setPayment: 'pi_123' },
@@ -1512,10 +1527,21 @@ describe('EmbeddedComponent', () => {
         </ConnectComponentsProvider>
       );
 
-      await waitFor(() => expectGuarded(lastInjectedScript()));
+      await waitFor(() => expect(lastInjectedScript()).toBeDefined());
+      const script = lastInjectedScript();
+
+      expect(
+        runScript(script, {
+          origin: WRAPPER_ORIGIN,
+          pathname: WRAPPER_PATH,
+        }).callSetterWithSerializableValue
+      ).toHaveBeenCalled();
+      expect(
+        runScript(script, FOREIGN_LOCATION).callSetterWithSerializableValue
+      ).not.toHaveBeenCalled();
     });
 
-    it('guards the authenticated webview result', async () => {
+    it('calls window.returnedFromAuthenticatedWebView on the wrapper origin and path, not a foreign origin', async () => {
       Platform.OS = 'ios' as any;
       (NativeStripeSdk.openAuthenticatedWebView as jest.Mock).mockResolvedValue(
         { url: 'https://connect.stripe.com/return' }
@@ -1535,10 +1561,21 @@ describe('EmbeddedComponent', () => {
         });
       });
 
-      await waitFor(() => expectGuarded(lastInjectedScript()));
+      await waitFor(() => expect(lastInjectedScript()).toBeDefined());
+      const script = lastInjectedScript();
+
+      expect(
+        runScript(script, {
+          origin: WRAPPER_ORIGIN,
+          pathname: WRAPPER_PATH,
+        }).returnedFromAuthenticatedWebView
+      ).toHaveBeenCalled();
+      expect(
+        runScript(script, FOREIGN_LOCATION).returnedFromAuthenticatedWebView
+      ).not.toHaveBeenCalled();
     });
 
-    it('guards the Financial Connections result', async () => {
+    it('calls window.callSetterWithSerializableValue for the Financial Connections result on the wrapper origin and path, not a foreign origin', async () => {
       (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue(
         {}
       );
@@ -1561,7 +1598,18 @@ describe('EmbeddedComponent', () => {
         });
       });
 
-      await waitFor(() => expectGuarded(lastInjectedScript()));
+      await waitFor(() => expect(lastInjectedScript()).toBeDefined());
+      const script = lastInjectedScript();
+
+      expect(
+        runScript(script, {
+          origin: WRAPPER_ORIGIN,
+          pathname: WRAPPER_PATH,
+        }).callSetterWithSerializableValue
+      ).toHaveBeenCalled();
+      expect(
+        runScript(script, FOREIGN_LOCATION).callSetterWithSerializableValue
+      ).not.toHaveBeenCalled();
     });
   });
 
