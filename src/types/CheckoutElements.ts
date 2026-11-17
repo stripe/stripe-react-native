@@ -834,6 +834,8 @@ export namespace CheckoutElements {
      * @CheckoutSessionPrivatePreview
      */
     export interface GooglePayConfiguration {
+      /** Controls when Google Pay is displayed. Defaults to `automatic`. */
+      display?: 'automatic' | 'never';
       /** An optional label to display with the amount. */
       label?: string;
       /** The Google Pay button type. Defaults to `pay`. */

@@ -365,6 +365,15 @@ internal object CheckoutConfigurationMapper {
     params: ReadableMap,
   ): PaymentElement.Configuration.GooglePayConfiguration =
     PaymentElement.Configuration.GooglePayConfiguration().apply {
+      params.getString("display")?.let {
+        display(
+          when (it) {
+            "automatic" -> PaymentElement.Configuration.GooglePayConfiguration.Display.Automatic
+            "never" -> PaymentElement.Configuration.GooglePayConfiguration.Display.Never
+            else -> unsupportedValue("paymentElement.googlePay.display", it)
+          },
+        )
+      }
       params.getString("label")?.let(::label)
       params.getString("buttonType")?.let { buttonType(mapGooglePayButtonType(it)) }
       params.getStringList("additionalEnabledNetworks")?.let(::additionalEnabledNetworks)
