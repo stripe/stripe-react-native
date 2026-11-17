@@ -1,7 +1,3 @@
-// Must run before EmbeddedComponent is imported: installs the device URL
-// polyfill so this suite exercises what devices actually run.
-import '../__fixtures__/installReactNativeURLForTests';
-
 // Mock dependencies BEFORE imports
 import { mockCreateNativeStripeSdkMock } from '../testUtils';
 
@@ -930,6 +926,67 @@ describe('EmbeddedComponent', () => {
           openUrl.mockRestore();
         }
       });
+    });
+  });
+
+  describe('CSV export detection under the React Native URL polyfill', () => {
+    const RealURL = global.URL;
+
+    beforeEach(() => {
+      (global as any).URL = require('react-native/Libraries/Blob/URL').URL;
+    });
+
+    afterEach(() => {
+      (global as any).URL = RealURL;
+    });
+
+    const getHandlers = async () => {
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => {
+        expect(mockWebViewProps?.onShouldStartLoadWithRequest).toEqual(
+          expect.any(Function)
+        );
+      });
+      return {
+        onShouldStartLoad: mockWebViewProps.onShouldStartLoadWithRequest,
+        onOpenWindow: mockWebViewProps.onOpenWindow,
+      };
+    };
+
+    it.each([
+      'https://evil.example/@stripe-data-exports.s3.amazonaws.com/x.csv',
+      'https://evil.example#@stripe-data-exports.s3.amazonaws.com/x.csv',
+      'https://evil.example?@stripe-data-exports.com/x.csv',
+    ])('does not treat %s as a CSV export', async (url) => {
+      const downloadAndShare =
+        NativeStripeSdk.downloadAndShareFile as jest.Mock;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const { onShouldStartLoad, onOpenWindow } = await getHandlers();
+
+        onShouldStartLoad({ url, navigationType: 'other' });
+        onOpenWindow({ nativeEvent: { targetUrl: url } });
+
+        expect(downloadAndShare).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+      }
+    });
+
+    it('still treats a real S3 export host as a CSV export', async () => {
+      const downloadAndShare =
+        NativeStripeSdk.downloadAndShareFile as jest.Mock;
+      downloadAndShare.mockResolvedValue({ success: true });
+      const url = 'https://stripe-data-exports.s3.amazonaws.com/x.csv';
+      const { onShouldStartLoad } = await getHandlers();
+
+      onShouldStartLoad({ url, navigationType: 'other' });
+
+      expect(downloadAndShare).toHaveBeenCalledWith(url, null);
     });
   });
 
