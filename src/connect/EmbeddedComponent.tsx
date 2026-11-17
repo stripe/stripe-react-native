@@ -1047,10 +1047,7 @@ function isValidUrl(url: string): boolean {
   }
 }
 
-// Matches `url`'s authority (host[:port]) against `hosts`, requiring
-// `scheme`. The authority is read from the raw string, so the decision
-// doesn't depend on the runtime's URL class (React Native's can misread "@"
-// in a query or fragment).
+// Matches url's authority (host[:port]) against hosts, requiring scheme.
 function hasAllowedStripeAuthority(
   url: string,
   hosts: readonly string[],
