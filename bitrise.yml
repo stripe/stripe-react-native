@@ -25,7 +25,14 @@ app:
     - RETRY_SLEEP_SLOW: 45
 
 pipelines:
+  # TEMPORARY (Bitrise security containment): the PR/push pipeline only runs
+  # `ci-skipped`, which reports success without running any validation. Native
+  # unit tests, e2e, and Expo prebuild are NOT run. To restore: revert the commit
+  # that introduced this block (the full pipeline is `main-trigger-pipeline-full`).
   main-trigger-pipeline:
+    workflows:
+      ci-skipped: {}
+  main-trigger-pipeline-full:
     workflows:
       js-tests: {}
       unit-test-ios: {}
@@ -52,6 +59,15 @@ pipelines:
       rn-082: {}
 
 workflows:
+  ci-skipped:
+    steps:
+      - script@1:
+          title: Skip CI
+          inputs:
+            - content: |
+                echo "SKIPPED: Bitrise builds disabled for security containment."
+                echo "No JS, iOS, Android, e2e or Expo validation was run by Bitrise."
+
   # JavaScript Tests
   js-tests:
     before_run:
