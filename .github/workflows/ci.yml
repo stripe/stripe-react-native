@@ -54,7 +54,7 @@ jobs:
 
   unit-test-ios:
     runs-on: macos-26
-    timeout-minutes: 60
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -100,7 +100,7 @@ jobs:
 
   unit-test-android:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -138,7 +138,7 @@ jobs:
 
   e2e-build-ios:
     runs-on: macos-26
-    timeout-minutes: 60
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -191,8 +191,11 @@ jobs:
   e2e-tests-ios:
     name: e2e-tests-ios (${{ matrix.shard }})
     needs: e2e-build-ios
-    runs-on: macos-26
-    timeout-minutes: 60
+    # Flows ran 4-5x slower than on Bitrise on the 3-vCPU macos-26 runner,
+    # which made taps land before the app was ready and couldn't fit the job
+    # timeout.
+    runs-on: macos-26-xlarge
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -251,7 +254,7 @@ jobs:
   # isn't ported.
   expo-prebuild-ios:
     runs-on: macos-26
-    timeout-minutes: 60
+    timeout-minutes: 45
     env:
       EXPO_SDK_VERSION: '54'
     steps:
@@ -267,7 +270,7 @@ jobs:
 
   e2e-build-android:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -296,7 +299,7 @@ jobs:
     name: e2e-tests-android (${{ matrix.shard }})
     needs: e2e-build-android
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
