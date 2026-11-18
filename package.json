@@ -212,6 +212,7 @@
         "PaymentMethodMessagingElementView": "PaymentMethodMessagingElementViewComponentView",
         "CheckoutPaymentElementView": "CheckoutPaymentElementViewComponentView",
         "CheckoutCurrencySelectorElementView": "CheckoutCurrencySelectorElementViewComponentView",
+        "CheckoutExpressCheckoutElementView": "CheckoutExpressCheckoutElementViewComponentView",
         "NavigationBar": "NavigationBarComponentView",
         "StripeContainer": "StripeContainerComponentView"
       }

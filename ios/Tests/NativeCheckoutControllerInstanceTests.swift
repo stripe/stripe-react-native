@@ -1,7 +1,7 @@
 import Foundation
 @testable import stripe_react_native
-@_spi(InternalOnlyAPI) import StripeCore
-@testable @_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripeCore
+@testable @_spi(ReactNativeSDK) import StripePaymentSheet
 import XCTest
 
 @MainActor
@@ -103,9 +103,14 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         sdk.confirmCheckout(controllerId: controllerId, resolver: { _ in
             XCTFail("Invalid confirmation should reject")
             confirmationRejected.fulfill()
-        }, rejecter: { code, message, _ in
+        }, rejecter: { code, message, error in
             XCTAssertEqual(code, "Failed")
             XCTAssertEqual(message, "Checkout requires a visible presenting view controller.")
+            // Bridge precondition failures show customers a generic message.
+            XCTAssertEqual(
+                (error as NSError?)?.userInfo["localizedMessage"] as? String,
+                checkoutUnexpectedErrorMessage()
+            )
             confirmationRejected.fulfill()
         })
         await fulfillment(of: [confirmationRejected], timeout: 2)
@@ -125,6 +130,25 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
             })
             await fulfillment(of: [rejected], timeout: 2)
         }
+    }
+
+    func test_rejectionErrorAddsCustomerFacingMessage() {
+        let nativeError = NSError(
+            domain: "CheckoutTest",
+            code: 7,
+            userInfo: [NSLocalizedDescriptionKey: "This promotion code is invalid."]
+        )
+        let rejection = checkoutRejectionError(nativeError)
+        XCTAssertEqual(rejection.domain, "CheckoutTest")
+        XCTAssertEqual(rejection.code, 7)
+        XCTAssertEqual(rejection.localizedDescription, "This promotion code is invalid.")
+        XCTAssertEqual(rejection.userInfo["localizedMessage"] as? String, "This promotion code is invalid.")
+
+        // Bridge errors describe integration problems, so customers see a generic message.
+        XCTAssertEqual(
+            checkoutRejectionError(CheckoutBridgeError.destroyed).userInfo["localizedMessage"] as? String,
+            checkoutUnexpectedErrorMessage()
+        )
     }
 
     func test_confirmationRejectsConcurrentAttemptsAndCancelsIfDestroyedBeforeStarting() async throws {
@@ -158,7 +182,95 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         })
     }
 
-    private func makeCheckout() async throws -> CheckoutElementsController {
+    func test_expressCheckoutResultPublishesCurrentSessionBeforeResultAndStopsAfterDestroy() async throws {
+        let checkout = try await makeCheckout()
+        var emitted: [(kind: String, event: [String: Any])] = []
+        let instance = NativeCheckoutControllerInstance(
+            checkout: checkout,
+            emitExpressCheckoutResult: { emitted.append(("result", $0)) },
+            emitEvent: { emitted.append(("update", $0)) }
+        )
+        instance.start(controllerId: "express-result")
+        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session(status: "expired"))
+        emitted.removeAll()
+
+        instance.handleExpressCheckoutResult(.canceled)
+
+        XCTAssertEqual(emitted.map(\.kind), ["update", "result"])
+        let update = try XCTUnwrap(emitted.first?.event)
+        let session = try XCTUnwrap(update["session"] as? [String: Any])
+        XCTAssertEqual(session["status"] as? NSDictionary, ["type": "expired"])
+        XCTAssertEqual(update["status"] as? String, "ready")
+        let result = try XCTUnwrap(emitted.last?.event)
+        XCTAssertEqual(result["controllerId"] as? String, "express-result")
+        XCTAssertEqual((result["result"] as? [String: Any])?["status"] as? String, "canceled")
+
+        instance.destroy()
+        emitted.removeAll()
+        instance.handleExpressCheckoutResult(.canceled)
+        XCTAssertTrue(emitted.isEmpty)
+    }
+
+    func test_expressCheckoutViewMeasuresAndDetaches() async throws {
+        let checkout = try await makeCheckout(expressCheckout: true)
+        let element = checkout.getExpressCheckoutElement()
+        let instance = NativeCheckoutControllerInstance(checkout: checkout, expressCheckoutElement: element, emitEvent: { _ in })
+        let sdk = StripeSdkImpl.shared
+        let controllerId = "express-view"
+        sdk.checkoutControllers[controllerId] = instance
+        defer { sdk.checkoutControllers.removeValue(forKey: controllerId)?.destroy() }
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+        let view = CheckoutExpressCheckoutElementContainerView(frame: CGRect(x: 0, y: 0, width: 320, height: 1))
+        var heights: [CGFloat] = []
+        var heightUpdate: XCTestExpectation?
+        view.controllerId = controllerId
+        view.onHeightChanged = { event in
+            heights.append(event?["height"] as? CGFloat ?? -1)
+            heightUpdate?.fulfill()
+            heightUpdate = nil
+        }
+        window.addSubview(view)
+        view.layoutIfNeeded()
+        XCTAssertTrue(element.uiView.superview === view)
+        XCTAssertEqual(heights.last, 0)
+
+        var configuration = CheckoutElementsController.Configuration(clientSecret: "cs_test_secret", returnURL: "example://checkout")
+        configuration.expressCheckoutElement = .init(completion: { _ in })
+        let updated = expectation(description: "Session height updated")
+        heightUpdate = updated
+        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session(
+            configuration: configuration, paymentMethods: ["card", "link"]
+        ))
+        await fulfillment(of: [updated], timeout: 2)
+        XCTAssertEqual(heights.last, 44)
+        let count = heights.count
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        XCTAssertEqual(heights.count, count)
+        view.frame.size.width = 200
+        view.layoutIfNeeded()
+        XCTAssertEqual(element.uiView.bounds.width, 200)
+        XCTAssertEqual(heights.last, 44)
+
+        let collapsed = expectation(description: "Unavailable wallets collapse the element")
+        heightUpdate = collapsed
+        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session())
+        await fulfillment(of: [collapsed], timeout: 2)
+        XCTAssertEqual(heights.last, 0)
+
+        view.removeFromSuperview()
+        XCTAssertNil(element.uiView.superview)
+        window.addSubview(view)
+        view.layoutIfNeeded()
+        XCTAssertTrue(element.uiView.superview === view)
+        XCTAssertEqual(heights.last, 0)
+        instance.destroy()
+        XCTAssertNil(element.uiView.superview)
+        XCTAssertTrue(view.subviews.isEmpty)
+        view.controllerId = nil
+    }
+
+    private func makeCheckout(expressCheckout: Bool = false) async throws -> CheckoutElementsController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]
         let apiClient = STPAPIClient(publishableKey: "pk_test_123")
@@ -170,6 +282,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         )
         configuration.apiClient = apiClient
         configuration.paymentElement = .init()
+        if expressCheckout { configuration.expressCheckoutElement = .init(completion: { _ in }) }
         return try await CheckoutElementsController(configuration: configuration)
     }
 }

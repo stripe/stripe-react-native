@@ -11,6 +11,5 @@ export interface NativeProps extends ViewProps {
 }
 
 export default codegenNativeComponent<NativeProps>(
-  'CheckoutExpressCheckoutElementView',
-  { excludedPlatforms: ['iOS'] }
+  'CheckoutExpressCheckoutElementView'
 ) as HostComponent<NativeProps>;

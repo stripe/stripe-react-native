@@ -1,5 +1,5 @@
 import Stripe
-@_spi(InternalOnlyAPI) import StripeCore
+@_spi(ReactNativeSDK) import StripeCore
 
 enum ErrorType {
     static let Failed = "Failed"

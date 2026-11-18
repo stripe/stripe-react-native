@@ -39,7 +39,7 @@ internal class NativeCheckoutControllerInstance(
   private val scope: CoroutineScope,
   initialSession: WritableMap,
   private val context: ReactApplicationContext,
-  private val isShippingAddressElementConfigured: Boolean = false,
+  val isShippingAddressElementConfigured: Boolean = false,
   private val isExpressCheckoutElementConfigured: Boolean = false,
 ) {
 
@@ -141,7 +141,7 @@ internal class NativeCheckoutControllerInstance(
       getPresenter(activity).confirm()
       val confirmationResult = result.await()
       if (!destroyed) publishCurrentState()
-      return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status)
+      return CheckoutSessionSerializer.serialize(confirmationResult, controller.session.value?.status, context)
     } finally {
       confirmation = null
       context.removeLifecycleEventListener(confirmationHostListener)
@@ -156,7 +156,31 @@ internal class NativeCheckoutControllerInstance(
   @MainThread
   fun onConfirmationResult(result: CheckoutElementsController.Result) {
     UiThreadUtil.assertOnUiThread()
-    confirmation?.complete(result)
+    val pendingConfirmation = confirmation
+    if (pendingConfirmation != null) {
+      pendingConfirmation.complete(result)
+    } else if (!destroyed && isExpressCheckoutElementConfigured) {
+      // In Android SDK 23.25.2, confirmation results come from confirm() or Express Checkout Element.
+      // confirm() installs a pending confirmation before calling native, so only ECE results reach
+      // this branch.
+      onExpressCheckoutConfirmationResult(result)
+    }
+  }
+
+  private fun onExpressCheckoutConfirmationResult(result: CheckoutElementsController.Result) {
+    val controllerId = controllerId ?: return
+    scope.launch {
+      publishCurrentState()
+      val serializedResult = CheckoutSessionSerializer.serialize(result, controller.session.value?.status, context)
+      if (!destroyed) {
+        eventEmitter.emitCheckoutExpressCheckoutDidComplete(
+          Arguments.createMap().apply {
+            putString("controllerId", controllerId)
+            putMap("result", serializedResult)
+          },
+        )
+      }
+    }
   }
 
   private fun releasePresenter() {

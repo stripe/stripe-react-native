@@ -6,7 +6,7 @@
 //
 
 @testable import stripe_react_native
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 import UIKit
 import XCTest
 
@@ -125,7 +125,8 @@ final class ShippingAddressAppearanceMapperTests: XCTestCase {
                 "shippingAddressElement": ["appearance": params],
             ],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
         return try XCTUnwrap(configuration.shippingAddressElement?.appearance)
     }

@@ -6,6 +6,7 @@ import androidx.compose.ui.text.AnnotatedString;
 import androidx.compose.ui.graphics.painter.Painter;
 import com.stripe.android.checkout.CheckoutElementsController;
 import com.stripe.android.checkout.CheckoutElementsController.Session;
+import com.stripe.android.elements.ExpressCheckoutElement;
 import com.stripe.android.paymentsheet.model.PaymentOptionResource;
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -17,6 +18,14 @@ import kotlin.jvm.functions.Function1;
 // Use those constructors for real test models without compiler visibility suppressions.
 final class NativeCheckoutFixtures {
   private NativeCheckoutFixtures() {}
+
+  static ExpressCheckoutElement.PaymentMethod.GooglePay googlePayPaymentMethod() {
+    return new ExpressCheckoutElement.PaymentMethod.GooglePay();
+  }
+
+  static ExpressCheckoutElement.PaymentMethod.Link linkPaymentMethod() {
+    return new ExpressCheckoutElement.PaymentMethod.Link();
+  }
 
   static Session session(
       String email,
@@ -41,13 +50,15 @@ final class NativeCheckoutFixtures {
     return new CheckoutElementsController.OperationResult.Succeeded();
   }
 
-  static CheckoutElementsController.OperationResult failedOperation(Throwable error) {
-    return new CheckoutElementsController.OperationResult.Failed(error, null);
+  static CheckoutElementsController.OperationResult failedOperation(Throwable error, String displayMessage) {
+    return new CheckoutElementsController.OperationResult.Failed(error, displayMessage);
   }
 
   static CheckoutElementsController.Result completedResult() { return new CheckoutElementsController.Result.Completed(); }
   static CheckoutElementsController.Result canceledResult() { return new CheckoutElementsController.Result.Canceled(); }
-  static CheckoutElementsController.Result failedResult(Throwable error) { return new CheckoutElementsController.Result.Failed(error, null); }
+  static CheckoutElementsController.Result failedResult(Throwable error, String displayMessage) {
+    return new CheckoutElementsController.Result.Failed(error, displayMessage);
+  }
 
   static Session.Status openStatus() { return new Session.Status.Open(); }
   static Session.Status expiredStatus() { return new Session.Status.Expired(); }

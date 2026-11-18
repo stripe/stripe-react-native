@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.checkout
 
+import android.annotation.SuppressLint
 import android.content.Context
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
@@ -7,10 +8,11 @@ import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.convertDrawableToBase64
 import com.reactnativestripesdk.toHtmlString
-import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.isDarkTheme
+import com.reactnativestripesdk.utils.mapError
 import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.checkout.CheckoutElementsController.Session
+import com.stripe.android.core.exception.StripeException
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.paymentelement.CheckoutSessionPreview
 import kotlinx.coroutines.CancellationException
@@ -23,21 +25,7 @@ internal object CheckoutSessionSerializer {
   suspend fun serialize(session: Session, context: Context): WritableMap =
     Arguments.createMap().apply {
       putString("id", session.id)
-      // Default availability for the Express Checkout API stub.
-      putMap(
-        "availableExpressCheckoutPaymentMethods",
-        Arguments.createMap().apply {
-          for ((key, type) in mapOf("applePay" to "apple_pay", "googlePay" to "google_pay", "link" to "link")) {
-            putMap(
-              key,
-              Arguments.createMap().apply {
-                putBoolean("available", false)
-                putString("type", type)
-              },
-            )
-          }
-        },
-      )
+      putMap("availableExpressCheckoutPaymentMethods", serializeExpressPaymentMethods(session))
       putBoolean("livemode", session.livemode)
       // Like iOS, omit the currency when the session has none.
       session.currency?.let { putString("currency", it) }
@@ -64,9 +52,28 @@ internal object CheckoutSessionSerializer {
       putMap("totals", serialize(session.totals))
     }
 
+  @SuppressLint("RestrictedApi")
+  private fun serializeExpressPaymentMethods(session: Session): WritableMap {
+    val availableTypes = session.availableExpressCheckoutPaymentMethods.map { it.type }.toSet()
+    return Arguments.createMap().apply {
+      // Apple Pay remains unavailable on Android. Native eligibility and display settings
+      // determine Google Pay and Link availability for every session snapshot.
+      for ((key, type) in mapOf("applePay" to "apple_pay", "googlePay" to "google_pay", "link" to "link")) {
+        putMap(
+          key,
+          Arguments.createMap().apply {
+            putBoolean("available", type in availableTypes)
+            putString("type", type)
+          },
+        )
+      }
+    }
+  }
+
   fun serialize(
     result: CheckoutElementsController.Result,
     sessionStatus: Session.Status?,
+    context: Context,
   ): WritableMap = when (result) {
     is CheckoutElementsController.Result.Completed -> Arguments.createMap().apply {
       val completeStatus = checkNotNull(sessionStatus as? Session.Status.Complete) {
@@ -76,10 +83,20 @@ internal object CheckoutSessionSerializer {
       putString("paymentStatus", serializePaymentStatus(completeStatus.paymentStatus))
     }
     is CheckoutElementsController.Result.Canceled -> Arguments.createMap().apply { putString("status", "canceled") }
-    is CheckoutElementsController.Result.Failed ->
-      createError(checkoutErrorCode(result.error), result.error).apply {
+    is CheckoutElementsController.Result.Failed -> {
+      val stripeError = (result.error as? StripeException)?.stripeError
+      mapError(
+        code = checkoutErrorCode(result.error),
+        message = result.error.message,
+        // Checkout reports its customer-facing message separately from the diagnostic error.
+        localizedMessage = checkoutLocalizedMessage(result.displayMessage, context),
+        declineCode = stripeError?.declineCode,
+        type = stripeError?.type,
+        stripeErrorCode = stripeError?.code,
+      ).apply {
         putString("status", "failed")
       }
+    }
   }
 
   private fun serializeTax(tax: Session.Tax): WritableMap {

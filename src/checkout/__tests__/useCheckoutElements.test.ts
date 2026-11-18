@@ -1,5 +1,4 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { Platform } from 'react-native';
 import { addListener } from '../../events';
 import { useCheckoutElements } from '../../hooks/useCheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
@@ -11,10 +10,12 @@ jest.mock('../../events', () => ({ addListener: jest.fn() }));
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
   default: {
+    getConstants: jest.fn(() => ({})),
     createCheckout: jest.fn(),
     destroyCheckout: jest.fn(),
     updateCheckoutEmail: jest.fn(),
     confirmCheckout: jest.fn(),
+    clearCheckoutLocalCustomerData: jest.fn(),
     runCheckoutServerUpdate: jest.fn(),
     completeCheckoutServerUpdate: jest.fn(),
   },
@@ -30,6 +31,8 @@ const create = NativeStripeSdk.createCheckout as jest.Mock;
 const destroy = NativeStripeSdk.destroyCheckout as jest.Mock;
 const updateEmail = NativeStripeSdk.updateCheckoutEmail as jest.Mock;
 const confirm = NativeStripeSdk.confirmCheckout as jest.Mock;
+const clearLocalCustomerData =
+  NativeStripeSdk.clearCheckoutLocalCustomerData as jest.Mock;
 const startServerUpdate = NativeStripeSdk.runCheckoutServerUpdate as jest.Mock;
 const completeServerUpdate =
   NativeStripeSdk.completeCheckoutServerUpdate as jest.Mock;
@@ -80,6 +83,7 @@ beforeEach(() => {
   }));
   destroy.mockReset().mockResolvedValue(undefined);
   updateEmail.mockReset().mockResolvedValue(undefined);
+  clearLocalCustomerData.mockReset().mockResolvedValue(undefined);
   startServerUpdate.mockReset();
   completeServerUpdate.mockReset().mockResolvedValue(undefined);
 });
@@ -95,6 +99,8 @@ it('loads while enabled and follows native updates', async () => {
   expect(hook.result.current.expressCheckoutElement).toBeNull();
   await hook.result.current.reload();
   expect(configuration).not.toHaveBeenCalled();
+  await hook.result.current.clearLocalCustomerData();
+  expect(clearLocalCustomerData).toHaveBeenCalledTimes(1);
 
   hook.rerender({ enabled: true, getConfiguration: configuration });
   await waitFor(() => expect(hook.result.current.status).toBe('ready'));
@@ -205,27 +211,6 @@ it('reports initialization errors and recovers on reload', async () => {
   expect(hook.result.current).toMatchObject({ status: 'ready', error: null });
 });
 
-it('reports unsupported iOS Express Checkout configuration through its error state', async () => {
-  jest.replaceProperty(Platform, 'OS', 'ios');
-  const hook = renderCheckout({
-    getConfiguration: async () => ({
-      ...options,
-      expressCheckoutElement: { onResult: jest.fn() },
-    }),
-  });
-  await waitFor(() => expect(hook.result.current.status).toBe('error'));
-  expect(hook.result.current).toMatchObject({
-    expressCheckoutElement: null,
-    error: {
-      code: 'Failed',
-      message:
-        'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.',
-    },
-  });
-  expect(create).not.toHaveBeenCalled();
-  hook.unmount();
-});
-
 it('cancels an active server update during reload', async () => {
   const native = deferred<void>();
   const server = deferred<void>();
@@ -263,8 +248,7 @@ it('cancels an active server update during reload', async () => {
   expect(controllerId(1)).not.toBe(id);
 });
 
-it('loads Android Express Checkout and replaces its handle on reload', async () => {
-  jest.replaceProperty(Platform, 'OS', 'android');
+it('loads Express Checkout, routes its results to onResult, and replaces its handle on reload', async () => {
   create.mockResolvedValue({ session, isExpressCheckoutAvailable: true });
   const onResult = jest.fn();
   const hook = renderCheckout({
@@ -276,6 +260,14 @@ it('loads Android Express Checkout and replaces its handle on reload', async () 
   await waitFor(() => expect(hook.result.current.status).toBe('ready'));
   const firstElement = hook.result.current.expressCheckoutElement;
   expect(firstElement).not.toBeNull();
+  const result = { status: 'canceled' };
+  act(() =>
+    listener('checkoutExpressCheckoutDidComplete')({
+      controllerId: controllerId(),
+      result,
+    })
+  );
+  expect(onResult).toHaveBeenCalledWith(result);
   await act(() => hook.result.current.reload());
   expect(hook.result.current.expressCheckoutElement).not.toBe(firstElement);
   hook.unmount();

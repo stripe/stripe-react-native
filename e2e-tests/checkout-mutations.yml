@@ -22,6 +22,8 @@ appId: ${APP_ID}
     centerElement: true
 - tapOn: 'Default Shipping Address'
 - tapOn: 'US test address'
+- runFlow:
+    file: helpers/checkout-disable-apple-pay.yml
 - tapOn:
     id: 'checkout-create-session'
 - extendedWaitUntil:

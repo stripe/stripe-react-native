@@ -30,6 +30,7 @@
     @"checkoutControllerDidUpdate",
     @"checkoutServerUpdateRequested",
     @"checkoutControllerDidSelectPaymentOption",
+    @"checkoutExpressCheckoutDidComplete",
   ];
 }
 
@@ -151,6 +152,11 @@
 - (void)emitCheckoutControllerDidSelectPaymentOption:(NSDictionary *)value
 {
   [self sendEventWithName:@"checkoutControllerDidSelectPaymentOption" body:value];
+}
+
+- (void)emitCheckoutExpressCheckoutDidComplete:(NSDictionary *)value
+{
+  [self sendEventWithName:@"checkoutExpressCheckoutDidComplete" body:value];
 }
 
 - (void)emitCheckoutServerUpdateRequested:(NSDictionary *)value

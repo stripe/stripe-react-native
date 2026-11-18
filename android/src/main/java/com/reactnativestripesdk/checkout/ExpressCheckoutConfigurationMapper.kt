@@ -2,9 +2,12 @@ package com.reactnativestripesdk.checkout
 
 import android.annotation.SuppressLint
 import com.facebook.react.bridge.ReadableMap
+import com.reactnativestripesdk.utils.getDoubleOrNull
+import com.reactnativestripesdk.utils.getIntOrNull
 import com.reactnativestripesdk.utils.getStringList
 import com.stripe.android.elements.ExpressCheckoutElement
 import com.stripe.android.paymentelement.CheckoutSessionPreview
+import com.stripe.android.elements.ExpressCheckoutElement.Configuration.Appearance as ExpressAppearance
 import com.stripe.android.elements.ExpressCheckoutElement.Configuration.GooglePayConfiguration as ExpressGooglePay
 import com.stripe.android.elements.ExpressCheckoutElement.Configuration.LinkConfiguration as ExpressLink
 
@@ -15,6 +18,7 @@ internal object ExpressCheckoutConfigurationMapper {
     ExpressCheckoutElement.Configuration().apply {
       params.getMap("googlePay")?.let { googlePayConfiguration(mapGooglePay(it)) }
       params.getMap("link")?.let { linkConfiguration(mapLink(it)) }
+      params.getMap("appearance")?.let { appearance(mapAppearance(it)) }
     }
 
   private fun mapGooglePay(params: ReadableMap): ExpressGooglePay = ExpressGooglePay().apply {
@@ -40,6 +44,33 @@ internal object ExpressCheckoutConfigurationMapper {
           "never" -> ExpressLink.Display.Never
           else -> unsupportedValue("link.display", it)
         },
+      )
+    }
+  }
+
+  private fun mapAppearance(params: ReadableMap): ExpressAppearance = ExpressAppearance().apply {
+    params.getString("buttonTheme")?.let {
+      buttonTheme(
+        when (it) {
+          "automatic" -> ExpressAppearance.ButtonTheme.Automatic
+          "light" -> ExpressAppearance.ButtonTheme.Light
+          "dark" -> ExpressAppearance.ButtonTheme.Dark
+          else -> unsupportedValue("appearance.buttonTheme", it)
+        },
+      )
+    }
+    params.getDoubleOrNull("borderRadius")?.let { borderRadius ->
+      val cornerRadius = borderRadius.toFloat()
+      require(borderRadius >= 0 && cornerRadius.isFinite()) {
+        "expressCheckoutElement.appearance.borderRadius must be finite and greater than or equal to 0."
+      }
+      cornerRadiusDp(cornerRadius)
+    }
+    params.getMap("buttonLayout")?.let { layout ->
+      buttonLayout(
+        ExpressAppearance.ButtonLayout()
+          .maxColumns(layout.getIntOrNull("maxColumns"))
+          .maxRows(layout.getIntOrNull("maxRows")),
       )
     }
   }

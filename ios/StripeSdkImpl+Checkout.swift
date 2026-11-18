@@ -1,8 +1,17 @@
 import Foundation
 import React
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 
 extension StripeSdkImpl {
+
+    @objc(clearCheckoutLocalCustomerData:rejecter:)
+    public func clearCheckoutLocalCustomerData(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        CheckoutElementsController.clearLocalCustomerData()
+        resolve(nil)
+    }
 
     @objc(createCheckout:controllerId:resolver:rejecter:)
     public func createCheckout(
@@ -13,13 +22,13 @@ extension StripeSdkImpl {
     ) {
         DispatchQueue.main.async { [weak self] in
             guard let self else {
-                reject("Failed", "Stripe SDK is unavailable.", nil)
+                reject("Failed", "Stripe SDK is unavailable.", checkoutRejectionError())
                 return
             }
 
             pendingCheckoutCreations[controllerId] = Task { @MainActor [weak self] in
                 guard let self else {
-                    reject("Failed", "Stripe SDK is unavailable.", nil)
+                    reject("Failed", "Stripe SDK is unavailable.", checkoutRejectionError())
                     return
                 }
                 defer { pendingCheckoutCreations.removeValue(forKey: controllerId) }
@@ -36,6 +45,9 @@ extension StripeSdkImpl {
                             emitter?.emitCheckoutControllerDidSelectPaymentOption([
                                 "controllerId": controllerId,
                             ])
+                        },
+                        expressCheckoutCompletion: { [weak self] result in
+                            self?.checkoutControllers[controllerId]?.handleExpressCheckoutResult(result)
                         }
                     )
                     let checkout = try await CheckoutElementsController(configuration: configuration)
@@ -45,10 +57,16 @@ extension StripeSdkImpl {
                         : checkout.getCurrencySelectorElement()
                     let instance = NativeCheckoutControllerInstance(
                         checkout: checkout,
+                        expressCheckoutElement: configuration.expressCheckoutElement == nil
+                            ? nil
+                            : checkout.getExpressCheckoutElement(),
                         currencySelectorElement: currencySelectorElement,
                         shippingAddressElement: configuration.shippingAddressElement == nil
                             ? nil
                             : checkout.getShippingAddressElement(),
+                        emitExpressCheckoutResult: { [weak self] event in
+                            self?.emitter?.emitCheckoutExpressCheckoutDidComplete(event)
+                        },
                         emitEvent: { [weak self] update in
                             self?.emitter?.emitCheckoutControllerDidUpdate(update)
                         }
@@ -58,9 +76,10 @@ extension StripeSdkImpl {
                     resolve([
                         "session": instance.session,
                         "isCurrencySelectorAvailable": currencySelectorElement != nil,
+                        "isExpressCheckoutAvailable": instance.expressCheckoutElement != nil,
                     ])
                 } catch {
-                    reject("Failed", error.localizedDescription, error)
+                    reject("Failed", error.localizedDescription, checkoutRejectionError(error))
                 }
             }
         }
@@ -75,7 +94,7 @@ extension StripeSdkImpl {
         Task { @MainActor [weak self] in
             guard let self,
                   let instance = checkoutControllers.removeValue(forKey: controllerId) else {
-                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", checkoutRejectionError())
                 return
             }
 
@@ -152,12 +171,12 @@ extension StripeSdkImpl {
     ) {
         Task { @MainActor [weak self] in
             guard let self, let instance = checkoutControllers[controllerId] else {
-                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", checkoutRejectionError())
                 return
             }
             guard let presenter = checkoutPresentingViewControllerProvider(),
                   presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
-                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                reject("Failed", "Checkout requires a visible presenting view controller.", checkoutRejectionError())
                 return
             }
             do {
@@ -165,7 +184,7 @@ extension StripeSdkImpl {
                     resolve(CheckoutSessionSerializer.serialize(result))
                 }
             } catch {
-                reject(checkoutErrorCode(for: error), error.localizedDescription, error)
+                reject(checkoutErrorCode(for: error), error.localizedDescription, checkoutRejectionError(error))
             }
         }
     }
@@ -179,15 +198,15 @@ extension StripeSdkImpl {
         Task { @MainActor [weak self] in
             guard let self,
                   let instance = checkoutControllers[controllerId] else {
-                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", checkoutRejectionError())
                 return
             }
             guard let presenter = checkoutPresentingViewControllerProvider() else {
-                reject("Failed", "Checkout requires a presenting view controller.", nil)
+                reject("Failed", "Checkout requires a presenting view controller.", checkoutRejectionError())
                 return
             }
             guard presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
-                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                reject("Failed", "Checkout requires a visible presenting view controller.", checkoutRejectionError())
                 return
             }
             instance.checkout.getPaymentElement().present(from: presenter, completion: nil)
@@ -203,16 +222,16 @@ extension StripeSdkImpl {
     ) {
         Task { @MainActor [weak self] in
             guard let self, let instance = checkoutControllers[controllerId] else {
-                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", checkoutRejectionError())
                 return
             }
             guard let element = instance.shippingAddressElement else {
-                reject("Failed", "Shipping Address Element was not configured for this Checkout controller.", nil)
+                reject("Failed", "Shipping Address Element was not configured for this Checkout controller.", checkoutRejectionError())
                 return
             }
             guard let presenter = checkoutPresentingViewControllerProvider(),
                   presenter.viewIfLoaded?.window != nil, !presenter.isBeingDismissed else {
-                reject("Failed", "Checkout requires a visible presenting view controller.", nil)
+                reject("Failed", "Checkout requires a visible presenting view controller.", checkoutRejectionError())
                 return
             }
             // Resolve on presentation, matching Payment Element's sheet API.
@@ -262,7 +281,7 @@ extension StripeSdkImpl {
         Task { @MainActor [weak self] in
             guard let self,
                   let instance = checkoutControllers[controllerId] else {
-                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", nil)
+                reject("Failed", "Checkout controller `\(controllerId)` does not exist.", checkoutRejectionError())
                 return
             }
             do {
@@ -272,13 +291,13 @@ extension StripeSdkImpl {
                     reject(
                         "Canceled",
                         "The Checkout controller was destroyed before the operation completed.",
-                        nil
+                        checkoutRejectionError()
                     )
                     return
                 }
                 resolve(nil)
             } catch {
-                reject(error is CancellationError ? "Canceled" : "Failed", error.localizedDescription, error)
+                reject(checkoutErrorCode(for: error), error.localizedDescription, checkoutRejectionError(error))
             }
         }
     }

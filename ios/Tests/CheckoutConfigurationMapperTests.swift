@@ -1,10 +1,89 @@
 import PassKit
 @testable import stripe_react_native
-@_spi(ReactNativeSDK) @_spi(InternalOnlyAPI) import StripePaymentSheet
+@_spi(ReactNativeSDK) import StripePaymentSheet
 import XCTest
 
 @MainActor
 final class CheckoutConfigurationMapperTests: XCTestCase {
+    func test_map_mapsExpressCheckoutConfigurationAndCompletion() throws {
+        var completed = false
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: ["expressCheckoutElement": [
+                "applePay": ["buttonType": "checkout"],
+                "googlePay": ["display": "never"],
+                "link": ["display": "never"],
+            ], ],
+            merchantIdentifier: "merchant.com.example",
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { result in
+                if case .canceled = result { completed = true }
+            }
+        )
+        let element = try XCTUnwrap(configuration.expressCheckoutElement)
+        XCTAssertEqual(element.applePayConfiguration.buttonType, .checkout)
+        XCTAssertEqual(element.linkConfiguration.display, .never)
+        XCTAssertEqual(configuration.applePayMerchantId, "merchant.com.example")
+        // Payment Element's own ApplePayConfiguration.display is untouched by Express
+        // Checkout Element's configuration; it defaults to .automatic.
+        XCTAssertEqual(configuration.paymentElement?.applePayConfiguration.display, .automatic)
+        element.completion(.canceled)
+        XCTAssertTrue(completed)
+    }
+
+    func test_map_sharesMerchantIdentifier() throws {
+        for isExpressConfigured in [false, true] {
+            for merchantIdentifier: String? in [nil, "", "merchant.com.example"] {
+                for display: String? in [nil, "automatic", "never"] {
+                    var paymentElement: [String: Any] = [:]
+                    if let display { paymentElement["applePay"] = ["display": display] }
+                    var params: [String: Any] = ["paymentElement": paymentElement]
+                    if isExpressConfigured { params["expressCheckoutElement"] = [:] }
+                    let configuration = try CheckoutConfigurationMapper.map(
+                        params: params as NSDictionary,
+                        merchantIdentifier: merchantIdentifier,
+                        didSelectPaymentOption: {},
+                        expressCheckoutCompletion: { _ in }
+                    )
+                    let context = "express: \(isExpressConfigured), merchant: \(merchantIdentifier ?? "nil"), display: \(display ?? "nil")"
+                    // The merchant ID is shared checkout-wide whenever one is provided; it is never
+                    // an error to omit it.
+                    XCTAssertEqual(
+                        configuration.applePayMerchantId,
+                        merchantIdentifier?.isEmpty == false ? merchantIdentifier : nil,
+                        context
+                    )
+                    // Payment Element hides Apple Pay through its own display option.
+                    XCTAssertEqual(
+                        configuration.paymentElement?.applePayConfiguration.display,
+                        display == "never" ? .never : .automatic,
+                        context
+                    )
+                    XCTAssertEqual(configuration.expressCheckoutElement != nil, isExpressConfigured, context)
+                }
+            }
+        }
+    }
+
+    func test_map_rejectsInvalidExpressCheckoutEnumsWithCorrectPaths() {
+        let cases: [(NSDictionary, String)] = [
+            (["applePay": ["buttonType": "invalid"]], "applePay.buttonType"),
+            (["link": ["display": "invalid"]], "link.display"),
+        ]
+        for (params, path) in cases {
+            XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
+                params: ["expressCheckoutElement": params],
+                merchantIdentifier: nil,
+                didSelectPaymentOption: {},
+                expressCheckoutCompletion: { _ in }
+            )) { error in
+                XCTAssertEqual(
+                    error as? CheckoutConfigurationMapperError,
+                    .unsupportedValue(path: "expressCheckoutElement.\(path)", value: "invalid")
+                )
+            }
+        }
+    }
+
     func test_map_mapsCurrencySelectorElementAppearance() throws {
         let configuration = try CheckoutConfigurationMapper.map(
             params: [
@@ -24,7 +103,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 ],
             ],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
 
         let appearance = try XCTUnwrap(configuration.currencySelectorElement?.appearance)
@@ -86,7 +166,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 ],
             ],
             merchantIdentifier: "merchant.com.example",
-            didSelectPaymentOption: { selectionCount += 1 }
+            didSelectPaymentOption: { selectionCount += 1 },
+            expressCheckoutCompletion: { _ in }
         )
 
         XCTAssertEqual(configuration.clientSecret, "cs_test_secret_123")
@@ -134,7 +215,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 "returnURL": "example://checkout",
             ],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
 
         XCTAssertNil(configuration.merchantDisplayName)
@@ -150,35 +232,13 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertNil(paymentElement.linkConfiguration)
     }
 
-    func test_map_requiresNonEmptyMerchantIdentifierWhenApplePayIsConfigured() {
-        for merchantIdentifier: String? in [nil, ""] {
-            XCTAssertThrowsError(
-                try CheckoutConfigurationMapper.map(
-                    params: [
-                        "clientSecret": "cs_test_secret_123",
-                        "returnURL": "example://checkout",
-                        "paymentElement": [
-                            "applePay": [:],
-                        ],
-                    ],
-                    merchantIdentifier: merchantIdentifier,
-                    didSelectPaymentOption: {}
-                )
-            ) { error in
-                XCTAssertEqual(
-                    error as? CheckoutConfigurationMapperError,
-                    .missingMerchantIdentifier
-                )
-            }
-        }
-    }
-
     func test_map_mapsApplePayDisplay() throws {
-        let cases: [(display: String?, merchantIdentifier: String?, enabled: Bool)] = [
-            (nil, "merchant.com.example", true),
-            ("automatic", "merchant.com.example", true),
-            ("never", "merchant.com.example", false),
-            ("never", nil, false),
+        let cases: [(display: String?, merchantIdentifier: String?, expectedDisplay: PaymentElement.Configuration.ApplePayConfiguration.Display)] = [
+            (nil, "merchant.com.example", .automatic),
+            ("automatic", "merchant.com.example", .automatic),
+            // The shared merchant ID stays set; Payment Element hides Apple Pay through `display`.
+            ("never", "merchant.com.example", .never),
+            ("never", nil, .never),
         ]
         for testCase in cases {
             var applePay = ["buttonType": "checkout"]
@@ -192,18 +252,14 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                     ],
                 ],
                 merchantIdentifier: testCase.merchantIdentifier,
-                didSelectPaymentOption: {}
+                didSelectPaymentOption: {},
+                expressCheckoutCompletion: { _ in }
             )
 
             let paymentElement = try XCTUnwrap(configuration.paymentElement)
-            if testCase.enabled {
-                XCTAssertEqual(configuration.applePayMerchantId, testCase.merchantIdentifier)
-                XCTAssertEqual(paymentElement.applePayConfiguration.display, .automatic)
-                XCTAssertEqual(paymentElement.applePayConfiguration.buttonType, .checkout)
-            } else {
-                XCTAssertNil(configuration.applePayMerchantId)
-                XCTAssertEqual(paymentElement.applePayConfiguration.display, .never)
-            }
+            XCTAssertEqual(configuration.applePayMerchantId, testCase.merchantIdentifier)
+            XCTAssertEqual(paymentElement.applePayConfiguration.display, testCase.expectedDisplay)
+            XCTAssertEqual(paymentElement.applePayConfiguration.buttonType, .checkout)
             XCTAssertEqual(paymentElement.linkConfiguration?.display, .never)
             XCTAssertEqual(paymentElement.paymentMethodOrder, ["card"])
         }
@@ -213,7 +269,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertThrowsError(try CheckoutConfigurationMapper.map(
             params: ["paymentElement": ["applePay": ["display": "invalid"]]],
             merchantIdentifier: "merchant.com.example",
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )) { error in
             XCTAssertEqual(
                 error as? CheckoutConfigurationMapperError,
@@ -226,7 +283,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         let configuration = try CheckoutConfigurationMapper.map(
             params: [:],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         )
 
         XCTAssertEqual(configuration.clientSecret, "")
@@ -243,7 +301,8 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
                 ],
             ],
             merchantIdentifier: nil,
-            didSelectPaymentOption: {}
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
         ))
     }
 

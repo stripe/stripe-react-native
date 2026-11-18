@@ -16,6 +16,8 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.concurrent.atomic.AtomicReference
@@ -39,23 +41,44 @@ class CheckoutSessionSerializerTest {
   }
 
   @Test
+  fun `serialize follows real SDK express payment methods in every snapshot`() = runTest {
+    val session = spy(checkoutSession())
+    val googlePay = NativeCheckoutFixtures.googlePayPaymentMethod()
+    val link = NativeCheckoutFixtures.linkPaymentMethod()
+    for (available in listOf(setOf(googlePay), setOf(link), setOf(googlePay, link), emptySet())) {
+      `when`(session.availableExpressCheckoutPaymentMethods).thenReturn(available)
+      val methods = CheckoutSessionSerializer.serialize(session, context)
+        .getMap("availableExpressCheckoutPaymentMethods")!!
+      assertFalse(methods.getMap("applePay")!!.getBoolean("available"))
+      assertEquals(googlePay in available, methods.getMap("googlePay")!!.getBoolean("available"))
+      assertEquals(link in available, methods.getMap("link")!!.getBoolean("available"))
+      assertEquals("google_pay", methods.getMap("googlePay")!!.getString("type"))
+      assertEquals("link", methods.getMap("link")!!.getString("type"))
+    }
+  }
+
+  @Test
   fun `confirmation results preserve native outcomes and completed payment status`() {
     val completed = NativeCheckoutFixtures.completedResult()
-    val completedResult = CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.completeStatus())
+    val completedResult =
+      CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.completeStatus(), context)
     assertEquals("completed", completedResult.getString("status"))
     assertEquals("paid", completedResult.getString("paymentStatus"))
     assertThrows(IllegalStateException::class.java) {
-      CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.openStatus())
+      CheckoutSessionSerializer.serialize(completed, NativeCheckoutFixtures.openStatus(), context)
     }
-    val canceled = CheckoutSessionSerializer.serialize(NativeCheckoutFixtures.canceledResult(), null)
+    val canceled = CheckoutSessionSerializer.serialize(NativeCheckoutFixtures.canceledResult(), null, context)
     assertEquals("canceled", canceled.getString("status"))
     val failed = CheckoutSessionSerializer.serialize(
-      NativeCheckoutFixtures.failedResult(IllegalStateException("Declined")),
+      NativeCheckoutFixtures.failedResult(IllegalStateException("Declined"), "Your card was declined."),
       null,
+      context,
     )
     assertEquals("failed", failed.getString("status"))
     assertEquals("Failed", failed.getMap("error")!!.getString("code"))
     assertEquals("Declined", failed.getMap("error")!!.getString("message"))
+    // The customer-facing message comes from native Checkout, not the diagnostic error.
+    assertEquals("Your card was declined.", failed.getMap("error")!!.getString("localizedMessage"))
   }
 
   @Test

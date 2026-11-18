@@ -1,5 +1,6 @@
-import { ExpressCheckoutElementView } from '@stripe/stripe-react-native/src/components/ExpressCheckoutElementView';
+import type { StripeError } from '@stripe/stripe-react-native';
 import { CheckoutCurrencySelectorElementView } from '@stripe/stripe-react-native/src/components/CheckoutCurrencySelectorElementView';
+import { ExpressCheckoutElementView } from '@stripe/stripe-react-native/src/components/ExpressCheckoutElementView';
 import { CheckoutPaymentElementView } from '@stripe/stripe-react-native/src/components/CheckoutPaymentElementView';
 import { useCheckoutElements } from '@stripe/stripe-react-native/src/hooks/useCheckoutElements';
 import type { CheckoutElements } from '@stripe/stripe-react-native/src/types/CheckoutElements';
@@ -125,11 +126,47 @@ function formatAddress(
     .join('\n');
 }
 
+/**
+ * Checkout errors carry a customer-facing `localizedMessage`; their `message`
+ * is diagnostic. When no `localizedMessage` is provided, show a placeholder
+ * so testers can tell the SDK returned none.
+ */
+function customerErrorMessage(error: unknown): string {
+  return (
+    (error as Partial<StripeError<string>> | null)?.localizedMessage ??
+    '[No localizedMessage was returned]'
+  );
+}
+
 export default function CheckoutCartScreen({ route, navigation }: Props) {
   const { settings } = route.params;
+  const handleResult = useCallback(
+    (result: CheckoutElements.Result) => {
+      switch (result.status) {
+        case 'completed':
+          Alert.alert('Success', `Payment status: ${result.paymentStatus}`, [
+            { text: 'OK', onPress: () => navigation.goBack() },
+          ]);
+          break;
+        case 'canceled':
+          Alert.alert('Canceled', 'The payment was canceled.');
+          break;
+        case 'failed': {
+          const { error } = result;
+          console.log('Checkout confirmation failed', error);
+          Alert.alert(
+            'Unable to complete checkout',
+            customerErrorMessage(error)
+          );
+          break;
+        }
+      }
+    },
+    [navigation]
+  );
   const getConfiguration = useCallback(
-    async () => checkoutConfiguration(route.params),
-    [route.params]
+    async () => checkoutConfiguration(route.params, handleResult),
+    [route.params, handleResult]
   );
   const checkout = useCheckoutElements({ getConfiguration });
   const [paymentElementVisible, setPaymentElementVisible] = useState(false);
@@ -160,9 +197,9 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
     try {
       return await operation();
     } catch (failure) {
-      setActionError(
-        failure instanceof Error ? failure.message : String(failure)
-      );
+      // Log diagnostic details, but show the customer only the customer-facing message.
+      console.log('Checkout operation failed', failure);
+      setActionError(customerErrorMessage(failure));
       return undefined;
     }
   };
@@ -180,28 +217,7 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
 
   const confirm = async () => {
     const result = await run(checkout.confirm);
-    if (!result) {
-      return;
-    }
-    switch ((result as CheckoutElements.Result).status) {
-      case 'completed':
-        Alert.alert(
-          'Success',
-          `Payment status: ${(result as Extract<CheckoutElements.Result, { status: 'completed' }>).paymentStatus}`,
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
-        break;
-      case 'canceled':
-        Alert.alert('Canceled', 'The payment was canceled.');
-        break;
-      case 'failed':
-        Alert.alert(
-          'Unable to complete checkout',
-          (result as Extract<CheckoutElements.Result, { status: 'failed' }>)
-            .error.message
-        );
-        break;
-    }
+    if (result) handleResult(result as CheckoutElements.Result);
   };
 
   const saveEmail = async (email: string | null) => {
@@ -223,7 +239,9 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
     return (
       <View style={styles.loadingScreen}>
         <Text style={styles.failureTitle}>Failed to load cart.</Text>
-        <Text style={styles.errorText}>{checkout.error?.message}</Text>
+        <Text style={styles.errorText}>
+          {customerErrorMessage(checkout.error)}
+        </Text>
         <Pressable style={styles.secondaryButton} onPress={checkout.reload}>
           <Text style={styles.secondaryButtonText}>Retry</Text>
         </Pressable>
@@ -245,7 +263,7 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
           <View style={styles.errorBanner}>
             <Text style={styles.errorTitle}>Error</Text>
             <Text selectable style={styles.errorText}>
-              {actionError ?? checkout.error?.message}
+              {actionError ?? customerErrorMessage(checkout.error)}
             </Text>
           </View>
         )}
@@ -602,6 +620,23 @@ export default function CheckoutCartScreen({ route, navigation }: Props) {
             >
               Currency: {session.currency?.toUpperCase() ?? 'None'}
             </Text>
+          </View>
+          <Text style={styles.diagnosticsLabel}>
+            EXPRESS CHECKOUT AVAILABILITY
+          </Text>
+          <View style={styles.diagnosticsCard}>
+            {Object.entries(session.availableExpressCheckoutPaymentMethods).map(
+              ([key, method]) => (
+                <Text
+                  key={key}
+                  testID={`checkout-express-availability-${key}`}
+                  style={styles.diagnosticsMetadata}
+                >
+                  {method.type}:{' '}
+                  {method.available ? 'available' : 'unavailable'}
+                </Text>
+              )
+            )}
           </View>
           <Text
             selectable

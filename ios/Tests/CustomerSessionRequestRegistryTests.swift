@@ -1,6 +1,6 @@
 import Foundation
 @testable import stripe_react_native
-@testable @_spi(PrivateBetaCustomerSheet) import StripePaymentSheet
+@testable import StripePaymentSheet
 import XCTest
 
 @MainActor

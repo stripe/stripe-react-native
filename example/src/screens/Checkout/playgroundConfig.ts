@@ -1,8 +1,12 @@
 import type { CheckoutElements } from '@stripe/stripe-react-native/src/types/CheckoutElements';
-import { Platform } from 'react-native';
 import { hostedBackendURL } from './backend';
 
 export type PaymentElementMode = 'sheet' | 'view';
+export type ExpressButtonTheme =
+  | 'default'
+  | CheckoutElements.ExpressCheckoutElementConfiguration.ButtonTheme;
+export type ExpressBorderRadius = 'default' | '0' | '12' | '24';
+export type ExpressLayoutLimit = 'default' | '1' | '2';
 export type Currency = 'usd' | 'eur' | 'gbp' | 'cad' | 'aud' | 'jpy';
 export type CustomerType = 'guest' | 'new' | 'returning';
 export type EmailSource = 'none' | 'checkoutSession' | 'customer' | 'local';
@@ -32,6 +36,10 @@ export type ShippingAddressDraft = {
 export type PlaygroundSettings = {
   paymentElementMode: PaymentElementMode;
   expressCheckoutEnabled: boolean;
+  expressButtonTheme: ExpressButtonTheme;
+  expressBorderRadius: ExpressBorderRadius;
+  expressMaxRows: ExpressLayoutLimit;
+  expressMaxColumns: ExpressLayoutLimit;
   currency: Currency;
   customerType: CustomerType;
   backendOption: BackendOption;
@@ -48,6 +56,8 @@ export type PlaygroundSettings = {
   paymentMethodSave: boolean;
   paymentMethodRemove: boolean;
   linkMode: 'automatic' | 'never';
+  applePayEnabled: boolean;
+  paymentElementApplePayEnabled: boolean;
   adaptivePricingCountry: AdaptivePricingCountry;
   paymentMethodTypes: string[];
 };
@@ -73,6 +83,10 @@ export const usTestAddress: ShippingAddressDraft = {
 export const defaultPlaygroundSettings: PlaygroundSettings = {
   paymentElementMode: 'sheet',
   expressCheckoutEnabled: false,
+  expressButtonTheme: 'default',
+  expressBorderRadius: 'default',
+  expressMaxRows: 'default',
+  expressMaxColumns: 'default',
   currency: 'usd',
   customerType: 'guest',
   backendOption: 'hosted',
@@ -89,6 +103,8 @@ export const defaultPlaygroundSettings: PlaygroundSettings = {
   paymentMethodSave: true,
   paymentMethodRemove: true,
   linkMode: 'automatic',
+  applePayEnabled: true,
+  paymentElementApplePayEnabled: true,
   adaptivePricingCountry: 'none',
   paymentMethodTypes: ['card'],
 };
@@ -240,8 +256,21 @@ export function buildSessionParameters(
   return params;
 }
 
+/**
+ * The Apple Pay merchant identifier is shared by every Checkout element. Omitting it
+ * turns Apple Pay off for all of them.
+ */
+export function playgroundMerchantIdentifier(
+  settings: PlaygroundSettings
+): string | undefined {
+  return settings.applePayEnabled
+    ? 'merchant.com.stripe.react.native'
+    : undefined;
+}
+
 export function checkoutConfiguration(
-  params: CheckoutCartParams
+  params: CheckoutCartParams,
+  onResult?: (result: CheckoutElements.Result) => void
 ): CheckoutElements.CreateOptions {
   const { clientSecret, settings } = params;
   const address =
@@ -271,18 +300,36 @@ export function checkoutConfiguration(
     merchantDisplayName: 'Stripe Shop',
     defaults,
     paymentElement: {
+      applePay: {
+        display: settings.paymentElementApplePayEnabled ? 'automatic' : 'never',
+      },
       link: { display: settings.linkMode },
     },
     ...(settings.adaptivePricingCountry !== 'none'
       ? { currencySelectorElement: {} }
       : {}),
     ...(settings.collectShippingAddress ? { shippingAddressElement: {} } : {}),
-    ...(Platform.OS === 'android' && settings.expressCheckoutEnabled
+    ...(settings.expressCheckoutEnabled && onResult
       ? {
           expressCheckoutElement: {
             link: { display: settings.linkMode },
-            // Render-only preview; completion handling is bridged in a follow-up.
-            onResult: () => {},
+            appearance: {
+              ...(settings.expressButtonTheme !== 'default'
+                ? { buttonTheme: settings.expressButtonTheme }
+                : {}),
+              ...(settings.expressBorderRadius !== 'default'
+                ? { borderRadius: Number(settings.expressBorderRadius) }
+                : {}),
+              buttonLayout: {
+                ...(settings.expressMaxRows !== 'default'
+                  ? { maxRows: Number(settings.expressMaxRows) }
+                  : {}),
+                ...(settings.expressMaxColumns !== 'default'
+                  ? { maxColumns: Number(settings.expressMaxColumns) }
+                  : {}),
+              },
+            },
+            onResult,
           },
         }
       : {}),

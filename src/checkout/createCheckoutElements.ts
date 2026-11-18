@@ -9,10 +9,10 @@ import { runServerUpdate } from './runServerUpdate';
 import NativeStripeSdk, {
   type CheckoutCreateOptions,
 } from '../specs/NativeStripeSdkModule';
-import { Platform } from 'react-native';
 import {
   addCheckoutControllerListener,
   addCheckoutControllerSelectionListener,
+  addCheckoutExpressResultListener,
   createCheckoutBridgeId,
 } from './CheckoutControllerEventEmitter';
 
@@ -79,14 +79,28 @@ function checkoutError(
   return error;
 }
 
-/** Preserves native error codes and wraps untyped bridge failures. */
+/** A native promise rejection, which carries extra error details in `userInfo`. */
+type NativeRejection = Error & {
+  userInfo?: { localizedMessage?: unknown } | null;
+};
+
+/**
+ * Preserves native error codes, wraps untyped bridge failures, and exposes
+ * native Checkout's customer-facing message as `localizedMessage`.
+ */
 export function normalizeCheckoutError(error: unknown): CheckoutOperationError {
   if (error instanceof Error) {
     const code = (error as Partial<CheckoutOperationError>).code;
-    if (code && checkoutErrorCodes.has(code)) {
-      return error as CheckoutOperationError;
+    const normalized =
+      code && checkoutErrorCodes.has(code)
+        ? (error as CheckoutOperationError)
+        : checkoutError('Failed', error.message);
+    const localizedMessage = (error as NativeRejection).userInfo
+      ?.localizedMessage;
+    if (typeof localizedMessage === 'string') {
+      normalized.localizedMessage = localizedMessage;
     }
-    return checkoutError('Failed', error.message);
+    return normalized;
   }
   return checkoutError('Failed', String(error));
 }
@@ -133,12 +147,6 @@ export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,
   onUpdate?: (controller: CheckoutElements) => void
 ): Promise<CheckoutElements> {
-  // Keep the iOS bridge unsupported until its native implementation is available.
-  if (options.expressCheckoutElement && Platform.OS !== 'android') {
-    throw new Error(
-      'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
-    );
-  }
   const controllerId = createCheckoutBridgeId();
   let status: CheckoutElements['status'] = 'ready';
   let session: CheckoutElements.Session | undefined;
@@ -160,6 +168,12 @@ export async function createCheckoutController(
       ? options.paymentElement.rowSelectionBehavior.onSelectPaymentOption
       : undefined
   );
+  const expressResultSubscription = options.expressCheckoutElement
+    ? addCheckoutExpressResultListener(
+        controllerId,
+        options.expressCheckoutElement.onResult
+      )
+    : undefined;
   try {
     // Keep handle availability consistent if options change during native creation.
     const isShippingAddressElementConfigured = Boolean(
@@ -255,6 +269,10 @@ export async function createCheckoutController(
         performOperation(() =>
           NativeStripeSdk.clearCheckoutPaymentOption(controllerId)
         ),
+      clearLocalCustomerData: () =>
+        performOperation(() =>
+          NativeStripeSdk.clearCheckoutLocalCustomerData()
+        ),
       confirm: () =>
         invokeIfActive(() => NativeStripeSdk.confirmCheckout(controllerId)),
       destroy: () => {
@@ -268,6 +286,7 @@ export async function createCheckoutController(
         status = 'destroyed';
         subscription.remove();
         selectionSubscription.remove();
+        expressResultSubscription?.remove();
         destroyPromise = Promise.resolve().then(() =>
           NativeStripeSdk.destroyCheckout(controllerId)
         );
@@ -285,6 +304,8 @@ export async function createCheckoutController(
   } catch (error) {
     subscription.remove();
     selectionSubscription.remove();
-    throw error;
+    expressResultSubscription?.remove();
+    // Initialization failures expose the same error shape as other operations.
+    throw normalizeCheckoutError(error);
   }
 }

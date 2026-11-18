@@ -1,7 +1,7 @@
 import PassKit
 import Stripe
 @testable import stripe_react_native
-@_spi(InternalOnlyAPI) import StripeCore
+@_spi(ReactNativeSDK) import StripeCore
 import StripePaymentSheet
 import XCTest
 

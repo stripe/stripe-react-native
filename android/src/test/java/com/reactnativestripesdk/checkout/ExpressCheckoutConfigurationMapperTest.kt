@@ -2,6 +2,7 @@ package com.reactnativestripesdk.checkout
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.elements.ExpressCheckoutElement
@@ -12,6 +13,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import com.stripe.android.elements.ExpressCheckoutElement.Configuration.Appearance as ExpressAppearance
 import com.stripe.android.elements.ExpressCheckoutElement.Configuration.GooglePayConfiguration as ExpressGooglePay
 import com.stripe.android.elements.ExpressCheckoutElement.Configuration.LinkConfiguration as ExpressLink
 
@@ -35,6 +37,11 @@ class ExpressCheckoutConfigurationMapperTest {
             "additionalEnabledNetworks" to readableArrayOf("INTERAC"),
           ),
           "link" to readableMapOf("display" to "never"),
+          "appearance" to readableMapOf(
+            "buttonTheme" to "dark",
+            "buttonLayout" to readableMapOf("maxColumns" to 2, "maxRows" to 1),
+            "borderRadius" to 12,
+          ),
         ),
       ),
       context,
@@ -45,6 +52,12 @@ class ExpressCheckoutConfigurationMapperTest {
     assertEquals(ExpressGooglePay.ButtonType.Checkout, googlePay.readField("buttonType"))
     assertEquals(listOf("INTERAC"), googlePay.readField("additionalEnabledNetworks"))
     assertEquals(ExpressLink.Display.Never, mapped.readField<ExpressLink>("linkConfiguration").readField("display"))
+    val appearance = mapped.readField<ExpressAppearance>("appearance")
+    assertEquals(ExpressAppearance.ButtonTheme.Dark, appearance.readField("buttonTheme"))
+    assertEquals(12f, appearance.readField<Float>("cornerRadiusDp"))
+    val layout = appearance.readField<ExpressAppearance.ButtonLayout>("buttonLayout")
+    assertEquals(2, layout.readField<Int>("maxColumns"))
+    assertEquals(1, layout.readField<Int>("maxRows"))
   }
 
   @Test
@@ -54,7 +67,7 @@ class ExpressCheckoutConfigurationMapperTest {
   }
 
   @Test
-  fun `empty configuration preserves native wallet defaults`() {
+  fun `empty configuration preserves native wallet and appearance defaults`() {
     val mapped = ExpressCheckoutConfigurationMapper.map(readableMapOf())
     val defaults = ExpressCheckoutElement.Configuration()
     for (wallet in listOf("googlePayConfiguration", "linkConfiguration")) {
@@ -67,6 +80,13 @@ class ExpressCheckoutConfigurationMapperTest {
     assertNull(googlePay.readField<String?>("label"))
     assertEquals(ExpressGooglePay.ButtonType.Pay, googlePay.readField("buttonType"))
     assertEquals(emptyList<String>(), googlePay.readField("additionalEnabledNetworks"))
+    val appearance = mapped.readField<ExpressAppearance>("appearance")
+    val nativeAppearance = defaults.readField<ExpressAppearance>("appearance")
+    assertEquals(nativeAppearance.readField<Float>("cornerRadiusDp"), appearance.readField<Float>("cornerRadiusDp"))
+    assertEquals(nativeAppearance.readField<Any>("buttonTheme"), appearance.readField<Any>("buttonTheme"))
+    val layout = appearance.readField<ExpressAppearance.ButtonLayout>("buttonLayout")
+    assertNull(layout.readField<Int?>("maxRows"))
+    assertNull(layout.readField<Int?>("maxColumns"))
   }
 
   @Test
@@ -116,6 +136,63 @@ class ExpressCheckoutConfigurationMapperTest {
   @Test
   fun `rejects unsupported Link display`() = assertUnsupportedValue("link", "display", "invalid")
 
+  @Test
+  fun `maps automatic button theme`() = assertButtonTheme("automatic", ExpressAppearance.ButtonTheme.Automatic)
+
+  @Test
+  fun `maps light button theme`() = assertButtonTheme("light", ExpressAppearance.ButtonTheme.Light)
+
+  @Test
+  fun `maps dark button theme`() = assertButtonTheme("dark", ExpressAppearance.ButtonTheme.Dark)
+
+  @Test
+  fun `rejects unsupported button theme`() = assertUnsupportedValue("appearance", "buttonTheme", "invalid")
+
+  @Test
+  fun `accepts zero border radius`() {
+    val appearance = mapAppearance(readableMapOf("borderRadius" to 0))
+    assertEquals(0f, appearance.readField<Float>("cornerRadiusDp"))
+  }
+
+  @Test
+  fun `rejects negative border radius`() = assertInvalidBorderRadius(-1.0)
+
+  @Test
+  fun `rejects negative border radius that underflows native float`() = assertInvalidBorderRadius(-Double.MIN_VALUE)
+
+  @Test
+  fun `rejects NaN border radius`() = assertInvalidBorderRadius(Double.NaN)
+
+  @Test
+  fun `rejects infinite border radius`() = assertInvalidBorderRadius(Double.POSITIVE_INFINITY)
+
+  @Test
+  fun `rejects border radius that overflows native float`() = assertInvalidBorderRadius(Double.MAX_VALUE)
+
+  @Test
+  fun `preserves unspecified dimensions and accepts layout boundaries`() {
+    for (key in listOf("maxRows", "maxColumns")) {
+      for (value in listOf(null, 1, 10)) {
+        val layout = mapAppearance(readableMapOf("buttonLayout" to readableMapOf(key to value)))
+          .readField<ExpressAppearance.ButtonLayout>("buttonLayout")
+        assertEquals(value, layout.readField<Int?>(key))
+        assertNull(layout.readField<Int?>(if (key == "maxRows") "maxColumns" else "maxRows"))
+      }
+    }
+  }
+
+  @Test
+  fun `native layout setters reject out of bounds dimensions`() {
+    for (key in listOf("maxRows", "maxColumns")) {
+      for (value in listOf(-1, 0, 11)) {
+        val error = assertThrows(IllegalArgumentException::class.java) {
+          mapAppearance(readableMapOf("buttonLayout" to readableMapOf(key to value)))
+        }
+        assertEquals("$key must be between 1 and 10 or null.", error.message)
+      }
+    }
+  }
+
   private fun assertGooglePayButtonType(value: String, expected: ExpressGooglePay.ButtonType) {
     val configuration = ExpressCheckoutConfigurationMapper.map(
       readableMapOf("googlePay" to readableMapOf("buttonType" to value)),
@@ -146,6 +223,24 @@ class ExpressCheckoutConfigurationMapperTest {
       error.message,
     )
   }
+
+  private fun assertButtonTheme(value: String, expected: ExpressAppearance.ButtonTheme) {
+    val appearance = mapAppearance(readableMapOf("buttonTheme" to value))
+    assertEquals(expected, appearance.readField("buttonTheme"))
+  }
+
+  private fun assertInvalidBorderRadius(value: Double) {
+    val error = assertThrows(IllegalArgumentException::class.java) {
+      mapAppearance(readableMapOf("borderRadius" to value))
+    }
+    assertEquals(
+      "expressCheckoutElement.appearance.borderRadius must be finite and greater than or equal to 0.",
+      error.message,
+    )
+  }
+
+  private fun mapAppearance(params: ReadableMap): ExpressAppearance =
+    ExpressCheckoutConfigurationMapper.map(readableMapOf("appearance" to params)).readField("appearance")
 
   @Suppress("UNCHECKED_CAST")
   private inline fun <reified T> Any.readField(name: String): T =

@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import {
   CheckoutExpressCheckoutElementView,
   ExpressCheckoutElementView,
@@ -23,23 +23,17 @@ jest.mock('../../specs/NativeStripeSdkModule', () => ({
 
 afterEach(() => jest.restoreAllMocks());
 
-it('exposes the Checkout alias and keeps iOS rendering unsupported', () => {
-  jest.replaceProperty(Platform, 'OS', 'ios');
+it('exposes the Checkout alias', () => {
   expect(CheckoutExpressCheckoutElementView).toBe(ExpressCheckoutElementView);
-  expect(() => ExpressCheckoutElementView({ element: {} })).toThrow(
-    'does not include native support for Express Checkout Element'
-  );
 });
 
-it('rejects Android elements that were not created by this SDK', () => {
-  jest.replaceProperty(Platform, 'OS', 'android');
+it('rejects elements that were not created by this SDK', () => {
   expect(() => ExpressCheckoutElementView({ element: {} })).toThrow(
     'Express Checkout Element was not created by this SDK.'
   );
 });
 
-it('routes the controller ID, follows native height, and resets height when the handle changes', async () => {
-  jest.replaceProperty(Platform, 'OS', 'android');
+it('routes the controller ID and native height, resetting height when the handle changes', async () => {
   const create = NativeStripeSdk.createCheckout as jest.Mock;
   create
     .mockReset()
@@ -57,9 +51,17 @@ it('routes the controller ID, follows native height, and resets height when the 
   const nativeElement = () => UNSAFE_getByType(View);
   expect(nativeElement().props.controllerId).toBe(create.mock.calls[0][1]);
   expect(nativeElement().props.style).toEqual({ width: '100%', height: 1 });
-  fireEvent(nativeElement(), 'heightChanged', { nativeEvent: { height: 56 } });
+  fireEvent(nativeElement(), 'heightChanged', {
+    nativeEvent: { height: 56 },
+  });
   expect(nativeElement().props.style).toEqual({ width: '100%', height: 56 });
-  fireEvent(nativeElement(), 'heightChanged', { nativeEvent: { height: 112 } });
+  fireEvent(nativeElement(), 'heightChanged', {
+    nativeEvent: { height: 0 },
+  });
+  expect(nativeElement().props.style).toEqual({ width: '100%', height: 0 });
+  fireEvent(nativeElement(), 'heightChanged', {
+    nativeEvent: { height: 112 },
+  });
   expect(nativeElement().props.style).toEqual({ width: '100%', height: 112 });
   rerender(
     <ExpressCheckoutElementView element={second.expressCheckoutElement!} />

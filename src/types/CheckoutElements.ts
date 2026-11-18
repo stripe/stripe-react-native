@@ -13,6 +13,10 @@ import type { EmbeddedRowSelectionBehavior } from './EmbeddedPaymentElement';
  * Controls a Checkout Session, including its state, Payment Element,
  * mutations, and confirmation flow.
  *
+ * Failed operations reject with a `StripeError`. Display its
+ * `localizedMessage` to the customer, falling back to a generic message when
+ * it is absent. Its `message` is diagnostic and isn't intended for customers.
+ *
  * @remarks
  * This API is in private preview and can change without notice.
  *
@@ -49,6 +53,8 @@ export interface CheckoutElements {
   runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
   /** Clears the customer's currently selected payment option. */
   clearPaymentOption(): Promise<void>;
+  /** Clears persisted Checkout customer authentication state on logout. */
+  clearLocalCustomerData(): Promise<void>;
   /** Confirms the Checkout Session for the selected payment option. */
   confirm(): Promise<CheckoutElements.Result>;
   /** Releases the controller's native resources and clears its loaded state. */
@@ -262,7 +268,10 @@ export namespace CheckoutElements {
      * it is not configured, or when no express payment methods are available.
      */
     readonly expressCheckoutElement: ExpressCheckoutElement | null;
-    /** The initialization error when `status` is `error`; otherwise `null`. */
+    /**
+     * The initialization error when `status` is `error`; otherwise `null`.
+     * Display its `localizedMessage` to the customer.
+     */
     readonly error: StripeError<ErrorCode> | null;
     /** Fetches fresh configuration and replaces the current native controller. */
     reload(): Promise<void>;
@@ -278,6 +287,8 @@ export namespace CheckoutElements {
     runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
     /** Clears the customer's currently selected payment option. */
     clearPaymentOption(): Promise<void>;
+    /** Clears persisted Checkout customer authentication state on logout. */
+    clearLocalCustomerData(): Promise<void>;
     /** Confirms the Checkout Session for the selected payment option. */
     confirm(): Promise<Result>;
   }
@@ -313,7 +324,10 @@ export namespace CheckoutElements {
     | {
         /** The payment flow failed. */
         status: 'failed';
-        /** The error that caused the payment flow to fail. */
+        /**
+         * The error that caused the payment flow to fail. Display its
+         * `localizedMessage` to the customer.
+         */
         error: StripeError<ErrorCode>;
       };
 
@@ -743,7 +757,11 @@ export namespace CheckoutElements {
     displaysMandateText?: boolean;
     /** Controls selection in the embedded view. */
     rowSelectionBehavior?: PaymentElementConfiguration.RowSelectionBehavior;
-    /** Apple Pay configuration for Payment Element. iOS only. */
+    /**
+     * Apple Pay configuration for Payment Element. iOS only. Enabled when a
+     * merchantIdentifier is provided through StripeProvider; set `display` to
+     * `never` to hide Apple Pay from Payment Element.
+     */
     applePay?: PaymentElementConfiguration.ApplePayConfiguration;
     /** Google Pay configuration for Payment Element. Android only. */
     googlePay?: PaymentElementConfiguration.GooglePayConfiguration;

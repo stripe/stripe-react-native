@@ -41,3 +41,15 @@ export function addCheckoutControllerSelectionListener(
     }
   });
 }
+
+/** Forwards inline Express Checkout payment results only to their owning controller. */
+export function addCheckoutExpressResultListener(
+  controllerId: string,
+  listener: ((result: CheckoutElements.Result) => void) | undefined
+) {
+  return addListener('checkoutExpressCheckoutDidComplete', (event) => {
+    if (event.controllerId === controllerId) {
+      listener?.(event.result);
+    }
+  });
+}

@@ -1,0 +1,51 @@
+appId: ${APP_ID}
+---
+# Apple Pay can be hidden from the Payment Element while the Express Checkout Element still offers it.
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: 'Accept a payment'
+- scrollUntilVisible:
+    element:
+      text: 'Checkout Sessions.*'
+- tapOn: 'Checkout Sessions.*'
+- extendedWaitUntil:
+    visible: 'Create Checkout Session'
+    timeout: 60000
+- tapOn: 'Reset'
+- scrollUntilVisible:
+    element:
+      id: 'checkout-payment-element-apple-pay-toggle'
+    centerElement: true
+- tapOn:
+    id: 'checkout-payment-element-apple-pay-toggle'
+- scrollUntilVisible:
+    element:
+      text: 'Enable Express Checkout'
+# Move the final toggle above the fixed Create Checkout Session footer.
+- swipe:
+    direction: UP
+- tapOn: 'Enable Express Checkout'
+- tapOn:
+    id: 'checkout-create-session'
+- extendedWaitUntil:
+    visible: 'Status: ready'
+    timeout: 150000
+- assertVisible:
+    id: 'checkout-express-checkout'
+# The Express button sits above Items; the Payment Element's row is below.
+- assertVisible:
+    text: '.*Apple.?Pay.*'
+    above:
+      text: 'Items'
+- scrollUntilVisible:
+    element:
+      id: 'checkout-select-payment-method'
+    centerElement: true
+# Nothing is preselected: the Payment Element does not offer Apple Pay.
+- assertVisible:
+    id: 'checkout-select-payment-method'
+    text: 'Select payment method'
+- assertNotVisible:
+    id: 'checkout-select-payment-method'
+    text: '.*Apple Pay.*'

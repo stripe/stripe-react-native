@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import {
   buildSessionParameters,
   checkoutConfiguration,
@@ -6,8 +5,6 @@ import {
   resolvedEmail,
   validateSettings,
 } from '../playgroundConfig';
-
-jest.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 
 describe('Checkout playground configuration', () => {
   it('builds the standard stripe-ios cart request', () => {
@@ -137,7 +134,8 @@ describe('Checkout playground configuration', () => {
   });
 });
 
-it('opts into render-only Android Express Checkout with the Link display', () => {
+it('opts into Express Checkout with its result callback and Link display', () => {
+  const onResult = jest.fn();
   const params = {
     clientSecret: 'cs_test_secret',
     settings: {
@@ -146,16 +144,51 @@ it('opts into render-only Android Express Checkout with the Link display', () =>
       linkMode: 'never' as const,
     },
   };
-  jest.replaceProperty(Platform, 'OS', 'android');
-  expect(checkoutConfiguration(params).expressCheckoutElement).toEqual({
+  expect(
+    checkoutConfiguration(params, onResult).expressCheckoutElement
+  ).toEqual({
     link: { display: 'never' },
-    onResult: expect.any(Function),
+    appearance: { buttonLayout: {} },
+    onResult,
   });
   expect(
-    checkoutConfiguration({ ...params, settings: defaultPlaygroundSettings })
-      .expressCheckoutElement
+    checkoutConfiguration(
+      { ...params, settings: defaultPlaygroundSettings },
+      onResult
+    ).expressCheckoutElement
   ).toBeUndefined();
-  jest.replaceProperty(Platform, 'OS', 'ios');
   expect(checkoutConfiguration(params).expressCheckoutElement).toBeUndefined();
-  jest.restoreAllMocks();
+});
+
+it('maps playground appearance controls and preserves native defaults', () => {
+  const onResult = jest.fn();
+  const settings = {
+    ...defaultPlaygroundSettings,
+    expressCheckoutEnabled: true,
+  };
+  expect(
+    checkoutConfiguration(
+      { clientSecret: 'cs_test_secret', settings },
+      onResult
+    ).expressCheckoutElement?.appearance
+  ).toEqual({ buttonLayout: {} });
+  expect(
+    checkoutConfiguration(
+      {
+        clientSecret: 'cs_test_secret',
+        settings: {
+          ...settings,
+          expressButtonTheme: 'light',
+          expressBorderRadius: '0',
+          expressMaxRows: '2',
+          expressMaxColumns: '1',
+        },
+      },
+      onResult
+    ).expressCheckoutElement?.appearance
+  ).toEqual({
+    buttonTheme: 'light',
+    borderRadius: 0,
+    buttonLayout: { maxRows: 2, maxColumns: 1 },
+  });
 });
