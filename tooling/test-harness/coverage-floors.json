@@ -4,10 +4,10 @@
       "dir": ".",
       "exclude": ["src/types/**", "src/plugin/**"],
       "floor": {
-        "statements": 40.72,
-        "branches": 33.56,
-        "functions": 39.72,
-        "lines": 40.54
+        "statements": 45.28,
+        "branches": 40.78,
+        "functions": 42.78,
+        "lines": 44.96
       }
     },
     "@stripe/react-native-core": {

@@ -10340,7 +10340,7 @@ __metadata:
 
 "react-native-test-app@patch:react-native-test-app@npm%3A4.4.12#~/.yarn/patches/react-native-test-app-npm-4.4.12-dynamic-framework-deps.patch":
   version: 4.4.12
-  resolution: "react-native-test-app@patch:react-native-test-app@npm%3A4.4.12#~/.yarn/patches/react-native-test-app-npm-4.4.12-dynamic-framework-deps.patch::version=4.4.12&hash=279d8d"
+  resolution: "react-native-test-app@patch:react-native-test-app@npm%3A4.4.12#~/.yarn/patches/react-native-test-app-npm-4.4.12-dynamic-framework-deps.patch::version=4.4.12&hash=30755c"
   dependencies:
     "@rnx-kit/react-native-host": "npm:^0.5.11"
     "@rnx-kit/tools-react-native": "npm:^2.1.0"
@@ -10371,7 +10371,7 @@ __metadata:
     init: scripts/init.mjs
     init-test-app: scripts/init.mjs
     install-windows-test-app: windows/app.mjs
-  checksum: 10c0/df215352b05ce5f354986ffe5a68313ab7d3ea8dbc323185a46b9c1134f8dde979c835db25ad6aacf748597bc94d5c945842af4fab44c61cde30ed21d2127ee9
+  checksum: 10c0/5dc23ddfab08bc0a0c0699b084eb0d349f8deb68c53258014c9e8a618ce74e8e131cc0dda9d1f8c79b1e95e26aea1fdd03624bce86c3290b9f0b9b3d7ac07853
   languageName: node
   linkType: hard
 
