@@ -79,6 +79,14 @@ runs:
         fi
         xcrun simctl list runtimes
 
+        # Runtimes preinstalled on the image (and on Bitrise's stacks) ship
+        # with their dyld shared cache built; a downloaded one doesn't. Without
+        # it, booting takes ~14 minutes and the first app launch ~4 on these
+        # runners, which is longer than Maestro's XCUITest driver startup
+        # timeout. This is a no-op when the cache is already usable.
+        runtime_id="$(xcrun simctl list runtimes available | grep "^iOS ${RUNTIME} " | grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.[A-Za-z0-9-]+' | head -n 1)"
+        xcrun simctl runtime dyld_shared_cache update "$runtime_id"
+
     - name: Create ${{ inputs.device }} simulator
       id: device
       if: inputs.runtime != ''
