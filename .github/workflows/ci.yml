@@ -343,7 +343,14 @@ jobs:
             -camera-back none -camera-front none -netdelay none -netspeed full
             -memory 8192 -no-snapshot -no-audio -no-window
             -gpu swiftshader_indirect -no-boot-anim
-          script: adb install -r app-release.apk && yarn test:e2e:android --record-on-failure
+          # On these 4-vCPU runners, software rendering can starve the
+          # launcher right after boot, and its "isn't responding" dialog then
+          # covers the app for every flow. Our flows assert on the app's own
+          # screens, so hiding system error dialogs doesn't hide app failures.
+          script: >-
+            adb shell settings put global hide_error_dialogs 1 &&
+            adb install -r app-release.apk &&
+            yarn test:e2e:android --record-on-failure
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
