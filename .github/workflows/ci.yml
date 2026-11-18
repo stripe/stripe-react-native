@@ -59,8 +59,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # Bitrise's xcode-test step created the iPhone 16 Pro Max on the newest
+      # installed runtime, not the iOS 18.6 one the e2e tests use.
       - uses: ./.github/actions/setup-ios-simulator
         id: simulator
+        with:
+          runtime: '26.5'
       - uses: ./.github/actions/setup-js
       - name: Check iOS Code Formatting
         run: |
@@ -77,18 +81,20 @@ jobs:
           UDID: ${{ steps.simulator.outputs.udid }}
         run: |
           set -o pipefail
+          mkdir -p "$RUNNER_TEMP/xcode"
           xcodebuild test \
             -workspace example/ios/example.xcworkspace \
             -scheme ReactTestApp \
             -destination "platform=iOS Simulator,id=$UDID" \
             -only-testing:ReactTestAppTests \
-            -resultBundlePath "$RUNNER_TEMP/unit-test-ios.xcresult" \
-            | xcbeautify --renderer github-actions
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            -resultBundlePath "$RUNNER_TEMP/xcode/unit-test-ios.xcresult" \
+            2>&1 | tee "$RUNNER_TEMP/xcode/xcodebuild_test.log" | xcbeautify --renderer github-actions
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: unit-test-ios-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/unit-test-ios.xcresult
+          path: ${{ runner.temp }}/xcode
           if-no-files-found: ignore
           retention-days: 7
 
@@ -162,7 +168,7 @@ jobs:
               -derivedDataPath "$DERIVED_DATA_PATH" \
               ARCHS=arm64 \
               ONLY_ACTIVE_ARCH=YES \
-              build | xcbeautify --renderer github-actions
+              build 2>&1 | tee -a "$RUNNER_TEMP/xcodebuild_build.log" | xcbeautify --renderer github-actions
           }
           build_ios || (echo "iOS build failed, retrying in 30s..." && sleep 30 && build_ios)
 
@@ -174,6 +180,13 @@ jobs:
           path: app-release.app.zip
           if-no-files-found: error
           retention-days: 3
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: e2e-build-ios-log-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/xcodebuild_build.log
+          if-no-files-found: ignore
+          retention-days: 7
 
   e2e-tests-ios:
     name: e2e-tests-ios (${{ matrix.shard }})
@@ -218,11 +231,15 @@ jobs:
         run: |
           export MAESTRO_BIN="${HOME}/.maestro/bin/maestro"
           yarn test:e2e:ios --record-on-failure
+      # always(): a job that hits timeout-minutes ends as cancelled.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: ${{ !cancelled() }}
+        if: always()
         with:
           name: e2e-artifacts-ios-${{ matrix.shard }}-${{ github.run_attempt }}
-          path: e2e-artifacts
+          path: |
+            e2e-artifacts
+            ~/.maestro/tests
+            ~/Library/Logs/maestro
           if-no-files-found: ignore
           retention-days: 7
 
@@ -325,10 +342,12 @@ jobs:
             -gpu swiftshader_indirect -no-boot-anim
           script: adb install -r app-release.apk && yarn test:e2e:android --record-on-failure
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: ${{ !cancelled() }}
+        if: always()
         with:
           name: e2e-artifacts-android-${{ matrix.shard }}-${{ github.run_attempt }}
-          path: e2e-artifacts
+          path: |
+            e2e-artifacts
+            ~/.maestro/tests
           if-no-files-found: ignore
           retention-days: 7
 

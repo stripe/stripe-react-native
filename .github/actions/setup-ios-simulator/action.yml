@@ -13,7 +13,8 @@ inputs:
   runtime-build:
     description: >-
       Build number of the runtime, which `xcodebuild -downloadPlatform` takes
-      instead of a version (from Apple's index2.dvtdownloadableindex).
+      instead of a version (from Apple's index2.dvtdownloadableindex). Only
+      used when the runner image doesn't already have the runtime.
     default: 22G86
   device:
     description: Simulator device type name.
