@@ -133,6 +133,17 @@ post_integrate do |_installer|
         flags << map_flag
       end
     end
+    # The prebuilt React.xcframework's umbrella header doesn't include every
+    # header it ships, so clang warns when it builds the React module.
+    # React Native turns off explicit modules when using prebuilt core (see
+    # react_native_pods.rb), so the Swift compiler builds that module
+    # implicitly, and react-native-test-app's SWIFT_TREAT_WARNINGS_AS_ERRORS
+    # then fails every test file on React's header. Silence just that
+    # diagnostic so warnings in the tests themselves still fail the build.
+    unless flags.include?('-Wno-incomplete-umbrella')
+      flags << '-Xcc'
+      flags << '-Wno-incomplete-umbrella'
+    end
     config.build_settings['OTHER_SWIFT_FLAGS'] = flags
   end
 
