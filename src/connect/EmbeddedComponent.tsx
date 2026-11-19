@@ -19,7 +19,10 @@ import {
   ViewStyle,
 } from 'react-native';
 import type { WebViewMessageEvent, WebViewProps } from 'react-native-webview';
-import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import type {
+  ShouldStartLoadRequest,
+  WebViewOpenWindowEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
@@ -52,6 +55,11 @@ const DEVELOPMENT_URL =
 const PRODUCTION_URL = 'https://connect-js.stripe.com';
 const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
+// RN's global URL is a regex polyfill, so match URLs as strings.
+const WRAPPER_PATH = '/v1.0/react_native_webview.html';
+
+const EXTERNAL_LINK_SCHEMES = ['mailto:', 'tel:'];
+
 const sdkVersion = pjson.version;
 
 // Android deep link polling configuration
@@ -80,11 +88,17 @@ const userAgent = [
 ].join(' - ');
 
 // Allowed domains for in-WebView navigation (matching iOS SDK behavior)
-const ALLOWED_STRIPE_HOSTS = [
+const PRODUCTION_STRIPE_HOSTS = [
   'connect-js.stripe.com',
   'connect.stripe.com',
   'verify.stripe.com',
-  ...(DEVELOPMENT_MODE ? ['10.0.2.2:3001', 'localhost:3001'] : []),
+];
+const DEVELOPMENT_STRIPE_HOSTS = DEVELOPMENT_MODE
+  ? ['10.0.2.2:3001', 'localhost:3001']
+  : [];
+const ALLOWED_STRIPE_HOSTS = [
+  ...PRODUCTION_STRIPE_HOSTS,
+  ...DEVELOPMENT_STRIPE_HOSTS,
 ];
 
 export interface CommonComponentProps {
@@ -410,7 +424,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     )
     .join('&');
 
-  const connectURL = `${BASE_URL}/v1.0/react_native_webview.html#${hash}`;
+  const connectURL = `${BASE_URL}${WRAPPER_PATH}#${hash}`;
   const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
   const ref = useRef<WebViewHandle>(null);
@@ -425,12 +439,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
     const patchedAppearance = withDefaultFontFamily(appearance);
 
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.updateConnectInstance(${JSON.stringify({ appearance: patchedAppearance, locale })});
-        true;
-      })();
-    `);
+    ref.current?.injectJavaScript(
+      deliverToWrapper(
+        `window.updateConnectInstance(${JSON.stringify({ appearance: patchedAppearance, locale })});`
+      )
+    );
   }
 
   const [prevComponentProps, setPrevComponentProps] = useState(componentProps);
@@ -438,15 +451,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     setPrevComponentProps(componentProps);
 
     Object.entries(componentProps || {}).forEach(([key, value]) => {
-      ref.current?.injectJavaScript(`
-        (function() {
-          window.callSetterWithSerializableValue(${JSON.stringify({
+      ref.current?.injectJavaScript(
+        deliverToWrapper(
+          `window.callSetterWithSerializableValue(${JSON.stringify({
             setter: key,
             value,
-          })});
-          true;
-        })();
-      `);
+          })});`
+        )
+      );
     });
   }
 
@@ -454,6 +466,39 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Unexpected error: ${errorMessage}`);
   }, []);
+
+  const routeOutside = useCallback(
+    (url: string) => {
+      // Never open the wrapper URL externally: its fragment carries the
+      // session key.
+      if (url.includes(WRAPPER_PATH)) {
+        return;
+      }
+
+      const schemeMatch = /^([a-z][a-z0-9+.-]*):/i.exec(url);
+      const protocol = schemeMatch ? `${schemeMatch[1]!.toLowerCase()}:` : '';
+
+      if (isCsvExportUrl(url)) {
+        NativeStripeSdk.downloadAndShareFile(url, null)
+          .then((result) => {
+            if (!result.success) {
+              console.warn('CSV export share failed:', result.error);
+            }
+          })
+          .catch((error) => {
+            handleUnexpectedError(error);
+          });
+        return;
+      }
+
+      if (protocol === 'https:' || EXTERNAL_LINK_SCHEMES.includes(protocol)) {
+        Linking.openURL(url).catch((error) => {
+          handleUnexpectedError(error);
+        });
+      }
+    },
+    [handleUnexpectedError]
+  );
 
   const WebViewComponent = dynamicWebview?.WebView;
 
@@ -494,15 +539,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   }, [hasBeenViewed, componentAnalytics]);
 
   const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.returnedFromAuthenticatedWebView(${JSON.stringify({
+    ref.current?.injectJavaScript(
+      deliverToWrapper(
+        `window.returnedFromAuthenticatedWebView(${JSON.stringify({
           id,
           url: resultUrl,
-        })});
-        true;
-      })();
-    `);
+        })});`
+      )
+    );
   };
 
   const handleFinancialConnectionsResult = (
@@ -535,15 +579,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       };
     }
 
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.callSetterWithSerializableValue(${JSON.stringify({
+    ref.current?.injectJavaScript(
+      deliverToWrapper(
+        `window.callSetterWithSerializableValue(${JSON.stringify({
           setter: 'setCollectMobileFinancialConnectionsResult',
           value,
-        })});
-        true;
-      })();
-    `);
+        })});`
+      )
+    );
   };
 
   const onMessageCallback = useCallback(
@@ -566,11 +609,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         });
         if (!clientSecret) return;
 
-        ref.current?.injectJavaScript(`
-            window.clientSecretDeferred.resolve(${JSON.stringify(
-              clientSecret
-            )});
-          `);
+        ref.current?.injectJavaScript(
+          deliverToWrapper(
+            `window.clientSecretDeferred.resolve(${JSON.stringify(clientSecret)});`
+          )
+        );
       } else if (message.type === 'debug') {
         // message.data is of type string
         console.debug(`[EmbeddedComponent ${component}]: ${message.data}`);
@@ -723,10 +766,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'openAuthenticatedWebView') {
         const { url, id } = message.data as { id: string; url: string };
 
-        // Validate URL before opening
+        // Validate URL before opening. Never log `url` itself.
         if (!isValidUrl(url)) {
           handleUnexpectedError(
-            new Error(`Invalid URL for authenticated webview: ${url}`)
+            new Error('Invalid URL for authenticated webview')
           );
           return;
         }
@@ -794,37 +837,61 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const onShouldStartLoadWithRequest = useCallback(
     (event: ShouldStartLoadRequest) => {
-      const { url, navigationType } = event;
+      const { url, navigationType, isTopFrame, mainDocumentURL } = event;
 
-      // Handle CSV export downloads
       if (isCsvExportUrl(url)) {
-        NativeStripeSdk.downloadAndShareFile(url, null)
-          .then((result) => {
-            if (!result.success) {
-              console.warn('CSV export share failed:', result.error);
-            }
-          })
-          .catch((error) => {
-            handleUnexpectedError(error);
-          });
-        return false; // Block WebView navigation
+        routeOutside(url);
+        return false;
       }
 
-      if (Platform.OS === 'ios' && navigationType !== 'click') return true;
+      if (Platform.OS === 'ios') {
+        // iOS derives isTopFrame from mainDocumentURL; treat a missing one
+        // as the top frame.
+        const isMainFrame = isTopFrame === true || !mainDocumentURL;
 
-      // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
-      if (isAllowedStripeHost(url)) {
-        return true; // Allow in-WebView navigation
+        if (isMainFrame) {
+          if (isTrustedWrapperDocument(url, connectURL)) {
+            return true;
+          }
+          routeOutside(url);
+          return false;
+        }
+
+        if (navigationType !== 'click') {
+          return (
+            url.startsWith('https:') ||
+            url.startsWith('about:') ||
+            url.startsWith('blob:') ||
+            url.startsWith('data:')
+          );
+        }
+
+        if (isAllowedStripeHost(url)) {
+          return true;
+        }
+        routeOutside(url);
+        return false;
       }
 
-      // Open external links in system browser
-      Linking.openURL(url).catch((error) => {
-        handleUnexpectedError(error);
-      });
-
-      return false; // Block in-WebView navigation for external links
+      // Android reports every navigation as a top-frame 'other', so only
+      // host checks apply.
+      if (
+        isTrustedWrapperDocument(url, connectURL) ||
+        isAllowedStripeHost(url)
+      ) {
+        return true;
+      }
+      routeOutside(url);
+      return false;
     },
-    [handleUnexpectedError]
+    [connectURL, routeOutside]
+  );
+
+  const onOpenWindow = useCallback(
+    (event: WebViewOpenWindowEvent) => {
+      routeOutside(event.nativeEvent.targetUrl);
+    },
+    [routeOutside]
   );
 
   const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
@@ -880,6 +947,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       injectedJavaScriptBeforeContentLoaded={injectedObjectScript}
       onMessage={onMessageCallback}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      onOpenWindow={onOpenWindow}
+      // The default whitelist would auto-open non-http(s) URLs via Linking
+      // before our callbacks run.
+      originWhitelist={['*']}
       onLayout={handleLayout}
       // Camera/Media Permissions - matches iOS SDK behavior
       mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
@@ -976,15 +1047,17 @@ function isValidUrl(url: string): boolean {
   }
 }
 
-// Matches only: http(s)://<allowed host>[:port] followed by "/", "?", "#" or end of string.
-// The authority is read from the raw string, so the decision doesn't depend on
-// the runtime's URL class (React Native's can misread "@" in a query or fragment).
-function hasAllowedStripeAuthority(url: string): boolean {
-  const match = /^https?:\/\/([^/?#]*)/i.exec(url);
+// Matches url's authority (host[:port]) against hosts, requiring scheme.
+function hasAllowedStripeAuthority(
+  url: string,
+  hosts: readonly string[],
+  scheme: 'https' | 'https?'
+): boolean {
+  const match = new RegExp(`^${scheme}:\\/\\/([^/?#]*)`, 'i').exec(url);
   if (!match) return false;
   const authority = match[1]!.toLowerCase();
   const authorityWithoutPort = authority.replace(/:\d*$/, '');
-  return ALLOWED_STRIPE_HOSTS.some(
+  return hosts.some(
     (host) => authority === host || authorityWithoutPort === host
   );
 }
@@ -995,23 +1068,41 @@ export function isAllowedStripeHost(url: string): boolean {
     const allowedByRuntimeParser = ALLOWED_STRIPE_HOSTS.some(
       (host) => parsedUrl.hostname === host || parsedUrl.host === host
     );
-    return allowedByRuntimeParser && hasAllowedStripeAuthority(url);
+    if (!allowedByRuntimeParser) return false;
+
+    return (
+      hasAllowedStripeAuthority(url, PRODUCTION_STRIPE_HOSTS, 'https') ||
+      hasAllowedStripeAuthority(url, DEVELOPMENT_STRIPE_HOSTS, 'https?')
+    );
   } catch {
     return false;
   }
 }
 
-// Detects Stripe CSV export URLs
+// Detects Stripe CSV export URLs via an anchored regex on exact export
+// hosts; a path merely containing "stripe-data-exports" proves nothing.
+const CSV_EXPORT_HOST_PATTERN =
+  /^https:\/\/(?:stripe-data-exports\.com|(?:[a-z0-9-]+\.)+stripe-data-exports\.com|stripe-data-exports\.s3\.amazonaws\.com)(?::\d+)?(?:[/?#]|$)/i;
+
 function isCsvExportUrl(url: string): boolean {
-  try {
-    const parsedUrl = new URL(url);
-    return (
-      parsedUrl.hostname === 'stripe-data-exports.com' ||
-      parsedUrl.hostname.endsWith('.stripe-data-exports.com') ||
-      parsedUrl.hostname === 'stripe-data-exports.s3.amazonaws.com' ||
-      parsedUrl.pathname.includes('stripe-data-exports')
-    );
-  } catch {
-    return false;
-  }
+  return CSV_EXPORT_HOST_PATTERN.test(url);
+}
+
+// Runs the payload only in a document on the wrapper origin and path.
+function deliverToWrapper(payloadScript: string): string {
+  return `
+    (function() {
+      if (
+        window.location.origin === ${JSON.stringify(BASE_URL)} &&
+        window.location.pathname === ${JSON.stringify(WRAPPER_PATH)}
+      ) {
+        ${payloadScript}
+      }
+      true;
+    })();
+  `;
+}
+
+function isTrustedWrapperDocument(url: string, connectURL: string): boolean {
+  return url === connectURL;
 }
