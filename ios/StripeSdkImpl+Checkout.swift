@@ -76,7 +76,6 @@ extension StripeSdkImpl {
                     resolve([
                         "session": instance.session,
                         "isCurrencySelectorAvailable": currencySelectorElement != nil,
-                        "isExpressCheckoutAvailable": instance.expressCheckoutElement != nil,
                     ])
                 } catch {
                     reject("Failed", error.localizedDescription, checkoutRejectionError(error))

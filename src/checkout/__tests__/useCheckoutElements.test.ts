@@ -3,7 +3,10 @@ import { addListener } from '../../events';
 import { useCheckoutElements } from '../../hooks/useCheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import type { CheckoutElements } from '../../types/CheckoutElements';
-import { checkoutSession as session } from '../__fixtures__/session';
+import {
+  checkoutSession as session,
+  checkoutSessionWithExpressWallet as sessionWithWallet,
+} from '../__fixtures__/session';
 import type { CheckoutControllerUpdate } from '../CheckoutControllerEventEmitter';
 
 jest.mock('../../events', () => ({ addListener: jest.fn() }));
@@ -249,7 +252,7 @@ it('cancels an active server update during reload', async () => {
 });
 
 it('loads Express Checkout, routes its results to onResult, and replaces its handle on reload', async () => {
-  create.mockResolvedValue({ session, isExpressCheckoutAvailable: true });
+  create.mockResolvedValue({ session: sessionWithWallet });
   const onResult = jest.fn();
   const hook = renderCheckout({
     getConfiguration: async () => ({
