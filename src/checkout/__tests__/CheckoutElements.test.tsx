@@ -305,6 +305,20 @@ it('bridges Express Checkout configuration without sending callbacks to native',
   await controller.destroy();
 });
 
+it('bridges Payment Element Google Pay display configuration', async () => {
+  const controller = await createCheckoutElements({
+    ...options,
+    paymentElement: {
+      googlePay: { display: 'never' },
+    },
+  });
+
+  expect(create.mock.calls[0][0].paymentElement.googlePay).toEqual({
+    display: 'never',
+  });
+  await controller.destroy();
+});
+
 it('subscribes to Express Checkout results before create, isolates controllers, and stops after destroy', async () => {
   const onResult = jest.fn();
   const otherResult = jest.fn();

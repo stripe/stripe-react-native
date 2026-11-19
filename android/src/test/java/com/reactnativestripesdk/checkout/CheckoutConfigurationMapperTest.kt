@@ -346,6 +346,41 @@ class CheckoutConfigurationMapperTest {
   }
 
   @Test
+  fun `map maps automatic Google Pay display`() {
+    assertGooglePayDisplay(
+      readableMapOf("display" to "automatic"),
+      PaymentElement.Configuration.GooglePayConfiguration.Display.Automatic,
+    )
+  }
+
+  @Test
+  fun `map maps never Google Pay display`() {
+    assertGooglePayDisplay(
+      readableMapOf("display" to "never"),
+      PaymentElement.Configuration.GooglePayConfiguration.Display.Never,
+    )
+  }
+
+  @Test
+  fun `map preserves automatic Google Pay display when omitted`() {
+    assertGooglePayDisplay(
+      readableMapOf(),
+      PaymentElement.Configuration.GooglePayConfiguration.Display.Automatic,
+    )
+  }
+
+  @Test
+  fun `map rejects unsupported Google Pay display`() {
+    val error = assertThrows(IllegalArgumentException::class.java) {
+      mapGooglePay(readableMapOf("display" to "invalid"))
+    }
+    assertEquals(
+      "Unsupported Checkout configuration value `invalid` for `paymentElement.googlePay.display`.",
+      error.message,
+    )
+  }
+
+  @Test
   fun `map leaves configuration validation to native Checkout`() {
     val result = CheckoutConfigurationMapper.map(readableMapOf(), context) {}
 
@@ -385,6 +420,24 @@ class CheckoutConfigurationMapperTest {
       "clientSecret" to "cs_test_secret_123",
       "returnURL" to "example://checkout",
     )
+
+  private fun mapGooglePay(params: ReadableMap): PaymentElement.Configuration.GooglePayConfiguration =
+    CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "paymentElement" to readableMapOf("googlePay" to params),
+      ),
+      context,
+    ) {}.configuration
+      .readField<PaymentElement.Configuration>("paymentElementConfiguration")
+      .readField("googlePayConfiguration")
+
+  private fun assertGooglePayDisplay(
+    params: ReadableMap,
+    expected: PaymentElement.Configuration.GooglePayConfiguration.Display,
+  ) {
+    assertEquals(expected, mapGooglePay(params).readField("display"))
+  }
 
   private fun mapEmbeddedRow(row: ReadableMap): PaymentElement.Configuration.Appearance.Embedded =
     CheckoutConfigurationMapper.map(
