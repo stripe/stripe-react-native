@@ -66,6 +66,12 @@ workflows:
           inputs:
             - content: yarn lint
       - script@1:
+          title: Check Bridge Contract Fixtures
+          inputs:
+            # The XCTest and Robolectric halves run in unit-test-ios and
+            # unit-test-android, inside ReactTestAppTests and testDebugUnitTest.
+            - content: yarn test:bridge --only=js
+      - script@1:
           title: Check Jest Coverage Floors
           inputs:
             - content: |
