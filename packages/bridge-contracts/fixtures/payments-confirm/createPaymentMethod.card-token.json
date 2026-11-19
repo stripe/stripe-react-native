@@ -1,0 +1,58 @@
+{
+  "method": "StripeSdk.createPaymentMethod",
+  "description": "Card from a token, with full billing details. Assertions are on the Stripe API form parameters each SDK would send. Neither SDK sends options.setupFutureUsage when it only creates a PaymentMethod: the Stripe API has no setup_future_usage on PaymentMethod creation, and neither typed PaymentMethod params class has a field for it, so the drop is asserted at api.setup_future_usage.",
+  "input": {
+    "params": {
+      "paymentMethodType": "Card",
+      "paymentMethodData": {
+        "token": "tok_visa",
+        "billingDetails": {
+          "name": "Jenny Rosen",
+          "email": "jenny@example.com",
+          "phone": "+15555550100",
+          "address": {
+            "line1": "510 Townsend St",
+            "line2": "Floor 2",
+            "city": "San Francisco",
+            "state": "CA",
+            "postalCode": "94103",
+            "country": "US"
+          }
+        }
+      }
+    },
+    "options": { "setupFutureUsage": "OffSession" }
+  },
+  "expect": {
+    "shared": {
+      "api.type": "card",
+      "api.card.token": "tok_visa",
+      "api.billing_details.name": "Jenny Rosen",
+      "api.billing_details.email": "jenny@example.com",
+      "api.billing_details.phone": "+15555550100",
+      "api.billing_details.address.line1": "510 Townsend St",
+      "api.billing_details.address.line2": "Floor 2",
+      "api.billing_details.address.city": "San Francisco",
+      "api.billing_details.address.state": "CA",
+      "api.billing_details.address.postal_code": "94103",
+      "api.billing_details.address.country": "US",
+      "api.setup_future_usage": null
+    }
+  },
+  "unasserted": {
+    "options.setupFutureUsage": "Neither SDK reads setupFutureUsage when it only creates a PaymentMethod, so api.setup_future_usage stays null whatever JS sends."
+  },
+  "covers": {
+    "params.paymentMethodType": "api.type",
+    "params.paymentMethodData.token": "api.card.token",
+    "params.paymentMethodData.billingDetails.name": "api.billing_details.name",
+    "params.paymentMethodData.billingDetails.email": "api.billing_details.email",
+    "params.paymentMethodData.billingDetails.phone": "api.billing_details.phone",
+    "params.paymentMethodData.billingDetails.address.line1": "api.billing_details.address.line1",
+    "params.paymentMethodData.billingDetails.address.line2": "api.billing_details.address.line2",
+    "params.paymentMethodData.billingDetails.address.city": "api.billing_details.address.city",
+    "params.paymentMethodData.billingDetails.address.state": "api.billing_details.address.state",
+    "params.paymentMethodData.billingDetails.address.postalCode": "api.billing_details.address.postal_code",
+    "params.paymentMethodData.billingDetails.address.country": "api.billing_details.address.country"
+  }
+}

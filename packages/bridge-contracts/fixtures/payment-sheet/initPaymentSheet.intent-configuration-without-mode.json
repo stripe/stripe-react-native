@@ -1,0 +1,31 @@
+{
+  "method": "StripeSdk.initPaymentSheet",
+  "description": "IntentConfiguration without mode fails on both platforms, with different messages.",
+  "skipTypecheck": "IntentConfiguration.mode is required by the public types; this fixture omits it to pin the native validation.",
+  "input": {
+    "params": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "intentConfiguration": {
+        "confirmHandler": "$function"
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed"
+    },
+    "ios": {
+      "result.error.message": "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"
+    },
+    "android": {
+      "result.error.message": "If `intentConfiguration` is provided, `intentConfiguration.mode` is required"
+    }
+  },
+  "parityGaps": {
+    "result.error.message": "G9: Messages differ for the same validation failure."
+  },
+  "covers": {
+    "params.merchantDisplayName": "result.error.code",
+    "params.intentConfiguration.confirmHandler": "result.error.code"
+  }
+}

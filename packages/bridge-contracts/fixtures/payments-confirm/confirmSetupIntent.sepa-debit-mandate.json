@@ -1,0 +1,50 @@
+{
+  "method": "StripeSdk.confirmSetupIntent",
+  "description": "SEPA Debit SetupIntent confirm with online mandate data. Neither SDK sends options.setupFutureUsage with a SetupIntent confirm: the Stripe API has no setup_future_usage on a SetupIntent confirm, and neither typed SetupIntent params class has a field for it, so the drop is asserted at api.setup_future_usage.",
+  "input": {
+    "paymentIntentClientSecret": "seti_bridge_secret_contracts",
+    "params": {
+      "paymentMethodType": "SepaDebit",
+      "paymentMethodData": {
+        "iban": "DE89370400440532013000",
+        "billingDetails": {
+          "name": "Jenny Rosen",
+          "email": "jenny@example.com"
+        },
+        "mandateData": {
+          "customerAcceptance": {
+            "online": {
+              "ipAddress": "127.0.0.1",
+              "userAgent": "bridge-contracts"
+            }
+          }
+        }
+      }
+    },
+    "options": { "setupFutureUsage": "OffSession" }
+  },
+  "expect": {
+    "shared": {
+      "api.client_secret": "seti_bridge_secret_contracts",
+      "api.payment_method_data.type": "sepa_debit",
+      "api.payment_method_data.sepa_debit.iban": "DE89370400440532013000",
+      "api.payment_method_data.billing_details.name": "Jenny Rosen",
+      "api.payment_method_data.billing_details.email": "jenny@example.com",
+      "api.mandate_data.customer_acceptance.type": "online",
+      "api.mandate_data.customer_acceptance.online.ip_address": "127.0.0.1",
+      "api.mandate_data.customer_acceptance.online.user_agent": "bridge-contracts",
+      "api.setup_future_usage": null,
+      "api.return_url": "bridgecontracts://safepay"
+    }
+  },
+  "unasserted": {
+    "options.setupFutureUsage": "Neither SDK reads setupFutureUsage for a SetupIntent confirm, so api.setup_future_usage stays null whatever JS sends."
+  },
+  "covers": {
+    "paymentIntentClientSecret": "api.client_secret",
+    "params.paymentMethodType": "api.payment_method_data.type",
+    "params.paymentMethodData.iban": "api.payment_method_data.sepa_debit.iban",
+    "params.paymentMethodData.mandateData.customerAcceptance.online.ipAddress": "api.mandate_data.customer_acceptance.online.ip_address",
+    "params.paymentMethodData.mandateData.customerAcceptance.online.userAgent": "api.mandate_data.customer_acceptance.online.user_agent"
+  }
+}

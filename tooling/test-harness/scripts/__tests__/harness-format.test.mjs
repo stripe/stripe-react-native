@@ -4,6 +4,7 @@ import {
   describeResult,
   formatHarnessStatus,
   formatScenarioLine,
+  formatScenarioToken,
   withTimeout,
 } from '../harness-format.mjs';
 
@@ -27,4 +28,13 @@ test('formatScenarioLine includes thrown timeout text', async () => {
 test('formatHarnessStatus distinguishes flushed and flush-failed', () => {
   assert.equal(formatHarnessStatus('flushed'), 'harness: flushed');
   assert.equal(formatHarnessStatus('flush-failed'), 'harness: flush-failed');
+});
+
+test('formatScenarioToken is the literal accessibility text', () => {
+  assert.equal(formatScenarioToken('initStripe'), 'covered initStripe');
+  assert.equal(
+    formatScenarioToken('createPaymentMethod (incomplete card)'),
+    'covered createPaymentMethod incomplete card'
+  );
+  assert.equal(formatScenarioToken('checkout detach'), 'covered checkout detach');
 });

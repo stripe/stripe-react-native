@@ -1,0 +1,21 @@
+{
+  "method": "StripeSdk.collectBankAccountToken",
+  "description": "Pre-collected consent without a consent string. Both platforms resolve the same error before presenting anything.",
+  "skipTypecheck": "PreCollectedConsent requires consent; this fixture omits it to pin the validation.",
+  "input": {
+    "clientSecret": "fcsess_client_secret_bridge_contracts",
+    "params": { "preCollectedConsent": { "collectedAt": 1700000000 } }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "result.error.message": "preCollectedConsent must include a non-empty consent string and a numeric collectedAt timestamp."
+    }
+  },
+  "covers": {
+    "params.preCollectedConsent.collectedAt": "result.error.message"
+  },
+  "unasserted": {
+    "clientSecret": "Passed to the sheet, which is never presented here."
+  }
+}

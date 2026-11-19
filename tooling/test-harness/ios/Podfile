@@ -40,6 +40,7 @@ options = {
   :fabric_enabled => true,
   :hermes_enabled => true,
   :post_install => lambda do |installer|
+    add_checkout_fixture_to_sdk(installer)
     ReactNativeCoverage.apply_post_install!(
       installer,
       framework_name_prefixes: coverage_prefixes
@@ -62,10 +63,33 @@ options = {
 
 use_test_app! options
 
+def add_checkout_fixture_to_sdk(installer)
+  swift_path = File.expand_path('HarnessCheckoutSession.swift', __dir__)
+  target = installer.pods_project.targets.find { |item| item.name == 'stripe-react-native' }
+  raise 'stripe-react-native pod target is missing' unless target
+  group = installer.pods_project.main_group['Development Pods']['stripe-react-native']
+  raise 'stripe-react-native pod group is missing' unless group
+  ref = group.files.find { |file| file.real_path.to_s == swift_path }
+  ref ||= group.new_file(swift_path)
+  linked = target.source_build_phase.files.any? { |build_file| build_file.file_ref == ref }
+  target.add_file_references([ref]) unless linked
+end
+
 post_integrate do |_installer|
   project_path = "#{ws_dir}/node_modules/.generated/ios/ReactTestApp.xcodeproj"
   project = Xcodeproj::Project.open(project_path)
+  harness_sources = %w[HarnessCheckoutCoverage.m].map do |name|
+    File.expand_path(name, __dir__)
+  end
   project.targets.each do |target|
+    if target.name == 'ReactTestApp'
+      harness_sources.each do |path|
+        ref = project.files.find { |file| file.real_path.to_s == path }
+        ref ||= project.main_group.new_file(path)
+        linked = target.source_build_phase.files.any? { |build_file| build_file.file_ref == ref }
+        target.add_file_references([ref]) unless linked
+      end
+    end
     target.build_configurations.each do |config|
       apply_xcode27_fixes(config)
       append_flags(config, 'OTHER_SWIFT_FLAGS', %w[-Xcc -Wno-incomplete-umbrella])

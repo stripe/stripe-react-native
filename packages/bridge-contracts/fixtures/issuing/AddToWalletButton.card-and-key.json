@@ -1,0 +1,80 @@
+{
+  "method": "component:AddToWalletButton",
+  "description": "AddToWalletButton card details and ephemeral key. iOS hands the ephemeral key object to Stripe as JS sent it; Android keeps Kotlin map text and passes that string to the key update listener, which expects the raw JSON key. iOS builds the wallet pass request from cardDetails and reports a customer cancel as Canceled. On Android a click starts push provisioning, a successful provisioning result tokenizes through a TapAndPay double, and a canceled tokenize sends onCompleteAction.",
+  "input": {
+    "cardDetails": {
+      "primaryAccountIdentifier": null,
+      "name": "Jenny Rosen",
+      "lastFour": "4242",
+      "description": "Bridge Contracts card",
+      "brand": "Visa"
+    },
+    "token": {
+      "id": "tok_bridge_contracts",
+      "fpanLastFour": "4242",
+      "dpanLastFour": "1234",
+      "network": 3,
+      "serviceProvider": 1,
+      "issuer": "Bridge Bank",
+      "status": "TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION",
+      "cardLastFour": "4242"
+    },
+    "ephemeralKey": {
+      "id": "ephkey_bridge_contracts",
+      "secret": "ek_test_bridge_contracts"
+    },
+    "onCompleteAction": "$function"
+  },
+  "expect": {
+    "ios": {
+      "ephemeralKey.id": "ephkey_bridge_contracts",
+      "ephemeralKey.secret": "ek_test_bridge_contracts",
+      "passRequest.name": "Jenny Rosen",
+      "passRequest.description": "Bridge Contracts card",
+      "passRequest.lastFour": "4242",
+      "passRequest.brand": "Visa",
+      "passRequest.primaryAccountIdentifier": null,
+      "events.onCompleteAction.error.code": "Canceled"
+    },
+    "android": {
+      "ephemeralKey": "{\"id\":\"ephkey_bridge_contracts\",\"secret\":\"ek_test_bridge_contracts\"}",
+      "tokenize.tokenReferenceId": "tok_bridge_contracts",
+      "tokenize.tokenServiceProvider": 1,
+      "tokenize.network": 3,
+      "tokenize.displayName": "Bridge Contracts card",
+      "events.onCompleteAction.error.code": "Failed",
+      "events.onCompleteAction.error.message": "Failed to verify identity."
+    }
+  },
+  "parityGaps": {
+    "events.onCompleteAction.error.code": "G18: iOS reports a customer cancel as Canceled; Android reports a canceled TapAndPay tokenize as Failed.",
+    "events.onCompleteAction.error.message": "G18: see events.onCompleteAction.error.code.",
+    "ephemeralKey.id": "G16: iOS passes the key object through; Android stores JSONObject(map).toString() for the wallet flow.",
+    "ephemeralKey.secret": "G16: see ephemeralKey.id.",
+    "ephemeralKey": "G16: see ephemeralKey.id."
+  },
+  "platformOnly": {
+    "passRequest.name": "iOS builds a PKAddPaymentPassRequestConfiguration from cardDetails; Android reads only cardDetails.description.",
+    "passRequest.description": "See passRequest.name; Android's use of the description is tokenize.displayName.",
+    "passRequest.lastFour": "See passRequest.name.",
+    "passRequest.brand": "See passRequest.name.",
+    "passRequest.primaryAccountIdentifier": "See passRequest.name.",
+    "tokenize.tokenReferenceId": "The token prop is documented as Android only.",
+    "tokenize.tokenServiceProvider": "The token prop is documented as Android only.",
+    "tokenize.network": "The token prop is documented as Android only.",
+    "tokenize.displayName": "Android passes cardDetails.description to TapAndPay; iOS asserts it as passRequest.description."
+  },
+  "covers": {
+    "onCompleteAction": "events.onCompleteAction.error.code",
+    "token.id": "tokenize.tokenReferenceId",
+    "token.serviceProvider": "tokenize.tokenServiceProvider",
+    "token.network": "tokenize.network"
+  },
+  "unasserted": {
+    "token.fpanLastFour": "Android builds the TapAndPay tokenize request from token.id, serviceProvider, and network only, and iOS ignores the token prop, so no production code reads this field.",
+    "token.dpanLastFour": "See token.fpanLastFour.",
+    "token.issuer": "See token.fpanLastFour.",
+    "token.status": "See token.fpanLastFour.",
+    "token.cardLastFour": "See token.fpanLastFour."
+  }
+}

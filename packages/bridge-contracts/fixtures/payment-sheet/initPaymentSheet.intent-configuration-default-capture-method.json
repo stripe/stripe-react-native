@@ -1,0 +1,40 @@
+{
+  "method": "StripeSdk.initPaymentSheet",
+  "description": "Payment mode without captureMethod. Pins today's default (automatic on both platforms); if the 1.0 API changes captureMethod, update this fixture.",
+  "input": {
+    "params": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "intentConfiguration": {
+        "mode": {
+          "amount": 500,
+          "currencyCode": "eur"
+        },
+        "confirmationTokenConfirmHandler": "$function"
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error": null,
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "intentConfiguration.mode.amount": 500,
+      "intentConfiguration.mode.currency": "eur",
+      "intentConfiguration.mode.captureMethod": "automatic",
+      "intentConfiguration.mode.setupFutureUsage": null
+    },
+    "ios": {
+      "intentConfiguration.confirmationTokenConfirmHandler": "$present"
+    },
+    "android": {
+      "sheet.paymentSheetCallbackKind": "confirmationToken"
+    }
+  },
+  "platformOnly": {
+    "intentConfiguration.confirmationTokenConfirmHandler": "iOS IntentConfiguration holds the confirmation token handler; Android keeps its IntentConfiguration free of handlers and registers the callback on PaymentSheet.Builder.",
+    "sheet.paymentSheetCallbackKind": "Android PaymentSheetManager picks the confirmation token callback for PaymentSheet.Builder from the handler JS sends; iOS asserts the handler at intentConfiguration.confirmationTokenConfirmHandler."
+  },
+  "covers": {
+    "params.intentConfiguration.mode.currencyCode": "intentConfiguration.mode.currency",
+    "params.intentConfiguration.confirmationTokenConfirmHandler": "intentConfiguration.confirmationTokenConfirmHandler"
+  }
+}

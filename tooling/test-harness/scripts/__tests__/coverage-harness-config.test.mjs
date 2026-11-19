@@ -4,7 +4,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
-import { formatScenarioLine } from '../harness-format.mjs';
+import { formatScenarioToken } from '../harness-format.mjs';
 
 const patchAdditions = (patch) =>
   patch
@@ -38,6 +38,37 @@ test('babel.config instruments library sources from the repository root', () => 
   assert.equal(istanbul[1].cwd, scope.repoRoot);
   assert.deepEqual(istanbul[1].include, scope.include);
   assert.deepEqual(istanbul[1].exclude, scope.exclude);
+});
+
+test('harness compiles the offline checkout fixture into the sdk pod', () => {
+  const podfile = fs.readFileSync(path.join(harnessDir, 'ios/Podfile'), 'utf8');
+  const postInstall = podfile.match(
+    /:post_install => lambda do \|installer\|\n([\s\S]*?)\n {2}end,/
+  );
+  assert.ok(postInstall, 'expected a post_install lambda');
+  assert.match(postInstall[1], /add_checkout_fixture_to_sdk\(installer\)/);
+  assert.doesNotMatch(postInstall[1], /def add_checkout_fixture_to_sdk/);
+
+  const helper = podfile.match(
+    /def add_checkout_fixture_to_sdk\(installer\)\n([\s\S]*?)\nend\n/
+  );
+  assert.ok(helper, 'expected add_checkout_fixture_to_sdk');
+  assert.match(helper[1], /HarnessCheckoutSession\.swift/);
+  assert.equal(
+    fs.existsSync(path.join(harnessDir, 'ios/HarnessCheckoutSession.swift')),
+    true
+  );
+});
+
+test('maestro waits for the flushed status text', () => {
+  const yaml = fs.readFileSync(
+    path.join(harnessDir, 'e2e/coverage-run.yaml'),
+    'utf8'
+  );
+  assert.match(yaml, /visible: 'harness: flushed'/);
+  assert.match(yaml, /text: 'OK'/);
+  assert.doesNotMatch(yaml, /flushed\|flush-failed/);
+  assert.doesNotMatch(yaml, /\.\*/);
 });
 
 test('App mounts CardField after initStripe', () => {
@@ -75,27 +106,20 @@ test('coverage-run.yaml asserts exactly the scenario lines the harness can rende
   assert.ok(names.length > 0);
   assert.equal(names.length, scenariosSource.match(/^ {4}run: /gm).length);
   assert.equal(patterns.length, names.length + 1);
-  // Maestro's assertVisible matches the whole element text, not a substring.
-  const fullMatch = (pattern, text) =>
-    new RegExp(`^(?:${pattern})$`).test(text) || pattern === text;
-  const lines = names.flatMap((name) =>
-    [
-      { value: undefined },
-      { value: { error: { code: 'Failed' } } },
-      { error: new Error('timed out after 15000ms') },
-    ].map((outcome) => formatScenarioLine(name, outcome))
-  );
-  for (const line of lines) {
+  // Maestro matches the whole element text. The harness renders a literal
+  // token per scenario so the assertion does not depend on the result suffix.
+  const tokens = names.map((name) => formatScenarioToken(name));
+  for (const token of tokens) {
     assert.ok(
-      patterns.some((pattern) => fullMatch(pattern, line)),
-      `no assertVisible in coverage-run.yaml matches "${line}"`
+      patterns.includes(token),
+      `no assertVisible in coverage-run.yaml matches "${token}"`
     );
   }
   assert.ok(patterns.includes('harness: flushed'));
   for (const pattern of patterns.filter((p) => p !== 'harness: flushed')) {
     assert.ok(
-      lines.some((line) => fullMatch(pattern, line)),
-      `assertVisible '${pattern}' matches no line the harness renders`
+      tokens.includes(pattern),
+      `assertVisible '${pattern}' matches no token the harness renders`
     );
   }
 });
@@ -172,16 +196,17 @@ test('metro.config re-resolves singletons from the harness entry', () => {
   const metro = require(metroPath);
   const libraryFile = path.join(scope.repoRoot, 'src/index.ts');
   let resolvedFrom = null;
+  const resolveRequest = (ctx, moduleName) => {
+    resolvedFrom = ctx.originModulePath;
+    if (moduleName === 'react' || moduleName.startsWith('@babel/runtime/')) {
+      return { type: 'sourceFile', filePath: path.join(harnessDir, 'index.js') };
+    }
+    return null;
+  };
   const result = metro.resolver.resolveRequest(
     {
       originModulePath: libraryFile,
-      resolveRequest: (ctx, moduleName) => {
-        resolvedFrom = ctx.originModulePath;
-        if (moduleName === 'react') {
-          return { type: 'sourceFile', filePath: path.join(harnessDir, 'index.js') };
-        }
-        return null;
-      },
+      resolveRequest,
     },
     'react',
     'ios'
@@ -190,6 +215,21 @@ test('metro.config re-resolves singletons from the harness entry', () => {
   assert.ok(
     resolvedFrom.startsWith(harnessDir),
     `expected harness entry origin, got ${resolvedFrom}`
+  );
+
+  resolvedFrom = null;
+  const helper = metro.resolver.resolveRequest(
+    {
+      originModulePath: libraryFile,
+      resolveRequest,
+    },
+    '@babel/runtime/helpers/interopRequireDefault',
+    'ios'
+  );
+  assert.ok(helper);
+  assert.ok(
+    resolvedFrom.startsWith(harnessDir),
+    `expected babel runtime to resolve from the harness, got ${resolvedFrom}`
   );
 });
 

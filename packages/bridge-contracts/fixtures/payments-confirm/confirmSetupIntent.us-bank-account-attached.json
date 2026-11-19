@@ -1,0 +1,24 @@
+{
+  "method": "StripeSdk.confirmSetupIntent",
+  "description": "US bank account SetupIntent confirm without paymentMethodData, for a bank account collectBankAccount already attached. Both SDKs confirm with the client secret and the US bank account type, which makes each SDK infer an online mandate from the client.",
+  "input": {
+    "paymentIntentClientSecret": "seti_bridge_secret_contracts",
+    "params": {
+      "paymentMethodType": "USBankAccount"
+    },
+    "options": {}
+  },
+  "expect": {
+    "shared": {
+      "api.client_secret": "seti_bridge_secret_contracts",
+      "api.payment_method_data": null,
+      "api.mandate_data.customer_acceptance.type": "online",
+      "api.mandate_data.customer_acceptance.online.infer_from_client": true,
+      "api.return_url": "bridgecontracts://safepay"
+    }
+  },
+  "covers": {
+    "paymentIntentClientSecret": "api.client_secret",
+    "params.paymentMethodType": "api.mandate_data.customer_acceptance.type"
+  }
+}

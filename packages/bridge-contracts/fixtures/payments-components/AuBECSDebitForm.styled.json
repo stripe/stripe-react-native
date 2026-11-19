@@ -1,0 +1,29 @@
+{
+  "method": "component:AuBECSDebitForm",
+  "description": "AuBECSDebitForm style props. Both platforms apply colours, font size, and border styling to the form fields.",
+  "input": {
+    "formStyle": {
+      "borderWidth": 2,
+      "backgroundColor": "#fafafa",
+      "borderColor": "#112233",
+      "borderRadius": 8,
+      "textColor": "#445566",
+      "fontSize": 16,
+      "placeholderColor": "#778899",
+      "textErrorColor": "#aa0000"
+    }
+  },
+  "expect": {
+    "shared": {
+      "formStyle.backgroundColor": "#fafafa",
+      "formStyle.borderColor": "#112233",
+      "formStyle.borderWidth": 2,
+      "formStyle.borderRadius": 8,
+      "formStyle.textColor": "#445566",
+      "formStyle.fontSize": 16,
+      "formStyle.placeholderColor": "#778899",
+      "formStyle.textErrorColor": "#aa0000",
+      "rebuildsFormOnPropsUpdate": false
+    }
+  }
+}

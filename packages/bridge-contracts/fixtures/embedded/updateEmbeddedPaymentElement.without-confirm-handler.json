@@ -1,0 +1,32 @@
+{
+  "method": "StripeSdk.updateEmbeddedPaymentElement",
+  "description": "update(intentConfig) with neither confirm handler. On Android the update command's JSON never carries handlers (JSON.stringify drops functions), so Android cannot check this.",
+  "input": {
+    "intentConfig": {
+      "mode": {
+        "amount": 100,
+        "currencyCode": "usd"
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed"
+    },
+    "ios": {
+      "result.error.message": "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmationTokenConfirmHandler` if you are not passing an intent client secret",
+      "intentConfiguration.mode.amount": null
+    },
+    "android": {
+      "result.error.message": "not supported on Android; use the hook's update",
+      "intentConfiguration.mode.amount": 100
+    }
+  },
+  "parityGaps": {
+    "intentConfiguration.mode.amount": "D2: Handlers are registered at create time and cannot travel in the update JSON, so Android does not validate them on update; iOS rejects the update.",
+    "result.error.message": "G8: Android StripeSdkModule.updateEmbeddedPaymentElement always resolves a not-supported error; JS sends Android updates through the EmbeddedPaymentElementView update command instead."
+  },
+  "covers": {
+    "intentConfig.mode.currencyCode": "intentConfiguration.mode.amount"
+  }
+}

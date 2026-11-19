@@ -1,0 +1,19 @@
+{
+  "method": "StripeSdk.presentLinkController",
+  "description": "presentLinkController before initLinkController. Both platforms resolve the same error. A second call on a module holding a controller double, whose customer picks a card, shows the payment method each platform resolves through its mapper.",
+  "input": {},
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "result.error.message": "LinkController has not been initialized. Call initLinkController first.",
+      "completed.paymentMethod.id": "pm_bridge_contracts",
+      "completed.paymentMethod.paymentMethodType": "Card",
+      "completed.paymentMethod.livemode": false,
+      "completed.paymentMethod.Card.brand": "Visa",
+      "completed.paymentMethod.Card.last4": "4242",
+      "completed.paymentMethod.Card.expMonth": 12,
+      "completed.paymentMethod.Card.expYear": 2030,
+      "completed.paymentMethodPreview": null
+    }
+  }
+}

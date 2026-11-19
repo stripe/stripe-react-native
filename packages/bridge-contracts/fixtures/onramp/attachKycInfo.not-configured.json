@@ -1,0 +1,65 @@
+{
+  "method": "OnrampSdk.attachKycInfo",
+  "description": "KYC details before configureOnramp. Both platforms have a KYC mapper; the call itself resolves the not-configured error first.",
+  "input": {
+    "kycInfo": {
+      "firstName": "Jenny",
+      "lastName": "Rosen",
+      "idNumber": "000000000",
+      "idType": "social_security_number",
+      "dateOfBirth": {
+        "day": 1,
+        "month": 2,
+        "year": 1990
+      },
+      "address": {
+        "line1": "510 Townsend St",
+        "city": "San Francisco",
+        "state": "CA",
+        "postalCode": "94103",
+        "country": "US"
+      },
+      "birthCountry": "FR",
+      "birthCity": "Paris",
+      "nationalities": ["US", "CA"]
+    }
+  },
+  "expect": {
+    "shared": {
+      "kycInfo.firstName": "Jenny",
+      "kycInfo.lastName": "Rosen",
+      "kycInfo.idNumber": "000000000",
+      "kycInfo.idType": "socialSecurityNumber",
+      "kycInfo.dateOfBirth.day": 1,
+      "kycInfo.dateOfBirth.month": 2,
+      "kycInfo.dateOfBirth.year": 1990,
+      "kycInfo.address.line1": "510 Townsend St",
+      "kycInfo.address.city": "San Francisco",
+      "kycInfo.address.state": "CA",
+      "kycInfo.address.postalCode": "94103",
+      "kycInfo.address.country": "US",
+      "kycInfo.birthCity": "Paris",
+      "result.error.code": "Failed",
+      "result.error.message": "Onramp is not configured."
+    },
+    "ios": {
+      "kycInfo.birthCountry": "FR",
+      "kycInfo.nationalities": ["US", "CA"]
+    },
+    "android": {
+      "kycInfo.birthCountry.value": "FR",
+      "kycInfo.nationalities.0.value": "US",
+      "kycInfo.nationalities.1.value": "CA"
+    }
+  },
+  "platformOnly": {
+    "kycInfo.birthCountry": "iOS KycInfo.birthCountry is a String. Android stores a CountryCode, asserted at kycInfo.birthCountry.value.",
+    "kycInfo.nationalities": "iOS KycInfo.nationalities is a string list. Android stores CountryCode values, asserted at kycInfo.nationalities.N.value.",
+    "kycInfo.birthCountry.value": "Android CountryCode.value. iOS asserts the same country at kycInfo.birthCountry.",
+    "kycInfo.nationalities.0.value": "Android CountryCode.value. iOS asserts the same list at kycInfo.nationalities.",
+    "kycInfo.nationalities.1.value": "Android CountryCode.value. iOS asserts the same list at kycInfo.nationalities."
+  },
+  "covers": {
+    "kycInfo.idType": "kycInfo.idType"
+  }
+}

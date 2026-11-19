@@ -1,0 +1,51 @@
+{
+  "method": "StripeSdk.updatePlatformPaySheet",
+  "platforms": ["ios"],
+  "description": "Updating the Apple Pay sheet while a shipping-method change is waiting. updatePlatformPaySheet is iOS only: JS returns before calling native on Android, and the Android TurboModule method is a no-op.",
+  "input": {
+    "summaryItems": [
+      {
+        "paymentType": "Immediate",
+        "label": "Subtotal",
+        "amount": "10.00"
+      },
+      {
+        "paymentType": "Immediate",
+        "label": "Bridge Contracts, Inc.",
+        "amount": "12.50"
+      }
+    ],
+    "shippingMethods": [
+      {
+        "identifier": "express",
+        "label": "Express",
+        "amount": "2.50",
+        "detail": "Next day"
+      }
+    ],
+    "errors": []
+  },
+  "expect": {
+    "ios": {
+      "result": [],
+      "summaryItems.0.label": "Subtotal",
+      "summaryItems.0.amount": 10,
+      "summaryItems.0.paymentType": "Immediate",
+      "summaryItems.1.label": "Bridge Contracts, Inc.",
+      "summaryItems.1.amount": 12.5,
+      "summaryItems.1.paymentType": "Immediate",
+      "shippingMethods.0.identifier": "express",
+      "shippingMethods.0.label": "Express",
+      "shippingMethods.0.amount": 2.5,
+      "shippingMethods.0.detail": "Next day",
+      "shippingMethodUpdate.paymentSummaryItems.1.amount": 12.5
+    }
+  },
+  "covers": {
+    "summaryItems.0.amount": "summaryItems.0.amount",
+    "summaryItems.1.amount": "summaryItems.1.amount",
+    "shippingMethods.0.amount": "shippingMethods.0.amount",
+    "summaryItems.0.paymentType": "summaryItems.0.paymentType",
+    "summaryItems.1.paymentType": "summaryItems.1.paymentType"
+  }
+}

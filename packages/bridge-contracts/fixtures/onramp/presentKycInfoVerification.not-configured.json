@@ -1,0 +1,26 @@
+{
+  "method": "OnrampSdk.presentKycInfoVerification",
+  "description": "An updated address for KYC verification before configureOnramp. Both platforms map the address; the call itself resolves the not-configured error first.",
+  "input": {
+    "updatedAddress": {
+      "line1": "510 Townsend St",
+      "line2": "Floor 2",
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94103",
+      "country": "US"
+    }
+  },
+  "expect": {
+    "shared": {
+      "address.line1": "510 Townsend St",
+      "address.line2": "Floor 2",
+      "address.city": "San Francisco",
+      "address.state": "CA",
+      "address.postalCode": "94103",
+      "address.country": "US",
+      "result.error.code": "Failed",
+      "result.error.message": "Onramp is not configured."
+    }
+  }
+}

@@ -3369,6 +3369,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stripe/bridge-contracts@workspace:packages/bridge-contracts":
+  version: 0.0.0-use.local
+  resolution: "@stripe/bridge-contracts@workspace:packages/bridge-contracts"
+  languageName: unknown
+  linkType: soft
+
 "@stripe/react-native-bridge-schemas@workspace:tooling/bridge-schemas":
   version: 0.0.0-use.local
   resolution: "@stripe/react-native-bridge-schemas@workspace:tooling/bridge-schemas"

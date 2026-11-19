@@ -1,0 +1,30 @@
+{
+  "method": "StripeSdk.isPlatformPaySupported",
+  "description": "An availability check with Google Pay options. Android builds its availability launcher from them; iOS asks the device about Apple Pay and takes no options.",
+  "input": {
+    "params": {
+      "googlePay": {
+        "testEnv": true,
+        "existingPaymentMethodRequired": true
+      }
+    }
+  },
+  "expect": {
+    "ios": {
+      "result": "$present"
+    },
+    "android": {
+      "googlePayLauncher.isTestEnv": true,
+      "googlePayLauncher.paymentMethodRequired": true
+    }
+  },
+  "parityGaps": {
+    "result": "D8: iOS answers from StripeAPI.deviceSupportsApplePay() at once; Android answers after Google Pay's ready check, which needs a device.",
+    "googlePayLauncher.isTestEnv": "D8: Only Android reads the googlePay options.",
+    "googlePayLauncher.paymentMethodRequired": "D8: see googlePayLauncher.isTestEnv."
+  },
+  "covers": {
+    "params.googlePay.existingPaymentMethodRequired": "googlePayLauncher.paymentMethodRequired",
+    "params.googlePay.testEnv": "googlePayLauncher.isTestEnv"
+  }
+}

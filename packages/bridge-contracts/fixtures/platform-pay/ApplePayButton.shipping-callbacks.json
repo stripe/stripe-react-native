@@ -1,0 +1,20 @@
+{
+  "method": "component:ApplePayButton",
+  "platforms": ["ios"],
+  "description": "The Apple Pay button's shipping callbacks. ApplePayButton is iOS only. Tapping it hands the callbacks to the Apple Pay delegate, which sends the selected shipping method and contact through them.",
+  "input": {
+    "onShippingMethodSelectedAction": "$function",
+    "onShippingContactSelectedAction": "$function"
+  },
+  "expect": {
+    "ios": {
+      "events.onShippingMethodSelectedAction.shippingMethod.identifier": "express",
+      "events.onShippingMethodSelectedAction.shippingMethod.label": "Express",
+      "events.onShippingContactSelectedAction.shippingContact": "$present"
+    }
+  },
+  "covers": {
+    "onShippingMethodSelectedAction": "events.onShippingMethodSelectedAction.shippingMethod.identifier",
+    "onShippingContactSelectedAction": "events.onShippingContactSelectedAction.shippingContact"
+  }
+}

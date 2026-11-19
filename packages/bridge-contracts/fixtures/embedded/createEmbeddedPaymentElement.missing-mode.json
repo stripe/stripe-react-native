@@ -1,0 +1,29 @@
+{
+  "method": "StripeSdk.createEmbeddedPaymentElement",
+  "description": "An intentConfig without mode. iOS reports it through embeddedPaymentElementLoadingFailed and resolves; Android's view manager throws while parsing the intentConfiguration prop.",
+  "skipTypecheck": "IntentConfiguration.mode is required by the public types; this fixture omits it to pin how each platform fails.",
+  "input": {
+    "intentConfig": { "confirmHandler": "$function" },
+    "configuration": { "merchantDisplayName": "Bridge Contracts, Inc." }
+  },
+  "expect": {
+    "shared": {
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc."
+    },
+    "ios": {
+      "result": null,
+      "events.loadingFailed.message": "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"
+    },
+    "android": {
+      "thrown": "PaymentSheetException: If `intentConfiguration` is provided, `intentConfiguration.mode` is required"
+    }
+  },
+  "parityGaps": {
+    "result": "G10: iOS resolves after reporting the failure; Android has no promise on this path.",
+    "events.loadingFailed.message": "G10: iOS reports the failure as an event; Android throws instead.",
+    "thrown": "G10: Android's parseIntentConfiguration rethrows the PaymentSheetException from the prop setter."
+  },
+  "covers": {
+    "intentConfig.confirmHandler": "events.loadingFailed.message"
+  }
+}

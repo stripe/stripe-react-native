@@ -20,6 +20,7 @@ import com.reactnativestripesdk.mapSamsungPayConfig
 import com.reactnativestripesdk.mapToComplianceIdentifiers
 import com.reactnativestripesdk.mapToIdType
 import com.reactnativestripesdk.mapToKycInfo
+import com.reactnativestripesdk.mapToLinkUserInfo
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.core.model.CountryCode
@@ -676,6 +677,56 @@ class OnrampMappersTest {
   }
 
   @Test
+  fun mapToKycInfo_mapsDateOfBirthAndAddressAndDropsEmptyNationalities() {
+    val kycInfo =
+      mapToKycInfo(
+        readableMapOf(
+          "firstName" to "Jane",
+          "lastName" to "Doe",
+          "idNumber" to "123456789",
+          "dateOfBirth" to readableMapOf("day" to 15, "month" to 6, "year" to 1990),
+          "address" to
+            readableMapOf(
+              "city" to "San Francisco",
+              "country" to "US",
+              "line1" to "123 Main St",
+              "line2" to "Apt 4",
+              "postalCode" to "94105",
+              "state" to "CA",
+            ),
+          "nationalities" to readableArrayOf(),
+        ),
+      )
+
+    assertEquals("Jane", kycInfo.firstName)
+    assertEquals("Doe", kycInfo.lastName)
+    assertEquals("123456789", kycInfo.idNumber)
+    assertEquals(DateOfBirth(day = 15, month = 6, year = 1990), kycInfo.dateOfBirth)
+    val address = kycInfo.address
+    assertNotNull(address)
+    assertEquals("San Francisco", address!!.city)
+    assertEquals("US", address.country)
+    assertEquals("123 Main St", address.line1)
+    assertEquals("Apt 4", address.line2)
+    assertEquals("94105", address.postalCode)
+    assertEquals("CA", address.state)
+    assertNull(kycInfo.birthCountry)
+    assertNull(kycInfo.birthCity)
+    assertNull(kycInfo.nationalities)
+
+    val incomplete =
+      mapToKycInfo(
+        readableMapOf(
+          "dateOfBirth" to readableMapOf("day" to 1, "month" to 1),
+        ),
+      )
+    assertNull(incomplete.firstName)
+    assertNull(incomplete.dateOfBirth)
+    assertNull(incomplete.address)
+    assertNull(incomplete.nationalities)
+  }
+
+  @Test
   fun mapFromKycInfo_AllFields() {
     val kycInfo =
       KycInfo(
@@ -1003,6 +1054,16 @@ class OnrampMappersTest {
     assertEquals("Failed", failed.getMap("error")!!.getString("code"))
     assertEquals("Acceptance failed", failed.getMap("error")!!.getString("message"))
     assertFalse(failed.hasKey("status"))
+  }
+
+  @Test
+  fun mapToLinkUserInfo_usesEmptyDefaultsWhenFieldsAreOmitted() {
+    val result = mapToLinkUserInfo(readableMapOf())
+
+    assertEquals("", result.email)
+    assertEquals("", result.phone)
+    assertEquals("", result.country)
+    assertNull(result.fullName)
   }
 
   @Suppress("UNCHECKED_CAST")

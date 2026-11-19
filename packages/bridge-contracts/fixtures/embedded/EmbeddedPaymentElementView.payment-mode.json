@@ -1,0 +1,48 @@
+{
+  "method": "component:EmbeddedPaymentElementView",
+  "platforms": ["android"],
+  "description": "The Embedded view's configuration and intentConfiguration props. Only the Android view reads them; iOS ignores these props and receives the same values through createEmbeddedPaymentElement, which the embedded fixtures pin on both platforms.",
+  "input": {
+    "configuration": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "returnURL": "bridgecontracts://stripe-redirect",
+      "rowSelectionBehavior": {
+        "type": "immediateAction"
+      }
+    },
+    "intentConfiguration": {
+      "mode": {
+        "amount": 1099,
+        "currencyCode": "usd"
+      },
+      "paymentMethodTypes": ["card"],
+      "confirmHandler": "$function"
+    }
+  },
+  "expect": {
+    "android": {
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "rowSelectionBehavior": "immediateAction",
+      "intentConfiguration.mode.amount": 1099,
+      "intentConfiguration.mode.currency": "usd",
+      "intentConfiguration.paymentMethodTypes": ["card"],
+      "useConfirmationTokenCallback": false
+    }
+  },
+  "covers": {
+    "configuration.rowSelectionBehavior.type": "rowSelectionBehavior",
+    "intentConfiguration.mode.currencyCode": "intentConfiguration.mode.currency",
+    "intentConfiguration.confirmHandler": "useConfirmationTokenCallback"
+  },
+  "unasserted": {
+    "configuration.returnURL": "Android's Embedded element returns through its own redirect activity and does not read returnURL."
+  },
+  "parityGaps": {
+    "configuration.merchantDisplayName": "D12: iOS EmbeddedPaymentElementView ignores the configuration and intentConfiguration props and receives the same values through createEmbeddedPaymentElement.",
+    "rowSelectionBehavior": "D12: see configuration.merchantDisplayName.",
+    "intentConfiguration.mode.amount": "D12: see configuration.merchantDisplayName.",
+    "intentConfiguration.mode.currency": "D12: see configuration.merchantDisplayName.",
+    "intentConfiguration.paymentMethodTypes": "D12: see configuration.merchantDisplayName.",
+    "useConfirmationTokenCallback": "D12: see configuration.merchantDisplayName."
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Platform,
   SafeAreaView,
@@ -6,14 +6,18 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  View,
 } from 'react-native';
 import { CardField } from '@stripe/stripe-react-native';
 import { flush } from 'react-native-coverage';
+import NativeCheckoutPaymentElement from '../../../src/specs/NativeCheckoutPaymentElement';
 import {
   formatHarnessStatus,
   formatScenarioLine,
+  formatScenarioToken,
   withTimeout,
 } from '../scripts/harness-format.mjs';
+import { registerCheckoutMount } from './checkout-coverage';
 import { scenarios } from './scenarios';
 
 type Status = 'running' | 'flushed' | 'flush-failed';
@@ -32,6 +36,19 @@ export default function App() {
   const [results, setResults] = useState<string[]>([]);
   const [status, setStatus] = useState<Status>('running');
   const [stripeReady, setStripeReady] = useState(false);
+  const [checkoutId, setCheckoutId] = useState<string | null>(null);
+  const resolveMount = useRef<(() => void) | null>(null);
+  const statusText = formatHarnessStatus(status);
+
+  useEffect(() => {
+    registerCheckoutMount(
+      (controllerId) =>
+        new Promise((resolve) => {
+          resolveMount.current = resolve;
+          setCheckoutId(controllerId);
+        })
+    );
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,10 +56,9 @@ export default function App() {
       for (const scenario of scenarios) {
         let line: string;
         try {
-          line = formatScenarioLine(
-            scenario.name,
-            { value: await withTimeout(scenario.run()) }
-          );
+          line = formatScenarioLine(scenario.name, {
+            value: await withTimeout(scenario.run(), scenario.timeoutMs),
+          });
         } catch (error) {
           line = formatScenarioLine(scenario.name, { error });
         }
@@ -67,13 +83,44 @@ export default function App() {
     };
   }, []);
 
+  const finishMount = () => {
+    requestAnimationFrame(() => {
+      const resolve = resolveMount.current;
+      resolveMount.current = null;
+      resolve?.();
+    });
+  };
+
+  const tokens = results.map((line) =>
+    formatScenarioToken(line.slice(0, line.indexOf(':')))
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.status}>{formatHarnessStatus(status)}</Text>
+    <SafeAreaView accessible={false} style={styles.container}>
+      <Text accessible style={styles.status}>
+        {statusText}
+      </Text>
+      {tokens.map((token) => (
+        <Text key={token} accessible style={styles.result}>
+          {token}
+        </Text>
+      ))}
+      <ScrollView
+        removeClippedSubviews={false}
+        contentContainerStyle={styles.content}
+      >
         {stripeReady ? <CardField style={styles.cardField} /> : null}
+        {checkoutId ? (
+          <View>
+            <NativeCheckoutPaymentElement
+              controllerId={checkoutId}
+              style={styles.cardField}
+              onHeightChanged={finishMount}
+            />
+          </View>
+        ) : null}
         {results.map((line) => (
-          <Text key={line} style={styles.result}>
+          <Text key={line} accessible style={styles.result}>
             {line}
           </Text>
         ))}
@@ -83,8 +130,8 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { padding: 16, paddingTop: 16 + androidTopInset },
+  container: { flex: 1, paddingTop: androidTopInset },
+  content: { padding: 16 },
   status: { fontSize: 18, fontWeight: '600', marginBottom: 12 },
   cardField: { height: 50, marginBottom: 12 },
   result: { fontSize: 12, marginBottom: 4 },

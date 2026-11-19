@@ -140,6 +140,17 @@ android {
       def outputRoot = rootProject.layout.buildDirectory.get().asFile
       test.reports.junitXml.outputLocation.set(new File(outputRoot, "test-results/${test.name}"))
       test.reports.html.outputLocation.set(new File(outputRoot, "reports/tests/${test.name}"))
+      // Shared JS/iOS/Android fixtures; they exist only in the repository checkout.
+      def bridgeContractFixtures = file("${projectDir}/../packages/bridge-contracts/fixtures")
+      test.systemProperty "bridgeContracts.fixturesDir", bridgeContractFixtures.absolutePath
+      // Set by test-bridge.mjs --families=. Absent means every fixture.
+      def bridgeFixtureFamilies = project.findProperty("bridgeContracts.families")
+      if (bridgeFixtureFamilies) {
+        test.systemProperty "bridgeContracts.families", bridgeFixtureFamilies.toString()
+      }
+      if (bridgeContractFixtures.exists()) {
+        test.inputs.dir(bridgeContractFixtures).withPropertyName("bridgeContractFixtures")
+      }
     }
   }
 }

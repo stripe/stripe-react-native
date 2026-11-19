@@ -1,0 +1,79 @@
+{
+  "method": "StripeSdk.createCheckout",
+  "description": "A Checkout configuration with customer defaults and a Shipping Address Element. Both platforms map it with CheckoutConfigurationMapper and createCheckout resolves the session a local double serves: a stubbed checkout session response on iOS, a controller double on Android.",
+  "input": {
+    "params": {
+      "clientSecret": "cs_test_bridge_secret_contracts",
+      "returnURL": "https://bridge-contracts.example/checkout",
+      "defaults": {
+        "email": "jenny@example.com",
+        "phone": "+15555550100",
+        "billingDetails": {
+          "name": "Jenny Rosen",
+          "address": {
+            "country": "US",
+            "line1": "510 Townsend St",
+            "city": "San Francisco",
+            "state": "CA",
+            "postalCode": "94103"
+          }
+        },
+        "shippingDetails": {
+          "name": "Jenny Rosen",
+          "address": {
+            "country": "US",
+            "line1": "1 Market St",
+            "city": "San Francisco",
+            "state": "CA",
+            "postalCode": "94105"
+          }
+        }
+      },
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "shippingAddressElement": {
+        "title": "Ship to",
+        "buttonTitle": "Use this address"
+      }
+    },
+    "controllerId": "bridge-contracts"
+  },
+  "expect": {
+    "shared": {
+      "clientSecret": "cs_test_bridge_secret_contracts",
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "configuration.defaults.email": "jenny@example.com",
+      "configuration.defaults.phone": "+15555550100",
+      "configuration.defaults.billingDetails.name": "Jenny Rosen",
+      "configuration.defaults.billingDetails.address.country": "US",
+      "configuration.defaults.billingDetails.address.line1": "510 Townsend St",
+      "configuration.defaults.billingDetails.address.city": "San Francisco",
+      "configuration.defaults.billingDetails.address.state": "CA",
+      "configuration.defaults.billingDetails.address.postalCode": "94103",
+      "configuration.defaults.shippingDetails.name": "Jenny Rosen",
+      "configuration.defaults.shippingDetails.address.country": "US",
+      "configuration.defaults.shippingDetails.address.line1": "1 Market St",
+      "configuration.defaults.shippingDetails.address.city": "San Francisco",
+      "configuration.defaults.shippingDetails.address.state": "CA",
+      "configuration.defaults.shippingDetails.address.postalCode": "94105",
+      "configuration.shippingAddressElement.title": "Ship to",
+      "configuration.shippingAddressElement.buttonTitle": "Use this address",
+      "result.session.id": "cs_test",
+      "result.isCurrencySelectorAvailable": false
+    },
+    "ios": {
+      "configuration.returnURL": "https://bridge-contracts.example/checkout"
+    },
+    "android": {
+      "result.isExpressCheckoutAvailable": false
+    }
+  },
+  "platformOnly": {
+    "result.isExpressCheckoutAvailable": "CheckoutCreateResult documents it as Android only until the iOS Express Checkout bridge is implemented."
+  },
+  "parityGaps": {
+    "configuration.returnURL": "D4: Android Checkout returns through its own redirect activity and does not read returnURL."
+  },
+  "unasserted": {
+    "controllerId": "JS generates it; native uses it only as the registry key once the session loads."
+  }
+}

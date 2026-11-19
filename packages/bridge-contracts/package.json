@@ -1,0 +1,25 @@
+{
+  "name": "@stripe/bridge-contracts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared bridge contract fixtures for the JS, iOS, and Android tests. Never published.",
+  "scripts": {
+    "lint": "yarn run -T eslint --ignore-path ../../.gitignore --parser-options=ecmaVersion:2022 --parser-options=sourceType:module --no-error-on-unmatched-pattern \"**/*.{js,mjs,ts,tsx}\"",
+    "test": "node scripts/check.mjs && node --test scripts/native-loader-plan.test.mjs",
+    "test:bridge": "node scripts/test-bridge.mjs"
+  },
+  "nx": {
+    "targets": {
+      "test": {
+        "inputs": [
+          "default",
+          "{workspaceRoot}/src/specs/**/*",
+          "{workspaceRoot}/src/types/**/*"
+        ]
+      },
+      "test:bridge": {
+        "cache": false
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "method": "StripeSdk.createToken",
+  "description": "A Card token with no mounted CardField or CardForm fails before any network call. The success paths build the token params inline before calling the API, so they are not reachable without a network fake.",
+  "input": {
+    "params": { "type": "Card", "name": "Jenny Rosen", "currency": "usd" }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "result.error.message": "Card details not complete"
+    }
+  },
+  "covers": {
+    "params.type": "result.error.message"
+  },
+  "unasserted": {
+    "params.name": "Read only after the card view check, which fails first.",
+    "params.currency": "Read only after the card view check, which fails first."
+  }
+}

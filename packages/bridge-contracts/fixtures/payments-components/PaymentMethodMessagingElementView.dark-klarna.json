@@ -1,0 +1,49 @@
+{
+  "method": "component:PaymentMethodMessagingElementView",
+  "description": "Payment Method Messaging appearance and configuration props. Both platforms map them with their element config mappers and report loading. On iOS the element's load request carries the configuration as query parameters; a local stub answers it. On Android the view queues the mapped appearance and configuration for its Compose content, and a view composed in an activity window reports loading and then loaded from an element double whose configure succeeds.",
+  "input": {
+    "appearance": { "style": "dark" },
+    "configuration": {
+      "amount": 1099,
+      "currency": "usd",
+      "country": "US",
+      "locale": "en",
+      "paymentMethodTypes": ["klarna", "affirm"]
+    },
+    "onConfigureResult": "$function"
+  },
+  "expect": {
+    "shared": {
+      "events.onConfigureResult.0.result.status": "loading",
+      "appearance.style": "dark",
+      "configuration.amount": 1099,
+      "configuration.currency": "usd",
+      "configuration.country": "US",
+      "configuration.locale": "en",
+      "configuration.paymentMethodTypes": ["klarna", "affirm"]
+    },
+    "ios": {
+      "request.amount": "1099",
+      "request.currency": "usd",
+      "request.country": "US",
+      "request.locale": "en",
+      "request.payment_methods[0]": "klarna",
+      "request.payment_methods[1]": "affirm"
+    },
+    "android": {
+      "events.onConfigureResult.1.result.status": "loaded"
+    }
+  },
+  "platformOnly": {
+    "events.onConfigureResult.1.result.status": "The Android element double answers configure without the network. The iOS element loads through the stubbed STPAPIClient, whose answer is not a messaging response.",
+    "request.amount": "The iOS element loads through STPAPIClient, which the runner stubs; the Android element double answers configure without sending a request.",
+    "request.currency": "See request.amount.",
+    "request.country": "See request.amount.",
+    "request.locale": "See request.amount.",
+    "request.payment_methods[0]": "See request.amount.",
+    "request.payment_methods[1]": "See request.amount."
+  },
+  "covers": {
+    "onConfigureResult": "events.onConfigureResult.0.result.status"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "method": "StripeSdk.createEmbeddedPaymentElement",
+  "description": "A valid intentConfig with an appearance font that is not bundled. iOS reports \"Invalid configuration\" through embeddedPaymentElementLoadingFailed and resolves; Android's view manager throws while parsing the configuration prop.",
+  "input": {
+    "intentConfig": {
+      "mode": { "amount": 100, "currencyCode": "usd" },
+      "confirmHandler": "$function"
+    },
+    "configuration": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "appearance": { "font": { "family": "NotABundledFont" } }
+    }
+  },
+  "expect": {
+    "shared": {
+      "intentConfiguration.mode.amount": 100,
+      "intentConfiguration.mode.currency": "usd",
+      "configuration": null
+    },
+    "ios": {
+      "result": null,
+      "events.loadingFailed.message": "Invalid configuration"
+    },
+    "android": {
+      "thrown": "PaymentSheetAppearanceException: Encountered an error when setting a custom font: Failed to find font: NotABundledFont"
+    }
+  },
+  "parityGaps": {
+    "result": "G10: iOS resolves after reporting the failure; Android has no promise on this path.",
+    "events.loadingFailed.message": "G10: iOS reports the failure as an event; Android throws instead.",
+    "thrown": "G10: Android's parseElementConfiguration surfaces the Stripe SDK PaymentSheetAppearanceException text; iOS reports `Invalid configuration` through embeddedPaymentElementLoadingFailed."
+  },
+  "covers": {
+    "intentConfig.mode.currencyCode": "intentConfiguration.mode.currency",
+    "intentConfig.confirmHandler": "intentConfiguration.mode.amount",
+    "configuration.appearance.font.family": "events.loadingFailed.message"
+  },
+  "unasserted": {
+    "configuration.merchantDisplayName": "The unknown font fails the configuration mapper, so neither SDK returns a configuration that could hold the name."
+  }
+}

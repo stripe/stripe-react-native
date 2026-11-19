@@ -1,0 +1,56 @@
+{
+  "method": "StripeSdk.initPaymentSheet",
+  "description": "Deferred intent (IntentConfiguration) in payment mode with a confirm handler and a CustomerSession.",
+  "input": {
+    "params": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "customerId": "cus_bridge",
+      "customerSessionClientSecret": "cuss_test_bridge",
+      "intentConfiguration": {
+        "mode": {
+          "amount": 1099,
+          "currencyCode": "usd",
+          "setupFutureUsage": "OffSession",
+          "captureMethod": "Manual"
+        },
+        "paymentMethodTypes": ["card", "klarna"],
+        "onBehalfOf": "acct_bridge",
+        "confirmHandler": "$function"
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error": null,
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "configuration.customer.id": "cus_bridge",
+      "intentConfiguration.mode": "payment",
+      "intentConfiguration.mode.amount": 1099,
+      "intentConfiguration.mode.currency": "usd",
+      "intentConfiguration.mode.setupFutureUsage": "offSession",
+      "intentConfiguration.mode.captureMethod": "manual",
+      "intentConfiguration.paymentMethodTypes": ["card", "klarna"],
+      "intentConfiguration.onBehalfOf": "acct_bridge"
+    },
+    "ios": {
+      "intentConfiguration.confirmHandler": "$present"
+    },
+    "android": {
+      "sheet.paymentSheetCallbackKind": "intentCreation"
+    }
+  },
+  "platformOnly": {
+    "intentConfiguration.confirmHandler": "iOS IntentConfiguration holds the confirm handler; Android keeps its IntentConfiguration free of handlers and registers the callback on PaymentSheet.Builder.",
+    "sheet.paymentSheetCallbackKind": "Android PaymentSheetManager picks the intent creation callback for PaymentSheet.Builder from the handler JS sends; iOS asserts the handler at intentConfiguration.confirmHandler."
+  },
+  "covers": {
+    "params.customerId": "configuration.customer.id",
+    "params.intentConfiguration.mode.currencyCode": "intentConfiguration.mode.currency",
+    "params.intentConfiguration.mode.setupFutureUsage": "intentConfiguration.mode.setupFutureUsage",
+    "params.intentConfiguration.mode.captureMethod": "intentConfiguration.mode.captureMethod",
+    "params.intentConfiguration.confirmHandler": "intentConfiguration.confirmHandler"
+  },
+  "unasserted": {
+    "params.customerSessionClientSecret": "Each SDK keeps the CustomerSession secret in a different private shape; covered by the customer.id assertion and PaymentElementConfigTest."
+  }
+}

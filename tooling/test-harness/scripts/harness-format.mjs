@@ -19,6 +19,15 @@ export function formatHarnessStatus(status) {
   return `harness: ${status}`;
 }
 
+// Maestro matches this exact accessibility text on Android. Keep the token free
+// of regex metacharacters so a full-string match and a literal match agree.
+export function formatScenarioToken(name) {
+  const slug = String(name)
+    .replace(/[^A-Za-z0-9]+/g, ' ')
+    .trim();
+  return `covered ${slug}`;
+}
+
 export function withTimeout(promise, timeoutMs = SCENARIO_TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(

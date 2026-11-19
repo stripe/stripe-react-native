@@ -1,0 +1,40 @@
+{
+  "method": "StripeSdk.presentCustomerSheet",
+  "description": "presentCustomerSheet before initCustomerSheet. Both platforms resolve an error instead of presenting. iOS applies the presentation and animation styles to the presenting view controller before it checks for a sheet. The timeout keys come from a second call with a sheet initialised: the delay each platform schedules the dismissal with, and that no dismissal is scheduled without a sheet.",
+  "input": {
+    "params": {
+      "presentationStyle": "pageSheet",
+      "animationStyle": "flip",
+      "timeout": 5000
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "timeout.withoutSheet": 0,
+      "timeout.scheduledMillis": 5000
+    },
+    "ios": {
+      "timeout.result.error.code": "Timeout",
+      "timeout.result.error.message": "The payment has timed out.",
+      "result.error.message": "CustomerSheet has not been properly initialized.",
+      "presenter.presentationStyle": "pageSheet",
+      "presenter.animationStyle": "flip"
+    },
+    "android": {
+      "result.error.message": "No customer sheet has been initialized yet."
+    }
+  },
+  "parityGaps": {
+    "result.error.message": "G9: Different wording for the same missing init."
+  },
+  "platformOnly": {
+    "presenter.presentationStyle": "CustomerSheetPresentParams.presentationStyle is documented as iOS only.",
+    "presenter.animationStyle": "CustomerSheetPresentParams.animationStyle is documented as iOS only.",
+    "timeout.result.error.code": "When the timeout fires, iOS dismisses the sheet and resolves a Timeout error. Android finishes the sheet's activities and resolves whatever the sheet callback then reports, which needs a real sheet.",
+    "timeout.result.error.message": "As for timeout.result.error.code."
+  },
+  "covers": {
+    "params.timeout": "timeout.scheduledMillis"
+  }
+}

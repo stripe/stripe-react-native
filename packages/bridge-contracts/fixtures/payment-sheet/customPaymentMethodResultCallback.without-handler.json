@@ -1,0 +1,26 @@
+{
+  "method": "StripeSdk.customPaymentMethodResultCallback",
+  "description": "customPaymentMethodResultCallback with no custom payment method confirmation waiting.",
+  "input": {
+    "result": {
+      "status": "completed"
+    }
+  },
+  "expect": {
+    "ios": {
+      "result.error.code": "Failed",
+      "result.error.message": "Internal error: no custom payment method callback"
+    },
+    "android": {
+      "result": null
+    }
+  },
+  "parityGaps": {
+    "result.error.code": "G7: With nothing waiting, iOS resolves an error; Android completes its deferred and resolves null.",
+    "result.error.message": "G7: See result.error.code.",
+    "result": "G7: See result.error.code."
+  },
+  "covers": {
+    "result.status": "result.error.code"
+  }
+}

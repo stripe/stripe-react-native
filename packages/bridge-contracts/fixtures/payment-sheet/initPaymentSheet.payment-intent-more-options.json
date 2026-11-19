@@ -1,0 +1,54 @@
+{
+  "method": "StripeSdk.initPaymentSheet",
+  "description": "Shipping details, preferred networks, card funding filtering, and terms display. iOS keeps shipping details behind a closure and the other three in types without readable case names, so its runner converts them before the assertions.",
+  "input": {
+    "params": {
+      "paymentIntentClientSecret": "pi_bridge_secret_contracts",
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "defaultShippingDetails": {
+        "name": "Jenny Rosen",
+        "phone": "+15555550100",
+        "address": {
+          "line1": "510 Townsend St",
+          "city": "San Francisco",
+          "state": "CA",
+          "postalCode": "94103",
+          "country": "US"
+        }
+      },
+      "preferredNetworks": [2, 7],
+      "cardFundingFiltering": {
+        "allowedCardFundingTypes": ["debit", "credit"]
+      },
+      "termsDisplay": { "card": "never" }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error": null,
+      "sheet.paymentIntentClientSecret": "pi_bridge_secret_contracts",
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "configuration.shippingDetails.name": "Jenny Rosen",
+      "configuration.shippingDetails.phone": "+15555550100",
+      "configuration.shippingDetails.address.line1": "510 Townsend St",
+      "configuration.shippingDetails.address.city": "San Francisco",
+      "configuration.shippingDetails.address.state": "CA",
+      "configuration.shippingDetails.address.postalCode": "94103",
+      "configuration.shippingDetails.address.country": "US",
+      "configuration.preferredNetworks": ["cartesBancaires", "visa"],
+      "configuration.allowedCardFundingTypes": ["debit", "credit"],
+      "configuration.termsDisplay.card": "never"
+    }
+  },
+  "covers": {
+    "params.preferredNetworks": "configuration.preferredNetworks",
+    "params.defaultShippingDetails.name": "configuration.shippingDetails.name",
+    "params.defaultShippingDetails.phone": "configuration.shippingDetails.phone",
+    "params.cardFundingFiltering.allowedCardFundingTypes": "configuration.allowedCardFundingTypes",
+    "params.defaultShippingDetails.address.line1": "configuration.shippingDetails.address.line1",
+    "params.defaultShippingDetails.address.city": "configuration.shippingDetails.address.city",
+    "params.defaultShippingDetails.address.state": "configuration.shippingDetails.address.state",
+    "params.defaultShippingDetails.address.postalCode": "configuration.shippingDetails.address.postalCode",
+    "params.defaultShippingDetails.address.country": "configuration.shippingDetails.address.country"
+  }
+}

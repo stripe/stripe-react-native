@@ -1,0 +1,31 @@
+{
+  "method": "StripeSdk.initCustomerSheet",
+  "description": "An ephemeral key without customerId. Both platforms reject it at init.",
+  "skipTypecheck": "CustomerSheetInitParams requires customerId with an ephemeral key; this fixture omits it to pin the validation.",
+  "input": {
+    "params": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "customerEphemeralKeySecret": "ek_test_bridge_contracts"
+    },
+    "customerAdapterOverrides": {}
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "customerAdapter": null
+    },
+    "ios": {
+      "result.error.message": "You must provide `customerId`"
+    },
+    "android": {
+      "result.error.message": "When using `customerEphemeralKeySecret` you must provide a value for `customerId`"
+    }
+  },
+  "parityGaps": {
+    "result.error.message": "G9: Different wording for the same missing customerId."
+  },
+  "covers": {
+    "params.merchantDisplayName": "result.error.code",
+    "params.customerEphemeralKeySecret": "result.error.code"
+  }
+}

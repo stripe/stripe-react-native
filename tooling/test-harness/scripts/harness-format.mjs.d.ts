@@ -7,6 +7,8 @@ export declare function formatScenarioLine(
 
 export declare function formatHarnessStatus(status: string): string;
 
+export declare function formatScenarioToken(name: string): string;
+
 export declare function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs?: number

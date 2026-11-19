@@ -1,0 +1,105 @@
+{
+  "method": "StripeSdk.createPlatformPayPaymentMethod",
+  "description": "A payment method request with both wallets configured. Each platform builds its own wallet request: an Apple Pay PKPaymentRequest on iOS, a Google Pay PaymentDataRequest JSON on Android. The sheets themselves need a device.",
+  "input": {
+    "params": {
+      "googlePay": {
+        "testEnv": true,
+        "merchantCountryCode": "US",
+        "currencyCode": "USD",
+        "merchantName": "Bridge Contracts, Inc.",
+        "isEmailRequired": true,
+        "billingAddressConfig": {
+          "isRequired": true,
+          "isPhoneNumberRequired": true,
+          "format": "FULL"
+        },
+        "amount": 1250,
+        "label": "Total",
+        "shippingAddressConfig": {
+          "isRequired": true,
+          "allowedCountryCodes": ["US", "CA"]
+        }
+      },
+      "applePay": {
+        "merchantCountryCode": "US",
+        "currencyCode": "USD",
+        "cartItems": [
+          {
+            "paymentType": "Immediate",
+            "label": "Bridge Contracts, Inc.",
+            "amount": "12.50"
+          }
+        ]
+      }
+    },
+    "usesDeprecatedTokenFlow": false
+  },
+  "expect": {
+    "ios": {
+      "applePayRequest.merchantIdentifier": "merchant.com.stripe.bridge",
+      "applePayRequest.countryCode": "US",
+      "applePayRequest.currencyCode": "USD",
+      "applePayRequest.paymentSummaryItems.0.label": "Bridge Contracts, Inc.",
+      "applePayRequest.paymentSummaryItems.0.amount": 12.5,
+      "applePayRequest.paymentSummaryItems.0.paymentType": "Immediate"
+    },
+    "android": {
+      "googlePayRequest.merchantInfo.merchantName": "Bridge Contracts, Inc.",
+      "googlePayRequest.transactionInfo.countryCode": "US",
+      "googlePayRequest.transactionInfo.currencyCode": "USD",
+      "googlePayRequest.transactionInfo.totalPrice": "12.50",
+      "googlePayRequest.transactionInfo.totalPriceLabel": "Total",
+      "googlePayRequest.emailRequired": true,
+      "googlePayRequest.allowedPaymentMethods.0.parameters.billingAddressRequired": true,
+      "googlePayRequest.allowedPaymentMethods.0.parameters.billingAddressParameters.format": "FULL",
+      "googlePayRequest.allowedPaymentMethods.0.parameters.billingAddressParameters.phoneNumberRequired": true,
+      "googlePayRequest.shippingAddressRequired": true,
+      "googlePayRequest.shippingAddressParameters.allowedCountryCodes": [
+        "US",
+        "CA"
+      ]
+    }
+  },
+  "platformOnly": {
+    "applePayRequest.merchantIdentifier": "PaymentMethodParams.applePay is documented as iOS only; the identifier comes from initStripe.",
+    "applePayRequest.countryCode": "PaymentMethodParams.applePay is documented as iOS only.",
+    "applePayRequest.currencyCode": "PaymentMethodParams.applePay is documented as iOS only.",
+    "applePayRequest.paymentSummaryItems.0.label": "PaymentMethodParams.applePay is documented as iOS only.",
+    "applePayRequest.paymentSummaryItems.0.amount": "PaymentMethodParams.applePay is documented as iOS only.",
+    "applePayRequest.paymentSummaryItems.0.paymentType": "PaymentMethodParams.applePay is documented as iOS only.",
+    "googlePayRequest.merchantInfo.merchantName": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.transactionInfo.countryCode": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.transactionInfo.currencyCode": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.transactionInfo.totalPrice": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.transactionInfo.totalPriceLabel": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.emailRequired": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.allowedPaymentMethods.0.parameters.billingAddressRequired": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.allowedPaymentMethods.0.parameters.billingAddressParameters.format": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.allowedPaymentMethods.0.parameters.billingAddressParameters.phoneNumberRequired": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.shippingAddressRequired": "PaymentMethodParams.googlePay is documented as Android only.",
+    "googlePayRequest.shippingAddressParameters.allowedCountryCodes": "PaymentMethodParams.googlePay is documented as Android only."
+  },
+  "covers": {
+    "params.googlePay.merchantCountryCode": "googlePayRequest.transactionInfo.countryCode",
+    "params.googlePay.isEmailRequired": "googlePayRequest.emailRequired",
+    "params.googlePay.billingAddressConfig.isRequired": "googlePayRequest.allowedPaymentMethods.0.parameters.billingAddressRequired",
+    "params.googlePay.billingAddressConfig.isPhoneNumberRequired": "googlePayRequest.allowedPaymentMethods.0.parameters.billingAddressParameters.phoneNumberRequired",
+    "params.googlePay.amount": "googlePayRequest.transactionInfo.totalPrice",
+    "params.googlePay.label": "googlePayRequest.transactionInfo.totalPriceLabel",
+    "params.googlePay.shippingAddressConfig.isRequired": "googlePayRequest.shippingAddressRequired",
+    "params.applePay.merchantCountryCode": "applePayRequest.countryCode",
+    "params.applePay.cartItems.0.paymentType": "applePayRequest.paymentSummaryItems.0.paymentType",
+    "params.applePay.currencyCode": "applePayRequest.currencyCode",
+    "params.googlePay.currencyCode": "googlePayRequest.transactionInfo.currencyCode",
+    "params.googlePay.merchantName": "googlePayRequest.merchantInfo.merchantName",
+    "params.googlePay.billingAddressConfig.format": "googlePayRequest.allowedPaymentMethods.0.parameters.billingAddressParameters.format",
+    "params.googlePay.shippingAddressConfig.allowedCountryCodes": "googlePayRequest.shippingAddressParameters.allowedCountryCodes",
+    "params.applePay.cartItems.0.label": "applePayRequest.paymentSummaryItems.0.label",
+    "params.applePay.cartItems.0.amount": "applePayRequest.paymentSummaryItems.0.amount"
+  },
+  "unasserted": {
+    "params.googlePay.testEnv": "Selects the Wallet environment for the PaymentsClient, which needs Google Play services.",
+    "usesDeprecatedTokenFlow": "Decides how the wallet result is converted after the sheet completes."
+  }
+}
