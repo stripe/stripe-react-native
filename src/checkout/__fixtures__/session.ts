@@ -22,3 +22,12 @@ export const checkoutSession: CheckoutElements.Session = {
     total: zero,
   },
 };
+
+/** A session where an express wallet (Link) is available. */
+export const checkoutSessionWithExpressWallet: CheckoutElements.Session = {
+  ...checkoutSession,
+  availableExpressCheckoutPaymentMethods: {
+    ...checkoutSession.availableExpressCheckoutPaymentMethods,
+    link: { available: true, type: 'link' },
+  },
+};
