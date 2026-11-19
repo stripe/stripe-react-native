@@ -1,0 +1,41 @@
+{
+  "method": "component:AddToWalletButton",
+  "platforms": ["ios"],
+  "description": "AddToWalletButton with an empty cardDetails.name. iOS reports Failed on onCompleteAction and does not build a pass request. Android does not read the name, so this case is iOS only.",
+  "input": {
+    "cardDetails": {
+      "primaryAccountIdentifier": null,
+      "name": "",
+      "lastFour": "4242",
+      "description": "Bridge Contracts card",
+      "brand": "Visa"
+    },
+    "ephemeralKey": {
+      "id": "ephkey_bridge_contracts",
+      "secret": "ek_test_bridge_contracts"
+    },
+    "onCompleteAction": "$function"
+  },
+  "expect": {
+    "ios": {
+      "events.onCompleteAction.error.code": "Failed",
+      "events.onCompleteAction.error.message": "`cardDetails.name` is required, but the passed string was empty"
+    }
+  },
+  "parityGaps": {
+    "events.onCompleteAction.error.code": "G20: iOS rejects an empty cardDetails.name; Android does not read the name.",
+    "events.onCompleteAction.error.message": "G20: see events.onCompleteAction.error.code."
+  },
+  "covers": {
+    "cardDetails.name": "events.onCompleteAction.error.message",
+    "onCompleteAction": "events.onCompleteAction.error.code"
+  },
+  "unasserted": {
+    "cardDetails.primaryAccountIdentifier": "The empty-name failure returns before the pass request reads this field.",
+    "cardDetails.lastFour": "The empty-name failure returns before the pass request reads this field.",
+    "cardDetails.description": "The empty-name failure returns before the pass request reads this field.",
+    "cardDetails.brand": "The empty-name failure returns before the pass request reads this field.",
+    "ephemeralKey.id": "The name check does not read the ephemeral key; the card-and-key fixture pins it.",
+    "ephemeralKey.secret": "See ephemeralKey.id."
+  }
+}

@@ -2,6 +2,7 @@ import Contacts
 import Foundation
 import PassKit
 @testable import stripe_react_native
+@_spi(STP) import StripeCore
 @_spi(STP) @_spi(InternalOnlyAPI) import StripePayments
 @_spi(PaymentMethodMessagingElementPreview) import StripePaymentSheet
 @testable import StripePaymentsUI
@@ -111,9 +112,16 @@ extension BridgeRunners {
         let view = AddressSheetView(frame: .zero)
         var error: [AnyHashable: Any]?
         view.onErrorAction = { error = $0 }
+        // publishableKey falls back to StripeAPI.defaultPublishableKey, which earlier
+        // fixtures set. Both have to be cleared or the sheet does not take the no-key path.
         let savedKey = STPAPIClient.shared.publishableKey
+        let savedDefault = StripeAPI.defaultPublishableKey
+        StripeAPI.defaultPublishableKey = nil
         STPAPIClient.shared.publishableKey = nil
-        defer { STPAPIClient.shared.publishableKey = savedKey }
+        defer {
+            StripeAPI.defaultPublishableKey = savedDefault
+            STPAPIClient.shared.publishableKey = savedKey
+        }
         view.visible = true
         view.didSetProps()
         return error
@@ -150,7 +158,7 @@ extension BridgeRunners {
         view.hasShippingContactCallback = true
         view.handleApplePayButtonTapped()
 
-        let (_, request) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: [
+        let (_, request) = ApplePayUtils.createPaymentRequest(merchantIdentifier: "merchant.com.stripe.bridge", params: [
             "merchantCountryCode": "US",
             "currencyCode": "USD",
             "cartItems": [["paymentType": "Immediate", "label": "Bridge Contracts, Inc.", "amount": "12.50"]],
@@ -173,17 +181,22 @@ extension BridgeRunners {
         view.createIssuingCardKey(withAPIVersion: "2020-08-27") { json, _ in key = json }
         let (error, passRequest) = view.buildRequestConfiguration()
 
-        // PassKit calls the delegate when the customer closes the wallet sheet. The sheet is
-        // never shown, so a plain view controller stands in for it; the view only dismisses it.
         var completed: [AnyHashable: Any]?
         view.onCompleteAction = { completed = $0 }
-        let canceled = NSError(domain: PKPassKitErrorDomain, code: PKAddPaymentPassError.userCancelled.rawValue)
-        let standIn = UIViewController()
-        withExtendedLifetime(standIn) {
-            let sheet = Unmanaged<PKAddPaymentPassViewController>
-                .fromOpaque(Unmanaged.passUnretained(standIn).toOpaque())
-                .takeUnretainedValue()
-            view.addPaymentPassViewController(sheet, didFinishAdding: nil, error: canceled)
+        if passRequest == nil {
+            // beginPushProvisioning sends this error and returns before the sheet exists.
+            view.onCompleteAction?(error as? [AnyHashable: Any])
+        } else {
+            // PassKit calls the delegate when the customer closes the wallet sheet. The sheet is
+            // never shown, so a plain view controller stands in for it; the view only dismisses it.
+            let canceled = NSError(domain: PKPassKitErrorDomain, code: PKAddPaymentPassError.userCancelled.rawValue)
+            let standIn = UIViewController()
+            withExtendedLifetime(standIn) {
+                let sheet = Unmanaged<PKAddPaymentPassViewController>
+                    .fromOpaque(Unmanaged.passUnretained(standIn).toOpaque())
+                    .takeUnretainedValue()
+                view.addPaymentPassViewController(sheet, didFinishAdding: nil, error: canceled)
+            }
         }
 
         return BridgeObservation(
@@ -261,11 +274,6 @@ extension BridgeRunners {
         ])
     }
 
-    /// A private stored property of a view, read the way XCTest can reach it.
-    static func storedProperty<T>(_ object: Any, _ name: String, as type: T.Type = T.self) throws -> T {
-        try require(Mirror(reflecting: object).children.first { $0.label == name }?.value as? T, name)
-    }
-
     /// Filling the field with a complete card is what makes STPPaymentCardTextField call its delegate.
     private static func cardField(_ fixture: BridgeFixture) throws -> BridgeObservation {
         let view = CardFieldView(frame: .zero)
@@ -273,7 +281,10 @@ extension BridgeRunners {
         view.onCardChange = { events["onCardChange"] = $0 }
         if let cardStyle = fixture.dictionary("cardStyle") { view.cardStyle = cardStyle }
         if let placeholders = fixture.dictionary("placeholders") { view.placeholders = placeholders }
-        let field = try storedProperty(view, "cardField", as: STPPaymentCardTextField.self)
+        let field = try require(
+            Mirror(reflecting: view).children.first { $0.label == "cardField" }?.value as? STPPaymentCardTextField,
+            "cardField"
+        )
 
         let card = STPPaymentMethodCardParams()
         card.number = "4242424242424242"

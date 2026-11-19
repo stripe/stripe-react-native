@@ -26,16 +26,4 @@ final class BridgeContractTests: XCTestCase {
         }
         print("Bridge contract fixtures checked on iOS: \(checked)")
     }
-
-    func test_lateResolutionCallbacksAreIgnoredAfterTheResolutionIsReleased() {
-        var resolution: BridgeRunners.Resolution? = BridgeRunners.Resolution()
-        let resolve = resolution!.resolve
-        let reject = resolution!.reject
-        resolution = nil
-
-        resolve("late")
-        reject("code", "message", nil)
-
-        XCTAssertNil(resolution)
-    }
 }

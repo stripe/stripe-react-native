@@ -141,8 +141,9 @@ extension BridgeRunners {
         do {
             let configuration = try CheckoutConfigurationMapper.map(
                 params: params,
-                merchantIdentifier: merchantIdentifier,
-                didSelectPaymentOption: {}
+                merchantIdentifier: nil,
+                didSelectPaymentOption: {},
+                expressCheckoutCompletion: { _ in }
             )
             let result = withFailingStripeAPI(answering: ["/checkout_client/": CheckoutTestFixtures.response()]) {
                 create()
@@ -317,6 +318,16 @@ extension BridgeRunners {
     static let onrampRunners: [String: Runner] = [
         "OnrampSdk.configureOnramp": { fixture in
             let config = try require(fixture.dictionary("config"), "config")
+            // The only fixture is the call before initialise. Shared client state from
+            // earlier fixtures would skip the missing-key rejection.
+            let client = STPAPIClient.shared
+            let saved = (client.publishableKey, StripeAPI.defaultPublishableKey)
+            StripeAPI.defaultPublishableKey = nil
+            client.publishableKey = nil
+            defer {
+                StripeAPI.defaultPublishableKey = saved.1
+                client.publishableKey = saved.0
+            }
             let observation = moduleResult { sdk, resolution in
                 sdk.configureOnramp(config: config, resolver: resolution.resolve, rejecter: resolution.reject)
             }

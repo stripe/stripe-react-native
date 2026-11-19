@@ -101,10 +101,6 @@ extension BridgeRunners {
         "StripeSdk.updatePlatformPaySheet": updatePlatformPaySheet,
     ]
 
-    /// Synthetic PassKit merchant id for runners that only need an authorization
-    /// controller. Platform Pay fixtures assert the identifier `initialise` stores.
-    static let merchantIdentifier = "merchant.com.stripe.bridgecontracts"
-
     static func withPublishableKey<T>(_ run: () throws -> T) rethrows -> T {
         let client = STPAPIClient.shared
         let saved = client.publishableKey

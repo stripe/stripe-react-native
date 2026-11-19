@@ -30,4 +30,5 @@ final class BridgeRecordingEmitter: NSObject, StripeSdkEmitter {
     func emitPaymentMethodMessagingElementConfigureResult(_ value: [String: Any]) {}
     func emitCheckoutControllerDidUpdate(_ value: [String: Any]) {}
     func emitCheckoutControllerDidSelectPaymentOption(_ value: [String: Any]) {}
+    func emitCheckoutExpressCheckoutDidComplete(_ value: [String: Any]) {}
 }

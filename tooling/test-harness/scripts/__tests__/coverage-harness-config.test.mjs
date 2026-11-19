@@ -1,10 +1,94 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { formatScenarioToken } from '../harness-format.mjs';
+
+const assertCheckoutFixtureInPodTarget = (podfilePath, helperSource) => {
+  const script = `
+podfile, source = ARGV
+eval(source, binding, podfile)
+
+class CanaryRef
+  attr_reader :real_path
+  def initialize(path)
+    @real_path = path
+  end
+end
+
+class CanaryGroup
+  attr_reader :files
+  def initialize
+    @files = []
+    @groups = {}
+  end
+  def [](name)
+    @groups[name]
+  end
+  def new_group(name)
+    @groups[name] = CanaryGroup.new
+  end
+  def new_file(path)
+    ref = CanaryRef.new(path)
+    @files << ref
+    ref
+  end
+end
+
+class CanaryBuildFile
+  attr_reader :file_ref
+  def initialize(ref)
+    @file_ref = ref
+  end
+end
+
+class CanaryPhase
+  attr_reader :files
+  def initialize
+    @files = []
+  end
+end
+
+class CanaryTarget
+  attr_reader :name, :source_build_phase
+  def initialize(name)
+    @name = name
+    @source_build_phase = CanaryPhase.new
+  end
+  def add_file_references(refs)
+    refs.each { |ref| source_build_phase.files << CanaryBuildFile.new(ref) }
+  end
+end
+
+class CanaryProject
+  attr_reader :targets, :main_group
+  def initialize(target)
+    @targets = [target]
+    @main_group = CanaryGroup.new
+    dev = @main_group.new_group('Development Pods')
+    dev.new_group('stripe-react-native')
+  end
+end
+
+target = CanaryTarget.new('stripe-react-native')
+installer = Struct.new(:pods_project).new(CanaryProject.new(target))
+add_checkout_fixture_to_sdk(installer)
+add_checkout_fixture_to_sdk(installer)
+swift = File.expand_path('HarnessCheckoutSession.swift', File.dirname(podfile))
+linked = target.source_build_phase.files.select do |build_file|
+  build_file.file_ref&.real_path&.to_s == swift
+end
+unless linked.length == 1 && target.name == 'stripe-react-native'
+  abort('HarnessCheckoutSession.swift is not in the stripe-react-native pod target')
+end
+`;
+  execFileSync('ruby', ['-e', script, podfilePath, helperSource], {
+    encoding: 'utf8',
+  });
+};
 
 const patchAdditions = (patch) =>
   patch
@@ -54,9 +138,15 @@ test('harness compiles the offline checkout fixture into the sdk pod', () => {
   );
   assert.ok(helper, 'expected add_checkout_fixture_to_sdk');
   assert.match(helper[1], /HarnessCheckoutSession\.swift/);
+  assert.match(helper[1], /item\.name == 'stripe-react-native'/);
+  assert.match(helper[1], /target\.add_file_references/);
   assert.equal(
     fs.existsSync(path.join(harnessDir, 'ios/HarnessCheckoutSession.swift')),
     true
+  );
+  assertCheckoutFixtureInPodTarget(
+    path.join(harnessDir, 'ios/Podfile'),
+    helper[0]
   );
 });
 
@@ -65,6 +155,12 @@ test('maestro waits for the flushed status text', () => {
     path.join(harnessDir, 'e2e/coverage-run.yaml'),
     'utf8'
   );
+  const repeat = yaml.match(/- repeat:\n([\s\S]*?)\n- assertVisible:/);
+  assert.ok(repeat, 'expected a repeat block before the flushed assertion');
+  assert.match(repeat[1], /\btimes:\s*8/);
+  assert.match(repeat[1], /commands:/);
+  assert.match(repeat[1], /tapOn:\n\s+text: 'OK'/);
+  assert.match(repeat[1], /extendedWaitUntil:\n\s+visible: 'harness: flushed'/);
   assert.match(yaml, /visible: 'harness: flushed'/);
   assert.match(yaml, /text: 'OK'/);
   assert.doesNotMatch(yaml, /flushed\|flush-failed/);
