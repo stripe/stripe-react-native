@@ -943,7 +943,390 @@ export interface CheckmarkConfig {
     color?: ThemedColor;
 }
 
-// @internal
+// @public
+export interface CheckoutCurrencySelectorElement {
+}
+
+// @public
+export function CheckoutCurrencySelectorElementView(input: CheckoutCurrencySelectorElementViewProps): React_2.JSX.Element;
+
+// @public
+export interface CheckoutCurrencySelectorElementViewProps {
+    element: CheckoutCurrencySelectorElement;
+}
+
+// @public
+export interface CheckoutElements {
+    // @internal
+    applyPromotionCode(promotionCode: string): Promise<void>;
+    clearLocalCustomerData(): Promise<void>;
+    clearPaymentOption(): Promise<void>;
+    confirm(): Promise<CheckoutElements.Result>;
+    readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
+    destroy(): Promise<void>;
+    readonly expressCheckoutElement: ExpressCheckoutElement | null;
+    readonly paymentElement: CheckoutPaymentElement;
+    // @internal
+    removePromotionCode(): Promise<void>;
+    runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+    readonly session: CheckoutElements.Session;
+    readonly shippingAddressElement: CheckoutShippingAddressElement | null;
+    readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
+    updateEmail(email: string | null): Promise<void>;
+    updateShippingAddress(params: CheckoutElements.UpdateShippingAddressParams): Promise<void>;
+}
+
+// @public
+export namespace CheckoutElements {
+    export interface Address {
+        city?: string;
+        country: string;
+        line1?: string;
+        line2?: string;
+        postalCode?: string;
+        state?: string;
+    }
+    export interface AdjustableQuantity {
+        maximum: number;
+        minimum: number;
+    }
+    export interface Amount {
+        amount: string;
+        minorUnitsAmount: number;
+    }
+    export interface AmountDetails {
+        subtotal: Amount;
+        taxAmounts?: TaxAmount[];
+        taxExclusive: Amount;
+        taxInclusive: Amount;
+        total: Amount;
+    }
+    export interface BillingDetails {
+        address?: Partial<Address>;
+        email?: string;
+        name?: string;
+        phone?: string;
+    }
+    export interface ContactDetails {
+        address?: Address;
+        name?: string;
+    }
+    export interface CreateOptions {
+        clientSecret: string;
+        currencySelectorElement?: CurrencySelectorElementConfiguration;
+        defaults?: Defaults;
+        expressCheckoutElement?: ExpressCheckoutElementConfiguration;
+        merchantDisplayName?: string;
+        paymentElement?: PaymentElementConfiguration;
+        returnURL: string;
+        shippingAddressElement?: ShippingAddressElementConfiguration;
+        style?: UserInterfaceStyle;
+    }
+    export interface CurrencySelectorElementConfiguration {
+        appearance?: CurrencySelectorElementConfiguration.Appearance;
+    }
+    export namespace CurrencySelectorElementConfiguration {
+        export interface Appearance {
+            colors?: ColorConfiguration | {
+                light: ColorConfiguration;
+                dark: ColorConfiguration;
+            };
+            contentVerticalPadding?: number;
+            font?: Partial<FontConfig>;
+            labelContent?: LabelContent;
+            shapes?: ShapeConfiguration;
+        }
+        export interface ColorConfiguration {
+            background?: ThemedColor;
+            border?: ThemedColor;
+            danger?: ThemedColor;
+            selectedBackground?: ThemedColor;
+            selectedText?: ThemedColor;
+            text?: ThemedColor;
+            textSecondary?: ThemedColor;
+        }
+        export type LabelContent = 'automatic' | 'currencyCode' | 'amount';
+        export interface ShapeConfiguration {
+            borderWidth?: number;
+            cornerRadius?: number;
+        }
+    }
+    export interface Defaults {
+        billingDetails?: ContactDetails;
+        email?: string;
+        phone?: string;
+        shippingDetails?: ContactDetails;
+    }
+    export interface DiscountAmount extends Amount {
+        displayName: string;
+        percentOff?: number;
+        // @internal
+        promotionCode?: string;
+    }
+    export type ErrorCode = 'Failed' | 'InvalidClientSecret' | 'SessionNotOpen' | 'SheetCurrentlyPresented' | 'Timeout' | 'Canceled';
+    export namespace ExpressCheckoutElement {
+        // (undocumented)
+        export interface ApplePayPaymentMethod extends PaymentMethod {
+        }
+        // (undocumented)
+        export interface GooglePayPaymentMethod extends PaymentMethod {
+        }
+        // (undocumented)
+        export interface LinkPaymentMethod extends PaymentMethod {
+        }
+        export interface PaymentMethod {
+            // (undocumented)
+            available: boolean;
+            // (undocumented)
+            type: string;
+        }
+        export interface PaymentMethods {
+            // (undocumented)
+            applePay: ApplePayPaymentMethod;
+            // (undocumented)
+            googlePay: GooglePayPaymentMethod;
+            // (undocumented)
+            link: LinkPaymentMethod;
+        }
+    }
+    export interface ExpressCheckoutElementConfiguration {
+        appearance?: ExpressCheckoutElementConfiguration.Appearance;
+        applePay?: ExpressCheckoutElementConfiguration.ApplePayConfiguration;
+        googlePay?: ExpressCheckoutElementConfiguration.GooglePayConfiguration;
+        link?: ExpressCheckoutElementConfiguration.LinkConfiguration;
+        onResult: (result: Result) => void;
+    }
+    export namespace ExpressCheckoutElementConfiguration {
+        export interface Appearance {
+            borderRadius?: number;
+            buttonLayout?: ButtonLayout;
+            buttonTheme?: ButtonTheme;
+        }
+        export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
+        export interface ApplePayConfiguration {
+            buttonType?: ApplePayButtonType;
+        }
+        export interface ButtonLayout {
+            maxColumns?: number;
+            maxRows?: number;
+        }
+        export type ButtonTheme = 'automatic' | 'light' | 'dark';
+        export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
+        export interface GooglePayConfiguration {
+            additionalEnabledNetworks?: string[];
+            buttonType?: GooglePayButtonType;
+            display?: 'automatic' | 'never';
+            label?: string;
+        }
+        export interface LinkConfiguration {
+            display?: 'automatic' | 'never';
+        }
+    }
+    export interface OneTimePriceItem {
+        adjustableQuantity?: AdjustableQuantity;
+        amountDetails: AmountDetails;
+        displayName: string;
+        images: string[];
+        key: string;
+        quantity: number;
+        unitAmount: Amount;
+        unitAmountDecimal?: Amount;
+        unitLabel?: string;
+    }
+    export interface OneTimePriceOrderSummaryItem {
+        description?: string;
+        items: OneTimePriceItem[];
+        key: string;
+        type: 'one_time_price';
+    }
+    export type OrderSummaryItem = OneTimePriceOrderSummaryItem;
+    export interface PaymentElementConfiguration {
+        appearance?: PaymentElementConfiguration.Appearance;
+        applePay?: PaymentElementConfiguration.ApplePayConfiguration;
+        displaysMandateText?: boolean;
+        googlePay?: PaymentElementConfiguration.GooglePayConfiguration;
+        link?: PaymentElementConfiguration.LinkConfiguration;
+        opensCardScannerAutomatically?: boolean;
+        paymentMethodLayout?: PaymentMethodLayout;
+        paymentMethodOrder?: string[];
+        preferredNetworks?: CardBrand[];
+        removeSavedPaymentMethodMessage?: string;
+        rowSelectionBehavior?: PaymentElementConfiguration.RowSelectionBehavior;
+        termsDisplay?: Record<string, TermsDisplay>;
+    }
+    export namespace PaymentElementConfiguration {
+        export type Appearance = AppearanceParams;
+        export type ApplePayButtonType = 'plain' | 'buy' | 'setUp' | 'inStore' | 'donate' | 'checkout' | 'book' | 'subscribe' | 'reload' | 'addMoney' | 'topUp' | 'order' | 'rent' | 'support' | 'contribute' | 'tip' | 'continue';
+        export interface ApplePayConfiguration {
+            buttonType?: ApplePayButtonType;
+            display?: 'automatic' | 'never';
+        }
+        export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
+        export interface GooglePayConfiguration {
+            additionalEnabledNetworks?: string[];
+            buttonType?: GooglePayButtonType;
+            display?: 'automatic' | 'never';
+            label?: string;
+        }
+        export interface LinkConfiguration {
+            display?: 'automatic' | 'never';
+        }
+        export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
+    }
+    export interface PaymentOptionDisplayData {
+        billingDetails?: BillingDetails;
+        image: string;
+        label: string;
+        mandateHTML?: string;
+        paymentMethodType: string;
+        sublabel?: string;
+    }
+    export type PaymentStatus = 'paid' | 'unpaid' | 'noPaymentRequired';
+    export interface PresentmentDetails {
+        presentmentCurrency: string;
+    }
+    export type Result = {
+        status: 'completed';
+        paymentStatus: PaymentStatus;
+    } | {
+        status: 'canceled';
+    } | {
+        status: 'failed';
+        error: StripeError<ErrorCode>;
+    };
+    export interface Session {
+        availableExpressCheckoutPaymentMethods: ExpressCheckoutElement.PaymentMethods;
+        businessName?: string;
+        currency?: string;
+        discountAmounts: DiscountAmount[];
+        email?: string;
+        id: string;
+        livemode: boolean;
+        minorUnitsAmountDivisor?: number;
+        orderSummaryItems: OrderSummaryItem[];
+        paymentOption?: PaymentOptionDisplayData;
+        presentmentDetails?: PresentmentDetails;
+        shippingAddress?: ShippingAddress;
+        status: SessionStatus;
+        tax?: Tax;
+        taxAmounts?: TaxAmount[];
+        totals: Totals;
+    }
+    export type SessionStatus = {
+        type: 'open';
+    } | {
+        type: 'expired';
+    } | {
+        type: 'complete';
+        paymentStatus: PaymentStatus;
+    };
+    export interface ShippingAddress {
+        address: Address;
+        name?: string;
+    }
+    export interface ShippingAddressElementConfiguration {
+        appearance?: ShippingAddressElementConfiguration.Appearance;
+        buttonTitle?: string;
+        title?: string;
+    }
+    export namespace ShippingAddressElementConfiguration {
+        export interface Appearance {
+            colors?: AppearanceParams['colors'];
+            font?: AppearanceParams['font'];
+            formInsetValues?: AppearanceParams['formInsetValues'];
+            primaryButton?: PrimaryButtonConfiguration;
+            shapes?: AppearanceParams['shapes'];
+        }
+        export interface PrimaryButtonColorConfiguration {
+            background?: string;
+            border?: string;
+            text?: string;
+        }
+        export interface PrimaryButtonConfiguration {
+            colors?: PrimaryButtonColorConfiguration | {
+                light: PrimaryButtonColorConfiguration;
+                dark: PrimaryButtonColorConfiguration;
+            };
+            font?: Partial<Pick<FontConfig, 'family'>>;
+            shapes?: PrimaryButtonShapeConfiguration;
+        }
+        export interface PrimaryButtonShapeConfiguration {
+            borderRadius?: number;
+            borderWidth?: number;
+            height?: number;
+        }
+    }
+    export interface Tax {
+        status: 'ready' | 'requiresShippingAddress' | 'requiresBillingAddress';
+    }
+    export interface TaxAmount extends Amount {
+        displayName: string;
+        inclusive: boolean;
+        percentage?: number;
+    }
+    export interface Totals {
+        discount: Amount;
+        subtotal: Amount;
+        taxExclusive: Amount;
+        taxInclusive: Amount;
+        total: Amount;
+    }
+    export interface UpdateShippingAddressParams {
+        address: Address | null;
+        name?: string | null;
+    }
+    export interface UseOptions {
+        enabled?: boolean;
+        getConfiguration: () => Promise<CreateOptions>;
+    }
+    export interface UseResult {
+        // @internal
+        applyPromotionCode(promotionCode: string): Promise<void>;
+        clearLocalCustomerData(): Promise<void>;
+        clearPaymentOption(): Promise<void>;
+        confirm(): Promise<Result>;
+        readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
+        readonly error: StripeError<ErrorCode> | null;
+        readonly expressCheckoutElement: ExpressCheckoutElement | null;
+        readonly paymentElement: CheckoutPaymentElement | null;
+        reload(): Promise<void>;
+        // @internal
+        removePromotionCode(): Promise<void>;
+        runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
+        readonly session: Session | null;
+        readonly shippingAddressElement: CheckoutShippingAddressElement | null;
+        readonly status: 'idle' | 'loading' | 'ready' | 'updating' | 'confirming' | 'error';
+        updateEmail(email: string | null): Promise<void>;
+        updateShippingAddress(params: UpdateShippingAddressParams): Promise<void>;
+    }
+    export type UserInterfaceStyle = 'alwaysLight' | 'alwaysDark' | 'automatic';
+}
+
+// @public
+export type CheckoutExpressCheckoutElement = ExpressCheckoutElement;
+
+// @public
+export const CheckoutExpressCheckoutElementView: typeof ExpressCheckoutElementView;
+
+// @public
+export interface CheckoutPaymentElement {
+    present(): Promise<void>;
+}
+
+// @public
+export function CheckoutPaymentElementView(input: CheckoutPaymentElementViewProps): React_2.JSX.Element;
+
+// @public
+export interface CheckoutPaymentElementViewProps {
+    element: CheckoutPaymentElement;
+}
+
+// @public
+export interface CheckoutShippingAddressElement {
+    present(): Promise<void>;
+}
+
+// @public
 export const clearCheckoutLocalCustomerData: () => Promise<void>;
 
 // @public (undocumented)
@@ -1333,6 +1716,9 @@ type CreateCardTokenParams = {
     name?: string;
     currency?: string;
 };
+
+// @public
+export function createCheckoutElements(options: CheckoutElements.CreateOptions): Promise<CheckoutElements>;
 
 // @public
 type CreateCryptoPaymentTokenResult = {
@@ -1794,6 +2180,18 @@ interface EpsParams_2 {
 
 // @public (undocumented)
 export type ErrorType = 'api_connection_error' | 'api_error' | 'authentication_error' | 'card_error' | 'idempotency_error' | 'invalid_request_error' | 'rate_limit_error';
+
+// @public
+export interface ExpressCheckoutElement {
+}
+
+// @public
+export function ExpressCheckoutElementView(input: ExpressCheckoutElementViewProps): React_2.JSX.Element;
+
+// @public
+export interface ExpressCheckoutElementViewProps {
+    element: ExpressCheckoutElement;
+}
 
 // @public (undocumented)
 type FieldName = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
@@ -4218,6 +4616,9 @@ type USBankAccountResult = {
     preferredNetwork?: string;
     supportedNetworks?: string[];
 };
+
+// @public
+export function useCheckoutElements(options: CheckoutElements.UseOptions): CheckoutElements.UseResult;
 
 // @public
 export function useConfirmPayment(): {
