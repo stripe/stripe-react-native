@@ -14,10 +14,19 @@ class EventEmitterCompat(
     eventName: String,
     params: Any? = null,
   ) {
-    reactApplicationContext
-      .getJSModule(
-        DeviceEventManagerModule.RCTDeviceEventEmitter::class.java,
-      ).emit(eventName, params)
+    try {
+      reactApplicationContext
+        .getJSModule(
+          DeviceEventManagerModule.RCTDeviceEventEmitter::class.java,
+        ).emit(eventName, params)
+    } catch (error: IllegalStateException) {
+      // Checkout can publish before the React instance exists or after it is
+      // destroyed. getJSModule throws IllegalStateException then, and that
+      // failure would escape the collector coroutine.
+      if (error.message?.contains("JS module") != true) {
+        throw error
+      }
+    }
   }
 
   fun emitOnConfirmHandlerCallback(value: ReadableMap?) {

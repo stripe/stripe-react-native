@@ -347,13 +347,23 @@ class OnrampSdkModule(
         return
       }
     CoroutineScope(Dispatchers.IO).launch {
-      val result = coordinator.registerLinkUser(mapToLinkUserInfo(info))
-      when (result) {
-        is OnrampRegisterLinkUserResult.Completed -> {
-          promise.resolveString("customerId", result.customerId)
+      try {
+        val result = coordinator.registerLinkUser(mapToLinkUserInfo(info))
+        when (result) {
+          is OnrampRegisterLinkUserResult.Completed -> {
+            promise.resolveString("customerId", result.customerId)
+          }
+          is OnrampRegisterLinkUserResult.Failed -> {
+            promise.resolve(createOnrampFailedError(result.error))
+          }
         }
-        is OnrampRegisterLinkUserResult.Failed -> {
-          promise.resolve(createOnrampFailedError(result.error))
+      } catch (error: Throwable) {
+        // Resolving builds a native map. When the React native runtime is not
+        // loaded that throws, and an uncaught coroutine exception leaks into
+        // the next unit test.
+        try {
+          promise.reject("Failed", error.message, error)
+        } catch (_: Throwable) {
         }
       }
     }
