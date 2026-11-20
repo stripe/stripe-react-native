@@ -66,9 +66,18 @@ workflows:
           inputs:
             - content: yarn lint
       - script@1:
-          title: Run Jest Tests
+          title: Check Jest Coverage Floors
           inputs:
-            - content: yarn test
+            - content: |
+                set -euo pipefail
+                # Deploy the reports even when the check fails.
+                trap 'if [ -d coverage/jest ]; then cp -R coverage/jest "$BITRISE_DEPLOY_DIR/jest-coverage"; fi' EXIT
+                # On pull requests, also fail if the change lowers a floor or narrows a scope recorded on the target branch.
+                if [ -n "${BITRISEIO_GIT_BRANCH_DEST:-}" ]; then
+                  git fetch --no-tags --depth=1 origin "refs/heads/$BITRISEIO_GIT_BRANCH_DEST"
+                  export COVERAGE_FLOORS_BASE=FETCH_HEAD
+                fi
+                bash ./scripts/coverage jest
       - script@1:
           title: Validate Package Types
           inputs:

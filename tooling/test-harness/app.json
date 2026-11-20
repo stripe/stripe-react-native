@@ -1,0 +1,22 @@
+{
+  "name": "StripeTestHarness",
+  "displayName": "Stripe Test Harness",
+  "singleApp": "harness",
+  "components": [
+    {
+      "appKey": "StripeTestHarness",
+      "displayName": "Stripe Test Harness",
+      "slug": "harness"
+    }
+  ],
+  "resources": {
+    "android": ["dist/res", "dist/main.android.jsbundle"],
+    "ios": ["dist/assets", "dist/main.ios.jsbundle"]
+  },
+  "ios": {
+    "bundleIdentifier": "com.stripe.react.native.testharness"
+  },
+  "android": {
+    "package": "com.stripe.react.native.testharness"
+  }
+}

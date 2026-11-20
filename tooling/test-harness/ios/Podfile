@@ -1,0 +1,75 @@
+ws_dir = Pathname.new(__dir__)
+ws_dir = ws_dir.parent until
+  File.exist?("#{ws_dir}/node_modules/react-native-test-app/test_app.rb") ||
+  ws_dir.expand_path.to_s == '/'
+require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
+require "#{ws_dir}/node_modules/react-native-coverage/cocoapods/coverage_post_install"
+
+workspace 'StripeTestHarness.xcworkspace'
+
+# The Stripe iOS SDK resolves through Swift Package Manager, which requires
+# dynamic frameworks (see stripe_spm.rb at the repository root).
+use_frameworks! :linkage => :dynamic
+
+ENV['RCT_USE_RN_DEP'] = '1'
+ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
+
+# The SDK pod is `stripe-react-native` and builds `stripe_react_native.framework`.
+# Pod targets match the first prefix; llvm-cov objects and the runtime flush
+# match the second.
+coverage_prefixes = ['stripe-react-native', 'stripe_react_native']
+
+def append_flags(config, key, extra)
+  flags = Array(config.build_settings[key] || '$(inherited)')
+  flags = flags.flat_map { |flag| flag.to_s.split(' ') }
+  flags << '$(inherited)' unless flags.include?('$(inherited)')
+  extra.each { |flag| flags << flag unless flags.include?(flag) }
+  config.build_settings[key] = flags
+end
+
+# Xcode 27 fixes shared with example/ios/Podfile; see the comments there.
+def apply_xcode27_fixes(config)
+  config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+  config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+  config.build_settings['CLANG_ENABLE_EXPLICIT_MODULES'] = 'NO'
+  append_flags(config, 'OTHER_CFLAGS', ['-Wno-incomplete-umbrella'])
+end
+
+options = {
+  :bridgeless_enabled => true,
+  :fabric_enabled => true,
+  :hermes_enabled => true,
+  :post_install => lambda do |installer|
+    ReactNativeCoverage.apply_post_install!(
+      installer,
+      framework_name_prefixes: coverage_prefixes
+    )
+
+    min_deployment_target = Helpers::Constants.min_ios_version_supported.to_f
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        if target.respond_to?(:product_type) && target.product_type == 'com.apple.product-type.bundle'
+          current_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f
+          if current_target < min_deployment_target
+            config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_deployment_target.to_s
+          end
+        end
+        apply_xcode27_fixes(config)
+      end
+    end
+  end,
+}
+
+use_test_app! options
+
+post_integrate do |_installer|
+  project_path = "#{ws_dir}/node_modules/.generated/ios/ReactTestApp.xcodeproj"
+  project = Xcodeproj::Project.open(project_path)
+  project.targets.each do |target|
+    target.build_configurations.each do |config|
+      apply_xcode27_fixes(config)
+      append_flags(config, 'OTHER_SWIFT_FLAGS', %w[-Xcc -Wno-incomplete-umbrella])
+    end
+  end
+  project.save
+end

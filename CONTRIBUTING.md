@@ -161,6 +161,43 @@ If Maestro can't find a device, create one:
 maestro start-device --platform=ios --os-version 18
 ```
 
+### Coverage
+
+A change that touches library code (`src/**`, `packages/*/src/**`) or native code (`ios/**`, `android/src/main/**`, `packages/*/ios/**`, `packages/*/android/src/main/**`) is ready for review only when it comes with coverage evidence for the paths it changes. Codegen specs and test sources do not count.
+
+**Jest coverage and floors.** Each package's Jest coverage has a floor in `tooling/test-harness/coverage-floors.json`. A floor is the coverage the package had when it was recorded, and it only moves up:
+
+```sh
+bash ./scripts/coverage jest                    # fails if a package is below its floor
+bash ./scripts/coverage floors:update           # raises floors to the measured values (never lowers one)
+COVERAGE_FLOORS_BASE=origin/master bash ./scripts/coverage jest   # also fails if the floors file lowers a floor recorded on the base
+```
+
+CI runs the same check, and on pull requests it compares the floors file with the target branch. When your change raises coverage, run `bash ./scripts/coverage floors:update` and commit the new floors. A workspace package that gains its first `src` files needs an entry and a floor before the check passes; `bash ./scripts/coverage floors:update` adds both. The measured scope can't shrink silently either: a pull request that adds an `exclude` glob, changes a package's `dir`, or removes a package fails unless the floors file's `scopeChanges` names that package with the reason. Remove the `scopeChanges` entry in your next change.
+
+**Native and JS coverage from the test harness.** `tooling/test-harness` is a private React Native app that exists only to run the SDK under [react-native-coverage](https://docs.page/invertase/react-native-coverage). It is never published, and no published package may depend on react-native-coverage. It requires Maestro (see above), a booted simulator or a running emulator, and the native toolchains above.
+
+```sh
+IOS_SIMULATOR_UDID=<udid> bash ./scripts/coverage ios     # or IOS_SIMULATOR=<booted simulator name>
+ANDROID_SERIAL=<serial> bash ./scripts/coverage android   # ANDROID_SERIAL is needed only when several devices are attached
+bash ./scripts/coverage assert                            # re-check the artifacts of both platforms
+```
+
+Each command bundles the harness with JS instrumentation, builds and installs a debug app, runs `tooling/test-harness/e2e/coverage-run.yaml`, pulls the coverage the app flushes, and fails (exit 2) unless the reports contain hits in SDK code. The reports land in `coverage/`:
+
+| Report | Path |
+|--------|------|
+| iOS native (LCOV) | `coverage/ios/lcov.info` |
+| Android native (Jacoco XML) | `coverage/android/jacocoTestReport.xml` |
+| JS from the harness run (LCOV) | `coverage/js/ios/lcov.info`, `coverage/js/android/lcov.info` |
+| Jest (LCOV and HTML) | `coverage/jest/root/` (legacy package), `coverage/jest/packages/<name>/` |
+
+Run one Android build at a time per worktree: the harness and the example app build the SDK into the same `android/build` directory, so building both at once corrupts it.
+
+Native reports are trustworthy only for the run that produced them: each command deletes the previous raw data first, so always re-run the command rather than re-processing old files. If your change adds native code that the harness does not reach, add a scenario to `tooling/test-harness/src/scenarios.ts`. Scenarios must finish without network access or user input.
+
+**What to include in a pull request.** For each changed library or native file, give the covered lines from the reports above (per file, not a package total), say which test or harness scenario exercises each changed branch, and explain any changed line that stays uncovered.
+
 ## Linting and formatting
 
 Pre-commit hooks (via [Husky](https://typicode.github.io/husky/)) automatically run lint, typecheck, and formatting on every commit. You can also run them manually:
@@ -242,6 +279,11 @@ React Native versions before 0.80 still require the event-emitter compatibility 
 | `yarn test:unit:android` | Run Android native unit tests (Gradle) |
 | `yarn test:e2e:ios` | Run iOS e2e tests (Maestro) |
 | `yarn test:e2e:android` | Run Android e2e tests (Maestro) |
+| `bash ./scripts/coverage jest` | Run Jest with coverage and check each package's floor |
+| `bash ./scripts/coverage floors:update` | Raise coverage floors to the measured values |
+| `bash ./scripts/coverage ios` | Build and run the coverage test harness on an iOS simulator |
+| `bash ./scripts/coverage android` | Build and run the coverage test harness on an Android emulator |
+| `bash ./scripts/coverage assert` | Check that the harness coverage reports contain SDK hits |
 | `yarn typecheck` | Type-check with TypeScript |
 | `yarn lint` | Lint with ESLint |
 | `yarn example start` | Start Metro bundler |
