@@ -36,8 +36,11 @@ import type {
 import type { FinancialConnections, StripeError } from '../types';
 import { FinancialConnectionsSheetError } from '../types/FinancialConnections';
 import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
-import { buildInjectedObjectScript } from './injectedObjectScript';
-import { createBridgeToken, unwrapBridgeMessage } from './bridgeAuth';
+import {
+  buildInjectedObjectScript,
+  wrapperDocumentCondition,
+} from './injectedObjectScript';
+import { createBridgeToken, isRecord, unwrapBridgeMessage } from './bridgeAuth';
 
 // react-native-webview 14 declares WebView<P = undefined>, which collapses
 // Component props to never when used as typeof WebView. Type the dynamic
@@ -429,10 +432,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
   const ref = useRef<WebViewHandle>(null);
-  const bridgeToken = useRef<string | undefined>(undefined);
-  if (bridgeToken.current === undefined) {
-    bridgeToken.current = createBridgeToken();
-  }
+  const [bridgeToken] = useState(createBridgeToken);
   const hasLoggedUnauthorizedMessage = useRef(false);
   const hasTriedSourceReload = useRef(false);
 
@@ -598,10 +598,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const onMessageCallback = useCallback(
     async (event: WebViewMessageEvent) => {
       // Only messages sent through the wrapper document's bridge are enveloped.
-      const inner = unwrapBridgeMessage(
-        event?.nativeEvent?.data,
-        bridgeToken.current!
-      );
+      const inner = unwrapBridgeMessage(event?.nativeEvent?.data, bridgeToken);
       if (inner === null) {
         if (!hasLoggedUnauthorizedMessage.current) {
           hasLoggedUnauthorizedMessage.current = true;
@@ -612,8 +609,9 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
       let message: { type: string; data?: unknown };
       try {
-        message = JSON.parse(inner);
-        if (typeof message !== 'object' || message === null) return;
+        const parsed: unknown = JSON.parse(inner);
+        if (!isRecord(parsed)) return;
+        message = parsed as { type: string; data?: unknown };
       } catch (error) {
         componentAnalytics.logDeserializeMessageError(
           'unknown',
@@ -667,6 +665,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           connectedAccountId != null &&
           typeof connectedAccountId !== 'string'
         ) {
+          handleFinancialConnectionsResult(id, {
+            error: {
+              code: 'InvalidConnectedAccountId',
+              message: 'Invalid connectedAccountId parameter',
+            },
+          });
           return;
         }
 
@@ -857,6 +861,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }
     },
     [
+      bridgeToken,
       callbacks,
       component,
       componentAnalytics,
@@ -951,11 +956,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const injectedObjectScript = useMemo(
     () =>
       buildInjectedObjectScript(injectedObject, {
-        token: bridgeToken.current!,
+        token: bridgeToken,
         origin: BASE_URL,
         path: WRAPPER_PATH,
       }),
-    [injectedObject]
+    [injectedObject, bridgeToken]
   );
 
   if (!WebViewComponent) return null;
@@ -1075,10 +1080,6 @@ export function toStripeJsBankAccountToken(
   };
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 // Validates that a URL is well-formed and uses http or https protocol
 function isValidUrl(url: string): boolean {
   try {
@@ -1134,10 +1135,7 @@ function isCsvExportUrl(url: string): boolean {
 function deliverToWrapper(payloadScript: string): string {
   return `
     (function() {
-      if (
-        window.location.origin === ${JSON.stringify(BASE_URL)} &&
-        window.location.pathname === ${JSON.stringify(WRAPPER_PATH)}
-      ) {
+      if (${wrapperDocumentCondition(BASE_URL, WRAPPER_PATH)}) {
         ${payloadScript}
       }
       true;

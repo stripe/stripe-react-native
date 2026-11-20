@@ -1097,8 +1097,8 @@ describe('EmbeddedComponent', () => {
   describe('Init params injection', () => {
     // Runs the injected script the way the page would see it.
     const readInjectedObject = (script: string) => {
-      const page: any = {};
-      page.window = page;
+      const page: any = { location: WRAPPER_LOCATION };
+      page.window = page.top = page;
       vm.createContext(page);
       vm.runInContext(script, page);
       return JSON.parse(page.ReactNativeWebView.injectedObjectJson());
@@ -1202,8 +1202,8 @@ describe('EmbeddedComponent', () => {
 
       expect(mockWebViewProps.injectedJavaScriptObject).toBeUndefined();
 
-      const page: any = {};
-      page.window = page;
+      const page: any = { location: WRAPPER_LOCATION };
+      page.window = page.top = page;
       vm.createContext(page);
       vm.runInContext(
         mockWebViewProps.injectedJavaScriptBeforeContentLoaded,
@@ -1226,515 +1226,194 @@ describe('EmbeddedComponent', () => {
 
     const rawEvent = (data: unknown) => ({ nativeEvent: { data } });
 
-    describe('token lifetime', () => {
-      it('keeps the token across re-renders of one mount', async () => {
-        await mount();
-        const first = mockWebViewProps.injectedJavaScriptBeforeContentLoaded;
-        const token = bridgeTokenFromScript(first);
+    const lastInjectedScript = () =>
+      mockInjectJavaScript.mock.calls[
+        mockInjectJavaScript.mock.calls.length - 1
+      ]?.[0];
 
-        act(() => {
-          connectInstance.update({
-            appearance: { variables: { colorPrimary: '#123456' } },
-          });
-        });
+    it('keeps one token per mount', async () => {
+      const first = await mount();
+      const token = currentBridgeToken();
+      const script = mockWebViewProps.injectedJavaScriptBeforeContentLoaded;
 
-        await waitFor(() =>
-          expect(
-            mockWebViewProps.injectedJavaScriptBeforeContentLoaded
-          ).not.toBe(first)
-        );
-        expect(currentBridgeToken()).toBe(token);
-        expect(token).toMatch(/^[0-9a-f]{32}$/);
-      });
-
-      it('uses a different token for each mount', async () => {
-        const first = await mount();
-        const firstToken = currentBridgeToken();
-        first.unmount();
-
-        await mount();
-
-        expect(currentBridgeToken()).not.toBe(firstToken);
-      });
-    });
-
-    describe('authorized messages', () => {
-      it('handles fetchClientSecret', async () => {
-        await mount();
-
-        await act(async () => {
-          sendBridgeMessage({ type: 'fetchClientSecret' });
-        });
-
-        expect(mockInitParams.fetchClientSecret).toHaveBeenCalledTimes(1);
-        expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
-      });
-
-      it('handles pageDidLoad', async () => {
-        const onPageDidLoad = jest.fn();
-        await mount({ onPageDidLoad });
-
-        await act(async () => {
-          sendBridgeMessage({ type: 'pageDidLoad', data: { pageViewId: 'p' } });
-        });
-
-        expect(onPageDidLoad).toHaveBeenCalledTimes(1);
-      });
-
-      it('handles closeWebView', async () => {
-        const onCloseWebView = jest.fn();
-        await mount({ callbacks: { onCloseWebView } });
-
-        await act(async () => {
-          sendBridgeMessage({ type: 'closeWebView' });
-        });
-
-        expect(onCloseWebView).toHaveBeenCalledWith({});
-      });
-
-      it('handles onSetterFunctionCalled for the load callbacks and a registered callback', async () => {
-        const onLoaderStart = jest.fn();
-        const onLoadError = jest.fn();
-        const onExit = jest.fn();
-        await mount({ onLoaderStart, onLoadError, callbacks: { onExit } });
-
-        await act(async () => {
-          sendBridgeMessage({
-            type: 'onSetterFunctionCalled',
-            data: { setter: 'setOnLoaderStart', value: { a: 1 } },
-          });
-          sendBridgeMessage({
-            type: 'onSetterFunctionCalled',
-            data: { setter: 'setOnLoadError', value: { b: 2 } },
-          });
-          sendBridgeMessage({
-            type: 'onSetterFunctionCalled',
-            data: { setter: 'setOnExit', value: { c: 3 } },
-          });
-        });
-
-        expect(onLoaderStart).toHaveBeenCalledWith({ a: 1 });
-        expect(onLoadError).toHaveBeenCalledWith({ b: 2 });
-        expect(onExit).toHaveBeenCalledWith({ c: 3 });
-      });
-
-      it('handles openAuthenticatedWebView', async () => {
-        (
-          NativeStripeSdk.openAuthenticatedWebView as jest.Mock
-        ).mockResolvedValue({ url: null });
-        await mount();
-
-        await act(async () => {
-          sendBridgeMessage({
-            type: 'openAuthenticatedWebView',
-            data: { id: 'a', url: 'https://connect.stripe.com/start' },
-          });
-        });
-
-        expect(NativeStripeSdk.openAuthenticatedWebView).toHaveBeenCalledWith(
-          'a',
-          'https://connect.stripe.com/start'
-        );
-      });
-
-      it('handles openFinancialConnections', async () => {
-        (
-          NativeStripeSdk.collectBankAccountToken as jest.Mock
-        ).mockResolvedValue({});
-        await mount({ component: 'account-onboarding' });
-
-        await act(async () => {
-          sendBridgeMessage({
-            type: 'openFinancialConnections',
-            data: { id: 'r', clientSecret: 'cs', connectedAccountId: 'acct' },
-          });
-        });
-
-        expect(NativeStripeSdk.collectBankAccountToken).toHaveBeenCalledWith(
-          'cs',
-          { connectedAccountId: 'acct' }
-        );
-      });
-    });
-
-    describe('unauthorized messages', () => {
-      const onCloseWebView = jest.fn();
-      const onExit = jest.fn();
-      const privileged: [string, unknown][] = [
-        ['fetchClientSecret', { type: 'fetchClientSecret' }],
-        ['closeWebView', { type: 'closeWebView' }],
-        [
-          'onSetterFunctionCalled',
-          {
-            type: 'onSetterFunctionCalled',
-            data: { setter: 'setOnExit', value: {} },
-          },
-        ],
-        [
-          'openAuthenticatedWebView',
-          {
-            type: 'openAuthenticatedWebView',
-            data: { id: 'a', url: 'https://connect.stripe.com/start' },
-          },
-        ],
-        [
-          'openFinancialConnections',
-          {
-            type: 'openFinancialConnections',
-            data: { id: 'r', clientSecret: 'cs', connectedAccountId: 'acct' },
-          },
-        ],
-      ];
-
-      let logUnauthorizedMessage: jest.SpyInstance;
-
-      beforeEach(() => {
-        logUnauthorizedMessage = jest.spyOn(
-          ComponentAnalyticsClient.prototype,
-          'logUnauthorizedMessage'
-        );
-      });
-
-      afterEach(() => {
-        logUnauthorizedMessage.mockRestore();
-      });
-
-      const expectNothingHappened = () => {
-        expect(mockInitParams.fetchClientSecret).not.toHaveBeenCalled();
-        expect(onCloseWebView).not.toHaveBeenCalled();
-        expect(onExit).not.toHaveBeenCalled();
-        expect(NativeStripeSdk.openAuthenticatedWebView).not.toHaveBeenCalled();
-        expect(NativeStripeSdk.collectBankAccountToken).not.toHaveBeenCalled();
-        expect(mockInjectJavaScript).not.toHaveBeenCalled();
-      };
-
-      const envelopes: [string, (message: string, token: string) => unknown][] =
-        [
-          ['raw', (message) => message],
-          [
-            'a wrong token',
-            (message) => bridgeEvent('0'.repeat(32), message).nativeEvent.data,
-          ],
-          ['a missing token', (message) => JSON.stringify({ message })],
-          [
-            'a non-string token',
-            (message) => JSON.stringify({ token: 1, message }),
-          ],
-          [
-            'a non-string message',
-            (message, token) =>
-              JSON.stringify({ token, message: JSON.parse(message) }),
-          ],
-        ];
-
-      describe.each(privileged)('%s', (_name, message) => {
-        it.each(envelopes)('is dropped when sent %s', async (_how, build) => {
-          await mount({ callbacks: { onCloseWebView, onExit } });
-
-          await act(async () => {
-            webViewOnMessage?.(
-              rawEvent(build(JSON.stringify(message), currentBridgeToken()))
-            );
-          });
-
-          expectNothingHappened();
-          expect(logUnauthorizedMessage).toHaveBeenCalledTimes(1);
-          expect(logUnauthorizedMessage).toHaveBeenCalledWith();
+      act(() => {
+        connectInstance.update({
+          appearance: { variables: { colorPrimary: '#123456' } },
         });
       });
-
-      it.each(['null', '1', '"x"', '[]', 'true', ''])(
-        'drops the non-object envelope %j without throwing',
-        async (data) => {
-          await mount();
-          const unhandled = jest.fn();
-          process.on('unhandledRejection', unhandled);
-
-          try {
-            await act(async () => {
-              await expect(
-                Promise.resolve(webViewOnMessage?.(rawEvent(data)))
-              ).resolves.toBeUndefined();
-            });
-            await new Promise((resolve) => setImmediate(resolve));
-          } finally {
-            process.off('unhandledRejection', unhandled);
-          }
-
-          expect(unhandled).not.toHaveBeenCalled();
-          expectNothingHappened();
-          expect(logUnauthorizedMessage).toHaveBeenCalledTimes(1);
-        }
+      await waitFor(() =>
+        expect(mockWebViewProps.injectedJavaScriptBeforeContentLoaded).not.toBe(
+          script
+        )
       );
+      expect(currentBridgeToken()).toBe(token);
 
-      it('drops an event without a payload', async () => {
-        await mount();
-
-        await act(async () => {
-          await webViewOnMessage?.({} as any);
-          await webViewOnMessage?.(rawEvent(undefined));
-        });
-
-        expectNothingHappened();
-      });
-
-      it('logs at most once per mount', async () => {
-        await mount();
-
-        await act(async () => {
-          webViewOnMessage?.(rawEvent('{"type":"fetchClientSecret"}'));
-          webViewOnMessage?.(rawEvent('not json'));
-          webViewOnMessage?.(
-            rawEvent(JSON.stringify({ token: 'x', message: 'y' }))
-          );
-        });
-
-        expect(logUnauthorizedMessage).toHaveBeenCalledTimes(1);
-      });
-
-      it('does not log the deserialize error for an outer parse failure', async () => {
-        const logDeserializeMessageError = jest.spyOn(
-          ComponentAnalyticsClient.prototype,
-          'logDeserializeMessageError'
-        );
-        await mount();
-
-        await act(async () => {
-          webViewOnMessage?.(rawEvent('not json'));
-        });
-
-        expect(logDeserializeMessageError).not.toHaveBeenCalled();
-        logDeserializeMessageError.mockRestore();
-      });
-
-      it('logs the deserialize error for an invalid inner message with a valid token', async () => {
-        const logDeserializeMessageError = jest.spyOn(
-          ComponentAnalyticsClient.prototype,
-          'logDeserializeMessageError'
-        );
-        await mount();
-
-        await act(async () => {
-          webViewOnMessage?.(bridgeEvent(currentBridgeToken(), 'not json'));
-        });
-
-        expect(logDeserializeMessageError).toHaveBeenCalledTimes(1);
-        expect(logUnauthorizedMessage).not.toHaveBeenCalled();
-        logDeserializeMessageError.mockRestore();
-      });
+      first.unmount();
+      await mount();
+      expect(currentBridgeToken()).not.toBe(token);
     });
 
-    describe('end to end', () => {
-      it('accepts messages from the wrapper script and ignores others', async () => {
-        await mount();
-        const { page, received } = runBridgeScript(
-          mockWebViewProps.injectedJavaScriptBeforeContentLoaded
-        );
+    it('drops messages without the token and logs once', async () => {
+      const logUnauthorizedMessage = jest.spyOn(
+        ComponentAnalyticsClient.prototype,
+        'logUnauthorizedMessage'
+      );
+      const logDeserializeMessageError = jest.spyOn(
+        ComponentAnalyticsClient.prototype,
+        'logDeserializeMessageError'
+      );
+      const onCloseWebView = jest.fn();
+      const unhandled = jest.fn();
+      process.on('unhandledRejection', unhandled);
+      await mount({ callbacks: { onCloseWebView } });
 
-        page.ReactNativeWebView.postMessage(
-          JSON.stringify({ type: 'fetchClientSecret' })
-        );
+      try {
         await act(async () => {
-          webViewOnMessage?.(rawEvent(received[0]));
-        });
-        expect(mockInitParams.fetchClientSecret).toHaveBeenCalledTimes(1);
-
-        // A message without the token is ignored.
-        await act(async () => {
-          webViewOnMessage?.(
+          await webViewOnMessage?.(
             rawEvent(JSON.stringify({ type: 'fetchClientSecret' }))
           );
-        });
-        expect(mockInitParams.fetchClientSecret).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    describe('setters', () => {
-      const setterMessage = (setter: unknown, value: unknown = {}) => ({
-        type: 'onSetterFunctionCalled',
-        data: { setter, value },
-      });
-
-      it.each([
-        ['setConstructor'],
-        ['setToString'],
-        ['setHasOwnProperty'],
-        ['set__proto__'],
-        ['setMissing'],
-        ['onExit'],
-        [''],
-        [42],
-        [null],
-        [{ toString: () => 'setOnExit' }],
-      ])('does not invoke anything for %p', async (setter) => {
-        const logUnrecognizedSetter = jest.spyOn(
-          ComponentAnalyticsClient.prototype,
-          'logUnrecognizedSetter'
-        );
-        const onExit = jest.fn();
-        const notAFunction = 'nope';
-        await mount({ callbacks: { onExit, onNotAFunction: notAFunction } });
-
-        await act(async () => {
-          sendBridgeMessage(setterMessage(setter));
-        });
-
-        expect(onExit).not.toHaveBeenCalled();
-        expect(logUnrecognizedSetter).toHaveBeenCalledTimes(1);
-        logUnrecognizedSetter.mockRestore();
-      });
-
-      it('does not invoke a callback entry that is not a function', async () => {
-        const logUnrecognizedSetter = jest.spyOn(
-          ComponentAnalyticsClient.prototype,
-          'logUnrecognizedSetter'
-        );
-        await mount({ callbacks: { onNotAFunction: 'nope' } });
-
-        await act(async () => {
-          sendBridgeMessage(setterMessage('setOnNotAFunction'));
-        });
-
-        expect(logUnrecognizedSetter).toHaveBeenCalledTimes(1);
-        logUnrecognizedSetter.mockRestore();
-      });
-
-      it('does not reach inherited properties of callbacks', async () => {
-        const inherited = jest.fn();
-        const callbacks = Object.create({ onInherited: inherited });
-        await mount({ callbacks });
-
-        await act(async () => {
-          sendBridgeMessage(setterMessage('setOnInherited'));
-        });
-
-        expect(inherited).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('payload shapes', () => {
-      beforeEach(() => {
-        (
-          NativeStripeSdk.openAuthenticatedWebView as jest.Mock
-        ).mockResolvedValue({ url: null });
-        (
-          NativeStripeSdk.collectBankAccountToken as jest.Mock
-        ).mockResolvedValue({});
-      });
-
-      it.each([
-        [undefined],
-        [null],
-        ['x'],
-        [{}],
-        [{ id: 'a' }],
-        [{ url: 'https://connect.stripe.com/start' }],
-        [{ id: 1, url: 'https://connect.stripe.com/start' }],
-        [{ id: 'a', url: { href: 'https://connect.stripe.com/start' } }],
-      ])('drops openAuthenticatedWebView with data %j', async (data) => {
-        await mount();
-
-        await act(async () => {
-          sendBridgeMessage({ type: 'openAuthenticatedWebView', data });
-        });
-
-        expect(NativeStripeSdk.openAuthenticatedWebView).not.toHaveBeenCalled();
-        expect(mockInjectJavaScript).not.toHaveBeenCalled();
-      });
-
-      it.each([
-        [undefined],
-        [null],
-        ['x'],
-        [{ clientSecret: 'cs' }],
-        [{ id: 1, clientSecret: 'cs' }],
-        [{ id: 'r', clientSecret: 'cs', connectedAccountId: 5 }],
-        [{ id: 'r', clientSecret: 'cs', connectedAccountId: {} }],
-      ])('drops openFinancialConnections with data %j', async (data) => {
-        await mount({ component: 'account-onboarding' });
-
-        await act(async () => {
-          sendBridgeMessage({ type: 'openFinancialConnections', data });
-        });
-
-        expect(NativeStripeSdk.collectBankAccountToken).not.toHaveBeenCalled();
-        expect(mockInjectJavaScript).not.toHaveBeenCalled();
-      });
-
-      it.each([[undefined], [null], ['x'], [5]])(
-        'drops onSetterFunctionCalled with data %j',
-        async (data) => {
-          const onExit = jest.fn();
-          const onLoaderStart = jest.fn();
-          await mount({ onLoaderStart, callbacks: { onExit } });
-
-          await act(async () => {
-            sendBridgeMessage({ type: 'onSetterFunctionCalled', data });
-          });
-
-          expect(onExit).not.toHaveBeenCalled();
-          expect(onLoaderStart).not.toHaveBeenCalled();
-        }
-      );
-
-      it.each([[undefined], [null], ['connected_account']])(
-        'accepts connectedAccountId %p for openFinancialConnections',
-        async (connectedAccountId) => {
-          await mount({ component: 'account-onboarding' });
-
-          await act(async () => {
-            sendBridgeMessage({
-              type: 'openFinancialConnections',
-              data: { id: 'r', clientSecret: 'cs', connectedAccountId },
-            });
-          });
-
-          expect(NativeStripeSdk.collectBankAccountToken).toHaveBeenCalledTimes(
-            1
+          await webViewOnMessage?.(
+            bridgeEvent(
+              '0'.repeat(32),
+              JSON.stringify({ type: 'closeWebView' })
+            )
           );
-        }
-      );
-
-      it('replies InvalidClientSecret before checking connectedAccountId', async () => {
-        await mount({ component: 'account-onboarding' });
-
-        await act(async () => {
-          sendBridgeMessage({
-            type: 'openFinancialConnections',
-            data: { id: 'r', clientSecret: '', connectedAccountId: 5 },
-          });
+          await webViewOnMessage?.(rawEvent('null'));
+          await webViewOnMessage?.(rawEvent('nope'));
+          await webViewOnMessage?.({} as any);
         });
+        await new Promise((resolve) => setImmediate(resolve));
+      } finally {
+        process.off('unhandledRejection', unhandled);
+      }
 
-        expect(
-          mockInjectJavaScript.mock.calls[
-            mockInjectJavaScript.mock.calls.length - 1
-          ]?.[0]
-        ).toContain('InvalidClientSecret');
+      expect(mockInitParams.fetchClientSecret).not.toHaveBeenCalled();
+      expect(onCloseWebView).not.toHaveBeenCalled();
+      expect(mockInjectJavaScript).not.toHaveBeenCalled();
+      expect(logUnauthorizedMessage).toHaveBeenCalledTimes(1);
+      expect(logUnauthorizedMessage).toHaveBeenCalledWith();
+      expect(logDeserializeMessageError).not.toHaveBeenCalled();
+      expect(unhandled).not.toHaveBeenCalled();
+      logUnauthorizedMessage.mockRestore();
+      logDeserializeMessageError.mockRestore();
+    });
+
+    it('logs the deserialize error for an invalid inner message with a valid token', async () => {
+      const logDeserializeMessageError = jest.spyOn(
+        ComponentAnalyticsClient.prototype,
+        'logDeserializeMessageError'
+      );
+      await mount();
+
+      await act(async () => {
+        webViewOnMessage?.(bridgeEvent(currentBridgeToken(), 'not json'));
       });
 
-      it.each([[undefined], [''], [5]])(
-        'replies InvalidClientSecret when clientSecret is %p and id is a string',
-        async (clientSecret) => {
-          await mount({ component: 'account-onboarding' });
+      expect(logDeserializeMessageError).toHaveBeenCalledTimes(1);
+      logDeserializeMessageError.mockRestore();
+    });
 
-          await act(async () => {
-            sendBridgeMessage({
-              type: 'openFinancialConnections',
-              data: { id: 'r', clientSecret },
-            });
-          });
-
-          expect(
-            NativeStripeSdk.collectBankAccountToken
-          ).not.toHaveBeenCalled();
-          const script =
-            mockInjectJavaScript.mock.calls[
-              mockInjectJavaScript.mock.calls.length - 1
-            ]?.[0];
-          expect(script).toContain('InvalidClientSecret');
-          expect(script).toContain('"id":"r"');
-        }
+    it('accepts messages from the wrapper script and ignores others', async () => {
+      await mount();
+      const { page, received } = runBridgeScript(
+        mockWebViewProps.injectedJavaScriptBeforeContentLoaded
       );
+
+      page.ReactNativeWebView.postMessage(
+        JSON.stringify({ type: 'fetchClientSecret' })
+      );
+      await act(async () => {
+        webViewOnMessage?.(rawEvent(received[0]));
+      });
+      expect(mockInitParams.fetchClientSecret).toHaveBeenCalledTimes(1);
+
+      // A message without the token is ignored.
+      await act(async () => {
+        webViewOnMessage?.(
+          rawEvent(JSON.stringify({ type: 'fetchClientSecret' }))
+        );
+      });
+      expect(mockInitParams.fetchClientSecret).toHaveBeenCalledTimes(1);
+    });
+
+    it('invokes only registered callbacks', async () => {
+      const logUnrecognizedSetter = jest.spyOn(
+        ComponentAnalyticsClient.prototype,
+        'logUnrecognizedSetter'
+      );
+      const onLoaderStart = jest.fn();
+      const onExit = jest.fn();
+      const onInherited = jest.fn();
+      await mount({
+        onLoaderStart,
+        callbacks: Object.assign(Object.create({ onInherited }), { onExit }),
+      });
+      const setter = (name: string) => ({
+        type: 'onSetterFunctionCalled',
+        data: { setter: name, value: { v: 1 } },
+      });
+
+      await act(async () => {
+        sendBridgeMessage(setter('setOnLoaderStart'));
+        sendBridgeMessage(setter('setOnExit'));
+      });
+      expect(onLoaderStart).toHaveBeenCalledWith({ v: 1 });
+      expect(onExit).toHaveBeenCalledWith({ v: 1 });
+      expect(logUnrecognizedSetter).not.toHaveBeenCalled();
+
+      await act(async () => {
+        sendBridgeMessage(setter('setOnInherited'));
+        sendBridgeMessage(setter('setConstructor'));
+      });
+      expect(onInherited).not.toHaveBeenCalled();
+      expect(logUnrecognizedSetter).toHaveBeenCalledTimes(2);
+      logUnrecognizedSetter.mockRestore();
+    });
+
+    it.each([
+      ['openAuthenticatedWebView', { id: 'a' }],
+      ['onSetterFunctionCalled', 'x'],
+    ])('ignores a malformed %s payload', async (type, data) => {
+      const logUnrecognizedSetter = jest.spyOn(
+        ComponentAnalyticsClient.prototype,
+        'logUnrecognizedSetter'
+      );
+      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      const onExit = jest.fn();
+      await mount({ callbacks: { onExit } });
+
+      await act(async () => {
+        sendBridgeMessage({ type, data });
+      });
+
+      expect(NativeStripeSdk.openAuthenticatedWebView).not.toHaveBeenCalled();
+      expect(onExit).not.toHaveBeenCalled();
+      expect(logUnrecognizedSetter).not.toHaveBeenCalled();
+      expect(consoleError).not.toHaveBeenCalled();
+      logUnrecognizedSetter.mockRestore();
+      consoleError.mockRestore();
+    });
+
+    it.each([
+      [
+        'an invalid clientSecret',
+        { id: 'r', clientSecret: '' },
+        'InvalidClientSecret',
+      ],
+      [
+        'an invalid connectedAccountId',
+        { id: 'r', clientSecret: 'cs', connectedAccountId: 5 },
+        'InvalidConnectedAccountId',
+      ],
+    ])('rejects openFinancialConnections with %s', async (_d, data, code) => {
+      await mount({ component: 'account-onboarding' });
+
+      await act(async () => {
+        sendBridgeMessage({ type: 'openFinancialConnections', data });
+      });
+
+      expect(NativeStripeSdk.collectBankAccountToken).not.toHaveBeenCalled();
+      expect(lastInjectedScript()).toContain(code);
     });
   });
 

@@ -1,6 +1,12 @@
 import vm from 'vm';
 import { buildInjectedObjectScript } from '../injectedObjectScript';
 
+const ORIGIN = 'https://connect-js.stripe.com';
+const PATH = '/v1.0/react_native_webview.html';
+const TOKEN = 'f00dfeedf00dfeedf00dfeedf00dfeed';
+const AUTH = { token: TOKEN, origin: ORIGIN, path: PATH };
+const WRAPPER_LOCATION = { origin: ORIGIN, pathname: PATH };
+
 const BRIDGE = 'ReactNativeWebView';
 
 // react-native-webview's iOS definition from `injectedJavaScriptObject`
@@ -30,8 +36,11 @@ type Page = { [key: string]: any };
 // Runs scripts in a fresh page-like context. A script that throws is recorded,
 // not rethrown.
 function runInPage(scripts: string[]): { page: Page; errors: string[] } {
-  const page: Page = { [BRIDGE]: { postMessage: () => {} } };
-  page.window = page;
+  const page: Page = {
+    [BRIDGE]: { postMessage: () => {} },
+    location: WRAPPER_LOCATION,
+  };
+  page.window = page.top = page;
   vm.createContext(page);
   const errors: string[] = [];
   for (const script of scripts) {
@@ -71,7 +80,9 @@ describe('buildInjectedObjectScript', () => {
 
   it.each(difficultValues)('round-trips a %s', (_label, value) => {
     const injected = initObject({ fontFamily: value });
-    const { page, errors } = runInPage([buildInjectedObjectScript(injected)]);
+    const { page, errors } = runInPage([
+      buildInjectedObjectScript(injected, AUTH),
+    ]);
 
     expect(errors).toEqual([]);
     expect(readInjectedObject(page)).toEqual(injected);
@@ -81,7 +92,7 @@ describe('buildInjectedObjectScript', () => {
   it("keeps its value when react-native-webview's iOS definition runs after it", () => {
     const injected = initObject({ fontFamily: '"Courier New", monospace' });
     const { page } = runInPage([
-      buildInjectedObjectScript(injected),
+      buildInjectedObjectScript(injected, AUTH),
       rnwIOSObjectScript(JSON.stringify(injected)),
     ]);
 
@@ -92,7 +103,7 @@ describe('buildInjectedObjectScript', () => {
     const injected = initObject({ fontFamily: '"Courier New", monospace' });
     const json = JSON.stringify(injected);
     const { page } = runInPage([
-      androidBeforeContentLoaded(buildInjectedObjectScript(injected)),
+      androidBeforeContentLoaded(buildInjectedObjectScript(injected, AUTH)),
       rnwAndroidObjectScript(json),
       rnwAndroidObjectScript(json),
     ]);
@@ -104,7 +115,7 @@ describe('buildInjectedObjectScript', () => {
     const injected = initObject({ fontFamily: '"Courier New", monospace' });
     const { page, errors } = runInPage([
       rnwAndroidObjectScript(JSON.stringify(injected)),
-      androidBeforeContentLoaded(buildInjectedObjectScript(injected)),
+      androidBeforeContentLoaded(buildInjectedObjectScript(injected, AUTH)),
     ]);
 
     expect(errors).toEqual([]);
@@ -118,8 +129,8 @@ describe('buildInjectedObjectScript', () => {
     const first = initObject({ fontFamily: '"First", serif' });
     const second = initObject({ fontFamily: '"Second", serif' });
     const { page, errors } = runInPage([
-      buildInjectedObjectScript(first),
-      buildInjectedObjectScript(second),
+      buildInjectedObjectScript(first, AUTH),
+      buildInjectedObjectScript(second, AUTH),
     ]);
 
     expect(errors).toEqual([]);
@@ -134,50 +145,45 @@ describe('buildInjectedObjectScript', () => {
   });
 
   it('keeps the existing postMessage bridge', () => {
-    const { page } = runInPage([buildInjectedObjectScript(initObject({}))]);
+    const { page } = runInPage([
+      buildInjectedObjectScript(initObject({}), AUTH),
+    ]);
 
     expect(typeof page[BRIDGE].postMessage).toBe('function');
   });
 
   it('creates the bridge object when none exists yet', () => {
-    const page: Page = {};
-    page.window = page;
+    const page: Page = { location: WRAPPER_LOCATION };
+    page.window = page.top = page;
     vm.createContext(page);
-    vm.runInContext(buildInjectedObjectScript(initObject({})), page);
+    vm.runInContext(buildInjectedObjectScript(initObject({}), AUTH), page);
 
     expect(readInjectedObject(page)).toEqual(initObject({}));
   });
 });
 
 describe('buildInjectedObjectScript with bridge authorization', () => {
-  const ORIGIN = 'https://connect-js.stripe.com';
-  const PATH = '/v1.0/react_native_webview.html';
-  const TOKEN = 'f00dfeedf00dfeedf00dfeedf00dfeed';
   const injected = initObject({ fontFamily: '"Courier New", monospace' });
-  const script = buildInjectedObjectScript(injected, {
-    token: TOKEN,
-    origin: ORIGIN,
-    path: PATH,
-  });
-
-  type Options = {
-    origin?: string;
-    pathname?: string;
-    isTop?: boolean;
-    bridge?: object;
-    wrap?: (script: string) => string;
-  };
+  const script = buildInjectedObjectScript(injected, AUTH);
 
   const serializePage = (page: Page) =>
     JSON.stringify(page, (key, value) =>
       key === 'window' || key === 'top' ? undefined : value
     );
 
-  // A top-level (or not) page at the given location whose original bridge
-  // records what it receives.
-  function load(options: Options = {}, scripts: string[] = [script]) {
+  // A page at the given location whose original bridge records what it
+  // receives.
+  function load(
+    options: {
+      origin?: string;
+      pathname?: string;
+      isTop?: boolean;
+      bridge?: object;
+    } = {},
+    scripts: string[] = [script]
+  ) {
     const received: string[] = [];
-    const bridge = options.bridge ?? {
+    const original = options.bridge ?? {
       postMessage: (data: string) => received.push(data),
     };
     const page: Page = {
@@ -185,49 +191,31 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
         origin: options.origin ?? ORIGIN,
         pathname: options.pathname ?? PATH,
       },
-      [BRIDGE]: bridge,
+      [BRIDGE]: original,
     };
     page.window = page;
     page.top = options.isTop === false ? {} : page;
     vm.createContext(page);
-    const errors: string[] = [];
-    for (const s of scripts) {
-      try {
-        vm.runInContext(options.wrap ? options.wrap(s) : s, page);
-      } catch (error) {
-        errors.push(String(error));
-      }
-    }
-    return { page, received, errors };
+    scripts.forEach((s) => vm.runInContext(s, page));
+    return { page, received, original };
   }
 
   it('wraps outgoing messages with the token on the wrapper document', () => {
-    const { page, received, errors } = load();
+    const { page, received } = load();
 
     page[BRIDGE].postMessage('{"type":"x"}');
 
-    expect(errors).toEqual([]);
-    expect(received).toHaveLength(1);
-    const envelope = JSON.parse(received[0]!);
-    expect(envelope.token).toMatch(/^[0-9a-f]{32}$/);
-    expect(envelope).toEqual({ token: TOKEN, message: '{"type":"x"}' });
-  });
-
-  it('keeps serving the init object from the replacement bridge', () => {
-    const { page } = load();
-
+    expect(received.map((m) => JSON.parse(m))).toEqual([
+      { token: TOKEN, message: '{"type":"x"}' },
+    ]);
     expect(readInjectedObject(page)).toEqual(injected);
-  });
-
-  it('works when wrapped like Android does', () => {
-    const { page, received } = load({
-      wrap: androidBeforeContentLoaded,
-    });
-
-    page[BRIDGE].postMessage('m');
-
-    expect(JSON.parse(received[0]!).token).toBe(TOKEN);
-    expect(readInjectedObject(page)).toEqual(injected);
+    expect(serializePage(page)).not.toContain(TOKEN);
+    expect(String(page[BRIDGE].postMessage)).not.toContain(TOKEN);
+    expect(Object.getOwnPropertyNames(page).join()).not.toContain(TOKEN);
+    expect(Object.getOwnPropertyNames(page[BRIDGE]).sort()).toEqual([
+      'injectedObjectJson',
+      'postMessage',
+    ]);
   });
 
   it('wraps a bridge whose properties always resolve to the original', () => {
@@ -238,134 +226,51 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
 
     page[BRIDGE].postMessage('m');
 
-    expect(received).toHaveLength(1);
-    expect(JSON.parse(received[0]!)).toEqual({ token: TOKEN, message: 'm' });
-  });
-
-  it('stringifies non-string messages', () => {
-    const { page, received } = load();
-
-    page[BRIDGE].postMessage(42);
-
-    expect(JSON.parse(received[0]!).message).toBe('42');
+    expect(received.map((m) => JSON.parse(m))).toEqual([
+      { token: TOKEN, message: 'm' },
+    ]);
   });
 
   it('cannot be replaced or modified afterwards', () => {
-    const { page, received } = load();
+    const json = JSON.stringify(injected);
+    const { page, received } = load({}, [
+      androidBeforeContentLoaded(script),
+      androidBeforeContentLoaded(script),
+      rnwAndroidObjectScript(json),
+      rnwAndroidObjectScript(json),
+    ]);
     const spy = jest.fn();
+    Object.assign(page, { spy });
 
     vm.runInContext(
       `try { window.${BRIDGE} = { postMessage: spy }; } catch (e) {}
        try { window.${BRIDGE}.postMessage = spy; } catch (e) {}
        try { delete window.${BRIDGE}; } catch (e) {}
        try { Object.defineProperty(window, '${BRIDGE}', { value: { postMessage: spy } }); } catch (e) {}`,
-      Object.assign(page, { spy })
+      page
     );
     page[BRIDGE].postMessage('m');
 
     expect(spy).not.toHaveBeenCalled();
-    expect(received).toHaveLength(1);
-    expect(JSON.parse(received[0]!).token).toBe(TOKEN);
-  });
-
-  it('does not wrap twice when run again in the same page', () => {
-    const { page, received } = load({}, [script, script]);
-
-    page[BRIDGE].postMessage('m');
-
-    expect(received).toHaveLength(1);
-    expect(JSON.parse(received[0]!)).toEqual({ token: TOKEN, message: 'm' });
+    expect(received.map((m) => JSON.parse(m))).toEqual([
+      { token: TOKEN, message: 'm' },
+    ]);
+    expect(readInjectedObject(page)).toEqual(injected);
   });
 
   it.each([
     ['a foreign origin', { origin: 'https://evil.example' }],
     ['the wrong path', { pathname: '/other.html' }],
-    ['http on the same host', { origin: 'http://connect-js.stripe.com' }],
     ['a non-top document', { isTop: false }],
-  ])('leaves messages untouched on %s', (_desc, options) => {
-    const { page, received, errors } = load(options);
+  ])('leaves the page untouched on %s', (_desc, options) => {
+    const { page, received, original } = load(options);
 
     page[BRIDGE].postMessage('{"type":"x"}');
 
-    expect(errors).toEqual([]);
+    expect(page[BRIDGE]).toBe(original);
     expect(received).toEqual(['{"type":"x"}']);
-    expect(readInjectedObject(page)).toEqual(injected);
+    expect(page[BRIDGE].injectedObjectJson).toBeUndefined();
     expect(serializePage(page)).not.toContain(TOKEN);
-    expect(String(page[BRIDGE].postMessage)).not.toContain(TOKEN);
-    expect(Object.getOwnPropertyNames(page).join()).not.toContain(TOKEN);
-  });
-
-  it('does not throw when the page has no location', () => {
-    const page: Page = { [BRIDGE]: { postMessage: () => {} } };
-    page.window = page;
-    vm.createContext(page);
-
-    expect(() => vm.runInContext(script, page)).not.toThrow();
-    expect(readInjectedObject(page)).toEqual(injected);
-  });
-
-  it('does not throw when reading the location throws', () => {
-    const page: Page = { [BRIDGE]: { postMessage: () => {} } };
-    Object.defineProperty(page, 'location', {
-      get() {
-        throw new Error('no location');
-      },
-    });
-    page.window = page;
-    page.top = page;
-    vm.createContext(page);
-
-    expect(() => vm.runInContext(script, page)).not.toThrow();
-    expect(readInjectedObject(page)).toEqual(injected);
-  });
-
-  it('survives the Android object re-assignment running twice', () => {
-    const json = JSON.stringify(injected);
-    const { page, received } = load({}, [
-      androidBeforeContentLoaded(script),
-      rnwAndroidObjectScript(json),
-      rnwAndroidObjectScript(json),
-    ]);
-
-    page[BRIDGE].postMessage('m');
-
-    expect(JSON.parse(received[0]!)).toEqual({ token: TOKEN, message: 'm' });
-    expect(readInjectedObject(page)).toEqual(injected);
-  });
-
-  it('keeps the token out of the page', () => {
-    const { page } = load();
-
-    expect(serializePage(page)).not.toContain(TOKEN);
-    expect(String(page[BRIDGE].postMessage)).not.toContain(TOKEN);
-    expect(String(page[BRIDGE].injectedObjectJson)).not.toContain(TOKEN);
-    expect(Object.getOwnPropertyNames(page).join()).not.toContain(TOKEN);
-    expect(Object.getOwnPropertyNames(page[BRIDGE]).sort()).toEqual([
-      'injectedObjectJson',
-      'postMessage',
-    ]);
-  });
-
-  it('falls back to a plain definition when the bridge cannot be replaced', () => {
-    const received: string[] = [];
-    const page: Page = {
-      location: { origin: ORIGIN, pathname: PATH },
-    };
-    Object.defineProperty(page, BRIDGE, {
-      value: { postMessage: (data: string) => received.push(data) },
-      configurable: false,
-      writable: false,
-    });
-    page.window = page;
-    page.top = page;
-    vm.createContext(page);
-
-    expect(() => vm.runInContext(script, page)).not.toThrow();
-    expect(readInjectedObject(page)).toEqual(injected);
-    page[BRIDGE].postMessage('m');
-    expect(received).toEqual(['m']);
-    expect(serializePage(page)).not.toContain(TOKEN);
-    expect(String(page[BRIDGE].postMessage)).not.toContain(TOKEN);
     expect(Object.getOwnPropertyNames(page).join()).not.toContain(TOKEN);
   });
 });

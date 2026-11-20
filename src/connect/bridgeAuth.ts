@@ -1,3 +1,7 @@
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export function createBridgeToken(): string {
   const bytes = new Uint8Array(16);
   try {
@@ -19,14 +23,8 @@ export function unwrapBridgeMessage(
   if (typeof data !== 'string') return null;
   try {
     const envelope: unknown = JSON.parse(data);
-    if (
-      typeof envelope !== 'object' ||
-      envelope === null ||
-      Array.isArray(envelope)
-    ) {
-      return null;
-    }
-    const { token: received, message } = envelope as Record<string, unknown>;
+    if (!isRecord(envelope)) return null;
+    const { token: received, message } = envelope;
     if (typeof received !== 'string' || received !== token) return null;
     return typeof message === 'string' ? message : null;
   } catch {

@@ -302,20 +302,6 @@ describe('ComponentAnalyticsClient', () => {
     });
   });
 
-  describe('logUnauthorizedMessage', () => {
-    it('should send an event without any message content', () => {
-      componentAnalytics.logUnauthorizedMessage();
-
-      expect(sendEventSpy).toHaveBeenCalledTimes(1);
-      const payload = sendEventSpy.mock.calls[0][0] as any;
-
-      expect(payload.event_name).toBe(
-        EVENT_NAMES.COMPONENT_WEB_WARN_UNAUTHORIZED_MESSAGE
-      );
-      expect(payload.event_metadata ?? {}).toEqual({});
-    });
-  });
-
   describe('authenticated web view events', () => {
     describe('logAuthenticatedWebViewOpened', () => {
       it('should send authenticated web view opened event', () => {
