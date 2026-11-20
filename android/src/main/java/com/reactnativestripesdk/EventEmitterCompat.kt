@@ -14,19 +14,24 @@ class EventEmitterCompat(
     eventName: String,
     params: Any? = null,
   ) {
+    if (!reactApplicationContext.hasActiveReactInstance()) {
+      return
+    }
     try {
       reactApplicationContext
         .getJSModule(
           DeviceEventManagerModule.RCTDeviceEventEmitter::class.java,
         ).emit(eventName, params)
     } catch (error: IllegalStateException) {
-      // Checkout can publish before the React instance exists or after it is
-      // destroyed. getJSModule throws IllegalStateException then, and that
-      // failure would escape the collector coroutine.
-      if (error.message?.contains("JS module") != true) {
+      if (error.message?.startsWith(JS_MODULE_ACCESS_MESSAGE_PREFIX) != true) {
         throw error
       }
     }
+  }
+
+  private companion object {
+    // Prefix shared by BridgeReactContext early/late JS module access errors.
+    private const val JS_MODULE_ACCESS_MESSAGE_PREFIX = "Tried to access a JS module "
   }
 
   fun emitOnConfirmHandlerCallback(value: ReadableMap?) {

@@ -619,6 +619,7 @@ class NativeCheckoutControllerInstanceTest {
       `when`(controller.session).thenReturn(sessions)
       `when`(controller.isUpdating).thenReturn(updating)
       `when`(context.resources).thenReturn(ApplicationProvider.getApplicationContext<Context>().resources)
+      `when`(context.hasActiveReactInstance()).thenReturn(true)
       val emitter = mock(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       `when`(context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)).thenReturn(emitter)
       doAnswer { invocation ->
