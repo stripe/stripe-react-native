@@ -58,6 +58,7 @@ import com.stripe.android.link.LinkController.PaymentMethodPreview
 import com.stripe.android.link.LinkControllerPreview
 import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.model.CardBrand
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -357,12 +358,12 @@ class OnrampSdkModule(
             promise.resolve(createOnrampFailedError(result.error))
           }
         }
-      } catch (error: Throwable) {
-        // Resolving builds a native map. When the React native runtime is not
-        // loaded that throws, and an uncaught coroutine exception leaks into
-        // the next unit test.
+      } catch (error: CancellationException) {
+        throw error
+      } catch (error: Exception) {
+        // WritableNativeMap construction can throw when the bridge is unavailable.
         try {
-          promise.reject("Failed", error.message, error)
+          promise.resolve(createOnrampFailedError(error))
         } catch (_: Throwable) {
         }
       }
