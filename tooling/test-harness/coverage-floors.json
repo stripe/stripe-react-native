@@ -4,10 +4,10 @@
       "dir": ".",
       "exclude": ["src/types/**", "src/plugin/**"],
       "floor": {
-        "statements": 45.28,
-        "branches": 40.78,
-        "functions": 42.78,
-        "lines": 44.96
+        "statements": 48.3,
+        "branches": 45.08,
+        "functions": 44.55,
+        "lines": 48.03
       }
     },
     "@stripe/react-native-core": {
@@ -38,5 +38,6 @@
   "unmeasured": {
     "@stripe/react-native-test-harness": "private coverage harness app; nothing in it ships"
   },
-  "scopeChanges": {}
+  "scopeChanges": {},
+  "floorResets": {}
 }
