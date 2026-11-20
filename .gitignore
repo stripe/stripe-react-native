@@ -44,6 +44,13 @@ example/android/app/build/reports
 #
 example/ios/Pods
 
+# Coverage test harness and coverage artifacts
+/coverage/
+tooling/test-harness/ios/Pods/
+tooling/test-harness/ios/Podfile.lock
+tooling/test-harness/ios/*.xcworkspace
+tooling/test-harness/ios/.xcode.env
+
 # node.js
 #
 node_modules/

@@ -1,0 +1,42 @@
+{
+  "packages": {
+    "@stripe/stripe-react-native": {
+      "dir": ".",
+      "exclude": ["src/types/**", "src/plugin/**"],
+      "floor": {
+        "statements": 40.72,
+        "branches": 33.56,
+        "functions": 39.72,
+        "lines": 40.54
+      }
+    },
+    "@stripe/react-native-core": {
+      "dir": "packages/core",
+      "floor": null
+    },
+    "@stripe/react-native-payments": {
+      "dir": "packages/payments",
+      "floor": null
+    },
+    "@stripe/react-native-financial-connections": {
+      "dir": "packages/financial-connections",
+      "floor": null
+    },
+    "@stripe/react-native-connect": {
+      "dir": "packages/connect",
+      "floor": null
+    },
+    "@stripe/react-native-issuing": {
+      "dir": "packages/issuing",
+      "floor": null
+    },
+    "@stripe/react-native-onramp": {
+      "dir": "packages/onramp",
+      "floor": null
+    }
+  },
+  "unmeasured": {
+    "@stripe/react-native-test-harness": "private coverage harness app; nothing in it ships"
+  },
+  "scopeChanges": {}
+}

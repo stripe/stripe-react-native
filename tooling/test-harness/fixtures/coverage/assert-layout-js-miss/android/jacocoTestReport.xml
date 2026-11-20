@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<report name="Jacoco Coverage Report">
+  <sessioninfo id="test-harness" start="0" dump="0"/>
+  <package name="com/reactnativestripesdk/Foo">
+    <counter type="LINE" missed="0" covered="1"/>
+  </package>
+</report>

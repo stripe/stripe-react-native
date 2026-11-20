@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Root entrypoint for test-harness coverage commands. Lives outside package.json
+# so product commits do not collide with the private device-env package.json patch.
+set -euo pipefail
+if [ "$#" -lt 1 ]; then
+  echo "usage: scripts/coverage <jest|floors:update|ios|android|assert> [args...]" >&2
+  exit 2
+fi
+cmd=$1
+shift
+exec yarn workspace @stripe/react-native-test-harness "coverage:${cmd}" "$@"
