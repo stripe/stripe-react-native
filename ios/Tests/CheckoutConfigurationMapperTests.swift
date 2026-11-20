@@ -32,9 +32,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertEqual(element.appearance.buttonLayout.maxRows, 10)
         XCTAssertEqual(element.appearance.cornerRadius, 12)
         XCTAssertEqual(configuration.applePayMerchantId, "merchant.com.example")
-        // Payment Element's own ApplePayConfiguration.display is untouched by Express
-        // Checkout Element's configuration; it defaults to .automatic.
-        XCTAssertEqual(configuration.paymentElement?.applePayConfiguration.display, .automatic)
+        XCTAssertNil(configuration.paymentElement)
         element.completion(.canceled)
         XCTAssertTrue(completed)
     }
@@ -314,6 +312,7 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
             params: [
                 "clientSecret": "cs_test_secret_123",
                 "returnURL": "example://checkout",
+                "paymentElement": [:],
             ],
             merchantIdentifier: nil,
             didSelectPaymentOption: {},
@@ -331,6 +330,22 @@ final class CheckoutConfigurationMapperTests: XCTestCase {
         XCTAssertTrue(paymentElement.displaysMandateText)
         XCTAssertNil(configuration.applePayMerchantId)
         XCTAssertNil(paymentElement.linkConfiguration)
+    }
+
+    func test_map_mapsCardBrandAcceptanceAndWalletButtonHiddenLink() throws {
+        let configuration = try CheckoutConfigurationMapper.map(
+            params: ["paymentElement": [
+                "cardBrandAcceptance": ["filter": "allowed", "brands": ["visa"]],
+                "link": ["display": "walletButtonHidden"],
+            ], ],
+            merchantIdentifier: nil,
+            didSelectPaymentOption: {},
+            expressCheckoutCompletion: { _ in }
+        )
+
+        let paymentElement = try XCTUnwrap(configuration.paymentElement)
+        XCTAssertEqual(paymentElement.cardBrandAcceptance, .allowed(brands: [.visa]))
+        XCTAssertEqual(paymentElement.linkConfiguration?.display, .walletButtonHidden)
     }
 
     func test_map_mapsApplePayDisplay() throws {

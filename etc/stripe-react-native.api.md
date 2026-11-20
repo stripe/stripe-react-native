@@ -965,7 +965,7 @@ export interface CheckoutElements {
     readonly currencySelectorElement: CheckoutCurrencySelectorElement | null;
     destroy(): Promise<void>;
     readonly expressCheckoutElement: ExpressCheckoutElement | null;
-    readonly paymentElement: CheckoutPaymentElement;
+    readonly paymentElement: CheckoutPaymentElement | null;
     // @internal
     removePromotionCode(): Promise<void>;
     runServerUpdate(serverUpdate: () => Promise<void>): Promise<void>;
@@ -1143,6 +1143,7 @@ export namespace CheckoutElements {
     export interface PaymentElementConfiguration {
         appearance?: PaymentElementConfiguration.Appearance;
         applePay?: PaymentElementConfiguration.ApplePayConfiguration;
+        cardBrandAcceptance?: PaymentElementConfiguration.CardBrandAcceptance;
         displaysMandateText?: boolean;
         googlePay?: PaymentElementConfiguration.GooglePayConfiguration;
         link?: PaymentElementConfiguration.LinkConfiguration;
@@ -1161,6 +1162,7 @@ export namespace CheckoutElements {
             buttonType?: ApplePayButtonType;
             display?: 'automatic' | 'never';
         }
+        export type CardBrandAcceptance = PaymentSheet.CardBrandAcceptance;
         export type GooglePayButtonType = 'buy' | 'book' | 'checkout' | 'donate' | 'order' | 'pay' | 'subscribe' | 'plain';
         export interface GooglePayConfiguration {
             additionalEnabledNetworks?: string[];
@@ -1169,7 +1171,7 @@ export namespace CheckoutElements {
             label?: string;
         }
         export interface LinkConfiguration {
-            display?: 'automatic' | 'never';
+            display?: 'automatic' | 'never' | 'walletButtonHidden';
         }
         export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
     }

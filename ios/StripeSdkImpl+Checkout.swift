@@ -57,6 +57,9 @@ extension StripeSdkImpl {
                         : checkout.getCurrencySelectorElement()
                     let instance = NativeCheckoutControllerInstance(
                         checkout: checkout,
+                        paymentElement: configuration.paymentElement == nil
+                            ? nil
+                            : checkout.getPaymentElement(),
                         expressCheckoutElement: configuration.expressCheckoutElement == nil
                             ? nil
                             : checkout.getExpressCheckoutElement(),
@@ -208,7 +211,11 @@ extension StripeSdkImpl {
                 reject("Failed", "Checkout requires a visible presenting view controller.", checkoutRejectionError())
                 return
             }
-            instance.checkout.getPaymentElement().present(from: presenter, completion: nil)
+            guard let paymentElement = instance.paymentElement else {
+                reject("Failed", "Payment Element was not configured for this Checkout controller.", checkoutRejectionError())
+                return
+            }
+            paymentElement.present(from: presenter, completion: nil)
             resolve(nil)
         }
     }

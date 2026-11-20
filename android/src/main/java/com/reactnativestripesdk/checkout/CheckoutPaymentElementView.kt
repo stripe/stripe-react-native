@@ -70,7 +70,7 @@ class CheckoutPaymentElementView(
     if (!isAttachedToWindow || element != null) return
     val id = controllerId ?: return
     val module = reactContext.getNativeModule(StripeSdkModule::class.java) ?: return
-    val instance = module.checkoutControllers[id] ?: return
+    val instance = module.checkoutControllers[id]?.takeIf { it.isPaymentElementConfigured } ?: return
     val activity = reactContext.currentActivity as? ComponentActivity ?: return
     element = instance.paymentElement(activity)
     removeObserver = instance.observeDestruction { detach() }

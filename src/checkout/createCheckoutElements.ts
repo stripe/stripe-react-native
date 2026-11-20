@@ -183,6 +183,7 @@ export async function createCheckoutController(
     : undefined;
   try {
     // Keep handle availability consistent if options change during native creation.
+    const isPaymentElementConfigured = Boolean(options.paymentElement);
     const isShippingAddressElementConfigured = Boolean(
       options.shippingAddressElement
     );
@@ -215,12 +216,14 @@ export async function createCheckoutController(
       return operationResult;
     };
 
-    const paymentElement = {
-      present: () =>
-        performOperation(() =>
-          NativeStripeSdk.presentCheckoutPaymentElement(controllerId)
-        ),
-    };
+    const paymentElement = isPaymentElementConfigured
+      ? {
+          present: () =>
+            performOperation(() =>
+              NativeStripeSdk.presentCheckoutPaymentElement(controllerId)
+            ),
+        }
+      : null;
     // Shipping collection is opt-in, matching the native Checkout configuration.
     const shippingAddressElement = isShippingAddressElementConfigured
       ? {
@@ -302,7 +305,9 @@ export async function createCheckoutController(
         return destroyPromise;
       },
     };
-    paymentElementIds.set(paymentElement, controllerId);
+    if (paymentElement) {
+      paymentElementIds.set(paymentElement, controllerId);
+    }
     if (currencySelectorElement) {
       currencySelectorElementIds.set(currencySelectorElement, controllerId);
     }
