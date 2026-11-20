@@ -360,8 +360,8 @@ class OnrampSdkModule(
         }
       } catch (error: CancellationException) {
         throw error
-      } catch (error: Exception) {
-        // WritableNativeMap construction can throw when the bridge is unavailable.
+      } catch (error: Throwable) {
+        // WritableNativeMap construction can throw Error (e.g. NativeLoader) when the bridge is unavailable.
         try {
           promise.resolve(createOnrampFailedError(error))
         } catch (_: Throwable) {
