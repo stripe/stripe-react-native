@@ -1,4 +1,4 @@
-import React, { JSX, useMemo, useState } from 'react';
+import React, { JSX, useEffect, useMemo, useState } from 'react';
 import type {
   StripeConnectInitParams,
   StripeConnectUpdateParams,
@@ -8,16 +8,33 @@ import type {
 import { AnalyticsClient } from './analytics/AnalyticsClient';
 import { Constants } from '../functions';
 
+type UpdateListener = (options: StripeConnectUpdateParams) => void;
+
 class ConnectInstance implements StripeConnectInstance {
   initParams: StripeConnectInitParams;
-  onUpdate?: (options: StripeConnectUpdateParams) => void;
+  private listeners = new Set<UpdateListener>();
 
   constructor(initParams: StripeConnectInitParams) {
     this.initParams = initParams;
   }
 
   update(options: StripeConnectUpdateParams): void {
-    this.onUpdate?.(options);
+    // Remember the latest values (without touching the object the caller
+    // passed in), so a provider that mounts later starts from them instead of
+    // from the original init params.
+    this.initParams = {
+      ...this.initParams,
+      ...(options.appearance ? { appearance: options.appearance } : {}),
+      ...(options.locale ? { locale: options.locale } : {}),
+    };
+    this.listeners.forEach((listener) => listener(options));
+  }
+
+  subscribe(listener: UpdateListener): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 }
 
@@ -126,16 +143,21 @@ export const ConnectComponentsProvider = ({
     return new AnalyticsClient(Constants.SYSTEM_INFO);
   }, []);
 
-  if (!connectInstance.onUpdate) {
-    connectInstance.onUpdate = (options: StripeConnectUpdateParams) => {
+  useEffect(() => {
+    // Catch up with anything applied before this effect ran, or to a previous
+    // instance if the prop changed.
+    setAppearance(connectInstance.initParams.appearance);
+    setLocale(connectInstance.initParams.locale);
+
+    return connectInstance.subscribe((options) => {
       if (options.appearance) {
         setAppearance(options.appearance);
       }
       if (options.locale) {
         setLocale(options.locale);
       }
-    };
-  }
+    });
+  }, [connectInstance]);
 
   const value = useMemo(
     () => ({ connectInstance, locale, appearance, analyticsClient }),
