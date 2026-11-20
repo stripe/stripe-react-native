@@ -33,6 +33,20 @@ jest.mock('../../specs/NativeConnectAccountOnboardingView', () => {
   };
 });
 
+jest.mock('../../specs/NativeNavigationBar', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: React.forwardRef((props: any, _ref: any) => {
+      return React.createElement(View, {
+        testID: 'native-navigation-bar',
+        ...props,
+      });
+    }),
+  };
+});
+
 // Lets us inspect exactly what componentProps/callbacks ConnectAccountOnboarding
 // forwards down, including the internal-only props (kycRecipientAccountId,
 // authChallenge, onAuthChallengeRequired) that aren't in its public prop types.
@@ -47,7 +61,7 @@ jest.mock('../EmbeddedComponent', () => {
 
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import {
   ConnectAccountOnboarding,
   ConnectPayments,
@@ -151,6 +165,42 @@ describe('ConnectAccountOnboarding', () => {
     it('renders Modal on Android', () => {
       // Component should render without error
       expect(() => renderComponent()).not.toThrow();
+    });
+
+    it('gives the navigation bar the appearance background color', () => {
+      const instance = loadConnectAndInitialize({
+        ...mockInitParams,
+        appearance: { variables: { colorBackground: '#112233' } },
+      });
+
+      const { getByTestId } = render(
+        <ConnectComponentsProvider connectInstance={instance}>
+          <ConnectAccountOnboarding onExit={jest.fn()} />
+        </ConnectComponentsProvider>
+      );
+
+      const navigationBar = getByTestId('native-navigation-bar');
+      expect(
+        StyleSheet.flatten(navigationBar.props.style).backgroundColor
+      ).toBe('#112233');
+    });
+
+    it('uses a white navigation bar when the appearance sets no background', () => {
+      const instance = loadConnectAndInitialize({
+        ...mockInitParams,
+        appearance: undefined,
+      });
+
+      const { getByTestId } = render(
+        <ConnectComponentsProvider connectInstance={instance}>
+          <ConnectAccountOnboarding onExit={jest.fn()} />
+        </ConnectComponentsProvider>
+      );
+
+      const navigationBar = getByTestId('native-navigation-bar');
+      expect(
+        StyleSheet.flatten(navigationBar.props.style).backgroundColor
+      ).toBe('#FFFFFF');
     });
   });
 
