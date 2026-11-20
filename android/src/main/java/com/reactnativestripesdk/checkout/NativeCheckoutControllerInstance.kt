@@ -39,6 +39,7 @@ internal class NativeCheckoutControllerInstance(
   private val scope: CoroutineScope,
   initialSession: WritableMap,
   private val context: ReactApplicationContext,
+  val isPaymentElementConfigured: Boolean = false,
   val isShippingAddressElementConfigured: Boolean = false,
   private val isExpressCheckoutElementConfigured: Boolean = false,
 ) {
@@ -80,7 +81,12 @@ internal class NativeCheckoutControllerInstance(
   }
 
   /** Reuses the native Payment Element for the lifetime of its activity. */
-  fun paymentElement(activity: ComponentActivity): PaymentElement = getPresenter(activity).paymentElement()
+  fun paymentElement(activity: ComponentActivity): PaymentElement {
+    check(isPaymentElementConfigured) {
+      "Payment Element was not configured for this Checkout controller."
+    }
+    return getPresenter(activity).paymentElement()
+  }
 
   /** Reuses the native Currency Selector Element for the lifetime of its activity. */
   fun currencySelectorElement(activity: ComponentActivity): CurrencySelectorElement =

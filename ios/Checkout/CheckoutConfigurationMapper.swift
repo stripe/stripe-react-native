@@ -36,11 +36,12 @@ enum CheckoutConfigurationMapper {
         let defaultsParams = params["defaults"] as? NSDictionary
         configuration.defaults = mapDefaults(defaultsParams)
 
-        let paymentElementParams = params["paymentElement"] as? NSDictionary
-        configuration.paymentElement = try mapPaymentElement(
-            paymentElementParams,
-            didSelectPaymentOption: didSelectPaymentOption
-        )
+        if let paymentElementParams = params["paymentElement"] as? NSDictionary {
+            configuration.paymentElement = try mapPaymentElement(
+                paymentElementParams,
+                didSelectPaymentOption: didSelectPaymentOption
+            )
+        }
         let expressParams = params["expressCheckoutElement"] as? NSDictionary
         configuration.applePayMerchantId = mapApplePayMerchantId(merchantIdentifier)
         if let expressParams {
@@ -325,6 +326,7 @@ enum CheckoutConfigurationMapper {
             configuration.preferredNetworks = try mapPreferredNetworks(preferredNetworks)
         }
 
+        configuration.cardBrandAcceptance = StripeSdkImpl.computeCardBrandAcceptance(params: params)
         configuration.removeSavedPaymentMethodMessage = params["removeSavedPaymentMethodMessage"] as? String
         configuration.paymentMethodOrder = params["paymentMethodOrder"] as? [String]
         if let opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool {
@@ -379,6 +381,7 @@ enum CheckoutConfigurationMapper {
         switch value {
         case "automatic": return .automatic
         case "never": return .never
+        case "walletButtonHidden": return .walletButtonHidden
         default: throw unsupported(value, at: "paymentElement.link.display")
         }
     }

@@ -126,6 +126,7 @@ class StripeSdkModuleCheckoutTest {
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
       context,
+      isPaymentElementConfigured = true,
     )
     val controllerId = "controller"
     module.checkoutControllers[controllerId] = instance

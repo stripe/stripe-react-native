@@ -14,6 +14,7 @@ final class NativeCheckoutControllerInstance {
     }
 
     let checkout: CheckoutElementsController
+    let paymentElement: PaymentElement?
     let expressCheckoutElement: ExpressCheckoutElement?
     let currencySelectorElement: CurrencySelectorElement?
     let shippingAddressElement: ShippingAddressElement?
@@ -30,6 +31,7 @@ final class NativeCheckoutControllerInstance {
 
     init(
         checkout: CheckoutElementsController,
+        paymentElement: PaymentElement? = nil,
         expressCheckoutElement: ExpressCheckoutElement? = nil,
         currencySelectorElement: CurrencySelectorElement? = nil,
         shippingAddressElement: ShippingAddressElement? = nil,
@@ -37,6 +39,7 @@ final class NativeCheckoutControllerInstance {
         emitEvent: @escaping ([String: Any]) -> Void
     ) {
         self.checkout = checkout
+        self.paymentElement = paymentElement
         self.expressCheckoutElement = expressCheckoutElement
         self.currencySelectorElement = currencySelectorElement
         self.shippingAddressElement = shippingAddressElement

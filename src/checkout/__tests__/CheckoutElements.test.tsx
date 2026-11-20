@@ -32,6 +32,7 @@ afterEach(() => jest.restoreAllMocks());
 const options: CheckoutElements.CreateOptions = {
   clientSecret: 'cs_test_secret',
   returnURL: 'example://checkout',
+  paymentElement: {},
 };
 
 const listeners = new Map<string, Set<(event: any) => void>>();
@@ -194,17 +195,26 @@ it('forwards mutations and preserves native errors', async () => {
 
   const error = Object.assign(new Error('No presenter'), { code: 'Failed' });
   present.mockRejectedValueOnce(error);
-  await expect(controller.paymentElement.present()).rejects.toBe(error);
-  await controller.paymentElement.present();
-  await controller.paymentElement.present();
+  await expect(controller.paymentElement!.present()).rejects.toBe(error);
+  await controller.paymentElement!.present();
+  await controller.paymentElement!.present();
   expect(present).toHaveBeenCalledTimes(3);
   await controller.destroy();
   await controller.destroy();
   expect(destroy).toHaveBeenCalledTimes(1);
-  await expect(controller.paymentElement.present()).rejects.toThrow(
+  await expect(controller.paymentElement!.present()).rejects.toThrow(
     'destroyed'
   );
   expect(present).toHaveBeenCalledTimes(3);
+});
+
+it('does not expose a Payment Element that was not configured', async () => {
+  const controller = await createCheckoutElements({
+    ...options,
+    paymentElement: undefined,
+  });
+  expect(controller.paymentElement).toBeNull();
+  await controller.destroy();
 });
 
 it('removes listeners when creation fails', async () => {

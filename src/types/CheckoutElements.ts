@@ -8,6 +8,7 @@ import type {
   TermsDisplay,
 } from './PaymentSheet';
 import type { EmbeddedRowSelectionBehavior } from './EmbeddedPaymentElement';
+import type * as PaymentSheet from './PaymentSheet';
 
 /**
  * Controls a Checkout Session, including its state, Payment Element,
@@ -30,8 +31,8 @@ export interface CheckoutElements {
   readonly status: 'ready' | 'updating' | 'confirming' | 'destroyed';
   /** The latest snapshot of the customer's Checkout Session. */
   readonly session: CheckoutElements.Session;
-  /** The Payment Element owned by this controller. */
-  readonly paymentElement: CheckoutPaymentElement;
+  /** The Payment Element, or `null` when it is not configured. */
+  readonly paymentElement: CheckoutPaymentElement | null;
   /** The Shipping Address Element, or `null` when it is not configured. */
   readonly shippingAddressElement: CheckoutShippingAddressElement | null;
   /** The Currency Selector Element, or `null` when unavailable. */
@@ -715,6 +716,8 @@ export namespace CheckoutElements {
     removeSavedPaymentMethodMessage?: string;
     /** Overrides the default order of payment method types. */
     paymentMethodOrder?: string[];
+    /** Card brands accepted by Payment Element. Defaults to all brands. */
+    cardBrandAcceptance?: PaymentElementConfiguration.CardBrandAcceptance;
     /** Whether the new-card form opens the card scanner automatically. */
     opensCardScannerAutomatically?: boolean;
     /** Controls legal agreement text for each payment method type. */
@@ -753,6 +756,12 @@ export namespace CheckoutElements {
      * @CheckoutSessionPrivatePreview
      */
     export type RowSelectionBehavior = EmbeddedRowSelectionBehavior;
+
+    /**
+     * Card brands that Payment Element accepts.
+     * @CheckoutSessionPrivatePreview
+     */
+    export type CardBrandAcceptance = PaymentSheet.CardBrandAcceptance;
 
     /**
      * Apple Pay configuration for Payment Element.
@@ -826,7 +835,7 @@ export namespace CheckoutElements {
      */
     export interface LinkConfiguration {
       /** Controls when Link is displayed. Defaults to `automatic`. */
-      display?: 'automatic' | 'never';
+      display?: 'automatic' | 'never' | 'walletButtonHidden';
     }
   }
 
