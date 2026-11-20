@@ -36,7 +36,11 @@ import type {
 import type { FinancialConnections, StripeError } from '../types';
 import { FinancialConnectionsSheetError } from '../types/FinancialConnections';
 import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
-import { buildInjectedObjectScript } from './injectedObjectScript';
+import {
+  buildInjectedObjectScript,
+  wrapperDocumentCondition,
+} from './injectedObjectScript';
+import { createBridgeToken, isRecord, unwrapBridgeMessage } from './bridgeAuth';
 
 // react-native-webview 14 declares WebView<P = undefined>, which collapses
 // Component props to never when used as typeof WebView. Type the dynamic
@@ -428,6 +432,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
   const ref = useRef<WebViewHandle>(null);
+  const [bridgeToken] = useState(createBridgeToken);
+  const hasLoggedUnauthorizedMessage = useRef(false);
   const hasTriedSourceReload = useRef(false);
 
   const [prevAppearance, setPrevAppearance] = useState(appearance);
@@ -591,9 +597,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const onMessageCallback = useCallback(
     async (event: WebViewMessageEvent) => {
+      // Only messages sent through the wrapper document's bridge are enveloped.
+      const inner = unwrapBridgeMessage(event?.nativeEvent?.data, bridgeToken);
+      if (inner === null) {
+        if (!hasLoggedUnauthorizedMessage.current) {
+          hasLoggedUnauthorizedMessage.current = true;
+          componentAnalytics.logUnauthorizedMessage();
+        }
+        return;
+      }
+
       let message: { type: string; data?: unknown };
       try {
-        message = JSON.parse(event.nativeEvent.data);
+        const parsed: unknown = JSON.parse(inner);
+        if (!isRecord(parsed)) return;
+        message = parsed as { type: string; data?: unknown };
       } catch (error) {
         componentAnalytics.logDeserializeMessageError(
           'unknown',
@@ -628,13 +646,9 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'accountSessionClaimed') {
         // message.data is of type {elementTagName: string, merchantId: string}
       } else if (message.type === 'openFinancialConnections') {
-        const messageData = message.data as {
-          clientSecret: string;
-          id: string;
-          connectedAccountId: string;
-        };
-
-        const { clientSecret, id, connectedAccountId } = messageData;
+        if (!isRecord(message.data)) return;
+        const { clientSecret, id, connectedAccountId } = message.data;
+        if (typeof id !== 'string') return;
 
         // Validate client secret
         if (!clientSecret || typeof clientSecret !== 'string') {
@@ -642,6 +656,19 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
             error: {
               code: 'InvalidClientSecret',
               message: 'Invalid or missing clientSecret parameter',
+            },
+          });
+          return;
+        }
+
+        if (
+          connectedAccountId != null &&
+          typeof connectedAccountId !== 'string'
+        ) {
+          handleFinancialConnectionsResult(id, {
+            error: {
+              code: 'InvalidConnectedAccountId',
+              message: 'Invalid connectedAccountId parameter',
             },
           });
           return;
@@ -688,7 +715,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         const resultPromise: Promise<FinancialConnections.TokenResult> =
           NativeStripeSdk.collectBankAccountToken(clientSecret, {
-            connectedAccountId,
+            connectedAccountId: connectedAccountId ?? undefined,
           });
 
         resultPromise
@@ -743,10 +770,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'callSupplementalFunction') {
         // message.data is of type {[key]: {functionName: string; args: unknown[]; invocationId: string;}}
       } else if (message.type === 'onSetterFunctionCalled') {
-        const { setter, value } = message.data as {
-          setter: string;
-          value: unknown;
-        };
+        if (!isRecord(message.data)) return;
+        const { setter, value } = message.data;
 
         if (setter === 'setOnLoaderStart') {
           onLoaderStart?.(value as LoaderStart);
@@ -755,16 +780,28 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         } else {
           // remove the 'set' prefix and lowercase the first letter
           const functionName =
-            setter.charAt(3).toLowerCase() + setter.substring(4);
-          if (callbacks?.[functionName]) {
-            callbacks[functionName](value);
+            typeof setter === 'string' && setter.startsWith('set')
+              ? setter.charAt(3).toLowerCase() + setter.substring(4)
+              : undefined;
+          // Own properties only: 'constructor' and '__proto__' must not resolve.
+          const callback =
+            callbacks &&
+            functionName !== undefined &&
+            Object.prototype.hasOwnProperty.call(callbacks, functionName)
+              ? callbacks[functionName]
+              : undefined;
+          if (typeof callback === 'function') {
+            callback(value);
           } else {
-            // Unrecognized setter function
-            componentAnalytics.logUnrecognizedSetter(setter);
+            componentAnalytics.logUnrecognizedSetter(
+              typeof setter === 'string' ? setter : 'unknown'
+            );
           }
         }
       } else if (message.type === 'openAuthenticatedWebView') {
-        const { url, id } = message.data as { id: string; url: string };
+        if (!isRecord(message.data)) return;
+        const { url, id } = message.data;
+        if (typeof url !== 'string' || typeof id !== 'string') return;
 
         // Validate URL before opening. Never log `url` itself.
         if (!isValidUrl(url)) {
@@ -824,6 +861,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }
     },
     [
+      bridgeToken,
       callbacks,
       component,
       componentAnalytics,
@@ -916,8 +954,13 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   );
 
   const injectedObjectScript = useMemo(
-    () => buildInjectedObjectScript(injectedObject),
-    [injectedObject]
+    () =>
+      buildInjectedObjectScript(injectedObject, {
+        token: bridgeToken,
+        origin: BASE_URL,
+        path: WRAPPER_PATH,
+      }),
+    [injectedObject, bridgeToken]
   );
 
   if (!WebViewComponent) return null;
@@ -1092,10 +1135,7 @@ function isCsvExportUrl(url: string): boolean {
 function deliverToWrapper(payloadScript: string): string {
   return `
     (function() {
-      if (
-        window.location.origin === ${JSON.stringify(BASE_URL)} &&
-        window.location.pathname === ${JSON.stringify(WRAPPER_PATH)}
-      ) {
+      if (${wrapperDocumentCondition(BASE_URL, WRAPPER_PATH)}) {
         ${payloadScript}
       }
       true;
