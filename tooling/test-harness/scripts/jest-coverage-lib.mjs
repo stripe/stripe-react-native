@@ -47,6 +47,7 @@ export function readFloors(text) {
   }
   parsed.unmeasured ??= {};
   parsed.scopeChanges ??= {};
+  parsed.floorResets ??= {};
   return parsed;
 }
 
@@ -252,17 +253,23 @@ export function checkPackage(name, pkg, args, failures, measureFn = measure) {
 }
 
 // A scope change (dropped package, new exclude, changed dir) passes only when
-// this change names it in "scopeChanges". An entry already present at the base
-// is stale: it would let later changes narrow the scope unreviewed.
+// this change names it in "scopeChanges". A lowered floor passes only when
+// this change names it in "floorResets". An entry already present at the base
+// is stale: it would let later changes repeat the exception unreviewed.
 export function checkAgainstBase(floors, base, ref, failures) {
-  const declared = (name) => {
-    const reason = floors.scopeChanges[name];
-    return reason != null && base.scopeChanges[name] !== reason;
+  const scopeChanges = floors.scopeChanges ?? {};
+  const baseScopeChanges = base.scopeChanges ?? {};
+  const floorResets = floors.floorResets ?? {};
+  const baseFloorResets = base.floorResets ?? {};
+  const freshReason = (current, previous, name) => {
+    const reason = current[name];
+    return reason != null && previous[name] !== reason;
   };
+  const declared = (name) => freshReason(scopeChanges, baseScopeChanges, name);
   const narrowed = (name, message) => {
     if (declared(name)) {
       console.log(
-        `[coverage] ${name}: ${message} (declared: ${floors.scopeChanges[name]})`
+        `[coverage] ${name}: ${message} (declared: ${scopeChanges[name]})`
       );
     } else {
       failures.push(
@@ -292,16 +299,30 @@ export function checkAgainstBase(floors, base, ref, failures) {
         before != null &&
         (after == null || toBasisPoints(after) < toBasisPoints(before))
       ) {
-        failures.push(
-          `${name}: ${metric} floor lowered from ${before}% (at ${ref}) to ${after ?? 'none'}`
-        );
+        const message = `${metric} floor lowered from ${before}% (at ${ref}) to ${after ?? 'none'}`;
+        if (freshReason(floorResets, baseFloorResets, name)) {
+          console.log(
+            `[coverage] ${name}: ${message} (declared: ${floorResets[name]})`
+          );
+        } else {
+          failures.push(
+            `${name}: ${message}; add a "floorResets" entry with the reason if this reset is intended`
+          );
+        }
       }
     }
   }
-  for (const [name, reason] of Object.entries(floors.scopeChanges)) {
-    if (base.scopeChanges[name] === reason) {
+  for (const [name, reason] of Object.entries(scopeChanges)) {
+    if (baseScopeChanges[name] === reason) {
       failures.push(
         `${name}: "scopeChanges" entry is already at ${ref}; remove it`
+      );
+    }
+  }
+  for (const [name, reason] of Object.entries(floorResets)) {
+    if (baseFloorResets[name] === reason) {
+      failures.push(
+        `${name}: "floorResets" entry is already at ${ref}; remove it`
       );
     }
   }
@@ -321,6 +342,9 @@ export function runCoverageChecks(argv) {
   checkWorkspacesListed(all, floors, args, failures);
   for (const [name, reason] of Object.entries(floors.scopeChanges)) {
     console.log(`[coverage] ${name}: declared scope change (${reason})`);
+  }
+  for (const [name, reason] of Object.entries(floors.floorResets)) {
+    console.log(`[coverage] ${name}: declared floor reset (${reason})`);
   }
   for (const [name, pkg] of Object.entries(floors.packages)) {
     checkPackage(name, pkg, args, failures);

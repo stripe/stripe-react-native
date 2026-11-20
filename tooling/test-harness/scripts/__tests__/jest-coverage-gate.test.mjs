@@ -485,6 +485,153 @@ test('checkAgainstBase allows a dir change with a new scopeChanges reason', () =
   assert.deepEqual(failures, []);
 });
 
+test('checkAgainstBase allows a lowered floor with a new floorResets reason', () => {
+  const reason =
+    'baseline was recorded on 46250f94 and the gate runs on 77eb3f6a';
+  const logs = [];
+  const originalLog = console.log;
+  console.log = (...args) => {
+    logs.push(args.join(' '));
+  };
+  try {
+    const floors = readFloors(
+      JSON.stringify({
+        packages: {
+          '@stripe/stripe-react-native': {
+            dir: '.',
+            floor: {
+              statements: 45.2,
+              branches: 40.39,
+              functions: 42.78,
+              lines: 44.89,
+            },
+          },
+        },
+        unmeasured: {},
+        scopeChanges: {},
+        floorResets: {
+          '@stripe/stripe-react-native': reason,
+        },
+      })
+    );
+    const base = readFloors(
+      JSON.stringify({
+        packages: {
+          '@stripe/stripe-react-native': {
+            dir: '.',
+            floor: {
+              statements: 45.28,
+              branches: 40.78,
+              functions: 42.78,
+              lines: 44.96,
+            },
+          },
+        },
+        unmeasured: {},
+        scopeChanges: {},
+      })
+    );
+    const failures = [];
+    checkAgainstBase(floors, base, 'FETCH_HEAD', failures);
+    assert.deepEqual(failures, []);
+    assert.ok(
+      logs.some((line) =>
+        line.includes(
+          'statements floor lowered from 45.28% (at FETCH_HEAD) to 45.2 (declared: ' +
+            reason +
+            ')'
+        )
+      )
+    );
+  } finally {
+    console.log = originalLog;
+  }
+});
+
+test('checkAgainstBase rejects a lowered floor with no floorResets reason', () => {
+  const floors = readFloors(
+    JSON.stringify({
+      packages: {
+        '@stripe/stripe-react-native': {
+          dir: '.',
+          floor: { statements: 30, branches: 33.56, functions: 39.72, lines: 40.54 },
+        },
+      },
+      unmeasured: {},
+      scopeChanges: {},
+      floorResets: {},
+    })
+  );
+  const base = readFloors(
+    JSON.stringify({
+      packages: {
+        '@stripe/stripe-react-native': {
+          dir: '.',
+          floor: stripeNativeFloor.floor,
+        },
+      },
+      unmeasured: {},
+      scopeChanges: {},
+      floorResets: {},
+    })
+  );
+  const failures = [];
+  checkAgainstBase(floors, base, 'FETCH_HEAD', failures);
+  assert.ok(
+    failures.some((f) =>
+      f.includes(
+        'statements floor lowered from 40.72% (at FETCH_HEAD) to 30; add a "floorResets" entry'
+      )
+    )
+  );
+});
+
+test('checkAgainstBase rejects a floorResets reason already on the base', () => {
+  const reason = 'baseline was recorded on another tree';
+  const floors = readFloors(
+    JSON.stringify({
+      packages: {
+        '@stripe/stripe-react-native': {
+          dir: '.',
+          floor: { statements: 30, branches: 33.56, functions: 39.72, lines: 40.54 },
+        },
+      },
+      unmeasured: {},
+      scopeChanges: {},
+      floorResets: {
+        '@stripe/stripe-react-native': reason,
+      },
+    })
+  );
+  const base = readFloors(
+    JSON.stringify({
+      packages: {
+        '@stripe/stripe-react-native': {
+          dir: '.',
+          floor: stripeNativeFloor.floor,
+        },
+      },
+      unmeasured: {},
+      scopeChanges: {},
+      floorResets: {
+        '@stripe/stripe-react-native': reason,
+      },
+    })
+  );
+  const failures = [];
+  checkAgainstBase(floors, base, 'FETCH_HEAD', failures);
+  assert.ok(
+    failures.some((f) =>
+      f.includes('"floorResets" entry is already at FETCH_HEAD; remove it')
+    )
+  );
+  assert.ok(
+    failures.some((f) =>
+      f.includes('statements floor lowered from 40.72% (at FETCH_HEAD) to 30')
+    )
+  );
+});
+
 test('checkAgainstBase rejects a stale scopeChanges entry', () => {
   const reason = 'dropped legacy fixtures';
   const floors = readFloors(

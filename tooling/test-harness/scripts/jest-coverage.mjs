@@ -4,13 +4,15 @@
 //
 //   node scripts/jest-coverage.mjs                 # measure, fail below a floor
 //   node scripts/jest-coverage.mjs --update        # also record or raise floors to the measured values
-//   node scripts/jest-coverage.mjs --base <ref>    # also fail if this change lowers a floor or narrows a scope
+//   node scripts/jest-coverage.mjs --base <ref>    # also fail if this change lowers a floor without a new floorResets reason, or narrows a scope
 //
 // COVERAGE_FLOORS_BASE sets --base. Floors only move up: --update never
-// lowers one, and --base rejects a lowered floor. A "scopeChanges" reason does
-// not excuse that. --base also rejects a new exclude, a changed dir, or a
-// dropped package unless this change names it in "scopeChanges". Every
-// workspace with sources must have a floors entry or an "unmeasured" reason.
+// lowers one, and --base rejects a lowered floor unless this change adds a
+// "floorResets" reason that is not already at the base. A "scopeChanges"
+// reason does not excuse a lower floor. --base also rejects a new exclude, a
+// changed dir, or a dropped package unless this change names it in
+// "scopeChanges". Every workspace with sources must have a floors entry or
+// an "unmeasured" reason.
 // Also fails if any workspace other than the harness depends on
 // react-native-coverage.
 import { runCoverageChecks } from './jest-coverage-lib.mjs';
