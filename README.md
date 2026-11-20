@@ -26,7 +26,7 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 **PaymentSheet**: [Learn how to integrate](https://stripe.com/docs/payments/accept-a-payment) PaymentSheet, our new pre-built payments UI for mobile apps.
 - PaymentSheet lets you accept cards, Apple Pay, Google Pay, and much more out of the box and also supports saving & reusing payment methods.
 - PaymentSheet currently accepts the following payment methods: Card, Apple Pay, Google Pay, SEPA Debit, Bancontact, Billie, iDEAL, EPS, P24, Afterpay/Clearpay, Klarna, Giropay, and ACH.
-- PaymentSheet provides card scanning on iOS and Android, with the Android functionality provided by [Google Payment Card Recognition](https://developers.google.com/pay/payment-card-recognition/debit-credit-card-recognition). To enable card scanning in your app, follow [our guide](https://docs.corp.stripe.com/payments/accept-a-payment?payment-ui=mobile&platform=react-native#react-native-card-scanning).
+- PaymentSheet provides card scanning on iOS and Android, with the Android functionality provided by [Google Payment Card Recognition](https://developers.google.com/pay/payment-card-recognition/debit-credit-card-recognition). To enable card scanning in your app, follow [our guide](https://docs.stripe.com/payments/accept-a-payment?payment-ui=mobile&platform=react-native#react-native-card-scanning).
 
 #### Recommended usage
 
@@ -109,7 +109,7 @@ implementation 'com.google.android.material:material:<version>'
 
 #### iOS
 
-The Stripe React Native SDK supports all [Apple supported Xcode versions](https://developer.apple.com/news/upcoming-requirements/) and is compatible with apps targeting iOS 15 or above. For iOS 12 support, please use [`@stripe/stripe-react-native@0.19.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.19.0).
+The Stripe React Native SDK supports all [Apple supported Xcode versions](https://developer.apple.com/news/upcoming-requirements/) and is compatible with apps targeting iOS 15 or above.
 
 The SDK requires that your app uses dynamic linkage. See more details below.
 
@@ -330,7 +330,7 @@ Follow these steps to resolve this:
 
 You might see error this whilst initializing the `StripeProvider` component with Expo. This is caused by using an older version of Expo before stripe-react-native was [officially supported](https://github.com/stripe/stripe-react-native/issues/3#issuecomment-846225534). Updating Expo Go from the stores (or locally on simulators installed with `expo install:client:[ios|android]`) should fix the problem.
 
-If you're still having troubles, please [open an issue](https://github.com/stripe/stripe-react-native/issues/new/choose) or jump in our [developer chat](https://stripe.com/go/developer-chat).
+If you're still having troubles, please [open an issue](https://github.com/stripe/stripe-react-native/issues/new/choose) or join our [developer chat](https://stripe.com/go/developer-chat).
 
 ### `Apple Pay Is Not Available in "My App Name"`
 
