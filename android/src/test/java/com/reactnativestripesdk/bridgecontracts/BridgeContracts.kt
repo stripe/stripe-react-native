@@ -209,19 +209,67 @@ object BridgeAssert {
     failures: MutableList<String>,
   ) {
     when {
-      expected == PRESENT ->
-        if (actual == null || actual === Missing) failures += "$path: expected a value, found $actual"
-      expected == null || expected == JSONObject.NULL ->
-        if (actual != null && actual !== Missing) failures += "$path: expected null, found ${describe(actual)}"
-      actual === Missing -> failures += "$path: not found (expected $expected)"
-      expected is JSONObject && expected.length() == 0 ->
-        if ((normalize(actual) as? Map<*, *>)?.isEmpty() != true) {
-          failures += "$path: expected an empty object, found ${describe(actual)}"
-        }
-      expected is JSONObject ->
-        for (key in expected.keys()) match(expected.get(key), child(actual, key), "$path.$key", failures)
+      expected == PRESENT -> matchPresent(actual, path, failures)
+      expected == null || expected == JSONObject.NULL -> matchNull(actual, path, failures)
+      actual === Missing -> matchMissing(expected, path, failures)
+      expected is JSONObject && expected.length() == 0 -> matchEmptyObject(actual, path, failures)
+      expected is JSONObject -> matchObject(expected, actual, path, failures)
       expected is JSONArray -> matchList(expected, actual, path, failures)
-      !leafEquals(expected, normalize(actual)) -> failures += "$path: expected $expected, found ${describe(actual)}"
+      else -> matchLeaf(expected, actual, path, failures)
+    }
+  }
+
+  private fun matchPresent(
+    actual: Any?,
+    path: String,
+    failures: MutableList<String>,
+  ) {
+    if (actual == null || actual === Missing) failures += "$path: expected a value, found $actual"
+  }
+
+  private fun matchNull(
+    actual: Any?,
+    path: String,
+    failures: MutableList<String>,
+  ) {
+    if (actual != null && actual !== Missing) failures += "$path: expected null, found ${describe(actual)}"
+  }
+
+  private fun matchMissing(
+    expected: Any?,
+    path: String,
+    failures: MutableList<String>,
+  ) {
+    failures += "$path: not found (expected $expected)"
+  }
+
+  private fun matchEmptyObject(
+    actual: Any?,
+    path: String,
+    failures: MutableList<String>,
+  ) {
+    if ((normalize(actual) as? Map<*, *>)?.isEmpty() != true) {
+      failures += "$path: expected an empty object, found ${describe(actual)}"
+    }
+  }
+
+  private fun matchObject(
+    expected: JSONObject,
+    actual: Any?,
+    path: String,
+    failures: MutableList<String>,
+  ) {
+    for (key in expected.keys()) match(expected.get(key), child(actual, key), "$path.$key", failures)
+  }
+
+  private fun matchLeaf(
+    expected: Any?,
+    actual: Any?,
+    path: String,
+    failures: MutableList<String>,
+  ) {
+    if (!leafEquals(expected, normalize(actual))) {
+      failures += "$path: expected $expected, found ${describe(actual)}"
     }
   }
 
