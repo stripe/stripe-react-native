@@ -54,10 +54,12 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
 
     func test_inlineViewReleasesReplacedAndDestroyedControllers() async throws {
         let sdk = StripeSdkImpl.shared
-        let first = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
-        let second = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
-        let firstElement = first.checkout.getPaymentElement()
-        let secondElement = second.checkout.getPaymentElement()
+        let firstCheckout = try await makeCheckout()
+        let secondCheckout = try await makeCheckout()
+        let firstElement = firstCheckout.getPaymentElement()
+        let secondElement = secondCheckout.getPaymentElement()
+        let first = NativeCheckoutControllerInstance(checkout: firstCheckout, paymentElement: firstElement, emitEvent: { _ in })
+        let second = NativeCheckoutControllerInstance(checkout: secondCheckout, paymentElement: secondElement, emitEvent: { _ in })
         let firstId = "first"
         let secondId = "second"
         sdk.checkoutControllers[firstId] = first
