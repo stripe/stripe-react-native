@@ -500,7 +500,6 @@ export const resetPaymentSheetCustomer = async (): Promise<null> => {
 /**
  * Clears persisted Checkout customer authentication state when the user logs out.
  *
- * @internal
  * @CheckoutSessionPrivatePreview
  */
 export const clearCheckoutLocalCustomerData = async (): Promise<void> => {

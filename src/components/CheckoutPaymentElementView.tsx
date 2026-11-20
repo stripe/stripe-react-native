@@ -10,7 +10,6 @@ import type { CheckoutPaymentElementViewProps } from '../types/CheckoutElements'
  * @remarks
  * This API is in private preview and can change without notice.
  *
- * @internal
  * @CheckoutSessionPrivatePreview
  */
 export function CheckoutPaymentElementView({

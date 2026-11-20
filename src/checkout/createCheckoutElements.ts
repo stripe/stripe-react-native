@@ -141,7 +141,6 @@ function nativeCreateOptions(
  * @remarks
  * This API is in private preview and can change without notice.
  *
- * @internal
  * @CheckoutSessionPrivatePreview
  */
 export async function createCheckoutElements(

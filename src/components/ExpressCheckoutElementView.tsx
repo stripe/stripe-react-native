@@ -9,7 +9,6 @@ import type { ExpressCheckoutElementViewProps } from '../types/CheckoutElements'
  * @remarks
  * This API is in private preview and can change without notice.
  *
- * @internal
  * @CheckoutSessionPrivatePreview
  */
 export function ExpressCheckoutElementView({
@@ -36,7 +35,6 @@ function MeasuredElement({
 
 /**
  * Alias for the Checkout-owned Express Checkout Element view.
- * @internal
  * @CheckoutSessionPrivatePreview
  */
 export const CheckoutExpressCheckoutElementView = ExpressCheckoutElementView;
