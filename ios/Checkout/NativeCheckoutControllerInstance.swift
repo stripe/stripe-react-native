@@ -150,14 +150,19 @@ final class NativeCheckoutControllerInstance {
     func destroy() {
         guard !isDestroyed else { return }
         isDestroyed = true
+        observation?.cancel()
+        observation = nil
+        let paymentElementView = checkout.getPaymentElement().uiView
+        if paymentElementView.superview != nil {
+            paymentElementView.delegate = nil
+            paymentElementView.removeFromSuperview()
+        }
         let observers = Array(destructionObservers.values)
         destructionObservers.removeAll()
         observers.forEach { $0() }
         let updates = serverUpdateContinuations
         serverUpdateContinuations.removeAll()
         updates.values.forEach { $0.resume(throwing: CancellationError()) }
-        observation?.cancel()
-        observation = nil
         // The pinned iOS SDK has no explicit destruction API. Removing this
         // instance from the registry releases its Checkout and Payment Element.
     }

@@ -156,15 +156,27 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var authenticationContextProvider: Any?
 
     @objc public func invalidateCheckoutControllers() {
-        DispatchQueue.main.async { [weak self] in
+        let invalidate = { [weak self] in
             guard let self else { return }
-            let pendingCreations = Array(pendingCheckoutCreations.values)
-            pendingCheckoutCreations.removeAll()
-            pendingCreations.forEach { $0.cancel() }
-            let controllers = Array(checkoutControllers.values)
-            checkoutControllers.removeAll()
-            controllers.forEach { $0.destroy() }
+            MainActor.assumeIsolated {
+                self.performCheckoutInvalidation()
+            }
         }
+        if Thread.isMainThread {
+            invalidate()
+        } else {
+            DispatchQueue.main.async(execute: invalidate)
+        }
+    }
+
+    @MainActor
+    private func performCheckoutInvalidation() {
+        let pendingCreations = Array(pendingCheckoutCreations.values)
+        pendingCheckoutCreations.removeAll()
+        pendingCreations.forEach { $0.cancel() }
+        let controllers = Array(checkoutControllers.values)
+        checkoutControllers.removeAll()
+        controllers.forEach { $0.destroy() }
     }
 
     static let authenticatedWebViewReturnURLScheme = "stripe-connect"
