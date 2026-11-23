@@ -35,9 +35,14 @@ export function parseArgs(argv) {
     else if (flag === '--skip') {
       const skip = parseList(value, STEPS, flag);
       args.steps = args.steps.filter((step) => !skip.includes(step));
-    } else if (flag === '--bridge')
+    } else if (flag === '--bridge') {
       args.bridge = parseList(value, BRIDGE_PLATFORMS, flag);
-    else if (flag === '--platforms')
+      if (!args.bridge.length) {
+        throw new Error(
+          `--bridge: expected one of ${BRIDGE_PLATFORMS.join(', ')}`
+        );
+      }
+    } else if (flag === '--platforms')
       args.platforms = parseList(value, PLATFORMS, flag);
     else if (flag === '--expo-sdk') args.expoSdk = value;
     else if (flag === '--keep-smoke') args.keepSmoke = true;

@@ -56,6 +56,17 @@ test('EXPO_SMOKE_SDK sets the smoke SDK when --expo-sdk is absent', () => {
   }
 });
 
+test('an empty --bridge= value is a usage error', () => {
+  assert.throws(
+    () => parseArgs(['--bridge=']),
+    /--bridge: expected one of js, ios, android/
+  );
+  assert.throws(
+    () => parseArgs(['--bridge=,']),
+    /--bridge: expected one of js, ios, android/
+  );
+});
+
 test('--skip=preview is rejected once preview is not a step', () => {
   assert.throws(
     () => parseArgs(['--skip=preview']),
