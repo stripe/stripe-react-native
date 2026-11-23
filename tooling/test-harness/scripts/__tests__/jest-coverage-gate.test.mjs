@@ -691,3 +691,23 @@ test('--package checks that floor and does not measure other workspaces', () => 
     )
   );
 });
+
+test('--package accepts a comma-separated list and checks only those floors', () => {
+  const lines = [];
+  const log = console.log;
+  console.log = (line) => lines.push(String(line));
+  try {
+    const failures = runCoverageChecks([
+      '--package=@stripe/react-native-payments,@stripe/react-native-core',
+    ]);
+    assert.deepEqual(failures, []);
+    const text = lines.join('\n');
+    assert.match(text, /@stripe\/react-native-payments/);
+    assert.match(text, /@stripe\/react-native-core/);
+    assert.equal(text.includes('@stripe/stripe-react-native'), false);
+    assert.equal(text.includes('@stripe/react-native-issuing'), false);
+    assert.equal(text.includes('--coverage'), false);
+  } finally {
+    console.log = log;
+  }
+});
