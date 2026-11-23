@@ -31,8 +31,12 @@ export function parseArgs(argv) {
   for (const arg of argv) {
     const [flag, value = ''] = arg.split(/[=](.*)/s);
     if (flag === '--all') args.all = true;
-    else if (flag === '--only') args.steps = parseList(value, STEPS, flag);
-    else if (flag === '--skip') {
+    else if (flag === '--only') {
+      args.steps = parseList(value, STEPS, flag);
+      if (!args.steps.length) {
+        throw new Error(`--only: expected one of ${STEPS.join(', ')}`);
+      }
+    } else if (flag === '--skip') {
       const skip = parseList(value, STEPS, flag);
       args.steps = args.steps.filter((step) => !skip.includes(step));
     } else if (flag === '--bridge') {
@@ -42,9 +46,12 @@ export function parseArgs(argv) {
           `--bridge: expected one of ${BRIDGE_PLATFORMS.join(', ')}`
         );
       }
-    } else if (flag === '--platforms')
+    } else if (flag === '--platforms') {
       args.platforms = parseList(value, PLATFORMS, flag);
-    else if (flag === '--expo-sdk') args.expoSdk = value;
+      if (!args.platforms.length) {
+        throw new Error(`--platforms: expected one of ${PLATFORMS.join(', ')}`);
+      }
+    } else if (flag === '--expo-sdk') args.expoSdk = value;
     else if (flag === '--keep-smoke') args.keepSmoke = true;
     else if (flag === '--verbose') args.verbose = true;
     else if (flag.startsWith('--')) throw new Error(`Unknown option ${arg}`);

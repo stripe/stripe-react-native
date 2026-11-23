@@ -44,6 +44,17 @@ test('an unknown --platforms value names ios and android', () => {
   );
 });
 
+test('an empty --only= or --platforms= value is a usage error', () => {
+  assert.throws(
+    () => parseArgs(['--only=']),
+    /--only: expected one of spi, pack, bridge, coverage, expo/
+  );
+  assert.throws(
+    () => parseArgs(['--platforms=']),
+    /--platforms: expected one of ios, android/
+  );
+});
+
 test('EXPO_SMOKE_SDK sets the smoke SDK when --expo-sdk is absent', () => {
   const previous = process.env.EXPO_SMOKE_SDK;
   process.env.EXPO_SMOKE_SDK = '54';
