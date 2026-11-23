@@ -7,6 +7,7 @@ import { repoRoot, smokeDir } from '../checks/config.mjs';
 import {
   expoSmoke,
   packagesToInstall,
+  smokeProcessEnv,
   tarballFromNpmPackStdout,
 } from '../checks/expo-smoke.mjs';
 
@@ -38,6 +39,23 @@ test('packagesToInstall rejects a dependency that is still a shell', () => {
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+test('smokeProcessEnv keeps registry settings but drops Yarn injections', () => {
+  const env = smokeProcessEnv({
+    npm_config_registry: 'https://registry.example',
+    npm_config__auth: 'secret',
+    npm_config_user_agent: 'yarn',
+    npm_execpath: '/path/to/yarn',
+    YARN_VERSION: '4',
+    PATH: '/bin',
+  });
+  assert.equal(env.npm_config_registry, 'https://registry.example');
+  assert.equal(env.npm_config__auth, 'secret');
+  assert.equal(env.PATH, '/bin');
+  assert.equal(env.npm_config_user_agent, undefined);
+  assert.equal(env.npm_execpath, undefined);
+  assert.equal(env.YARN_VERSION, undefined);
 });
 
 test('an info line before a JSON pack report still yields the tarball', () => {

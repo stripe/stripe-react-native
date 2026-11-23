@@ -6,6 +6,22 @@ import { PLATFORMS, readJson, repoRoot, smokeDir } from './config.mjs';
 import { firstPackReport } from './pack-json.mjs';
 import { runLogged } from './run.mjs';
 
+/** Yarn-injected npm_config_* keys that would make create-expo-app pick Yarn. */
+const YARN_INJECTED_NPM_CONFIG = new Set([
+  'npm_config_user_agent',
+  'npm_execpath',
+]);
+
+export function smokeProcessEnv(source) {
+  return Object.fromEntries(
+    Object.entries(source).filter(([key]) => {
+      if (/^(YARN_|BERRY_)/i.test(key)) return false;
+      if (YARN_INJECTED_NPM_CONFIG.has(key.toLowerCase())) return false;
+      return true;
+    })
+  );
+}
+
 export function smokeSettings(config, sdkOverride) {
   const expoSdk = String(sdkOverride ?? config.expoSdk);
   const profile = config.sdkProfiles?.[expoSdk];
@@ -184,13 +200,9 @@ export async function expoSmoke({
   fs.mkdirSync(logsDir);
   fs.mkdirSync(packDir);
   const appDir = path.join(workDir, settings.appName);
-  // The app installs with npm. Yarn's npm_config_* variables would make
-  // create-expo-app and `expo install` pick Yarn inside this Yarn workspace.
-  const env = Object.fromEntries(
-    Object.entries(process.env).filter(
-      ([key]) => !/^(npm_|YARN_|BERRY_)/i.test(key)
-    )
-  );
+  // The app installs with npm. Only Yarn's injected npm_config_* keys would
+  // make create-expo-app pick Yarn; registry and auth settings are kept.
+  const env = smokeProcessEnv(process.env);
   Object.assign(env, { EXPO_NO_TELEMETRY: '1', CI: '1' });
   const errors = [];
   const notes = [`work directory: ${workDir}`];
@@ -221,7 +233,7 @@ export async function expoSmoke({
       'npx',
       [
         '--yes',
-        'create-expo-app@latest',
+        `create-expo-app@${settings.createExpoApp ?? 'latest'}`,
         settings.appName,
         '--template',
         `${settings.template}@sdk-${settings.expoSdk}`,

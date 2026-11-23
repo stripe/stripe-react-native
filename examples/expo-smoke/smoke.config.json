@@ -1,5 +1,6 @@
 {
   "expoSdk": 55,
+  "createExpoApp": "5.0.0",
   "template": "blank",
   "entryFile": "App.tsx",
   "appName": "StripeSmoke",
