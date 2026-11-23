@@ -180,6 +180,10 @@ dependencies {
     // resolves compileOnly dependencies for release lint, which fails without it.
     exclude group: "com.google.android.gms", module: "play-services-tapandpay"
   }
+  // Tests stand in for play-services-tapandpay with doubles in src/test.
+  testImplementation("com.stripe:stripe-android-issuing-push-provisioning:1.3.0") {
+    exclude group: "com.google.android.gms", module: "play-services-tapandpay"
+  }
 
   testImplementation "junit:junit:4.13"
   testImplementation "com.google.truth:truth:1.4.5"

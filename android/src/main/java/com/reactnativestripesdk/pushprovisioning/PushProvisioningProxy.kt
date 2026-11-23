@@ -21,7 +21,7 @@ object PushProvisioningProxy {
 
   fun getApiVersion(): String =
     try {
-      Class.forName("com.stripe.android.pushProvisioning.PushProvisioningActivity")
+      Class.forName("com.stripe.android.pushProvisioning.PushProvisioningActivityStarter")
       PushProvisioningActivity.API_VERSION
     } catch (e: Exception) {
       Log.e(TAG, "PushProvisioning dependency not found")
