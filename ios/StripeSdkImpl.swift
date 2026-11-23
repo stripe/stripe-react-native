@@ -137,7 +137,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @MainActor var customerSessionRequests: CustomerSessionRequestRegistry?
 
 #if canImport(StripeCryptoOnramp)
-    var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
+    var cryptoOnrampCoordinator: CryptoOnrampCoordinating?
     var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Error>?
 
     private var onrampAdditionalSDKVersions: [SDKVersion] {
@@ -420,38 +420,15 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        var err: NSDictionary?
-        let setupIntentParams: STPSetupIntentConfirmParams = {
-            // If payment method data is not supplied, assume payment method was attached through via collectBankAccount
-            if paymentMethodType == .USBankAccount && paymentMethodData == nil {
-                return STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret, paymentMethodType: .USBankAccount)
-            } else {
-                let factory = PaymentMethodFactory.init(paymentMethodData: paymentMethodData, options: options, cardFieldView: cardFieldView, cardFormView: cardFormView)
-                let parameters = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
-
-                if let paymentMethodId = paymentMethodData?["paymentMethodId"] as? String {
-                    parameters.paymentMethodID = paymentMethodId
-                } else {
-                    do {
-                        parameters.paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
-                    } catch  {
-                        err = Errors.createError(ErrorType.Failed, error as NSError?)
-                    }
-                }
-
-                parameters.mandateData = factory.createMandateData()
-
-                return parameters
-            }
-        }()
-
+        let (err, setupIntentParams) = createSetupIntentParams(
+            setupIntentClientSecret: setupIntentClientSecret,
+            paymentMethodType: paymentMethodType,
+            paymentMethodData: paymentMethodData,
+            options: options
+        )
         if err != nil {
             resolve(err)
             return
-        }
-
-        if let urlScheme = urlScheme {
-            setupIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
         }
 
         let paymentHandler = STPPaymentHandler.shared()
@@ -1052,6 +1029,44 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         paymentIntentParams.shipping = Mappers.mapToShippingDetails(shippingDetails: paymentMethodData?["shippingDetails"] as? NSDictionary)
 
         return (err, paymentIntentParams)
+    }
+
+    func createSetupIntentParams(
+        setupIntentClientSecret: String,
+        paymentMethodType: STPPaymentMethodType,
+        paymentMethodData: NSDictionary?,
+        options: NSDictionary
+    ) -> (NSDictionary?, STPSetupIntentConfirmParams) {
+        var err: NSDictionary?
+        let setupIntentParams: STPSetupIntentConfirmParams = {
+            // If payment method data is not supplied, assume payment method was attached through via collectBankAccount
+            if paymentMethodType == .USBankAccount && paymentMethodData == nil {
+                return STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret, paymentMethodType: .USBankAccount)
+            } else {
+                let factory = PaymentMethodFactory.init(paymentMethodData: paymentMethodData, options: options, cardFieldView: cardFieldView, cardFormView: cardFormView)
+                let parameters = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
+
+                if let paymentMethodId = paymentMethodData?["paymentMethodId"] as? String {
+                    parameters.paymentMethodID = paymentMethodId
+                } else {
+                    do {
+                        parameters.paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
+                    } catch  {
+                        err = Errors.createError(ErrorType.Failed, error as NSError?)
+                    }
+                }
+
+                parameters.mandateData = factory.createMandateData()
+
+                return parameters
+            }
+        }()
+
+        if let urlScheme = urlScheme {
+            setupIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
+        }
+
+        return (err, setupIntentParams)
     }
 
     @objc(retrievePaymentIntent:resolver:rejecter:)
@@ -2087,7 +2102,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     /// Returns the shared `CryptoOnrampCoordinator`, calling the resolve block with an error if CryptoOnramp has not yet been configured.
     /// - Parameter resolve: The resolve block that is called with an error if CryptoOnramp has not yet been configured.
     /// - Returns: The shared `CryptoOnrampCoordinator`, nor `nil` if CryptoOnramp has not yet been configured.
-    private func requireOnrampCoordinator(_ resolve: @escaping RCTPromiseResolveBlock) -> CryptoOnrampCoordinator? {
+    private func requireOnrampCoordinator(_ resolve: @escaping RCTPromiseResolveBlock) -> CryptoOnrampCoordinating? {
         guard let coordinator = cryptoOnrampCoordinator else {
             let errorResult = OnrampErrors.createNotConfiguredError()
             resolve(["error": errorResult["error"]!])
@@ -2385,3 +2400,36 @@ private extension STPCardFundingType {
         }
     }
 }
+
+#if canImport(StripeCryptoOnramp)
+protocol CryptoOnrampCoordinating: AnyObject {
+    func hasLinkAccount(with email: String) async throws -> Bool
+    func registerLinkUser(email: String, fullName: String?, phone: String, country: String) async throws -> String
+    func updatePhoneNumber(to phoneNumber: String) async throws
+    func authenticateUserWithToken(_ linkAuthTokenClientSecret: String) async throws
+    func authorize(linkAuthIntentId: String, from viewController: UIViewController) async throws -> AuthorizationResult
+    func attachKYCInfo(info: KycInfo) async throws
+    func retrieveMissingIdentifiers() async throws -> ComplianceIdentifierRequirements
+    func submitIdentifiers(_ identifiers: [ComplianceIdentifier]) async throws -> SubmitIdentifiersResult
+    @MainActor func presentUserAttestation(from viewController: UIViewController) async throws -> UserAttestationResult
+    @MainActor func fulfillKYCRequirements(from viewController: UIViewController) async throws -> FulfillKYCRequirementsResult
+    @MainActor func presentTermsAndConditionsIfNeeded(from viewController: UIViewController) async throws -> PartnerTermsResult
+    @MainActor func presentTermsOfServiceIfNeeded(from viewController: UIViewController) async throws -> PartnerTermsResult
+    func verifyKYCInfo(updatedAddress: Address?, from viewController: UIViewController) async throws -> VerifyKYCResult
+    func verifyIdentity(from viewController: UIViewController) async throws -> IdentityVerificationResult
+    func registerWalletAddress(walletAddress: String, network: CryptoNetwork) async throws
+    func deleteWalletAddress(walletId: String) async throws
+    func getWalletOwnershipChallenge(walletAddress: String, network: CryptoNetwork) async throws -> WalletOwnershipChallenge
+    func submitWalletOwnershipSignature(challengeId: String, signature: String) async throws -> CryptoConsumerWallet
+    @MainActor func collectPaymentMethod(type: PaymentMethodType, from viewController: UIViewController) async throws -> CollectPaymentMethodResult
+    func createCryptoPaymentToken() async throws -> String
+    func performCheckout(
+        onrampSessionId: String,
+        authenticationContext: STPAuthenticationContext,
+        onrampSessionClientSecretProvider: @escaping (_ onrampSessionId: String) async throws -> String
+    ) async throws -> CheckoutResult
+    func logOut() async throws
+}
+
+extension CryptoOnrampCoordinator: CryptoOnrampCoordinating {}
+#endif
