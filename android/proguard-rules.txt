@@ -17,3 +17,13 @@
 -dontwarn com.samsung.android.sdk.samsungpay.**
 -keep class com.samsung.android.sdk.** { *; }
 -keep interface com.samsung.android.sdk.** { *; }
+
+# Inline Connect components reach these through reflection to present sheets and filter bridge messages.
+-keep class androidx.webkit.WebViewFeature { public static boolean isFeatureSupported(java.lang.String); }
+-keep class androidx.webkit.WebViewCompat { public static void addWebMessageListener(...); public static void removeWebMessageListener(...); }
+-keep interface androidx.webkit.WebViewCompat$WebMessageListener { *; }
+-keep class androidx.webkit.WebMessageCompat { public java.lang.String getData(); }
+-keepclassmembers class com.reactnativecommunity.webview.RNCWebView {
+  android.webkit.WebChromeClient mWebChromeClient;
+  public void onMessage(java.lang.String, java.lang.String);
+}
