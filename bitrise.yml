@@ -66,16 +66,11 @@ workflows:
           inputs:
             - content: yarn lint
       - script@1:
-          title: Check Bridge Contract Fixtures
-          inputs:
-            # The XCTest and Robolectric halves run in unit-test-ios and
-            # unit-test-android, inside ReactTestAppTests and testDebugUnitTest.
-            - content: yarn test:bridge --only=js
-      - script@1:
           title: Run the Package Done Gate (JS steps)
           inputs:
             # Packed contents, stripe-ios SPI imports, bridge contract
-            # fixtures, and Jest coverage floors for every package. The XCTest
+            # fixtures (check.mjs; the Jest contract test is the coverage
+            # suite), and Jest coverage floors for every package. The XCTest
             # and Robolectric fixture halves run in unit-test-ios and
             # unit-test-android, inside ReactTestAppTests and testDebugUnitTest.
             - content: |

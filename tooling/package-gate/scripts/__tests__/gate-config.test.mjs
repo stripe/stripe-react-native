@@ -211,3 +211,43 @@ test('familyIndex lists expect keys from a fixture directory', async () => {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('invalid JSON and an invalid fixture fail the bridge check', async () => {
+  const { loadParsedFixtures, runBridgeFixtureChecks } =
+    await bridgeCheckModule();
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bridge-check-'));
+  const familyDir = path.join(
+    root,
+    'packages/bridge-contracts/fixtures/payment-sheet'
+  );
+  fs.mkdirSync(familyDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(root, 'packages/bridge-contracts/inventory.json'),
+    '{}\n'
+  );
+  fs.writeFileSync(path.join(familyDir, 'broken.json'), '{');
+  fs.writeFileSync(
+    path.join(familyDir, 'initPaymentSheet.bad.json'),
+    JSON.stringify({ method: 1 })
+  );
+  const parsed = loadParsedFixtures(root);
+  const errors = [];
+  const log = console.log;
+  const error = console.error;
+  console.log = () => {};
+  console.error = (line) => errors.push(line);
+  try {
+    const status = runBridgeFixtureChecks(parsed);
+    assert.equal(status, 1);
+    const text = errors.join('\n');
+    assert.match(text, /broken\.json: invalid JSON:/);
+    assert.match(
+      text,
+      /initPaymentSheet\.bad\.json: "method" must be a string/
+    );
+  } finally {
+    console.log = log;
+    console.error = error;
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

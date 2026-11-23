@@ -11,8 +11,9 @@
 //
 // Steps: spi, pack, bridge, coverage, expo. Options:
 //   --only=<steps> / --skip=<steps>
-//   --bridge=<platforms>         bridge contract platforms: js, ios, android (default all;
-//                                ios needs `yarn pods` and honours IOS_SIMULATOR)
+//   --bridge=<platforms>         bridge contract platforms: js, ios, android (default all).
+//                                js runs check.mjs once; ios and android run the native
+//                                loaders (ios needs `yarn pods` and honours IOS_SIMULATOR)
 //   --platforms=ios,android      Expo smoke build platforms (default both)
 //   --expo-sdk=<n>               Expo SDK for the smoke app (or EXPO_SMOKE_SDK)
 //   --keep-smoke                 keep the smoke app directory
@@ -20,7 +21,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadParsedFixtures } from '../../../packages/bridge-contracts/scripts/check.mjs';
+import {
+  loadParsedFixtures,
+  runBridgeFixtureChecks,
+} from '../../../packages/bridge-contracts/scripts/check.mjs';
 import { checkFamilies, familyIndex } from './checks/bridge-check.mjs';
 import {
   findPackage,
@@ -31,56 +35,19 @@ import {
   unlistedPackages,
 } from './checks/config.mjs';
 import { expoSmoke } from './checks/expo-smoke.mjs';
+import {
+  BRIDGE_PLATFORMS,
+  STEPS,
+  bridgeTierCommands,
+  parseArgs,
+} from './checks/gate-args.mjs';
 import { checkPackage } from './checks/pack-check.mjs';
 import { run } from './checks/run.mjs';
 import { checkSpi } from './checks/spi-check.mjs';
 
-const STEPS = ['spi', 'pack', 'bridge', 'coverage', 'expo'];
 const SHELL_STEPS = new Set(['spi', 'pack']);
-const BRIDGE_PLATFORMS = ['js', 'ios', 'android'];
+const BRIDGE_CHECK = 'packages/bridge-contracts/scripts/check.mjs';
 const CONFIG_ALIAS = '(config)';
-
-function parseList(value, allowed, flag) {
-  const list = value.split(',').filter(Boolean);
-  const unknown = list.filter((item) => !allowed.includes(item));
-  if (unknown.length) {
-    throw new Error(
-      `${flag}: unknown ${unknown.join(', ')}; use ${allowed.join(', ')}`
-    );
-  }
-  return list;
-}
-
-export function parseArgs(argv) {
-  const args = {
-    queries: [],
-    all: false,
-    steps: [...STEPS],
-    bridge: [...BRIDGE_PLATFORMS],
-    platforms: [...PLATFORMS],
-    expoSdk: process.env.EXPO_SMOKE_SDK || undefined,
-    keepSmoke: false,
-    verbose: false,
-  };
-  for (const arg of argv) {
-    const [flag, value = ''] = arg.split(/[=](.*)/s);
-    if (flag === '--all') args.all = true;
-    else if (flag === '--only') args.steps = parseList(value, STEPS, flag);
-    else if (flag === '--skip') {
-      const skip = parseList(value, STEPS, flag);
-      args.steps = args.steps.filter((step) => !skip.includes(step));
-    } else if (flag === '--bridge')
-      args.bridge = parseList(value, BRIDGE_PLATFORMS, flag);
-    else if (flag === '--platforms')
-      args.platforms = parseList(value, PLATFORMS, flag);
-    else if (flag === '--expo-sdk') args.expoSdk = value;
-    else if (flag === '--keep-smoke') args.keepSmoke = true;
-    else if (flag === '--verbose') args.verbose = true;
-    else if (flag.startsWith('--')) throw new Error(`Unknown option ${arg}`);
-    else args.queries.push(arg);
-  }
-  return args;
-}
 
 export function shouldBuildPackages(env, { ready, packOrExpo }) {
   return Boolean(
@@ -96,6 +63,19 @@ export function emptyBridgeFamiliesRecord(families) {
     return { status: 'PASS', detail: 'no families' };
   }
   return null;
+}
+
+export function runBridgeTierCommand(
+  command,
+  commandArgs,
+  parsed,
+  { check, runCommand, cwd }
+) {
+  if (commandArgs[0] === BRIDGE_CHECK) {
+    console.log(`  $ ${command} ${commandArgs.join(' ')}`);
+    return check(parsed);
+  }
+  return runCommand(command, commandArgs, { cwd });
 }
 
 const CONFIG = { alias: CONFIG_ALIAS };
@@ -323,14 +303,17 @@ async function main() {
 
   if (ready.length && wants('bridge')) {
     heading(`bridge contract tier (${args.bridge.join(', ')})`);
-    const status = run(
-      'node',
-      [
-        'packages/bridge-contracts/scripts/test-bridge.mjs',
-        `--only=${args.bridge.join(',')}`,
-      ],
-      { cwd: repoRoot }
-    );
+    // JS is check.mjs only. The contract Jest file runs in the coverage suite,
+    // and local `yarn test:bridge` still runs it on its own.
+    let status = 0;
+    for (const [command, commandArgs] of bridgeTierCommands(args.bridge)) {
+      status = runBridgeTierCommand(command, commandArgs, parsed, {
+        check: runBridgeFixtureChecks,
+        runCommand: run,
+        cwd: repoRoot,
+      });
+      if (status !== 0) break;
+    }
     record(
       null,
       'bridge tier',

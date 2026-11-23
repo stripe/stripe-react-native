@@ -143,11 +143,11 @@ Every value that crosses the bridge untyped has shared fixtures in `packages/bri
 
 ```sh
 yarn test:bridge                      # checks, Jest, XCTest, and Robolectric (iOS needs `yarn pods` first)
-yarn test:bridge --only=js            # checks and Jest only; what CI runs in the JS job
+yarn test:bridge --only=js            # checks and Jest only (local; the CI JS job does not run this)
 yarn test:bridge --only=ios,android   # the native loaders only
 ```
 
-`yarn test:bridge` is the Nx target `@stripe/bridge-contracts:test:bridge`. The native loaders also run as part of `yarn test:unit:ios` and `yarn test:unit:android`. iOS honours `IOS_SIMULATOR`, as `yarn test:unit:ios` does.
+`yarn test:bridge` is the Nx target `@stripe/bridge-contracts:test:bridge`. The native loaders also run as part of `yarn test:unit:ios` and `yarn test:unit:android`. The CI JS job runs `check.mjs` from the package gate (`--bridge=js`) and runs `bridgeContracts.test.tsx` inside the Jest coverage suite. iOS honours `IOS_SIMULATOR`, as `yarn test:unit:ios` does.
 
 A fixture looks like this:
 
@@ -264,7 +264,7 @@ A package is named by its npm name, its alias in `tooling/package-gate/packages.
 |------|------------|
 | `spi` | Non-test iOS code under the package's `ios/` imports `_spi(InternalOnlyAPI)` or `_spi(DashboardOnly)`, other than a site listed in `tooling/package-gate/spi-allowlist.json`, or an allowlist entry no longer matches the source. Only test folders are exempt: files inside a folder named `Tests`, `Test`, or `__tests__` (such as `ios/Tests` or `packages/<name>/ios/Tests`). A file name never exempts a file, so `ios/FooTests.swift` is checked. |
 | `pack` | `npm pack --dry-run` (the file list `npm publish` would upload, without contacting the registry) is missing an entry point (`main`, `module`, `types`, `react-native`, `source`, `bin`, every `exports` target), a subpath export the config expects, a podspec, `app.plugin.js`, `android/build.gradle`, the codegen specs, or a configured required file; ships tests (`__tests__`, `__fixtures__`, `__mocks__`, `*.test.*` and `*.spec.*` files and their compiled `lib/` copies, any Android `test*`, `androidTest*`, or `sharedTest*` source set, or an iOS `Tests`, `Test`, or `__tests__` folder), build output, or a tarball; or a runtime dependency uses a `workspace:` or `catalog:` range. |
-| `bridge` | An inventory entry in one of the package's bridge families has no fixture or is still pending, or the bridge contract tier fails (`--bridge=js,ios,android`; iOS needs `yarn pods` first and honours `IOS_SIMULATOR`). |
+| `bridge` | An inventory entry in one of the package's bridge families has no fixture or is still pending, or the bridge contract tier fails. `--bridge=js` runs `packages/bridge-contracts/scripts/check.mjs` and does not run Jest. `ios` and `android` run the native loaders (iOS needs `yarn pods` first and honours `IOS_SIMULATOR`). |
 | `coverage` | A package is below its Jest coverage floor (`yarn coverage:jest`). |
 | `expo` | The Expo smoke build fails (below). |
 

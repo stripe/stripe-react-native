@@ -20,6 +20,6 @@ test('js-tests keeps the bridge contract fixture check', () => {
   );
   assert.match(
     workflow,
-    /title: Check Bridge Contract Fixtures[\s\S]*content: yarn test:bridge --only=js/
+    /title: Run the Package Done Gate \(JS steps\)[\s\S]*GATE_SKIP_BUILD=1 yarn gate:package --all --skip=expo --bridge=js/
   );
 });

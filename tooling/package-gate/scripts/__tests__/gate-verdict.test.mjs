@@ -3,10 +3,11 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { test } from 'node:test';
 import { repoRoot } from '../checks/config.mjs';
+import { parseArgs } from '../checks/gate-args.mjs';
 import {
   emptyBridgeFamiliesRecord,
   gateVerdict,
-  parseArgs,
+  runBridgeTierCommand,
   shouldBuildPackages,
   skippedSteps,
 } from '../gate.mjs';
@@ -172,6 +173,53 @@ test('an empty bridge family list records a pass and other lists do not', () => 
   assert.equal(emptyBridgeFamiliesRecord(['payments']), null);
   assert.equal(emptyBridgeFamiliesRecord('*'), null);
   assert.equal(emptyBridgeFamiliesRecord(undefined), null);
+});
+
+test('the JS bridge tier runs the fixture check on the parsed fixtures', () => {
+  const parsed = { fixtures: ['parsed'] };
+  const status = runBridgeTierCommand(
+    'node',
+    ['packages/bridge-contracts/scripts/check.mjs'],
+    parsed,
+    {
+      check: (value) => {
+        assert.equal(value, parsed);
+        return 1;
+      },
+      runCommand: () => {
+        throw new Error('native loader should not run');
+      },
+      cwd: '/repo',
+    }
+  );
+  assert.equal(status, 1);
+});
+
+test('a native bridge tier command runs the loader and not the fixture check', () => {
+  const calls = [];
+  const status = runBridgeTierCommand(
+    'node',
+    ['packages/bridge-contracts/scripts/test-bridge.mjs', '--only=ios'],
+    { fixtures: [] },
+    {
+      check: () => {
+        throw new Error('fixture check should not run');
+      },
+      runCommand: (command, args, options) => {
+        calls.push({ command, args, options });
+        return 0;
+      },
+      cwd: '/repo',
+    }
+  );
+  assert.equal(status, 0);
+  assert.deepEqual(calls, [
+    {
+      command: 'node',
+      args: ['packages/bridge-contracts/scripts/test-bridge.mjs', '--only=ios'],
+      options: { cwd: '/repo' },
+    },
+  ]);
 });
 
 test('the gate process exits 0 for a shell expo run', () => {
