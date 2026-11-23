@@ -7,6 +7,7 @@ import {
   emptyBridgeFamiliesRecord,
   gateVerdict,
   parseArgs,
+  shouldBuildPackages,
   skippedSteps,
 } from '../gate.mjs';
 
@@ -143,6 +144,24 @@ test('a ready package with every step passing is PASS', () => {
   });
   assert.equal(exitCode, 0);
   assert.deepEqual(lines, ['RESULT @stripe/stripe-react-native: PASS']);
+});
+
+test('GATE_SKIP_BUILD skips the nx build preamble and local runs keep it', () => {
+  const readyPack = { ready: true, packOrExpo: true };
+  assert.equal(shouldBuildPackages({}, readyPack), true);
+  assert.equal(shouldBuildPackages({ GATE_SKIP_BUILD: '1' }, readyPack), false);
+  assert.equal(
+    shouldBuildPackages({ NX_TASK_TARGET_PROJECT: 'pkg:gate' }, readyPack),
+    false
+  );
+  assert.equal(
+    shouldBuildPackages({}, { ready: false, packOrExpo: true }),
+    false
+  );
+  assert.equal(
+    shouldBuildPackages({}, { ready: true, packOrExpo: false }),
+    false
+  );
 });
 
 test('an empty bridge family list records a pass and other lists do not', () => {

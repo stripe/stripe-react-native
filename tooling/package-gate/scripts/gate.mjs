@@ -82,6 +82,15 @@ export function parseArgs(argv) {
   return args;
 }
 
+export function shouldBuildPackages(env, { ready, packOrExpo }) {
+  return Boolean(
+    ready &&
+      packOrExpo &&
+      !env.NX_TASK_TARGET_PROJECT &&
+      env.GATE_SKIP_BUILD !== '1'
+  );
+}
+
 export function emptyBridgeFamiliesRecord(families) {
   if (Array.isArray(families) && families.length === 0) {
     return { status: 'PASS', detail: 'no families' };
@@ -271,10 +280,13 @@ async function main() {
 
   // Builds the packages that have a build target, so the packed lib/ is
   // current. Inside the Nx gate target, dependsOn has already built them.
+  // GATE_SKIP_BUILD=1 skips this when the caller already built lib/ (the
+  // Bitrise JS job, after _prepare_js). The pack step still reads that lib/.
   if (
-    ready.length &&
-    (wants('pack') || wants('expo')) &&
-    !process.env.NX_TASK_TARGET_PROJECT
+    shouldBuildPackages(process.env, {
+      ready: ready.length > 0,
+      packOrExpo: wants('pack') || wants('expo'),
+    })
   ) {
     heading('build');
     const status = run(

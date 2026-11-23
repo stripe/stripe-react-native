@@ -72,18 +72,24 @@ workflows:
             # unit-test-android, inside ReactTestAppTests and testDebugUnitTest.
             - content: yarn test:bridge --only=js
       - script@1:
-          title: Check Jest Coverage Floors
+          title: Run the Package Done Gate (JS steps)
           inputs:
+            # Packed contents, stripe-ios SPI imports, bridge contract
+            # fixtures, and Jest coverage floors for every package. The XCTest
+            # and Robolectric fixture halves run in unit-test-ios and
+            # unit-test-android, inside ReactTestAppTests and testDebugUnitTest.
             - content: |
                 set -euo pipefail
-                # Deploy the reports even when the check fails.
+                # Deploy the coverage reports even when the gate fails.
                 trap 'if [ -d coverage/jest ]; then cp -R coverage/jest "$BITRISE_DEPLOY_DIR/jest-coverage"; fi' EXIT
                 # On pull requests, also fail if the change lowers a floor or narrows a scope recorded on the target branch.
                 if [ -n "${BITRISEIO_GIT_BRANCH_DEST:-}" ]; then
                   git fetch --no-tags --depth=1 origin "refs/heads/$BITRISEIO_GIT_BRANCH_DEST"
                   export COVERAGE_FLOORS_BASE=FETCH_HEAD
                 fi
-                bash ./scripts/coverage jest
+                # _prepare_js already ran yarn prepare, so lib/ is current.
+                # Skip the gate's nx build; the pack step still checks that lib/.
+                GATE_SKIP_BUILD=1 yarn gate:package --all --skip=expo --bridge=js
       - script@1:
           title: Validate Package Types
           inputs:
