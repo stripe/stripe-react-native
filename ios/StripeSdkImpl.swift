@@ -123,6 +123,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var customerSheet: CustomerSheet?
     var customerAdapter: StripeCustomerAdapter?
     var customerSheetViewController: UIViewController?
+    var scheduleOnMain: (TimeInterval, @escaping () -> Void) -> Void = { delay, work in
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
     var fetchPaymentMethodsCallback: (([STPPaymentMethod]) -> Void)?
     var attachPaymentMethodCallback: (() -> Void)?
     var detachPaymentMethodCallback: (() -> Void)?
