@@ -39,14 +39,14 @@ import { expoSmoke, packTarball } from './checks/expo-smoke.mjs';
 import {
   BRIDGE_PLATFORMS,
   STEPS,
-  bridgeTierCommands,
   parseArgs,
+  sharedTierPlan,
 } from './checks/gate-args.mjs';
 import { checkPackage } from './checks/pack-check.mjs';
 import { run } from './checks/run.mjs';
 import { checkSpi } from './checks/spi-check.mjs';
 
-const SHELL_STEPS = new Set(['spi', 'pack']);
+const SHELL_STEPS = new Set(['spi', 'pack', 'bridge', 'coverage']);
 const BRIDGE_CHECK = 'packages/bridge-contracts/scripts/check.mjs';
 const CONFIG_ALIAS = '(config)';
 
@@ -74,7 +74,16 @@ export function runBridgeTierCommand(
 ) {
   if (commandArgs[0] === BRIDGE_CHECK) {
     console.log(`  $ ${command} ${commandArgs.join(' ')}`);
-    return check(parsed);
+    const familiesFlag = commandArgs.find((arg) =>
+      arg.startsWith('--families=')
+    );
+    if (!familiesFlag) return check(parsed);
+    return check(parsed, {
+      families: familiesFlag
+        .slice('--families='.length)
+        .split(',')
+        .filter(Boolean),
+    });
   }
   return runCommand(command, commandArgs, { cwd });
 }
@@ -272,7 +281,6 @@ async function main() {
     });
   }
   const wants = (step) => args.steps.includes(step);
-
   const reusePack = wants('pack') && wants('expo');
   const sharedPackDir = reusePack
     ? fs.mkdtempSync(path.join(os.tmpdir(), 'stripe-gate-pack-'))
@@ -340,21 +348,30 @@ async function main() {
     for (const pkg of present) {
       if (wants('spi')) spiStep(pkg);
       if (wants('pack')) packStep(pkg, packing);
+      if (wants('bridge')) bridgeFamiliesStep(pkg, contracts);
       if (pkg.status === 'shell') {
         for (const step of args.steps.filter((s) => !SHELL_STEPS.has(s))) {
           record(pkg, step, 'n/a', 'shell');
         }
-        continue;
       }
-      if (wants('bridge')) bridgeFamiliesStep(pkg, contracts);
     }
 
-    if (ready.length && wants('bridge')) {
+    // --all keeps the full fixture check and the workspace-wide floor.
+    // A package run passes that package's families and its coverage name.
+    const runShared = (step) =>
+      wants(step) && (args.all ? ready.length > 0 : present.length > 0);
+    const plan = sharedTierPlan({
+      all: args.all,
+      bridge: args.bridge,
+      packages: present,
+    });
+
+    if (runShared('bridge')) {
       heading(`bridge contract tier (${args.bridge.join(', ')})`);
       // JS is check.mjs only. The contract Jest file runs in the coverage suite,
       // and local `yarn test:bridge` still runs it on its own.
       let status = 0;
-      for (const [command, commandArgs] of bridgeTierCommands(args.bridge)) {
+      for (const [command, commandArgs] of plan.bridge) {
         status = runBridgeTierCommand(command, commandArgs, parsed, {
           check: runBridgeFixtureChecks,
           runCommand: run,
@@ -370,20 +387,17 @@ async function main() {
       );
     }
 
-    if (ready.length && wants('coverage')) {
+    if (runShared('coverage')) {
       heading('Jest coverage floors');
-      const status = run(
-        'node',
-        ['tooling/test-harness/scripts/jest-coverage.mjs'],
-        {
-          cwd: repoRoot,
-        }
-      );
+      const [command, commandArgs] = plan.coverage;
+      const status = run(command, commandArgs, { cwd: repoRoot });
       record(
         null,
         'coverage',
         status === 0 ? 'PASS' : 'FAIL',
-        'all workspace floors'
+        args.all
+          ? 'all workspace floors'
+          : present.map((pkg) => pkg.name).join(',')
       );
     }
 

@@ -259,3 +259,66 @@ test('invalid JSON and an invalid fixture fail the bridge check', async () => {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('a family list checks that family and skips a broken fixture outside it', async () => {
+  const { loadParsedFixtures, runBridgeFixtureChecks } =
+    await bridgeCheckModule();
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-bridge-families-'));
+  const bridge = path.join(root, 'packages/bridge-contracts');
+  const fixtures = path.join(bridge, 'fixtures');
+  const coreDir = path.join(fixtures, 'core');
+  const otherDir = path.join(fixtures, 'payments');
+  fs.mkdirSync(coreDir, { recursive: true });
+  fs.mkdirSync(otherDir, { recursive: true });
+  fs.copyFileSync(
+    path.join(repoRoot, 'packages/bridge-contracts/inventory.json'),
+    path.join(bridge, 'inventory.json')
+  );
+  fs.cpSync(
+    path.join(repoRoot, 'packages/bridge-contracts/fixtures/core'),
+    coreDir,
+    { recursive: true }
+  );
+  fs.writeFileSync(path.join(otherDir, 'broken.json'), '{');
+  const parsed = loadParsedFixtures(root);
+  const repoFixtures = path.join(
+    repoRoot,
+    'packages/bridge-contracts/fixtures'
+  );
+  const tempFixtures = path.join(fixtures);
+  parsed.fixtures = parsed.fixtures.map((item) => {
+    if (item.family !== 'core') return item;
+    const relative = path.relative(tempFixtures, item.file);
+    return { ...item, file: path.join(repoFixtures, relative) };
+  });
+  const badFamily = 'payments';
+  const errors = [];
+  const log = console.log;
+  const error = console.error;
+  console.log = () => {};
+  console.error = (line) => errors.push(String(line));
+  try {
+    assert.equal(
+      runBridgeFixtureChecks(parsed, { families: ['core'] }),
+      0,
+      errors.join('\n')
+    );
+    assert.equal(
+      errors.some((line) => line.includes('broken.json')),
+      false
+    );
+    errors.length = 0;
+    assert.equal(
+      runBridgeFixtureChecks(parsed, { families: [badFamily] }),
+      1
+    );
+    assert.equal(
+      errors.some((line) => line.includes('broken.json')),
+      true
+    );
+  } finally {
+    console.log = log;
+    console.error = error;
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

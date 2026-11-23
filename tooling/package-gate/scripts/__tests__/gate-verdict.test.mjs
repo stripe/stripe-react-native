@@ -196,6 +196,28 @@ test('the JS bridge tier runs the fixture check on the parsed fixtures', () => {
   assert.equal(status, 1);
 });
 
+test('a JS bridge command with --families passes that list to the fixture check', () => {
+  let seen;
+  const status = runBridgeTierCommand(
+    'node',
+    ['packages/bridge-contracts/scripts/check.mjs', '--families=core,issuing'],
+    { fixtures: [] },
+    {
+      check: (parsed, options) => {
+        seen = { parsed, options };
+        return 0;
+      },
+      runCommand: () => {
+        throw new Error('native loader should not run');
+      },
+      cwd: '/repo',
+    }
+  );
+  assert.equal(status, 0);
+  assert.deepEqual(seen.options, { families: ['core', 'issuing'] });
+  assert.deepEqual(seen.parsed, { fixtures: [] });
+});
+
 test('expo reuse feeds the packed file list and a pack-only step does not pack', () => {
   const packs = [];
   const reused = packForGate(

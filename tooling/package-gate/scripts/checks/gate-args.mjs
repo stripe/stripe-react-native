@@ -5,6 +5,7 @@ export const BRIDGE_PLATFORMS = ['js', 'ios', 'android'];
 
 const CHECK_SCRIPT = 'packages/bridge-contracts/scripts/check.mjs';
 const TEST_BRIDGE_SCRIPT = 'packages/bridge-contracts/scripts/test-bridge.mjs';
+const COVERAGE_SCRIPT = 'tooling/test-harness/scripts/jest-coverage.mjs';
 
 function parseList(value, allowed, flag) {
   const list = value.split(',').filter(Boolean);
@@ -64,15 +65,66 @@ export function parseArgs(argv) {
  * Commands for the bridge contract tier.
  * `js` runs the fixture check once and does not start Jest.
  * `ios` and `android` stay on the native loaders.
+ * `families` undefined checks every fixture. An array limits the JS
+ * check and the native loaders to those families. An empty array
+ * starts neither.
  */
-export function bridgeTierCommands(bridge) {
+export function bridgeTierCommands(bridge, families) {
   const commands = [];
   if (bridge.includes('js')) {
-    commands.push(['node', [CHECK_SCRIPT]]);
+    if (!Array.isArray(families)) {
+      commands.push(['node', [CHECK_SCRIPT]]);
+    } else if (families.length) {
+      commands.push([
+        'node',
+        [CHECK_SCRIPT, `--families=${families.join(',')}`],
+      ]);
+    }
   }
   const native = bridge.filter((platform) => platform !== 'js');
-  if (native.length) {
-    commands.push(['node', [TEST_BRIDGE_SCRIPT, `--only=${native.join(',')}`]]);
+  if (native.length && !(Array.isArray(families) && families.length === 0)) {
+    const commandArgs = [TEST_BRIDGE_SCRIPT, `--only=${native.join(',')}`];
+    if (Array.isArray(families)) {
+      commandArgs.push(`--families=${families.join(',')}`);
+    }
+    commands.push(['node', commandArgs]);
   }
   return commands;
+}
+
+/**
+ * Fixture families for a package run. A package with `families: "*"` keeps
+ * the full native tier. Otherwise the result is the union of the lists.
+ */
+export function familiesForPackages(packages) {
+  if (packages.some((pkg) => pkg.families === '*')) return undefined;
+  const families = [];
+  for (const pkg of packages) {
+    for (const family of Array.isArray(pkg.families) ? pkg.families : []) {
+      if (!families.includes(family)) families.push(family);
+    }
+  }
+  return families;
+}
+
+/** Unfiltered when `packageNames` is omitted. Otherwise one `--package` list. */
+export function coverageCommand(packageNames) {
+  const args = [COVERAGE_SCRIPT];
+  if (packageNames?.length) {
+    args.push(`--package=${packageNames.join(',')}`);
+  }
+  return ['node', args];
+}
+
+/** What a gate run spawns for the shared coverage and bridge-tier steps. */
+export function sharedTierPlan({ all, bridge, packages }) {
+  return {
+    bridge: bridgeTierCommands(
+      bridge,
+      all ? undefined : familiesForPackages(packages)
+    ),
+    coverage: coverageCommand(
+      all ? undefined : packages.map((pkg) => pkg.name)
+    ),
+  };
 }

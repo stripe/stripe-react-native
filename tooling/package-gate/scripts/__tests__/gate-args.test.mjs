@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { bridgeTierCommands, parseArgs } from '../checks/gate-args.mjs';
+import { loadConfig } from '../checks/config.mjs';
+import {
+  bridgeTierCommands,
+  coverageCommand,
+  familiesForPackages,
+  parseArgs,
+  sharedTierPlan,
+} from '../checks/gate-args.mjs';
 
 const CHECK = 'packages/bridge-contracts/scripts/check.mjs';
 const TEST_BRIDGE = 'packages/bridge-contracts/scripts/test-bridge.mjs';
@@ -76,6 +83,56 @@ test('an empty --bridge= value is a usage error', () => {
     () => parseArgs(['--bridge=,']),
     /--bridge: expected one of js, ios, android/
   );
+});
+
+test('a package run scopes coverage and native loaders, and --all does not', () => {
+  const { packages } = loadConfig();
+  const payments = packages.find((pkg) => pkg.alias === 'payments');
+  const plan = sharedTierPlan({
+    all: false,
+    bridge: ['js', 'ios', 'android'],
+    packages: [payments],
+  });
+  assert.deepEqual(plan.coverage, [
+    'node',
+    [
+      'tooling/test-harness/scripts/jest-coverage.mjs',
+      '--package=@stripe/react-native-payments',
+    ],
+  ]);
+  assert.deepEqual(plan.bridge, [
+    ['node', [CHECK, `--families=${payments.families.join(',')}`]],
+    [
+      'node',
+      [
+        TEST_BRIDGE,
+        '--only=ios,android',
+        `--families=${payments.families.join(',')}`,
+      ],
+    ],
+  ]);
+  const native = plan.bridge[1][1].join(' ');
+  assert.equal(native.includes('financial-connections'), false);
+  assert.equal(native.includes('onramp'), false);
+
+  const all = sharedTierPlan({
+    all: true,
+    bridge: ['js', 'ios', 'android'],
+    packages,
+  });
+  assert.deepEqual(coverageCommand(), [
+    'node',
+    ['tooling/test-harness/scripts/jest-coverage.mjs'],
+  ]);
+  assert.deepEqual(all.coverage, coverageCommand());
+  assert.deepEqual(all.bridge, [
+    ['node', [CHECK]],
+    ['node', [TEST_BRIDGE, '--only=ios,android']],
+  ]);
+  assert.equal(familiesForPackages(packages), undefined);
+  assert.deepEqual(bridgeTierCommands(['ios', 'android'], []), []);
+  assert.deepEqual(bridgeTierCommands(['js'], []), []);
+  assert.deepEqual(bridgeTierCommands(['js', 'ios'], []), []);
 });
 
 test('--skip=preview is rejected once preview is not a step', () => {

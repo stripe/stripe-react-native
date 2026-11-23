@@ -10,6 +10,7 @@ import {
   fromBasisPoints,
   hasSources,
   readFloors,
+  runCoverageChecks,
   toBasisPoints,
 } from '../jest-coverage-lib.mjs';
 
@@ -660,5 +661,33 @@ test('checkAgainstBase rejects a stale scopeChanges entry', () => {
   checkAgainstBase(floors, base, 'FETCH_HEAD', failures);
   assert.ok(
     failures.some((f) => f.includes('"scopeChanges" entry is already at FETCH_HEAD'))
+  );
+});
+
+test('--package checks that floor and does not measure other workspaces', () => {
+  const lines = [];
+  const log = console.log;
+  console.log = (line) => lines.push(String(line));
+  try {
+    const failures = runCoverageChecks([
+      '--package=@stripe/react-native-payments',
+    ]);
+    assert.deepEqual(failures, []);
+    const text = lines.join('\n');
+    assert.match(text, /@stripe\/react-native-payments/);
+    assert.equal(text.includes('@stripe/stripe-react-native'), false);
+    assert.equal(text.includes('--coverage'), false);
+  } finally {
+    console.log = log;
+  }
+  assert.throws(
+    () => runCoverageChecks(['--package=']),
+    /--package expects a workspace package name/
+  );
+  const missing = runCoverageChecks(['--package=@stripe/not-a-package']);
+  assert.ok(
+    missing.some((failure) =>
+      failure.includes('@stripe/not-a-package: no entry in')
+    )
   );
 });
