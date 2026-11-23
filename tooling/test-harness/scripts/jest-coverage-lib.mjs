@@ -354,8 +354,6 @@ export function runCoverageChecks(argv) {
       `${name}: depends on react-native-coverage; only @stripe/react-native-test-harness may`
   );
 
-  // --package measures those floors only. The unfiltered run still checks
-  // every workspace and compares the floors file with --base.
   if (args.packages) {
     for (const name of args.packages) {
       const pkg = floors.packages[name];
@@ -366,6 +364,25 @@ export function runCoverageChecks(argv) {
         continue;
       }
       checkPackage(name, pkg, args, failures);
+    }
+    if (args.base) {
+      const selected = (record) =>
+        Object.fromEntries(
+          Object.entries(record ?? {}).filter(([name]) =>
+            args.packages.includes(name)
+          )
+        );
+      const only = (record) => ({
+        packages: selected(record.packages),
+        scopeChanges: selected(record.scopeChanges),
+        floorResets: selected(record.floorResets),
+      });
+      checkAgainstBase(
+        only(floors),
+        only(baseFloors(args.base)),
+        args.base,
+        failures
+      );
     }
   } else {
     checkWorkspacesListed(all, floors, args, failures);
