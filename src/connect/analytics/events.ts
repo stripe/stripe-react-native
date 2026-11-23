@@ -18,6 +18,8 @@ export const EVENT_NAMES = {
     'component.web.error.unexpected_load_error_type',
   COMPONENT_WEB_WARN_UNRECOGNIZED_SETTER:
     'component.web.warn.unrecognized_setter_function',
+  COMPONENT_WEB_WARN_UNAUTHORIZED_MESSAGE:
+    'component.web.warn.unauthorized_message',
   COMPONENT_WEB_ERROR_DESERIALIZE_MESSAGE:
     'component.web.error.deserialize_message',
   COMPONENT_AUTHENTICATED_WEB_OPENED: 'component.authenticated_web.opened',
@@ -149,6 +151,13 @@ export interface UnrecognizedSetterEvent extends AnalyticsEvent {
 }
 
 /**
+ * Unauthorized message warning event
+ */
+export interface UnauthorizedMessageEvent extends AnalyticsEvent {
+  event_name: typeof EVENT_NAMES.COMPONENT_WEB_WARN_UNAUTHORIZED_MESSAGE;
+}
+
+/**
  * Message deserialization error event
  */
 export interface DeserializeMessageErrorEvent extends AnalyticsEvent {
@@ -238,6 +247,7 @@ export type ConnectAnalyticsEvent =
   | UnexpectedNavigationEvent
   | UnexpectedLoadErrorTypeEvent
   | UnrecognizedSetterEvent
+  | UnauthorizedMessageEvent
   | DeserializeMessageErrorEvent
   | AuthenticatedWebViewOpenedEvent
   | AuthenticatedWebViewCanceledEvent

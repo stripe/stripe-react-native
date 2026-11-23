@@ -226,6 +226,15 @@ export class ComponentAnalyticsClient {
   }
 
   /**
+   * Log a message that did not come from the Connect page
+   */
+  logUnauthorizedMessage(): void {
+    this.log({
+      event_name: EVENT_NAMES.COMPONENT_WEB_WARN_UNAUTHORIZED_MESSAGE,
+    });
+  }
+
+  /**
    * Log message deserialization error
    */
   logDeserializeMessageError(messageName: string, error: Error): void {
