@@ -19,6 +19,7 @@
 //   --keep-smoke                 keep the smoke app directory
 //   --verbose                    echo build output, not just the log path
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -34,7 +35,7 @@ import {
   repoRoot,
   unlistedPackages,
 } from './checks/config.mjs';
-import { expoSmoke } from './checks/expo-smoke.mjs';
+import { expoSmoke, packTarball } from './checks/expo-smoke.mjs';
 import {
   BRIDGE_PLATFORMS,
   STEPS,
@@ -76,6 +77,29 @@ export function runBridgeTierCommand(
     return check(parsed);
   }
   return runCommand(command, commandArgs, { cwd });
+}
+
+/**
+ * When the expo step runs in this process, pack once and hand that file
+ * list to the packed-contents check. Otherwise the pack step dry-runs.
+ */
+export function packForGate(
+  pkg,
+  root,
+  { reusePack, destination, pack, check }
+) {
+  if (!reusePack) {
+    return { report: check(pkg, root), tarball: null };
+  }
+  const packed = pack(path.join(root, pkg.dir), destination);
+  return {
+    report: check(pkg, root, {
+      filename: packed.filename,
+      size: packed.size,
+      files: packed.files,
+    }),
+    tarball: packed.tarball,
+  };
 }
 
 const CONFIG = { alias: CONFIG_ALIAS };
@@ -175,9 +199,22 @@ function spiStep(pkg) {
   record(pkg, 'spi', failed ? 'FAIL' : 'PASS', `${allowed.length} allowlisted`);
 }
 
-function packStep(pkg) {
-  heading(`${pkg.alias}: packed contents (npm pack --dry-run)`);
-  const { errors, notes, files, filename, size } = checkPackage(pkg, repoRoot);
+function packStep(pkg, packing) {
+  heading(
+    packing.reusePack
+      ? `${pkg.alias}: packed contents`
+      : `${pkg.alias}: packed contents (npm pack --dry-run)`
+  );
+  const { report: packedReport, tarball } = packForGate(pkg, repoRoot, {
+    reusePack: packing.reusePack,
+    destination: packing.destination,
+    pack: packTarball,
+    check: checkPackage,
+  });
+  if (tarball) {
+    packing.packedTarballs.set(path.resolve(repoRoot, pkg.dir), tarball);
+  }
+  const { errors, notes, files, filename, size } = packedReport;
   console.log(`  ${filename}: ${files.length} files, ${size} bytes`);
   report(notes, '  note: ');
   for (const error of errors) console.error(`  ✖ ${error}`);
@@ -236,148 +273,167 @@ async function main() {
   }
   const wants = (step) => args.steps.includes(step);
 
-  const unlisted = unlistedPackages(config);
-  const missing = config.packages.filter(
-    (pkg) => !fs.existsSync(path.join(repoRoot, pkg.dir, 'package.json'))
-  );
-  if (unlisted.length || missing.length) {
-    heading('gate config');
-    if (unlisted.length) {
-      console.error(
-        `  ✖ not in tooling/package-gate/packages.json (add them, or list them under "notGated"): ${unlisted.join(', ')}`
-      );
-      record(CONFIG, 'config', 'FAIL', `unlisted: ${unlisted.join(', ')}`);
-    }
-    for (const pkg of missing) {
-      console.error(
-        `  ✖ ${pkg.name}: configured directory ${pkg.dir} has no package.json; fix "dir" or remove the entry`
-      );
-      record(CONFIG, 'config', 'FAIL', `${pkg.alias}: ${pkg.dir} missing`);
-    }
-  }
-  const present = selected.filter((pkg) => !missing.includes(pkg));
-  const ready = present.filter((pkg) => pkg.status === 'ready');
+  const reusePack = wants('pack') && wants('expo');
+  const sharedPackDir = reusePack
+    ? fs.mkdtempSync(path.join(os.tmpdir(), 'stripe-gate-pack-'))
+    : null;
+  const packing = {
+    reusePack,
+    destination: sharedPackDir,
+    packedTarballs: new Map(),
+  };
 
-  // Builds the packages that have a build target, so the packed lib/ is
-  // current. Inside the Nx gate target, dependsOn has already built them.
-  // GATE_SKIP_BUILD=1 skips this when the caller already built lib/ (the
-  // Bitrise JS job, after _prepare_js). The pack step still reads that lib/.
-  if (
-    shouldBuildPackages(process.env, {
-      ready: ready.length > 0,
-      packOrExpo: wants('pack') || wants('expo'),
-    })
-  ) {
-    heading('build');
-    const status = run(
-      'yarn',
-      [
-        'nx',
-        'run-many',
-        '-t',
-        'build',
-        '-p',
-        ready.map((pkg) => pkg.name).join(','),
-      ],
-      { cwd: repoRoot }
+  try {
+    const unlisted = unlistedPackages(config);
+    const missing = config.packages.filter(
+      (pkg) => !fs.existsSync(path.join(repoRoot, pkg.dir, 'package.json'))
     );
-    if (status !== 0) {
-      record(null, 'build', 'FAIL', `exit ${status}`);
-      return finish();
-    }
-  }
-
-  const parsed = wants('bridge') ? loadParsedFixtures(repoRoot) : null;
-  const contracts = parsed ? familyIndex(parsed) : null;
-  for (const pkg of present) {
-    if (wants('spi')) spiStep(pkg);
-    if (wants('pack')) packStep(pkg);
-    if (pkg.status === 'shell') {
-      for (const step of args.steps.filter((s) => !SHELL_STEPS.has(s))) {
-        record(pkg, step, 'n/a', 'shell');
+    if (unlisted.length || missing.length) {
+      heading('gate config');
+      if (unlisted.length) {
+        console.error(
+          `  ✖ not in tooling/package-gate/packages.json (add them, or list them under "notGated"): ${unlisted.join(', ')}`
+        );
+        record(CONFIG, 'config', 'FAIL', `unlisted: ${unlisted.join(', ')}`);
       }
-      continue;
-    }
-    if (wants('bridge')) bridgeFamiliesStep(pkg, contracts);
-  }
-
-  if (ready.length && wants('bridge')) {
-    heading(`bridge contract tier (${args.bridge.join(', ')})`);
-    // JS is check.mjs only. The contract Jest file runs in the coverage suite,
-    // and local `yarn test:bridge` still runs it on its own.
-    let status = 0;
-    for (const [command, commandArgs] of bridgeTierCommands(args.bridge)) {
-      status = runBridgeTierCommand(command, commandArgs, parsed, {
-        check: runBridgeFixtureChecks,
-        runCommand: run,
-        cwd: repoRoot,
-      });
-      if (status !== 0) break;
-    }
-    record(
-      null,
-      'bridge tier',
-      status === 0 ? 'PASS' : 'FAIL',
-      args.bridge.join(',')
-    );
-  }
-
-  if (ready.length && wants('coverage')) {
-    heading('Jest coverage floors');
-    const status = run(
-      'node',
-      ['tooling/test-harness/scripts/jest-coverage.mjs'],
-      {
-        cwd: repoRoot,
+      for (const pkg of missing) {
+        console.error(
+          `  ✖ ${pkg.name}: configured directory ${pkg.dir} has no package.json; fix "dir" or remove the entry`
+        );
+        record(CONFIG, 'config', 'FAIL', `${pkg.alias}: ${pkg.dir} missing`);
       }
-    );
-    record(
-      null,
-      'coverage',
-      status === 0 ? 'PASS' : 'FAIL',
-      'all workspace floors'
-    );
-  }
+    }
+    const present = selected.filter((pkg) => !missing.includes(pkg));
+    const ready = present.filter((pkg) => pkg.status === 'ready');
 
-  if (wants('expo')) {
-    for (const pkg of ready) {
-      heading(`${pkg.alias}: Expo smoke build (${args.platforms.join(', ')})`);
-      const { errors, notes } = await expoSmoke({
-        pkg,
-        allPackages: config.packages,
-        platforms: args.platforms,
-        sdk: args.expoSdk,
-        keep: args.keepSmoke,
-        verbose: args.verbose,
-      });
-      report(notes, '  note: ');
-      for (const error of errors) console.error(`  ✖ ${error}`);
+    // Builds the packages that have a build target, so the packed lib/ is
+    // current. Inside the Nx gate target, dependsOn has already built them.
+    // GATE_SKIP_BUILD=1 skips this when the caller already built lib/ (the
+    // Bitrise JS job, after _prepare_js). The pack step still reads that lib/.
+    if (
+      shouldBuildPackages(process.env, {
+        ready: ready.length > 0,
+        packOrExpo: wants('pack') || wants('expo'),
+      })
+    ) {
+      heading('build');
+      const status = run(
+        'yarn',
+        [
+          'nx',
+          'run-many',
+          '-t',
+          'build',
+          '-p',
+          ready.map((pkg) => pkg.name).join(','),
+        ],
+        { cwd: repoRoot }
+      );
+      if (status !== 0) {
+        record(null, 'build', 'FAIL', `exit ${status}`);
+        return finish();
+      }
+    }
+
+    const parsed = wants('bridge') ? loadParsedFixtures(repoRoot) : null;
+    const contracts = parsed ? familyIndex(parsed) : null;
+    for (const pkg of present) {
+      if (wants('spi')) spiStep(pkg);
+      if (wants('pack')) packStep(pkg, packing);
+      if (pkg.status === 'shell') {
+        for (const step of args.steps.filter((s) => !SHELL_STEPS.has(s))) {
+          record(pkg, step, 'n/a', 'shell');
+        }
+        continue;
+      }
+      if (wants('bridge')) bridgeFamiliesStep(pkg, contracts);
+    }
+
+    if (ready.length && wants('bridge')) {
+      heading(`bridge contract tier (${args.bridge.join(', ')})`);
+      // JS is check.mjs only. The contract Jest file runs in the coverage suite,
+      // and local `yarn test:bridge` still runs it on its own.
+      let status = 0;
+      for (const [command, commandArgs] of bridgeTierCommands(args.bridge)) {
+        status = runBridgeTierCommand(command, commandArgs, parsed, {
+          check: runBridgeFixtureChecks,
+          runCommand: run,
+          cwd: repoRoot,
+        });
+        if (status !== 0) break;
+      }
       record(
-        pkg,
-        'expo',
-        errors.length ? 'FAIL' : 'PASS',
-        args.platforms.join(',')
+        null,
+        'bridge tier',
+        status === 0 ? 'PASS' : 'FAIL',
+        args.bridge.join(',')
       );
     }
-  }
 
-  return finish();
-
-  function finish() {
-    heading('summary');
-    for (const row of results) {
-      console.log(
-        `  ${row.pkg.padEnd(24)} ${row.step.padEnd(12)} ${row.status.padEnd(5)} ${row.detail}`
+    if (ready.length && wants('coverage')) {
+      heading('Jest coverage floors');
+      const status = run(
+        'node',
+        ['tooling/test-harness/scripts/jest-coverage.mjs'],
+        {
+          cwd: repoRoot,
+        }
+      );
+      record(
+        null,
+        'coverage',
+        status === 0 ? 'PASS' : 'FAIL',
+        'all workspace floors'
       );
     }
-    const verdict = gateVerdict({
-      results,
-      selected,
-      missing,
-      skipped: skippedSteps(args),
-    });
-    for (const line of verdict.lines) console.log(line);
-    process.exitCode = verdict.exitCode;
+
+    if (wants('expo')) {
+      for (const pkg of ready) {
+        heading(
+          `${pkg.alias}: Expo smoke build (${args.platforms.join(', ')})`
+        );
+        const { errors, notes } = await expoSmoke({
+          pkg,
+          allPackages: config.packages,
+          platforms: args.platforms,
+          sdk: args.expoSdk,
+          keep: args.keepSmoke,
+          verbose: args.verbose,
+          packedTarballs: packing.packedTarballs,
+        });
+        report(notes, '  note: ');
+        for (const error of errors) console.error(`  ✖ ${error}`);
+        record(
+          pkg,
+          'expo',
+          errors.length ? 'FAIL' : 'PASS',
+          args.platforms.join(',')
+        );
+      }
+    }
+
+    return finish();
+
+    function finish() {
+      heading('summary');
+      for (const row of results) {
+        console.log(
+          `  ${row.pkg.padEnd(24)} ${row.step.padEnd(12)} ${row.status.padEnd(5)} ${row.detail}`
+        );
+      }
+      const verdict = gateVerdict({
+        results,
+        selected,
+        missing,
+        skipped: skippedSteps(args),
+      });
+      for (const line of verdict.lines) console.log(line);
+      process.exitCode = verdict.exitCode;
+    }
+  } finally {
+    if (sharedPackDir) {
+      fs.rmSync(sharedPackDir, { recursive: true, force: true });
+    }
   }
 }
 

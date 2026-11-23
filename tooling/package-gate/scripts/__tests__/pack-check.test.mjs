@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
 import {
+  checkPackage,
   checkPackedContents,
   entryPoints,
   exportSubpaths,
@@ -267,4 +271,73 @@ test('exportSubpaths and entryPoints read string and conditional exports', () =>
       { field: 'exports[. import]', target: './a.mjs' },
     ]
   );
+});
+
+test('checkPackage reports the packed file list and filename', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-pack-'));
+  const dir = path.join(root, 'pkg');
+  fs.mkdirSync(dir);
+  fs.writeFileSync(
+    path.join(dir, 'package.json'),
+    JSON.stringify({
+      name: 'tiny-pack',
+      version: '1.2.3',
+      main: 'index.js',
+      files: ['index.js'],
+    })
+  );
+  fs.writeFileSync(path.join(dir, 'index.js'), 'module.exports = 1;\n');
+  try {
+    const result = checkPackage(
+      {
+        name: 'tiny-pack',
+        dir: 'pkg',
+        status: 'ready',
+        requiredFiles: [],
+        subpaths: [],
+      },
+      root
+    );
+    assert.equal(result.filename, 'tiny-pack-1.2.3.tgz');
+    assert.deepEqual(result.files.slice().sort(), ['index.js', 'package.json']);
+    assert.deepEqual(result.errors, []);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('checkPackage surfaces packed-contents errors from a packed list', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-pack-fail-'));
+  const dir = path.join(root, 'pkg');
+  fs.mkdirSync(dir);
+  fs.writeFileSync(
+    path.join(dir, 'package.json'),
+    JSON.stringify({
+      name: 'tiny-pack',
+      version: '1.0.0',
+      main: 'index.js',
+      files: ['index.js'],
+    })
+  );
+  fs.writeFileSync(path.join(dir, 'index.js'), 'module.exports = 1;\n');
+  try {
+    const result = checkPackage(
+      {
+        name: 'tiny-pack',
+        dir: 'pkg',
+        status: 'ready',
+        requiredFiles: [],
+        subpaths: [],
+      },
+      root,
+      {
+        filename: 'tiny-pack-1.0.0.tgz',
+        size: 0,
+        files: ['package.json'],
+      }
+    );
+    assert.ok(result.errors.some((line) => line.includes('index.js')));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });

@@ -59,7 +59,7 @@ export function tarballFromNpmPackStdout(stdout, destination) {
   return path.join(destination, report.filename);
 }
 
-function npmPack(dir, destination) {
+export function packTarball(dir, destination) {
   const result = spawnSync(
     'npm',
     ['pack', '--ignore-scripts', '--json', '--pack-destination', destination],
@@ -68,7 +68,20 @@ function npmPack(dir, destination) {
   if (result.status !== 0) {
     throw new Error(`npm pack failed in ${dir}:\n${result.stderr}`);
   }
-  return tarballFromNpmPackStdout(result.stdout, destination);
+  const report = firstPackReport(
+    result.stdout,
+    'npm pack did not print a JSON report:'
+  );
+  return {
+    tarball: path.join(destination, report.filename),
+    filename: report.filename,
+    size: report.size,
+    files: report.files.map((file) => file.path),
+  };
+}
+
+function npmPack(dir, destination) {
+  return packTarball(dir, destination).tarball;
 }
 
 export function packagesToInstall(pkg, allPackages, root = repoRoot) {
@@ -153,6 +166,7 @@ export async function expoSmoke({
   verbose,
   runCommand = runLogged,
   pack = npmPack,
+  packedTarballs,
 }) {
   if (!pkg.expo?.probe) {
     return {
@@ -194,9 +208,12 @@ export async function expoSmoke({
   };
 
   try {
-    const tarballs = packagesToInstall(pkg, allPackages).map((p) =>
-      pack(path.join(repoRoot, p.dir), packDir)
-    );
+    const tarballs = packagesToInstall(pkg, allPackages).map((p) => {
+      const dir = path.resolve(repoRoot, p.dir);
+      const cached = packedTarballs?.get(dir);
+      if (cached) return cached;
+      return pack(dir, packDir);
+    });
     notes.push(`Expo SDK ${settings.expoSdk}, template ${settings.template}`);
 
     const created = await step(

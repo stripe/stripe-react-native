@@ -250,18 +250,18 @@ export function checkPackedContents({
   return { errors, notes };
 }
 
-export function checkPackage(pkg, repoRoot) {
+export function checkPackage(pkg, repoRoot, packedList) {
   const dir = path.join(repoRoot, pkg.dir);
   const manifest = JSON.parse(
     fs.readFileSync(path.join(dir, 'package.json'), 'utf8')
   );
-  const packedList = listPackedFiles(dir);
+  const packed = packedList ?? listPackedFiles(dir);
   const result = checkPackedContents({
     manifest,
-    files: packedList.files,
+    files: packed.files,
     pkg,
     exists: (relative) => fs.existsSync(path.join(dir, relative)),
     topLevel: fs.readdirSync(dir),
   });
-  return { ...result, ...packedList, manifest };
+  return { ...result, ...packed, manifest };
 }

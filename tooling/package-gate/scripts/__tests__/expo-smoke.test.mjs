@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { smokeDir } from '../checks/config.mjs';
+import { repoRoot, smokeDir } from '../checks/config.mjs';
 import {
   expoSmoke,
   packagesToInstall,
@@ -423,6 +423,42 @@ test('expo smoke configures the app, installs the probe, and patches the native 
         'utf8'
       ),
       'OTHER = 1\n\nFRAMEWORK_SEARCH_PATHS = $(inherited) $(SDKROOT)/System/Library/SubFrameworks\n'
+    );
+  } finally {
+    fs.rmSync(workDir, { recursive: true, force: true });
+  }
+});
+
+test('expo smoke installs a tarball the pack step already built', async () => {
+  const tarball = path.join(os.tmpdir(), 'already-packed.tgz');
+  let packed = false;
+  const { errors, notes } = await expoSmoke({
+    pkg: smokePkg,
+    allPackages: [smokePkg],
+    platforms: ['ios'],
+    sdk: '55',
+    keep: false,
+    verbose: false,
+    packedTarballs: new Map([[path.resolve(repoRoot, smokePkg.dir), tarball]]),
+    pack: () => {
+      packed = true;
+      return 'should-not-pack.tgz';
+    },
+    runCommand: async (command, args, options) => {
+      scaffoldApp(command, args, options);
+      if (command === 'npm' && args[0] === 'install') {
+        assert.equal(args.includes(tarball), true);
+        return 1;
+      }
+      return 0;
+    },
+  });
+  const workDir = workDirectory(notes);
+  try {
+    assert.equal(packed, false);
+    assert.match(
+      errors[0],
+      /Install the template dependencies and the packed package failed/
     );
   } finally {
     fs.rmSync(workDir, { recursive: true, force: true });

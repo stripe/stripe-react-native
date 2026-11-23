@@ -7,6 +7,7 @@ import { parseArgs } from '../checks/gate-args.mjs';
 import {
   emptyBridgeFamiliesRecord,
   gateVerdict,
+  packForGate,
   runBridgeTierCommand,
   shouldBuildPackages,
   skippedSteps,
@@ -193,6 +194,62 @@ test('the JS bridge tier runs the fixture check on the parsed fixtures', () => {
     }
   );
   assert.equal(status, 1);
+});
+
+test('expo reuse feeds the packed file list and a pack-only step does not pack', () => {
+  const packs = [];
+  const reused = packForGate(
+    { dir: 'packages/payments', name: '@stripe/react-native-payments' },
+    '/repo',
+    {
+      reusePack: true,
+      destination: '/tmp/pack',
+      pack: (dir, destination) => {
+        packs.push({ dir, destination });
+        return {
+          tarball: '/tmp/pack/payments.tgz',
+          filename: 'payments.tgz',
+          size: 4,
+          files: ['package.json', 'index.js'],
+        };
+      },
+      check: (pkg, root, packed) => ({
+        errors: packed.files.includes('index.js') ? [] : ['missing index.js'],
+        notes: [],
+        files: packed.files,
+        filename: packed.filename,
+        size: packed.size,
+        pkg,
+        root,
+      }),
+    }
+  );
+  assert.deepEqual(packs, [
+    { dir: '/repo/packages/payments', destination: '/tmp/pack' },
+  ]);
+  assert.equal(reused.tarball, '/tmp/pack/payments.tgz');
+  assert.deepEqual(reused.report.files, ['package.json', 'index.js']);
+  assert.deepEqual(reused.report.errors, []);
+
+  let packed = false;
+  const dryRun = packForGate({ dir: 'packages/payments' }, '/repo', {
+    reusePack: false,
+    destination: '/tmp/pack',
+    pack: () => {
+      packed = true;
+      return { tarball: '/tmp/pack/unused.tgz', files: [] };
+    },
+    check: () => ({
+      errors: ['entry missing'],
+      notes: [],
+      files: [],
+      filename: 'payments.tgz',
+      size: 0,
+    }),
+  });
+  assert.equal(packed, false);
+  assert.equal(dryRun.tarball, null);
+  assert.deepEqual(dryRun.report.errors, ['entry missing']);
 });
 
 test('a native bridge tier command runs the loader and not the fixture check', () => {
