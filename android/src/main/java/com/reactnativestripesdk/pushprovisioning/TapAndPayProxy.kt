@@ -16,7 +16,6 @@ typealias EligibilityCheckHandler = (canAdd: Boolean, token: WritableMap?, error
 
 object TapAndPayProxy {
   private const val TAG = "StripeTapAndPay"
-  private var tapAndPayClient: Any? = null
   const val REQUEST_CODE_TOKENIZE = 90909
   private const val FALLBACK_MASTERCARD_CONSTANT = 3
   private const val FALLBACK_VISA_CONSTANT = 4
@@ -166,17 +165,37 @@ object TapAndPayProxy {
     }
   }
 
-  fun tokenize(
-    activity: Activity,
-    tokenReferenceId: String,
+  internal data class TokenizeRequest(
+    val tokenReferenceId: String,
+    val tokenServiceProvider: Int,
+    val displayName: String,
+    val network: Int,
+  )
+
+  internal fun tokenizeRequest(
     token: ReadableMap,
     cardDescription: String,
+  ): TokenizeRequest? {
+    val tokenReferenceId = token.getString("id")
+    if (tokenReferenceId.isNullOrBlank()) return null
+    return TokenizeRequest(
+      tokenReferenceId = tokenReferenceId,
+      tokenServiceProvider = token.getIntOr("serviceProvider", 0),
+      displayName = cardDescription,
+      network = token.getIntOr("network", 0),
+    )
+  }
+
+  internal fun tokenize(
+    activity: Activity,
+    request: TokenizeRequest,
   ) {
     try {
+      val tapAndPayClass = Class.forName("com.google.android.gms.tapandpay.TapAndPay")
+      val client = tapAndPayClass.getMethod("getClient", Activity::class.java).invoke(null, activity)
       val tapAndPayClientClass = Class.forName("com.google.android.gms.tapandpay.TapAndPayClient")
       val tokenizeMethod =
-        tapAndPayClientClass::class
-          .java
+        tapAndPayClientClass
           .getMethod(
             "tokenize",
             Activity::class.java,
@@ -187,12 +206,12 @@ object TapAndPayProxy {
             Int::class.java,
           )
       tokenizeMethod.invoke(
-        tapAndPayClient,
+        client,
         activity,
-        tokenReferenceId,
-        token.getIntOr("serviceProvider", 0),
-        cardDescription,
-        token.getIntOr("network", 0),
+        request.tokenReferenceId,
+        request.tokenServiceProvider,
+        request.displayName,
+        request.network,
         REQUEST_CODE_TOKENIZE,
       )
     } catch (e: Exception) {
