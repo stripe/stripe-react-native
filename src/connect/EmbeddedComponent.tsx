@@ -15,6 +15,7 @@ import {
   Platform,
   StyleProp,
   StyleSheet,
+  UIManager,
   View,
   ViewStyle,
 } from 'react-native';
@@ -41,6 +42,16 @@ import {
   wrapperDocumentCondition,
 } from './injectedObjectScript';
 import { createBridgeToken, isRecord, unwrapBridgeMessage } from './bridgeAuth';
+import NativeConnectInlineHost, {
+  Commands as ConnectInlineHostCommands,
+  type AttachEvent,
+  type OpenUrlEvent,
+} from '../specs/NativeConnectInlineHost';
+import {
+  parseComponentHeightChanged,
+  parseSheetChanged,
+  scriptsRevision,
+} from './inline';
 
 // react-native-webview 14 declares WebView<P = undefined>, which collapses
 // Component props to never when used as typeof WebView. Type the dynamic
@@ -61,6 +72,8 @@ const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
 // RN's global URL is a regex polyfill, so match URLs as strings.
 const WRAPPER_PATH = '/v1.0/react_native_webview.html';
+
+const INLINE_HOST_NAME = 'StripeConnectInlineHost';
 
 const EXTERNAL_LINK_SCHEMES = ['mailto:', 'tel:'];
 
@@ -123,6 +136,17 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
   },
+  inlineContainer: {
+    flexGrow: 0,
+    flexShrink: 0,
+    overflow: 'hidden',
+  },
+  inlineWebView: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
 });
 
 type EmbeddedComponentType =
@@ -182,6 +206,10 @@ type EmbeddedComponentProps = CommonComponentProps & {
   componentProps?: Record<string, unknown>;
 
   callbacks?: Record<string, ((data: any) => void) | undefined>;
+
+  // Inline components size themselves to their content and open their dialogs in native sheets.
+  inline?: boolean;
+  onContentHeightChange?: (height: number) => void;
 };
 
 type StripeConnectInitParamsInternal = StripeConnectInitParams & {
@@ -393,6 +421,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     onPageDidLoad,
     callbacks,
     style,
+    inline = false,
+    onContentHeightChange,
   } = props;
 
   // Initialize component analytics client
@@ -429,7 +459,24 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     .join('&');
 
   const connectURL = `${BASE_URL}${WRAPPER_PATH}#${hash}`;
-  const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
+
+  const [isInlineHostRegistered] = useState(
+    () => !inline || UIManager.hasViewManagerConfig(INLINE_HOST_NAME)
+  );
+  const [inlineHostState, setInlineHostState] = useState<
+    'pending' | 'attached' | 'failed'
+  >('pending');
+  const [contentHeight, setContentHeight] = useState(0);
+  const lastContentHeight = useRef<number | undefined>(undefined);
+  const hostRef =
+    useRef<React.ElementRef<typeof NativeConnectInlineHost>>(null);
+  // Inline components load only once the native host has attached, so it sees their first window.
+  const loadsComponentPage = !inline || inlineHostState === 'attached';
+
+  const source = useMemo(
+    () => (loadsComponentPage ? { uri: connectURL } : { html: '' }),
+    [connectURL, loadsComponentPage]
+  );
 
   const ref = useRef<WebViewHandle>(null);
   const [bridgeToken] = useState(createBridgeToken);
@@ -507,6 +554,27 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   );
 
   const WebViewComponent = dynamicWebview?.WebView;
+
+  const reportInlineUnavailable = useCallback(() => {
+    setInlineHostState('failed');
+    onLoadError?.({
+      elementTagName: `stripe-connect-${component}`,
+      error: {
+        type: 'render_error',
+        message:
+          'Native sheets are unavailable, so this component cannot load inline.',
+      },
+    });
+  }, [component, onLoadError]);
+
+  const reportInlineUnavailableRef = useRef(reportInlineUnavailable);
+  useEffect(() => {
+    reportInlineUnavailableRef.current = reportInlineUnavailable;
+  }, [reportInlineUnavailable]);
+
+  useEffect(() => {
+    if (!isInlineHostRegistered) reportInlineUnavailableRef.current();
+  }, [isInlineHostRegistered]);
 
   // Workaround for react-native-webview new architecture bug on iOS
   // https://github.com/react-native-webview/react-native-webview/pull/3880
@@ -643,6 +711,24 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'componentLoaded') {
         // Connect JS fully initialized
         componentAnalytics.logComponentLoaded();
+      } else if (inline && message.type === 'componentHeightChanged') {
+        const height = parseComponentHeightChanged(message.data);
+        if (height === undefined || height === lastContentHeight.current) {
+          return;
+        }
+        lastContentHeight.current = height;
+        onContentHeightChange?.(height);
+        setContentHeight(height);
+      } else if (inline && message.type === 'sheetChanged') {
+        const sheet = parseSheetChanged(message.data);
+        if (sheet && hostRef.current) {
+          ConnectInlineHostCommands.sheetChanged(
+            hostRef.current,
+            sheet.sheetId,
+            sheet.height,
+            sheet.dismissible
+          );
+        }
       } else if (message.type === 'accountSessionClaimed') {
         // message.data is of type {elementTagName: string, merchantId: string}
       } else if (message.type === 'openFinancialConnections') {
@@ -867,6 +953,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       componentAnalytics,
       fetchClientSecret,
       handleUnexpectedError,
+      inline,
+      onContentHeightChange,
       onLoadError,
       onLoaderStart,
       onPageDidLoad,
@@ -925,6 +1013,32 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     [connectURL, routeOutside]
   );
 
+  const onInlineHostAttach = useCallback(
+    (event: { nativeEvent: AttachEvent }) => {
+      if (inlineHostState !== 'pending') return;
+      if (event.nativeEvent.attached) {
+        setInlineHostState('attached');
+      } else {
+        reportInlineUnavailable();
+      }
+    },
+    [inlineHostState, reportInlineUnavailable]
+  );
+
+  const onInlineHostOpenUrl = useCallback(
+    (event: { nativeEvent: OpenUrlEvent }) => {
+      routeOutside(event.nativeEvent.url);
+    },
+    [routeOutside]
+  );
+
+  // The Android hook can't see navigations, so the component's own page loads tell it to drop the previous page's sheets.
+  const onInlineLoadStart = useCallback(() => {
+    if (hostRef.current) {
+      ConnectInlineHostCommands.resetSheets(hostRef.current);
+    }
+  }, []);
+
   const onOpenWindow = useCallback(
     (event: WebViewOpenWindowEvent) => {
       routeOutside(event.nativeEvent.targetUrl);
@@ -938,6 +1052,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const mergedStyle = useMemo(
     () => [{ backgroundColor }, style],
     [backgroundColor, style]
+  );
+
+  const inlineContainerStyle = useMemo(
+    () => [style, styles.inlineContainer, { height: contentHeight }],
+    [style, contentHeight]
+  );
+
+  const inlineWebViewStyle = useMemo(
+    () => [
+      { backgroundColor },
+      styles.inlineWebView,
+      // A web view with no height doesn't lay out, so it could never report its first height.
+      { height: Math.max(1, contentHeight) },
+    ],
+    [backgroundColor, contentHeight]
   );
 
   const injectedObject = useMemo(
@@ -963,12 +1092,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     [injectedObject, bridgeToken]
   );
 
-  if (!WebViewComponent) return null;
+  if (!WebViewComponent || !isInlineHostRegistered) return null;
 
-  return (
+  const inlineWebViewProps: Partial<WebViewProps> = inline
+    ? {
+        // Sail opens a dialog's window after the tap that opened it has been handled.
+        javaScriptCanOpenWindowsAutomatically: true,
+        scrollEnabled: false,
+        onLoadStart: Platform.OS === 'android' ? onInlineLoadStart : undefined,
+      }
+    : {};
+
+  const webView = (
     <WebViewComponent
       ref={ref}
-      style={mergedStyle}
+      style={inline ? inlineWebViewStyle : mergedStyle}
       renderLoading={() => {
         return (
           <View style={[styles.loadingIndicatorContainer, { backgroundColor }]}>
@@ -999,7 +1137,24 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
       allowsInlineMediaPlayback={true}
       mediaPlaybackRequiresUserAction={false}
+      {...inlineWebViewProps}
     />
+  );
+
+  if (!inline) return webView;
+
+  return (
+    <NativeConnectInlineHost
+      ref={hostRef}
+      style={inlineContainerStyle}
+      connectJsOrigin={BASE_URL}
+      scriptsRevision={scriptsRevision(injectedObjectScript)}
+      sheetBackgroundColor={backgroundColor}
+      onAttach={onInlineHostAttach}
+      onOpenUrl={onInlineHostOpenUrl}
+    >
+      {webView}
+    </NativeConnectInlineHost>
   );
 }
 
