@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Breaking changes**
+
+* [Removed] `AddressSheetProps.googlePlacesApiKey`, deprecated in 0.83.0. Address autocomplete no longer requires a Google Places API key.
+
 **Fixes**
 
 * [Fixed] iOS: Connect now blocks top-frame WebView navigation away from the hosted Connect page for every navigation type (previously only navigation triggered by a click was blocked), and routes it to the system browser instead.
