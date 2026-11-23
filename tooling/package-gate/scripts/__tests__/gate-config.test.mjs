@@ -82,6 +82,14 @@ test('loadConfig rejects a bad status and a missing dir', () => {
   }
 });
 
+test('loadConfig carries per-package expoSdk overrides', () => {
+  const { packages } = loadConfig();
+  const monolith = packages.find(
+    (pkg) => pkg.name === '@stripe/stripe-react-native'
+  );
+  assert.equal(monolith?.expoSdk, 55);
+});
+
 test('packages resolve by name, alias, and directory', () => {
   const { packages } = loadConfig();
   assert.equal(findPackage(packages, 'payments').dir, 'packages/payments');

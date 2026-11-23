@@ -1,5 +1,5 @@
 {
-  "expoSdk": 55,
+  "expoSdk": 58,
   "createExpoApp": "5.0.0",
   "template": "blank",
   "entryFile": "App.tsx",

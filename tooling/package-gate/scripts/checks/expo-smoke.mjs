@@ -22,6 +22,19 @@ export function smokeProcessEnv(source) {
   );
 }
 
+/**
+ * Expo SDK for one smoke run: CLI/env override, then per-package, then global.
+ */
+export function resolveExpoSdk(smokeConfig, pkg, runOverride) {
+  if (runOverride != null && runOverride !== '') {
+    return runOverride;
+  }
+  if (pkg.expoSdk != null) {
+    return pkg.expoSdk;
+  }
+  return smokeConfig.expoSdk;
+}
+
 export function smokeSettings(config, sdkOverride) {
   const expoSdk = String(sdkOverride ?? config.expoSdk);
   const profile = config.sdkProfiles?.[expoSdk];
@@ -190,9 +203,10 @@ export async function expoSmoke({
       notes: [],
     };
   }
+  const smokeConfig = readJson(path.join(smokeDir, 'smoke.config.json'));
   const settings = smokeSettings(
-    readJson(path.join(smokeDir, 'smoke.config.json')),
-    sdk
+    smokeConfig,
+    resolveExpoSdk(smokeConfig, pkg, sdk)
   );
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'stripe-expo-smoke-'));
   const logsDir = path.join(workDir, 'logs');

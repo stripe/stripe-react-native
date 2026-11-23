@@ -39,6 +39,7 @@ export function loadConfig(file = path.join(gateDir, 'packages.json')) {
       requiredFiles: entry.requiredFiles ?? [],
       subpaths: entry.subpaths ?? [],
       expo: entry.expo ?? null,
+      expoSdk: entry.expoSdk,
     });
   }
   return { packages, notGated: raw.notGated ?? {} };

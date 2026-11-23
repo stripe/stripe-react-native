@@ -7,6 +7,7 @@ import { repoRoot, smokeDir } from '../checks/config.mjs';
 import {
   expoSmoke,
   packagesToInstall,
+  resolveExpoSdk,
   smokeProcessEnv,
   tarballFromNpmPackStdout,
 } from '../checks/expo-smoke.mjs';
@@ -39,6 +40,15 @@ test('packagesToInstall rejects a dependency that is still a shell', () => {
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+test('resolveExpoSdk prefers CLI, then package, then global', () => {
+  const smokeConfig = { expoSdk: 58 };
+  const pkg = { name: '@stripe/stripe-react-native', expoSdk: 55 };
+  assert.equal(resolveExpoSdk(smokeConfig, pkg, undefined), 55);
+  assert.equal(resolveExpoSdk(smokeConfig, {}, undefined), 58);
+  assert.equal(resolveExpoSdk(smokeConfig, pkg, 52), 52);
+  assert.equal(resolveExpoSdk(smokeConfig, pkg, '56'), '56');
 });
 
 test('smokeProcessEnv keeps registry settings but drops Yarn injections', () => {
@@ -105,6 +115,7 @@ const smokePkg = {
   name: '@stripe/stripe-react-native',
   dir: '.',
   status: 'ready',
+  expoSdk: 55,
   expo: { probe: 'probes/stripe-react-native.tsx' },
 };
 

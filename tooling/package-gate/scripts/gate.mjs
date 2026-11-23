@@ -15,7 +15,7 @@
 //                                js runs check.mjs once; ios and android run the native
 //                                loaders (ios needs `yarn pods` and honours IOS_SIMULATOR)
 //   --platforms=ios,android      Expo smoke build platforms (default both)
-//   --expo-sdk=<n>               Expo SDK for the smoke app (or EXPO_SMOKE_SDK)
+//   --expo-sdk=<n>               Override Expo SDK for every smoke (or EXPO_SMOKE_SDK)
 //   --keep-smoke                 keep the smoke app directory
 //   --verbose                    echo build output, not just the log path
 import fs from 'node:fs';

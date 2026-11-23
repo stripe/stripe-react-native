@@ -4,6 +4,7 @@
       "alias": "stripe-react-native",
       "dir": ".",
       "status": "ready",
+      "expoSdk": 55,
       "iosSources": ["ios"],
       "families": "*",
       "requiredFiles": [
