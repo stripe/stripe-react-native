@@ -4,6 +4,7 @@ import {
   checkPackedContents,
   entryPoints,
   exportSubpaths,
+  parsePackDryRun,
 } from '../checks/pack-check.mjs';
 
 const readyPkg = (overrides = {}) => ({
@@ -210,6 +211,45 @@ test('wildcard export targets need at least one packed match', () => {
       topLevel: [],
     }).errors,
     ['exports[./*] points at ./lib/*.js, which is not in the package']
+  );
+});
+
+test('a dry-run blob with a leading info line still parses', () => {
+  const report = [
+    {
+      filename: 'stripe-react-native-0.0.0.tgz',
+      size: 12,
+      files: [{ path: 'package.json' }, { path: 'lib/commonjs/index.js' }],
+    },
+  ];
+  const blob = `ℹ [module] notice before the pack report\n${JSON.stringify(report)}`;
+  assert.deepEqual(parsePackDryRun(blob), {
+    filename: 'stripe-react-native-0.0.0.tgz',
+    size: 12,
+    files: ['package.json', 'lib/commonjs/index.js'],
+  });
+});
+
+test('an npm 11 object report still parses', () => {
+  const report = {
+    '@stripe/stripe-react-native': {
+      filename: 'stripe-react-native-0.0.0.tgz',
+      size: 12,
+      files: [{ path: 'package.json' }, { path: 'lib/commonjs/index.js' }],
+    },
+  };
+  const blob = `ℹ [module] notice before the pack report\n${JSON.stringify(report)}`;
+  assert.deepEqual(parsePackDryRun(blob), {
+    filename: 'stripe-react-native-0.0.0.tgz',
+    size: 12,
+    files: ['package.json', 'lib/commonjs/index.js'],
+  });
+});
+
+test('invalid dry-run output with no JSON object fails', () => {
+  assert.throws(
+    () => parsePackDryRun('ℹ [module] notice\nthis is not json'),
+    /did not print a JSON report/
   );
 });
 

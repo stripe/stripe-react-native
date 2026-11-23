@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { firstPackReport } from './pack-json.mjs';
 
 const ENTRY_FIELDS = [
   'main',
@@ -53,6 +54,18 @@ const FORBIDDEN = [
   [/(^|\/)\.DS_Store$/, 'Finder metadata'],
 ];
 
+export function parsePackDryRun(stdout) {
+  const report = firstPackReport(
+    stdout,
+    'npm pack --dry-run did not print a JSON report:'
+  );
+  return {
+    filename: report.filename,
+    size: report.size,
+    files: report.files.map((file) => file.path),
+  };
+}
+
 /**
  * Runs `npm pack --dry-run`, which lists exactly the files `npm publish`
  * would upload, without writing a tarball or contacting the registry.
@@ -68,14 +81,7 @@ function listPackedFiles(dir) {
       `npm pack --dry-run failed in ${dir} (exit ${result.status}):\n${result.stderr}`
     );
   }
-  const parsed = JSON.parse(result.stdout);
-  // npm 10 prints an array, npm 11+ an object keyed by package name.
-  const report = Array.isArray(parsed) ? parsed[0] : Object.values(parsed)[0];
-  return {
-    filename: report.filename,
-    size: report.size,
-    files: report.files.map((file) => file.path),
-  };
+  return parsePackDryRun(result.stdout);
 }
 
 const normalize = (target) => target.replace(/^\.\//, '');
