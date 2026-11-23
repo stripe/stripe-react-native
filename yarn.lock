@@ -3381,6 +3381,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stripe/package-gate@workspace:tooling/package-gate":
+  version: 0.0.0-use.local
+  resolution: "@stripe/package-gate@workspace:tooling/package-gate"
+  languageName: unknown
+  linkType: soft
+
 "@stripe/react-native-connect@workspace:packages/connect":
   version: 0.0.0-use.local
   resolution: "@stripe/react-native-connect@workspace:packages/connect"

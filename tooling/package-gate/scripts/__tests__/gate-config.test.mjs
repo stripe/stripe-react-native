@@ -1,0 +1,213 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { test } from 'node:test';
+import { pathToFileURL } from 'node:url';
+import { checkFamilies, familyIndex } from '../checks/bridge-check.mjs';
+import {
+  findPackage,
+  loadConfig,
+  repoRoot,
+  unlistedPackages,
+} from '../checks/config.mjs';
+import { configureAppJson, smokeSettings } from '../checks/expo-smoke.mjs';
+
+function bridgeCheckModule() {
+  return import(
+    pathToFileURL(
+      path.join(repoRoot, 'packages/bridge-contracts/scripts/check.mjs')
+    ).href
+  );
+}
+
+test('the gate config lists every package under packages/', () => {
+  assert.deepEqual(unlistedPackages(loadConfig()), []);
+});
+
+test('unlistedPackages returns a package absent from the config', () => {
+  const packagesDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-packages-'));
+  try {
+    fs.mkdirSync(path.join(packagesDir, 'known'));
+    fs.writeFileSync(
+      path.join(packagesDir, 'known', 'package.json'),
+      JSON.stringify({ name: '@stripe/react-native-known' })
+    );
+    fs.mkdirSync(path.join(packagesDir, 'ignored'));
+    fs.writeFileSync(
+      path.join(packagesDir, 'ignored', 'package.json'),
+      JSON.stringify({ name: '@stripe/react-native-ignored' })
+    );
+    fs.mkdirSync(path.join(packagesDir, 'extra'));
+    fs.writeFileSync(
+      path.join(packagesDir, 'extra', 'package.json'),
+      JSON.stringify({ name: '@stripe/react-native-extra' })
+    );
+    assert.deepEqual(
+      unlistedPackages(
+        {
+          packages: [{ name: '@stripe/react-native-known' }],
+          notGated: { '@stripe/react-native-ignored': 'fixture' },
+        },
+        packagesDir
+      ),
+      ['@stripe/react-native-extra']
+    );
+  } finally {
+    fs.rmSync(packagesDir, { recursive: true, force: true });
+  }
+});
+
+test('loadConfig rejects a bad status and a missing dir', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-config-'));
+  const file = path.join(dir, 'packages.json');
+  try {
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        packages: { '@x/y': { status: 'nope', dir: 'packages/y' } },
+      })
+    );
+    assert.throws(
+      () => loadConfig(file),
+      /@x\/y: "status" must be one of shell, ready/
+    );
+    fs.writeFileSync(
+      file,
+      JSON.stringify({ packages: { '@x/y': { status: 'ready' } } })
+    );
+    assert.throws(() => loadConfig(file), /@x\/y: "dir" is required/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('packages resolve by name, alias, and directory', () => {
+  const { packages } = loadConfig();
+  assert.equal(findPackage(packages, 'payments').dir, 'packages/payments');
+  assert.equal(
+    findPackage(packages, '@stripe/react-native-core').alias,
+    'core'
+  );
+  assert.equal(
+    findPackage(packages, '.', path.join(repoRoot, 'packages/onramp')).alias,
+    'onramp'
+  );
+  assert.equal(
+    findPackage(packages, '.', repoRoot).alias,
+    'stripe-react-native'
+  );
+  assert.equal(findPackage(packages, 'nope'), null);
+});
+
+test('bridge families need a fixture for every entry and nothing pending', () => {
+  const inventory = {
+    'StripeSdk.a': { family: 'f1' },
+    'StripeSdk.a#result': { family: 'f1' },
+    'StripeSdk.b': { family: 'f2', pending: 'native runner missing' },
+  };
+  const fixtures = [
+    { family: 'f1', method: 'StripeSdk.a', keys: ['result.error.code'] },
+  ];
+  assert.deepEqual(
+    checkFamilies({ inventory, fixtures, families: ['f1'] }).errors,
+    []
+  );
+  assert.deepEqual(
+    checkFamilies({ inventory, fixtures, families: '*' }).errors,
+    ['StripeSdk.b is still pending: native runner missing']
+  );
+  assert.deepEqual(
+    checkFamilies({ inventory, fixtures: [], families: ['f1', 'f3'] }).errors,
+    [
+      'family "f3" is not used in inventory.json',
+      'StripeSdk.a has no fixture',
+      'StripeSdk.a#result has no fixture',
+    ]
+  );
+});
+
+test('the smoke app follows the Expo SDK profile and drops web.output', () => {
+  const config = {
+    expoSdk: 55,
+    appName: 'StripeSmoke',
+    applicationId: 'com.example.smoke',
+    webOutput: 'remove',
+    sdkProfiles: { 55: { iosDeploymentTarget: '16.0', androidMinSdk: 24 } },
+  };
+  assert.throws(
+    () => smokeSettings(config, '99'),
+    /no sdkProfiles entry for Expo SDK 99/
+  );
+  const settings = smokeSettings(config);
+  const { appJson, templateWebOutput } = configureAppJson(
+    {
+      expo: {
+        web: { output: 'server', favicon: './f.png' },
+        plugins: ['expo-router'],
+      },
+    },
+    settings,
+    ['@stripe/stripe-react-native', { enableGooglePay: true }]
+  );
+  assert.equal(templateWebOutput, 'server');
+  assert.deepEqual(appJson.expo.web, { favicon: './f.png' });
+  assert.deepEqual(appJson.expo.plugins, [
+    'expo-router',
+    [
+      'expo-build-properties',
+      {
+        ios: { useFrameworks: 'dynamic', deploymentTarget: '16.0' },
+        android: { minSdkVersion: 24 },
+      },
+    ],
+    ['@stripe/stripe-react-native', { enableGooglePay: true }],
+  ]);
+  const kept = configureAppJson(
+    { expo: {} },
+    { ...settings, webOutput: 'server' },
+    null
+  );
+  assert.equal(kept.appJson.expo.web.output, 'server');
+});
+
+test('familyIndex lists expect keys from a fixture directory', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-bridge-'));
+  const fixtures = path.join(root, 'packages/bridge-contracts/fixtures');
+  try {
+    fs.mkdirSync(path.join(fixtures, 'payments'), { recursive: true });
+    fs.writeFileSync(path.join(fixtures, 'README'), 'not a family directory');
+    fs.writeFileSync(
+      path.join(fixtures, 'payments', 'note.txt'),
+      'not a fixture'
+    );
+    fs.writeFileSync(
+      path.join(root, 'packages/bridge-contracts/inventory.json'),
+      JSON.stringify({ 'StripeSdk.confirm': { family: 'payments' } })
+    );
+    fs.writeFileSync(
+      path.join(fixtures, 'payments', 'confirm.basic.json'),
+      JSON.stringify({
+        method: 'StripeSdk.confirm',
+        expect: {
+          shared: { 'result.error.code': 'Failed' },
+          ios: { 'result.payment': 'id' },
+          android: {},
+        },
+      })
+    );
+    const { loadParsedFixtures } = await bridgeCheckModule();
+    assert.deepEqual(familyIndex(loadParsedFixtures(root)), {
+      inventory: { 'StripeSdk.confirm': { family: 'payments' } },
+      fixtures: [
+        {
+          family: 'payments',
+          method: 'StripeSdk.confirm',
+          keys: ['result.error.code', 'result.payment'],
+        },
+      ],
+    });
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
