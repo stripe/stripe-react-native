@@ -29,5 +29,6 @@
 - (void)emitPaymentMethodMessagingElementConfigureResult:(NSDictionary *)value;
 - (void)emitCheckoutControllerDidUpdate:(NSDictionary *)value;
 - (void)emitCheckoutControllerDidSelectPaymentOption:(NSDictionary *)value;
+- (void)emitCheckoutExpressCheckoutDidComplete:(NSDictionary *)value;
 - (void)emitCheckoutServerUpdateRequested:(NSDictionary *)value;
 @end

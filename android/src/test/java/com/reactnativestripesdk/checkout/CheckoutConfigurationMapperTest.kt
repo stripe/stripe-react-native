@@ -329,7 +329,8 @@ class CheckoutConfigurationMapperTest {
 
   @Test
   fun `map preserves native defaults for missing options`() {
-    val mapped = CheckoutConfigurationMapper.map(baseParams(), context) {}
+    val params = readableMapOf("clientSecret" to "cs_test_secret_123", "paymentElement" to readableMapOf())
+    val mapped = CheckoutConfigurationMapper.map(params, context) {}
       .configuration
       .readField<PaymentElement.Configuration>("paymentElementConfiguration")
     val nativeDefaults = PaymentElement.Configuration()
@@ -343,6 +344,65 @@ class CheckoutConfigurationMapperTest {
       mapped.readField("opensCardScannerAutomatically"),
     )
     assertEquals(nativeDefaults.readField<List<String>>("paymentMethodOrder"), mapped.readField("paymentMethodOrder"))
+  }
+
+  @Test
+  fun `map maps card brand acceptance and wallet button hidden Link`() {
+    val mapped = CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "paymentElement" to readableMapOf(
+          "cardBrandAcceptance" to readableMapOf("filter" to "allowed", "brands" to readableArrayOf("visa")),
+          "link" to readableMapOf("display" to "walletButtonHidden"),
+        ),
+      ),
+      context,
+    ) {}.configuration.readField<PaymentElement.Configuration>("paymentElementConfiguration")
+
+    assertEquals(
+      PaymentElement.Configuration.CardBrandAcceptance.allowed(
+        listOf(PaymentElement.Configuration.CardBrandAcceptance.BrandCategory.Visa),
+      ),
+      mapped.readField("cardBrandAcceptance"),
+    )
+    assertEquals(
+      PaymentElement.Configuration.LinkConfiguration.Display.WalletButtonHidden,
+      mapped.readField<PaymentElement.Configuration.LinkConfiguration>("linkConfiguration").readField("display"),
+    )
+  }
+
+  @Test
+  fun `map maps automatic Google Pay display`() {
+    assertGooglePayDisplay(
+      readableMapOf("display" to "automatic"),
+      PaymentElement.Configuration.GooglePayConfiguration.Display.Automatic,
+    )
+  }
+
+  @Test
+  fun `map maps never Google Pay display`() {
+    assertGooglePayDisplay(
+      readableMapOf("display" to "never"),
+      PaymentElement.Configuration.GooglePayConfiguration.Display.Never,
+    )
+  }
+
+  @Test
+  fun `map preserves automatic Google Pay display when omitted`() {
+    assertGooglePayDisplay(
+      readableMapOf(),
+      PaymentElement.Configuration.GooglePayConfiguration.Display.Automatic,
+    )
+  }
+
+  @Test
+  fun `map rejects unsupported Google Pay display`() {
+    val error = assertThrows(IllegalArgumentException::class.java) {
+      mapGooglePay(readableMapOf("display" to "invalid"))
+    }
+    assertEquals(
+      "Unsupported Checkout configuration value `invalid` for `paymentElement.googlePay.display`.",
+      error.message,
+    )
   }
 
   @Test
@@ -385,6 +445,24 @@ class CheckoutConfigurationMapperTest {
       "clientSecret" to "cs_test_secret_123",
       "returnURL" to "example://checkout",
     )
+
+  private fun mapGooglePay(params: ReadableMap): PaymentElement.Configuration.GooglePayConfiguration =
+    CheckoutConfigurationMapper.map(
+      readableMapOf(
+        "clientSecret" to "cs_test_secret_123",
+        "paymentElement" to readableMapOf("googlePay" to params),
+      ),
+      context,
+    ) {}.configuration
+      .readField<PaymentElement.Configuration>("paymentElementConfiguration")
+      .readField("googlePayConfiguration")
+
+  private fun assertGooglePayDisplay(
+    params: ReadableMap,
+    expected: PaymentElement.Configuration.GooglePayConfiguration.Display,
+  ) {
+    assertEquals(expected, mapGooglePay(params).readField("display"))
+  }
 
   private fun mapEmbeddedRow(row: ReadableMap): PaymentElement.Configuration.Appearance.Embedded =
     CheckoutConfigurationMapper.map(

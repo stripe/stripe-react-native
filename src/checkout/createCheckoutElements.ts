@@ -9,7 +9,6 @@ import { runServerUpdate } from './runServerUpdate';
 import NativeStripeSdk, {
   type CheckoutCreateOptions,
 } from '../specs/NativeStripeSdkModule';
-import { Platform } from 'react-native';
 import {
   addCheckoutControllerListener,
   addCheckoutControllerSelectionListener,
@@ -106,6 +105,14 @@ export function normalizeCheckoutError(error: unknown): CheckoutOperationError {
   return checkoutError('Failed', String(error));
 }
 
+function hasAvailableExpressWallet(
+  session: CheckoutElements.Session | undefined
+): boolean {
+  return Object.values(
+    session?.availableExpressCheckoutPaymentMethods ?? {}
+  ).some((method) => method.available);
+}
+
 function nativeCreateOptions(
   options: CheckoutElements.CreateOptions
 ): CheckoutCreateOptions {
@@ -134,7 +141,6 @@ function nativeCreateOptions(
  * @remarks
  * This API is in private preview and can change without notice.
  *
- * @internal
  * @CheckoutSessionPrivatePreview
  */
 export async function createCheckoutElements(
@@ -148,12 +154,6 @@ export async function createCheckoutController(
   options: CheckoutElements.CreateOptions,
   onUpdate?: (controller: CheckoutElements) => void
 ): Promise<CheckoutElements> {
-  // Keep the iOS bridge unsupported until its native implementation is available.
-  if (options.expressCheckoutElement && Platform.OS !== 'android') {
-    throw new Error(
-      'This version of @stripe/stripe-react-native does not include native support for Express Checkout Element.'
-    );
-  }
   const controllerId = createCheckoutBridgeId();
   let status: CheckoutElements['status'] = 'ready';
   let session: CheckoutElements.Session | undefined;
@@ -183,6 +183,7 @@ export async function createCheckoutController(
     : undefined;
   try {
     // Keep handle availability consistent if options change during native creation.
+    const isPaymentElementConfigured = Boolean(options.paymentElement);
     const isShippingAddressElementConfigured = Boolean(
       options.shippingAddressElement
     );
@@ -215,12 +216,14 @@ export async function createCheckoutController(
       return operationResult;
     };
 
-    const paymentElement = {
-      present: () =>
-        performOperation(() =>
-          NativeStripeSdk.presentCheckoutPaymentElement(controllerId)
-        ),
-    };
+    const paymentElement = isPaymentElementConfigured
+      ? {
+          present: () =>
+            performOperation(() =>
+              NativeStripeSdk.presentCheckoutPaymentElement(controllerId)
+            ),
+        }
+      : null;
     // Shipping collection is opt-in, matching the native Checkout configuration.
     const shippingAddressElement = isShippingAddressElementConfigured
       ? {
@@ -236,9 +239,7 @@ export async function createCheckoutController(
       ? {}
       : null;
 
-    const expressCheckoutElement = result.isExpressCheckoutAvailable
-      ? {}
-      : null;
+    const expressCheckoutElement = options.expressCheckoutElement ? {} : null;
 
     controller = {
       get status() {
@@ -250,7 +251,11 @@ export async function createCheckoutController(
       paymentElement,
       shippingAddressElement,
       currencySelectorElement,
-      expressCheckoutElement,
+      get expressCheckoutElement() {
+        return expressCheckoutElement && hasAvailableExpressWallet(session)
+          ? expressCheckoutElement
+          : null;
+      },
       updateEmail: (email) =>
         performOperation(() =>
           NativeStripeSdk.updateCheckoutEmail(controllerId, email)
@@ -300,7 +305,9 @@ export async function createCheckoutController(
         return destroyPromise;
       },
     };
-    paymentElementIds.set(paymentElement, controllerId);
+    if (paymentElement) {
+      paymentElementIds.set(paymentElement, controllerId);
+    }
     if (currencySelectorElement) {
       currencySelectorElementIds.set(currencySelectorElement, controllerId);
     }

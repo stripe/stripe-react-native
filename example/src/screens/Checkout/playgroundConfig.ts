@@ -1,5 +1,4 @@
 import type { CheckoutElements } from '@stripe/stripe-react-native/src/types/CheckoutElements';
-import { Platform } from 'react-native';
 import { hostedBackendURL } from './backend';
 
 export type PaymentElementMode = 'sheet' | 'view';
@@ -57,6 +56,8 @@ export type PlaygroundSettings = {
   paymentMethodSave: boolean;
   paymentMethodRemove: boolean;
   linkMode: 'automatic' | 'never';
+  applePayEnabled: boolean;
+  paymentElementApplePayEnabled: boolean;
   adaptivePricingCountry: AdaptivePricingCountry;
   paymentMethodTypes: string[];
 };
@@ -102,6 +103,8 @@ export const defaultPlaygroundSettings: PlaygroundSettings = {
   paymentMethodSave: true,
   paymentMethodRemove: true,
   linkMode: 'automatic',
+  applePayEnabled: true,
+  paymentElementApplePayEnabled: true,
   adaptivePricingCountry: 'none',
   paymentMethodTypes: ['card'],
 };
@@ -253,6 +256,18 @@ export function buildSessionParameters(
   return params;
 }
 
+/**
+ * The Apple Pay merchant identifier is shared by every Checkout element. Omitting it
+ * turns Apple Pay off for all of them.
+ */
+export function playgroundMerchantIdentifier(
+  settings: PlaygroundSettings
+): string | undefined {
+  return settings.applePayEnabled
+    ? 'merchant.com.stripe.react.native'
+    : undefined;
+}
+
 export function checkoutConfiguration(
   params: CheckoutCartParams,
   onResult?: (result: CheckoutElements.Result) => void
@@ -285,17 +300,16 @@ export function checkoutConfiguration(
     merchantDisplayName: 'Stripe Shop',
     defaults,
     paymentElement: {
-      // This playground doesn't yet have a toggle for Apple Pay in Payment Element.
-      // Keep it off explicitly so the shared StripeProvider merchantIdentifier doesn't
-      // silently turn it on via Payment Element's default `display: 'automatic'`.
-      applePay: { display: 'never' },
+      applePay: {
+        display: settings.paymentElementApplePayEnabled ? 'automatic' : 'never',
+      },
       link: { display: settings.linkMode },
     },
     ...(settings.adaptivePricingCountry !== 'none'
       ? { currencySelectorElement: {} }
       : {}),
     ...(settings.collectShippingAddress ? { shippingAddressElement: {} } : {}),
-    ...(Platform.OS === 'android' && settings.expressCheckoutEnabled && onResult
+    ...(settings.expressCheckoutEnabled && onResult
       ? {
           expressCheckoutElement: {
             link: { display: settings.linkMode },

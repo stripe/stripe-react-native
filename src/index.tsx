@@ -7,6 +7,7 @@ export { usePaymentSheet } from './hooks/usePaymentSheet';
 export { useFinancialConnectionsSheet } from './hooks/useFinancialConnectionsSheet';
 export { useOnramp } from './hooks/useOnramp';
 export { useLinkController } from './hooks/useLinkController';
+export { useCheckoutElements } from './hooks/useCheckoutElements';
 
 //components
 export { initStripe, StripeProvider } from './components/StripeProvider';
@@ -25,6 +26,15 @@ export { AddressSheet } from './components/AddressSheet';
 export type { Props as AddressSheetProps } from './components/AddressSheet';
 export { PlatformPayButton } from './components/PlatformPayButton';
 export type { Props as PlatformPayButtonProps } from './components/PlatformPayButton';
+export { CheckoutPaymentElementView } from './components/CheckoutPaymentElementView';
+export { CheckoutCurrencySelectorElementView } from './components/CheckoutCurrencySelectorElementView';
+export {
+  CheckoutExpressCheckoutElementView,
+  ExpressCheckoutElementView,
+} from './components/ExpressCheckoutElementView';
+
+export { createCheckoutElements } from './checkout/createCheckoutElements';
+export * from './types/CheckoutElements';
 
 export * from './functions';
 

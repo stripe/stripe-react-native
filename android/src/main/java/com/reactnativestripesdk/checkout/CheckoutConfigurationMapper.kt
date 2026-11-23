@@ -47,13 +47,9 @@ internal object CheckoutConfigurationMapper {
     val configuration = CheckoutElementsController.Configuration()
     params.getString("merchantDisplayName")?.let(configuration::merchantDisplayName)
     params.getMap("defaults")?.let { configuration.defaults(mapDefaults(it)) }
-    configuration.paymentElement(
-      mapPaymentElement(
-        params = paymentElementParams,
-        style = params.getString("style"),
-        context = context,
-      ),
-    )
+    paymentElementParams?.let {
+      configuration.paymentElement(mapPaymentElement(it, params.getString("style"), context))
+    }
     params.getMap("currencySelectorElement")?.let {
       configuration.currencySelectorElement(mapCurrencySelectorElement(it, context, params.getString("style")))
     }
@@ -310,6 +306,7 @@ internal object CheckoutConfigurationMapper {
     }
     // Billing details collection is configured by the Checkout Session on Android.
     params.getStringList("paymentMethodOrder")?.let(configuration::paymentMethodOrder)
+    params.getMap("cardBrandAcceptance")?.let { configuration.cardBrandAcceptance(mapCardBrandAcceptance(it)) }
     if (params.hasKey("opensCardScannerAutomatically")) {
       configuration.opensCardScannerAutomatically(params.getBoolean("opensCardScannerAutomatically"))
     }
@@ -365,9 +362,19 @@ internal object CheckoutConfigurationMapper {
     params: ReadableMap,
   ): PaymentElement.Configuration.GooglePayConfiguration =
     PaymentElement.Configuration.GooglePayConfiguration().apply {
+      params.getString("display")?.let { display(mapGooglePayDisplay(it)) }
       params.getString("label")?.let(::label)
       params.getString("buttonType")?.let { buttonType(mapGooglePayButtonType(it)) }
       params.getStringList("additionalEnabledNetworks")?.let(::additionalEnabledNetworks)
+    }
+
+  private fun mapGooglePayDisplay(
+    value: String,
+  ): PaymentElement.Configuration.GooglePayConfiguration.Display =
+    when (value) {
+      "automatic" -> PaymentElement.Configuration.GooglePayConfiguration.Display.Automatic
+      "never" -> PaymentElement.Configuration.GooglePayConfiguration.Display.Never
+      else -> unsupportedValue("paymentElement.googlePay.display", value)
     }
 
   internal fun mapGooglePayButtonType(
@@ -394,6 +401,7 @@ internal object CheckoutConfigurationMapper {
           when (it) {
             "automatic" -> PaymentElement.Configuration.LinkConfiguration.Display.Automatic
             "never" -> PaymentElement.Configuration.LinkConfiguration.Display.Never
+            "walletButtonHidden" -> PaymentElement.Configuration.LinkConfiguration.Display.WalletButtonHidden
             else -> unsupportedValue("paymentElement.link.display", it)
           },
         )
@@ -648,6 +656,25 @@ internal object CheckoutConfigurationMapper {
       }
       "#$it".toColorInt()
     }
+  }
+}
+
+@OptIn(CheckoutSessionPreview::class)
+private fun mapCardBrandAcceptance(params: ReadableMap): PaymentElement.Configuration.CardBrandAcceptance {
+  val brands = params.getStringList("brands").orEmpty().map { brand ->
+    when (brand) {
+      "visa" -> PaymentElement.Configuration.CardBrandAcceptance.BrandCategory.Visa
+      "mastercard" -> PaymentElement.Configuration.CardBrandAcceptance.BrandCategory.Mastercard
+      "amex" -> PaymentElement.Configuration.CardBrandAcceptance.BrandCategory.Amex
+      "discover" -> PaymentElement.Configuration.CardBrandAcceptance.BrandCategory.Discover
+      else -> unsupportedValue("paymentElement.cardBrandAcceptance.brands", brand)
+    }
+  }
+  return when (val filter = params.getString("filter")) {
+    "allowed" -> PaymentElement.Configuration.CardBrandAcceptance.allowed(brands)
+    "disallowed" -> PaymentElement.Configuration.CardBrandAcceptance.disallowed(brands)
+    "all" -> PaymentElement.Configuration.CardBrandAcceptance.all()
+    else -> unsupportedValue("paymentElement.cardBrandAcceptance.filter", filter)
   }
 }
 

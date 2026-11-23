@@ -1502,6 +1502,7 @@ class StripeSdkModule(
             scope = scope,
             initialSession = serializedSession,
             context = reactApplicationContext,
+            isPaymentElementConfigured = params.getMap("paymentElement") != null,
             isShippingAddressElementConfigured = params.getMap("shippingAddressElement") != null,
             isExpressCheckoutElementConfigured = params.getMap("expressCheckoutElement") != null,
           )

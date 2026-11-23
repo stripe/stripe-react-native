@@ -444,12 +444,38 @@ describe('EmbeddedComponent', () => {
       }
     });
 
+    it('does not keep an http Connect host in the component on Android', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'http://connect.stripe.com/embedded',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(openUrl).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
     it.each([
-      ['click', false],
-      ['other', true],
+      'click',
+      'other',
+      'reload',
+      'backforward',
+      'formsubmit',
+      'formresubmit',
     ])(
-      'preserves iOS %s navigation behavior',
-      async (navigationType, expected) => {
+      'blocks and routes outside a foreign iOS top-frame %s navigation',
+      async (navigationType) => {
         const previousPlatform = Platform.OS;
         Platform.OS = 'ios' as any;
         const openUrl = jest
@@ -463,18 +489,168 @@ describe('EmbeddedComponent', () => {
             navigationType,
           });
 
-          expect(shouldLoad).toBe(expected);
-          if (expected) {
-            expect(openUrl).not.toHaveBeenCalled();
-          } else {
-            expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
-          }
+          expect(shouldLoad).toBe(false);
+          expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
         } finally {
           openUrl.mockRestore();
           Platform.OS = previousPlatform;
         }
       }
     );
+
+    it('allows the wrapper document and its same-URL reload on iOS, blocks lookalikes', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'ios' as any;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const wrapperUrl = mockWebViewProps.source.uri as string;
+
+        expect(
+          onShouldStartLoad({ url: wrapperUrl, navigationType: 'other' })
+        ).toBe(true);
+        expect(
+          onShouldStartLoad({ url: wrapperUrl, navigationType: 'reload' })
+        ).toBe(true);
+        expect(openUrl).not.toHaveBeenCalled();
+
+        const [origin, hash] = wrapperUrl.split('#');
+        const wrongFragment = `${origin}#component=other`;
+        const wrongPort = wrapperUrl.replace(
+          'connect-js.stripe.com',
+          'connect-js.stripe.com:1234'
+        );
+        const wrongScheme = wrapperUrl.replace('https://', 'http://');
+        const wrongPath = wrapperUrl.replace(
+          '/v1.0/react_native_webview.html',
+          '/v1.0/other.html'
+        );
+
+        for (const badUrl of [
+          wrongFragment,
+          wrongPort,
+          wrongScheme,
+          wrongPath,
+        ]) {
+          expect(
+            onShouldStartLoad({ url: badUrl, navigationType: 'other' })
+          ).toBe(false);
+        }
+        expect(hash).toBeTruthy();
+        openUrl.mock.calls.forEach(([openedUrl]) => {
+          expect(openedUrl).not.toContain('react_native_webview.html');
+        });
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it('allows the wrapper initial load and reload using the real iOS event shape', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'ios' as any;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const wrapperUrl = mockWebViewProps.source.uri as string;
+
+        expect(
+          onShouldStartLoad({
+            url: wrapperUrl,
+            navigationType: 'other',
+            isTopFrame: true,
+            mainDocumentURL: wrapperUrl,
+          })
+        ).toBe(true);
+        expect(
+          onShouldStartLoad({
+            url: wrapperUrl,
+            navigationType: 'reload',
+            isTopFrame: true,
+            mainDocumentURL: wrapperUrl,
+          })
+        ).toBe(true);
+        expect(openUrl).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    describe('iOS subframe navigation', () => {
+      const previousPlatform = Platform.OS;
+
+      beforeEach(() => {
+        Platform.OS = 'ios' as any;
+      });
+
+      afterEach(() => {
+        Platform.OS = previousPlatform;
+      });
+
+      it.each([
+        ['https://js.stripe.com/v3/', 'https:'],
+        ['blob:https://connect-js.stripe.com/abcd-1234', 'blob:'],
+        ['about:srcdoc', 'about:'],
+      ])('allows a non-click subframe load of %s (%s)', async (url) => {
+        const onShouldStartLoad = await getNavigationHandler();
+
+        expect(
+          onShouldStartLoad({
+            url,
+            navigationType: 'other',
+            isTopFrame: false,
+            mainDocumentURL: 'https://connect-js.stripe.com/other-doc',
+          })
+        ).toBe(true);
+      });
+
+      it('routes a click to a foreign host outside', async () => {
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url: 'https://example.com/help',
+            navigationType: 'click',
+            isTopFrame: false,
+            mainDocumentURL: 'https://connect-js.stripe.com/other-doc',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(openUrl).toHaveBeenCalledWith('https://example.com/help');
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+
+      it('blocks a custom-scheme subframe load without calling Linking', async () => {
+        const openUrl = jest.spyOn(Linking, 'openURL');
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url: 'customscheme://action',
+            navigationType: 'other',
+            isTopFrame: false,
+            mainDocumentURL: 'https://connect-js.stripe.com/other-doc',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+    });
 
     it('shares CSV exports without opening them externally', async () => {
       const previousPlatform = Platform.OS;
@@ -558,6 +734,61 @@ describe('EmbeddedComponent', () => {
       }
     });
 
+    it.each([
+      'https://evil.example/@stripe-data-exports.s3.amazonaws.com/x.csv',
+      'https://evil.example/?@stripe-data-exports.s3.amazonaws.com/x.csv',
+      'https://evil.example/#@stripe-data-exports.s3.amazonaws.com/x.csv',
+    ])(
+      'does not treat a userinfo-confused URL %s as a CSV export',
+      async (url) => {
+        const previousPlatform = Platform.OS;
+        Platform.OS = 'android' as any;
+        const downloadAndShare =
+          NativeStripeSdk.downloadAndShareFile as jest.Mock;
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url,
+            navigationType: 'other',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(downloadAndShare).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+          Platform.OS = previousPlatform;
+        }
+      }
+    );
+
+    it('does not treat a foreign host with "stripe-data-exports" in its path as a CSV export', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+      const downloadAndShare =
+        NativeStripeSdk.downloadAndShareFile as jest.Mock;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: 'https://attacker.example/stripe-data-exports/payload.csv',
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(false);
+        expect(downloadAndShare).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
     it('keeps external navigation blocked when opening the URL rejects', async () => {
       const previousPlatform = Platform.OS;
       Platform.OS = 'android' as any;
@@ -583,6 +814,167 @@ describe('EmbeddedComponent', () => {
         openUrl.mockRestore();
         Platform.OS = previousPlatform;
       }
+    });
+
+    it('sets originWhitelist to [*] so react-native-webview never auto-opens a URL before onShouldStartLoadWithRequest runs', async () => {
+      mockLoadWebView = true;
+      renderComponent();
+
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+
+      expect(mockWebViewProps.originWhitelist).toEqual(['*']);
+    });
+
+    describe('onOpenWindow / popups', () => {
+      const getOpenWindowHandler = async () => {
+        mockLoadWebView = true;
+        renderComponent();
+
+        await waitFor(() => {
+          expect(mockWebViewProps?.onOpenWindow).toEqual(expect.any(Function));
+        });
+
+        return mockWebViewProps.onOpenWindow;
+      };
+
+      it.each(['ios', 'android'])(
+        'is registered by default on %s',
+        async (platform) => {
+          const previousPlatform = Platform.OS;
+          Platform.OS = platform as any;
+          try {
+            await getOpenWindowHandler();
+          } finally {
+            Platform.OS = previousPlatform;
+          }
+        }
+      );
+
+      it.each([
+        ['https://example.com/popup', 'https:'],
+        ['mailto:someone@example.com', 'mailto:'],
+      ])('opens a popup targetUrl of scheme %s', async (targetUrl) => {
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+
+        try {
+          const onOpenWindow = await getOpenWindowHandler();
+          onOpenWindow({ nativeEvent: { targetUrl } });
+
+          await waitFor(() => {
+            expect(openUrl).toHaveBeenCalledWith(targetUrl);
+          });
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+
+      it.each([
+        'javascript:alert(1)',
+        'http://example.com/popup',
+        'myapp://action',
+      ])('drops a popup targetUrl of %s', async (targetUrl) => {
+        const openUrl = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue('' as any);
+
+        try {
+          const onOpenWindow = await getOpenWindowHandler();
+          onOpenWindow({ nativeEvent: { targetUrl } });
+
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+
+      it('sends a CSV export popup targetUrl to the native share sheet', async () => {
+        const downloadAndShare =
+          NativeStripeSdk.downloadAndShareFile as jest.Mock;
+        downloadAndShare.mockResolvedValue({ success: true });
+        const openUrl = jest.spyOn(Linking, 'openURL');
+
+        try {
+          const onOpenWindow = await getOpenWindowHandler();
+          onOpenWindow({
+            nativeEvent: {
+              targetUrl: 'https://stripe-data-exports.com/report.csv',
+            },
+          });
+
+          await waitFor(() => {
+            expect(downloadAndShare).toHaveBeenCalledWith(
+              'https://stripe-data-exports.com/report.csv',
+              null
+            );
+          });
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+        }
+      });
+    });
+  });
+
+  describe('CSV export detection under the React Native URL polyfill', () => {
+    const RealURL = global.URL;
+
+    beforeEach(() => {
+      (global as any).URL = require('react-native/Libraries/Blob/URL').URL;
+    });
+
+    afterEach(() => {
+      (global as any).URL = RealURL;
+    });
+
+    const getHandlers = async () => {
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => {
+        expect(mockWebViewProps?.onShouldStartLoadWithRequest).toEqual(
+          expect.any(Function)
+        );
+      });
+      return {
+        onShouldStartLoad: mockWebViewProps.onShouldStartLoadWithRequest,
+        onOpenWindow: mockWebViewProps.onOpenWindow,
+      };
+    };
+
+    it.each([
+      'https://evil.example/@stripe-data-exports.s3.amazonaws.com/x.csv',
+      'https://evil.example#@stripe-data-exports.s3.amazonaws.com/x.csv',
+      'https://evil.example?@stripe-data-exports.com/x.csv',
+    ])('does not treat %s as a CSV export', async (url) => {
+      const downloadAndShare =
+        NativeStripeSdk.downloadAndShareFile as jest.Mock;
+      const openUrl = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue('' as any);
+
+      try {
+        const { onShouldStartLoad, onOpenWindow } = await getHandlers();
+
+        onShouldStartLoad({ url, navigationType: 'other' });
+        onOpenWindow({ nativeEvent: { targetUrl: url } });
+
+        expect(downloadAndShare).not.toHaveBeenCalled();
+      } finally {
+        openUrl.mockRestore();
+      }
+    });
+
+    it('still treats a real S3 export host as a CSV export', async () => {
+      const downloadAndShare =
+        NativeStripeSdk.downloadAndShareFile as jest.Mock;
+      downloadAndShare.mockResolvedValue({ success: true });
+      const url = 'https://stripe-data-exports.s3.amazonaws.com/x.csv';
+      const { onShouldStartLoad } = await getHandlers();
+
+      onShouldStartLoad({ url, navigationType: 'other' });
+
+      expect(downloadAndShare).toHaveBeenCalledWith(url, null);
     });
   });
 
@@ -776,6 +1168,42 @@ describe('EmbeddedComponent', () => {
       expect(injected.initComponentProps).toEqual(componentProps);
       expect(page.__f9Executed).toBeUndefined();
       expect(page.__f9Interpolated).toBeUndefined();
+    });
+  });
+
+  describe('Logging hygiene', () => {
+    it('does not log the URL for an invalid authenticated webview request', async () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+      try {
+        mockLoadWebView = true;
+        renderComponent();
+        await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+        await act(async () => {
+          webViewOnMessage?.({
+            nativeEvent: {
+              data: JSON.stringify({
+                type: 'openAuthenticatedWebView',
+                data: {
+                  id: 'auth_bad',
+                  url: 'javascript:alert(document.cookie)//secret_in_url',
+                },
+              }),
+            },
+          });
+        });
+
+        expect(consoleError).toHaveBeenCalled();
+        const loggedMessages = consoleError.mock.calls.map((call) =>
+          call.join(' ')
+        );
+        loggedMessages.forEach((message) => {
+          expect(message).not.toContain('secret_in_url');
+        });
+      } finally {
+        consoleError.mockRestore();
+      }
     });
   });
 
@@ -977,6 +1405,214 @@ describe('EmbeddedComponent', () => {
     });
   });
 
+  describe('deliverToWrapper guard', () => {
+    const WRAPPER_ORIGIN = 'https://connect-js.stripe.com';
+    const WRAPPER_PATH = '/v1.0/react_native_webview.html';
+
+    // Evaluates the injected script the way the page would see it: page
+    // script can't override window.location or its origin/pathname
+    // getters, so this is the actual security check.
+    const runScript = (
+      script: string,
+      location: { origin: string; pathname: string }
+    ) => {
+      const win = {
+        location,
+        clientSecretDeferred: { resolve: jest.fn() },
+        updateConnectInstance: jest.fn(),
+        callSetterWithSerializableValue: jest.fn(),
+        returnedFromAuthenticatedWebView: jest.fn(),
+      };
+      // eslint-disable-next-line no-new-func
+      new Function('window', script)(win);
+      return win;
+    };
+
+    const FOREIGN_LOCATION = {
+      origin: 'https://evil.example',
+      pathname: WRAPPER_PATH,
+    };
+
+    const triggerFetchClientSecret = async () => {
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      await act(async () => {
+        webViewOnMessage?.({
+          nativeEvent: { data: JSON.stringify({ type: 'fetchClientSecret' }) },
+        });
+      });
+
+      return mockInjectJavaScript.mock.calls[
+        mockInjectJavaScript.mock.calls.length - 1
+      ]?.[0];
+    };
+
+    it('delivers the client secret on the wrapper origin and path', async () => {
+      const script = await triggerFetchClientSecret();
+
+      const win = runScript(script, {
+        origin: WRAPPER_ORIGIN,
+        pathname: WRAPPER_PATH,
+      });
+
+      expect(win.clientSecretDeferred.resolve).toHaveBeenCalledWith(
+        'secret_123'
+      );
+    });
+
+    it.each([
+      ['a foreign origin', FOREIGN_LOCATION],
+      [
+        'https://connect-js.stripe.com/other.html',
+        { origin: WRAPPER_ORIGIN, pathname: '/other.html' },
+      ],
+      [
+        'http://connect-js.stripe.com/v1.0/react_native_webview.html',
+        { origin: 'http://connect-js.stripe.com', pathname: WRAPPER_PATH },
+      ],
+    ])('does not deliver the client secret for %s', async (_desc, location) => {
+      const script = await triggerFetchClientSecret();
+
+      const win = runScript(script, location);
+
+      expect(win.clientSecretDeferred.resolve).not.toHaveBeenCalled();
+    });
+
+    const lastInjectedScript = () =>
+      mockInjectJavaScript.mock.calls[
+        mockInjectJavaScript.mock.calls.length - 1
+      ]?.[0];
+
+    it('calls window.updateConnectInstance on the wrapper origin and path, not a foreign origin', async () => {
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+
+      act(() => {
+        connectInstance.update({ locale: 'fr' });
+      });
+
+      await waitFor(() => expect(lastInjectedScript()).toBeDefined());
+      const script = lastInjectedScript();
+
+      expect(
+        runScript(script, {
+          origin: WRAPPER_ORIGIN,
+          pathname: WRAPPER_PATH,
+        }).updateConnectInstance
+      ).toHaveBeenCalled();
+      expect(
+        runScript(script, FOREIGN_LOCATION).updateConnectInstance
+      ).not.toHaveBeenCalled();
+    });
+
+    it('calls window.callSetterWithSerializableValue for a componentProps setter on the wrapper origin and path, not a foreign origin', async () => {
+      mockLoadWebView = true;
+      const { rerender } = renderComponent({
+        componentProps: { setPayment: 'pi_123' },
+      });
+      await waitFor(() => expect(mockWebViewProps).toBeDefined());
+
+      rerender(
+        <ConnectComponentsProvider connectInstance={connectInstance}>
+          <EmbeddedComponent
+            component="payments"
+            componentProps={{ setPayment: 'pi_456' }}
+            onLoaderStart={jest.fn()}
+            onLoadError={jest.fn()}
+            onPageDidLoad={jest.fn()}
+          />
+        </ConnectComponentsProvider>
+      );
+
+      await waitFor(() => expect(lastInjectedScript()).toBeDefined());
+      const script = lastInjectedScript();
+
+      expect(
+        runScript(script, {
+          origin: WRAPPER_ORIGIN,
+          pathname: WRAPPER_PATH,
+        }).callSetterWithSerializableValue
+      ).toHaveBeenCalled();
+      expect(
+        runScript(script, FOREIGN_LOCATION).callSetterWithSerializableValue
+      ).not.toHaveBeenCalled();
+    });
+
+    it('calls window.returnedFromAuthenticatedWebView on the wrapper origin and path, not a foreign origin', async () => {
+      Platform.OS = 'ios' as any;
+      (NativeStripeSdk.openAuthenticatedWebView as jest.Mock).mockResolvedValue(
+        { url: 'https://connect.stripe.com/return' }
+      );
+      mockLoadWebView = true;
+      renderComponent();
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      await act(async () => {
+        webViewOnMessage?.({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: 'openAuthenticatedWebView',
+              data: { id: 'auth_1', url: 'https://connect.stripe.com/start' },
+            }),
+          },
+        });
+      });
+
+      await waitFor(() => expect(lastInjectedScript()).toBeDefined());
+      const script = lastInjectedScript();
+
+      expect(
+        runScript(script, {
+          origin: WRAPPER_ORIGIN,
+          pathname: WRAPPER_PATH,
+        }).returnedFromAuthenticatedWebView
+      ).toHaveBeenCalled();
+      expect(
+        runScript(script, FOREIGN_LOCATION).returnedFromAuthenticatedWebView
+      ).not.toHaveBeenCalled();
+    });
+
+    it('calls window.callSetterWithSerializableValue for the Financial Connections result on the wrapper origin and path, not a foreign origin', async () => {
+      (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue(
+        {}
+      );
+      mockLoadWebView = true;
+      renderComponent({ component: 'account-onboarding' });
+      await waitFor(() => expect(webViewOnMessage).toBeDefined());
+
+      await act(async () => {
+        webViewOnMessage?.({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: 'openFinancialConnections',
+              data: {
+                id: 'request',
+                clientSecret: 'client_secret',
+                connectedAccountId: 'connected_account',
+              },
+            }),
+          },
+        });
+      });
+
+      await waitFor(() => expect(lastInjectedScript()).toBeDefined());
+      const script = lastInjectedScript();
+
+      expect(
+        runScript(script, {
+          origin: WRAPPER_ORIGIN,
+          pathname: WRAPPER_PATH,
+        }).callSetterWithSerializableValue
+      ).toHaveBeenCalled();
+      expect(
+        runScript(script, FOREIGN_LOCATION).callSetterWithSerializableValue
+      ).not.toHaveBeenCalled();
+    });
+  });
+
   describe('toStripeJsBankAccountToken', () => {
     it('maps camelCase token to snake_case Stripe.js shape', () => {
       const result = toStripeJsBankAccountToken({
@@ -1122,7 +1758,6 @@ describe('EmbeddedComponent', () => {
       'https://connect.stripe.com/path',
       'https://verify.stripe.com/verify',
       'https://connect.stripe.com:8443/x',
-      'http://connect.stripe.com/x',
     ];
 
     it('rejects userinfo/host-confusion URLs and non-http(s) inputs', () => {
@@ -1141,10 +1776,14 @@ describe('EmbeddedComponent', () => {
       });
     });
 
-    it('still allows legitimate Stripe URLs (ports, http)', () => {
+    it('still allows legitimate Stripe URLs (ports)', () => {
       REAL_STRIPE_URLS.forEach((url) => {
         expect([url, isAllowedStripeHost(url)]).toEqual([url, true]);
       });
+    });
+
+    it('rejects a production Stripe host over plain http', () => {
+      expect(isAllowedStripeHost('http://connect.stripe.com/x')).toBe(false);
     });
 
     describe('with a runtime URL parser that mis-parses "@" in query/fragment', () => {

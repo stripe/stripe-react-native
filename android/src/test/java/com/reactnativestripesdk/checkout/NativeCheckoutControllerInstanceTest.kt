@@ -634,6 +634,7 @@ class NativeCheckoutControllerInstanceTest {
         scope,
         com.facebook.react.bridge.JavaOnlyMap.of("id", "cs_test", "email", "jenny@example.com"),
         context,
+        isPaymentElementConfigured = true,
         isExpressCheckoutElementConfigured = expressConfigured,
       )
     }

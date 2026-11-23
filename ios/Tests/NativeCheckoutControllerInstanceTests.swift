@@ -54,10 +54,12 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
 
     func test_inlineViewReleasesReplacedAndDestroyedControllers() async throws {
         let sdk = StripeSdkImpl.shared
-        let first = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
-        let second = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
-        let firstElement = first.checkout.getPaymentElement()
-        let secondElement = second.checkout.getPaymentElement()
+        let firstCheckout = try await makeCheckout()
+        let secondCheckout = try await makeCheckout()
+        let firstElement = firstCheckout.getPaymentElement()
+        let secondElement = secondCheckout.getPaymentElement()
+        let first = NativeCheckoutControllerInstance(checkout: firstCheckout, paymentElement: firstElement, emitEvent: { _ in })
+        let second = NativeCheckoutControllerInstance(checkout: secondCheckout, paymentElement: secondElement, emitEvent: { _ in })
         let firstId = "first"
         let secondId = "second"
         sdk.checkoutControllers[firstId] = first
@@ -180,6 +182,35 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertThrowsError(try instance.confirm(from: presenter) { _ in
             XCTFail("A destroyed controller must not confirm.")
         })
+    }
+
+    func test_expressCheckoutResultPublishesCurrentSessionBeforeResultAndStopsAfterDestroy() async throws {
+        let checkout = try await makeCheckout()
+        var emitted: [(kind: String, event: [String: Any])] = []
+        let instance = NativeCheckoutControllerInstance(
+            checkout: checkout,
+            emitExpressCheckoutResult: { emitted.append(("result", $0)) },
+            emitEvent: { emitted.append(("update", $0)) }
+        )
+        instance.start(controllerId: "express-result")
+        checkout.dangerouslySetSessionDirectly(try CheckoutTestFixtures.session(status: "expired"))
+        emitted.removeAll()
+
+        instance.handleExpressCheckoutResult(.canceled)
+
+        XCTAssertEqual(emitted.map(\.kind), ["update", "result"])
+        let update = try XCTUnwrap(emitted.first?.event)
+        let session = try XCTUnwrap(update["session"] as? [String: Any])
+        XCTAssertEqual(session["status"] as? NSDictionary, ["type": "expired"])
+        XCTAssertEqual(update["status"] as? String, "ready")
+        let result = try XCTUnwrap(emitted.last?.event)
+        XCTAssertEqual(result["controllerId"] as? String, "express-result")
+        XCTAssertEqual((result["result"] as? [String: Any])?["status"] as? String, "canceled")
+
+        instance.destroy()
+        emitted.removeAll()
+        instance.handleExpressCheckoutResult(.canceled)
+        XCTAssertTrue(emitted.isEmpty)
     }
 
     func test_expressCheckoutViewMeasuresAndDetaches() async throws {

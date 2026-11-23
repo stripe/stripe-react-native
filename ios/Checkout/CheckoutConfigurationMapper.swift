@@ -18,7 +18,8 @@ enum CheckoutConfigurationMapper {
     static func map(
         params: NSDictionary,
         merchantIdentifier: String?,
-        didSelectPaymentOption: @escaping () -> Void
+        didSelectPaymentOption: @escaping () -> Void,
+        expressCheckoutCompletion: @escaping (CheckoutElementsController.ConfirmResult) -> Void
     ) throws -> CheckoutElementsController.Configuration {
         let clientSecret = params["clientSecret"] as? String ?? ""
         let returnURL = params["returnURL"] as? String ?? ""
@@ -35,17 +36,18 @@ enum CheckoutConfigurationMapper {
         let defaultsParams = params["defaults"] as? NSDictionary
         configuration.defaults = mapDefaults(defaultsParams)
 
-        let paymentElementParams = params["paymentElement"] as? NSDictionary
-        configuration.paymentElement = try mapPaymentElement(
-            paymentElementParams,
-            didSelectPaymentOption: didSelectPaymentOption
-        )
+        if let paymentElementParams = params["paymentElement"] as? NSDictionary {
+            configuration.paymentElement = try mapPaymentElement(
+                paymentElementParams,
+                didSelectPaymentOption: didSelectPaymentOption
+            )
+        }
         let expressParams = params["expressCheckoutElement"] as? NSDictionary
         configuration.applePayMerchantId = mapApplePayMerchantId(merchantIdentifier)
         if let expressParams {
             configuration.expressCheckoutElement = try mapExpressCheckoutElement(
                 expressParams,
-                completion: { _ in }
+                completion: expressCheckoutCompletion
             )
         }
         if let shippingParams = params["shippingAddressElement"] as? NSDictionary {
@@ -89,7 +91,44 @@ enum CheckoutConfigurationMapper {
             default: throw unsupported(display, at: "expressCheckoutElement.link.display")
             }
         }
+        if let appearance = params["appearance"] as? NSDictionary {
+            if let theme = appearance["buttonTheme"] as? String {
+                configuration.appearance.buttonTheme = switch theme {
+                case "automatic": .automatic
+                case "light": .light
+                case "dark": .dark
+                default: throw unsupported(theme, at: "expressCheckoutElement.appearance.buttonTheme")
+                }
+            }
+            if let layout = appearance["buttonLayout"] as? NSDictionary {
+                configuration.appearance.buttonLayout.maxColumns = try mapExpressLayoutLimit(layout, key: "maxColumns")
+                configuration.appearance.buttonLayout.maxRows = try mapExpressLayoutLimit(layout, key: "maxRows")
+            }
+            if let radius = appearance["borderRadius"] as? NSNumber {
+                guard CFGetTypeID(radius) != CFBooleanGetTypeID(),
+                      radius.doubleValue.isFinite,
+                      radius.doubleValue >= 0 else {
+                    throw unsupported(
+                        String(describing: radius),
+                        at: "expressCheckoutElement.appearance.borderRadius"
+                    )
+                }
+                configuration.appearance.cornerRadius = CGFloat(truncating: radius)
+            }
+        }
         return configuration
+    }
+
+    private static func mapExpressLayoutLimit(_ params: NSDictionary, key: String) throws -> Int? {
+        guard let value = params[key] else { return nil }
+        guard let number = value as? NSNumber,
+              CFGetTypeID(number) != CFBooleanGetTypeID(),
+              number.doubleValue.isFinite,
+              (1...10).contains(number.doubleValue),
+              number.doubleValue.rounded() == number.doubleValue else {
+            throw unsupported(String(describing: value), at: "expressCheckoutElement.appearance.buttonLayout.\(key)")
+        }
+        return number.intValue
     }
 
     private static func mapShippingAddressAppearance(
@@ -287,6 +326,7 @@ enum CheckoutConfigurationMapper {
             configuration.preferredNetworks = try mapPreferredNetworks(preferredNetworks)
         }
 
+        configuration.cardBrandAcceptance = StripeSdkImpl.computeCardBrandAcceptance(params: params)
         configuration.removeSavedPaymentMethodMessage = params["removeSavedPaymentMethodMessage"] as? String
         configuration.paymentMethodOrder = params["paymentMethodOrder"] as? [String]
         if let opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool {
@@ -341,6 +381,7 @@ enum CheckoutConfigurationMapper {
         switch value {
         case "automatic": return .automatic
         case "never": return .never
+        case "walletButtonHidden": return .walletButtonHidden
         default: throw unsupported(value, at: "paymentElement.link.display")
         }
     }

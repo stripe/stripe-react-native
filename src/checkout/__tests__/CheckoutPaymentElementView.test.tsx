@@ -26,6 +26,7 @@ it('routes the controller ID and resets native height when the element changes',
   const options: CheckoutElements.CreateOptions = {
     clientSecret: 'cs_test_secret',
     returnURL: 'example://checkout',
+    paymentElement: {},
   };
   (NativeStripeSdk.createCheckout as jest.Mock)
     .mockResolvedValueOnce({ controllerId: 'controller-1', session })
@@ -33,7 +34,7 @@ it('routes the controller ID and resets native height when the element changes',
   const first = await createCheckoutElements(options);
   const second = await createCheckoutElements(options);
   const { UNSAFE_getByType, rerender, unmount } = render(
-    <CheckoutPaymentElementView element={first.paymentElement} />
+    <CheckoutPaymentElementView element={first.paymentElement!} />
   );
   const nativeElement = () => UNSAFE_getByType(require('react-native').View);
   expect(nativeElement().props.controllerId).toBe(
@@ -47,7 +48,7 @@ it('routes the controller ID and resets native height when the element changes',
     LayoutAnimation.Presets.easeInEaseOut
   );
   expect(nativeElement().props.style).toEqual({ width: '100%', height: 140 });
-  rerender(<CheckoutPaymentElementView element={second.paymentElement} />);
+  rerender(<CheckoutPaymentElementView element={second.paymentElement!} />);
   expect(nativeElement().props.controllerId).toBe(
     (NativeStripeSdk.createCheckout as jest.Mock).mock.calls[1][1]
   );
