@@ -9,16 +9,9 @@ appId: ${APP_ID}
 - tapOn:
     text: "Name"
     optional: true
-- tapOn:
-    text: "Full name"
-    optional: true
 - inputText: "stripe"
 - tapOn:
     text: "Email Address"
-    optional: true
-- tapOn:
-    text: "Email"
-    index: 1
     optional: true
 - inputText: "test@stripe.com"
 - tapOn:
@@ -27,6 +20,10 @@ appId: ${APP_ID}
 - tapOn:
     text: "Account number"
 - inputText: "000123456"
+# The account field keeps the numeric keyboard up. That window covers the
+# center of Save, but Maestro still treats the button's layout bounds as
+# fully visible, so the tap lands on the keyboard and the form never submits.
+- hideKeyboard
 - scrollUntilVisible:
     element:
       text: "Save"
