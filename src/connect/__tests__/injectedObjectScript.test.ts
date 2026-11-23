@@ -206,16 +206,41 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
     page[BRIDGE].postMessage('{"type":"x"}');
 
     expect(received.map((m) => JSON.parse(m))).toEqual([
-      { token: TOKEN, message: '{"type":"x"}' },
+      {
+        token: TOKEN,
+        documentId: expect.any(String),
+        message: '{"type":"x"}',
+      },
     ]);
+    expect(page[BRIDGE].documentId).toBe(JSON.parse(received[0]!).documentId);
     expect(readInjectedObject(page)).toEqual(injected);
     expect(serializePage(page)).not.toContain(TOKEN);
     expect(String(page[BRIDGE].postMessage)).not.toContain(TOKEN);
     expect(Object.getOwnPropertyNames(page).join()).not.toContain(TOKEN);
     expect(Object.getOwnPropertyNames(page[BRIDGE]).sort()).toEqual([
+      'documentId',
       'injectedObjectJson',
       'postMessage',
     ]);
+  });
+
+  it('gives each document its own id', () => {
+    const first = load();
+    const second = load();
+
+    first.page[BRIDGE].postMessage('a');
+    first.page[BRIDGE].postMessage('b');
+    const ids = first.received.map((m) => JSON.parse(m).documentId);
+    const before = first.page[BRIDGE].documentId;
+    try {
+      first.page[BRIDGE].documentId = 'other';
+    } catch {
+      // Assignment to a read-only property may throw in strict mode.
+    }
+
+    expect(ids[0]).toBe(ids[1]);
+    expect(first.page[BRIDGE].documentId).toBe(before);
+    expect(second.page[BRIDGE].documentId).not.toBe(before);
   });
 
   it('wraps a bridge whose properties always resolve to the original', () => {
@@ -226,7 +251,7 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
 
     page[BRIDGE].postMessage('m');
 
-    expect(received.map((m) => JSON.parse(m))).toEqual([
+    expect(received.map((m) => JSON.parse(m))).toMatchObject([
       { token: TOKEN, message: 'm' },
     ]);
   });
@@ -252,7 +277,7 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
     page[BRIDGE].postMessage('m');
 
     expect(spy).not.toHaveBeenCalled();
-    expect(received.map((m) => JSON.parse(m))).toEqual([
+    expect(received.map((m) => JSON.parse(m))).toMatchObject([
       { token: TOKEN, message: 'm' },
     ]);
     expect(readInjectedObject(page)).toEqual(injected);

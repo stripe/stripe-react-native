@@ -34,11 +34,13 @@ export function buildInjectedObjectScript(
           ${wrapperDocumentCondition(auth.origin, auth.path)}
         ) {
           var token = ${JSON.stringify(auth.token)};
+          var documentId = Math.random().toString(36).slice(2) + Date.now().toString(36);
           var original = window.ReactNativeWebView;
           var replacement = Object.freeze({
+            documentId: documentId,
             postMessage: function(data) {
               original.postMessage(
-                JSON.stringify({ token: token, message: String(data) })
+                JSON.stringify({ token: token, documentId: documentId, message: String(data) })
               );
             },
             injectedObjectJson: function() { return json; },

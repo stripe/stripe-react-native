@@ -15,18 +15,26 @@ export function createBridgeToken(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Returns the inner message, or null unless the envelope carries the token.
+// Returns the inner message and its document id, or null unless the envelope
+// carries the token and a document id.
 export function unwrapBridgeMessage(
   data: unknown,
   token: string
-): string | null {
+): { message: string; documentId: string } | null {
   if (typeof data !== 'string') return null;
   try {
     const envelope: unknown = JSON.parse(data);
     if (!isRecord(envelope)) return null;
-    const { token: received, message } = envelope;
+    const { token: received, message, documentId } = envelope;
     if (typeof received !== 'string' || received !== token) return null;
-    return typeof message === 'string' ? message : null;
+    if (
+      typeof documentId !== 'string' ||
+      documentId.length === 0 ||
+      documentId.length > 64
+    ) {
+      return null;
+    }
+    return typeof message === 'string' ? { message, documentId } : null;
   } catch {
     return null;
   }
