@@ -1348,7 +1348,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     appearance: configuration.appearance,
                     cryptoCustomerID: configuration.cryptoCustomerId,
                     additionalSDKVersions: onrampAdditionalSDKVersions,
-                    countryHint: configuration.countryHint
+                    countryHint: configuration.countryHint,
+                    linkCardBrandAcceptance: configuration.linkCardBrandAcceptance
                 )
                 resolve([:])  // Return empty object on success
             } catch {

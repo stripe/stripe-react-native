@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+**Features**
+
+* [Added] Added `linkCardBrandAcceptance` to Crypto Onramp configuration for filtering accepted card brands in Link passthrough mode on iOS and Android. Wallet card brand filters are configured separately: use the existing `samsungPay.allowedCardBrands` in `configure` for Samsung Pay and `applePay.supportedNetworks` in `collectPaymentMethod` for Apple Pay.
+* [Added] Android: Added `googlePayCardBrandAcceptance` to Crypto Onramp configuration for filtering Google Pay card brands independently of Link.
+
 **Fixes**
 
 * [Fixed] iOS: Connect now blocks top-frame WebView navigation away from the hosted Connect page for every navigation type (previously only navigation triggered by a click was blocked), and routes it to the system browser instead.

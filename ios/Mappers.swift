@@ -1209,6 +1209,7 @@ class Mappers {
         let appearance: LinkAppearance
         let cryptoCustomerId: String?
         let countryHint: String?
+        let linkCardBrandAcceptance: PaymentSheet.CardBrandAcceptance
     }
 
     class func mapToOnrampConfiguration(_ params: NSDictionary) -> OnrampConfiguration {
@@ -1221,7 +1222,8 @@ class Mappers {
         return OnrampConfiguration(
             appearance: appearance,
             cryptoCustomerId: params["cryptoCustomerId"] as? String,
-            countryHint: params["countryHint"] as? String
+            countryHint: params["countryHint"] as? String,
+            linkCardBrandAcceptance: StripeSdkImpl.computeCardBrandAcceptance(params: params, key: "linkCardBrandAcceptance")
         )
     }
 

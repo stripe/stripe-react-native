@@ -5,6 +5,7 @@ import type {
   ApplePayPaymentMethodParams,
 } from './PlatformPay';
 import type { LinkAppearance } from './LinkAppearance';
+import type { CardBrandAcceptance } from './PaymentSheet';
 
 export type {
   LinkAppearance,
@@ -41,6 +42,22 @@ export type Configuration = {
    * KYC region takes precedence. Omit when the country is unknown.
    */
   countryHint?: string;
+
+  /**
+   * Card brands accepted when collecting cards through Link in passthrough mode.
+   * Defaults to accepting all supported brands. This filtering is client-side only.
+   * Configure wallet brands separately with `googlePayCardBrandAcceptance`,
+   * `samsungPay.allowedCardBrands`, or `applePay.supportedNetworks` in `collectPaymentMethod`.
+   */
+  linkCardBrandAcceptance?: CardBrandAcceptance;
+
+  /**
+   * Card brands accepted when collecting cards through Google Pay. Android only.
+   * Defaults to accepting all supported brands. This filtering is client-side only
+   * and is independent of `linkCardBrandAcceptance`.
+   */
+  googlePayCardBrandAcceptance?: CardBrandAcceptance;
+
   /** Google Pay configuration. Required on Android to enable Google Pay as a payment method. */
   googlePay?: GooglePayConfig;
   /** Samsung Pay configuration. Required on Android to enable Samsung Pay as a payment method. */

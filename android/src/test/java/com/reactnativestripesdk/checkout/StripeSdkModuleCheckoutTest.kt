@@ -90,10 +90,11 @@ class StripeSdkModuleCheckoutTest {
       val genericMessage = contextRule.context.getString(R.string.stripe_something_went_wrong)
       for ((error, code, displayMessage) in listOf(
         Triple(IllegalStateException("Operation failed"), "Failed", "This promotion code is invalid."),
-        Triple(CancellationException("Operation canceled"), "Canceled", null),
+        Triple(CancellationException("Operation canceled"), "Canceled", genericMessage),
       )) {
+        val failedOperation = NativeCheckoutFixtures.failedOperation(error, displayMessage)
         `when`(controller.updateEmail(null))
-          .thenReturn(NativeCheckoutFixtures.failedOperation(error, displayMessage))
+          .thenReturn(failedOperation)
         val failedPromise = FakePromise()
         module.updateCheckoutEmail(controllerId, null, failedPromise)
         shadowOf(Looper.getMainLooper()).idle()
@@ -102,8 +103,8 @@ class StripeSdkModuleCheckoutTest {
         assertEquals(code, rejection.code)
         assertEquals(error.message, rejection.message)
         assertSame(error, rejection.throwable)
-        // JS displays native Checkout's message, or a generic one when native has none.
-        assertEquals(displayMessage ?: genericMessage, rejection.userInfo?.getString("localizedMessage"))
+        // Native Checkout supplies a customer-facing message, including its generic fallback.
+        assertEquals(displayMessage, rejection.userInfo?.getString("localizedMessage"))
       }
     } finally {
       instance.destroy()

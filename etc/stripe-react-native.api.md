@@ -1475,6 +1475,8 @@ type Configuration = {
     appearance: LinkAppearance;
     cryptoCustomerId?: string;
     countryHint?: string;
+    linkCardBrandAcceptance?: CardBrandAcceptance;
+    googlePayCardBrandAcceptance?: CardBrandAcceptance;
     googlePay?: GooglePayConfig;
     samsungPay?: SamsungPayConfig;
 };
