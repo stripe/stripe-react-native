@@ -4,7 +4,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { smokeDir } from '../checks/config.mjs';
-import { expoSmoke, packagesToInstall } from '../checks/expo-smoke.mjs';
+import {
+  expoSmoke,
+  packagesToInstall,
+  tarballFromNpmPackStdout,
+} from '../checks/expo-smoke.mjs';
+
+const destination = path.join('/tmp', 'pack');
+const filename = 'stripe-react-native-0.0.0.tgz';
+const info = 'ℹ [typescript] notice before the pack report\n';
 
 test('packagesToInstall rejects a dependency that is still a shell', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-install-'));
@@ -30,6 +38,49 @@ test('packagesToInstall rejects a dependency that is still a shell', () => {
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+test('an info line before a JSON pack report still yields the tarball', () => {
+  const arrayReport = [{ filename, size: 12 }];
+  const objectReport = {
+    '@stripe/stripe-react-native': { filename, size: 12 },
+  };
+  assert.equal(
+    tarballFromNpmPackStdout(
+      `${info}${JSON.stringify(arrayReport)}`,
+      destination
+    ),
+    path.join(destination, filename)
+  );
+  assert.equal(
+    tarballFromNpmPackStdout(
+      `${info}${JSON.stringify(objectReport)}`,
+      destination
+    ),
+    path.join(destination, filename)
+  );
+});
+
+test('pack output with no JSON document throws', () => {
+  assert.throws(
+    () =>
+      tarballFromNpmPackStdout(
+        'ℹ [typescript] notice\nthis is not json',
+        destination
+      ),
+    /did not print a JSON report/
+  );
+});
+
+test('a bracket that is not a complete JSON value throws', () => {
+  assert.throws(
+    () =>
+      tarballFromNpmPackStdout(
+        'ℹ [typescript] notice\n[{"filename":',
+        destination
+      ),
+    SyntaxError
+  );
 });
 
 const smokePkg = {

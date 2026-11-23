@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PLATFORMS, readJson, repoRoot, smokeDir } from './config.mjs';
+import { firstPackReport } from './pack-json.mjs';
 import { runLogged } from './run.mjs';
 
 export function smokeSettings(config, sdkOverride) {
@@ -50,6 +51,14 @@ export function configureAppJson(appJson, settings, plugin) {
   return { appJson, templateWebOutput };
 }
 
+export function tarballFromNpmPackStdout(stdout, destination) {
+  const report = firstPackReport(
+    stdout,
+    'npm pack did not print a JSON report:'
+  );
+  return path.join(destination, report.filename);
+}
+
 function npmPack(dir, destination) {
   const result = spawnSync(
     'npm',
@@ -59,9 +68,7 @@ function npmPack(dir, destination) {
   if (result.status !== 0) {
     throw new Error(`npm pack failed in ${dir}:\n${result.stderr}`);
   }
-  const parsed = JSON.parse(result.stdout);
-  const report = Array.isArray(parsed) ? parsed[0] : Object.values(parsed)[0];
-  return path.join(destination, report.filename);
+  return tarballFromNpmPackStdout(result.stdout, destination);
 }
 
 export function packagesToInstall(pkg, allPackages, root = repoRoot) {
