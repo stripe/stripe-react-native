@@ -185,7 +185,7 @@ function spiStep(pkg) {
   }
   if (allowed.length) {
     console.log(
-      `  ${allowed.length} allowlisted site(s) in tooling/package-gate/spi-allowlist.json, kept until stripe-react-native#2787 switches them to _spi(ReactNativeSDK)`
+      `  ${allowed.length} allowlisted site(s) in tooling/package-gate/spi-allowlist.json (legacy imports pending migration to _spi(ReactNativeSDK))`
     );
   }
   const failed = violations.length + stale.length;

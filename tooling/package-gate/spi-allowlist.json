@@ -1,5 +1,5 @@
 {
   "forbidden": ["InternalOnlyAPI", "DashboardOnly"],
-  "reason": "Existing imports that reach stripe-ios internals the React Native bridge still needs. stripe-ios#7566 tags these symbols _spi(ReactNativeSDK), and stripe-react-native#2787 switches the imports. Remove each entry when its import changes; the gate fails on any entry that no longer matches, so the list only shrinks. Once #2787 is merged here, this list must be empty.",
+  "reason": "Legacy ios/ imports that still reach stripe-ios internals through forbidden SPI names. stripe-react-native#2787 merged; new code must use _spi(ReactNativeSDK) and must not be listed here. Entries only shrink: remove one when its import changes, and the gate fails if an entry no longer matches the source.",
   "sites": []
 }
