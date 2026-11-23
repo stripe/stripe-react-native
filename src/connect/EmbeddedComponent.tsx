@@ -911,12 +911,15 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         return false;
       }
 
-      // Android reports every navigation as a top-frame 'other', so only
-      // host checks apply.
-      if (
-        isTrustedWrapperDocument(url, connectURL) ||
-        isAllowedStripeHost(url)
-      ) {
+      // Android reports every navigation as a top-frame 'other'; the wrapper page
+      // loads only at its configured URL.
+      if (isTrustedWrapperDocument(url, connectURL)) {
+        return true;
+      }
+      if (isWrapperPageUrl(url)) {
+        return false;
+      }
+      if (isAllowedStripeHost(url)) {
         return true;
       }
       routeOutside(url);
@@ -1145,4 +1148,18 @@ function deliverToWrapper(payloadScript: string): string {
 
 function isTrustedWrapperDocument(url: string, connectURL: string): boolean {
   return url === connectURL;
+}
+
+// True for any URL on the wrapper page, whatever its query or fragment.
+function isWrapperPageUrl(url: string): boolean {
+  const match = /^([a-z][a-z0-9+.-]*):\/\/([^/?#]*)([^?#]*)/i.exec(url);
+  if (!match) return false;
+  const scheme = match[1]!.toLowerCase();
+  const authority = match[2]!
+    .toLowerCase()
+    .replace(scheme === 'https' ? /:443$/ : /:80$/, '');
+  return (
+    `${scheme}://${authority}` === BASE_URL &&
+    match[3]!.toLowerCase() === WRAPPER_PATH.toLowerCase()
+  );
 }

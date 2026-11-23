@@ -489,6 +489,70 @@ describe('EmbeddedComponent', () => {
       }
     });
 
+    it.each([
+      [
+        'a different fragment',
+        (uri: string) => uri.replace('component=', 'component=x'),
+      ],
+      [
+        'no fragment',
+        () => 'https://connect-js.stripe.com/v1.0/react_native_webview.html',
+      ],
+      [
+        'an upper-case host',
+        () =>
+          'https://CONNECT-JS.stripe.com/v1.0/react_native_webview.html#component=payouts',
+      ],
+      [
+        'an explicit port',
+        () =>
+          'https://connect-js.stripe.com:443/v1.0/react_native_webview.html#component=payouts',
+      ],
+      [
+        'a query string',
+        () =>
+          'https://connect-js.stripe.com/v1.0/react_native_webview.html?x=1#component=payouts',
+      ],
+    ])(
+      'blocks Android navigation to the Connect page with another configuration: %s',
+      async (_name, makeUrl) => {
+        const previousPlatform = Platform.OS;
+        Platform.OS = 'android' as any;
+        const openUrl = jest.spyOn(Linking, 'openURL');
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url: makeUrl(mockWebViewProps.source.uri),
+            navigationType: 'other',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+          Platform.OS = previousPlatform;
+        }
+      }
+    );
+
+    it('keeps Android navigation to the configured Connect page in the component', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: mockWebViewProps.source.uri,
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(true);
+      } finally {
+        Platform.OS = previousPlatform;
+      }
+    });
+
     it('does not keep an http Connect host in the component on Android', async () => {
       const previousPlatform = Platform.OS;
       Platform.OS = 'android' as any;
