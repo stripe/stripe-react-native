@@ -134,6 +134,55 @@ yarn test:unit:ios
 yarn test:unit:android
 ```
 
+### Bridge contract fixtures
+
+Every value that crosses the bridge untyped has shared fixtures in `packages/bridge-contracts/fixtures/<family>/<method>.<case>.json`. That covers TurboModule parameters typed `UnsafeObject` or `Object`, results typed `UnsafeObject`, and component props typed `UnsafeMixed`. The same file is loaded by three tests:
+
+- **Jest** (`src/types/__tests__/bridgeContracts.test.tsx`) calls the public API with the fixture input and checks that the TurboModule receives exactly that input.
+- **XCTest** (`ios/Tests/BridgeContractTests.swift`) and **Robolectric** (`android/src/test/.../bridgecontracts/BridgeContractTest.kt`) pass the input to the production mapper and check the resulting Stripe SDK objects.
+
+```sh
+yarn test:bridge                      # checks, Jest, XCTest, and Robolectric (iOS needs `yarn pods` first)
+yarn test:bridge --only=js            # checks and Jest only; what CI runs in the JS job
+yarn test:bridge --only=ios,android   # the native loaders only
+```
+
+`yarn test:bridge` is the Nx target `@stripe/bridge-contracts:test:bridge`. The native loaders also run as part of `yarn test:unit:ios` and `yarn test:unit:android`. iOS honours `IOS_SIMULATOR`, as `yarn test:unit:ios` does.
+
+A fixture looks like this:
+
+```json
+{
+  "method": "StripeSdk.initPaymentSheet",
+  "description": "What this case pins.",
+  "input": { "params": { "merchantDisplayName": "Example, Inc.", "returnURL": "example://stripe" } },
+  "expect": {
+    "shared": { "configuration.merchantDisplayName": "Example, Inc." },
+    "ios": { "configuration.returnURL": "example://stripe" },
+    "android": {}
+  },
+  "platformOnly": { "configuration.returnURL": "Why only iOS reads it." }
+}
+```
+
+- `input` is keyed by the TurboModule parameter names (or the component prop names) from `src/specs`, in spec order. Write a JS function value as `"$function"`.
+- Assertion keys are dot paths into what the native runner returns, such as `configuration.merchantDisplayName`, `intentConfiguration.mode.amount`, `api.billing_details.name` (the Stripe API parameters), or `result.error.code` (the promise result). A rejected promise appears as `result.rejected.code` and `result.rejected.message`, and a promise that never settles as the string `"<unresolved>"`. Values are JSON. Enums are compared by case name with a lowercase first letter (`vertical`, `offSession`; an all-caps name such as `NEVER` becomes `never`), colours as `#rrggbb`, `null` matches a missing value, and `"$present"` matches any non-null value.
+- `shared` keys must hold on both platforms. A key in only one platform block needs a reason in `platformOnly` (the option is documented as platform-specific) or in `parityGaps` (the platforms differ today). A key in both platform blocks with different values must be in `parityGaps`. Fixtures pin current behaviour: when a fixture shows that the platforms differ, record it in `parityGaps` and raise it separately rather than changing the mapper in the same change. Each `parityGaps` reason starts with an id from `packages/bridge-contracts/PARITY-GAPS.md` (`"G3: …"`), and that file's row lists every fixture that uses the id; add or extend a row when you pin a new difference. If a fixture cannot pin current behaviour because it crashes, hangs, resolves twice, or cannot run in the test, fix that in its own commit ahead of the fixture, and say in that commit why the behaviour could not be pinned instead.
+- Every input field must be asserted. A key covers a field when it ends with the field's last two path segments, ignoring case and underscores. Otherwise map the field to a key in `covers`, or give a reason in `unasserted`.
+- Every untyped parameter or component prop needs at least one fixture of its own method or component that passes it.
+- `platforms: ["android"]` (or `["ios"]`) limits a fixture to one platform; it then needs a `description` saying why. `skipTypecheck` (a reason) allows an input that the public types reject, to pin how native handles it. If the entry itself exists on both platforms, every key the fixture asserts must also be in `parityGaps`, with a `PARITY-GAPS.md` row. An entry that exists on only one platform says so with `"platforms"` in `inventory.json`.
+
+`packages/bridge-contracts/scripts/check.mjs` enforces these rules. It reads `src/specs` to find every untyped boundary and fails when one is missing from `packages/bridge-contracts/inventory.json`, or when an inventory entry has no fixture and no `pending` note. It also type-checks each `input` against the public types the specs use (string enums are written as their values).
+
+**Adding fixtures for a new bridge method:**
+
+1. Add the method to `inventory.json` with its family. `check.mjs` tells you if you forget.
+2. Add `fixtures/<family>/<method>.<case>.json`. Start from the TypeScript input an app would pass.
+3. Add a JS adapter in `src/types/__tests__/bridgeContracts.test.tsx` that calls the public API. For a `component:` entry, the adapter renders the public component and records the props its native component receives.
+4. Add a runner for the method on each platform: in `ios/Tests/BridgeRunners.swift` or one of its `BridgeRunners+<Families>.swift` extensions, and in `android/src/test/java/com/reactnativestripesdk/bridgecontracts/BridgeRunners.kt` or one of the `<Families>Runners.kt` files beside it. A runner calls the production mapper (not a copy of it) and returns the objects the keys resolve against. When the two SDKs name a property differently, add an alias from the shared key to the native path instead of renaming the key. If the mapper cannot be called without UI or the network, extract it in a separate refactor commit first. When the call itself needs UI or the network, call the mapper directly, and call the method only for inputs it rejects before that point. A component runner sets the props on the native view or view manager, as React does, and reads back the state the prop setters put on the Stripe views.
+5. On iOS, re-run `yarn pods` after adding a Swift test file, so the Podfile adds it to `ReactTestAppTests`.
+6. Run `yarn test:bridge`.
+
 ### E2E tests (Maestro)
 
 We use [Maestro](https://maestro.mobile.dev/) for end-to-end testing. Install it first:
@@ -277,6 +326,7 @@ React Native versions before 0.80 still require the event-emitter compatibility 
 | `yarn test` | Run TypeScript unit tests (Jest) |
 | `yarn test:unit:ios` | Run iOS native unit tests (xcodebuild) |
 | `yarn test:unit:android` | Run Android native unit tests (Gradle) |
+| `yarn test:bridge` | Run the bridge contract fixtures on JS, iOS, and Android (`--only=js` skips native) |
 | `yarn test:e2e:ios` | Run iOS e2e tests (Maestro) |
 | `yarn test:e2e:android` | Run Android e2e tests (Maestro) |
 | `bash ./scripts/coverage jest` | Run Jest with coverage and check each package's floor |
