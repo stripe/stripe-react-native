@@ -1,0 +1,31 @@
+{
+  "method": "StripeSdk.createPaymentMethod",
+  "description": "SEPA Debit with IBAN and billing details.",
+  "input": {
+    "params": {
+      "paymentMethodType": "SepaDebit",
+      "paymentMethodData": {
+        "iban": "DE89370400440532013000",
+        "billingDetails": {
+          "name": "Jenny Rosen",
+          "email": "jenny@example.com"
+        }
+      }
+    },
+    "options": {}
+  },
+  "expect": {
+    "shared": {
+      "api.type": "sepa_debit",
+      "api.sepa_debit.iban": "DE89370400440532013000",
+      "api.billing_details.name": "Jenny Rosen",
+      "api.billing_details.email": "jenny@example.com"
+    }
+  },
+  "covers": {
+    "params.paymentMethodType": "api.type",
+    "params.paymentMethodData.iban": "api.sepa_debit.iban",
+    "params.paymentMethodData.billingDetails.name": "api.billing_details.name",
+    "params.paymentMethodData.billingDetails.email": "api.billing_details.email"
+  }
+}

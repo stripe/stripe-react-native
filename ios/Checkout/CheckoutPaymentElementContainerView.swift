@@ -18,7 +18,7 @@ public final class CheckoutPaymentElementContainerView: UIView {
     private var elementView: PaymentElementUIView?
     private var destruction: AnyCancellable?
     private var reportedHeight: CGFloat?
-    private lazy var nativeDelegate = ElementDelegate(view: self)
+    private var heightDelegate: ElementDelegate?
 
     override public func didMoveToWindow() {
         super.didMoveToWindow()
@@ -36,8 +36,10 @@ public final class CheckoutPaymentElementContainerView: UIView {
             assertionFailure("A Checkout Payment Element can only be mounted once.")
             return
         }
+        let delegate = ElementDelegate(view: self)
+        heightDelegate = delegate
         elementView = view
-        view.delegate = nativeDelegate
+        view.delegate = delegate
         addSubview(view)
         destruction = instance.observeDestruction { [weak self] in self?.detach() }
         setNeedsLayout()
@@ -47,6 +49,7 @@ public final class CheckoutPaymentElementContainerView: UIView {
         destruction?.cancel()
         destruction = nil
         elementView?.delegate = nil
+        heightDelegate = nil
         elementView?.removeFromSuperview()
         elementView = nil
         reportedHeight = nil

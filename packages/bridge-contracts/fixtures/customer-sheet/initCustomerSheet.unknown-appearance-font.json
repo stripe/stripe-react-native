@@ -1,0 +1,36 @@
+{
+  "method": "StripeSdk.initCustomerSheet",
+  "description": "An appearance font that is not bundled. Both platforms reject it while building the configuration, before creating the sheet.",
+  "input": {
+    "params": {
+      "appearance": { "font": { "family": "NotABundledFont" } },
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "customerId": "cus_bridge_contracts",
+      "customerEphemeralKeySecret": "ek_test_bridge_contracts"
+    },
+    "customerAdapterOverrides": {}
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "customerAdapter": null
+    },
+    "ios": {
+      "result.error.message": "$present"
+    },
+    "android": {
+      "result.error.message": "$present"
+    }
+  },
+  "parityGaps": {
+    "result.error.message": "G9: Android names the missing font file; iOS returns its appearance error text."
+  },
+  "covers": {
+    "params.appearance.font.family": "result.error.code",
+    "params.merchantDisplayName": "result.error.code"
+  },
+  "unasserted": {
+    "params.customerId": "The unknown font rejects initCustomerSheet before either SDK reads the customer, so no customer adapter exists to show it.",
+    "params.customerEphemeralKeySecret": "See params.customerId."
+  }
+}

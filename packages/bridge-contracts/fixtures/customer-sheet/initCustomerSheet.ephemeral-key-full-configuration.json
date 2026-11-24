@@ -1,0 +1,115 @@
+{
+  "method": "StripeSdk.initCustomerSheet",
+  "description": "Customer ID and ephemeral key with every configuration option and two adapter overrides. JS sends the adapter functions in params and the matching booleans in customerAdapterOverrides.",
+  "input": {
+    "params": {
+      "style": "alwaysDark",
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "headerTextForSelectionScreen": "Saved cards",
+      "defaultBillingDetails": {
+        "name": "Jenny Rosen",
+        "email": "jenny@example.com",
+        "phone": "+15555550100",
+        "address": {
+          "line1": "510 Townsend St",
+          "city": "San Francisco",
+          "state": "CA",
+          "postalCode": "94103",
+          "country": "US"
+        }
+      },
+      "billingDetailsCollectionConfiguration": {
+        "name": "always",
+        "email": "never",
+        "phone": "automatic",
+        "address": "full",
+        "attachDefaultsToPaymentMethod": true
+      },
+      "returnURL": "bridgecontracts://stripe-redirect",
+      "removeSavedPaymentMethodMessage": "The card was removed.",
+      "applePayEnabled": true,
+      "googlePayEnabled": true,
+      "preferredNetworks": [2, 7],
+      "allowsRemovalOfLastSavedPaymentMethod": false,
+      "opensCardScannerAutomatically": true,
+      "customerId": "cus_bridge_contracts",
+      "setupIntentClientSecret": "seti_bridge_secret_contracts",
+      "customerEphemeralKeySecret": "ek_test_bridge_contracts",
+      "customerAdapter": {
+        "fetchPaymentMethods": "$function",
+        "attachPaymentMethod": "$function"
+      }
+    },
+    "customerAdapterOverrides": {
+      "fetchPaymentMethods": true,
+      "attachPaymentMethod": true,
+      "detachPaymentMethod": false,
+      "setSelectedPaymentOption": false,
+      "fetchSelectedPaymentOption": false,
+      "setupIntentClientSecretForCustomerAttach": false
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error": null,
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "configuration.headerTextForSelectionScreen": "Saved cards",
+      "configuration.defaultBillingDetails.name": "Jenny Rosen",
+      "configuration.defaultBillingDetails.email": "jenny@example.com",
+      "configuration.defaultBillingDetails.phone": "+15555550100",
+      "configuration.defaultBillingDetails.address.line1": "510 Townsend St",
+      "configuration.defaultBillingDetails.address.city": "San Francisco",
+      "configuration.defaultBillingDetails.address.state": "CA",
+      "configuration.defaultBillingDetails.address.postalCode": "94103",
+      "configuration.defaultBillingDetails.address.country": "US",
+      "configuration.billingDetailsCollectionConfiguration.name": "always",
+      "configuration.billingDetailsCollectionConfiguration.email": "never",
+      "configuration.billingDetailsCollectionConfiguration.phone": "automatic",
+      "configuration.billingDetailsCollectionConfiguration.address": "full",
+      "configuration.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod": true,
+      "configuration.preferredNetworks": ["cartesBancaires", "visa"],
+      "configuration.allowsRemovalOfLastSavedPaymentMethod": false,
+      "configuration.opensCardScannerAutomatically": true,
+      "customerAdapter.overridesFetchPaymentMethods": true,
+      "customerAdapter.overridesAttachPaymentMethod": true,
+      "customerAdapter.overridesDetachPaymentMethod": false,
+      "customerAdapter.overridesSetSelectedPaymentOption": false,
+      "customerAdapter.overridesFetchSelectedPaymentOption": false,
+      "customerAdapter.overridesSetupIntentClientSecretForCustomerAttach": false
+    },
+    "ios": {
+      "configuration.style": "alwaysDark",
+      "configuration.returnURL": "bridgecontracts://stripe-redirect",
+      "configuration.removeSavedPaymentMethodMessage": "The card was removed.",
+      "configuration.applePayEnabled": true
+    },
+    "android": {
+      "configuration.googlePayEnabled": true
+    }
+  },
+  "platformOnly": {
+    "configuration.style": "CustomerSheetInitParams.style is documented as iOS only.",
+    "configuration.removeSavedPaymentMethodMessage": "CustomerSheetInitParams.removeSavedPaymentMethodMessage is documented as iOS only."
+  },
+  "parityGaps": {
+    "configuration.returnURL": "D4: Android CustomerSheet returns through its own redirect activity and does not read returnURL.",
+    "configuration.applePayEnabled": "D6: Apple Pay exists only on iOS; Android reads googlePayEnabled instead.",
+    "configuration.googlePayEnabled": "D6: Google Pay exists only on Android; iOS reads applePayEnabled instead."
+  },
+  "covers": {
+    "params.preferredNetworks": "configuration.preferredNetworks",
+    "params.customerAdapter.fetchPaymentMethods": "customerAdapter.overridesFetchPaymentMethods",
+    "params.customerAdapter.attachPaymentMethod": "customerAdapter.overridesAttachPaymentMethod",
+    "customerAdapterOverrides.fetchPaymentMethods": "customerAdapter.overridesFetchPaymentMethods",
+    "customerAdapterOverrides.attachPaymentMethod": "customerAdapter.overridesAttachPaymentMethod",
+    "customerAdapterOverrides.detachPaymentMethod": "customerAdapter.overridesDetachPaymentMethod",
+    "customerAdapterOverrides.setSelectedPaymentOption": "customerAdapter.overridesSetSelectedPaymentOption",
+    "customerAdapterOverrides.fetchSelectedPaymentOption": "customerAdapter.overridesFetchSelectedPaymentOption",
+    "customerAdapterOverrides.setupIntentClientSecretForCustomerAttach": "customerAdapter.overridesSetupIntentClientSecretForCustomerAttach"
+  },
+  "unasserted": {
+    "params.customerId": "Captured in the ephemeral key provider closure on both platforms; the provider runs only when the sheet loads, which needs the network.",
+    "params.setupIntentClientSecret": "Captured in the SetupIntent client secret provider closure; it runs only when the sheet saves a card.",
+    "params.customerEphemeralKeySecret": "Captured in the ephemeral key provider closure; it runs only when the sheet loads."
+  }
+}

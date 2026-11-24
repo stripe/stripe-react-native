@@ -1,0 +1,22 @@
+{
+  "method": "OnrampSdk.registerLinkUser",
+  "description": "registerLinkUser before configureOnramp. Both platforms resolve the not-configured error. A second call on a module holding a recording coordinator shows the user details the module hands it.",
+  "input": {
+    "info": {
+      "email": "jenny@example.com",
+      "phone": "+15555550100",
+      "country": "US",
+      "fullName": "Jenny Rosen"
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "result.error.message": "Onramp is not configured.",
+      "info.email": "jenny@example.com",
+      "info.phone": "+15555550100",
+      "info.country": "US",
+      "info.fullName": "Jenny Rosen"
+    }
+  }
+}

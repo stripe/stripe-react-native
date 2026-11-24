@@ -2,6 +2,7 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -122,18 +123,6 @@ class PaymentSheetManager(
       return
     }
 
-    val primaryButtonLabel = args.getString("primaryButtonLabel")
-    val googlePayConfig = buildGooglePayConfig(args.getMap("googlePay"))
-    val linkConfig = buildLinkConfig(args.getMap("link"))
-    val allowsDelayedPaymentMethods = args.getBooleanOr("allowsDelayedPaymentMethods", false)
-    val billingDetailsMap = args.getMap("defaultBillingDetails")
-    val billingConfigParams = args.getMap("billingDetailsCollectionConfiguration")
-    val paymentMethodOrder = args.getStringList("paymentMethodOrder")
-    val allowsRemovalOfLastSavedPaymentMethod =
-      args.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
-    val opensCardScannerAutomatically =
-      args.getBooleanOr("opensCardScannerAutomatically", false)
-
     paymentIntentClientSecret = args.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = args.getString("setupIntentClientSecret").orEmpty()
     intentConfiguration =
@@ -141,55 +130,16 @@ class PaymentSheetManager(
         buildIntentConfiguration(args.getMap("intentConfiguration"))
       }.getOrElse { return }
 
-    val appearance =
-      resolveAppearanceValue(promise) {
-        buildPaymentSheetAppearance(args.getMap("appearance"), context)
-      }.getOrElse { return }
-
-    val customerConfiguration =
-      resolvePaymentSheetValue(promise) {
-        buildCustomerConfiguration(args)
-      }.getOrElse { return }
-
-    val shippingDetails =
-      args.getMap("defaultShippingDetails")?.let {
-        AddressSheetView.buildAddressDetails(it)
+    paymentSheetConfiguration =
+      try {
+        buildPaymentSheetConfiguration(args, context)
+      } catch (error: PaymentSheetAppearanceException) {
+        promise.resolve(createError(ErrorType.Failed.toString(), error))
+        return
+      } catch (error: PaymentSheetException) {
+        promise.resolve(createError(ErrorType.Failed.toString(), error))
+        return
       }
-
-    val billingDetailsConfig = buildBillingDetailsCollectionConfiguration(billingConfigParams)
-
-    val defaultBillingDetails = buildBillingDetails(billingDetailsMap)
-    val configurationBuilder =
-      PaymentSheet.Configuration
-        .Builder(merchantDisplayName)
-        .allowsDelayedPaymentMethods(allowsDelayedPaymentMethods)
-        .defaultBillingDetails(defaultBillingDetails)
-        .customer(customerConfiguration)
-        .googlePay(googlePayConfig)
-        .appearance(appearance)
-        .shippingDetails(shippingDetails)
-        .link(linkConfig)
-        .billingDetailsCollectionConfiguration(billingDetailsConfig)
-        .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
-        .opensCardScannerAutomatically(opensCardScannerAutomatically)
-        .cardBrandAcceptance(mapToCardBrandAcceptance(args))
-        .apply {
-          mapToAllowedCardFundingTypes(args)?.let { allowedCardFundingTypes(it) }
-        }.customPaymentMethods(parseCustomPaymentMethods(args.getMap("customPaymentMethodConfiguration")))
-
-    args.getIntegerList("preferredNetworks")?.let {
-      configurationBuilder.preferredNetworks(mapToPreferredNetworks(it))
-    }
-    primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
-    paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
-
-    configurationBuilder.paymentMethodLayout(
-      mapToPaymentMethodLayout(args.getString("paymentMethodLayout")),
-    )
-
-    mapToTermsDisplay(args)?.let { configurationBuilder.termsDisplay(it) }
-
-    paymentSheetConfiguration = configurationBuilder.build()
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     if (hostActivityRef?.get() !== activity) {
       paymentSheet = null
@@ -206,17 +156,6 @@ class PaymentSheetManager(
     try {
       Result.success(builder())
     } catch (error: PaymentSheetException) {
-      promise.resolve(createError(ErrorType.Failed.toString(), error))
-      Result.failure(error)
-    }
-
-  private inline fun <T> resolveAppearanceValue(
-    promise: Promise,
-    builder: () -> T,
-  ): Result<T> =
-    try {
-      Result.success(builder())
-    } catch (error: PaymentSheetAppearanceException) {
       promise.resolve(createError(ErrorType.Failed.toString(), error))
       Result.failure(error)
     }
@@ -792,6 +731,73 @@ fun getBase64FromBitmap(bitmap: Bitmap?): String? {
   bitmap.compress(Bitmap.CompressFormat.PNG, BITMAP_COMPRESS_QUALITY, stream)
   val imageBytes: ByteArray = stream.toByteArray()
   return Base64.encodeToString(imageBytes, Base64.DEFAULT)
+}
+
+@Throws(PaymentSheetAppearanceException::class, PaymentSheetException::class)
+@OptIn(
+  ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
+  CardFundingFilteringPrivatePreview::class,
+)
+internal fun buildPaymentSheetConfiguration(
+  args: ReadableMap,
+  context: Context,
+): PaymentSheet.Configuration {
+  val merchantDisplayName = args.getString("merchantDisplayName").orEmpty()
+  val primaryButtonLabel = args.getString("primaryButtonLabel")
+  val googlePayConfig = buildGooglePayConfig(args.getMap("googlePay"))
+  val linkConfig = buildLinkConfig(args.getMap("link"))
+  val allowsDelayedPaymentMethods = args.getBooleanOr("allowsDelayedPaymentMethods", false)
+  val billingDetailsMap = args.getMap("defaultBillingDetails")
+  val billingConfigParams = args.getMap("billingDetailsCollectionConfiguration")
+  val paymentMethodOrder = args.getStringList("paymentMethodOrder")
+  val allowsRemovalOfLastSavedPaymentMethod =
+    args.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
+  val opensCardScannerAutomatically =
+    args.getBooleanOr("opensCardScannerAutomatically", false)
+
+  val appearance = buildPaymentSheetAppearance(args.getMap("appearance"), context)
+
+  val customerConfiguration = buildCustomerConfiguration(args)
+
+  val shippingDetails =
+    args.getMap("defaultShippingDetails")?.let {
+      AddressSheetView.buildAddressDetails(it)
+    }
+
+  val billingDetailsConfig = buildBillingDetailsCollectionConfiguration(billingConfigParams)
+
+  val defaultBillingDetails = buildBillingDetails(billingDetailsMap)
+  val configurationBuilder =
+    PaymentSheet.Configuration
+      .Builder(merchantDisplayName)
+      .allowsDelayedPaymentMethods(allowsDelayedPaymentMethods)
+      .defaultBillingDetails(defaultBillingDetails)
+      .customer(customerConfiguration)
+      .googlePay(googlePayConfig)
+      .appearance(appearance)
+      .shippingDetails(shippingDetails)
+      .link(linkConfig)
+      .billingDetailsCollectionConfiguration(billingDetailsConfig)
+      .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+      .opensCardScannerAutomatically(opensCardScannerAutomatically)
+      .cardBrandAcceptance(mapToCardBrandAcceptance(args))
+      .apply {
+        mapToAllowedCardFundingTypes(args)?.let { allowedCardFundingTypes(it) }
+      }.customPaymentMethods(parseCustomPaymentMethods(args.getMap("customPaymentMethodConfiguration")))
+
+  args.getIntegerList("preferredNetworks")?.let {
+    configurationBuilder.preferredNetworks(mapToPreferredNetworks(it))
+  }
+  primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
+  paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
+
+  configurationBuilder.paymentMethodLayout(
+    mapToPaymentMethodLayout(args.getString("paymentMethodLayout")),
+  )
+
+  mapToTermsDisplay(args)?.let { configurationBuilder.termsDisplay(it) }
+
+  return configurationBuilder.build()
 }
 
 fun mapToPaymentMethodLayout(str: String?): PaymentSheet.PaymentMethodLayout =

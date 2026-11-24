@@ -1,0 +1,44 @@
+{
+  "method": "StripeSdk.updateEmbeddedPaymentElement",
+  "description": "update(intentConfig). iOS parses it in StripeSdkImpl.updateEmbeddedPaymentElement and resolves the update result. On Android, JS sends JSON.stringify(intentConfig) through the EmbeddedPaymentElementView update command instead, so the Android runner parses that JSON the way EmbeddedPaymentElementViewManager.update does, and also calls the TurboModule method to pin what it resolves.",
+  "input": {
+    "intentConfig": {
+      "mode": {
+        "amount": 4200,
+        "currencyCode": "gbp",
+        "setupFutureUsage": "OnSession",
+        "captureMethod": "AutomaticAsync"
+      },
+      "paymentMethodTypes": ["card", "link"],
+      "onBehalfOf": "acct_bridge",
+      "confirmHandler": "$function"
+    }
+  },
+  "expect": {
+    "shared": {
+      "intentConfiguration.mode": "payment",
+      "intentConfiguration.mode.amount": 4200,
+      "intentConfiguration.mode.currency": "gbp",
+      "intentConfiguration.mode.setupFutureUsage": "onSession",
+      "intentConfiguration.mode.captureMethod": "automaticAsync",
+      "intentConfiguration.paymentMethodTypes": ["card", "link"],
+      "intentConfiguration.onBehalfOf": "acct_bridge",
+      "result.error.code": "Failed"
+    },
+    "ios": {
+      "result.error.message": "No EmbeddedPaymentElement instance — did you call create first?"
+    },
+    "android": {
+      "result.error.message": "not supported on Android; use the hook's update"
+    }
+  },
+  "covers": {
+    "intentConfig.mode.currencyCode": "intentConfiguration.mode.currency",
+    "intentConfig.mode.setupFutureUsage": "intentConfiguration.mode.setupFutureUsage",
+    "intentConfig.mode.captureMethod": "intentConfiguration.mode.captureMethod",
+    "intentConfig.confirmHandler": "intentConfiguration.mode"
+  },
+  "parityGaps": {
+    "result.error.message": "G8: Android StripeSdkModule.updateEmbeddedPaymentElement always resolves a not-supported error; JS sends Android updates through the EmbeddedPaymentElementView update command instead."
+  }
+}

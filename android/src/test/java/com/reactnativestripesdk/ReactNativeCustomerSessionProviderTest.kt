@@ -217,6 +217,8 @@ class ReactNativeCustomerSessionProviderTest {
 
   private class Fixture {
     val context: BridgeReactContext = object : BridgeReactContext(RuntimeEnvironment.getApplication()) {
+      override fun hasActiveReactInstance(): Boolean = true
+
       override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
         nativeModuleInterface.cast(module)
 

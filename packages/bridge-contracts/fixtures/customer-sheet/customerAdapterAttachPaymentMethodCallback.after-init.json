@@ -1,0 +1,47 @@
+{
+  "method": "StripeSdk.customerAdapterAttachPaymentMethodCallback",
+  "description": "JS answers a attachPaymentMethod request after an ephemeral-key init with an overriding adapter. Android decodes the payment method and returns it to the adapter; iOS only signals completion, because its CustomerAdapter attach call returns nothing.",
+  "input": {
+    "paymentMethod": {
+      "id": "pm_bridge_contracts",
+      "object": "payment_method",
+      "type": "card",
+      "created": 1700000000,
+      "livemode": false,
+      "card": {
+        "brand": "visa",
+        "last4": "4242",
+        "exp_month": 12,
+        "exp_year": 2030
+      }
+    }
+  },
+  "expect": {
+    "ios": {
+      "result": [],
+      "delivered": true
+    },
+    "android": {
+      "result": {},
+      "delivered.id": "pm_bridge_contracts",
+      "delivered.card.last4": "4242"
+    }
+  },
+  "parityGaps": {
+    "result": "G11: Android resolves an empty object; iOS resolves an empty array.",
+    "delivered": "D7: iOS CustomerAdapter.attachPaymentMethod returns Void, so iOS ignores the payment method JS sends.",
+    "delivered.id": "D7: Android CustomerAdapter.attachPaymentMethod returns the payment method, so Android decodes it.",
+    "delivered.card.last4": "D7: see delivered.id."
+  },
+  "covers": {
+    "paymentMethod.object": "delivered.id",
+    "paymentMethod.type": "delivered.id",
+    "paymentMethod.card.brand": "delivered.card.last4",
+    "paymentMethod.card.exp_month": "delivered.card.last4",
+    "paymentMethod.card.exp_year": "delivered.card.last4"
+  },
+  "unasserted": {
+    "paymentMethod.created": "Decoded but not used by CustomerSheet.",
+    "paymentMethod.livemode": "Decoded but not used by CustomerSheet."
+  }
+}

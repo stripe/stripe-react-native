@@ -1,0 +1,36 @@
+{
+  "method": "StripeSdk.updateCheckoutShippingAddress",
+  "description": "A shipping address update. Both platforms map the address with CheckoutConfigurationMapper.mapAddress; with no controller for the ID, both reject the same way. Applying the update needs a live session.",
+  "input": {
+    "controllerId": "bridge-contracts",
+    "params": {
+      "name": "Jenny Rosen",
+      "address": {
+        "country": "US",
+        "line1": "510 Townsend St",
+        "line2": "Floor 2",
+        "city": "San Francisco",
+        "state": "CA",
+        "postalCode": "94103"
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "address.country": "US",
+      "address.line1": "510 Townsend St",
+      "address.line2": "Floor 2",
+      "address.city": "San Francisco",
+      "address.state": "CA",
+      "address.postalCode": "94103",
+      "result.rejected.code": "Failed",
+      "result.rejected.message": "Checkout controller `bridge-contracts` does not exist."
+    }
+  },
+  "unasserted": {
+    "params.name": "Passed straight to the native controller with the address; a controller needs a live session."
+  },
+  "covers": {
+    "controllerId": "result.rejected.message"
+  }
+}

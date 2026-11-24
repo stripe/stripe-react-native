@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import {
   METRICS,
   checkAgainstBase,
@@ -10,6 +15,7 @@ import {
   fromBasisPoints,
   hasSources,
   readFloors,
+  runCoverageChecks,
   toBasisPoints,
 } from '../jest-coverage-lib.mjs';
 
@@ -661,4 +667,130 @@ test('checkAgainstBase rejects a stale scopeChanges entry', () => {
   assert.ok(
     failures.some((f) => f.includes('"scopeChanges" entry is already at FETCH_HEAD'))
   );
+});
+
+test('--package checks that floor and does not measure other workspaces', () => {
+  const lines = [];
+  const log = console.log;
+  console.log = (line) => lines.push(String(line));
+  try {
+    const failures = runCoverageChecks([
+      '--package=@stripe/react-native-payments',
+    ]);
+    assert.deepEqual(failures, []);
+    const text = lines.join('\n');
+    assert.match(text, /@stripe\/react-native-payments/);
+    assert.equal(text.includes('@stripe/stripe-react-native'), false);
+    assert.equal(text.includes('--coverage'), false);
+  } finally {
+    console.log = log;
+  }
+  assert.throws(
+    () => runCoverageChecks(['--package=']),
+    /--package expects a workspace package name/
+  );
+  const missing = runCoverageChecks(['--package=@stripe/not-a-package']);
+  assert.ok(
+    missing.some((failure) =>
+      failure.includes('@stripe/not-a-package: no entry in')
+    )
+  );
+});
+
+test('--package accepts a comma-separated list and checks only those floors', () => {
+  const lines = [];
+  const log = console.log;
+  console.log = (line) => lines.push(String(line));
+  try {
+    const failures = runCoverageChecks([
+      '--package=@stripe/react-native-payments,@stripe/react-native-core',
+    ]);
+    assert.deepEqual(failures, []);
+    const text = lines.join('\n');
+    assert.match(text, /@stripe\/react-native-payments/);
+    assert.match(text, /@stripe\/react-native-core/);
+    assert.equal(text.includes('@stripe/stripe-react-native'), false);
+    assert.equal(text.includes('@stripe/react-native-issuing'), false);
+    assert.equal(text.includes('--coverage'), false);
+  } finally {
+    console.log = log;
+  }
+});
+
+// A tree holding only coverage-floors.json; `git show <tree>:<path>` reads it
+// like a base ref without touching the work tree or any branch.
+function floorsTree(floors) {
+  const repoRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '../../../..'
+  );
+  const git = (args, options = {}) =>
+    execFileSync('git', args, {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      ...options,
+    }).trim();
+  const blob = git(['hash-object', '-w', '--stdin'], {
+    input: JSON.stringify(floors),
+  });
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'floors-index-'));
+  try {
+    const env = { ...process.env, GIT_INDEX_FILE: path.join(dir, 'index') };
+    git(
+      ['update-index', '--add', '--cacheinfo', `100644,${blob},${FLOORS_PATH}`],
+      { env }
+    );
+    return git(['write-tree'], { env });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test('--package with COVERAGE_FLOORS_BASE compares only the selected floors', () => {
+  const lowered = { statements: 10, branches: 10, functions: 10, lines: 10 };
+  const base = {
+    packages: {
+      '@stripe/stripe-react-native': {
+        ...structuredClone(stripeNativeFloor),
+        floor: { statements: 99, branches: 99, functions: 99, lines: 99 },
+      },
+      '@stripe/react-native-core': { dir: 'packages/core', floor: lowered },
+      '@stripe/react-native-payments': {
+        dir: 'packages/payments',
+        floor: lowered,
+      },
+      '@stripe/react-native-retired': { dir: 'packages/retired', floor: null },
+    },
+  };
+  const ref = floorsTree(base);
+  const previous = process.env.COVERAGE_FLOORS_BASE;
+  process.env.COVERAGE_FLOORS_BASE = ref;
+  const lines = [];
+  const log = console.log;
+  console.log = (line) => lines.push(String(line));
+  try {
+    const failures = runCoverageChecks([
+      '--package=@stripe/react-native-payments',
+    ]);
+    assert.deepEqual(
+      failures,
+      METRICS.map(
+        (metric) =>
+          `@stripe/react-native-payments: ${metric} floor lowered from 10% (at ${ref}) to none; add a "floorResets" entry with the reason if this reset is intended`
+      )
+    );
+    const text = lines.join('\n');
+    assert.match(text, new RegExp(`compared floors with ${ref}`));
+    assert.equal(text.includes('@stripe/stripe-react-native'), false);
+    assert.equal(text.includes('@stripe/react-native-core'), false);
+    assert.equal(text.includes('@stripe/react-native-retired'), false);
+    assert.equal(text.includes('--coverage'), false);
+  } finally {
+    console.log = log;
+    if (previous === undefined) {
+      delete process.env.COVERAGE_FLOORS_BASE;
+    } else {
+      process.env.COVERAGE_FLOORS_BASE = previous;
+    }
+  }
 });

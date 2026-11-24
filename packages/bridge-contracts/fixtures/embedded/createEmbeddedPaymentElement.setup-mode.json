@@ -1,0 +1,80 @@
+{
+  "method": "StripeSdk.createEmbeddedPaymentElement",
+  "description": "Embedded Payment Element in setup mode. iOS builds it in StripeSdkImpl.createEmbeddedPaymentElement; Android's TurboModule method is a no-op and reads the same objects through the EmbeddedPaymentElementView configuration and intentConfiguration props, so this fixture also pins that component spec.",
+  "input": {
+    "intentConfig": {
+      "mode": {
+        "currencyCode": "usd",
+        "setupFutureUsage": "OffSession"
+      },
+      "paymentMethodTypes": ["card"],
+      "confirmHandler": "$function"
+    },
+    "configuration": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "returnURL": "bridgecontracts://stripe-redirect",
+      "customerId": "cus_bridge",
+      "customerEphemeralKeySecret": "ek_test_bridge",
+      "allowsDelayedPaymentMethods": true,
+      "primaryButtonLabel": "Save card",
+      "paymentMethodOrder": ["card"],
+      "allowsRemovalOfLastSavedPaymentMethod": false,
+      "embeddedViewDisplaysMandateText": false,
+      "formSheetAction": {
+        "type": "confirm",
+        "onFormSheetConfirmComplete": "$function"
+      },
+      "rowSelectionBehavior": {
+        "type": "immediateAction",
+        "onSelectPaymentOption": "$function"
+      },
+      "defaultBillingDetails": {
+        "name": "Jenny Rosen",
+        "email": "jenny@example.com"
+      },
+      "billingDetailsCollectionConfiguration": {
+        "name": "always",
+        "address": "never"
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "intentConfiguration.mode": "setup",
+      "intentConfiguration.mode.currency": "usd",
+      "intentConfiguration.mode.setupFutureUsage": "offSession",
+      "intentConfiguration.paymentMethodTypes": ["card"],
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "configuration.customer.id": "cus_bridge",
+      "configuration.customer.ephemeralKeySecret": "ek_test_bridge",
+      "configuration.allowsDelayedPaymentMethods": true,
+      "configuration.primaryButtonLabel": "Save card",
+      "configuration.paymentMethodOrder": ["card"],
+      "configuration.allowsRemovalOfLastSavedPaymentMethod": false,
+      "configuration.embeddedViewDisplaysMandateText": false,
+      "configuration.formSheetAction": "confirm",
+      "configuration.rowSelectionBehavior": "immediateAction",
+      "configuration.defaultBillingDetails.name": "Jenny Rosen",
+      "configuration.defaultBillingDetails.email": "jenny@example.com",
+      "configuration.billingDetailsCollectionConfiguration.name": "always",
+      "configuration.billingDetailsCollectionConfiguration.address": "never"
+    },
+    "ios": {
+      "configuration.returnURL": "bridgecontracts://stripe-redirect"
+    }
+  },
+  "covers": {
+    "intentConfig.mode.currencyCode": "intentConfiguration.mode.currency",
+    "intentConfig.mode.setupFutureUsage": "intentConfiguration.mode.setupFutureUsage",
+    "intentConfig.confirmHandler": "intentConfiguration.mode",
+    "configuration.customerId": "configuration.customer.id",
+    "configuration.customerEphemeralKeySecret": "configuration.customer.ephemeralKeySecret",
+    "configuration.formSheetAction.type": "configuration.formSheetAction",
+    "configuration.formSheetAction.onFormSheetConfirmComplete": "configuration.formSheetAction",
+    "configuration.rowSelectionBehavior.type": "configuration.rowSelectionBehavior",
+    "configuration.rowSelectionBehavior.onSelectPaymentOption": "configuration.rowSelectionBehavior"
+  },
+  "parityGaps": {
+    "configuration.returnURL": "D4: iOS uses returnURL for redirects; Android EmbeddedPaymentElement returns through its own redirect activity, so parseElementConfiguration does not read it."
+  }
+}

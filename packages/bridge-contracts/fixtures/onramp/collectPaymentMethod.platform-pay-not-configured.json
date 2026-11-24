@@ -1,0 +1,71 @@
+{
+  "method": "OnrampSdk.collectPaymentMethod",
+  "description": "Collecting a wallet payment method before configureOnramp. Both platforms resolve the not-configured error. A second call on a module holding a recording coordinator shows the selection the module hands it: its kind and the wallet request.",
+  "input": {
+    "paymentMethod": "PlatformPay",
+    "platformPayParams": {
+      "googlePay": {
+        "currencyCode": "USD",
+        "amount": 1250,
+        "label": "Total"
+      },
+      "applePay": {
+        "merchantCountryCode": "US",
+        "currencyCode": "USD",
+        "cartItems": [
+          {
+            "paymentType": "Immediate",
+            "label": "Bridge Contracts, Inc.",
+            "amount": "12.50"
+          }
+        ]
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "result.error.message": "Onramp is not configured."
+    },
+    "ios": {
+      "selection.kind": "applePay",
+      "selection.applePay.merchantIdentifier": "merchant.com.stripe.bridge",
+      "selection.applePay.countryCode": "US",
+      "selection.applePay.currencyCode": "USD",
+      "selection.applePay.paymentSummaryItems.0.label": "Bridge Contracts, Inc.",
+      "selection.applePay.paymentSummaryItems.0.amount": 12.5,
+      "selection.applePay.paymentSummaryItems.0.paymentType": "Immediate"
+    },
+    "android": {
+      "selection.kind": "googlePay",
+      "selection.googlePay.currencyCode": "USD",
+      "selection.googlePay.amount": 1250,
+      "selection.googlePay.label": "Total",
+      "selection.googlePay.transactionId": null
+    }
+  },
+  "parityGaps": {
+    "selection.kind": "D14: PlatformPay selects Apple Pay on iOS and Google Pay on Android."
+  },
+  "platformOnly": {
+    "selection.applePay.merchantIdentifier": "PlatformPay maps to Apple Pay on iOS; the identifier comes from initStripe.",
+    "selection.applePay.countryCode": "PlatformPay maps to Apple Pay on iOS only.",
+    "selection.applePay.currencyCode": "PlatformPay maps to Apple Pay on iOS only.",
+    "selection.applePay.paymentSummaryItems.0.label": "PlatformPay maps to Apple Pay on iOS only.",
+    "selection.applePay.paymentSummaryItems.0.amount": "PlatformPay maps to Apple Pay on iOS only.",
+    "selection.applePay.paymentSummaryItems.0.paymentType": "PlatformPay maps to Apple Pay on iOS only.",
+    "selection.googlePay.currencyCode": "PlatformPay maps to Google Pay on Android only.",
+    "selection.googlePay.amount": "PlatformPay maps to Google Pay on Android only.",
+    "selection.googlePay.label": "PlatformPay maps to Google Pay on Android only.",
+    "selection.googlePay.transactionId": "PlatformPay maps to Google Pay on Android only."
+  },
+  "covers": {
+    "paymentMethod": "selection.kind",
+    "platformPayParams.applePay.merchantCountryCode": "selection.applePay.countryCode",
+    "platformPayParams.applePay.cartItems.0.paymentType": "selection.applePay.paymentSummaryItems.0.paymentType",
+    "platformPayParams.applePay.currencyCode": "selection.applePay.currencyCode",
+    "platformPayParams.googlePay.currencyCode": "selection.googlePay.currencyCode",
+    "platformPayParams.applePay.cartItems.0.label": "selection.applePay.paymentSummaryItems.0.label",
+    "platformPayParams.applePay.cartItems.0.amount": "selection.applePay.paymentSummaryItems.0.amount"
+  }
+}

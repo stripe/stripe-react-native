@@ -1,0 +1,31 @@
+{
+  "method": "StripeSdk.initLinkController",
+  "description": "Link Controller options without merchantDisplayName. Android rejects them at once; iOS builds a configuration without a name and creates the controller, which a local double completes.",
+  "input": {
+    "params": {
+      "email": "jenny@example.com"
+    }
+  },
+  "expect": {
+    "ios": {
+      "configuration.merchantDisplayName": null,
+      "result": "$present",
+      "result.error": null
+    },
+    "android": {
+      "result.error.code": "Failed",
+      "result.error.message": "merchantDisplayName is required."
+    }
+  },
+  "parityGaps": {
+    "configuration.merchantDisplayName": "G13: iOS accepts a missing merchantDisplayName; Android rejects it.",
+    "result": "G13: see configuration.merchantDisplayName.",
+    "result.error": "G13: see configuration.merchantDisplayName.",
+    "result.error.code": "G13: see configuration.merchantDisplayName.",
+    "result.error.message": "G13: see configuration.merchantDisplayName."
+  },
+  "unasserted": {
+    "params.email": "iOS keeps it for presenting; Android reads it only after the name check."
+  },
+  "skipTypecheck": "LinkControllerConfiguration requires merchantDisplayName; this fixture omits it to pin how each platform handles that."
+}

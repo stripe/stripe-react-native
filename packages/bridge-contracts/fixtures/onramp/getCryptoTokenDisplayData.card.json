@@ -1,0 +1,29 @@
+{
+  "method": "OnrampSdk.getCryptoTokenDisplayData",
+  "description": "Display data for a card crypto payment token. Both platforms build it locally without a coordinator.",
+  "input": {
+    "token": {
+      "card": { "brand": "visa", "funding": "credit", "last4": "4242" }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.displayData.label": "Link",
+      "result.displayData.icon": "$present"
+    },
+    "ios": {
+      "result.displayData.sublabel": "Visa Credit •••• 4242"
+    },
+    "android": {
+      "result.displayData.sublabel": "Visa Card \u2066•••• 4242\u2069"
+    }
+  },
+  "parityGaps": {
+    "result.displayData.sublabel": "D13: iOS formats lowercase credit as Visa Credit with a plain last4. Android only recognizes CREDIT, DEBIT, and PREPAID, so credit renders as Visa Card and the last4 is wrapped in bidi isolates."
+  },
+  "covers": {
+    "token.card.brand": "result.displayData.sublabel",
+    "token.card.funding": "result.displayData.sublabel",
+    "token.card.last4": "result.displayData.sublabel"
+  }
+}

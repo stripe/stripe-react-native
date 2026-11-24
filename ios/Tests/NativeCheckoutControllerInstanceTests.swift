@@ -1,11 +1,16 @@
 import Foundation
 @testable import stripe_react_native
 @_spi(ReactNativeSDK) import StripeCore
-@testable @_spi(ReactNativeSDK) import StripePaymentSheet
+@testable @_spi(InternalOnlyAPI) @_spi(ReactNativeSDK) import StripePaymentSheet
 import XCTest
 
 @MainActor
 final class NativeCheckoutControllerInstanceTests: XCTestCase {
+    override func tearDown() async throws {
+        try await super.tearDown()
+        StripeSdkImpl.shared.invalidateCheckoutControllers()
+    }
+
     func test_observesNativeSnapshotsAndStopsOnDestruction() async throws {
         let checkout = try await makeCheckout()
         var events: [[String: Any]] = []
@@ -34,7 +39,8 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
     }
 
     func test_invalidationCancelsPendingCreationTasks() async {
-        let sdk = StripeSdkImpl()
+        let sdk = StripeSdkImpl.shared
+        sdk.invalidateCheckoutControllers()
         let canceled = expectation(description: "Pending creation canceled")
         let task = Task { @MainActor in
             do {
@@ -52,8 +58,26 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertTrue(sdk.pendingCheckoutCreations.isEmpty)
     }
 
+    func test_invalidateCheckoutControllersDestroysControllersBeforeReturning() async throws {
+        let sdk = StripeSdkImpl.shared
+        sdk.invalidateCheckoutControllers()
+        let instance = NativeCheckoutControllerInstance(checkout: try await makeCheckout(), emitEvent: { _ in })
+        let controllerId = "sync-invalidation"
+        sdk.checkoutControllers[controllerId] = instance
+
+        var destroyed = false
+        let observation = instance.observeDestruction { destroyed = true }
+        sdk.invalidateCheckoutControllers()
+
+        XCTAssertNil(sdk.checkoutControllers[controllerId])
+        XCTAssertTrue(sdk.checkoutControllers.isEmpty)
+        XCTAssertTrue(destroyed)
+        observation.cancel()
+    }
+
     func test_inlineViewReleasesReplacedAndDestroyedControllers() async throws {
         let sdk = StripeSdkImpl.shared
+        sdk.invalidateCheckoutControllers()
         let firstCheckout = try await makeCheckout()
         let secondCheckout = try await makeCheckout()
         let firstElement = firstCheckout.getPaymentElement()
@@ -87,6 +111,7 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         XCTAssertNil(firstElement.uiView.delegate)
         sdk.checkoutControllers.removeValue(forKey: firstId)?.destroy()
         XCTAssertTrue(view.subviews.first === secondElement.uiView)
+        view.controllerId = nil
         sdk.checkoutControllers.removeValue(forKey: secondId)?.destroy()
         XCTAssertTrue(view.subviews.isEmpty)
         XCTAssertNil(secondElement.uiView.delegate)
@@ -272,6 +297,44 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         view.controllerId = nil
     }
 
+    func test_destroyDetachesMountedElementBeforeResumingServerUpdates() async throws {
+        let checkout = try await makeCheckout()
+        let instance = NativeCheckoutControllerInstance(checkout: checkout, emitEvent: { _ in })
+        instance.start(controllerId: "mounted-destroy")
+        let element = checkout.getPaymentElement().uiView
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
+        let delegate = PaymentElementHeightDelegate()
+        element.delegate = delegate
+        window.addSubview(element)
+        XCTAssertNotNil(element.superview)
+        XCTAssertTrue(element.delegate === delegate)
+
+        let pending = expectation(description: "Server update is waiting")
+        let resumed = expectation(description: "Server update resumed after detach")
+        let task = Task { @MainActor in
+            do {
+                try await instance.runServerUpdate(operationId: "mounted-destroy-update") {
+                    pending.fulfill()
+                }
+                XCTFail("A destroyed controller should cancel the server update")
+            } catch is CancellationError {
+                // Runs when the continuation resumes, so detach must already have happened.
+                XCTAssertNil(element.delegate)
+                XCTAssertNil(element.superview)
+                resumed.fulfill()
+            } catch {
+                XCTFail("Expected CancellationError, got \(error)")
+                resumed.fulfill()
+            }
+        }
+
+        await fulfillment(of: [pending], timeout: 2)
+        instance.destroy()
+        await fulfillment(of: [resumed], timeout: 2)
+        _ = task
+        window.isHidden = true
+    }
+
     private func makeCheckout(expressCheckout: Bool = false) async throws -> CheckoutElementsController {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.protocolClasses = [CheckoutFixtureURLProtocol.self]
@@ -287,6 +350,10 @@ final class NativeCheckoutControllerInstanceTests: XCTestCase {
         if expressCheckout { configuration.expressCheckoutElement = .init(completion: { _ in }) }
         return try await CheckoutElementsController(configuration: configuration)
     }
+}
+
+private final class PaymentElementHeightDelegate: PaymentElementViewDelegate {
+    func paymentElementViewDidUpdateHeight(paymentElementView: PaymentElementUIView) {}
 }
 
 private final class CheckoutFixtureURLProtocol: URLProtocol {

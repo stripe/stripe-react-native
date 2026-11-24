@@ -1,0 +1,22 @@
+{
+  "method": "StripeSdk.isCardInWallet",
+  "description": "Whether a card is already in the wallet. iOS asks PassKit at once; Android needs a resumed activity and Google Pay's TapAndPay client.",
+  "input": {
+    "params": { "cardLastFour": "4242" }
+  },
+  "expect": {
+    "ios": {
+      "result.isInWallet": false
+    },
+    "android": {
+      "result": "$present"
+    }
+  },
+  "parityGaps": {
+    "result.isInWallet": "D9: iOS answers from PassKit; Android answers through TapAndPay, which needs Google Play services.",
+    "result": "D9: see result.isInWallet."
+  },
+  "covers": {
+    "params.cardLastFour": "result.isInWallet"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "method": "StripeSdk.canAddCardToWallet",
+  "description": "A wallet eligibility check with the options for both platforms. In test mode (the iOS-only testEnv) iOS skips the entitlement check and reports the card can be added; Android checks NFC first, which a test device does not have.",
+  "input": {
+    "params": {
+      "primaryAccountIdentifier": "V0000000001",
+      "cardLastFour": "4242",
+      "cardBrand": "VISA",
+      "testEnv": true,
+      "hasPairedAppleWatch": false,
+      "supportsTapToPay": true
+    }
+  },
+  "expect": {
+    "ios": {
+      "result.canAddCard": true,
+      "result.details.status": null
+    },
+    "android": {
+      "result.canAddCard": false,
+      "result.details.status": "UNSUPPORTED_DEVICE"
+    }
+  },
+  "parityGaps": {
+    "result.canAddCard": "D9: Each platform answers from its own wallet check; iOS test mode skips the entitlement check, Android checks NFC first.",
+    "result.details.status": "D9: see result.canAddCard."
+  },
+  "covers": {
+    "params.supportsTapToPay": "result.details.status",
+    "params.testEnv": "result.canAddCard"
+  },
+  "unasserted": {
+    "params.primaryAccountIdentifier": "Read by the wallet eligibility query, which needs a provisioned device; a test device answers before it matters.",
+    "params.cardLastFour": "Read by the wallet eligibility query, which needs a provisioned device; a test device answers before it matters.",
+    "params.cardBrand": "Read by the wallet eligibility query, which needs a provisioned device; a test device answers before it matters.",
+    "params.hasPairedAppleWatch": "Read by the wallet eligibility query, which needs a provisioned device; a test device answers before it matters."
+  }
+}

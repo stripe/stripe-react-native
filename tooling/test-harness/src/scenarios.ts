@@ -1,15 +1,24 @@
+import { NativeModules, Platform } from 'react-native';
 import {
   createPaymentMethod,
+  createPlatformPayPaymentMethod,
   createToken,
   handleURLCallback,
   initPaymentSheet,
   initStripe,
   isPlatformPaySupported,
 } from '@stripe/stripe-react-native';
+import { mountCheckoutElement } from './checkout-coverage';
 
 type Scenario = {
   name: string;
+  timeoutMs?: number;
   run: () => Promise<unknown>;
+};
+
+type CheckoutCoverageModule = {
+  prepareCheckoutController: () => Promise<string>;
+  invalidateCheckoutControllers: () => Promise<void>;
 };
 
 // Every scenario must finish without network access or user input, so a run
@@ -30,6 +39,25 @@ export const scenarios: Scenario[] = [
     run: () => isPlatformPaySupported(),
   },
   {
+    name: 'createPlatformPayPaymentMethod',
+    timeoutMs: 20000,
+    run: () => {
+      if (Platform.OS !== 'android') {
+        return Promise.resolve({ error: { code: 'skipped' } });
+      }
+      return createPlatformPayPaymentMethod({
+        googlePay: {
+          testEnv: true,
+          merchantCountryCode: 'US',
+          currencyCode: 'USD',
+          merchantName: 'Test Harness',
+          amount: 1250,
+          label: 'Total',
+        },
+      });
+    },
+  },
+  {
     name: 'handleURLCallback',
     run: () => handleURLCallback('stripe-test-harness://safepay/unknown'),
   },
@@ -48,5 +76,24 @@ export const scenarios: Scenario[] = [
         merchantDisplayName: 'Test Harness',
         paymentIntentClientSecret: 'pi_test_harness_secret_test_harness',
       }),
+  },
+  {
+    name: 'checkout detach',
+    timeoutMs: 60000,
+    run: async () => {
+      if (Platform.OS !== 'ios') {
+        return { error: { code: 'skipped' } };
+      }
+      const bridge = NativeModules.HarnessCheckoutCoverage as
+        | CheckoutCoverageModule
+        | undefined;
+      if (!bridge) {
+        throw new Error('HarnessCheckoutCoverage is unavailable');
+      }
+      const controllerId = await bridge.prepareCheckoutController();
+      await mountCheckoutElement(controllerId);
+      await bridge.invalidateCheckoutControllers();
+      return undefined;
+    },
   },
 ];

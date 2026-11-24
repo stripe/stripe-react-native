@@ -1,0 +1,56 @@
+{
+  "method": "StripeSdk.initLinkController",
+  "description": "Every Link Controller option. Both platforms build their LinkController configuration from it and hand it to a local controller double, which succeeds without the network.",
+  "input": {
+    "params": {
+      "email": "jenny@example.com",
+      "phoneNumber": "+15555550100",
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "allowLogout": false,
+      "supportedPaymentMethodTypes": [
+        "card",
+        "bankAccount"
+      ],
+      "paymentMethodTypes": [
+        "card"
+      ],
+      "billingDetailsCollectionConfiguration": {
+        "name": "always",
+        "email": "never",
+        "phone": "automatic",
+        "address": "full",
+        "attachDefaultsToPaymentMethod": true
+      },
+      "appearance": {}
+    }
+  },
+  "expect": {
+    "shared": {
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "configuration.allowLogout": false,
+      "configuration.paymentMethodTypes": [
+        "card"
+      ],
+      "configuration.billingDetailsCollectionConfiguration.name": "always",
+      "configuration.billingDetailsCollectionConfiguration.email": "never",
+      "configuration.billingDetailsCollectionConfiguration.phone": "automatic",
+      "configuration.billingDetailsCollectionConfiguration.address": "full",
+      "configuration.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod": true,
+      "configuration.supportedPaymentMethodTypes": [
+        "card",
+        "bankAccount"
+      ],
+      "appearance": "$present",
+      "result": "$present",
+      "result.error": null
+    },
+    "android": {
+      "configuration.email": "jenny@example.com",
+      "configuration.phoneNumber": "+15555550100"
+    }
+  },
+  "parityGaps": {
+    "configuration.email": "D11: iOS keeps email and phoneNumber outside LinkConfiguration and passes them when presenting; Android stores them in the configuration.",
+    "configuration.phoneNumber": "D11: see configuration.email."
+  }
+}

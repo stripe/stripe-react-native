@@ -1,0 +1,29 @@
+{
+  "method": "StripeSdk.collectBankAccount",
+  "description": "US bank account collection needs billingDetails.name; checked before the Financial Connections sheet is launched.",
+  "input": {
+    "isPaymentIntent": true,
+    "clientSecret": "pi_bridge_secret_contracts",
+    "params": {
+      "paymentMethodType": "USBankAccount",
+      "paymentMethodData": {
+        "billingDetails": { "name": "", "email": "jenny@example.com" }
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "result.error.message": "You must provide a name when collecting US bank account details."
+    }
+  },
+  "covers": {
+    "isPaymentIntent": "result.error.code",
+    "clientSecret": "result.error.code",
+    "params.paymentMethodType": "result.error.message",
+    "params.paymentMethodData.billingDetails.name": "result.error.message"
+  },
+  "unasserted": {
+    "params.paymentMethodData.billingDetails.email": "Read only after the name check, which fails first."
+  }
+}

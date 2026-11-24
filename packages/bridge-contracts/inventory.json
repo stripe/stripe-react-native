@@ -1,0 +1,88 @@
+{
+  "StripeSdk.initialise": { "family": "core" },
+  "OnrampSdk.initialise": { "family": "core", "platforms": ["android"] },
+
+  "StripeSdk.createPaymentMethod": { "family": "payments-confirm" },
+  "StripeSdk.confirmPayment": { "family": "payments-confirm" },
+  "StripeSdk.confirmSetupIntent": { "family": "payments-confirm" },
+  "StripeSdk.createToken": { "family": "payments-confirm" },
+  "StripeSdk.verifyMicrodeposits": { "family": "payments-confirm" },
+  "StripeSdk.collectBankAccount": { "family": "payments-confirm" },
+
+  "StripeSdk.initPaymentSheet": { "family": "payment-sheet" },
+  "StripeSdk.presentPaymentSheet": { "family": "payment-sheet" },
+  "StripeSdk.intentCreationCallback": { "family": "payment-sheet" },
+  "StripeSdk.confirmationTokenCreationCallback": { "family": "payment-sheet" },
+  "StripeSdk.customPaymentMethodResultCallback": { "family": "payment-sheet" },
+
+  "StripeSdk.createEmbeddedPaymentElement": { "family": "embedded" },
+  "StripeSdk.updateEmbeddedPaymentElement": { "family": "embedded" },
+  "StripeSdk.updateEmbeddedPaymentElement#result": { "family": "embedded" },
+  "component:EmbeddedPaymentElementView": { "family": "embedded" },
+
+  "StripeSdk.initCustomerSheet": { "family": "customer-sheet" },
+  "StripeSdk.initCustomerSheet#result": { "family": "customer-sheet" },
+  "StripeSdk.presentCustomerSheet": { "family": "customer-sheet" },
+  "StripeSdk.customerAdapterFetchPaymentMethodsCallback": {
+    "family": "customer-sheet"
+  },
+  "StripeSdk.customerAdapterAttachPaymentMethodCallback": {
+    "family": "customer-sheet"
+  },
+  "StripeSdk.customerAdapterDetachPaymentMethodCallback": {
+    "family": "customer-sheet"
+  },
+  "StripeSdk.clientSecretProviderCustomerSessionClientSecretCallback": {
+    "family": "customer-sheet"
+  },
+
+  "StripeSdk.isPlatformPaySupported": { "family": "platform-pay" },
+  "StripeSdk.createPlatformPayPaymentMethod": { "family": "platform-pay" },
+  "StripeSdk.updatePlatformPaySheet": {
+    "family": "platform-pay",
+    "platforms": ["ios"]
+  },
+  "StripeSdk.confirmPlatformPay": { "family": "platform-pay" },
+  "component:ApplePayButton": {
+    "family": "platform-pay",
+    "platforms": ["ios"]
+  },
+
+  "StripeSdk.createCheckout": { "family": "checkout" },
+  "StripeSdk.createCheckout#result": { "family": "checkout" },
+  "StripeSdk.updateCheckoutShippingAddress": { "family": "checkout" },
+  "StripeSdk.confirmCheckout#result": { "family": "checkout" },
+
+  "StripeSdk.collectBankAccountToken": { "family": "financial-connections" },
+  "StripeSdk.collectFinancialConnectionsAccounts": {
+    "family": "financial-connections"
+  },
+
+  "StripeSdk.canAddCardToWallet": { "family": "issuing" },
+  "StripeSdk.isCardInWallet": { "family": "issuing" },
+  "component:AddToWalletButton": { "family": "issuing" },
+
+  "OnrampSdk.configureOnramp": { "family": "onramp" },
+  "OnrampSdk.registerLinkUser": { "family": "onramp" },
+  "OnrampSdk.attachKycInfo": { "family": "onramp" },
+  "OnrampSdk.submitIdentifiers": { "family": "onramp" },
+  "OnrampSdk.presentKycInfoVerification": { "family": "onramp" },
+  "OnrampSdk.collectPaymentMethod": { "family": "onramp" },
+  "OnrampSdk.getCryptoTokenDisplayData": { "family": "onramp" },
+
+  "component:AddressSheetView": { "family": "payments-components" },
+  "component:CardField": { "family": "payments-components" },
+  "component:CardForm": { "family": "payments-components" },
+  "component:AuBECSDebitForm": { "family": "payments-components" },
+  "component:PaymentMethodMessagingElementView": {
+    "family": "payments-components"
+  },
+
+  "StripeSdk.initLinkController": { "family": "link-controller" },
+  "StripeSdk.initLinkController#result": { "family": "link-controller" },
+  "StripeSdk.presentLinkController#result": { "family": "link-controller" },
+  "StripeSdk.confirmLinkControllerSetupIntent": { "family": "link-controller" },
+  "StripeSdk.confirmLinkControllerSetupIntent#result": {
+    "family": "link-controller"
+  }
+}

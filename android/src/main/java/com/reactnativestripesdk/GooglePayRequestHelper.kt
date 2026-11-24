@@ -33,23 +33,7 @@ class GooglePayRequestHelper {
       factory: GooglePayJsonFactory,
       googlePayParams: ReadableMap,
     ): Task<PaymentData> {
-      val transactionInfo = buildTransactionInfo(googlePayParams)
-      val merchantInfo =
-        GooglePayJsonFactory.MerchantInfo(googlePayParams.getString("merchantName").orEmpty())
-      val billingAddressParameters =
-        buildBillingAddressParameters(googlePayParams.getMap("billingAddressConfig"))
-      val shippingAddressParameters =
-        buildShippingAddressParameters(googlePayParams.getMap("shippingAddressConfig"))
-
-      val request =
-        factory.createPaymentDataRequest(
-          transactionInfo = transactionInfo,
-          merchantInfo = merchantInfo,
-          billingAddressParameters = billingAddressParameters,
-          shippingAddressParameters = shippingAddressParameters,
-          isEmailRequired = googlePayParams.getBooleanOr("isEmailRequired", false),
-          allowCreditCards = googlePayParams.getBooleanOr("allowCreditCards", true),
-        )
+      val request = createPaymentDataRequestJson(factory, googlePayParams)
 
       val walletOptions =
         Wallet.WalletOptions
@@ -64,6 +48,28 @@ class GooglePayRequestHelper {
       return Wallet
         .getPaymentsClient(activity, walletOptions)
         .loadPaymentData(PaymentDataRequest.fromJson(request.toString()))
+    }
+
+    internal fun createPaymentDataRequestJson(
+      factory: GooglePayJsonFactory,
+      googlePayParams: ReadableMap,
+    ): JSONObject {
+      val transactionInfo = buildTransactionInfo(googlePayParams)
+      val merchantInfo =
+        GooglePayJsonFactory.MerchantInfo(googlePayParams.getString("merchantName").orEmpty())
+      val billingAddressParameters =
+        buildBillingAddressParameters(googlePayParams.getMap("billingAddressConfig"))
+      val shippingAddressParameters =
+        buildShippingAddressParameters(googlePayParams.getMap("shippingAddressConfig"))
+
+      return factory.createPaymentDataRequest(
+        transactionInfo = transactionInfo,
+        merchantInfo = merchantInfo,
+        billingAddressParameters = billingAddressParameters,
+        shippingAddressParameters = shippingAddressParameters,
+        isEmailRequired = googlePayParams.getBooleanOr("isEmailRequired", false),
+        allowCreditCards = googlePayParams.getBooleanOr("allowCreditCards", true),
+      )
     }
 
     @Suppress("UNCHECKED_CAST")

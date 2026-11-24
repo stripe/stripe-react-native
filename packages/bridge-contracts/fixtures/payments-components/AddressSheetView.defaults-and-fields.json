@@ -1,0 +1,58 @@
+{
+  "method": "component:AddressSheetView",
+  "description": "AddressSheet default values and additional fields, the submit payload both platforms build from an address, and the error event when the sheet is shown before initStripe. Presenting the sheet needs UI.",
+  "input": {
+    "appearance": {
+      "colors": {
+        "primary": "#112233"
+      }
+    },
+    "defaultValues": {
+      "name": "Jenny Rosen",
+      "address": {
+        "line1": "510 Townsend St",
+        "line2": "Floor 2",
+        "city": "San Francisco",
+        "state": "CA",
+        "postalCode": "94103",
+        "country": "US"
+      },
+      "phone": "+15555550100",
+      "isCheckboxSelected": true
+    },
+    "additionalFields": {
+      "phoneNumber": "required",
+      "checkboxLabel": "Save this address"
+    },
+    "onSubmitAction": "$function",
+    "onErrorAction": "$function"
+  },
+  "expect": {
+    "shared": {
+      "defaultValues.name": "Jenny Rosen",
+      "defaultValues.phone": "+15555550100",
+      "defaultValues.isCheckboxSelected": true,
+      "defaultValues.address.line1": "510 Townsend St",
+      "defaultValues.address.line2": "Floor 2",
+      "defaultValues.address.city": "San Francisco",
+      "defaultValues.address.state": "CA",
+      "defaultValues.address.postalCode": "94103",
+      "defaultValues.address.country": "US",
+      "additionalFields.phoneNumber": "required",
+      "additionalFields.checkboxLabel": "Save this address",
+      "submitResult.name": "Jenny Rosen",
+      "submitResult.phone": "+15555550100",
+      "submitResult.isCheckboxSelected": true,
+      "submitResult.address.city": "San Francisco",
+      "submitResult.address.postalCode": "94103",
+      "appearance.primaryColor": "#112233",
+      "events.onErrorAction.error.code": "Failed",
+      "events.onErrorAction.error.message": "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method."
+    }
+  },
+  "covers": {
+    "onSubmitAction": "submitResult.name",
+    "onErrorAction": "events.onErrorAction.error.code",
+    "appearance.colors.primary": "appearance.primaryColor"
+  }
+}

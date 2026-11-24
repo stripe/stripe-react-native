@@ -1,10 +1,94 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
-import { formatScenarioLine } from '../harness-format.mjs';
+import { formatScenarioToken } from '../harness-format.mjs';
+
+const assertCheckoutFixtureInPodTarget = (podfilePath, helperSource) => {
+  const script = `
+podfile, source = ARGV
+eval(source, binding, podfile)
+
+class CanaryRef
+  attr_reader :real_path
+  def initialize(path)
+    @real_path = path
+  end
+end
+
+class CanaryGroup
+  attr_reader :files
+  def initialize
+    @files = []
+    @groups = {}
+  end
+  def [](name)
+    @groups[name]
+  end
+  def new_group(name)
+    @groups[name] = CanaryGroup.new
+  end
+  def new_file(path)
+    ref = CanaryRef.new(path)
+    @files << ref
+    ref
+  end
+end
+
+class CanaryBuildFile
+  attr_reader :file_ref
+  def initialize(ref)
+    @file_ref = ref
+  end
+end
+
+class CanaryPhase
+  attr_reader :files
+  def initialize
+    @files = []
+  end
+end
+
+class CanaryTarget
+  attr_reader :name, :source_build_phase
+  def initialize(name)
+    @name = name
+    @source_build_phase = CanaryPhase.new
+  end
+  def add_file_references(refs)
+    refs.each { |ref| source_build_phase.files << CanaryBuildFile.new(ref) }
+  end
+end
+
+class CanaryProject
+  attr_reader :targets, :main_group
+  def initialize(target)
+    @targets = [target]
+    @main_group = CanaryGroup.new
+    dev = @main_group.new_group('Development Pods')
+    dev.new_group('stripe-react-native')
+  end
+end
+
+target = CanaryTarget.new('stripe-react-native')
+installer = Struct.new(:pods_project).new(CanaryProject.new(target))
+add_checkout_fixture_to_sdk(installer)
+add_checkout_fixture_to_sdk(installer)
+swift = File.expand_path('HarnessCheckoutSession.swift', File.dirname(podfile))
+linked = target.source_build_phase.files.select do |build_file|
+  build_file.file_ref&.real_path&.to_s == swift
+end
+unless linked.length == 1 && target.name == 'stripe-react-native'
+  abort('HarnessCheckoutSession.swift is not in the stripe-react-native pod target')
+end
+`;
+  execFileSync('ruby', ['-e', script, podfilePath, helperSource], {
+    encoding: 'utf8',
+  });
+};
 
 const patchAdditions = (patch) =>
   patch
@@ -38,6 +122,49 @@ test('babel.config instruments library sources from the repository root', () => 
   assert.equal(istanbul[1].cwd, scope.repoRoot);
   assert.deepEqual(istanbul[1].include, scope.include);
   assert.deepEqual(istanbul[1].exclude, scope.exclude);
+});
+
+test('harness compiles the offline checkout fixture into the sdk pod', () => {
+  const podfile = fs.readFileSync(path.join(harnessDir, 'ios/Podfile'), 'utf8');
+  const postInstall = podfile.match(
+    /:post_install => lambda do \|installer\|\n([\s\S]*?)\n {2}end,/
+  );
+  assert.ok(postInstall, 'expected a post_install lambda');
+  assert.match(postInstall[1], /add_checkout_fixture_to_sdk\(installer\)/);
+  assert.doesNotMatch(postInstall[1], /def add_checkout_fixture_to_sdk/);
+
+  const helper = podfile.match(
+    /def add_checkout_fixture_to_sdk\(installer\)\n([\s\S]*?)\nend\n/
+  );
+  assert.ok(helper, 'expected add_checkout_fixture_to_sdk');
+  assert.match(helper[1], /HarnessCheckoutSession\.swift/);
+  assert.match(helper[1], /item\.name == 'stripe-react-native'/);
+  assert.match(helper[1], /target\.add_file_references/);
+  assert.equal(
+    fs.existsSync(path.join(harnessDir, 'ios/HarnessCheckoutSession.swift')),
+    true
+  );
+  assertCheckoutFixtureInPodTarget(
+    path.join(harnessDir, 'ios/Podfile'),
+    helper[0]
+  );
+});
+
+test('maestro waits for the flushed status text', () => {
+  const yaml = fs.readFileSync(
+    path.join(harnessDir, 'e2e/coverage-run.yaml'),
+    'utf8'
+  );
+  const repeat = yaml.match(/- repeat:\n([\s\S]*?)\n- assertVisible:/);
+  assert.ok(repeat, 'expected a repeat block before the flushed assertion');
+  assert.match(repeat[1], /\btimes:\s*8/);
+  assert.match(repeat[1], /commands:/);
+  assert.match(repeat[1], /tapOn:\n\s+text: 'OK'/);
+  assert.match(repeat[1], /extendedWaitUntil:\n\s+visible: 'harness: flushed'/);
+  assert.match(yaml, /visible: 'harness: flushed'/);
+  assert.match(yaml, /text: 'OK'/);
+  assert.doesNotMatch(yaml, /flushed\|flush-failed/);
+  assert.doesNotMatch(yaml, /\.\*/);
 });
 
 test('App mounts CardField after initStripe', () => {
@@ -75,27 +202,20 @@ test('coverage-run.yaml asserts exactly the scenario lines the harness can rende
   assert.ok(names.length > 0);
   assert.equal(names.length, scenariosSource.match(/^ {4}run: /gm).length);
   assert.equal(patterns.length, names.length + 1);
-  // Maestro's assertVisible matches the whole element text, not a substring.
-  const fullMatch = (pattern, text) =>
-    new RegExp(`^(?:${pattern})$`).test(text) || pattern === text;
-  const lines = names.flatMap((name) =>
-    [
-      { value: undefined },
-      { value: { error: { code: 'Failed' } } },
-      { error: new Error('timed out after 15000ms') },
-    ].map((outcome) => formatScenarioLine(name, outcome))
-  );
-  for (const line of lines) {
+  // Maestro matches the whole element text. The harness renders a literal
+  // token per scenario so the assertion does not depend on the result suffix.
+  const tokens = names.map((name) => formatScenarioToken(name));
+  for (const token of tokens) {
     assert.ok(
-      patterns.some((pattern) => fullMatch(pattern, line)),
-      `no assertVisible in coverage-run.yaml matches "${line}"`
+      patterns.includes(token),
+      `no assertVisible in coverage-run.yaml matches "${token}"`
     );
   }
   assert.ok(patterns.includes('harness: flushed'));
   for (const pattern of patterns.filter((p) => p !== 'harness: flushed')) {
     assert.ok(
-      lines.some((line) => fullMatch(pattern, line)),
-      `assertVisible '${pattern}' matches no line the harness renders`
+      tokens.includes(pattern),
+      `assertVisible '${pattern}' matches no token the harness renders`
     );
   }
 });
@@ -172,16 +292,17 @@ test('metro.config re-resolves singletons from the harness entry', () => {
   const metro = require(metroPath);
   const libraryFile = path.join(scope.repoRoot, 'src/index.ts');
   let resolvedFrom = null;
+  const resolveRequest = (ctx, moduleName) => {
+    resolvedFrom = ctx.originModulePath;
+    if (moduleName === 'react' || moduleName.startsWith('@babel/runtime/')) {
+      return { type: 'sourceFile', filePath: path.join(harnessDir, 'index.js') };
+    }
+    return null;
+  };
   const result = metro.resolver.resolveRequest(
     {
       originModulePath: libraryFile,
-      resolveRequest: (ctx, moduleName) => {
-        resolvedFrom = ctx.originModulePath;
-        if (moduleName === 'react') {
-          return { type: 'sourceFile', filePath: path.join(harnessDir, 'index.js') };
-        }
-        return null;
-      },
+      resolveRequest,
     },
     'react',
     'ios'
@@ -190,6 +311,21 @@ test('metro.config re-resolves singletons from the harness entry', () => {
   assert.ok(
     resolvedFrom.startsWith(harnessDir),
     `expected harness entry origin, got ${resolvedFrom}`
+  );
+
+  resolvedFrom = null;
+  const helper = metro.resolver.resolveRequest(
+    {
+      originModulePath: libraryFile,
+      resolveRequest,
+    },
+    '@babel/runtime/helpers/interopRequireDefault',
+    'ios'
+  );
+  assert.ok(helper);
+  assert.ok(
+    resolvedFrom.startsWith(harnessDir),
+    `expected babel runtime to resolve from the harness, got ${resolvedFrom}`
   );
 });
 

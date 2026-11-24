@@ -1,0 +1,104 @@
+{
+  "method": "StripeSdk.confirmPlatformPay",
+  "description": "Confirming a PaymentIntent with both wallets configured. iOS builds the PKPaymentRequest for STPApplePayContext; Android builds the GooglePayLauncher configuration. Presenting either sheet needs a device.",
+  "input": {
+    "clientSecret": "pi_bridge_secret_contracts",
+    "params": {
+      "googlePay": {
+        "testEnv": true,
+        "merchantCountryCode": "US",
+        "currencyCode": "USD",
+        "merchantName": "Bridge Contracts, Inc.",
+        "isEmailRequired": true,
+        "allowCreditCards": false,
+        "existingPaymentMethodRequired": true,
+        "billingAddressConfig": {
+          "isRequired": true,
+          "isPhoneNumberRequired": true,
+          "format": "FULL"
+        },
+        "label": "Total",
+        "amount": 1250
+      },
+      "applePay": {
+        "merchantCountryCode": "US",
+        "currencyCode": "USD",
+        "cartItems": [
+          {
+            "paymentType": "Immediate",
+            "label": "Bridge Contracts, Inc.",
+            "amount": "12.50"
+          }
+        ]
+      }
+    },
+    "isPaymentIntent": true
+  },
+  "expect": {
+    "ios": {
+      "applePayRequest.merchantIdentifier": "merchant.com.stripe.bridge",
+      "applePayRequest.countryCode": "US",
+      "applePayRequest.currencyCode": "USD",
+      "applePayRequest.paymentSummaryItems.0.label": "Bridge Contracts, Inc.",
+      "applePayRequest.paymentSummaryItems.0.amount": 12.5,
+      "applePayRequest.paymentSummaryItems.0.paymentType": "Immediate"
+    },
+    "android": {
+      "googlePayLauncher.configuration.environment": "test",
+      "googlePayLauncher.configuration.merchantCountryCode": "US",
+      "googlePayLauncher.configuration.merchantName": "Bridge Contracts, Inc.",
+      "googlePayLauncher.configuration.isEmailRequired": true,
+      "googlePayLauncher.configuration.allowCreditCards": false,
+      "googlePayLauncher.configuration.existingPaymentMethodRequired": true,
+      "googlePayLauncher.configuration.billingAddressConfig.isRequired": true,
+      "googlePayLauncher.configuration.billingAddressConfig.isPhoneNumberRequired": true,
+      "googlePayLauncher.configuration.billingAddressConfig.format": "full",
+      "googlePayLauncher.currencyCode": "USD",
+      "googlePayLauncher.label": "Total",
+      "googlePayLauncher.amount": 1250
+    }
+  },
+  "platformOnly": {
+    "applePayRequest.merchantIdentifier": "ConfirmParams.applePay is documented as iOS only; the identifier comes from initStripe.",
+    "applePayRequest.countryCode": "ConfirmParams.applePay is documented as iOS only.",
+    "applePayRequest.currencyCode": "ConfirmParams.applePay is documented as iOS only.",
+    "applePayRequest.paymentSummaryItems.0.label": "ConfirmParams.applePay is documented as iOS only.",
+    "applePayRequest.paymentSummaryItems.0.amount": "ConfirmParams.applePay is documented as iOS only.",
+    "applePayRequest.paymentSummaryItems.0.paymentType": "ConfirmParams.applePay is documented as iOS only.",
+    "googlePayLauncher.configuration.environment": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.configuration.merchantCountryCode": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.configuration.merchantName": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.configuration.isEmailRequired": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.configuration.allowCreditCards": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.configuration.existingPaymentMethodRequired": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.configuration.billingAddressConfig.isRequired": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.configuration.billingAddressConfig.isPhoneNumberRequired": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.configuration.billingAddressConfig.format": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.currencyCode": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.label": "ConfirmParams.googlePay is documented as Android only.",
+    "googlePayLauncher.amount": "ConfirmParams.googlePay is documented as Android only."
+  },
+  "covers": {
+    "params.googlePay.testEnv": "googlePayLauncher.configuration.environment",
+    "params.applePay.merchantCountryCode": "applePayRequest.countryCode",
+    "params.applePay.cartItems.0.paymentType": "applePayRequest.paymentSummaryItems.0.paymentType",
+    "params.applePay.currencyCode": "applePayRequest.currencyCode",
+    "params.googlePay.merchantCountryCode": "googlePayLauncher.configuration.merchantCountryCode",
+    "params.googlePay.currencyCode": "googlePayLauncher.currencyCode",
+    "params.googlePay.merchantName": "googlePayLauncher.configuration.merchantName",
+    "params.googlePay.isEmailRequired": "googlePayLauncher.configuration.isEmailRequired",
+    "params.googlePay.allowCreditCards": "googlePayLauncher.configuration.allowCreditCards",
+    "params.googlePay.existingPaymentMethodRequired": "googlePayLauncher.configuration.existingPaymentMethodRequired",
+    "params.googlePay.label": "googlePayLauncher.label",
+    "params.googlePay.amount": "googlePayLauncher.amount",
+    "params.googlePay.billingAddressConfig.isRequired": "googlePayLauncher.configuration.billingAddressConfig.isRequired",
+    "params.googlePay.billingAddressConfig.isPhoneNumberRequired": "googlePayLauncher.configuration.billingAddressConfig.isPhoneNumberRequired",
+    "params.googlePay.billingAddressConfig.format": "googlePayLauncher.configuration.billingAddressConfig.format",
+    "params.applePay.cartItems.0.label": "applePayRequest.paymentSummaryItems.0.label",
+    "params.applePay.cartItems.0.amount": "applePayRequest.paymentSummaryItems.0.amount"
+  },
+  "unasserted": {
+    "clientSecret": "Used only after the wallet sheet returns a payment method.",
+    "isPaymentIntent": "Chooses which confirm call runs after the wallet sheet returns."
+  }
+}

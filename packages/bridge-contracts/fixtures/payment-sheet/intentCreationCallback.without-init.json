@@ -1,0 +1,28 @@
+{
+  "method": "StripeSdk.intentCreationCallback",
+  "description": "intentCreationCallback with no PaymentSheet confirm handler waiting. Delivering a result to a waiting handler is not pinned, because Android builds those handlers in private PaymentSheetManager callback builders that a fixture runner cannot reach.",
+  "input": {
+    "result": {
+      "clientSecret": "pi_bridge_secret_contracts"
+    }
+  },
+  "expect": {
+    "ios": {
+      "result.error.code": "Failed",
+      "result.error.message": "No intent creation callback was set"
+    },
+    "android": {
+      "result": null
+    }
+  },
+  "platformOnly": {
+    "result.error.code": "iOS rejects when no PaymentSheet or Embedded callback is waiting.",
+    "result.error.message": "iOS rejects when no PaymentSheet or Embedded callback is waiting."
+  },
+  "parityGaps": {
+    "result": "G9: iOS rejects when no callback is waiting; Android always resolves null because the TurboModule stores the result for a later PaymentSheet or Embedded handler."
+  },
+  "covers": {
+    "result.clientSecret": "result.error.code"
+  }
+}

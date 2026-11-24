@@ -1,0 +1,30 @@
+{
+  "method": "StripeSdk.initPaymentSheet",
+  "description": "An empty merchantDisplayName.",
+  "input": {
+    "params": {
+      "paymentIntentClientSecret": "pi_bridge_secret_contracts",
+      "merchantDisplayName": ""
+    }
+  },
+  "expect": {
+    "ios": {
+      "result.error.code": null,
+      "configuration.merchantDisplayName": ""
+    },
+    "android": {
+      "result.error.code": "Failed",
+      "result.error.message": "merchantDisplayName cannot be empty or null."
+    }
+  },
+  "platformOnly": {
+    "configuration.merchantDisplayName": "iOS builds the configuration; Android stops before building one.",
+    "result.error.message": "Android only; iOS does not fail."
+  },
+  "parityGaps": {
+    "result.error.code": "G6: Android rejects an empty merchantDisplayName at init; iOS accepts it and shows a sheet with no merchant name."
+  },
+  "covers": {
+    "params.paymentIntentClientSecret": "result.error.code"
+  }
+}

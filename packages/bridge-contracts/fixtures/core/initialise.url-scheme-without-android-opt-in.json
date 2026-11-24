@@ -1,0 +1,34 @@
+{
+  "method": "StripeSdk.initialise",
+  "description": "urlScheme without setReturnUrlSchemeOnAndroid: iOS always keeps the scheme; Android drops it unless the app opts in.",
+  "input": {
+    "params": {
+      "publishableKey": "pk_test_bridge_contracts",
+      "urlScheme": "bridgecontracts",
+      "appInfo": {
+        "name": "@stripe/stripe-react-native",
+        "url": "https://github.com/stripe/stripe-react-native",
+        "version": "0.0.0-fixture"
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result": null,
+      "apiClient.publishableKey": "pk_test_bridge_contracts",
+      "apiClient.stripeAccount": null,
+      "apiClient.appInfo.name": "@stripe/stripe-react-native",
+      "apiClient.appInfo.url": "https://github.com/stripe/stripe-react-native",
+      "apiClient.appInfo.version": "0.0.0-fixture"
+    },
+    "ios": {
+      "sdk.urlScheme": "bridgecontracts"
+    },
+    "android": {
+      "sdk.urlScheme": null
+    }
+  },
+  "parityGaps": {
+    "sdk.urlScheme": "D1: InitStripeParams.setReturnUrlSchemeOnAndroid defaults to false, so Android ignores urlScheme unless the app opts in."
+  }
+}

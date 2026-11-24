@@ -52,33 +52,11 @@ public class AddToWalletButtonView: UIView {
             return
         }
 
-        guard let cardHolderName = cardDetails?["name"] as? String else {
-            onCompleteAction!(
-                Errors.createError(
-                    ErrorType.Failed,
-                    "Missing parameters. `cardDetails.name` must be supplied in the props to <AddToWalletButton />"
-                ) as? [AnyHashable: Any]
-            )
+        let (error, requestConfiguration) = buildRequestConfiguration()
+        guard let config = requestConfiguration else {
+            onCompleteAction!(error as? [AnyHashable: Any])
             return
         }
-
-        if cardHolderName.isEmpty {
-            onCompleteAction!(
-                Errors.createError(
-                    ErrorType.Failed,
-                    "`cardDetails.name` is required, but the passed string was empty"
-                ) as? [AnyHashable: Any]
-            )
-            return
-        }
-
-        let config = STPPushProvisioningContext.requestConfiguration(
-            withName: cardHolderName,
-            description: cardDetails?["description"] as? String,
-            last4: cardDetails?["lastFour"] as? String,
-            brand: Mappers.mapToCardBrand(cardDetails?["brand"] as? String),
-            primaryAccountIdentifier: cardDetails?["primaryAccountIdentifier"] as? String
-        )
 
         // We can use STPFakeAddPaymentPassViewController ONLY IN TEST MODE. If STPFakeAddPaymentPassViewController is
         // used with a live mode card, the flow will fail and show a 'Signing certificate was invalid' error.
@@ -88,6 +66,31 @@ public class AddToWalletButtonView: UIView {
 
         let vc = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
         vc.present(controller!, animated: true, completion: nil)
+    }
+
+    func buildRequestConfiguration() -> (NSDictionary?, PKAddPaymentPassRequestConfiguration?) {
+        guard let cardHolderName = cardDetails?["name"] as? String else {
+            return (Errors.createError(
+                ErrorType.Failed,
+                "Missing parameters. `cardDetails.name` must be supplied in the props to <AddToWalletButton />"
+            ), nil)
+        }
+
+        if cardHolderName.isEmpty {
+            return (Errors.createError(
+                ErrorType.Failed,
+                "`cardDetails.name` is required, but the passed string was empty"
+            ), nil)
+        }
+
+        let config = STPPushProvisioningContext.requestConfiguration(
+            withName: cardHolderName,
+            description: cardDetails?["description"] as? String,
+            last4: cardDetails?["lastFour"] as? String,
+            brand: Mappers.mapToCardBrand(cardDetails?["brand"] as? String),
+            primaryAccountIdentifier: cardDetails?["primaryAccountIdentifier"] as? String
+        )
+        return (nil, config)
     }
 
     override public init(frame: CGRect) {

@@ -1,0 +1,78 @@
+{
+  "packages": {
+    "@stripe/stripe-react-native": {
+      "alias": "stripe-react-native",
+      "dir": ".",
+      "status": "ready",
+      "expoSdk": 55,
+      "iosSources": ["ios"],
+      "families": "*",
+      "requiredFiles": [
+        "stripe-react-native.podspec",
+        "stripe_spm.rb",
+        "app.plugin.js",
+        "android/build.gradle",
+        "jest/mock.js"
+      ],
+      "subpaths": [],
+      "expo": {
+        "probe": "probes/stripe-react-native.tsx",
+        "plugin": [
+          "@stripe/stripe-react-native",
+          {
+            "merchantIdentifier": "merchant.com.stripe.reactnative.smoke",
+            "enableGooglePay": true
+          }
+        ]
+      }
+    },
+    "@stripe/react-native-core": {
+      "alias": "core",
+      "dir": "packages/core",
+      "status": "shell",
+      "families": ["core"]
+    },
+    "@stripe/react-native-payments": {
+      "alias": "payments",
+      "dir": "packages/payments",
+      "status": "shell",
+      "families": [
+        "payments-confirm",
+        "payment-sheet",
+        "embedded",
+        "customer-sheet",
+        "platform-pay",
+        "payments-components",
+        "link-controller",
+        "checkout"
+      ]
+    },
+    "@stripe/react-native-financial-connections": {
+      "alias": "financial-connections",
+      "dir": "packages/financial-connections",
+      "status": "shell",
+      "families": ["financial-connections"]
+    },
+    "@stripe/react-native-connect": {
+      "alias": "connect",
+      "dir": "packages/connect",
+      "status": "shell",
+      "families": []
+    },
+    "@stripe/react-native-issuing": {
+      "alias": "issuing",
+      "dir": "packages/issuing",
+      "status": "shell",
+      "families": ["issuing"]
+    },
+    "@stripe/react-native-onramp": {
+      "alias": "onramp",
+      "dir": "packages/onramp",
+      "status": "shell",
+      "families": ["onramp"]
+    }
+  },
+  "notGated": {
+    "@stripe/bridge-contracts": "Shared test fixtures; never published."
+  }
+}

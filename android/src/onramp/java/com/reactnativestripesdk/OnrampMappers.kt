@@ -11,6 +11,8 @@ import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.createCanceledError
 import com.reactnativestripesdk.utils.getIntegerList
+import com.reactnativestripesdk.utils.getStringList
+import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
@@ -20,6 +22,7 @@ import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.exception.SDKVersion
 import com.stripe.android.crypto.onramp.model.IdType
 import com.stripe.android.crypto.onramp.model.KycInfo
+import com.stripe.android.crypto.onramp.model.LinkUserInfo
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.OnrampKycResult
 import com.stripe.android.crypto.onramp.model.OnrampPartnerTermsResult
@@ -269,6 +272,48 @@ internal fun mapPaymentDetailsType(type: PaymentMethodDisplayData.Type): String 
     PaymentMethodDisplayData.Type.GooglePay -> "GooglePay"
     PaymentMethodDisplayData.Type.SamsungPay -> "SamsungPay"
   }
+
+internal fun mapToLinkUserInfo(info: ReadableMap): LinkUserInfo =
+  LinkUserInfo(
+    email = info.getString("email") ?: "",
+    phone = info.getString("phone") ?: "",
+    country = info.getString("country") ?: "",
+    fullName = info.getString("fullName"),
+  )
+
+internal fun mapToKycInfo(kycInfo: ReadableMap): KycInfo {
+  val dateOfBirthMap = kycInfo.getMap("dateOfBirth")
+  val dob =
+    if (
+      dateOfBirthMap != null &&
+      dateOfBirthMap.hasKey("day") &&
+      dateOfBirthMap.hasKey("month") &&
+      dateOfBirthMap.hasKey("year")
+    ) {
+      DateOfBirth(
+        day = dateOfBirthMap.getInt("day"),
+        month = dateOfBirthMap.getInt("month"),
+        year = dateOfBirthMap.getInt("year"),
+      )
+    } else {
+      null
+    }
+
+  return KycInfo(
+    firstName = kycInfo.getString("firstName"),
+    lastName = kycInfo.getString("lastName"),
+    idNumber = kycInfo.getString("idNumber"),
+    idType = mapToIdType(kycInfo.getString("idType")),
+    dateOfBirth = dob,
+    address = mapToPaymentSheetAddress(kycInfo.getMap("address")),
+    birthCountry = kycInfo.getString("birthCountry")?.let(CountryCode::create),
+    birthCity = kycInfo.getString("birthCity"),
+    nationalities =
+      kycInfo.getStringList("nationalities")
+        ?.map(CountryCode::create)
+        ?.takeIf { it.isNotEmpty() },
+  )
+}
 
 internal fun mapToIdType(idType: String?): IdType =
   when (idType) {

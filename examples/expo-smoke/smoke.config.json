@@ -1,0 +1,14 @@
+{
+  "expoSdk": 58,
+  "createExpoApp": "5.0.0",
+  "template": "blank",
+  "entryFile": "App.tsx",
+  "appName": "StripeSmoke",
+  "applicationId": "com.stripe.reactnative.smoke",
+  "webOutput": "remove",
+  "androidArchitectures": "arm64-v8a",
+  "sdkProfiles": {
+    "55": { "iosDeploymentTarget": "16.0", "androidMinSdk": 24 },
+    "58": { "iosDeploymentTarget": "16.4", "androidMinSdk": 24 }
+  }
+}

@@ -14,10 +14,24 @@ class EventEmitterCompat(
     eventName: String,
     params: Any? = null,
   ) {
-    reactApplicationContext
-      .getJSModule(
-        DeviceEventManagerModule.RCTDeviceEventEmitter::class.java,
-      ).emit(eventName, params)
+    if (!reactApplicationContext.hasActiveReactInstance()) {
+      return
+    }
+    try {
+      reactApplicationContext
+        .getJSModule(
+          DeviceEventManagerModule.RCTDeviceEventEmitter::class.java,
+        ).emit(eventName, params)
+    } catch (error: IllegalStateException) {
+      if (error.message?.startsWith(JS_MODULE_ACCESS_MESSAGE_PREFIX) != true) {
+        throw error
+      }
+    }
+  }
+
+  private companion object {
+    // Prefix shared by BridgeReactContext early/late JS module access errors.
+    private const val JS_MODULE_ACCESS_MESSAGE_PREFIX = "Tried to access a JS module "
   }
 
   fun emitOnConfirmHandlerCallback(value: ReadableMap?) {

@@ -1,0 +1,49 @@
+{
+  "method": "StripeSdk.confirmPayment",
+  "description": "Klarna with billing and shipping details. Shipping is mapped by the confirm path on both platforms.",
+  "input": {
+    "paymentIntentClientSecret": "pi_bridge_secret_contracts",
+    "params": {
+      "paymentMethodType": "Klarna",
+      "paymentMethodData": {
+        "billingDetails": {
+          "email": "jenny@example.com",
+          "address": { "country": "DE" }
+        },
+        "shippingDetails": {
+          "name": "Jenny Rosen",
+          "address": {
+            "line1": "Unter den Linden 1",
+            "city": "Berlin",
+            "postalCode": "10117",
+            "country": "DE"
+          }
+        }
+      }
+    },
+    "options": {}
+  },
+  "expect": {
+    "shared": {
+      "api.client_secret": "pi_bridge_secret_contracts",
+      "api.payment_method_data.type": "klarna",
+      "api.payment_method_data.billing_details.email": "jenny@example.com",
+      "api.payment_method_data.billing_details.address.country": "DE",
+      "api.shipping.name": "Jenny Rosen",
+      "api.shipping.address.line1": "Unter den Linden 1",
+      "api.shipping.address.city": "Berlin",
+      "api.shipping.address.postal_code": "10117",
+      "api.shipping.address.country": "DE",
+      "api.return_url": "bridgecontracts://safepay"
+    }
+  },
+  "covers": {
+    "paymentIntentClientSecret": "api.client_secret",
+    "params.paymentMethodType": "api.payment_method_data.type",
+    "params.paymentMethodData.shippingDetails.name": "api.shipping.name",
+    "params.paymentMethodData.shippingDetails.address.line1": "api.shipping.address.line1",
+    "params.paymentMethodData.shippingDetails.address.city": "api.shipping.address.city",
+    "params.paymentMethodData.shippingDetails.address.postalCode": "api.shipping.address.postal_code",
+    "params.paymentMethodData.shippingDetails.address.country": "api.shipping.address.country"
+  }
+}

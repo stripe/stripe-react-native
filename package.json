@@ -38,6 +38,8 @@
     "test:e2e:android": "bash ./scripts/run-maestro-tests android",
     "test:unit:ios": "bash -c 'xcodebuild test -workspace example/ios/example.xcworkspace -destination \"platform=iOS Simulator,name=${IOS_SIMULATOR:-iPhone 16 Pro Max}\" -scheme ReactTestApp -only-testing:ReactTestAppTests'",
     "test:unit:android": "cd example/android && ./gradlew :stripe_stripe-react-native:testDebugUnitTest",
+    "test:bridge": "nx run @stripe/bridge-contracts:test:bridge",
+    "gate:package": "node tooling/package-gate/scripts/gate.mjs",
     "test-ios": "maestro test -e APP_ID=com.stripe.react.native",
     "test-android": "maestro test -e APP_ID=com.stripe.react.native",
     "format:android:check": "cd android && ./gradlew detekt",
@@ -312,7 +314,8 @@
       "typecheck",
       "lint",
       "test",
-      "pack"
+      "pack",
+      "gate"
     ]
   },
   "packageManager": "yarn@4.14.1"

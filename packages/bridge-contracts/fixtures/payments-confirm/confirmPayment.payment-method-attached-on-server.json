@@ -1,0 +1,21 @@
+{
+  "method": "StripeSdk.confirmPayment",
+  "description": "confirmPayment(clientSecret) with no params: the payment method was attached on the server, so only the client secret is sent.",
+  "input": {
+    "paymentIntentClientSecret": "pi_bridge_secret_contracts",
+    "params": null,
+    "options": {}
+  },
+  "expect": {
+    "shared": {
+      "api.client_secret": "pi_bridge_secret_contracts",
+      "api.payment_method_data": null,
+      "api.payment_method": null,
+      "api.return_url": "bridgecontracts://safepay"
+    }
+  },
+  "covers": {
+    "paymentIntentClientSecret": "api.client_secret",
+    "params": "api.payment_method_data"
+  }
+}

@@ -219,30 +219,14 @@ extension StripeSdkImpl {
                 resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration` is required"))
                 return
             }
-            guard let modeParams =  intentConfiguration["mode"] as? NSDictionary else {
-                resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
+            let intentConfig: PaymentSheet.IntentConfiguration
+            switch buildIntentConfiguration(intentConfigurationParams: intentConfiguration) {
+            case .success(let builtIntentConfig):
+                intentConfig = builtIntentConfig
+            case .failure(let error):
+                resolve(Errors.createError(ErrorType.Failed, error.message))
                 return
             }
-            let hasConfirmHandler = intentConfiguration.object(forKey: "confirmHandler") != nil
-            let hasConfirmationTokenHandler = intentConfiguration.object(forKey: "confirmationTokenConfirmHandler") != nil
-
-            if !hasConfirmHandler && !hasConfirmationTokenHandler {
-                resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmationTokenConfirmHandler` if you are not passing an intent client secret"))
-                return
-            }
-
-            if hasConfirmHandler && hasConfirmationTokenHandler {
-                resolve(Errors.createError(ErrorType.Failed, "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
-                return
-            }
-            let captureMethodString = modeParams["captureMethod"] as? String
-            let intentConfig = buildIntentConfiguration(
-                modeParams: modeParams,
-                paymentMethodTypes: intentConfiguration["paymentMethodTypes"] as? [String],
-                onBehalfOf: intentConfiguration["onBehalfOf"] as? String,
-                captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
-                useConfirmationTokenCallback: hasConfirmationTokenHandler
-            )
 
             if params["customFlow"] as? Bool == true {
                 PaymentSheet.FlowController.create(intentConfiguration: intentConfig, configuration: configuration) { [weak self] result in
@@ -332,6 +316,36 @@ extension StripeSdkImpl {
             }
         }
         return PaymentSheet.IntentConfiguration.CaptureMethod.automatic
+    }
+
+    struct IntentConfigurationParamsError: Error {
+        let message: String
+    }
+
+    func buildIntentConfiguration(
+        intentConfigurationParams: NSDictionary
+    ) -> Result<PaymentSheet.IntentConfiguration, IntentConfigurationParamsError> {
+        guard let modeParams = intentConfigurationParams["mode"] as? NSDictionary else {
+            return .failure(IntentConfigurationParamsError(message: "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
+        }
+        let hasConfirmHandler = intentConfigurationParams.object(forKey: "confirmHandler") != nil
+        let hasConfirmationTokenHandler = intentConfigurationParams.object(forKey: "confirmationTokenConfirmHandler") != nil
+
+        if !hasConfirmHandler && !hasConfirmationTokenHandler {
+            return .failure(IntentConfigurationParamsError(message: "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmationTokenConfirmHandler` if you are not passing an intent client secret"))
+        }
+
+        if hasConfirmHandler && hasConfirmationTokenHandler {
+            return .failure(IntentConfigurationParamsError(message: "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
+        }
+        let captureMethodString = modeParams["captureMethod"] as? String
+        return .success(buildIntentConfiguration(
+            modeParams: modeParams,
+            paymentMethodTypes: intentConfigurationParams["paymentMethodTypes"] as? [String],
+            onBehalfOf: intentConfigurationParams["onBehalfOf"] as? String,
+            captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
+            useConfirmationTokenCallback: hasConfirmationTokenHandler
+        ))
     }
 
     func buildIntentConfiguration(

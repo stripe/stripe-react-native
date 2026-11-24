@@ -1,0 +1,110 @@
+{
+  "method": "StripeSdk.initPaymentSheet",
+  "description": "PaymentSheet from a PaymentIntent client secret with most SetupParams options. Assertions are on PaymentSheet.Configuration built by buildPaymentSheetConfiguration on each platform, and on the initPaymentSheet result.",
+  "input": {
+    "params": {
+      "paymentIntentClientSecret": "pi_bridge_secret_contracts",
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "customerId": "cus_bridge",
+      "customerEphemeralKeySecret": "ek_test_bridge",
+      "returnURL": "bridgecontracts://stripe-redirect",
+      "allowsDelayedPaymentMethods": true,
+      "primaryButtonLabel": "Pay now",
+      "paymentMethodOrder": ["card", "klarna"],
+      "paymentMethodLayout": "Vertical",
+      "allowsRemovalOfLastSavedPaymentMethod": false,
+      "opensCardScannerAutomatically": true,
+      "style": "alwaysDark",
+      "link": {
+        "display": "never"
+      },
+      "cardBrandAcceptance": {
+        "filter": "disallowed",
+        "brands": ["amex"]
+      },
+      "googlePay": {
+        "merchantCountryCode": "US",
+        "currencyCode": "usd",
+        "testEnv": true
+      },
+      "defaultBillingDetails": {
+        "name": "Jenny Rosen",
+        "email": "jenny@example.com",
+        "phone": "+15555550100",
+        "address": {
+          "line1": "510 Townsend St",
+          "line2": "Floor 2",
+          "city": "San Francisco",
+          "state": "CA",
+          "postalCode": "94103",
+          "country": "US"
+        }
+      },
+      "billingDetailsCollectionConfiguration": {
+        "name": "always",
+        "email": "never",
+        "phone": "automatic",
+        "address": "full",
+        "attachDefaultsToPaymentMethod": true
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error": null,
+      "sheet.paymentIntentClientSecret": "pi_bridge_secret_contracts",
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "configuration.customer.id": "cus_bridge",
+      "configuration.customer.ephemeralKeySecret": "ek_test_bridge",
+      "configuration.allowsDelayedPaymentMethods": true,
+      "configuration.primaryButtonLabel": "Pay now",
+      "configuration.paymentMethodOrder": ["card", "klarna"],
+      "configuration.paymentMethodLayout": "vertical",
+      "configuration.allowsRemovalOfLastSavedPaymentMethod": false,
+      "configuration.opensCardScannerAutomatically": true,
+      "configuration.link.display": "never",
+      "configuration.cardBrandAcceptance": "disallowed",
+      "configuration.cardBrandAcceptance.brands": ["amex"],
+      "configuration.defaultBillingDetails.name": "Jenny Rosen",
+      "configuration.defaultBillingDetails.email": "jenny@example.com",
+      "configuration.defaultBillingDetails.phone": "+15555550100",
+      "configuration.defaultBillingDetails.address.line1": "510 Townsend St",
+      "configuration.defaultBillingDetails.address.line2": "Floor 2",
+      "configuration.defaultBillingDetails.address.city": "San Francisco",
+      "configuration.defaultBillingDetails.address.state": "CA",
+      "configuration.defaultBillingDetails.address.postalCode": "94103",
+      "configuration.defaultBillingDetails.address.country": "US",
+      "configuration.billingDetailsCollectionConfiguration.name": "always",
+      "configuration.billingDetailsCollectionConfiguration.email": "never",
+      "configuration.billingDetailsCollectionConfiguration.phone": "automatic",
+      "configuration.billingDetailsCollectionConfiguration.address": "full",
+      "configuration.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod": true
+    },
+    "ios": {
+      "configuration.returnURL": "bridgecontracts://stripe-redirect",
+      "configuration.style": "alwaysDark"
+    },
+    "android": {
+      "configuration.googlePay.countryCode": "US",
+      "configuration.googlePay.currencyCode": "usd",
+      "configuration.googlePay.environment": "test"
+    }
+  },
+  "platformOnly": {
+    "configuration.googlePay.countryCode": "SetupParams.googlePay is Android-only.",
+    "configuration.googlePay.currencyCode": "SetupParams.googlePay is Android-only.",
+    "configuration.googlePay.environment": "SetupParams.googlePay is Android-only."
+  },
+  "covers": {
+    "params.paymentMethodLayout": "configuration.paymentMethodLayout",
+    "params.customerId": "configuration.customer.id",
+    "params.customerEphemeralKeySecret": "configuration.customer.ephemeralKeySecret",
+    "params.googlePay.merchantCountryCode": "configuration.googlePay.countryCode",
+    "params.googlePay.testEnv": "configuration.googlePay.environment",
+    "params.cardBrandAcceptance.filter": "configuration.cardBrandAcceptance"
+  },
+  "parityGaps": {
+    "configuration.style": "D3: iOS applies SetupParams.style; Android PaymentSheet has no interface style option and follows the system theme.",
+    "configuration.returnURL": "D4: iOS uses SetupParams.returnURL for redirects; Android PaymentSheet returns through its own redirect activity."
+  }
+}

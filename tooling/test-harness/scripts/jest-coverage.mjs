@@ -3,6 +3,7 @@
 // coverage-floors.json.
 //
 //   node scripts/jest-coverage.mjs                 # measure, fail below a floor
+//   node scripts/jest-coverage.mjs --package=<n>   # only that workspace's floor (repeatable, or comma-separated)
 //   node scripts/jest-coverage.mjs --update        # also record or raise floors to the measured values
 //   node scripts/jest-coverage.mjs --base <ref>    # also fail if this change lowers a floor without a new floorResets reason, or narrows a scope
 //
