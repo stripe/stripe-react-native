@@ -96,7 +96,7 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="notification-banner"
-          options={{ title: 'Notification banner', headerShown: true }}
+          options={{ title: 'Home', headerShown: true }}
         />
         <Stack.Screen
           name="payouts"

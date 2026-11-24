@@ -34,7 +34,7 @@ export default function HomeScreen() {
       {
         title: 'Notification banner',
         description: 'Show account notifications inline with your content.',
-        badge: 'PREVIEW',
+        badge: 'PRIVATE PREVIEW',
         onPress: () => router.push('/notification-banner'),
       },
       {

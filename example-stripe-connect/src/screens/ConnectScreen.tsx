@@ -83,7 +83,18 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
 
   return (
     <ConnectComponentsProvider connectInstance={stripeConnectInstance}>
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          // Fills the bottom inset to match the component's appearance
+          {
+            backgroundColor:
+              APPEARANCE_PRESETS[appearancePreset]?.colorBackground ??
+              Colors.background.primary,
+          },
+        ]}
+        edges={['bottom']}
+      >
         {children}
       </SafeAreaView>
     </ConnectComponentsProvider>
