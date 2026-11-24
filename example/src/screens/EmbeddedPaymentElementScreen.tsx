@@ -28,6 +28,7 @@ import {
   useEmbeddedPaymentElement,
   AppearanceParams,
   RowStyle,
+  CaptureMethod,
 } from '@stripe/stripe-react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -59,6 +60,8 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
       const updatedIntentConfig: IntentConfiguration = {
         ...intentConfig!,
         mode: {
+          type: 'payment',
+          captureMethod: CaptureMethod.Automatic,
           amount: value ? DISCOUNTED_AMOUNT : ORIGINAL_AMOUNT,
           currencyCode: 'USD',
         },
@@ -414,7 +417,12 @@ export default function EmbeddedPaymentElementScreen() {
             });
           else callback({ clientSecret });
         },
-        mode: { amount: 6099, currencyCode: 'USD' },
+        mode: {
+          type: 'payment',
+          captureMethod: CaptureMethod.Automatic,
+          amount: 6099,
+          currencyCode: 'USD',
+        },
       };
 
       setElementConfig(uiConfig);

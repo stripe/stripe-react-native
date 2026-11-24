@@ -3,6 +3,37 @@
 ## Migrating from versions < 0.86.0
 SDK v0.86.0 introduces breaking changes organized into two categories:
 
+### `IntentConfiguration.mode` requires an explicit `type` and `captureMethod`
+
+`IntentConfiguration.mode` is now decided by its `type` value: 
+- `'payment'` selects `PaymentMode`.
+- `'setup'` selects `SetupMode`. 
+
+Previously, `PaymentMode` was used when `amount` was present and `SetupMode` otherwise.
+
+`PaymentMode.captureMethod` is also now required. `captureMethod` should match the value your server uses when creating the PaymentIntent: `Automatic`, `AutomaticAsync`, or `Manual` (see [documentation](https://docs.stripe.com/api/payment_intents/object?api-version=2024-06-20#payment_intent_object-capture_method)).
+
+```diff
+ intentConfiguration: {
+   mode: {
++    type: 'payment',
++    captureMethod: CaptureMethod.Automatic,
+     amount: 1099,
+     currencyCode: 'USD',
+   },
+   confirmHandler,
+ }
+```
+
+For a SetupIntent, add `type: 'setup'`:
+
+```diff
+ mode: {
++  type: 'setup',
+   setupFutureUsage: 'OffSession',
+ }
+```
+
 ### `AddressSheet` no longer accepts `googlePlacesApiKey`
 
 `AddressSheet.googlePlacesApiKey` has been removed. Address autocomplete will continue to work without needing to provide your own Google Places API key; there is no replacement parameter.

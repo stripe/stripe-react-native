@@ -4,6 +4,8 @@
 
 **Breaking changes**
 
+* [Changed] `PaymentSheet.PaymentMode.captureMethod` is now required. If you previously did not set `captureMethod`, use the same value set on during `PaymentIntent` creation on your backend.
+* [Changed] `IntentConfiguration.mode` now requires an explicit `type` (`'payment'` or `'setup'`). Previously the mode was inferred from whether `amount` was present.
 * [Removed] `AddressSheetProps.googlePlacesApiKey`, deprecated in 0.83.0. Address autocomplete no longer requires a Google Places API key.
 
 **Fixes**

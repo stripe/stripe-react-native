@@ -647,7 +647,7 @@ export type Mode = PaymentMode | SetupMode;
  * Controls when the funds will be captured. Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method
  */
 export enum CaptureMethod {
-  /** (Default) Stripe automatically captures funds when the customer authorizes the payment. */
+  /** Stripe automatically captures funds when the customer authorizes the payment. */
   Automatic = 'Automatic',
   /** Place a hold on the funds when the customer authorizes the payment, but don't capture the funds until later. (Not all payment methods support this.) */
   Manual = 'Manual',
@@ -659,6 +659,7 @@ export enum CaptureMethod {
 
 /* Use this if your integration creates a PaymentIntent */
 export type PaymentMode = {
+  type: 'payment';
   /* Amount intended to be collected in the smallest currency unit (e.g. 100 cents to charge $1.00). Shown in Apple Pay, Google Pay, Buy now pay later UIs, the Pay button, and influences available payment methods.
   Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-amount */
   amount: number;
@@ -670,7 +671,7 @@ export type PaymentMode = {
   setupFutureUsage?: FutureUsage;
   /* Controls when the funds will be captured.
   Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method */
-  captureMethod?: CaptureMethod;
+  captureMethod: CaptureMethod;
   /** Additional payment method options params.
   Seealso: https://docs.stripe.com/api/payment_intents/create#create_payment_intent-payment_method_options */
   paymentMethodOptions?: PaymentMethodOptions;
@@ -686,6 +687,7 @@ export type PaymentMethodOptions = {
 
 /* Use this if your integration creates a SetupIntent */
 export type SetupMode = {
+  type: 'setup';
   /*  Three-letter ISO currency code. Filters out payment methods based on supported currency.
   Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-currency */
   currencyCode?: string;

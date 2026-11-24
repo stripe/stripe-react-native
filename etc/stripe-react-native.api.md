@@ -3509,10 +3509,11 @@ type PaymentMethodType = 'us_bank_account' | 'link';
 
 // @public (undocumented)
 export type PaymentMode = {
+    type: 'payment';
     amount: number;
     currencyCode: string;
     setupFutureUsage?: FutureUsage;
-    captureMethod?: CaptureMethod;
+    captureMethod: CaptureMethod;
     paymentMethodOptions?: PaymentMethodOptions;
 };
 
@@ -4150,6 +4151,7 @@ export { SetupIntent }
 
 // @public (undocumented)
 export type SetupMode = {
+    type: 'setup';
     currencyCode?: string;
     setupFutureUsage: FutureUsage;
 };
