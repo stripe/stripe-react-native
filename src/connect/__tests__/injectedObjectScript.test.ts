@@ -4,8 +4,9 @@ import { buildInjectedObjectScript } from '../injectedObjectScript';
 const ORIGIN = 'https://connect-js.stripe.com';
 const PATH = '/v1.0/react_native_webview.html';
 const TOKEN = 'f00dfeedf00dfeedf00dfeedf00dfeed';
-const AUTH = { token: TOKEN, origin: ORIGIN, path: PATH };
-const WRAPPER_LOCATION = { origin: ORIGIN, pathname: PATH };
+const CONNECT_URL = `${ORIGIN}${PATH}#component=payments&publicKey=pk_test_123`;
+const AUTH = { token: TOKEN, origin: ORIGIN, path: PATH, url: CONNECT_URL };
+const WRAPPER_LOCATION = { origin: ORIGIN, pathname: PATH, href: CONNECT_URL };
 
 const BRIDGE = 'ReactNativeWebView';
 
@@ -177,6 +178,7 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
     options: {
       origin?: string;
       pathname?: string;
+      href?: string;
       isTop?: boolean;
       bridge?: object;
     } = {},
@@ -190,6 +192,7 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
       location: {
         origin: options.origin ?? ORIGIN,
         pathname: options.pathname ?? PATH,
+        href: options.href ?? CONNECT_URL,
       },
       [BRIDGE]: original,
     };
@@ -287,6 +290,11 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
     ['a foreign origin', { origin: 'https://evil.example' }],
     ['the wrong path', { pathname: '/other.html' }],
     ['a non-top document', { isTop: false }],
+    [
+      'a different fragment',
+      { href: CONNECT_URL.replace('component=', 'component=x') },
+    ],
+    ['no fragment', { href: ORIGIN + PATH }],
   ])('leaves the page untouched on %s', (_desc, options) => {
     const { page, received, original } = load(options);
 

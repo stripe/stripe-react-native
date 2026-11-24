@@ -1009,8 +1009,9 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         token: bridgeToken,
         origin: BASE_URL,
         path: WRAPPER_PATH,
+        url: connectURL,
       }),
-    [injectedObject, bridgeToken]
+    [injectedObject, bridgeToken, connectURL]
   );
 
   if (!WebViewComponent) return null;

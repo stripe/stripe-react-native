@@ -1,4 +1,9 @@
-export type BridgeAuth = { token: string; origin: string; path: string };
+export type BridgeAuth = {
+  token: string;
+  origin: string;
+  path: string;
+  url: string;
+};
 
 // Page-side expression that is true only in a document at origin + path.
 export function wrapperDocumentCondition(origin: string, path: string): string {
@@ -31,7 +36,8 @@ export function buildInjectedObjectScript(
       try {
         if (
           window.top === window &&
-          ${wrapperDocumentCondition(auth.origin, auth.path)}
+          ${wrapperDocumentCondition(auth.origin, auth.path)} &&
+          window.location.href === ${JSON.stringify(auth.url)}
         ) {
           var token = ${JSON.stringify(auth.token)};
           var documentId = Math.random().toString(36).slice(2) + Date.now().toString(36);

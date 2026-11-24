@@ -124,7 +124,10 @@ describe('EmbeddedComponent', () => {
   // reaches the original bridge.
   const runBridgeScript = (
     script: string,
-    location: { origin: string; pathname: string } = WRAPPER_LOCATION
+    location: { origin: string; pathname: string; href: string } = {
+      ...WRAPPER_LOCATION,
+      href: mockWebViewProps.source.uri,
+    }
   ) => {
     const received: string[] = [];
     const page: any = {
@@ -1167,7 +1170,9 @@ describe('EmbeddedComponent', () => {
   describe('Init params injection', () => {
     // Runs the injected script the way the page would see it.
     const readInjectedObject = (script: string) => {
-      const page: any = { location: WRAPPER_LOCATION };
+      const page: any = {
+        location: { ...WRAPPER_LOCATION, href: mockWebViewProps.source.uri },
+      };
       page.window = page.top = page;
       vm.createContext(page);
       vm.runInContext(script, page);
@@ -1272,7 +1277,9 @@ describe('EmbeddedComponent', () => {
 
       expect(mockWebViewProps.injectedJavaScriptObject).toBeUndefined();
 
-      const page: any = { location: WRAPPER_LOCATION };
+      const page: any = {
+        location: { ...WRAPPER_LOCATION, href: mockWebViewProps.source.uri },
+      };
       page.window = page.top = page;
       vm.createContext(page);
       vm.runInContext(
@@ -1617,6 +1624,35 @@ describe('EmbeddedComponent', () => {
         } finally {
           Platform.OS = previousPlatform;
         }
+      });
+
+      it('gives no bridge to a wrapper page restored at another configuration', async () => {
+        const script = await mountWithScript();
+        const pageA = runBridgeScript(script);
+        pageA.page.ReactNativeWebView.postMessage('probe');
+        expect(JSON.parse(pageA.received[0]!)).toMatchObject({
+          token: expect.any(String),
+        });
+
+        const pageB = runBridgeScript(script, {
+          ...WRAPPER_LOCATION,
+          href: mockWebViewProps.source.uri.replace(
+            'component=',
+            'component=x'
+          ),
+        });
+        const token = JSON.parse(pageA.received[0]!).token;
+        expect(pageB.page.ReactNativeWebView.documentId).toBeUndefined();
+        expect(
+          JSON.stringify(pageB.page, (key, value) =>
+            key === 'window' || key === 'top' ? undefined : value
+          )
+        ).not.toContain(token);
+
+        await postFromPage(pageB, { type: 'fetchClientSecret' });
+
+        expect(mockInitParams.fetchClientSecret).not.toHaveBeenCalled();
+        expect(mockInjectJavaScript).not.toHaveBeenCalled();
       });
 
       it('delivers prop updates to the current document', async () => {
