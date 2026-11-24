@@ -27,7 +27,6 @@ class AddressSheetView(
   private var allowedCountries: Set<String> = emptySet()
   private var buttonTitle: String? = null
   private var sheetTitle: String? = null
-  private var googlePlacesApiKey: String? = null
   private var autocompleteCountries: Set<String> = emptySet()
   private var additionalFields: AddressLauncher.AdditionalFieldsConfiguration? = null
   private var addressSheetManager: AddressLauncherManager? = null
@@ -80,7 +79,6 @@ class AddressSheetView(
         allowedCountries,
         buttonTitle,
         sheetTitle,
-        googlePlacesApiKey,
         autocompleteCountries,
         additionalFields,
       ) { error, address ->
@@ -125,10 +123,6 @@ class AddressSheetView(
 
   fun setSheetTitle(title: String?) {
     sheetTitle = title
-  }
-
-  fun setGooglePlacesApiKey(key: String?) {
-    googlePlacesApiKey = key
   }
 
   companion object {

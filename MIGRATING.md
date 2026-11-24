@@ -1,10 +1,29 @@
 # Migration Guide
 
-## React Native 0.75 minimum
+## Migrating from versions < 0.86.0
+SDK v0.86.0 introduces breaking changes organized into two categories:
+
+### `AddressSheet` no longer accepts `googlePlacesApiKey`
+
+`AddressSheet.googlePlacesApiKey` has been removed. Address autocomplete will continue to work without needing to provide your own Google Places API key; there is no replacement parameter.
+
+```diff
+ <AddressSheet
+   visible={visible}
+-  googlePlacesApiKey="YOUR_KEY"
+   onSubmit={onSubmit}
+   onError={onError}
+ />
+```
+
+## Migrating from versions < 0.78.0
+SDK v0.78.0 introduces breaking changes organized into two categories:
+
+### React Native 0.75 minimum
 
 React Native 0.75 or later is required. Upgrade your app's React Native version before updating this SDK, or continue using an older SDK release if you cannot upgrade yet.
 
-## iOS Swift Package Manager dependency resolution and dynamic linking
+### iOS Swift Package Manager dependency resolution and dynamic linking
 
 The Stripe React Native SDK resolves its [Stripe iOS SDK](https://github.com/stripe/stripe-ios) dependency through Swift Package Manager. The Stripe iOS SDK no longer supports CocoaPods resolution. This requires building your app with dynamic linking. For non-Expo apps, add to your Podfile:
 
@@ -19,7 +38,7 @@ Remove `$StripeDisableSPM = true` from your Podfile or `disableSPM` from your Ex
 
 See [Stripe iOS SDK resolution](https://github.com/stripe/stripe-react-native#ios-dependency-resolution) in the README for details and troubleshooting.
 
-## Android SDK 36 requirement (stripe-android 23.x)
+### Android SDK 36 requirement (stripe-android 23.x)
 
 Recent versions of `@stripe/stripe-react-native` depend on `stripe-android 23.x`, which requires:
 

@@ -87,8 +87,6 @@ export interface AddressSheetProps extends AccessibilityProps {
     appearance?: PaymentSheet.AppearanceParams;
     autocompleteCountries?: Array<string>;
     defaultValues?: AddressDetails;
-    // @deprecated
-    googlePlacesApiKey?: string;
     onError: (error: StripeError<AddressSheetError>) => void;
     // Warning: (ae-forgotten-export) The symbol "CollectAddressResult" needs to be exported by the entry point index.d.ts
     onSubmit: (result: CollectAddressResult) => void;
