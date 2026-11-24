@@ -6,6 +6,7 @@ import {
   BillingDetails,
   PaymentMethod,
   PaymentSheet,
+  CaptureMethod,
 } from '@stripe/stripe-react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
@@ -126,6 +127,8 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
             }
           },
           mode: {
+            type: 'payment',
+            captureMethod: CaptureMethod.Automatic,
             amount: 6099,
             currencyCode: 'USD',
           },

@@ -5,7 +5,7 @@ import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.forEachKey
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getIntOr
-import com.reactnativestripesdk.utils.getLongOr
+import com.reactnativestripesdk.utils.getLongOrNull
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.isEmpty
 import com.stripe.android.model.PaymentMethod
@@ -35,29 +35,41 @@ internal fun buildIntentConfiguration(intentConfigurationParams: ReadableMap?): 
 
 @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
 private fun buildIntentConfigurationMode(modeParams: ReadableMap): PaymentSheet.IntentConfiguration.Mode =
-  if (modeParams.hasKey("amount")) {
-    val currencyCode =
-      modeParams.getString("currencyCode")
-        ?: throw PaymentSheetException(
-          "You must provide a value to intentConfiguration.mode.currencyCode",
-        )
-    PaymentSheet.IntentConfiguration.Mode.Payment(
-      amount = modeParams.getLongOr("amount", 0),
-      currency = currencyCode,
-      setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
-      captureMethod = mapToCaptureMethod(modeParams.getString("captureMethod")),
-      paymentMethodOptions = mapToPaymentMethodOptions(modeParams.getMap("paymentMethodOptions")),
-    )
-  } else {
-    val setupFutureUsage =
-      mapToSetupFutureUse(modeParams.getString("setupFutureUsage"))
-        ?: throw PaymentSheetException(
-          "You must provide a value to intentConfiguration.mode.setupFutureUsage",
-        )
-    PaymentSheet.IntentConfiguration.Mode.Setup(
-      currency = modeParams.getString("currencyCode"),
-      setupFutureUse = setupFutureUsage,
-    )
+  when (val type = modeParams.getString("type")) {
+    "payment" -> {
+      val currencyCode =
+        modeParams.getString("currencyCode")
+          ?: throw PaymentSheetException(
+            "You must provide a value to intentConfiguration.mode.currencyCode",
+          )
+      val amount =
+        modeParams.getLongOrNull("amount")
+          ?: throw PaymentSheetException(
+            "You must provide a value to intentConfiguration.mode.amount",
+          )
+      PaymentSheet.IntentConfiguration.Mode.Payment(
+        amount = amount,
+        currency = currencyCode,
+        setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
+        captureMethod = mapToCaptureMethod(modeParams.getString("captureMethod")),
+        paymentMethodOptions = mapToPaymentMethodOptions(modeParams.getMap("paymentMethodOptions")),
+      )
+    }
+    "setup" -> {
+      val setupFutureUsage =
+        mapToSetupFutureUse(modeParams.getString("setupFutureUsage"))
+          ?: throw PaymentSheetException(
+            "You must provide a value to intentConfiguration.mode.setupFutureUsage",
+          )
+      PaymentSheet.IntentConfiguration.Mode.Setup(
+        currency = modeParams.getString("currencyCode"),
+        setupFutureUse = setupFutureUsage,
+      )
+    }
+    else ->
+      throw PaymentSheetException(
+        "intentConfiguration.mode.type must be either 'payment' or 'setup', but was '$type'",
+      )
   }
 
 internal fun buildLinkConfig(params: ReadableMap?): PaymentSheet.LinkConfiguration {

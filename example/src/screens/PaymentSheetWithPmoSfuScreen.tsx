@@ -8,6 +8,7 @@ import {
   PaymentSheetError,
   PaymentSheet,
   PaymentMethod,
+  CaptureMethod,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -165,6 +166,8 @@ export default function PaymentSheetWithPmoSfuScreen() {
             }
           },
           mode: {
+            type: 'payment',
+            captureMethod: CaptureMethod.Automatic,
             amount: 6099,
             currencyCode: 'USD',
             paymentMethodOptions: {

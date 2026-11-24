@@ -84,7 +84,7 @@ class PaymentSheetCallbackTest {
       } else {
         putMap(
           "intentConfiguration",
-          JavaOnlyMap.of("mode", JavaOnlyMap.of("amount", 1000, "currencyCode", "usd")).apply {
+          JavaOnlyMap.of("mode", JavaOnlyMap.of("type", "payment", "amount", 1000, "currencyCode", "usd")).apply {
             val handler =
               if (kind == CallbackKind.ConfirmationToken) {
                 "confirmationTokenConfirmHandler"

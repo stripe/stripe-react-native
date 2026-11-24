@@ -38,6 +38,11 @@ extension StripeSdkImpl {
       resolve(nil)
       return
     }
+    if let modeError = StripeSdkImpl.validateModeType(modeParams) {
+      emitLoadingFailed(message: modeError)
+      resolve(nil)
+      return
+    }
     let captureMethodString = modeParams["captureMethod"] as? String
     let intentConfig = buildIntentConfiguration(
       modeParams: modeParams,
@@ -156,6 +161,10 @@ extension StripeSdkImpl {
 
     if hasConfirmHandler && hasConfirmationTokenHandler {
       resolve(Errors.createError(ErrorType.Failed, "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
+      return
+    }
+    if let modeError = StripeSdkImpl.validateModeType(modeParams) {
+      resolve(Errors.createError(ErrorType.Failed, modeError))
       return
     }
     let captureMethodString = modeParams["captureMethod"] as? String
