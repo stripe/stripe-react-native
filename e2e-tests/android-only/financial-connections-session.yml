@@ -17,19 +17,41 @@ appId: ${APP_ID}
 - tapOn:
     text: "Test (Non-OAuth)"
 
-# The first chrome instance in E2E emulator, welcome page must be dismissed.
-- tapOn:
-    # Dismiss Chrome onboarding screen
-    text: "Use without an account"
+# Chrome 109 (API 33): Accept & continue, Use without an account, No thanks.
+# Chrome 149 (API 37.1): Stay signed out. Each dismissal is its own optional
+# runFlow so a missing control does not skip the others.
+- runFlow:
     optional: true
-- tapOn:
-    # Accept Chrome terms
-    text: "Accept & continue"
+    commands:
+      - extendedWaitUntil:
+          visible: "Stay signed out"
+          timeout: 10000
+      - tapOn:
+          text: "Stay signed out"
+- runFlow:
     optional: true
-- tapOn:
-    # Don't turn on Chrome sync
-    text: "No thanks"
+    commands:
+      - extendedWaitUntil:
+          visible: "Accept & continue"
+          timeout: 10000
+      - tapOn:
+          text: "Accept & continue"
+- runFlow:
     optional: true
+    commands:
+      - extendedWaitUntil:
+          visible: "Use without an account"
+          timeout: 10000
+      - tapOn:
+          text: "Use without an account"
+- runFlow:
+    optional: true
+    commands:
+      - extendedWaitUntil:
+          visible: "No thanks"
+          timeout: 10000
+      - tapOn:
+          text: "No thanks"
 
 - extendedWaitUntil:
     visible: "Connect account"
