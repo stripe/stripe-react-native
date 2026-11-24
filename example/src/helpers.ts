@@ -12,7 +12,7 @@ export async function fetchPublishableKey(
     const { publishableKey } = await response.json();
 
     return publishableKey;
-  } catch (e) {
+  } catch {
     console.warn('Unable to fetch publishable key. Is your server running?');
     Alert.alert(
       'Error',

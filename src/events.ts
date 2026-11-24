@@ -22,7 +22,16 @@ import { Result as ConfirmationTokenResult } from './types/ConfirmationToken';
 import type { CheckoutElements } from './types/CheckoutElements';
 import type { CheckoutControllerUpdate } from './checkout/CheckoutControllerEventEmitter';
 
-const compatEventEmitter =
+// NativeEventEmitter and DeviceEventEmitter have addListener signatures that
+// can't be called through their union type, so use the shared shape.
+type CompatEventEmitter = {
+  addListener(
+    eventType: string,
+    listener: (...args: any[]) => unknown
+  ): EventSubscription;
+};
+
+const compatEventEmitter: CompatEventEmitter =
   Platform.OS === 'ios'
     ? new NativeEventEmitter(NativeStripeSdkModule as any)
     : DeviceEventEmitter;
@@ -92,7 +101,7 @@ export function addListener<EventT extends keyof Events>(
   return compatEventEmitter.addListener(event, handler);
 }
 
-const compatOnrampEventEmitter =
+const compatOnrampEventEmitter: CompatEventEmitter | null =
   NativeOnrampSdkModule == null
     ? null
     : Platform.OS === 'ios'

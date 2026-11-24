@@ -3,6 +3,10 @@
 ## Migrating from versions < 0.86.0
 SDK v0.86.0 introduces breaking changes organized into two categories:
 
+### React Native 0.87 minimum
+
+React Native 0.87 or later is required. Upgrade your app's React Native version before updating this SDK, or continue using an older SDK release if you cannot upgrade yet. For Expo apps, this means using Expo SDK 58 or later.
+
 ### `IntentConfiguration.mode` requires an explicit `type` and `captureMethod`
 
 `IntentConfiguration.mode` is now decided by its `type` value: 

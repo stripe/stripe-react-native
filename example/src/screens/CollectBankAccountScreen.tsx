@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   modalContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#fff',
     padding: 24,
     paddingTop: 64,
