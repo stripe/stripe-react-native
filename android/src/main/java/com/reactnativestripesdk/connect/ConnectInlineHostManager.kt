@@ -56,7 +56,7 @@ class ConnectInlineHostManager :
   override fun sheetChanged(
     view: ConnectInlineHostView,
     sheetId: String,
-    height: Int,
+    height: Double,
     dismissible: Boolean,
   ) {
     view.onSheetChanged(sheetId, height, dismissible)

@@ -1,6 +1,7 @@
 import type { ColorValue, HostComponent, ViewProps } from 'react-native';
 import type {
   DirectEventHandler,
+  Double,
   Int32,
 } from 'react-native/Libraries/Types/CodegenTypes';
 import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
@@ -28,7 +29,7 @@ interface NativeCommands {
   sheetChanged: (
     viewRef: React.ElementRef<ComponentType>,
     sheetId: string,
-    height: Int32,
+    height: Double,
     dismissible: boolean
   ) => void;
   resetSheets: (viewRef: React.ElementRef<ComponentType>) => void;

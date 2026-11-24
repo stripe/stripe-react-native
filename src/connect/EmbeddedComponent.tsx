@@ -142,6 +142,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   inlineWebView: {
+    // Shows the app's screen around what Connect.js draws, like its rounded corners.
+    backgroundColor: 'transparent',
     position: 'absolute',
     top: 0,
     left: 0,
@@ -567,14 +569,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     });
   }, [component, onLoadError]);
 
-  const reportInlineUnavailableRef = useRef(reportInlineUnavailable);
   useEffect(() => {
-    reportInlineUnavailableRef.current = reportInlineUnavailable;
-  }, [reportInlineUnavailable]);
-
-  useEffect(() => {
-    if (!isInlineHostRegistered) reportInlineUnavailableRef.current();
-  }, [isInlineHostRegistered]);
+    if (!isInlineHostRegistered && inlineHostState === 'pending') {
+      reportInlineUnavailable();
+    }
+  }, [isInlineHostRegistered, inlineHostState, reportInlineUnavailable]);
 
   // Workaround for react-native-webview new architecture bug on iOS
   // https://github.com/react-native-webview/react-native-webview/pull/3880
@@ -1061,12 +1060,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const inlineWebViewStyle = useMemo(
     () => [
-      { backgroundColor },
       styles.inlineWebView,
       // A web view with no height doesn't lay out, so it could never report its first height.
       { height: Math.max(1, contentHeight) },
     ],
-    [backgroundColor, contentHeight]
+    [contentHeight]
   );
 
   const injectedObject = useMemo(

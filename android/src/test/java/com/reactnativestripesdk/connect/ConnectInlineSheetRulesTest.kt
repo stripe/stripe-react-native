@@ -3,6 +3,7 @@ package com.reactnativestripesdk.connect
 import com.reactnativestripesdk.connect.ConnectInlineSheetLifecycle.Action
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ConnectInlineSheetRulesTest {
@@ -12,7 +13,7 @@ class ConnectInlineSheetRulesTest {
   private fun shownLifecycle(dismissible: Boolean = true) =
     ConnectInlineSheetLifecycle().apply {
       windowOpened("sheet-1")
-      sheetChanged("sheet-1", 300, dismissible)
+      sheetChanged("sheet-1", 300.0, dismissible)
     }
 
   @Test
@@ -45,14 +46,18 @@ class ConnectInlineSheetRulesTest {
     val lifecycle = ConnectInlineSheetLifecycle()
     lifecycle.windowOpened("sheet-1")
 
-    assertEquals(listOf(Action.Present("sheet-1", 300, true)), lifecycle.sheetChanged("sheet-1", 300, true))
+    assertEquals(listOf(Action.Present("sheet-1", 300.0, true)), lifecycle.sheetChanged("sheet-1", 300.0, true))
   }
 
   @Test
-  fun lifecycle_dismissibleSheetSendsSheetClosedWhenDismissed() {
+  fun lifecycle_dismissibleSheetSendsSheetClosedAndReleasesWhenDismissed() {
     val lifecycle = shownLifecycle()
 
-    assertEquals(listOf(Action.SendSheetClosed("sheet-1")), lifecycle.sheetDismissed("sheet-1"))
+    assertEquals(
+      listOf(Action.SendSheetClosed("sheet-1"), Action.Release("sheet-1")),
+      lifecycle.sheetDismissed("sheet-1"),
+    )
+    assertTrue(lifecycle.windowOpened("sheet-1"))
   }
 
   @Test
@@ -60,7 +65,7 @@ class ConnectInlineSheetRulesTest {
     val lifecycle = shownLifecycle(dismissible = false)
 
     assertEquals(listOf(Action.SendSheetCloseRequested("sheet-1")), lifecycle.closeRequested("sheet-1"))
-    assertEquals(ConnectInlineSheetLifecycle.Phase.SHOWN, lifecycle.phase("sheet-1"))
+    assertEquals(listOf(Action.Update("sheet-1", 300.0, false)), lifecycle.sheetChanged("sheet-1", 300.0, false))
   }
 
   @Test
@@ -78,6 +83,6 @@ class ConnectInlineSheetRulesTest {
     val lifecycle = shownLifecycle()
 
     assertEquals(listOf(Action.Dismiss("sheet-1"), Action.Release("sheet-1")), lifecycle.reset())
-    assertNull(lifecycle.phase("sheet-1"))
+    assertTrue(lifecycle.windowOpened("sheet-1"))
   }
 }

@@ -13,6 +13,8 @@ import WebKit
 /// Connect.js closes its window.
 final class ConnectInlineSheetViewController: UIViewController {
     private static let minimumHeight: CGFloat = 120
+    // The system draws the grabber over the sheet's top edge, so the content starts below it.
+    private static let grabberAreaHeight: CGFloat = 20
 
     let sheetId: String
     let webView: WKWebView
@@ -65,10 +67,10 @@ final class ConnectInlineSheetViewController: UIViewController {
         webView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(webView)
         NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            webView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: Self.grabberAreaHeight),
             webView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            webView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            webView.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor),
         ])
         view = containerView
     }
@@ -85,14 +87,14 @@ final class ConnectInlineSheetViewController: UIViewController {
         isStaged = true
     }
 
-    func present(height: Int, dismissible: Bool, presenter: @escaping () -> UIViewController?) {
+    func present(height: Double, dismissible: Bool, presenter: @escaping () -> UIViewController?) {
         update(height: height, dismissible: dismissible)
         guard !isPresentedByUs else { return }
         didWaitForDismissal = false
         presentWhenPossible(presenter)
     }
 
-    func update(height: Int, dismissible: Bool) {
+    func update(height: Double, dismissible: Bool) {
         isDismissible = dismissible
         contentHeight = max(CGFloat(height), Self.minimumHeight)
         guard isPresentedByUs, #available(iOS 16.0, *) else { return }
@@ -164,7 +166,7 @@ final class ConnectInlineSheetViewController: UIViewController {
             let identifier = UISheetPresentationController.Detent.Identifier("stripe-connect-inline-content")
             sheet.detents = [
                 .custom(identifier: identifier) { [weak self] context in
-                    min(self?.contentHeight ?? Self.minimumHeight, context.maximumDetentValue)
+                    min((self?.contentHeight ?? Self.minimumHeight) + Self.grabberAreaHeight, context.maximumDetentValue)
                 },
             ]
             sheet.selectedDetentIdentifier = identifier

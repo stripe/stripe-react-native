@@ -57,7 +57,7 @@ class ConnectInlineHostView(
   override fun onDetachedFromWindow() {
     viewTreeObserver.removeOnPreDrawListener(ensureAttachedOnDraw)
     // A dialog belongs to the activity, so it would otherwise stay over whatever screen replaces this one.
-    lifecycle.shownSheetIds().forEach { perform(listOf(Action.Dismiss(it)) + lifecycle.sheetDismissed(it)) }
+    lifecycle.shownSheetIds().forEach { perform(lifecycle.sheetDismissed(it)) }
     super.onDetachedFromWindow()
   }
 
@@ -77,12 +77,10 @@ class ConnectInlineHostView(
 
   fun onSheetChanged(
     sheetId: String,
-    height: Int,
+    height: Double,
     dismissible: Boolean,
   ) {
-    val clampedHeight = ConnectInlineSheetRules.clampHeight(height.toDouble())
-    if (!ConnectInlineSheetRules.isValidSheetId(sheetId) || clampedHeight == null) return
-    perform(lifecycle.sheetChanged(sheetId, clampedHeight, dismissible))
+    perform(lifecycle.sheetChanged(sheetId, height, dismissible))
   }
 
   // Attaching
@@ -226,7 +224,7 @@ class ConnectInlineHostView(
 
   private fun present(
     sheetId: String,
-    height: Int,
+    height: Double,
     dismissible: Boolean,
   ) {
     val sheet = sheets[sheetId] ?: return

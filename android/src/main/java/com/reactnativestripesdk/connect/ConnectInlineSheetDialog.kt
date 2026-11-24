@@ -1,17 +1,27 @@
 package com.reactnativestripesdk.connect
 
 import android.app.Activity
+import android.graphics.Color
+import android.graphics.Outline
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
+import androidx.core.graphics.ColorUtils
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 /**
@@ -19,7 +29,8 @@ import kotlin.math.roundToInt
  *
  * While the sheet is dismissible, back, swiping down, and tapping outside dismiss it and call [onDismissed]. While it
  * isn't, each of those calls [onCloseRequested] instead, and the sheet stays until its window closes. As its own
- * window, it gets back presses before React Native's back handler does.
+ * window, it gets back presses before React Native's back handler does. It draws its own rounded top and grabber, so
+ * it looks the same whatever the app's theme.
  */
 internal class ConnectInlineSheetDialog(
   activity: Activity,
@@ -29,14 +40,16 @@ internal class ConnectInlineSheetDialog(
   private val onCloseRequested: () -> Unit,
 ) : BottomSheetDialog(activity) {
   private val density = activity.resources.displayMetrics.density
-  private val container = FrameLayout(activity)
+  private val container = LinearLayout(activity)
   private var isDismissingProgrammatically = false
   private var isDismissible = true
   private var backInvokedCallback: OnBackInvokedCallback? = null
 
   init {
-    container.setBackgroundColor(backgroundColor)
+    buildChrome(backgroundColor)
     setContentView(container, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0))
+    // The theme's sheet background would show square corners behind the rounded top.
+    findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.setBackgroundColor(Color.TRANSPARENT)
     behavior.skipCollapsed = true
     behavior.addBottomSheetCallback(
       object : BottomSheetBehavior.BottomSheetCallback() {
@@ -75,28 +88,32 @@ internal class ConnectInlineSheetDialog(
   }
 
   fun present(
-    heightDp: Int,
+    heightDp: Double,
     dismissible: Boolean,
   ) {
     update(heightDp, dismissible)
     if (isShowing) return
     if (webView.parent !== container) {
       (webView.parent as? ViewGroup)?.removeView(webView)
-      container.addView(
-        webView,
-        FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
-      )
+      container.addView(webView, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
     }
     show()
   }
 
   fun update(
-    heightDp: Int,
+    heightDp: Double,
     dismissible: Boolean,
   ) {
     setDismissible(dismissible)
-    val maxHeight = (context.resources.displayMetrics.heightPixels * MAX_SCREEN_FRACTION).roundToInt()
-    val height = minOf((heightDp * density).roundToInt(), maxHeight)
+    val topInset =
+      window
+        ?.decorView
+        ?.let(ViewCompat::getRootWindowInsets)
+        ?.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+        ?.top ?: 0
+    val maxHeight = context.resources.displayMetrics.heightPixels - topInset - dp(TOP_GAP_DP)
+    val contentHeight = maxOf(ceil(heightDp * density).toInt(), dp(MIN_HEIGHT_DP))
+    val height = minOf(contentHeight + dp(HANDLE_AREA_HEIGHT_DP), maxHeight)
     val params = container.layoutParams ?: return
     if (params.height != height) {
       params.height = height
@@ -132,7 +149,53 @@ internal class ConnectInlineSheetDialog(
     }
   }
 
+  private fun buildChrome(
+    @ColorInt backgroundColor: Int,
+  ) {
+    val radius = dp(CORNER_RADIUS_DP).toFloat()
+    container.orientation = LinearLayout.VERTICAL
+    container.background =
+      GradientDrawable().apply {
+        cornerRadii = floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f)
+        setColor(backgroundColor)
+      }
+    container.outlineProvider =
+      object : ViewOutlineProvider() {
+        override fun getOutline(
+          view: View,
+          outline: Outline,
+        ) = outline.setRoundRect(0, 0, view.width, view.height + radius.toInt(), radius)
+      }
+    container.clipToOutline = true
+
+    val isLightBackground = ColorUtils.calculateLuminance(backgroundColor) > LIGHT_BACKGROUND_LUMINANCE
+    val grabberColor = if (isLightBackground) Color.BLACK else Color.WHITE
+    val grabber =
+      View(context).apply {
+        background =
+          GradientDrawable().apply {
+            cornerRadius = dp(GRABBER_HEIGHT_DP / 2).toFloat()
+            setColor(ColorUtils.setAlphaComponent(grabberColor, GRABBER_ALPHA))
+          }
+      }
+    val handleArea = FrameLayout(context)
+    handleArea.addView(grabber, FrameLayout.LayoutParams(dp(GRABBER_WIDTH_DP), dp(GRABBER_HEIGHT_DP), Gravity.CENTER))
+    container.addView(
+      handleArea,
+      LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(HANDLE_AREA_HEIGHT_DP)),
+    )
+  }
+
+  private fun dp(value: Int): Int = (value * density).roundToInt()
+
   private companion object {
-    const val MAX_SCREEN_FRACTION = 0.92f
+    const val MIN_HEIGHT_DP = 120
+    const val TOP_GAP_DP = 24
+    const val CORNER_RADIUS_DP = 28
+    const val HANDLE_AREA_HEIGHT_DP = 28
+    const val GRABBER_WIDTH_DP = 32
+    const val GRABBER_HEIGHT_DP = 4
+    const val GRABBER_ALPHA = 0x33
+    const val LIGHT_BACKGROUND_LUMINANCE = 0.5
   }
 }

@@ -1,15 +1,8 @@
-export const MAX_INLINE_HEIGHT = 10000;
+const MAX_INLINE_HEIGHT = 10000;
 
-// Matches the ids Connect.js gives its sheets, and keeps ids like `__proto__` out of native lookups.
-const SHEET_ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
-
-export function clampInlineHeight(height: unknown): number | undefined {
+function clampInlineHeight(height: unknown): number | undefined {
   if (typeof height !== 'number' || !Number.isFinite(height)) return undefined;
-  return Math.min(MAX_INLINE_HEIGHT, Math.max(0, Math.ceil(height)));
-}
-
-export function isValidSheetId(sheetId: unknown): sheetId is string {
-  return typeof sheetId === 'string' && SHEET_ID_PATTERN.test(sheetId);
+  return Math.min(MAX_INLINE_HEIGHT, Math.max(0, height));
 }
 
 export function parseComponentHeightChanged(data: unknown): number | undefined {
@@ -27,7 +20,9 @@ export function parseSheetChanged(
     dismissible?: unknown;
   };
   const clampedHeight = clampInlineHeight(height);
-  if (!isValidSheetId(sheetId) || clampedHeight === undefined) return undefined;
+  if (typeof sheetId !== 'string' || clampedHeight === undefined) {
+    return undefined;
+  }
   if (dismissible !== undefined && typeof dismissible !== 'boolean') {
     return undefined;
   }

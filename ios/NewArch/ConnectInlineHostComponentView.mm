@@ -96,7 +96,7 @@ using namespace facebook::react;
   RCTStripeConnectInlineHostHandleCommand(self, commandName, args);
 }
 
-- (void)sheetChanged:(NSString *)sheetId height:(NSInteger)height dismissible:(BOOL)dismissible
+- (void)sheetChanged:(NSString *)sheetId height:(double)height dismissible:(BOOL)dismissible
 {
   [_coordinator sheetChangedWithSheetId:sheetId height:height dismissible:dismissible];
 }

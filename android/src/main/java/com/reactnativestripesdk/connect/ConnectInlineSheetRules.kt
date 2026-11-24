@@ -2,15 +2,12 @@ package com.reactnativestripesdk.connect
 
 import java.net.URI
 import java.net.URLDecoder
-import kotlin.math.ceil
 
 /**
  * Decides which windows an inline Connect component may show as sheets, and validates what Connect.js reports about
  * them.
  */
 internal object ConnectInlineSheetRules {
-  const val MAX_HEIGHT = 10000
-
   private val SHEET_ID = Regex("^[A-Za-z0-9-]{1,64}$")
   private val ACCESSORY_LAYER_PATH = Regex("^/accessory_layer_[A-Za-z0-9]+\\.html$")
 
@@ -30,7 +27,6 @@ internal object ConnectInlineSheetRules {
     val isAccessoryLayerPage =
       isSameOrigin(uri.scheme, uri.host, uri.port, origin) &&
         uri.rawUserInfo == null &&
-        uri.rawQuery == null &&
         path != null &&
         ACCESSORY_LAYER_PATH.matches(path)
     if (!isAccessoryLayerPage || fragment == null) return null
@@ -87,12 +83,7 @@ internal object ConnectInlineSheetRules {
       else -> NavigationDecision.BLOCK
     }
 
-  fun isValidSheetId(sheetId: String): Boolean = SHEET_ID.matches(sheetId)
-
-  fun clampHeight(height: Double): Int? {
-    if (height.isNaN() || height.isInfinite()) return null
-    return ceil(height).coerceIn(0.0, MAX_HEIGHT.toDouble()).toInt()
-  }
+  private fun isValidSheetId(sheetId: String): Boolean = SHEET_ID.matches(sheetId)
 
   /** `port` is -1, as in [URI], for the scheme's default port. */
   fun isSameOrigin(
@@ -119,13 +110,15 @@ internal object ConnectInlineSheetRules {
     return params
   }
 
-  private fun decode(value: String): String? = runCatching { URLDecoder.decode(value, "UTF-8") }.getOrNull()
+  // URLDecoder would also turn `+` into a space, which percent-decoding doesn't.
+  private fun decode(value: String): String? =
+    runCatching { URLDecoder.decode(value.replace("+", "%2B"), "UTF-8") }.getOrNull()
 }
 
 /**
- * Tracks each sheet from the window Connect.js opens to the window closing, and says what the sheet should do.
+ * Tracks each sheet from the window Connect.js opens until the sheet goes away, and says what the sheet should do.
  *
- * A sheet appears after its first `sheetChanged`. A dismissible sheet goes away when the user dismisses it, and
+ * A sheet appears after its first `sheetChanged`. A dismissible sheet is released when the user dismisses it, and
  * Connect.js gets `sheetClosed`. For a sheet that isn't dismissible, Connect.js gets `sheetCloseRequested` and decides,
  * closing the window if the dialog closes.
  */
@@ -133,19 +126,18 @@ internal class ConnectInlineSheetLifecycle {
   enum class Phase {
     AWAITING_FIRST_CHANGE,
     SHOWN,
-    GONE,
   }
 
   sealed class Action {
     data class Present(
       val sheetId: String,
-      val height: Int,
+      val height: Double,
       val dismissible: Boolean,
     ) : Action()
 
     data class Update(
       val sheetId: String,
-      val height: Int,
+      val height: Double,
       val dismissible: Boolean,
     ) : Action()
 
@@ -168,8 +160,6 @@ internal class ConnectInlineSheetLifecycle {
 
   private val phases = mutableMapOf<String, Phase>()
 
-  fun phase(sheetId: String): Phase? = phases[sheetId]
-
   /** Returns false for an id that's already open, so a second window can't take over its sheet. */
   fun windowOpened(sheetId: String): Boolean {
     if (phases.containsKey(sheetId)) return false
@@ -179,7 +169,7 @@ internal class ConnectInlineSheetLifecycle {
 
   fun sheetChanged(
     sheetId: String,
-    height: Int,
+    height: Double,
     dismissible: Boolean,
   ): List<Action> =
     when (phases[sheetId]) {
@@ -188,14 +178,14 @@ internal class ConnectInlineSheetLifecycle {
         listOf(Action.Present(sheetId, height, dismissible))
       }
       Phase.SHOWN -> listOf(Action.Update(sheetId, height, dismissible))
-      Phase.GONE, null -> emptyList()
+      null -> emptyList()
     }
 
   /** The user dismissed a dismissible sheet, or the sheet went away with the screen behind it. */
   fun sheetDismissed(sheetId: String): List<Action> {
     if (phases[sheetId] != Phase.SHOWN) return emptyList()
-    phases[sheetId] = Phase.GONE
-    return listOf(Action.SendSheetClosed(sheetId))
+    phases.remove(sheetId)
+    return listOf(Action.SendSheetClosed(sheetId), Action.Release(sheetId))
   }
 
   /** The user tried to dismiss a sheet that isn't dismissible. */
@@ -206,7 +196,7 @@ internal class ConnectInlineSheetLifecycle {
   fun windowClosed(sheetId: String): List<Action> =
     when (phases.remove(sheetId)) {
       Phase.SHOWN -> listOf(Action.Dismiss(sheetId), Action.SendSheetClosed(sheetId), Action.Release(sheetId))
-      Phase.AWAITING_FIRST_CHANGE, Phase.GONE -> listOf(Action.Release(sheetId))
+      Phase.AWAITING_FIRST_CHANGE -> listOf(Action.Release(sheetId))
       null -> emptyList()
     }
 

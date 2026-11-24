@@ -50,12 +50,8 @@ public final class ConnectInlineSheetCoordinator: NSObject {
     }
 
     @objc(sheetChangedWithSheetId:height:dismissible:)
-    public func sheetChanged(sheetId: String, height: Int, dismissible: Bool) {
-        guard ConnectInlineSheetRules.isValidSheetId(sheetId),
-              let clampedHeight = ConnectInlineSheetRules.clampHeight(Double(height)) else {
-            return
-        }
-        perform(lifecycle.sheetChanged(sheetId: sheetId, height: clampedHeight, dismissible: dismissible))
+    public func sheetChanged(sheetId: String, height: Double, dismissible: Bool) {
+        perform(lifecycle.sheetChanged(sheetId: sheetId, height: height, dismissible: dismissible))
     }
 
     @objc public func resetSheets() {
