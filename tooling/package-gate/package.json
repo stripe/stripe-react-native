@@ -1,0 +1,10 @@
+{
+  "name": "@stripe/package-gate",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Per-package done gate: packed contents, bridge contract fixtures, stripe-ios SPI imports, coverage floors, and an Expo smoke build. Never published.",
+  "scripts": {
+    "lint": "yarn run -T eslint --ignore-path ../../.gitignore --parser-options=ecmaVersion:2022 --parser-options=sourceType:module --no-error-on-unmatched-pattern \"**/*.{js,mjs,ts,tsx}\"",
+    "test": "node --test \"scripts/__tests__/*.test.mjs\""
+  }
+}

@@ -27,12 +27,27 @@ export const toBasisPoints = (pct) => Math.round(pct * 100);
 export const fromBasisPoints = (bp) => bp / 100;
 
 function parseArgs(argv) {
-  const args = { update: false, base: process.env.COVERAGE_FLOORS_BASE || '' };
+  const args = {
+    update: false,
+    base: process.env.COVERAGE_FLOORS_BASE || '',
+    packages: null,
+  };
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--update') {
       args.update = true;
     } else if (argv[i] === '--base') {
       args.base = argv[(i += 1)] ?? '';
+    } else if (argv[i] === '--package' || argv[i].startsWith('--package=')) {
+      const value =
+        argv[i] === '--package'
+          ? (argv[(i += 1)] ?? '')
+          : argv[i].slice('--package='.length);
+      const names = value.split(',').filter(Boolean);
+      if (!names.length) {
+        throw new Error('--package expects a workspace package name');
+      }
+      args.packages ??= [];
+      args.packages.push(...names);
     } else {
       throw new Error(`Unknown argument: ${argv[i]}`);
     }
@@ -339,18 +354,50 @@ export function runCoverageChecks(argv) {
       `${name}: depends on react-native-coverage; only @stripe/react-native-test-harness may`
   );
 
-  checkWorkspacesListed(all, floors, args, failures);
-  for (const [name, reason] of Object.entries(floors.scopeChanges)) {
-    console.log(`[coverage] ${name}: declared scope change (${reason})`);
-  }
-  for (const [name, reason] of Object.entries(floors.floorResets)) {
-    console.log(`[coverage] ${name}: declared floor reset (${reason})`);
-  }
-  for (const [name, pkg] of Object.entries(floors.packages)) {
-    checkPackage(name, pkg, args, failures);
-  }
-  if (args.base) {
-    checkAgainstBase(floors, baseFloors(args.base), args.base, failures);
+  if (args.packages) {
+    for (const name of args.packages) {
+      const pkg = floors.packages[name];
+      if (!pkg) {
+        failures.push(
+          `${name}: no entry in ${FLOORS_PATH}; --package checks one recorded floor`
+        );
+        continue;
+      }
+      checkPackage(name, pkg, args, failures);
+    }
+    if (args.base) {
+      const selected = (record) =>
+        Object.fromEntries(
+          Object.entries(record ?? {}).filter(([name]) =>
+            args.packages.includes(name)
+          )
+        );
+      const only = (record) => ({
+        packages: selected(record.packages),
+        scopeChanges: selected(record.scopeChanges),
+        floorResets: selected(record.floorResets),
+      });
+      checkAgainstBase(
+        only(floors),
+        only(baseFloors(args.base)),
+        args.base,
+        failures
+      );
+    }
+  } else {
+    checkWorkspacesListed(all, floors, args, failures);
+    for (const [name, reason] of Object.entries(floors.scopeChanges)) {
+      console.log(`[coverage] ${name}: declared scope change (${reason})`);
+    }
+    for (const [name, reason] of Object.entries(floors.floorResets)) {
+      console.log(`[coverage] ${name}: declared floor reset (${reason})`);
+    }
+    for (const [name, pkg] of Object.entries(floors.packages)) {
+      checkPackage(name, pkg, args, failures);
+    }
+    if (args.base) {
+      checkAgainstBase(floors, baseFloors(args.base), args.base, failures);
+    }
   }
 
   if (JSON.stringify(floors) !== original) {
