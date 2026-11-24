@@ -13,6 +13,7 @@ describe('Checkout playground configuration', () => {
       customer_email: 'jenny@example.com',
       customer_creation: 'always',
       automatic_tax: { enabled: true },
+      invoice_creation: { enabled: true },
       allowed_payment_method_types: ['card'],
       shipping_address_collection: {
         allowed_countries: ['US', 'CA', 'IE', 'GB'],
