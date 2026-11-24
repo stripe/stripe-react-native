@@ -1,0 +1,16 @@
+{
+  "method": "StripeSdk.presentPaymentSheet",
+  "description": "presentPaymentSheet before initPaymentSheet. The timeout option is only read once a sheet exists, which needs UI.",
+  "input": {
+    "options": { "timeout": 60000 }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "result.error.message": "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`."
+    }
+  },
+  "covers": {
+    "options.timeout": "result.error.code"
+  }
+}

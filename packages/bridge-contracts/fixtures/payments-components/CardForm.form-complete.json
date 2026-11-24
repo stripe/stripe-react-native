@@ -1,0 +1,33 @@
+{
+  "method": "component:CardForm",
+  "description": "The onFormComplete event. Each runner completes the form with a test Visa card and postal code and records the card details the native view sends; without dangerouslyGetFullCardDetails they leave out the number and CVC.",
+  "input": {
+    "onFormComplete": "$function"
+  },
+  "expect": {
+    "shared": {
+      "events.onFormComplete.card.complete": true,
+      "events.onFormComplete.card.brand": "Visa",
+      "events.onFormComplete.card.last4": "4242",
+      "events.onFormComplete.card.expiryMonth": 12,
+      "events.onFormComplete.card.expiryYear": 2034,
+      "events.onFormComplete.card.number": null,
+      "events.onFormComplete.card.cvc": null
+    },
+    "ios": {
+      "events.onFormComplete.card.postalCode": "94107",
+      "events.onFormComplete.card.country": "US"
+    },
+    "android": {
+      "events.onFormComplete.card.postalCode": "",
+      "events.onFormComplete.card.country": ""
+    }
+  },
+  "parityGaps": {
+    "events.onFormComplete.card.postalCode": "G17: Android's Stripe CardFormView builds its PaymentMethodCreateParams without billing details, so the event carries an empty postal code and country.",
+    "events.onFormComplete.card.country": "G17: see events.onFormComplete.card.postalCode."
+  },
+  "covers": {
+    "onFormComplete": "events.onFormComplete.card.complete"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "method": "StripeSdk.createEmbeddedPaymentElement",
+  "description": "An unknown captureMethod string maps to automatic on both platforms. Pins today's behaviour; if the 1.0 API changes captureMethod, update this fixture.",
+  "skipTypecheck": "IntentConfiguration.mode.captureMethod is a string union; this fixture sends an unknown value on purpose to pin the native fallback.",
+  "input": {
+    "intentConfig": {
+      "mode": {
+        "type": "payment",
+        "amount": 2500,
+        "currencyCode": "usd",
+        "captureMethod": "SomethingNew"
+      },
+      "confirmHandler": "$function"
+    },
+    "configuration": {
+      "merchantDisplayName": "Bridge Contracts, Inc."
+    }
+  },
+  "expect": {
+    "shared": {
+      "intentConfiguration.mode": "payment",
+      "intentConfiguration.mode.amount": 2500,
+      "intentConfiguration.mode.currency": "usd",
+      "intentConfiguration.mode.captureMethod": "automatic",
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc."
+    }
+  },
+  "covers": {
+    "intentConfig.mode.currencyCode": "intentConfiguration.mode.currency",
+    "intentConfig.confirmHandler": "intentConfiguration.mode"
+  },
+  "unasserted": {
+    "intentConfig.mode.captureMethod": "An unknown value falls back to automatic, which an ignored field would also give; updateEmbeddedPaymentElement.payment-mode.json pins a mapped captureMethod.",
+    "intentConfig.mode.type": "The builder consumes mode.type to choose payment or setup. Native code asserts the resulting mode, not this discriminator."
+  }
+}

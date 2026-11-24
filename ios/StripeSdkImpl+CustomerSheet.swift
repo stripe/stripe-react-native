@@ -115,21 +115,20 @@ extension StripeSdkImpl {
             return
         }
 
-        if let timeout = params["timeout"] as? Double {
-            DispatchQueue.main.asyncAfter(deadline: .now() + timeout/1000) {
-                if let customerSheetViewController = self.customerSheetViewController {
-                    customerSheetViewController.dismiss(animated: true)
-                    resolve(Errors.createError(ErrorType.Timeout, "The payment has timed out."))
-                }
-            }
-        }
-
         DispatchQueue.main.async {
             self.customerSheetViewController = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
             if let customerSheetViewController = self.customerSheetViewController {
                 customerSheetViewController.modalPresentationStyle = CustomerSheetUtils.getModalPresentationStyle(params["presentationStyle"] as? String)
                 customerSheetViewController.modalTransitionStyle = CustomerSheetUtils.getModalTransitionStyle(params["animationStyle"] as? String)
                 if let customerSheet = self.customerSheet {
+                    if let timeout = params["timeout"] as? Double {
+                        self.scheduleOnMain(timeout / 1000) {
+                            if let customerSheetViewController = self.customerSheetViewController {
+                                customerSheetViewController.dismiss(animated: true)
+                                resolve(Errors.createError(ErrorType.Timeout, "The payment has timed out."))
+                            }
+                        }
+                    }
                     customerSheet.present(
                         from: customerSheetViewController, completion: { result in
                             resolve(CustomerSheetUtils.interpretResult(result: result))

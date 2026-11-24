@@ -16,14 +16,8 @@ class PushProvisioningProxyTest {
 
   @Test
   fun getApiVersion() {
-    /**
-     * An empty string is returned because we do not include compileOnly dependencies in our tests.
-     * Including the compileOnly dependency causes some linters to complain, and one single test
-     * isn't worth it. Once the push provisioning library is split into it's own SDK, we can
-     * add back this test. (it should equal "2019-09-09" if the dependency is included).
-     */
     Assert.assertEquals(
-      "",
+      "2026-05-27.dahlia",
       PushProvisioningProxy.getApiVersion(),
     )
   }

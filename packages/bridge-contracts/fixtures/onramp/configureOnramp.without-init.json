@@ -1,0 +1,28 @@
+{
+  "method": "OnrampSdk.configureOnramp",
+  "description": "configureOnramp before initialise. Both platforms map the configuration the same way where they read the same fields, then reject the call because no publishable key is set; the coordinator needs the network.",
+  "input": {
+    "config": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "appearance": {},
+      "cryptoCustomerId": "crc_bridge_contracts",
+      "countryHint": "US"
+    }
+  },
+  "expect": {
+    "shared": {
+      "configuration.cryptoCustomerId": "crc_bridge_contracts",
+      "configuration.countryHint": "US",
+      "result.error.code": "Failed"
+    },
+    "android": {
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc."
+    }
+  },
+  "parityGaps": {
+    "configuration.merchantDisplayName": "D10: The iOS CryptoOnrampCoordinator takes no merchant display name, so iOS ignores the required Configuration.merchantDisplayName."
+  },
+  "unasserted": {
+    "config.appearance": "Mapped to LinkAppearance; the existing Onramp mapper tests cover its fields on each platform."
+  }
+}

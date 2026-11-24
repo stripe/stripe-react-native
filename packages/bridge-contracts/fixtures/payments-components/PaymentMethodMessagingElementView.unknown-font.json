@@ -1,0 +1,35 @@
+{
+  "method": "component:PaymentMethodMessagingElementView",
+  "description": "A Payment Method Messaging appearance naming a font the app does not bundle. iOS falls back to the system font and goes on to load; Android fails the appearance and reports it through onConfigureResult.",
+  "input": {
+    "appearance": { "font": { "family": "MissingBridgeFont" } },
+    "configuration": {
+      "amount": 1099,
+      "currency": "usd"
+    },
+    "onConfigureResult": "$function"
+  },
+  "expect": {
+    "shared": {
+      "configuration.amount": 1099,
+      "configuration.currency": "usd"
+    },
+    "ios": {
+      "events.onConfigureResult.0.result.status": "loading"
+    },
+    "android": {
+      "events.onConfigureResult.0.result.status": "failed",
+      "events.onConfigureResult.0.result.code": "InvalidConfiguration",
+      "events.onConfigureResult.0.result.message": "Encountered an error when setting a custom font: Failed to find font: MissingBridgeFont"
+    }
+  },
+  "parityGaps": {
+    "events.onConfigureResult.0.result.status": "G19: iOS ignores a font it cannot load; Android fails the appearance.",
+    "events.onConfigureResult.0.result.code": "G19: see events.onConfigureResult.0.result.status.",
+    "events.onConfigureResult.0.result.message": "G19: see events.onConfigureResult.0.result.status."
+  },
+  "covers": {
+    "appearance.font.family": "events.onConfigureResult.0.result.message",
+    "onConfigureResult": "events.onConfigureResult.0.result.status"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "method": "StripeSdk.updatePlatformPaySheet",
+  "platforms": ["ios"],
+  "description": "updatePlatformPaySheet with no shipping or coupon callback waiting. iOS only, as for the other updatePlatformPaySheet fixture.",
+  "input": {
+    "summaryItems": [
+      {
+        "paymentType": "Immediate",
+        "label": "Bridge Contracts, Inc.",
+        "amount": "12.50"
+      }
+    ],
+    "shippingMethods": [],
+    "errors": []
+  },
+  "expect": {
+    "ios": {
+      "result.error.code": "Failed",
+      "result.error.message": "You can use this method only after either onShippingContactSelected, onShippingMethodSelected, or onCouponCodeEntered callbacks are triggered",
+      "summaryItems": []
+    }
+  },
+  "covers": {
+    "summaryItems": "summaryItems"
+  }
+}

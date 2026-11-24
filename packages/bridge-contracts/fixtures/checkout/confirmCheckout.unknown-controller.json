@@ -1,0 +1,18 @@
+{
+  "method": "StripeSdk.confirmCheckout",
+  "description": "confirmCheckout for an ID with no controller. Both platforms reject the same way. A second call confirms a controller registered under the same ID whose session completes paid: on iOS the SDK confirms without a payment option against a stubbed /confirm response, on Android the presenter double reports the completed result. Both resolve the mapped result.",
+  "input": {
+    "controllerId": "bridge-contracts"
+  },
+  "expect": {
+    "shared": {
+      "result.rejected.code": "Failed",
+      "result.rejected.message": "Checkout controller `bridge-contracts` does not exist.",
+      "completed.status": "completed",
+      "completed.paymentStatus": "paid"
+    }
+  },
+  "covers": {
+    "controllerId": "result.rejected.message"
+  }
+}

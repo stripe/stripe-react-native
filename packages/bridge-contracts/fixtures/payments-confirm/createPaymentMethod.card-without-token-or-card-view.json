@@ -1,0 +1,33 @@
+{
+  "method": "StripeSdk.createPaymentMethod",
+  "description": "A card with neither a token nor a mounted CardField or CardForm fails before any network call.",
+  "input": {
+    "params": {
+      "paymentMethodType": "Card",
+      "paymentMethodData": {
+        "billingDetails": {
+          "name": "Jenny Rosen"
+        }
+      }
+    },
+    "options": {}
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed"
+    },
+    "ios": {
+      "result.error.message": "$present"
+    },
+    "android": {
+      "result.error.message": "Card details not complete"
+    }
+  },
+  "parityGaps": {
+    "result.error.message": "G9: Android says \"Card details not complete\"; iOS returns the PaymentMethodError.cardPaymentMissingParams description."
+  },
+  "covers": {
+    "params.paymentMethodType": "result.error.code",
+    "params.paymentMethodData.billingDetails.name": "result.error.code"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "method": "component:AddressSheetView",
+  "description": "Showing the AddressSheet after initStripe with an appearance naming a font the app does not bundle. Both platforms fail to build the appearance and send onErrorAction instead of presenting, so the runner shows the view.",
+  "input": {
+    "appearance": {
+      "font": { "family": "MissingBridgeFont" }
+    },
+    "onErrorAction": "$function"
+  },
+  "expect": {
+    "shared": {
+      "events.onErrorAction.error.code": "Failed"
+    },
+    "ios": {
+      "events.onErrorAction.error.message": "Failed to set Payment Sheet appearance. Unable to find font: MissingBridgeFont"
+    },
+    "android": {
+      "events.onErrorAction.error.message": "Encountered an error when setting a custom font: Failed to find font: MissingBridgeFont"
+    }
+  },
+  "parityGaps": {
+    "events.onErrorAction.error.message": "G9: Different wording for the same missing font."
+  },
+  "covers": {
+    "appearance.font.family": "events.onErrorAction.error.message",
+    "onErrorAction": "events.onErrorAction.error.code"
+  }
+}

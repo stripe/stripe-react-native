@@ -1,0 +1,20 @@
+{
+  "method": "StripeSdk.verifyMicrodeposits",
+  "description": "amounts must hold exactly two values; checked before any network call.",
+  "input": {
+    "isPaymentIntent": false,
+    "clientSecret": "seti_bridge_secret_contracts",
+    "params": { "amounts": [32, 45, 60] }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "result.error.message": "Expected 2 integers in the amounts array, but received 3"
+    }
+  },
+  "covers": {
+    "isPaymentIntent": "result.error.code",
+    "clientSecret": "result.error.code",
+    "params.amounts": "result.error.message"
+  }
+}

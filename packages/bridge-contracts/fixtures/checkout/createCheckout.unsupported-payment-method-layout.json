@@ -1,0 +1,29 @@
+{
+  "method": "StripeSdk.createCheckout",
+  "description": "An unsupported paymentElement.paymentMethodLayout. Both mappers throw before any network call, and createCheckout rejects with the mapper's message.",
+  "skipTypecheck": "PaymentMethodLayout is a closed union; this fixture passes an unknown value to pin the rejection.",
+  "input": {
+    "params": {
+      "clientSecret": "cs_test_bridge_secret_contracts",
+      "returnURL": "bridgecontracts://stripe-redirect",
+      "paymentElement": {
+        "paymentMethodLayout": "diagonal"
+      }
+    },
+    "controllerId": "bridge-contracts"
+  },
+  "expect": {
+    "shared": {
+      "result.rejected.code": "Failed",
+      "result.rejected.message": "Unsupported Checkout configuration value `diagonal` for `paymentElement.paymentMethodLayout`."
+    }
+  },
+  "covers": {
+    "params.paymentElement.paymentMethodLayout": "result.rejected.message"
+  },
+  "unasserted": {
+    "params.clientSecret": "Used only after the configuration maps.",
+    "params.returnURL": "Used only after the configuration maps.",
+    "controllerId": "JS generates it; native uses it only as the registry key once the session loads."
+  }
+}

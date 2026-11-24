@@ -19,38 +19,15 @@ extension StripeSdkImpl {
                                            configuration: NSDictionary,
                                            resolve: @escaping RCTPromiseResolveBlock,
                                            reject: @escaping RCTPromiseRejectBlock) {
-    guard let modeParams = intentConfig["mode"] as? NSDictionary else {
-      emitLoadingFailed(message: "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required")
+    let intentConfiguration: PaymentSheet.IntentConfiguration
+    switch buildIntentConfiguration(intentConfigurationParams: intentConfig) {
+    case .success(let builtIntentConfig):
+      intentConfiguration = builtIntentConfig
+    case .failure(let error):
+      emitLoadingFailed(message: error.message)
       resolve(nil)
       return
     }
-    let hasConfirmHandler = intentConfig.object(forKey: "confirmHandler") != nil
-    let hasConfirmationTokenHandler = intentConfig.object(forKey: "confirmationTokenConfirmHandler") != nil
-
-    if !hasConfirmHandler && !hasConfirmationTokenHandler {
-      emitLoadingFailed(message: "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmationTokenConfirmHandler` if you are not passing an intent client secret")
-      resolve(nil)
-      return
-    }
-
-    if hasConfirmHandler && hasConfirmationTokenHandler {
-      emitLoadingFailed(message: "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both")
-      resolve(nil)
-      return
-    }
-    if let modeError = StripeSdkImpl.validateModeType(modeParams) {
-      emitLoadingFailed(message: modeError)
-      resolve(nil)
-      return
-    }
-    let captureMethodString = modeParams["captureMethod"] as? String
-    let intentConfig = buildIntentConfiguration(
-      modeParams: modeParams,
-      paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
-      onBehalfOf: intentConfig["onBehalfOf"] as? String,
-      captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
-      useConfirmationTokenCallback: hasConfirmationTokenHandler
-    )
 
     guard let configuration = buildEmbeddedPaymentElementConfiguration(params: configuration).configuration else {
       emitLoadingFailed(message: "Invalid configuration")
@@ -61,7 +38,7 @@ extension StripeSdkImpl {
     Task {
       do {
         let embeddedPaymentElement = try await EmbeddedPaymentElement.create(
-          intentConfiguration: intentConfig,
+          intentConfiguration: intentConfiguration,
           configuration: configuration
         )
         attachEmbedded(embeddedPaymentElement)
@@ -144,37 +121,14 @@ extension StripeSdkImpl {
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
   ) {
-    guard let modeParams = intentConfig["mode"] as? NSDictionary else {
-      resolve(Errors.createError(
-        ErrorType.Failed,
-        "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"
-      ))
+    let intentConfiguration: PaymentSheet.IntentConfiguration
+    switch buildIntentConfiguration(intentConfigurationParams: intentConfig) {
+    case .success(let builtIntentConfig):
+      intentConfiguration = builtIntentConfig
+    case .failure(let error):
+      resolve(Errors.createError(ErrorType.Failed, error.message))
       return
     }
-    let hasConfirmHandler = intentConfig.object(forKey: "confirmHandler") != nil
-    let hasConfirmationTokenHandler = intentConfig.object(forKey: "confirmationTokenConfirmHandler") != nil
-
-    if !hasConfirmHandler && !hasConfirmationTokenHandler {
-      resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmationTokenConfirmHandler` if you are not passing an intent client secret"))
-      return
-    }
-
-    if hasConfirmHandler && hasConfirmationTokenHandler {
-      resolve(Errors.createError(ErrorType.Failed, "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
-      return
-    }
-    if let modeError = StripeSdkImpl.validateModeType(modeParams) {
-      resolve(Errors.createError(ErrorType.Failed, modeError))
-      return
-    }
-    let captureMethodString = modeParams["captureMethod"] as? String
-    let intentConfiguration = buildIntentConfiguration(
-      modeParams: modeParams,
-      paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
-      onBehalfOf: intentConfig["onBehalfOf"] as? String,
-      captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
-      useConfirmationTokenCallback: hasConfirmationTokenHandler
-    )
 
     Task {
       guard let updateResult = await self.embeddedInstance?.update(intentConfiguration: intentConfiguration) else {

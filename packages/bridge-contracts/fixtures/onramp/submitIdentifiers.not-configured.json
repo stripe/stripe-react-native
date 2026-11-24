@@ -1,0 +1,15 @@
+{
+  "method": "OnrampSdk.submitIdentifiers",
+  "description": "Compliance identifiers before configureOnramp. Both platforms have an identifier mapper; the call itself resolves the not-configured error first.",
+  "input": {
+    "identifiers": [{ "type": "us_ssn", "value": "000000000" }]
+  },
+  "expect": {
+    "shared": {
+      "identifiers.0.value": "000000000",
+      "identifiers.0.type": "us_ssn",
+      "result.error.code": "Failed",
+      "result.error.message": "Onramp is not configured."
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "method": "StripeSdk.confirmLinkControllerSetupIntent",
+  "description": "confirmLinkControllerSetupIntent before initLinkController. Both platforms resolve the same error. A second call on a module holding a controller double, which confirms the setup intent, shows the client secret each platform hands a configured controller and the empty object each resolves on success.",
+  "input": {
+    "params": { "clientSecret": "seti_bridge_secret_contracts" }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "result.error.message": "LinkController has not been initialized. Call initLinkController first.",
+      "controller.clientSecret": "seti_bridge_secret_contracts",
+      "completed": {}
+    }
+  },
+  "covers": {
+    "params.clientSecret": "controller.clientSecret"
+  }
+}

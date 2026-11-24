@@ -1,0 +1,26 @@
+appId: com.stripe.react.native.testharness
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+# Google Pay on an emulator without an account shows an OK dialog that pauses
+# the React Native timers, so the scenario timeout cannot dismiss it.
+- repeat:
+    times: 8
+    commands:
+      - tapOn:
+          text: 'OK'
+          optional: true
+      - extendedWaitUntil:
+          visible: 'harness: flushed'
+          timeout: 20000
+          optional: true
+- assertVisible: 'harness: flushed'
+- assertVisible: 'covered initStripe'
+- assertVisible: 'covered isPlatformPaySupported'
+- assertVisible: 'covered createPlatformPayPaymentMethod'
+- assertVisible: 'covered handleURLCallback'
+- assertVisible: 'covered createPaymentMethod incomplete card'
+- assertVisible: 'covered createToken incomplete card'
+- assertVisible: 'covered initPaymentSheet unknown intent'
+- assertVisible: 'covered checkout detach'

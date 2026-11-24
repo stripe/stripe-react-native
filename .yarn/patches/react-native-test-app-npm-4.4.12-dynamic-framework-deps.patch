@@ -1,0 +1,84 @@
+diff --git a/ReactTestApp-DevSupport.podspec b/ReactTestApp-DevSupport.podspec
+--- a/ReactTestApp-DevSupport.podspec
++++ b/ReactTestApp-DevSupport.podspec
+@@ -46,4 +46,19 @@
+                            'ios/ReactTestApp/Public/*.h',
+                            'ios/ReactTestApp/ReactTestApp-DevSupport.m'
+   s.public_header_files  = 'ios/ReactTestApp/Public/*.h'
++
++  # This pod makes calls into JSI and references React-Core classes.
++  # For apps using dynamic linking, CocoaPods links a pod's framework
++  # against only its direct dependencies' frameworks only, so the pods
++  # that actually contain those symbols must be declared here.
++  #   - With Hermes, React Native excludes jsi.cpp from React-jsi and
++  #     the facebook::jsi::* definitions live in hermes-engine's
++  #     prebuilt hermes.framework
++  #   - With the prebuilt React Native core (RCT_USE_PREBUILT_RNCORE),
++  #     the RCT* symbols live in React-Core-prebuilt's React.xcframework
++  #     rather than in the React-Core pod; `add_rncore_dependency` adds
++  #     that dependency and is a no-op when the core is built from source.
++  # Static builds are unaffected (nothing links per pod there).
++  s.dependency 'hermes-engine' if defined?(use_hermes) && use_hermes()
++  add_rncore_dependency(s) if defined?(add_rncore_dependency)
+ end
+diff --git a/android/app/src/reacthost-0.76/java/com/microsoft/reacttetapp/react/MainReactNativeHost.kt b/android/app/src/reacthost-0.76/java/com/microsoft/reacttetapp/react/MainReactNativeHost.kt
+--- a/android/app/src/reacthost-0.76/java/com/microsoft/reacttetapp/react/MainReactNativeHost.kt
++++ b/android/app/src/reacthost-0.76/java/com/microsoft/reacttetapp/react/MainReactNativeHost.kt
+@@ -168,6 +168,14 @@
+             // this check, the `getReactInstanceManager()` call below will
+             // instantiate `ReactInstanceManager`, which in turn will try to
+             // access `source`.
++
++            // An embedded bundle (the coverage bundle, built with
++            // RN_COVERAGE_JS) must win over developer support. Returning
++            // BuildConfig.DEBUG here never looks at the packager, so a Metro
++            // on 8081 from another project is loaded instead.
++            if (reactBundleNameProvider.bundleName != null) {
++                return false
++            }
+             return BuildConfig.DEBUG
+         }
+ 
+diff --git a/ios/ReactTestApp/ReactInstance.swift b/ios/ReactTestApp/ReactInstance.swift
+--- a/ios/ReactTestApp/ReactInstance.swift
++++ b/ios/ReactTestApp/ReactInstance.swift
+@@ -28,7 +28,13 @@
+     // app on startup.
+     private lazy var remoteBundleURLInternal: URL? = {
+         #if DEBUG
+-        ReactInstance.jsBundleURL()
++        // An embedded bundle (the coverage bundle, built with
++        // RN_COVERAGE_JS) must win over the packager. jsBundleURL() always
++        // contacts Metro, so a server on 8081 is loaded instead.
++        if embeddedBundleURL() != nil {
++            return nil
++        }
++        return ReactInstance.jsBundleURL()
+         #else
+         nil
+         #endif
+@@ -138,8 +144,8 @@
+ 
+     // MARK: - Private
+ 
+-    private func bundleURL() -> URL? {
+-        let embeddedBundleURL = entryFiles()
++    private func embeddedBundleURL() -> URL? {
++        entryFiles()
+             .lazy
+             .compactMap {
+                 Bundle.main.url(
+@@ -148,9 +154,12 @@
+                 )
+             }
+             .first
+-        return embeddedBundleURL ?? ReactInstance.jsBundleURL()
+     }
+ 
++    private func bundleURL() -> URL? {
++        embeddedBundleURL() ?? ReactInstance.jsBundleURL()
++    }
++
+     private func entryFiles() -> [String] {
+         #if swift(>=5.9)
+ 

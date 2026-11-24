@@ -44,6 +44,10 @@
       "inputs": ["production", "^production"],
       "outputs": ["{projectRoot}/package.tgz"],
       "cache": true
+    },
+    "gate": {
+      "dependsOn": ["build", "^build"],
+      "cache": false
     }
   }
 }

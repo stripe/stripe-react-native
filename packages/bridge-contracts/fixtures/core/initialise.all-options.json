@@ -1,0 +1,105 @@
+{
+  "method": "StripeSdk.initialise",
+  "description": "initStripe with every InitStripeParams option and the common 3DS UI customization fields.",
+  "input": {
+    "params": {
+      "publishableKey": "pk_test_bridge_contracts",
+      "stripeAccountId": "acct_bridge",
+      "threeDSecureParams": {
+        "timeout": 7,
+        "label": {
+          "headingTextColor": "#112233",
+          "textColor": "#445566",
+          "headingFontSize": 20,
+          "textFontSize": 14
+        },
+        "navigationBar": {
+          "headerText": "Verify",
+          "buttonText": "Cancel",
+          "textColor": "#778899",
+          "barStyle": 1,
+          "statusBarColor": "#010203"
+        },
+        "textField": {
+          "borderColor": "#0a0b0c",
+          "borderWidth": 2,
+          "borderRadius": 6,
+          "textColor": "#0d0e0f"
+        },
+        "backgroundColor": "#fafafa",
+        "accentColor": "#123456"
+      },
+      "merchantIdentifier": "merchant.com.stripe.bridge",
+      "urlScheme": "bridgecontracts",
+      "setReturnUrlSchemeOnAndroid": true,
+      "appInfo": {
+        "name": "@stripe/stripe-react-native",
+        "url": "https://github.com/stripe/stripe-react-native",
+        "version": "0.0.0-fixture",
+        "partnerId": "pp_partner_fixture"
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result": null,
+      "apiClient.publishableKey": "pk_test_bridge_contracts",
+      "apiClient.stripeAccount": "acct_bridge",
+      "apiClient.appInfo.name": "@stripe/stripe-react-native",
+      "apiClient.appInfo.url": "https://github.com/stripe/stripe-react-native",
+      "apiClient.appInfo.version": "0.0.0-fixture",
+      "apiClient.appInfo.partnerId": "pp_partner_fixture",
+      "sdk.urlScheme": "bridgecontracts",
+      "threeDS.label.headingTextColor": "#112233",
+      "threeDS.label.textColor": "#445566",
+      "threeDS.label.headingFontSize": 20,
+      "threeDS.label.textFontSize": 14,
+      "threeDS.navigationBar.headerText": "Verify",
+      "threeDS.navigationBar.buttonText": "Cancel",
+      "threeDS.navigationBar.textColor": "#778899",
+      "threeDS.timeout": 7,
+      "threeDS.textField.borderColor": "#0a0b0c",
+      "threeDS.textField.borderWidth": 2,
+      "threeDS.textField.borderRadius": 6,
+      "threeDS.textField.textColor": "#0d0e0f"
+    },
+    "ios": {
+      "sdk.merchantIdentifier": "merchant.com.stripe.bridge",
+      "threeDS.navigationBar.barStyle": 1,
+      "threeDS.backgroundColor": "#fafafa"
+    },
+    "android": {
+      "threeDS.navigationBar.statusBarColor": "#010203",
+      "threeDS.accentColor": "#123456"
+    }
+  },
+  "platformOnly": {
+    "threeDS.navigationBar.barStyle": "IOSNavigationBarProps in ThreeDSecure.ts; UIBarStyle has no Android counterpart.",
+    "threeDS.backgroundColor": "IOSProps.backgroundColor in ThreeDSecure.ts.",
+    "threeDS.navigationBar.statusBarColor": "AndroidNavigationBarProps in ThreeDSecure.ts.",
+    "threeDS.accentColor": "AndroidProps.accentColor in ThreeDSecure.ts."
+  },
+  "parityGaps": {
+    "sdk.merchantIdentifier": "D5: iOS keeps the Apple Pay merchant identifier; Android has no equivalent."
+  },
+  "covers": {
+    "params.threeDSecureParams.timeout": "threeDS.timeout",
+    "params.threeDSecureParams.backgroundColor": "threeDS.backgroundColor",
+    "params.threeDSecureParams.accentColor": "threeDS.accentColor",
+    "params.stripeAccountId": "apiClient.stripeAccount",
+    "params.setReturnUrlSchemeOnAndroid": "sdk.urlScheme",
+    "params.threeDSecureParams.label.headingTextColor": "threeDS.label.headingTextColor",
+    "params.threeDSecureParams.label.textColor": "threeDS.label.textColor",
+    "params.threeDSecureParams.label.headingFontSize": "threeDS.label.headingFontSize",
+    "params.threeDSecureParams.label.textFontSize": "threeDS.label.textFontSize",
+    "params.threeDSecureParams.navigationBar.headerText": "threeDS.navigationBar.headerText",
+    "params.threeDSecureParams.navigationBar.buttonText": "threeDS.navigationBar.buttonText",
+    "params.threeDSecureParams.navigationBar.textColor": "threeDS.navigationBar.textColor",
+    "params.threeDSecureParams.navigationBar.barStyle": "threeDS.navigationBar.barStyle",
+    "params.threeDSecureParams.navigationBar.statusBarColor": "threeDS.navigationBar.statusBarColor",
+    "params.threeDSecureParams.textField.borderColor": "threeDS.textField.borderColor",
+    "params.threeDSecureParams.textField.borderWidth": "threeDS.textField.borderWidth",
+    "params.threeDSecureParams.textField.borderRadius": "threeDS.textField.borderRadius",
+    "params.threeDSecureParams.textField.textColor": "threeDS.textField.textColor"
+  }
+}

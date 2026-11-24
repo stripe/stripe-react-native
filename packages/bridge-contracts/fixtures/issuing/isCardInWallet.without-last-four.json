@@ -1,0 +1,22 @@
+{
+  "method": "StripeSdk.isCardInWallet",
+  "description": "isCardInWallet without cardLastFour. Both platforms reject it before asking the wallet.",
+  "skipTypecheck": "isCardInWallet requires cardLastFour; this fixture omits it to pin the validation.",
+  "input": {
+    "params": {}
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed"
+    },
+    "ios": {
+      "result.error.message": "You must provide `cardLastFour`"
+    },
+    "android": {
+      "result.error.message": "You must provide cardLastFour"
+    }
+  },
+  "parityGaps": {
+    "result.error.message": "G9: Android leaves out the backticks around cardLastFour."
+  }
+}

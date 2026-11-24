@@ -1,0 +1,31 @@
+{
+  "method": "StripeSdk.collectBankAccountToken",
+  "description": "Financial Connections options with pre-collected consent. Both platforms map the consent the same way before presenting the sheet, which needs the network.",
+  "input": {
+    "clientSecret": "fcsess_client_secret_bridge_contracts",
+    "params": {
+      "style": "alwaysDark",
+      "connectedAccountId": "acct_bridge_contracts",
+      "preCollectedConsent": {
+        "consent": "I agree to share my account details.",
+        "collectedAt": 1700000000
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "preCollectedConsent.consent": "I agree to share my account details.",
+      "preCollectedConsent.collectedAt": 1700000000
+    },
+    "ios": {
+      "configuration.style": "alwaysDark"
+    }
+  },
+  "platformOnly": {
+    "configuration.style": "The style option is documented as iOS only."
+  },
+  "unasserted": {
+    "clientSecret": "Passed to the sheet, which needs the network.",
+    "params.connectedAccountId": "Applied to the API client (iOS) or the sheet (Android) only for the presented sheet."
+  }
+}

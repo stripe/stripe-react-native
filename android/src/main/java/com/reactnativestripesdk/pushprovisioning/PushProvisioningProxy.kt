@@ -21,7 +21,7 @@ object PushProvisioningProxy {
 
   fun getApiVersion(): String =
     try {
-      Class.forName("com.stripe.android.pushProvisioning.PushProvisioningActivity")
+      Class.forName("com.stripe.android.pushProvisioning.PushProvisioningActivityStarter")
       PushProvisioningActivity.API_VERSION
     } catch (e: Exception) {
       Log.e(TAG, "PushProvisioning dependency not found")
@@ -95,8 +95,8 @@ object PushProvisioningProxy {
           } else if (requestCode == PushProvisioningActivityStarter.REQUEST_CODE) {
             if (resultCode == PushProvisioningActivity.RESULT_OK) {
               tokenRequiringTokenization?.let { tokenRequiringTokenization ->
-                val tokenReferenceId = tokenRequiringTokenization.getString("id")
-                if (tokenReferenceId.isNullOrBlank()) {
+                val request = TapAndPayProxy.tokenizeRequest(tokenRequiringTokenization, description)
+                if (request == null) {
                   view.dispatchEvent(
                     mapError(
                       "Failed",
@@ -108,12 +108,7 @@ object PushProvisioningProxy {
                     ),
                   )
                 } else {
-                  TapAndPayProxy.tokenize(
-                    activity,
-                    tokenReferenceId,
-                    tokenRequiringTokenization,
-                    description,
-                  )
+                  TapAndPayProxy.tokenize(activity, request)
                 }
               } ?: run { view.dispatchEvent(null) }
             } else if (resultCode == PushProvisioningActivity.RESULT_ERROR) {

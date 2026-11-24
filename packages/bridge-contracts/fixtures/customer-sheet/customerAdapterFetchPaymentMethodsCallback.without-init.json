@@ -1,0 +1,21 @@
+{
+  "method": "StripeSdk.customerAdapterFetchPaymentMethodsCallback",
+  "description": "The callback arrives with no CustomerSheet. iOS drops it and resolves; Android resolves an error.",
+  "input": {
+    "paymentMethods": []
+  },
+  "expect": {
+    "ios": {
+      "result": []
+    },
+    "android": {
+      "result.error.code": "Failed",
+      "result.error.message": "No customer sheet has been initialized yet."
+    }
+  },
+  "parityGaps": {
+    "result": "G12: iOS resolves success when no CustomerSheet is waiting; Android reports the missing init.",
+    "result.error.code": "G12: see result.",
+    "result.error.message": "G12: see result."
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "method": "StripeSdk.confirmPayment",
+  "description": "Card token confirm with setupFutureUsage and metadata. Assertions are on the PaymentIntent confirm form parameters.",
+  "input": {
+    "paymentIntentClientSecret": "pi_bridge_secret_contracts",
+    "params": {
+      "paymentMethodType": "Card",
+      "paymentMethodData": {
+        "token": "tok_visa",
+        "billingDetails": {
+          "name": "Jenny Rosen"
+        },
+        "metadata": {
+          "order_id": "1234"
+        }
+      }
+    },
+    "options": {
+      "setupFutureUsage": "OffSession"
+    }
+  },
+  "expect": {
+    "shared": {
+      "api.client_secret": "pi_bridge_secret_contracts",
+      "api.setup_future_usage": "off_session",
+      "api.payment_method_data.type": "card",
+      "api.payment_method_data.card.token": "tok_visa",
+      "api.payment_method_data.billing_details.name": "Jenny Rosen",
+      "api.payment_method_data.metadata.order_id": "1234",
+      "api.return_url": "bridgecontracts://safepay"
+    }
+  },
+  "covers": {
+    "paymentIntentClientSecret": "api.client_secret",
+    "params.paymentMethodType": "api.payment_method_data.type",
+    "params.paymentMethodData.token": "api.payment_method_data.card.token",
+    "options.setupFutureUsage": "api.setup_future_usage"
+  }
+}

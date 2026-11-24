@@ -1,0 +1,30 @@
+{
+  "method": "StripeSdk.initCustomerSheet",
+  "description": "A CustomerSession setup: intentConfiguration and a clientSecretProvider instead of an ephemeral key. Both platforms build the sheet around the intent configuration.",
+  "input": {
+    "params": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "intentConfiguration": {
+        "paymentMethodTypes": ["card", "us_bank_account"],
+        "onBehalfOf": "acct_bridge_contracts"
+      },
+      "clientSecretProvider": {
+        "provideSetupIntentClientSecret": "$function",
+        "provideCustomerSessionClientSecret": "$function"
+      }
+    },
+    "customerAdapterOverrides": {}
+  },
+  "expect": {
+    "shared": {
+      "result.error": null,
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc.",
+      "intentConfiguration.paymentMethodTypes": ["card", "us_bank_account"],
+      "intentConfiguration.onBehalfOf": "acct_bridge_contracts",
+      "customerAdapter": null
+    }
+  },
+  "unasserted": {
+    "params.clientSecretProvider": "JS keeps the provider functions and answers native events; native never calls the values it receives in params."
+  }
+}

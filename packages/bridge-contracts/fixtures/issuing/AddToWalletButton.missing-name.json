@@ -1,0 +1,40 @@
+{
+  "method": "component:AddToWalletButton",
+  "platforms": ["ios"],
+  "description": "AddToWalletButton without cardDetails.name. iOS reports Failed on onCompleteAction and does not build a pass request. Android does not read the name, so this case is iOS only.",
+  "skipTypecheck": "cardDetails.name is required; this fixture omits it to pin the missing-name error.",
+  "input": {
+    "cardDetails": {
+      "primaryAccountIdentifier": null,
+      "lastFour": "4242",
+      "description": "Bridge Contracts card",
+      "brand": "Visa"
+    },
+    "ephemeralKey": {
+      "id": "ephkey_bridge_contracts",
+      "secret": "ek_test_bridge_contracts"
+    },
+    "onCompleteAction": "$function"
+  },
+  "expect": {
+    "ios": {
+      "events.onCompleteAction.error.code": "Failed",
+      "events.onCompleteAction.error.message": "Missing parameters. `cardDetails.name` must be supplied in the props to <AddToWalletButton />"
+    }
+  },
+  "parityGaps": {
+    "events.onCompleteAction.error.code": "G20: iOS rejects a missing cardDetails.name; Android does not read the name.",
+    "events.onCompleteAction.error.message": "G20: see events.onCompleteAction.error.code."
+  },
+  "covers": {
+    "onCompleteAction": "events.onCompleteAction.error.code"
+  },
+  "unasserted": {
+    "cardDetails.primaryAccountIdentifier": "The missing-name failure returns before the pass request reads this field.",
+    "cardDetails.lastFour": "The missing-name failure returns before the pass request reads this field.",
+    "cardDetails.description": "The missing-name failure returns before the pass request reads this field.",
+    "cardDetails.brand": "The missing-name failure returns before the pass request reads this field.",
+    "ephemeralKey.id": "The name check does not read the ephemeral key; the card-and-key fixture pins it.",
+    "ephemeralKey.secret": "See ephemeralKey.id."
+  }
+}

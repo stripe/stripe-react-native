@@ -1,0 +1,70 @@
+buildscript {
+    apply(from: {
+        def searchDir = rootDir.toPath()
+        do {
+            def p = searchDir.resolve("node_modules/react-native-test-app/android/dependencies.gradle")
+            if (p.toFile().exists()) {
+                return p.toRealPath().toString()
+            }
+        } while (searchDir = searchDir.getParent())
+        throw new GradleException("Could not find `react-native-test-app`");
+    }())
+
+    repositories {
+        mavenCentral()
+        google()
+    }
+
+    dependencies {
+        getReactNativeDependencies().each { dependency ->
+            classpath(dependency)
+        }
+    }
+}
+
+allprojects {
+    // Google's TapAndPay SDK is private and not available to the harness.
+    configurations.all {
+        exclude group: 'com.google.android.gms', module: 'play-services-tapandpay'
+    }
+
+    repositories {
+        {
+            def searchDir = rootDir.toPath()
+            do {
+                def p = searchDir.resolve("node_modules/react-native/android")
+                if (p.toFile().exists()) {
+                    maven {
+                        url = p.toRealPath().toString()
+                    }
+                    break
+                }
+            } while (searchDir = searchDir.getParent())
+        }()
+        mavenCentral()
+        google()
+    }
+}
+
+// react-native-coverage: Jacoco on the SDK library project (autolinked as
+// :stripe_stripe-react-native), the Emma runtime in the debug app, and the
+// jacocoTestReport task on :app.
+ext.coverageLibraryProjectMatchers = ['stripe-react-native']
+def rnCoverageRoot = new File(
+    ["node", "--print", "require.resolve('react-native-coverage/package.json')"]
+        .execute(null, rootDir).text.trim()
+).parentFile
+apply from: new File(rnCoverageRoot, "android/rn-coverage.gradle")
+
+project(':app') { app ->
+    app.pluginManager.withPlugin('com.android.application') {
+        app.android.buildTypes.debug.enableAndroidTestCoverage = true
+    }
+    // rn-coverage-jacoco.gradle looks up the instrumented library projects
+    // when it is applied. Gradle configures :app before them, and React
+    // Native's Gradle plugin requires that order, so apply it once every
+    // project is configured.
+    gradle.projectsEvaluated {
+        app.apply from: new File(rnCoverageRoot, "android/rn-coverage-jacoco.gradle")
+    }
+}

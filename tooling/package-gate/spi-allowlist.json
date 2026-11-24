@@ -1,0 +1,5 @@
+{
+  "forbidden": ["InternalOnlyAPI", "DashboardOnly"],
+  "reason": "Legacy ios/ imports that still reach stripe-ios internals through forbidden SPI names. stripe-react-native#2787 merged; new code must use _spi(ReactNativeSDK) and must not be listed here. Entries only shrink: remove one when its import changes, and the gate fails if an entry no longer matches the source.",
+  "sites": []
+}

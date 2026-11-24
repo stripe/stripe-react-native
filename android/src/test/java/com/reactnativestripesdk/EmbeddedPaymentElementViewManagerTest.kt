@@ -355,6 +355,8 @@ class EmbeddedPaymentElementViewManagerTest {
       object : BridgeReactContext(app) {
         private val stripeSdkModule by lazy { StripeSdkModule(this).also { it.initialize() } }
 
+        override fun hasActiveReactInstance(): Boolean = true
+
         override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
           nativeModuleInterface.cast(stripeSdkModule)
 

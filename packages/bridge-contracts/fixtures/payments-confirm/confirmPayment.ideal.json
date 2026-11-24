@@ -1,0 +1,33 @@
+{
+  "method": "StripeSdk.confirmPayment",
+  "description": "iDEAL with a bank name and billing details.",
+  "input": {
+    "paymentIntentClientSecret": "pi_bridge_secret_contracts",
+    "params": {
+      "paymentMethodType": "Ideal",
+      "paymentMethodData": {
+        "bankName": "abn_amro",
+        "billingDetails": {
+          "name": "Jenny Rosen",
+          "email": "jenny@example.com"
+        }
+      }
+    },
+    "options": {}
+  },
+  "expect": {
+    "shared": {
+      "api.client_secret": "pi_bridge_secret_contracts",
+      "api.payment_method_data.type": "ideal",
+      "api.payment_method_data.ideal.bank": "abn_amro",
+      "api.payment_method_data.billing_details.name": "Jenny Rosen",
+      "api.payment_method_data.billing_details.email": "jenny@example.com",
+      "api.return_url": "bridgecontracts://safepay"
+    }
+  },
+  "covers": {
+    "paymentIntentClientSecret": "api.client_secret",
+    "params.paymentMethodType": "api.payment_method_data.type",
+    "params.paymentMethodData.bankName": "api.payment_method_data.ideal.bank"
+  }
+}

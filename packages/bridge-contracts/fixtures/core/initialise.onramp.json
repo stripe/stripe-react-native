@@ -1,0 +1,31 @@
+{
+  "method": "OnrampSdk.initialise",
+  "description": "Android only: initStripe calls OnrampSdk.initialise only when Platform.OS is android. On iOS the Onramp module forwards to StripeSdkImpl.initialise, which the StripeSdk.initialise fixtures cover.",
+  "platforms": ["android"],
+  "input": {
+    "params": {
+      "publishableKey": "pk_test_bridge_contracts",
+      "stripeAccountId": "acct_bridge",
+      "appInfo": {
+        "name": "@stripe/stripe-react-native",
+        "url": "https://github.com/stripe/stripe-react-native",
+        "version": "0.0.0-fixture"
+      }
+    }
+  },
+  "expect": {
+    "android": {
+      "result": null,
+      "onramp.publishableKey": "pk_test_bridge_contracts",
+      "onramp.stripeAccountId": "acct_bridge",
+      "onramp.reactNativeSdkVersion": "0.0.0-fixture"
+    }
+  },
+  "covers": {
+    "params.appInfo.version": "onramp.reactNativeSdkVersion"
+  },
+  "unasserted": {
+    "params.appInfo.name": "OnrampSdkModule.initialise reads only appInfo.version.",
+    "params.appInfo.url": "OnrampSdkModule.initialise reads only appInfo.version."
+  }
+}

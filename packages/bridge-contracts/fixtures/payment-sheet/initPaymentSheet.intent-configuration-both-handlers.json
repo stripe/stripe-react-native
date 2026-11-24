@@ -1,0 +1,48 @@
+{
+  "method": "StripeSdk.initPaymentSheet",
+  "description": "IntentConfiguration with both confirmHandler and confirmationTokenConfirmHandler.",
+  "input": {
+    "params": {
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "intentConfiguration": {
+        "mode": {
+          "type": "payment",
+          "amount": 100,
+          "currencyCode": "usd",
+          "captureMethod": "Automatic"
+        },
+        "confirmHandler": "$function",
+        "confirmationTokenConfirmHandler": "$function"
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "configuration.merchantDisplayName": "Bridge Contracts, Inc."
+    },
+    "ios": {
+      "result.error.code": "Failed",
+      "result.error.message": "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both",
+      "intentConfiguration.mode.amount": null
+    },
+    "android": {
+      "result.error.code": null,
+      "result.error.message": null,
+      "intentConfiguration.mode.amount": 100
+    }
+  },
+  "parityGaps": {
+    "result.error.code": "G5: iOS rejects an intentConfiguration with both handlers; Android accepts it and uses the confirmation-token handler (PaymentSheetManager.configureMode).",
+    "result.error.message": "G5: See result.error.code.",
+    "intentConfiguration.mode.amount": "G5: See result.error.code; iOS builds no IntentConfiguration."
+  },
+  "covers": {
+    "params.intentConfiguration.mode.currencyCode": "result.error.code",
+    "params.intentConfiguration.confirmHandler": "result.error.code",
+    "params.intentConfiguration.confirmationTokenConfirmHandler": "result.error.code"
+  },
+  "unasserted": {
+    "params.intentConfiguration.mode.type": "The builder consumes mode.type to choose payment or setup. Native code asserts the resulting mode, not this discriminator.",
+    "params.intentConfiguration.mode.captureMethod": "Both handlers are rejected before a configuration is built, so captureMethod is not observed."
+  }
+}

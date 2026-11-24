@@ -1,0 +1,35 @@
+{
+  "method": "StripeSdk.initPaymentSheet",
+  "description": "A custom font that is not bundled fails while building the appearance on both platforms, with different messages.",
+  "input": {
+    "params": {
+      "paymentIntentClientSecret": "pi_bridge_secret_contracts",
+      "merchantDisplayName": "Bridge Contracts, Inc.",
+      "appearance": {
+        "font": {
+          "family": "NotABundledFont"
+        }
+      }
+    }
+  },
+  "expect": {
+    "shared": {
+      "result.error.code": "Failed",
+      "configuration": null
+    },
+    "ios": {
+      "result.error.message": "$present"
+    },
+    "android": {
+      "result.error.message": "Encountered an error when setting a custom font: Failed to find font: NotABundledFont"
+    }
+  },
+  "parityGaps": {
+    "result.error.message": "G9: Android names the missing font file; iOS returns its PaymentSheetAppearanceError.missingFont description."
+  },
+  "covers": {
+    "params.paymentIntentClientSecret": "result.error.code",
+    "params.merchantDisplayName": "result.error.code",
+    "params.appearance.font.family": "result.error.message"
+  }
+}

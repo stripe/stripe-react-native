@@ -1,0 +1,43 @@
+{
+  "method": "component:CardForm",
+  "description": "CardForm style, default values, and placeholders. iOS applies only the documented cross-platform styles; Android also applies text styles, default values, and placeholders in place.",
+  "input": {
+    "cardStyle": {
+      "backgroundColor": "#fafafa",
+      "borderColor": "#112233",
+      "borderRadius": 8,
+      "textColor": "#445566",
+      "fontSize": 16
+    },
+    "defaultValues": { "countryCode": "CA" },
+    "placeholders": {
+      "number": "4242 4242 4242 4242",
+      "expiration": "MM/YY",
+      "postalCode": "ZIP"
+    }
+  },
+  "expect": {
+    "shared": {
+      "cardStyle.backgroundColor": "#fafafa",
+      "cardStyle.borderColor": "#112233",
+      "cardStyle.borderRadius": 8,
+      "rebuildsFormOnPropsUpdate": false
+    },
+    "android": {
+      "cardStyle.textColor": "#445566",
+      "cardStyle.fontSize": 16,
+      "defaultValues.countryCode": "CA",
+      "placeholders.number": "4242 4242 4242 4242",
+      "placeholders.expiration": "MM/YY",
+      "placeholders.postalCode": "ZIP"
+    }
+  },
+  "platformOnly": {
+    "cardStyle.textColor": "CardForm documents every style except backgroundColor, cursorColor, borderColor, and borderRadius as Android only.",
+    "cardStyle.fontSize": "CardForm documents every style except backgroundColor, cursorColor, borderColor, and borderRadius as Android only.",
+    "defaultValues.countryCode": "CardForm.defaultValues is documented as Android only.",
+    "placeholders.number": "CardForm.placeholders is documented as Android only.",
+    "placeholders.expiration": "CardForm.placeholders is documented as Android only.",
+    "placeholders.postalCode": "CardForm.placeholders is documented as Android only."
+  }
+}

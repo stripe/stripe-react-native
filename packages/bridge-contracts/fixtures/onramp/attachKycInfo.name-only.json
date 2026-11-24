@@ -1,0 +1,17 @@
+{
+  "method": "OnrampSdk.attachKycInfo",
+  "description": "KYC details with only a first name. Both KYC mappers leave the missing date of birth, address, and nationalities empty.",
+  "input": {
+    "kycInfo": { "firstName": "Jenny" }
+  },
+  "expect": {
+    "shared": {
+      "kycInfo.firstName": "Jenny",
+      "kycInfo.lastName": null,
+      "kycInfo.dateOfBirth": null,
+      "kycInfo.nationalities": null,
+      "result.error.code": "Failed",
+      "result.error.message": "Onramp is not configured."
+    }
+  }
+}

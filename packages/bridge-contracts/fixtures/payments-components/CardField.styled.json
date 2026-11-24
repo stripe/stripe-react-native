@@ -1,0 +1,51 @@
+{
+  "method": "component:CardField",
+  "description": "CardField style and placeholder props, and the change event after typing a complete Visa card. Both platforms apply the styles to their card text field.",
+  "input": {
+    "cardStyle": {
+      "borderWidth": 2,
+      "backgroundColor": "#fafafa",
+      "borderColor": "#112233",
+      "borderRadius": 8,
+      "textColor": "#445566",
+      "fontSize": 16,
+      "placeholderColor": "#778899",
+      "textErrorColor": "#aa0000"
+    },
+    "onCardChange": "$function",
+    "placeholders": {
+      "number": "4242 4242 4242 4242",
+      "expiration": "MM/YY",
+      "postalCode": "ZIP"
+    }
+  },
+  "expect": {
+    "shared": {
+      "cardStyle.borderWidth": 2,
+      "cardStyle.backgroundColor": "#fafafa",
+      "cardStyle.borderColor": "#112233",
+      "cardStyle.borderRadius": 8,
+      "cardStyle.textColor": "#445566",
+      "cardStyle.fontSize": 16,
+      "cardStyle.placeholderColor": "#778899",
+      "cardStyle.textErrorColor": "#aa0000",
+      "placeholders.number": "4242 4242 4242 4242",
+      "placeholders.expiration": "MM/YY",
+      "placeholders.postalCode": "ZIP",
+      "events.onCardChange.card.complete": true,
+      "events.onCardChange.card.brand": "Visa",
+      "events.onCardChange.card.last4": "4242",
+      "events.onCardChange.card.expiryMonth": 12,
+      "events.onCardChange.card.expiryYear": 34,
+      "events.onCardChange.card.validNumber": "Valid",
+      "events.onCardChange.card.validCVC": "Valid",
+      "events.onCardChange.card.validExpiryDate": "Valid",
+      "events.onCardChange.card.postalCode": "94107",
+      "events.onCardChange.card.number": null,
+      "events.onCardChange.card.cvc": null
+    }
+  },
+  "covers": {
+    "onCardChange": "events.onCardChange.card.complete"
+  }
+}

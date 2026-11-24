@@ -9,6 +9,23 @@ import Foundation
 import React
 @_spi(LinkControllerPreview) import StripePaymentSheet
 
+@MainActor protocol LinkControllerBridging: AnyObject {
+    var paymentMethodPreview: LinkController.PaymentMethodPreview? { get }
+    func present(
+        email: String,
+        phoneNumber: String?,
+        from presentingViewController: UIViewController,
+        completion: @escaping (Result<LinkController.PaymentMethodResult, Error>) -> Void
+    )
+    func confirmSetupIntent(
+        clientSecret: String,
+        from presentingViewController: UIViewController,
+        completion: @escaping (Result<LinkController.PaymentMethodResult, Error>) -> Void
+    )
+}
+
+extension LinkController: LinkControllerBridging {}
+
 extension StripeSdkImpl {
     @objc(initLinkController:resolver:rejecter:)
     public func initLinkController(
@@ -18,6 +35,24 @@ extension StripeSdkImpl {
     ) {
         let email = params["email"] as? String
         let phoneNumber = params["phoneNumber"] as? String
+        let (configuration, appearance) = Self.buildLinkConfiguration(params)
+
+        createLinkController(appearance, configuration) { [weak self] result in
+            switch result {
+            case .success(let controller):
+                self?.linkController = controller
+                self?.linkControllerEmail = email
+                self?.linkControllerPhone = phoneNumber
+                resolve([:])
+            case .failure(let error):
+                resolve(Errors.createError(ErrorType.Failed, error))
+            }
+        }
+    }
+
+    static func buildLinkConfiguration(
+        _ params: NSDictionary
+    ) -> (configuration: LinkConfiguration, appearance: LinkAppearance?) {
         let merchantDisplayName = params["merchantDisplayName"] as? String
         let allowLogout = params["allowLogout"] as? Bool ?? true
 
@@ -57,22 +92,7 @@ extension StripeSdkImpl {
             merchantDisplayName: merchantDisplayName,
             billingDetailsCollectionConfiguration: billingConfig
         )
-
-        LinkController.create(
-            apiClient: STPAPIClient.shared,
-            appearance: appearance,
-            configuration: configuration
-        ) { [weak self] result in
-            switch result {
-            case .success(let controller):
-                self?.linkController = controller
-                self?.linkControllerEmail = email
-                self?.linkControllerPhone = phoneNumber
-                resolve([:])
-            case .failure(let error):
-                resolve(Errors.createError(ErrorType.Failed, error))
-            }
-        }
+        return (configuration, appearance)
     }
 
     @objc(presentLinkController:rejecter:)

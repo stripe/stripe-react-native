@@ -1,0 +1,47 @@
+{
+  "method": "StripeSdk.customerAdapterFetchPaymentMethodsCallback",
+  "description": "JS answers a fetchPaymentMethods request after an ephemeral-key init with an overriding adapter. Both platforms decode the API JSON into payment methods and hand them to the waiting adapter call.",
+  "input": {
+    "paymentMethods": [
+      {
+        "id": "pm_bridge_contracts",
+        "object": "payment_method",
+        "type": "card",
+        "created": 1700000000,
+        "livemode": false,
+        "card": {
+          "brand": "visa",
+          "last4": "4242",
+          "exp_month": 12,
+          "exp_year": 2030
+        }
+      }
+    ]
+  },
+  "expect": {
+    "shared": {
+      "delivered.0.id": "pm_bridge_contracts",
+      "delivered.0.card.last4": "4242",
+      "delivered.0.card.expMonth": 12,
+      "delivered.0.card.expYear": 2030
+    },
+    "ios": {
+      "result": []
+    },
+    "android": {
+      "result": {}
+    }
+  },
+  "parityGaps": {
+    "result": "G11: Android resolves an empty object; iOS resolves an empty array."
+  },
+  "covers": {
+    "paymentMethods.0.object": "delivered.0.id",
+    "paymentMethods.0.type": "delivered.0.id",
+    "paymentMethods.0.card.brand": "delivered.0.card.last4"
+  },
+  "unasserted": {
+    "paymentMethods.0.created": "Decoded into a date on iOS and a Long on Android; the shared keys pin the decode itself.",
+    "paymentMethods.0.livemode": "Decoded but not used by CustomerSheet."
+  }
+}

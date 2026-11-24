@@ -1,6 +1,7 @@
 package com.reactnativestripesdk.customersheet
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
@@ -57,47 +58,13 @@ class CustomerSheetManager(
   private var keepJsAwake: KeepJsAwakeTask? = null
 
   override fun onCreate() {
-    val headerTextForSelectionScreen = arguments.getString("headerTextForSelectionScreen")
-    val merchantDisplayName = arguments.getString("merchantDisplayName")
-    val googlePayEnabled = arguments.getBooleanOr("googlePayEnabled", false)
-    val billingDetailsMap = arguments.getMap("defaultBillingDetails")
-    val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
-    val allowsRemovalOfLastSavedPaymentMethod =
-      arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
-    val opensCardScannerAutomatically =
-      arguments.getBooleanOr("opensCardScannerAutomatically", false)
-    val paymentMethodOrder = arguments.getStringList("paymentMethodOrder")
-
-    val appearance =
+    val configuration =
       try {
-        buildPaymentSheetAppearance(arguments.getMap("appearance"), context)
+        buildCustomerSheetConfiguration(arguments, context)
       } catch (error: PaymentSheetAppearanceException) {
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
       }
-
-    val configuration =
-      CustomerSheet.Configuration
-        .builder(merchantDisplayName ?: "")
-        .appearance(appearance)
-        .googlePayEnabled(googlePayEnabled)
-        .headerTextForSelectionScreen(headerTextForSelectionScreen)
-        .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
-        .opensCardScannerAutomatically(opensCardScannerAutomatically)
-        .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
-
-    arguments.getIntegerList("preferredNetworks")?.let {
-      configuration.preferredNetworks(mapToPreferredNetworks(it))
-    }
-    paymentMethodOrder?.let { configuration.paymentMethodOrder(it) }
-    billingDetailsMap?.let {
-      configuration.defaultBillingDetails(createDefaultBillingDetails(billingDetailsMap))
-    }
-    billingConfigParams?.let {
-      configuration.billingDetailsCollectionConfiguration(
-        createBillingDetailsCollectionConfiguration(billingConfigParams),
-      )
-    }
 
     val activity = getCurrentActivityOrResolveWithError(initPromise) ?: return
 
@@ -161,7 +128,7 @@ class CustomerSheetManager(
       return
     }
 
-    customerSheet?.configure(configuration.build())
+    customerSheet?.configure(configuration)
 
     initPromise.resolve(Arguments.createMap())
   }
@@ -436,4 +403,48 @@ class CustomerSheetManager(
       return result
     }
   }
+}
+
+@Throws(PaymentSheetAppearanceException::class)
+@OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
+internal fun buildCustomerSheetConfiguration(
+  arguments: ReadableMap,
+  context: Context,
+): CustomerSheet.Configuration {
+  val headerTextForSelectionScreen = arguments.getString("headerTextForSelectionScreen")
+  val merchantDisplayName = arguments.getString("merchantDisplayName")
+  val googlePayEnabled = arguments.getBooleanOr("googlePayEnabled", false)
+  val billingDetailsMap = arguments.getMap("defaultBillingDetails")
+  val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
+  val allowsRemovalOfLastSavedPaymentMethod =
+    arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
+  val opensCardScannerAutomatically =
+    arguments.getBooleanOr("opensCardScannerAutomatically", false)
+  val paymentMethodOrder = arguments.getStringList("paymentMethodOrder")
+
+  val appearance = buildPaymentSheetAppearance(arguments.getMap("appearance"), context)
+
+  val configuration =
+    CustomerSheet.Configuration
+      .builder(merchantDisplayName ?: "")
+      .appearance(appearance)
+      .googlePayEnabled(googlePayEnabled)
+      .headerTextForSelectionScreen(headerTextForSelectionScreen)
+      .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+      .opensCardScannerAutomatically(opensCardScannerAutomatically)
+      .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
+
+  arguments.getIntegerList("preferredNetworks")?.let {
+    configuration.preferredNetworks(mapToPreferredNetworks(it))
+  }
+  paymentMethodOrder?.let { configuration.paymentMethodOrder(it) }
+  billingDetailsMap?.let {
+    configuration.defaultBillingDetails(CustomerSheetManager.createDefaultBillingDetails(billingDetailsMap))
+  }
+  billingConfigParams?.let {
+    configuration.billingDetailsCollectionConfiguration(
+      CustomerSheetManager.createBillingDetailsCollectionConfiguration(billingConfigParams),
+    )
+  }
+  return configuration.build()
 }
