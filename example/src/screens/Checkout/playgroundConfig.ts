@@ -215,6 +215,7 @@ export function buildSessionParameters(
   }
   if (settings.automaticTax) {
     params.automatic_tax = { enabled: true };
+    params.invoice_creation = { enabled: true };
   }
   if (settings.billingAddressCollection === 'required') {
     params.billing_address_collection = 'required';
