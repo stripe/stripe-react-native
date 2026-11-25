@@ -11,6 +11,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.graphics.ColorUtils
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
@@ -34,7 +35,7 @@ class NavigationBarView(
             LayoutParams.MATCH_PARENT,
             LayoutParams.WRAP_CONTENT,
           )
-        setBackgroundColor(Color.WHITE)
+        setBackgroundColor(DEFAULT_BACKGROUND_COLOR)
         elevation = TOOLBAR_ELEVATION
       }
 
@@ -42,7 +43,7 @@ class NavigationBarView(
     titleTextView =
       TextView(context).apply {
         textSize = TITLE_TEXT_SIZE
-        setTextColor(Color.BLACK)
+        setTextColor(DEFAULT_CONTENT_COLOR)
         gravity = Gravity.CENTER
       }
 
@@ -66,14 +67,6 @@ class NavigationBarView(
             null,
           ),
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          drawable?.setColorFilter(
-            android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN)
-          )
-        } else {
-          @Suppress("DEPRECATION")
-          drawable?.setColorFilter(PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN))
-        }
         setBackgroundColor(Color.TRANSPARENT)
         setOnClickListener {
           dispatchCloseButtonPress()
@@ -94,6 +87,36 @@ class NavigationBarView(
 
     // Add toolbar to this view
     addView(toolbar)
+
+    applyContentColor(DEFAULT_CONTENT_COLOR)
+  }
+
+  /**
+   * Called with the `backgroundColor` of the view's style. The toolbar draws its own background,
+   * so it has to follow this color or it would cover it. The title and close icon switch between
+   * black and white to stay readable. A transparent color (the default when the style is unset)
+   * restores the white bar with black content.
+   */
+  fun setBarBackgroundColor(color: Int) {
+    if (Color.alpha(color) == 0) {
+      toolbar.setBackgroundColor(DEFAULT_BACKGROUND_COLOR)
+      applyContentColor(DEFAULT_CONTENT_COLOR)
+    } else {
+      toolbar.setBackgroundColor(color)
+      applyContentColor(contentColorFor(color))
+    }
+  }
+
+  private fun applyContentColor(color: Int) {
+    titleTextView.setTextColor(color)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      closeButton.drawable?.setColorFilter(
+        android.graphics.BlendModeColorFilter(color, android.graphics.BlendMode.SRC_IN),
+      )
+    } else {
+      @Suppress("DEPRECATION")
+      closeButton.drawable?.setColorFilter(PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN))
+    }
   }
 
   fun setTitle(title: String?) {
@@ -131,10 +154,19 @@ class NavigationBarView(
     override fun getEventData() = Arguments.createMap()
   }
 
-  private companion object {
-    const val TOOLBAR_ELEVATION = 4f
-    const val TITLE_TEXT_SIZE = 17f
-    const val CLOSE_BUTTON_MARGIN_END = 16
-    const val NAV_BAR_HEIGHT_DP = 56
+  internal companion object {
+    private const val DEFAULT_BACKGROUND_COLOR = Color.WHITE
+    private const val DEFAULT_CONTENT_COLOR = Color.BLACK
+    private const val TOOLBAR_ELEVATION = 4f
+    private const val TITLE_TEXT_SIZE = 17f
+    private const val CLOSE_BUTTON_MARGIN_END = 16
+    private const val NAV_BAR_HEIGHT_DP = 56
+
+    // Relative luminance at which black and white text have the same contrast ratio (WCAG).
+    private const val LUMINANCE_CROSSOVER = 0.179
+
+    /** Black or white, whichever is more readable on [background]. */
+    fun contentColorFor(background: Int): Int =
+      if (ColorUtils.calculateLuminance(background) > LUMINANCE_CROSSOVER) Color.BLACK else Color.WHITE
   }
 }

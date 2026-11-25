@@ -205,7 +205,7 @@ export function ConnectAccountOnboarding({
       animationType="slide"
       presentationStyle="fullScreen"
     >
-      <SafeAreaView style={styles.flex1}>
+      <SafeAreaView style={[styles.flex1, { backgroundColor }]}>
         <View
           style={[
             Platform.OS === 'android' && {
@@ -216,7 +216,7 @@ export function ConnectAccountOnboarding({
           <NavigationBar
             title={title}
             onCloseButtonPress={onExitCallback}
-            style={styles.navBar}
+            style={[styles.navBar, { backgroundColor }]}
           />
         </View>
         <View style={styles.onboardingWrapper}>
