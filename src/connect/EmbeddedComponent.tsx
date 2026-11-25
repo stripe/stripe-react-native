@@ -25,7 +25,6 @@ import type {
 import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
-import { addListener } from '../events';
 import { useConnectComponents } from './ConnectComponentsProvider';
 import type {
   LoadError,
@@ -712,8 +711,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         // Setup event listener for debugging
         let eventListener: EventSubscription | null = null;
         if (__DEV__) {
-          eventListener = addListener(
-            'onFinancialConnectionsEvent',
+          eventListener = NativeStripeSdk.onFinancialConnectionsEvent(
             (fcEvent: FinancialConnections.FinancialConnectionsEvent) => {
               console.debug(
                 `[FinancialConnections ${component}]: ${fcEvent.name}`,

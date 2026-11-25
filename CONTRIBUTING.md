@@ -205,8 +205,6 @@ The public API is everything exported from `src/index.tsx`.
 
 The SDK requires React Native 0.87 or later and the new architecture.
 
-React Native versions before 0.80 still require the event-emitter compatibility layers in `src/events.ts`, Android's `EventEmitterCompat.kt`, and `ios/StripeSdkEventEmitterCompat.{h,m}`.
-
 ## Scripts reference
 
 | Script | Description |

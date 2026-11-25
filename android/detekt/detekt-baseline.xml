@@ -58,7 +58,6 @@
     <ID>TooManyFunctions:CardFieldView.kt:CardFieldView : FrameLayout</ID>
     <ID>TooManyFunctions:CardFieldViewManager.kt:CardFieldViewManager : SimpleViewManagerCardFieldManagerInterface</ID>
     <ID>TooManyFunctions:CardFormViewManager.kt:CardFormViewManager : SimpleViewManagerCardFormManagerInterface</ID>
-    <ID>TooManyFunctions:EventEmitterCompat.kt:EventEmitterCompat</ID>
     <ID>TooManyFunctions:Extensions.kt:com.reactnativestripesdk.utils.Extensions.kt</ID>
     <ID>TooManyFunctions:Mappers.kt:com.reactnativestripesdk.utils.Mappers.kt</ID>
     <ID>TooManyFunctions:PaymentElementConfig.kt:com.reactnativestripesdk.PaymentElementConfig.kt</ID>

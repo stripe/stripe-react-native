@@ -3,7 +3,6 @@ import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
 import { Onramp } from '../types';
 import type { Address } from '../types';
 import { useCallback } from 'react';
-import { addOnrampListener } from '../events';
 import { CryptoPaymentToken } from '../types/Onramp';
 
 export function requireOnrampModule() {
@@ -228,17 +227,15 @@ export function useOnramp() {
       provideCheckoutClientSecret: () => Promise<string | null>
     ): Promise<{ error?: Onramp.CryptoOnrampError }> => {
       onCheckoutClientSecretRequestedSubscription?.remove();
-      onCheckoutClientSecretRequestedSubscription = addOnrampListener(
-        'onCheckoutClientSecretRequested',
-        async () => {
+      onCheckoutClientSecretRequestedSubscription =
+        NativeOnrampSdk?.onCheckoutClientSecretRequested(async () => {
           try {
             const clientSecret = await provideCheckoutClientSecret();
             requireOnrampModule().provideCheckoutClientSecret(clientSecret);
           } catch {
             requireOnrampModule().provideCheckoutClientSecret(null);
           }
-        }
-      );
+        }) ?? null;
       return requireOnrampModule().performCheckout(onrampSessionId);
     },
     []

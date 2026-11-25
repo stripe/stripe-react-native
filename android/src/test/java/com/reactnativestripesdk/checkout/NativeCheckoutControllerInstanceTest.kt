@@ -11,8 +11,6 @@ import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
-import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.elements.ExpressCheckoutElement
@@ -47,7 +45,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -619,18 +616,20 @@ class NativeCheckoutControllerInstanceTest {
       `when`(controller.session).thenReturn(sessions)
       `when`(controller.isUpdating).thenReturn(updating)
       `when`(context.resources).thenReturn(ApplicationProvider.getApplicationContext<Context>().resources)
-      val emitter = mock(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      `when`(context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)).thenReturn(emitter)
-      doAnswer { invocation ->
-        val name = invocation.getArgument<String>(0)
-        eventNames.add(name)
-        val event = invocation.getArgument<ReadableMap>(1)
-        if (name == "checkoutExpressCheckoutDidComplete") expressResults.add(event) else events.add(event)
-        null
-      }.`when`(emitter).emit(anyString(), any())
+      val emitter = object : CheckoutEventEmitter {
+        override fun emitCheckoutControllerDidUpdate(value: ReadableMap) {
+          eventNames.add("checkoutControllerDidUpdate")
+          events.add(value)
+        }
+
+        override fun emitCheckoutExpressCheckoutDidComplete(value: ReadableMap) {
+          eventNames.add("checkoutExpressCheckoutDidComplete")
+          expressResults.add(value)
+        }
+      }
       instance = NativeCheckoutControllerInstance(
         controller,
-        EventEmitterCompat(context),
+        emitter,
         scope,
         com.facebook.react.bridge.JavaOnlyMap.of("id", "cs_test", "email", "jenny@example.com"),
         context,

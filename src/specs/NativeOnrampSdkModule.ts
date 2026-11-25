@@ -1,4 +1,8 @@
-import { type TurboModule, TurboModuleRegistry } from 'react-native';
+import {
+  type CodegenTypes,
+  type TurboModule,
+  TurboModuleRegistry,
+} from 'react-native';
 import type { Address, InitialiseParams, Onramp } from '../types';
 import type { UnsafeObject } from './utils';
 
@@ -56,8 +60,9 @@ export interface Spec extends TurboModule {
     token: UnsafeObject<Onramp.CryptoPaymentToken>
   ): Promise<Onramp.PaymentDisplayDataResult>;
   logout(): Promise<Onramp.VoidResult>;
-  addListener: (eventType: string) => void;
-  removeListeners: (count: number) => void;
+  readonly onCheckoutClientSecretRequested: CodegenTypes.EventEmitter<
+    UnsafeObject<{ onrampSessionId: string }>
+  >;
 }
 
 export default TurboModuleRegistry.get<Spec>('OnrampSdk');

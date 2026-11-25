@@ -45,6 +45,7 @@ jest.mock('react-native-webview', () => {
 
 jest.mock('../../specs/NativeStripeSdkModule', () =>
   mockCreateNativeStripeSdkMock({
+    onFinancialConnectionsEvent: jest.fn(() => ({ remove: jest.fn() })),
     collectBankAccountToken: jest.fn(),
     collectFinancialConnectionsAccounts: jest.fn(),
     openAuthenticatedWebView: jest.fn(),

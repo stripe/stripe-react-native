@@ -26,7 +26,6 @@ import {
 } from 'react';
 
 import React from 'react';
-import { addListener } from '../events';
 import NativeEmbeddedPaymentElement, {
   Commands,
   NativeProps,
@@ -288,8 +287,7 @@ function setupIntentConfirmHandlers(
   const confirmHandler = intentConfig.confirmHandler;
   if (confirmHandler) {
     confirmHandlerCallback?.remove();
-    confirmHandlerCallback = addListener(
-      'onConfirmHandlerCallback',
+    confirmHandlerCallback = NativeStripeSdkModule.onConfirmHandlerCallback(
       ({
         paymentMethod,
         shouldSavePaymentMethod,
@@ -310,19 +308,19 @@ function setupIntentConfirmHandlers(
     intentConfig.confirmationTokenConfirmHandler;
   if (confirmationTokenConfirmHandler) {
     confirmationTokenHandlerCallback?.remove();
-    confirmationTokenHandlerCallback = addListener(
-      'onConfirmationTokenHandlerCallback',
-      ({
-        confirmationToken,
-      }: {
-        confirmationToken: ConfirmationToken.Result;
-      }) => {
-        confirmationTokenConfirmHandler(
+    confirmationTokenHandlerCallback =
+      NativeStripeSdkModule.onConfirmationTokenHandlerCallback(
+        ({
           confirmationToken,
-          NativeStripeSdkModule.confirmationTokenCreationCallback
-        );
-      }
-    );
+        }: {
+          confirmationToken: ConfirmationToken.Result;
+        }) => {
+          confirmationTokenConfirmHandler(
+            confirmationToken,
+            NativeStripeSdkModule.confirmationTokenCreationCallback
+          );
+        }
+      );
   }
 }
 
@@ -334,13 +332,13 @@ function setupConfigurationHandlers(
       configuration.formSheetAction.onFormSheetConfirmComplete;
     if (confirmFormSheetHandler) {
       formSheetActionConfirmCallback?.remove();
-      formSheetActionConfirmCallback = addListener(
-        'embeddedPaymentElementFormSheetConfirmComplete',
-        (result: EmbeddedPaymentElementResult) => {
-          // Pass the result back to the formSheetAction handler
-          confirmFormSheetHandler(result);
-        }
-      );
+      formSheetActionConfirmCallback =
+        NativeStripeSdkModule.embeddedPaymentElementFormSheetConfirmComplete(
+          (result: EmbeddedPaymentElementResult) => {
+            // Pass the result back to the formSheetAction handler
+            confirmFormSheetHandler(result);
+          }
+        );
     }
   }
 
@@ -351,26 +349,26 @@ function setupConfigurationHandlers(
         .confirmCustomPaymentMethodCallback;
     if (customPaymentMethodHandler) {
       customPaymentMethodConfirmCallback?.remove();
-      customPaymentMethodConfirmCallback = addListener(
-        'onCustomPaymentMethodConfirmHandlerCallback',
-        ({
-          customPaymentMethod,
-          billingDetails,
-        }: {
-          customPaymentMethod: PaymentSheetTypes.CustomPaymentMethod;
-          billingDetails: BillingDetails | null;
-        }) => {
-          // Call the user's handler with a result handler callback
-          customPaymentMethodHandler(
+      customPaymentMethodConfirmCallback =
+        NativeStripeSdkModule.onCustomPaymentMethodConfirmHandlerCallback(
+          ({
             customPaymentMethod,
             billingDetails,
-            (result: PaymentSheetTypes.CustomPaymentMethodResult) => {
-              // Send the result back to the native side
-              NativeStripeSdkModule.customPaymentMethodResultCallback(result);
-            }
-          );
-        }
-      );
+          }: {
+            customPaymentMethod: PaymentSheetTypes.CustomPaymentMethod;
+            billingDetails: BillingDetails | null;
+          }) => {
+            // Call the user's handler with a result handler callback
+            customPaymentMethodHandler(
+              customPaymentMethod,
+              billingDetails,
+              (result: PaymentSheetTypes.CustomPaymentMethodResult) => {
+                // Send the result back to the native side
+                NativeStripeSdkModule.customPaymentMethodResultCallback(result);
+              }
+            );
+          }
+        );
     }
   }
 
@@ -379,12 +377,12 @@ function setupConfigurationHandlers(
       configuration.rowSelectionBehavior.onSelectPaymentOption;
     if (rowSelectionHandler) {
       rowSelectionCallback?.remove();
-      rowSelectionCallback = addListener(
-        'embeddedPaymentElementRowSelectionImmediateAction',
-        () => {
-          rowSelectionHandler();
-        }
-      );
+      rowSelectionCallback =
+        NativeStripeSdkModule.embeddedPaymentElementRowSelectionImmediateAction(
+          () => {
+            rowSelectionHandler();
+          }
+        );
     }
   }
 }
@@ -479,17 +477,16 @@ export function useEmbeddedPaymentElement(
   }, [intentConfig, configuration, viewRef, isAndroid]);
 
   useEffect(() => {
-    const sub = addListener(
-      'embeddedPaymentElementDidUpdatePaymentOption',
-      ({ paymentOption: opt }) => setPaymentOption(opt ?? null)
-    );
+    const sub =
+      NativeStripeSdkModule.embeddedPaymentElementDidUpdatePaymentOption(
+        ({ paymentOption: opt }) => setPaymentOption(opt ?? null)
+      );
     return () => sub.remove();
   });
 
   // Listen for height changes
   useEffect(() => {
-    const sub = addListener(
-      'embeddedPaymentElementDidUpdateHeight',
+    const sub = NativeStripeSdkModule.embeddedPaymentElementDidUpdateHeight(
       ({ height: h }) => {
         // ignore zero
         if (h > 0 || (isAndroid && h === 0)) {
@@ -503,8 +500,7 @@ export function useEmbeddedPaymentElement(
 
   // Listen for loading failures
   useEffect(() => {
-    const sub = addListener(
-      'embeddedPaymentElementLoadingFailed',
+    const sub = NativeStripeSdkModule.embeddedPaymentElementLoadingFailed(
       (nativeError: { message: string }) => {
         setLoadingError(new Error(nativeError.message));
       }
@@ -542,13 +538,13 @@ export function useEmbeddedPaymentElement(
     if (isAndroid) {
       if (currentRef) {
         const promise = new Promise<EmbeddedPaymentElementResult>((resolve) => {
-          const sub = addListener(
-            'embeddedPaymentElementFormSheetConfirmComplete',
-            (result: EmbeddedPaymentElementResult) => {
-              sub.remove();
-              resolve(result);
-            }
-          );
+          const sub =
+            NativeStripeSdkModule.embeddedPaymentElementFormSheetConfirmComplete(
+              (result: EmbeddedPaymentElementResult) => {
+                sub.remove();
+                resolve(result);
+              }
+            );
         });
 
         Commands.confirm(currentRef);
@@ -570,13 +566,13 @@ export function useEmbeddedPaymentElement(
         const currentRef = viewRef.current;
         if (currentRef) {
           return new Promise((resolve) => {
-            const sub = addListener(
-              'embeddedPaymentElementUpdateComplete',
-              (result) => {
-                sub.remove();
-                resolve(result);
-              }
-            );
+            const sub =
+              NativeStripeSdkModule.embeddedPaymentElementUpdateComplete(
+                (result) => {
+                  sub.remove();
+                  resolve(result);
+                }
+              );
             Commands.update(currentRef, JSON.stringify(updateSource));
           });
         }

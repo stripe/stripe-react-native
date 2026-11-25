@@ -29,6 +29,7 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
 import com.reactnativestripesdk.checkout.CheckoutConfigurationMapper
+import com.reactnativestripesdk.checkout.CheckoutEventEmitter
 import com.reactnativestripesdk.checkout.CheckoutOperationException
 import com.reactnativestripesdk.checkout.CheckoutSessionSerializer
 import com.reactnativestripesdk.checkout.NativeCheckoutControllerInstance
@@ -141,7 +142,111 @@ class StripeSdkModule(
   private val pendingStripeConnectUrls = mutableListOf<String>()
   private val pendingUrlsLock = Any()
 
-  val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
+  /**
+   * The generated `emit*` methods are `protected final`, so this forwards them to the other classes
+   * that need to send events to JavaScript.
+   */
+  @Suppress("TooManyFunctions")
+  inner class EventEmitter : CheckoutEventEmitter {
+    fun emitOnConfirmHandlerCallback(value: ReadableMap?) {
+      this@StripeSdkModule.emitOnConfirmHandlerCallback(value)
+    }
+
+    fun emitOnConfirmationTokenHandlerCallback(value: ReadableMap?) {
+      this@StripeSdkModule.emitOnConfirmationTokenHandlerCallback(value)
+    }
+
+    fun emitOnFinancialConnectionsEvent(value: ReadableMap?) {
+      this@StripeSdkModule.emitOnFinancialConnectionsEvent(value)
+    }
+
+    fun emitOnCustomerAdapterFetchPaymentMethodsCallback() {
+      this@StripeSdkModule.emitOnCustomerAdapterFetchPaymentMethodsCallback()
+    }
+
+    fun emitOnCustomerAdapterAttachPaymentMethodCallback(value: ReadableMap?) {
+      this@StripeSdkModule.emitOnCustomerAdapterAttachPaymentMethodCallback(value)
+    }
+
+    fun emitOnCustomerAdapterDetachPaymentMethodCallback(value: ReadableMap?) {
+      this@StripeSdkModule.emitOnCustomerAdapterDetachPaymentMethodCallback(value)
+    }
+
+    fun emitOnCustomerAdapterSetSelectedPaymentOptionCallback(value: ReadableMap?) {
+      this@StripeSdkModule.emitOnCustomerAdapterSetSelectedPaymentOptionCallback(value)
+    }
+
+    fun emitOnCustomerAdapterFetchSelectedPaymentOptionCallback() {
+      this@StripeSdkModule.emitOnCustomerAdapterFetchSelectedPaymentOptionCallback()
+    }
+
+    fun emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback() {
+      this@StripeSdkModule.emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback()
+    }
+
+    fun emitOnCustomerSessionProviderSetupIntentClientSecret() {
+      this@StripeSdkModule.emitOnCustomerSessionProviderSetupIntentClientSecret()
+    }
+
+    fun emitOnCustomerSessionProviderCustomerSessionClientSecret(value: ReadableMap?) {
+      this@StripeSdkModule.emitOnCustomerSessionProviderCustomerSessionClientSecret(value)
+    }
+
+    fun emitEmbeddedPaymentElementDidUpdateHeight(value: ReadableMap?) {
+      this@StripeSdkModule.emitEmbeddedPaymentElementDidUpdateHeight(value)
+    }
+
+    fun emitEmbeddedPaymentElementDidUpdatePaymentOption(value: ReadableMap?) {
+      this@StripeSdkModule.emitEmbeddedPaymentElementDidUpdatePaymentOption(value)
+    }
+
+    fun emitEmbeddedPaymentElementFormSheetConfirmComplete(value: ReadableMap?) {
+      this@StripeSdkModule.emitEmbeddedPaymentElementFormSheetConfirmComplete(value)
+    }
+
+    fun emitEmbeddedPaymentElementRowSelectionImmediateAction() {
+      this@StripeSdkModule.emitEmbeddedPaymentElementRowSelectionImmediateAction()
+    }
+
+    fun emitEmbeddedPaymentElementLoadingFailed(value: ReadableMap?) {
+      this@StripeSdkModule.emitEmbeddedPaymentElementLoadingFailed(value)
+    }
+
+    fun emitEmbeddedPaymentElementUpdateComplete(value: ReadableMap?) {
+      this@StripeSdkModule.emitEmbeddedPaymentElementUpdateComplete(value)
+    }
+
+    fun emitOnCustomPaymentMethodConfirmHandlerCallback(value: ReadableMap?) {
+      this@StripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(value)
+    }
+
+    fun emitPaymentMethodMessagingElementDidUpdateHeight(value: ReadableMap?) {
+      this@StripeSdkModule.emitPaymentMethodMessagingElementDidUpdateHeight(value)
+    }
+
+    fun emitPaymentMethodMessagingElementConfigureResult(value: ReadableMap?) {
+      this@StripeSdkModule.emitPaymentMethodMessagingElementConfigureResult(value)
+    }
+
+    fun emitCheckoutServerUpdateRequested(value: ReadableMap?) {
+      this@StripeSdkModule.emitCheckoutServerUpdateRequested(value)
+    }
+
+    override fun emitCheckoutControllerDidUpdate(value: ReadableMap) {
+      this@StripeSdkModule.emitCheckoutControllerDidUpdate(value)
+    }
+
+    fun emitCheckoutControllerDidSelectPaymentOption(value: ReadableMap?) {
+      this@StripeSdkModule.emitCheckoutControllerDidSelectPaymentOption(value)
+    }
+
+    override fun emitCheckoutExpressCheckoutDidComplete(value: ReadableMap) {
+      this@StripeSdkModule.emitCheckoutExpressCheckoutDidComplete(value)
+    }
+  }
+
+  var eventEmitter = EventEmitter()
+    internal set
 
   override fun invalidate() {
     application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
@@ -2073,14 +2178,6 @@ class StripeSdkModule(
       Log.e(TAG, "Error polling URLs", e)
       promise.reject("PollError", "Failed to poll pending Stripe Connect URLs: ${e.message}", e)
     }
-  }
-
-  override fun addListener(eventType: String?) {
-    // noop, iOS only
-  }
-
-  override fun removeListeners(count: Double) {
-    // noop, iOS only
   }
 
   override fun handleURLCallback(

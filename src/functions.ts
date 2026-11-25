@@ -37,7 +37,6 @@ import type {
 import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
-import { addListener } from './events';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -358,8 +357,7 @@ export const initPaymentSheet = async (
   const confirmHandler = params?.intentConfiguration?.confirmHandler;
   if (confirmHandler) {
     confirmHandlerCallback?.remove();
-    confirmHandlerCallback = addListener(
-      'onConfirmHandlerCallback',
+    confirmHandlerCallback = NativeStripeSdk.onConfirmHandlerCallback(
       ({ paymentMethod, shouldSavePaymentMethod }) => {
         confirmHandler(
           paymentMethod,
@@ -374,15 +372,15 @@ export const initPaymentSheet = async (
     params?.intentConfiguration?.confirmationTokenConfirmHandler;
   if (confirmationTokenHandler) {
     confirmationTokenHandlerCallback?.remove();
-    confirmationTokenHandlerCallback = addListener(
-      'onConfirmationTokenHandlerCallback',
-      ({ confirmationToken }) => {
-        confirmationTokenHandler(
-          confirmationToken,
-          NativeStripeSdk.confirmationTokenCreationCallback
-        );
-      }
-    );
+    confirmationTokenHandlerCallback =
+      NativeStripeSdk.onConfirmationTokenHandlerCallback(
+        ({ confirmationToken }) => {
+          confirmationTokenHandler(
+            confirmationToken,
+            NativeStripeSdk.confirmationTokenCreationCallback
+          );
+        }
+      );
   }
 
   // Setup custom payment method confirmation handler for PaymentSheet
@@ -392,34 +390,33 @@ export const initPaymentSheet = async (
         .confirmCustomPaymentMethodCallback;
     if (customPaymentMethodHandler) {
       paymentSheetCustomPaymentMethodConfirmCallback?.remove();
-      paymentSheetCustomPaymentMethodConfirmCallback = addListener(
-        'onCustomPaymentMethodConfirmHandlerCallback',
-        ({
-          customPaymentMethod,
-          billingDetails,
-        }: {
-          customPaymentMethod: PaymentSheet.CustomPaymentMethod;
-          billingDetails: import('./types').BillingDetails | null;
-        }) => {
-          // Call the user's handler with a result handler callback
-          customPaymentMethodHandler(
+      paymentSheetCustomPaymentMethodConfirmCallback =
+        NativeStripeSdk.onCustomPaymentMethodConfirmHandlerCallback(
+          ({
             customPaymentMethod,
             billingDetails,
-            (cpmResult: PaymentSheet.CustomPaymentMethodResult) => {
-              // Send the result back to the native side
-              NativeStripeSdk.customPaymentMethodResultCallback(cpmResult);
-            }
-          );
-        }
-      );
+          }: {
+            customPaymentMethod: PaymentSheet.CustomPaymentMethod;
+            billingDetails: import('./types').BillingDetails | null;
+          }) => {
+            // Call the user's handler with a result handler callback
+            customPaymentMethodHandler(
+              customPaymentMethod,
+              billingDetails,
+              (cpmResult: PaymentSheet.CustomPaymentMethodResult) => {
+                // Send the result back to the native side
+                NativeStripeSdk.customPaymentMethodResultCallback(cpmResult);
+              }
+            );
+          }
+        );
     }
   }
 
   const orderTrackingCallback = params?.applePay?.setOrderTracking;
   if (orderTrackingCallback) {
     orderTrackingCallbackListener?.remove();
-    orderTrackingCallbackListener = addListener(
-      'onOrderTrackingCallback',
+    orderTrackingCallbackListener = NativeStripeSdk.onOrderTrackingCallback(
       () => {
         orderTrackingCallback(NativeStripeSdk.configureOrderTracking);
       }
@@ -513,10 +510,8 @@ export const collectBankAccountForPayment = async (
   financialConnectionsEventListener?.remove();
 
   if (params.onEvent) {
-    financialConnectionsEventListener = addListener(
-      'onFinancialConnectionsEvent',
-      params.onEvent
-    );
+    financialConnectionsEventListener =
+      NativeStripeSdk.onFinancialConnectionsEvent(params.onEvent);
   }
 
   try {
@@ -551,10 +546,8 @@ export const collectBankAccountForSetup = async (
   financialConnectionsEventListener?.remove();
 
   if (params.onEvent) {
-    financialConnectionsEventListener = addListener(
-      'onFinancialConnectionsEvent',
-      params.onEvent
-    );
+    financialConnectionsEventListener =
+      NativeStripeSdk.onFinancialConnectionsEvent(params.onEvent);
   }
 
   try {
@@ -596,10 +589,8 @@ export const collectBankAccountToken = async (
   financialConnectionsEventListener?.remove();
 
   if (params.onEvent) {
-    financialConnectionsEventListener = addListener(
-      'onFinancialConnectionsEvent',
-      params.onEvent
-    );
+    financialConnectionsEventListener =
+      NativeStripeSdk.onFinancialConnectionsEvent(params.onEvent);
   }
 
   try {
@@ -639,10 +630,8 @@ export const collectFinancialConnectionsAccounts = async (
   financialConnectionsEventListener?.remove();
 
   if (params.onEvent) {
-    financialConnectionsEventListener = addListener(
-      'onFinancialConnectionsEvent',
-      params.onEvent
-    );
+    financialConnectionsEventListener =
+      NativeStripeSdk.onFinancialConnectionsEvent(params.onEvent);
   }
 
   try {

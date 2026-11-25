@@ -2,7 +2,6 @@ import {
   checkoutSession as session,
   checkoutSessionWithExpressWallet as sessionWithWallet,
 } from '../__fixtures__/session';
-import { addListener } from '../../events';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import type { CheckoutElements } from '../../types/CheckoutElements';
 import {
@@ -10,10 +9,18 @@ import {
   getCheckoutExpressCheckoutElementId,
 } from '../createCheckoutElements';
 
-jest.mock('../../events', () => ({ addListener: jest.fn() }));
+const mockAddListener = jest.fn<any, [string, any]>();
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
   default: {
+    checkoutControllerDidUpdate: (handler: unknown) =>
+      mockAddListener('checkoutControllerDidUpdate', handler),
+    checkoutControllerDidSelectPaymentOption: (handler: unknown) =>
+      mockAddListener('checkoutControllerDidSelectPaymentOption', handler),
+    checkoutExpressCheckoutDidComplete: (handler: unknown) =>
+      mockAddListener('checkoutExpressCheckoutDidComplete', handler),
+    checkoutServerUpdateRequested: (handler: unknown) =>
+      mockAddListener('checkoutServerUpdateRequested', handler),
     createCheckout: jest.fn(),
     destroyCheckout: jest.fn(),
     updateCheckoutEmail: jest.fn(),
@@ -46,15 +53,15 @@ function emit(name: string, event: object) {
 
 beforeEach(() => {
   listeners.clear();
-  (addListener as jest.Mock)
-    .mockReset()
-    .mockImplementation((name, listener) => {
-      const callbacks = listeners.get(name) ?? new Set();
-      listeners.set(name, callbacks);
-      callbacks.add(listener);
-      return { remove: () => callbacks.delete(listener) };
-    });
-  for (const method of Object.values(NativeStripeSdk)) {
+  mockAddListener.mockReset().mockImplementation((name, listener) => {
+    const callbacks = listeners.get(name) ?? new Set();
+    listeners.set(name, callbacks);
+    callbacks.add(listener);
+    return { remove: () => callbacks.delete(listener) };
+  });
+  for (const method of Object.values(NativeStripeSdk).filter(
+    jest.isMockFunction
+  )) {
     (method as jest.Mock).mockReset().mockResolvedValue(undefined);
   }
   create.mockImplementation(async () => ({ session }));
@@ -64,7 +71,7 @@ it('preserves native session snapshots and their express payment method availabi
   const controller = await createCheckoutElements(options);
   expect(controller.expressCheckoutElement).toBeNull();
   expect(controller.session).toBe(session);
-  expect(addListener).not.toHaveBeenCalledWith(
+  expect(mockAddListener).not.toHaveBeenCalledWith(
     'checkoutExpressCheckoutDidComplete',
     expect.any(Function)
   );

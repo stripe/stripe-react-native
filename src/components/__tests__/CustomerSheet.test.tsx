@@ -1,16 +1,48 @@
 import type { EventSubscription } from 'react-native';
 import { CustomerSheet } from '../CustomerSheet';
-import { addListener } from '../../events';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import type {
   ClientSecretProvider,
   CustomerSessionClientSecret,
 } from '../../types/CustomerSheet';
 
-jest.mock('../../events', () => ({ addListener: jest.fn() }));
+const mockAddListener = jest.fn<any, [string, any]>();
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
   default: {
+    onCustomerSessionProviderCustomerSessionClientSecret: (handler: unknown) =>
+      mockAddListener(
+        'onCustomerSessionProviderCustomerSessionClientSecret',
+        handler
+      ),
+    onCustomerAdapterFetchPaymentMethodsCallback: (handler: unknown) =>
+      mockAddListener('onCustomerAdapterFetchPaymentMethodsCallback', handler),
+    onCustomerAdapterAttachPaymentMethodCallback: (handler: unknown) =>
+      mockAddListener('onCustomerAdapterAttachPaymentMethodCallback', handler),
+    onCustomerAdapterDetachPaymentMethodCallback: (handler: unknown) =>
+      mockAddListener('onCustomerAdapterDetachPaymentMethodCallback', handler),
+    onCustomerAdapterSetSelectedPaymentOptionCallback: (handler: unknown) =>
+      mockAddListener(
+        'onCustomerAdapterSetSelectedPaymentOptionCallback',
+        handler
+      ),
+    onCustomerAdapterFetchSelectedPaymentOptionCallback: (handler: unknown) =>
+      mockAddListener(
+        'onCustomerAdapterFetchSelectedPaymentOptionCallback',
+        handler
+      ),
+    onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: (
+      handler: unknown
+    ) =>
+      mockAddListener(
+        'onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback',
+        handler
+      ),
+    onCustomerSessionProviderSetupIntentClientSecret: (handler: unknown) =>
+      mockAddListener(
+        'onCustomerSessionProviderSetupIntentClientSecret',
+        handler
+      ),
     initCustomerSheet: jest.fn(),
     clientSecretProviderCustomerSessionClientSecretCallback: jest.fn(),
   },
@@ -66,7 +98,7 @@ beforeEach(() => {
   jest.resetAllMocks();
   native.initCustomerSheet.mockResolvedValue({});
   native.clientSecretProviderCustomerSessionClientSecretCallback.mockResolvedValue();
-  jest.mocked(addListener).mockImplementation((event, handler) => {
+  mockAddListener.mockImplementation((event, handler) => {
     const listener = handler as Handler;
     if (event === eventName) {
       listeners.add(listener);
