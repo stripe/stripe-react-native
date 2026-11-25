@@ -1,16 +1,16 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type {
-  WithDefault,
-  Int32,
-} from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 
 export interface NativeProps extends ViewProps {
   // Make sure to use a different default value here to make
   // sure onAfterUpdateTransaction gets called on Android.
-  type?: WithDefault<Int32, -1>;
-  appearance: Int32;
-  borderRadius?: Int32;
+  type?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
+  appearance: CodegenTypes.Int32;
+  borderRadius?: CodegenTypes.Int32;
 }
 
 type ComponentType = HostComponent<NativeProps>;

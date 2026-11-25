@@ -2,7 +2,7 @@ import type React from 'react';
 import type { StripeError } from './types';
 
 import { Platform, NativeModules } from 'react-native';
-// @ts-ignore TextInputState has no type definition
+// @ts-expect-error - React Native internal, untyped under the Strict API
 import TextInputState from 'react-native/Libraries/Components/TextInput/TextInputState';
 
 /**

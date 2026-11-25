@@ -1,10 +1,9 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type {
-  DirectEventHandler,
-  Int32,
-  WithDefault,
-} from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 import { ShippingContact, ShippingMethod } from '../types/PlatformPay';
 import { UnsafeMixed } from './utils';
 
@@ -24,18 +23,18 @@ type OnOrderTrackingActionEvent = {};
 
 export interface NativeProps extends ViewProps {
   disabled: boolean;
-  type: Int32;
-  buttonStyle: Int32;
-  buttonBorderRadius?: WithDefault<Int32, 4>;
-  onShippingMethodSelectedAction?: DirectEventHandler<OnShippingMethodSelectedActionEvent>;
-  onShippingContactSelectedAction?: DirectEventHandler<OnShippingContactSelectedActionEvent>;
-  onCouponCodeEnteredAction?: DirectEventHandler<OnCouponCodeEnteredActionEvent>;
-  onOrderTrackingAction?: DirectEventHandler<OnOrderTrackingActionEvent>;
+  type: CodegenTypes.Int32;
+  buttonStyle: CodegenTypes.Int32;
+  buttonBorderRadius?: CodegenTypes.WithDefault<CodegenTypes.Int32, 4>;
+  onShippingMethodSelectedAction?: CodegenTypes.DirectEventHandler<OnShippingMethodSelectedActionEvent>;
+  onShippingContactSelectedAction?: CodegenTypes.DirectEventHandler<OnShippingContactSelectedActionEvent>;
+  onCouponCodeEnteredAction?: CodegenTypes.DirectEventHandler<OnCouponCodeEnteredActionEvent>;
+  onOrderTrackingAction?: CodegenTypes.DirectEventHandler<OnOrderTrackingActionEvent>;
   // Boolean flags to indicate which callbacks are provided
-  hasShippingMethodCallback?: WithDefault<boolean, false>;
-  hasShippingContactCallback?: WithDefault<boolean, false>;
-  hasCouponCodeCallback?: WithDefault<boolean, false>;
-  hasOrderTrackingCallback?: WithDefault<boolean, false>;
+  hasShippingMethodCallback?: CodegenTypes.WithDefault<boolean, false>;
+  hasShippingContactCallback?: CodegenTypes.WithDefault<boolean, false>;
+  hasCouponCodeCallback?: CodegenTypes.WithDefault<boolean, false>;
+  hasOrderTrackingCallback?: CodegenTypes.WithDefault<boolean, false>;
 }
 
 type ComponentType = HostComponent<NativeProps>;

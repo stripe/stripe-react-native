@@ -1,13 +1,15 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type {
-  DirectEventHandler,
-  Double,
-} from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 
 export interface NativeProps extends ViewProps {
   controllerId: string;
-  onHeightChanged?: DirectEventHandler<Readonly<{ height: Double }>>;
+  onHeightChanged?: CodegenTypes.DirectEventHandler<
+    Readonly<{ height: CodegenTypes.Double }>
+  >;
 }
 
 export default codegenNativeComponent<NativeProps>(

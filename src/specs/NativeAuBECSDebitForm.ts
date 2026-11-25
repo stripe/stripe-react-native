@@ -1,6 +1,9 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type { DirectEventHandler } from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 import type { AuBECSDebitFormComponent } from '../types';
 import type { UnsafeMixed } from './utils';
 
@@ -13,7 +16,7 @@ type FormDetailsEvent = Readonly<{
 
 export interface NativeProps extends ViewProps {
   companyName: string;
-  onCompleteAction: DirectEventHandler<FormDetailsEvent>;
+  onCompleteAction: CodegenTypes.DirectEventHandler<FormDetailsEvent>;
   formStyle?: UnsafeMixed<AuBECSDebitFormComponent.Styles>;
 }
 

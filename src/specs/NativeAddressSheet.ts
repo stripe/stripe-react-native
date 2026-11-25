@@ -1,9 +1,9 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type {
-  DirectEventHandler,
-  WithDefault,
-} from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 import type {
   AddressDetails,
   AddressSheetError,
@@ -29,8 +29,8 @@ type OnSubmitActionEvent = Readonly<{
 
 export interface NativeProps extends ViewProps {
   visible: boolean;
-  presentationStyle?: WithDefault<string, 'popover'>;
-  animationStyle?: WithDefault<string, 'slide'>;
+  presentationStyle?: CodegenTypes.WithDefault<string, 'popover'>;
+  animationStyle?: CodegenTypes.WithDefault<string, 'slide'>;
   appearance?: UnsafeMixed<PaymentSheet.AppearanceParams>;
   defaultValues?: UnsafeMixed<AddressDetails>;
   additionalFields?: UnsafeMixed<AdditionalFields>;
@@ -38,8 +38,8 @@ export interface NativeProps extends ViewProps {
   autocompleteCountries?: Array<string>;
   primaryButtonTitle?: string;
   sheetTitle?: string;
-  onSubmitAction: DirectEventHandler<OnSubmitActionEvent>;
-  onErrorAction: DirectEventHandler<AddressSheetErrorEvent>;
+  onSubmitAction: CodegenTypes.DirectEventHandler<OnSubmitActionEvent>;
+  onErrorAction: CodegenTypes.DirectEventHandler<AddressSheetErrorEvent>;
 }
 
 type ComponentType = HostComponent<NativeProps>;

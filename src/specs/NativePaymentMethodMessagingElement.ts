@@ -1,10 +1,9 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type {
-  DirectEventHandler,
-  Double,
-  Int32,
-} from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 import {
   PaymentMethodMessagingElementAppearance,
   PaymentMethodMessagingElementConfiguration,
@@ -15,19 +14,19 @@ type ConfigureResultPayload = Readonly<{
   status?: string;
   message?: string;
   code?: string;
-  viewTag?: Int32;
+  viewTag?: CodegenTypes.Int32;
 }>;
 
 export interface NativeProps extends ViewProps {
   appearance?: UnsafeMixed<PaymentMethodMessagingElementAppearance>;
   configuration: UnsafeMixed<PaymentMethodMessagingElementConfiguration>;
-  onConfigureResult?: DirectEventHandler<
+  onConfigureResult?: CodegenTypes.DirectEventHandler<
     Readonly<{
       result: UnsafeMixed<ConfigureResultPayload>;
     }>
   >;
-  onHeightChanged?: DirectEventHandler<
-    Readonly<{ height: Double; viewTag: Int32 }>
+  onHeightChanged?: CodegenTypes.DirectEventHandler<
+    Readonly<{ height: CodegenTypes.Double; viewTag: CodegenTypes.Int32 }>
   >;
 }
 

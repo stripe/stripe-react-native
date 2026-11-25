@@ -1,10 +1,10 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type {
-  DirectEventHandler,
-  Int32,
-} from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeCommands,
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 import type { CardFormView } from '../types';
 import type { UnsafeMixed } from './utils';
 
@@ -22,11 +22,11 @@ export interface NativeProps extends ViewProps {
   dangerouslyGetFullCardDetails: boolean;
   defaultValues: UnsafeMixed<CardFormView.DefaultValues>;
   disabled: boolean;
-  onFocusChange?: DirectEventHandler<FocusChangeEvent>;
-  onFormComplete?: DirectEventHandler<FormCompleteEvent>;
+  onFocusChange?: CodegenTypes.DirectEventHandler<FocusChangeEvent>;
+  onFormComplete?: CodegenTypes.DirectEventHandler<FormCompleteEvent>;
   placeholders: UnsafeMixed<CardFormView.Placeholders>;
   postalCodeEnabled: boolean;
-  preferredNetworks?: Int32[];
+  preferredNetworks?: CodegenTypes.Int32[];
 }
 
 type ComponentType = HostComponent<NativeProps>;
