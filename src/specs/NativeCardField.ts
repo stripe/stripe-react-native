@@ -1,10 +1,10 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type {
-  DirectEventHandler,
-  Int32,
-} from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeCommands,
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 import type {
   Details,
   Placeholders,
@@ -27,11 +27,11 @@ export interface NativeProps extends ViewProps {
   dangerouslyGetFullCardDetails: boolean;
   disabled: boolean;
   onBehalfOf?: string;
-  onCardChange?: DirectEventHandler<CardChangeEvent>;
-  onFocusChange?: DirectEventHandler<FocusChangeEvent>;
+  onCardChange?: CodegenTypes.DirectEventHandler<CardChangeEvent>;
+  onFocusChange?: CodegenTypes.DirectEventHandler<FocusChangeEvent>;
   placeholders: UnsafeMixed<Placeholders>;
   postalCodeEnabled: boolean;
-  preferredNetworks?: ReadonlyArray<Int32>;
+  preferredNetworks?: ReadonlyArray<CodegenTypes.Int32>;
 }
 
 type ComponentType = HostComponent<NativeProps>;

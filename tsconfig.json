@@ -10,12 +10,6 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
-    "paths": {
-      "react-native/Libraries/Types/CodegenTypes": [
-        "./node_modules/react-native/Libraries/Types/CodegenTypesNamespace.d.ts"
-      ]
-    },
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,
     "noStrictGenericChecks": false,

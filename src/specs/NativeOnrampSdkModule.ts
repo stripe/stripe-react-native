@@ -1,5 +1,4 @@
-import { TurboModuleRegistry } from 'react-native';
-import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
+import { type TurboModule, TurboModuleRegistry } from 'react-native';
 import type { Address, InitialiseParams, Onramp } from '../types';
 import type { UnsafeObject } from './utils';
 

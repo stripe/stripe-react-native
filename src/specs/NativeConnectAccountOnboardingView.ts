@@ -1,6 +1,9 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type { DirectEventHandler } from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 
 type OnExitActionEvent = Readonly<{}>;
 
@@ -9,7 +12,7 @@ export interface NativeProps extends ViewProps {
   title?: string;
   backgroundColor?: string;
   textColor?: string;
-  onExitAction: DirectEventHandler<OnExitActionEvent>;
+  onExitAction: CodegenTypes.DirectEventHandler<OnExitActionEvent>;
 }
 
 type ComponentType = HostComponent<NativeProps>;

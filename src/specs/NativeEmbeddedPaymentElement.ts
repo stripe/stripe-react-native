@@ -1,6 +1,9 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeCommands,
+  codegenNativeComponent,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 import { EmbeddedPaymentElementConfiguration } from '../types/EmbeddedPaymentElement';
 import { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeMixed } from './utils';

@@ -1,6 +1,8 @@
-import { TurboModuleRegistry } from 'react-native';
-import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
-import type { Int32 } from 'react-native/Libraries/Types/CodegenTypes';
+import {
+  type CodegenTypes,
+  type TurboModule,
+  TurboModuleRegistry,
+} from 'react-native';
 import type {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
@@ -220,12 +222,12 @@ export interface Spec extends TurboModule {
     configuration: UnsafeObject<EmbeddedPaymentElementConfiguration>
   ): Promise<void>;
   confirmEmbeddedPaymentElement(
-    viewTag: Int32
+    viewTag: CodegenTypes.Int32
   ): Promise<EmbeddedPaymentElementResult>;
   updateEmbeddedPaymentElement(
     intentConfig: UnsafeObject<IntentConfiguration>
   ): Promise<UnsafeObject<any> | null>;
-  clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
+  clearEmbeddedPaymentOption(viewTag: CodegenTypes.Int32): Promise<void>;
   createRadarSession(): Promise<CreateRadarSessionResult>;
 
   setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;

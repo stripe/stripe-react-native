@@ -1,9 +1,9 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type {
-  DirectEventHandler,
-  WithDefault,
-} from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 import type {
   CardActionError,
   GooglePayCardToken,
@@ -24,14 +24,14 @@ type CardDetails = Readonly<{
 }>;
 
 export interface NativeProps extends ViewProps {
-  iOSButtonStyle?: WithDefault<string, 'onDarkBackground'>;
+  iOSButtonStyle?: CodegenTypes.WithDefault<string, 'onDarkBackground'>;
   androidAssetSource: ImageSource;
   testEnv?: boolean;
   cardDetails: UnsafeMixed<CardDetails>;
   token?: UnsafeMixed<GooglePayCardToken> | null;
   isBounceProvisioned?: boolean;
   ephemeralKey: UnsafeMixed<object>;
-  onCompleteAction?: DirectEventHandler<AddToWalletButtonCompleteEvent>;
+  onCompleteAction?: CodegenTypes.DirectEventHandler<AddToWalletButtonCompleteEvent>;
 }
 
 type ComponentType = HostComponent<NativeProps>;

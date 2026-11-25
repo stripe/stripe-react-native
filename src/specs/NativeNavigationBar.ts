@@ -1,12 +1,15 @@
-import type { HostComponent, ViewProps } from 'react-native';
-import type { DirectEventHandler } from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import {
+  codegenNativeComponent,
+  type CodegenTypes,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
 
 export type CloseButtonPressEvent = Readonly<{}>;
 
 export interface NativeProps extends ViewProps {
   title?: string;
-  onCloseButtonPress?: DirectEventHandler<CloseButtonPressEvent>;
+  onCloseButtonPress?: CodegenTypes.DirectEventHandler<CloseButtonPressEvent>;
 }
 
 type ComponentType = HostComponent<NativeProps>;

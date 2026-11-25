@@ -7,12 +7,12 @@
  */
 
 import {
+  type CodegenTypes,
   DeviceEventEmitter,
   EventSubscription,
   NativeEventEmitter,
   Platform,
 } from 'react-native';
-import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 import NativeStripeSdkModule from './specs/NativeStripeSdkModule';
 import NativeOnrampSdkModule from './specs/NativeOnrampSdkModule';
 import { PaymentMethod } from './types';
@@ -40,56 +40,70 @@ const compatEventEmitter: CompatEventEmitter =
 // Versions before RN 0.80 crash sometimes when setting the event emitter callback.
 // Move this back to the NativeStripeSdkModule spec once we drop support for RN < 0.80.
 type Events = {
-  checkoutExpressCheckoutDidComplete: EventEmitter<
+  checkoutExpressCheckoutDidComplete: CodegenTypes.EventEmitter<
     UnsafeObject<{ controllerId: string; result: CheckoutElements.Result }>
   >;
-  checkoutServerUpdateRequested: EventEmitter<{
+  checkoutServerUpdateRequested: CodegenTypes.EventEmitter<{
     controllerId: string;
     operationId: string;
   }>;
-  onConfirmHandlerCallback: EventEmitter<{
+  onConfirmHandlerCallback: CodegenTypes.EventEmitter<{
     paymentMethod: UnsafeObject<PaymentMethod.Result>;
     shouldSavePaymentMethod: boolean;
   }>;
-  onConfirmationTokenHandlerCallback: EventEmitter<{
+  onConfirmationTokenHandlerCallback: CodegenTypes.EventEmitter<{
     confirmationToken: UnsafeObject<ConfirmationTokenResult>;
   }>;
-  onFinancialConnectionsEvent: EventEmitter<
+  onFinancialConnectionsEvent: CodegenTypes.EventEmitter<
     UnsafeObject<FinancialConnectionsEvent>
   >;
-  onOrderTrackingCallback: EventEmitter<void>;
-  onCustomerAdapterFetchPaymentMethodsCallback: EventEmitter<void>;
-  onCustomerAdapterAttachPaymentMethodCallback: EventEmitter<{
+  onOrderTrackingCallback: CodegenTypes.EventEmitter<void>;
+  onCustomerAdapterFetchPaymentMethodsCallback: CodegenTypes.EventEmitter<void>;
+  onCustomerAdapterAttachPaymentMethodCallback: CodegenTypes.EventEmitter<{
     paymentMethodId: string;
   }>;
-  onCustomerAdapterDetachPaymentMethodCallback: EventEmitter<{
+  onCustomerAdapterDetachPaymentMethodCallback: CodegenTypes.EventEmitter<{
     paymentMethodId: string;
   }>;
-  onCustomerAdapterSetSelectedPaymentOptionCallback: EventEmitter<{
+  onCustomerAdapterSetSelectedPaymentOptionCallback: CodegenTypes.EventEmitter<{
     paymentOption: string;
   }>;
-  onCustomerAdapterFetchSelectedPaymentOptionCallback: EventEmitter<void>;
-  onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: EventEmitter<void>;
-  onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<void>;
-  onCustomerSessionProviderCustomerSessionClientSecret: EventEmitter<{
+  onCustomerAdapterFetchSelectedPaymentOptionCallback: CodegenTypes.EventEmitter<void>;
+  onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: CodegenTypes.EventEmitter<void>;
+  onCustomerSessionProviderSetupIntentClientSecret: CodegenTypes.EventEmitter<void>;
+  onCustomerSessionProviderCustomerSessionClientSecret: CodegenTypes.EventEmitter<{
     requestId: string;
   }>;
-  embeddedPaymentElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
-  embeddedPaymentElementWillPresent: EventEmitter<void>;
-  embeddedPaymentElementDidUpdatePaymentOption: EventEmitter<UnsafeObject<any>>;
-  embeddedPaymentElementFormSheetConfirmComplete: EventEmitter<
+  embeddedPaymentElementDidUpdateHeight: CodegenTypes.EventEmitter<
     UnsafeObject<any>
   >;
-  embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
-  embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
-  embeddedPaymentElementUpdateComplete: EventEmitter<UnsafeObject<any>>;
-  onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
-  paymentMethodMessagingElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
-  paymentMethodMessagingElementConfigureResult: EventEmitter<UnsafeObject<any>>;
-  checkoutControllerDidUpdate: EventEmitter<
+  embeddedPaymentElementWillPresent: CodegenTypes.EventEmitter<void>;
+  embeddedPaymentElementDidUpdatePaymentOption: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  embeddedPaymentElementFormSheetConfirmComplete: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  embeddedPaymentElementRowSelectionImmediateAction: CodegenTypes.EventEmitter<void>;
+  embeddedPaymentElementLoadingFailed: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  embeddedPaymentElementUpdateComplete: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  onCustomPaymentMethodConfirmHandlerCallback: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  paymentMethodMessagingElementDidUpdateHeight: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  paymentMethodMessagingElementConfigureResult: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  checkoutControllerDidUpdate: CodegenTypes.EventEmitter<
     UnsafeObject<CheckoutControllerUpdate>
   >;
-  checkoutControllerDidSelectPaymentOption: EventEmitter<{
+  checkoutControllerDidSelectPaymentOption: CodegenTypes.EventEmitter<{
     controllerId: CheckoutControllerUpdate['controllerId'];
   }>;
 };
