@@ -16,6 +16,7 @@ import {
   useEmbeddedPaymentElement,
   AppearanceParams,
   RowStyle,
+  CaptureMethod,
 } from '@stripe/stripe-react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -194,7 +195,12 @@ export default function EmbeddedPaymentElementImmediateActionScreen() {
             });
           else callback({ clientSecret });
         },
-        mode: { amount: 6099, currencyCode: 'USD' },
+        mode: {
+          type: 'payment',
+          captureMethod: CaptureMethod.Automatic,
+          amount: 6099,
+          currencyCode: 'USD',
+        },
         paymentMethodTypes: ['card', 'klarna', 'cashapp'],
       };
 

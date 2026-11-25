@@ -523,10 +523,25 @@ class PaymentSheetUtilsTests: XCTestCase {
         XCTAssertEqual(result[1].id, "cpmt_valid2")
     }
 
+    // MARK: - validateModeType Tests
+
+    func test_validateModeType_validValues() {
+        XCTAssertNil(StripeSdkImpl.validateModeType(["type": "payment", "amount": 1099, "currencyCode": "usd"]))
+        XCTAssertNil(StripeSdkImpl.validateModeType(["type": "setup"]))
+    }
+
+    func test_validateModeType_missingOrInvalid_returnsError() {
+        XCTAssertNotNil(StripeSdkImpl.validateModeType(["amount": 1099]))
+        XCTAssertNotNil(StripeSdkImpl.validateModeType(["type": "unknown"]))
+        XCTAssertNotNil(StripeSdkImpl.validateModeType(["type": "payment"]))
+        XCTAssertNotNil(StripeSdkImpl.validateModeType(["type": "payment", "amount": 1099]))
+    }
+
     // MARK: - buildIntentConfiguration captureMethod Tests
 
     func test_buildIntentConfiguration_manualCaptureMethod() {
         let modeParams: NSDictionary = [
+            "type": "payment",
             "amount": 1099,
             "currencyCode": "usd",
             "captureMethod": "Manual",
@@ -551,6 +566,7 @@ class PaymentSheetUtilsTests: XCTestCase {
 
     func test_buildIntentConfiguration_automaticAsyncCaptureMethod() {
         let modeParams: NSDictionary = [
+            "type": "payment",
             "amount": 2000,
             "currencyCode": "eur",
             "captureMethod": "AutomaticAsync",
@@ -573,6 +589,7 @@ class PaymentSheetUtilsTests: XCTestCase {
 
     func test_buildIntentConfiguration_missingCaptureMethod_defaultsToAutomatic() {
         let modeParams: NSDictionary = [
+            "type": "payment",
             "amount": 500,
             "currencyCode": "usd",
         ]
@@ -598,6 +615,7 @@ class PaymentSheetUtilsTests: XCTestCase {
         let topLevelIntentConfig: NSDictionary = [
             "captureMethod": "Manual",
             "mode": [
+                "type": "payment",
                 "amount": 1099,
                 "currencyCode": "usd",
                 // captureMethod intentionally absent from mode

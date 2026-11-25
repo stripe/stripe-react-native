@@ -20,7 +20,6 @@ class AddressLauncherManager(
   allowedCountries: Set<String>,
   buttonTitle: String?,
   title: String?,
-  googlePlacesApiKey: String?,
   autocompleteCountries: Set<String>,
   additionalFields: AddressLauncher.AdditionalFieldsConfiguration?,
   private var callback: ((error: WritableMap?, address: AddressDetails?) -> Unit),
@@ -38,7 +37,6 @@ class AddressLauncherManager(
       buttonTitle = buttonTitle,
       additionalFields = additionalFields,
       title = title,
-      googlePlacesApiKey = googlePlacesApiKey,
       autocompleteCountries = autocompleteCountries,
     )
 
