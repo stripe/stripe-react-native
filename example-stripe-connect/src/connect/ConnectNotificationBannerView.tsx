@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
   LayoutAnimation,
   ScrollView,
   StyleSheet,
@@ -28,6 +29,8 @@ const ACTIVITIES = [
   { title: 'Riley Chen', detail: 'Payment · Nov 19', amount: '+$310.00' },
 ];
 
+const BANNER_ANIMATION_MILLIS = 300;
+
 export default function ConnectNotificationBannerView() {
   return (
     <ConnectScreen>
@@ -44,6 +47,8 @@ function NotificationBannerContent() {
   const [showBanner, setShowBanner] = useState(true);
   const [hasBannerContent, setHasBannerContent] = useState(false);
   const style = useSampleScreenStyle();
+  // Fades in as it expands
+  const bannerOpacity = useRef(new Animated.Value(0)).current;
 
   return (
     <ScrollView
@@ -52,16 +57,26 @@ function NotificationBannerContent() {
       contentContainerStyle={styles.container}
     >
       {showBanner && (
-        <ConnectNotificationBanner
-          onContentHeightChange={({ height }) => {
-            LayoutAnimation.easeInEaseOut();
-            setHasBannerContent(height > 0);
-          }}
-          onLoadError={() => {
-            setShowBanner(false);
-            Alert.alert('Error loading the notification banner');
-          }}
-        />
+        <Animated.View style={{ opacity: bannerOpacity }}>
+          <ConnectNotificationBanner
+            onContentHeightChange={({ height }) => {
+              LayoutAnimation.configureNext({
+                duration: BANNER_ANIMATION_MILLIS,
+                update: { type: LayoutAnimation.Types.easeInEaseOut },
+              });
+              Animated.timing(bannerOpacity, {
+                toValue: height > 0 ? 1 : 0,
+                duration: BANNER_ANIMATION_MILLIS,
+                useNativeDriver: true,
+              }).start();
+              setHasBannerContent(height > 0);
+            }}
+            onLoadError={() => {
+              setShowBanner(false);
+              Alert.alert('Error loading the notification banner');
+            }}
+          />
+        </Animated.View>
       )}
       {/* No gap while the banner has nothing to show */}
       <View style={hasBannerContent ? styles.bannerGap : undefined} />
