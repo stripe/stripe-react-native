@@ -122,6 +122,7 @@ describe('EmbeddedComponent inline', () => {
       location: {
         origin: 'https://connect-js.stripe.com',
         pathname: '/v1.0/react_native_webview.html',
+        href: mockWebViewProps.source.uri,
       },
       ReactNativeWebView: { postMessage: (data: string) => posted.push(data) },
     };
