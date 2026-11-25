@@ -87,8 +87,6 @@ export interface AddressSheetProps extends AccessibilityProps {
     appearance?: PaymentSheet.AppearanceParams;
     autocompleteCountries?: Array<string>;
     defaultValues?: AddressDetails;
-    // @deprecated
-    googlePlacesApiKey?: string;
     onError: (error: StripeError<AddressSheetError>) => void;
     // Warning: (ae-forgotten-export) The symbol "CollectAddressResult" needs to be exported by the entry point index.d.ts
     onSubmit: (result: CollectAddressResult) => void;
@@ -3511,10 +3509,11 @@ type PaymentMethodType = 'us_bank_account' | 'link';
 
 // @public (undocumented)
 export type PaymentMode = {
+    type: 'payment';
     amount: number;
     currencyCode: string;
     setupFutureUsage?: FutureUsage;
-    captureMethod?: CaptureMethod;
+    captureMethod: CaptureMethod;
     paymentMethodOptions?: PaymentMethodOptions;
 };
 
@@ -4152,6 +4151,7 @@ export { SetupIntent }
 
 // @public (undocumented)
 export type SetupMode = {
+    type: 'setup';
     currencyCode?: string;
     setupFutureUsage: FutureUsage;
 };

@@ -12,15 +12,15 @@ internal class FakePromise : Promise {
     resolveCalls.add(ResolveCall(value))
   }
 
-  override fun reject(code: String, message: String?) {
+  override fun reject(code: String?, message: String?) {
     rejectCalls.add(RejectCall(code = code, message = message))
   }
 
-  override fun reject(code: String, throwable: Throwable?) {
+  override fun reject(code: String?, throwable: Throwable?) {
     rejectCalls.add(RejectCall(code = code, throwable = throwable))
   }
 
-  override fun reject(code: String, message: String?, throwable: Throwable?) {
+  override fun reject(code: String?, message: String?, throwable: Throwable?) {
     rejectCalls.add(RejectCall(code = code, message = message, throwable = throwable))
   }
 
@@ -32,15 +32,15 @@ internal class FakePromise : Promise {
     rejectCalls.add(RejectCall(throwable = throwable, userInfo = userInfo))
   }
 
-  override fun reject(code: String, userInfo: WritableMap) {
+  override fun reject(code: String?, userInfo: WritableMap) {
     rejectCalls.add(RejectCall(code = code, userInfo = userInfo))
   }
 
-  override fun reject(code: String, throwable: Throwable?, userInfo: WritableMap) {
+  override fun reject(code: String?, throwable: Throwable?, userInfo: WritableMap) {
     rejectCalls.add(RejectCall(code = code, throwable = throwable, userInfo = userInfo))
   }
 
-  override fun reject(code: String, message: String?, userInfo: WritableMap) {
+  override fun reject(code: String?, message: String?, userInfo: WritableMap) {
     rejectCalls.add(RejectCall(code = code, message = message, userInfo = userInfo))
   }
 

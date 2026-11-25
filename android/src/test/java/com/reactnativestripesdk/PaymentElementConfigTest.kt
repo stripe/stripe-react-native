@@ -40,6 +40,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 1000,
             "currencyCode" to "usd",
           ),
@@ -59,6 +60,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 1000,
             "currencyCode" to "usd",
           ),
@@ -79,6 +81,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 1000,
             "currencyCode" to "usd",
           ),
@@ -96,6 +99,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 1000,
             "currencyCode" to "usd",
           ),
@@ -114,6 +118,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 1000,
             "currencyCode" to "usd",
           ),
@@ -135,6 +140,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
             "currencyCode" to "eur",
           ),
@@ -154,7 +160,22 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
+          ),
+      )
+
+    buildIntentConfiguration(params)
+  }
+
+  @Test(expected = PaymentSheetException::class)
+  fun buildIntentConfigurationMode_PaymentMode_MissingAmount_ThrowsException() {
+    val params =
+      readableMapOf(
+        "mode" to
+          readableMapOf(
+            "type" to "payment",
+            "currencyCode" to "usd",
           ),
       )
 
@@ -167,6 +188,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
             "currencyCode" to "usd",
             "setupFutureUsage" to "OffSession",
@@ -184,6 +206,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
             "currencyCode" to "usd",
             "captureMethod" to "Manual",
@@ -201,6 +224,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
             "currencyCode" to "usd",
             "paymentMethodOptions" to
@@ -219,12 +243,41 @@ class PaymentElementConfigTest {
     assertNotNull(result?.mode as? PaymentSheet.IntentConfiguration.Mode.Payment)
   }
 
+  @Test(expected = PaymentSheetException::class)
+  fun buildIntentConfigurationMode_MissingType_ThrowsException() {
+    val params =
+      readableMapOf(
+        "mode" to
+          readableMapOf(
+            "amount" to 5000,
+            "currencyCode" to "usd",
+          ),
+      )
+
+    buildIntentConfiguration(params)
+  }
+
+  @Test(expected = PaymentSheetException::class)
+  fun buildIntentConfigurationMode_InvalidType_ThrowsException() {
+    val params =
+      readableMapOf(
+        "mode" to
+          readableMapOf(
+            "type" to "unknown",
+            "currencyCode" to "usd",
+          ),
+      )
+
+    buildIntentConfiguration(params)
+  }
+
   @Test
   fun buildIntentConfigurationMode_SetupMode_Success() {
     val params =
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "setup",
             "setupFutureUsage" to "OffSession",
           ),
       )
@@ -240,6 +293,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "setup",
             "setupFutureUsage" to "OnSession",
             "currencyCode" to "gbp",
           ),
@@ -253,7 +307,7 @@ class PaymentElementConfigTest {
   fun buildIntentConfigurationMode_SetupMode_MissingSetupFutureUsage_ThrowsException() {
     val params =
       readableMapOf(
-        "mode" to readableMapOf(),
+        "mode" to readableMapOf("type" to "setup"),
       )
 
     buildIntentConfiguration(params)
@@ -265,6 +319,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
             "currencyCode" to "usd",
             "setupFutureUsage" to "Unknown",
@@ -282,6 +337,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
             "currencyCode" to "usd",
             "captureMethod" to "InvalidMethod",
@@ -299,6 +355,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
             "currencyCode" to "usd",
             "paymentMethodOptions" to null,
@@ -316,6 +373,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
             "currencyCode" to "usd",
             "paymentMethodOptions" to
@@ -336,6 +394,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "payment",
             "amount" to 5000,
             "currencyCode" to "usd",
             "paymentMethodOptions" to
@@ -360,6 +419,7 @@ class PaymentElementConfigTest {
       readableMapOf(
         "mode" to
           readableMapOf(
+            "type" to "setup",
             "setupFutureUsage" to "Unknown",
           ),
       )

@@ -400,6 +400,7 @@ class EmbeddedPaymentElementViewManagerTest {
     readableMapOf(
       "mode" to
         readableMapOf(
+          "type" to "payment",
           "amount" to 1000,
           "currencyCode" to "usd",
         ),

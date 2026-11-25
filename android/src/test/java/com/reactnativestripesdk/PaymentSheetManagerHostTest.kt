@@ -124,7 +124,7 @@ class PaymentSheetManagerHostTest {
       "customerSessionClientSecret", "cuss_test_secret_test",
       "intentConfiguration",
           JavaOnlyMap.of(
-        "mode", JavaOnlyMap.of("amount", 1000, "currencyCode", "usd"),
+        "mode", JavaOnlyMap.of("type", "payment", "amount", 1000, "currencyCode", "usd"),
         "confirmationTokenConfirmHandler", true,
       ),
     ),

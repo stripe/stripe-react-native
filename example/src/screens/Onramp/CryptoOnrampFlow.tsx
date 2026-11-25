@@ -1105,7 +1105,7 @@ export default function CryptoOnrampFlow() {
           `Failed to create onramp session: Code: ${result.error.code}\nMessage: ${result.error.message}`
         );
       }
-    } catch (error) {
+    } catch {
       showError('Failed to create onramp session.');
     } finally {
       setIsCreatingSession(false);
@@ -1152,7 +1152,7 @@ export default function CryptoOnrampFlow() {
       } else {
         showCanceled('Checkout cancelled.');
       }
-    } catch (error) {
+    } catch {
       showError('Failed to complete checkout.');
     } finally {
       setIsCheckingOut(false);

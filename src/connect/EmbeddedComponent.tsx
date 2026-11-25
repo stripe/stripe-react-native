@@ -10,7 +10,6 @@ import React, {
 import {
   ActivityIndicator,
   AppState,
-  AppStateStatus,
   Linking,
   Platform,
   StyleProp,
@@ -248,7 +247,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     Map<
       string,
       {
-        callback: (id: string, url: string | null) => void;
+        documentId: string;
+        callback: (id: string, url: string | null, documentId: string) => void;
         timeoutId?: NodeJS.Timeout;
       }
     >
@@ -286,7 +286,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     loadWebViewComponent();
   }, [loadWebViewComponent]);
 
-  const appState = useRef<AppStateStatus>(AppState.currentState);
+  const appState = useRef<string | null | undefined>(AppState.currentState);
 
   // Android deep link polling mechanism (Android-only)
   //
@@ -343,7 +343,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
                 // Remove from Map and invoke callback
                 pendingAuthWebViewPromises.current.delete(id);
-                promiseData.callback(id, url);
+                promiseData.callback(id, url, promiseData.documentId);
 
                 // Reset the Android flag
                 NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(() => {
@@ -353,7 +353,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
             }
           });
         }
-      } catch (_error) {
+      } catch {
         // Intentionally silent - polling will retry on next interval
       }
     }, POLLING_INTERVAL_MS);
@@ -367,7 +367,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (
-        appState.current.match(/inactive|background/) &&
+        appState.current?.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
         if (pendingAuthWebViewPromises.current.size > 0) {
@@ -380,7 +380,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                 const stillPending = pendingAuthWebViewPromises.current.get(id);
                 if (stillPending) {
                   pendingAuthWebViewPromises.current.delete(id);
-                  stillPending.callback(id, null);
+                  stillPending.callback(id, null, stillPending.documentId);
                 }
               }, DEEP_LINK_GRACE_PERIOD_MS);
 
@@ -611,20 +611,26 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     }
   }, [hasBeenViewed, componentAnalytics]);
 
-  const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
+  const handleAuthWebViewResult = (
+    id: string,
+    resultUrl: string | null,
+    documentId: string
+  ) => {
     ref.current?.injectJavaScript(
       deliverToWrapper(
         `window.returnedFromAuthenticatedWebView(${JSON.stringify({
           id,
           url: resultUrl,
-        })});`
+        })});`,
+        documentId
       )
     );
   };
 
   const handleFinancialConnectionsResult = (
     id: string,
-    result: EmbeddedFinancialConnectionsResult
+    result: EmbeddedFinancialConnectionsResult,
+    documentId: string
   ) => {
     let value;
     if (result.error) {
@@ -657,7 +663,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         `window.callSetterWithSerializableValue(${JSON.stringify({
           setter: 'setCollectMobileFinancialConnectionsResult',
           value,
-        })});`
+        })});`,
+        documentId
       )
     );
   };
@@ -665,8 +672,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const onMessageCallback = useCallback(
     async (event: WebViewMessageEvent) => {
       // Only messages sent through the wrapper document's bridge are enveloped.
-      const inner = unwrapBridgeMessage(event?.nativeEvent?.data, bridgeToken);
-      if (inner === null) {
+      const unwrapped = unwrapBridgeMessage(
+        event?.nativeEvent?.data,
+        bridgeToken
+      );
+      if (unwrapped === null) {
         if (!hasLoggedUnauthorizedMessage.current) {
           hasLoggedUnauthorizedMessage.current = true;
           componentAnalytics.logUnauthorizedMessage();
@@ -674,9 +684,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         return;
       }
 
+      const { documentId } = unwrapped;
       let message: { type: string; data?: unknown };
       try {
-        const parsed: unknown = JSON.parse(inner);
+        const parsed: unknown = JSON.parse(unwrapped.message);
         if (!isRecord(parsed)) return;
         message = parsed as { type: string; data?: unknown };
       } catch (error) {
@@ -696,7 +707,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         ref.current?.injectJavaScript(
           deliverToWrapper(
-            `window.clientSecretDeferred.resolve(${JSON.stringify(clientSecret)});`
+            `window.clientSecretDeferred.resolve(${JSON.stringify(clientSecret)});`,
+            documentId
           )
         );
       } else if (message.type === 'debug') {
@@ -737,12 +749,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
         // Validate client secret
         if (!clientSecret || typeof clientSecret !== 'string') {
-          handleFinancialConnectionsResult(id, {
-            error: {
-              code: 'InvalidClientSecret',
-              message: 'Invalid or missing clientSecret parameter',
+          handleFinancialConnectionsResult(
+            id,
+            {
+              error: {
+                code: 'InvalidClientSecret',
+                message: 'Invalid or missing clientSecret parameter',
+              },
             },
-          });
+            documentId
+          );
           return;
         }
 
@@ -750,23 +766,31 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           connectedAccountId != null &&
           typeof connectedAccountId !== 'string'
         ) {
-          handleFinancialConnectionsResult(id, {
-            error: {
-              code: 'InvalidConnectedAccountId',
-              message: 'Invalid connectedAccountId parameter',
+          handleFinancialConnectionsResult(
+            id,
+            {
+              error: {
+                code: 'InvalidConnectedAccountId',
+                message: 'Invalid connectedAccountId parameter',
+              },
             },
-          });
+            documentId
+          );
           return;
         }
 
         // Prevent multiple simultaneous flows
         if (pendingFinancialConnectionsPromise.current) {
-          handleFinancialConnectionsResult(id, {
-            error: {
-              code: 'AlreadyInProgress',
-              message: 'Financial Connections flow already in progress',
+          handleFinancialConnectionsResult(
+            id,
+            {
+              error: {
+                code: 'AlreadyInProgress',
+                message: 'Financial Connections flow already in progress',
+              },
             },
-          });
+            documentId
+          );
           return;
         }
 
@@ -809,44 +833,61 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               if (
                 result.error.code === FinancialConnectionsSheetError.Canceled
               ) {
-                handleFinancialConnectionsResult(id, {});
+                handleFinancialConnectionsResult(id, {}, documentId);
                 return;
               }
 
-              handleFinancialConnectionsResult(id, {
-                error: result.error,
-              });
+              handleFinancialConnectionsResult(
+                id,
+                {
+                  error: result.error,
+                },
+                documentId
+              );
               return;
             }
 
             if (!result.session) {
-              handleFinancialConnectionsResult(id, {
-                error: {
-                  code: 'UnexpectedError',
-                  message: 'Financial Connections completed without a session',
+              handleFinancialConnectionsResult(
+                id,
+                {
+                  error: {
+                    code: 'UnexpectedError',
+                    message:
+                      'Financial Connections completed without a session',
+                  },
                 },
-              });
+                documentId
+              );
               return;
             }
 
-            handleFinancialConnectionsResult(id, {
-              session: result.session,
-              token: result.token
-                ? toStripeJsBankAccountToken(result.token)
-                : null,
-            });
+            handleFinancialConnectionsResult(
+              id,
+              {
+                session: result.session,
+                token: result.token
+                  ? toStripeJsBankAccountToken(result.token)
+                  : null,
+              },
+              documentId
+            );
           })
           .catch((unexpectedError) => {
             handleUnexpectedError(unexpectedError);
-            handleFinancialConnectionsResult(id, {
-              error: {
-                code: 'UnexpectedError',
-                message:
-                  unexpectedError instanceof Error
-                    ? unexpectedError.message
-                    : 'An unexpected error occurred during Financial Connections',
+            handleFinancialConnectionsResult(
+              id,
+              {
+                error: {
+                  code: 'UnexpectedError',
+                  message:
+                    unexpectedError instanceof Error
+                      ? unexpectedError.message
+                      : 'An unexpected error occurred during Financial Connections',
+                },
               },
-            });
+              documentId
+            );
           })
           .finally(cleanup);
       } else if (message.type === 'closeWebView') {
@@ -911,11 +952,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               } else {
                 componentAnalytics.logAuthenticatedWebViewCanceled(id);
               }
-              handleAuthWebViewResult(id, resultUrl);
+              handleAuthWebViewResult(id, resultUrl, documentId);
             } else {
               // Android: Store promise in Map to be resolved by deep link listener
               pendingAuthWebViewPromises.current.set(id, {
-                callback: (authId: string, resultUrl: string | null) => {
+                documentId,
+                callback: (
+                  authId: string,
+                  resultUrl: string | null,
+                  replyDocumentId: string
+                ) => {
                   if (resultUrl) {
                     componentAnalytics.logAuthenticatedWebViewRedirected(
                       authId
@@ -923,7 +969,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                   } else {
                     componentAnalytics.logAuthenticatedWebViewCanceled(authId);
                   }
-                  handleAuthWebViewResult(authId, resultUrl);
+                  handleAuthWebViewResult(authId, resultUrl, replyDocumentId);
                 },
               });
             }
@@ -998,12 +1044,15 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         return false;
       }
 
-      // Android reports every navigation as a top-frame 'other', so only
-      // host checks apply.
-      if (
-        isTrustedWrapperDocument(url, connectURL) ||
-        isAllowedStripeHost(url)
-      ) {
+      // Android reports every navigation as a top-frame 'other'; the wrapper page
+      // loads only at its configured URL.
+      if (isTrustedWrapperDocument(url, connectURL)) {
+        return true;
+      }
+      if (isWrapperPageUrl(url)) {
+        return false;
+      }
+      if (isAllowedStripeHost(url)) {
         return true;
       }
       routeOutside(url);
@@ -1086,8 +1135,9 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         token: bridgeToken,
         origin: BASE_URL,
         path: WRAPPER_PATH,
+        url: connectURL,
       }),
-    [injectedObject, bridgeToken]
+    [injectedObject, bridgeToken, connectURL]
   );
 
   if (!WebViewComponent || !isInlineHostRegistered) return null;
@@ -1285,10 +1335,15 @@ function isCsvExportUrl(url: string): boolean {
 }
 
 // Runs the payload only in a document on the wrapper origin and path.
-function deliverToWrapper(payloadScript: string): string {
+// Replies run only in the document that sent the request.
+function deliverToWrapper(payloadScript: string, documentId?: string): string {
+  const documentCheck =
+    documentId === undefined
+      ? ''
+      : ` && window.ReactNativeWebView && window.ReactNativeWebView.documentId === ${JSON.stringify(documentId)}`;
   return `
     (function() {
-      if (${wrapperDocumentCondition(BASE_URL, WRAPPER_PATH)}) {
+      if (${wrapperDocumentCondition(BASE_URL, WRAPPER_PATH)}${documentCheck}) {
         ${payloadScript}
       }
       true;
@@ -1298,4 +1353,18 @@ function deliverToWrapper(payloadScript: string): string {
 
 function isTrustedWrapperDocument(url: string, connectURL: string): boolean {
   return url === connectURL;
+}
+
+// True for any URL on the wrapper page, whatever its query or fragment.
+function isWrapperPageUrl(url: string): boolean {
+  const match = /^([a-z][a-z0-9+.-]*):\/\/([^/?#]*)([^?#]*)/i.exec(url);
+  if (!match) return false;
+  const scheme = match[1]!.toLowerCase();
+  const authority = match[2]!
+    .toLowerCase()
+    .replace(scheme === 'https' ? /:443$/ : /:80$/, '');
+  return (
+    `${scheme}://${authority}` === BASE_URL &&
+    match[3]!.toLowerCase() === WRAPPER_PATH.toLowerCase()
+  );
 }

@@ -92,14 +92,6 @@ class AddressSheetViewManager :
     view.setSheetTitle(title)
   }
 
-  @ReactProp(name = "googlePlacesApiKey")
-  override fun setGooglePlacesApiKey(
-    view: AddressSheetView,
-    key: String?,
-  ) {
-    view.setGooglePlacesApiKey(key)
-  }
-
   @ReactProp(name = "presentationStyle")
   override fun setPresentationStyle(
     view: AddressSheetView,

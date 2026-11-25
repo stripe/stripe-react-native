@@ -262,7 +262,7 @@ export default function LinkControllerScreen() {
     try {
       const pms = await listPaymentMethods(cId);
       setSavedPaymentMethods(pms);
-    } catch (e: any) {
+    } catch {
       // Non-fatal — proceed with empty list
     }
 

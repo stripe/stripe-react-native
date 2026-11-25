@@ -235,6 +235,10 @@ extension StripeSdkImpl {
                 resolve(Errors.createError(ErrorType.Failed, "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
                 return
             }
+            if let modeError = StripeSdkImpl.validateModeType(modeParams) {
+                resolve(Errors.createError(ErrorType.Failed, modeError))
+                return
+            }
             let captureMethodString = modeParams["captureMethod"] as? String
             let intentConfig = buildIntentConfiguration(
                 modeParams: modeParams,
@@ -334,6 +338,22 @@ extension StripeSdkImpl {
         return PaymentSheet.IntentConfiguration.CaptureMethod.automatic
     }
 
+    /// Returns an error message if `mode.type` is not `payment` or `setup`, or if `amount` or `currencyCode` is missing for `payment`.
+    static func validateModeType(_ modeParams: NSDictionary) -> String? {
+        let type = modeParams["type"] as? String
+        if type == "payment" {
+            if modeParams["amount"] as? NSNumber == nil {
+                return "You must provide a value to `intentConfiguration.mode.amount`"
+            }
+            if modeParams["currencyCode"] as? String == nil {
+                return "You must provide a value to `intentConfiguration.mode.currencyCode`"
+            }
+            return nil
+        }
+        if type == "setup" { return nil }
+        return "`intentConfiguration.mode.type` must be either 'payment' or 'setup', but was '\(type ?? "nil")'"
+    }
+
     func buildIntentConfiguration(
         modeParams: NSDictionary,
         paymentMethodTypes: [String]?,
@@ -342,9 +362,9 @@ extension StripeSdkImpl {
         useConfirmationTokenCallback: Bool
     ) -> PaymentSheet.IntentConfiguration {
         var mode: PaymentSheet.IntentConfiguration.Mode
-        if let amount = modeParams["amount"] as? Int {
+        if modeParams["type"] as? String == "payment" {
             mode = PaymentSheet.IntentConfiguration.Mode.payment(
-                amount: amount,
+                amount: modeParams["amount"] as? Int ?? 0,
                 currency: modeParams["currencyCode"] as? String ?? "",
                 setupFutureUsage: StripeSdkImpl.setupFutureUsageFromString(from: modeParams["setupFutureUsage"] as? String ?? ""),
                 captureMethod: captureMethod,

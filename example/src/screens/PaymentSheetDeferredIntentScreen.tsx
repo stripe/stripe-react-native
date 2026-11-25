@@ -8,6 +8,7 @@ import {
   PaymentSheetError,
   PaymentSheet,
   ConfirmationToken,
+  CaptureMethod,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -140,6 +141,8 @@ export default function PaymentSheetDeferredIntentScreen() {
             }
           },
           mode: {
+            type: 'payment',
+            captureMethod: CaptureMethod.Automatic,
             amount: 6099,
             currencyCode: 'USD',
           },

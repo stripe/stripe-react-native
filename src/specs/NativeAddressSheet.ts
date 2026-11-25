@@ -38,7 +38,6 @@ export interface NativeProps extends ViewProps {
   autocompleteCountries?: Array<string>;
   primaryButtonTitle?: string;
   sheetTitle?: string;
-  googlePlacesApiKey?: string;
   onSubmitAction: DirectEventHandler<OnSubmitActionEvent>;
   onErrorAction: DirectEventHandler<AddressSheetErrorEvent>;
 }

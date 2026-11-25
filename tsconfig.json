@@ -7,9 +7,15 @@
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "lib": ["ES6"],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "react-native/Libraries/Types/CodegenTypes": [
+        "./node_modules/react-native/Libraries/Types/CodegenTypesNamespace.d.ts"
+      ]
+    },
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,
     "noStrictGenericChecks": false,
@@ -19,12 +25,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
-    "types": [
-      "node",
-      "jest"
-    ]
+    "types": ["node", "jest"]
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

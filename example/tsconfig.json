@@ -1,3 +1,13 @@
 {
-  "extends": "@react-native/typescript-config/tsconfig.json"
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "paths": {
+      "react-native/Libraries/Types/CodegenTypes": [
+        "./node_modules/react-native/Libraries/Types/CodegenTypesNamespace.d.ts"
+      ],
+      "react-native/Libraries/*": [
+        "./node_modules/react-native/Libraries/*.d.ts"
+      ]
+    }
+  }
 }

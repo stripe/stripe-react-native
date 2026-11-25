@@ -2,12 +2,22 @@
 
 ## Unreleased
 
+**Breaking changes**
+
+* [Changed] Minimum supported React Native version is now 0.87 (previously 0.75).
+* [Changed] Minimum supported Expo SDK is now 58.
+* [Changed] `PaymentSheet.PaymentMode.captureMethod` is now required. If you previously did not set `captureMethod`, use the same value set on during `PaymentIntent` creation on your backend.
+* [Changed] `IntentConfiguration.mode` now requires an explicit `type` (`'payment'` or `'setup'`). Previously the mode was inferred from whether `amount` was present.
+* [Removed] `AddressSheetProps.googlePlacesApiKey`, deprecated in 0.83.0. Address autocomplete no longer requires a Google Places API key.
+
 **Fixes**
 
 * [Fixed] iOS: Connect now blocks top-frame WebView navigation away from the hosted Connect page for every navigation type (previously only navigation triggered by a click was blocked), and routes it to the system browser instead.
 * [Fixed] Connect popups (e.g. links that open a new window) now open in the system browser on both platforms. Previously they were silently dropped on Android.
 * [Fixed] Connect now opens only `https:` links (in the system browser), `mailto:` and `tel:` links (handed to the OS), and Stripe's CSV export storage (share sheet). Links with other schemes, including custom app schemes and `http:`, are no longer opened. On Android, Connect hosts must now also be served over https.
 * [Fixed] Connect: hardened validation of messages received from embedded component WebViews.
+* [Fixed] Android: Connect now loads the hosted Connect page only at its configured URL.
+* [Fixed] Connect now delivers responses only to the hosted Connect page instance that requested them.
 
 ## 0.85.1 - 2026-11-10
 

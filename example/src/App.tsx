@@ -147,11 +147,7 @@ export default function App() {
 
   return (
     <>
-      <StatusBar
-        backgroundColor={colors.blurple_dark}
-        barStyle="light-content"
-        translucent
-      />
+      <StatusBar barStyle="light-content" />
       <NavigationContainer
         initialState={initialState}
         onStateChange={onStateChange}

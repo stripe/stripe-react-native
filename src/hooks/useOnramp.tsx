@@ -234,7 +234,7 @@ export function useOnramp() {
           try {
             const clientSecret = await provideCheckoutClientSecret();
             requireOnrampModule().provideCheckoutClientSecret(clientSecret);
-          } catch (error: any) {
+          } catch {
             requireOnrampModule().provideCheckoutClientSecret(null);
           }
         }
