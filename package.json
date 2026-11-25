@@ -215,7 +215,8 @@
         "CheckoutCurrencySelectorElementView": "CheckoutCurrencySelectorElementViewComponentView",
         "CheckoutExpressCheckoutElementView": "CheckoutExpressCheckoutElementViewComponentView",
         "NavigationBar": "NavigationBarComponentView",
-        "StripeContainer": "StripeContainerComponentView"
+        "StripeContainer": "StripeContainerComponentView",
+        "StripeConnectInlineHost": "ConnectInlineHostComponentView"
       }
     },
     "name": "rnstripe",
