@@ -232,7 +232,7 @@ export default function GooglePayScreen() {
       {showAddToWalletButton && isGooglePaySupported && (
         <View style={styles.row}>
           <AddToWalletButton
-            androidAssetSource={Image.resolveAssetSource(AddToGooglePayPNG)}
+            androidAssetSource={Image.resolveAssetSource(AddToGooglePayPNG)!}
             style={styles.addToWalletButton}
             cardDetails={{
               name: cardDetails?.cardholder?.name,

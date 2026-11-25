@@ -27,7 +27,7 @@ export default function HomeScreen() {
   const { configure } = useOnramp();
 
   const handleDeepLink = useCallback(
-    async (url: string | null) => {
+    async (url: string | null | undefined) => {
       if (url) {
         const stripeHandled = await handleURLCallback(url);
         if (stripeHandled) {

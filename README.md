@@ -75,7 +75,7 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 
 #### React Native
 
-React Native 0.75 or later is required.
+React Native 0.87 or later is required.
 The React Native **new architecture** (TurboModules and Fabric) is required.
 
 - **Android:** Set `newArchEnabled=true` in `android/gradle.properties`.

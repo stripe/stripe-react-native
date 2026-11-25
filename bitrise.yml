@@ -43,13 +43,9 @@ pipelines:
         parallel: 4
   test-projects:
     workflows:
-      expo-sdk-52: {}
-      expo-sdk-53: {}
-      expo-sdk-54: {}
-      rn-076: {}
-      rn-078: {}
-      rn-081: {}
-      rn-082: {}
+      expo-sdk-58: {}
+      rn-087: {}
+      rn-088: {}
 
 workflows:
   # JavaScript Tests
@@ -207,7 +203,7 @@ workflows:
   # CocoaPods fallback step is retained but disabled for current releases.
   expo-prebuild-ios:
     envs:
-      - EXPO_SDK_VERSION: '54'
+      - EXPO_SDK_VERSION: '58'
     before_run:
       - _prepare_js
     steps:
@@ -234,85 +230,36 @@ workflows:
     before_run:
       - _e2e_tests_ios
 
-  expo-sdk-52:
+  expo-sdk-58:
     envs:
-      - EXPO_SDK_VERSION: '52'
+      - EXPO_SDK_VERSION: '58'
     before_run:
       - _test_projects_base
     steps:
       - script@1:
-          title: Build Expo SDK 52 project
+          title: Build Expo SDK 58 project
           inputs:
             - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
 
-  expo-sdk-53:
+  rn-087:
     envs:
-      - EXPO_SDK_VERSION: '53'
+      - RN_VERSION: '0.87'
     before_run:
       - _test_projects_base
     steps:
       - script@1:
-          title: Build Expo SDK 53 project
-          inputs:
-            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
-
-  expo-sdk-54:
-    envs:
-      - EXPO_SDK_VERSION: '54'
-    before_run:
-      - _test_projects_base
-    steps:
-      - script@1:
-          title: Build Expo SDK 54 project
-          inputs:
-            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
-
-  rn-076:
-    envs:
-      - RN_VERSION: '0.76'
-      - ORG_GRADLE_JVMARGS: '-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError'
-    before_run:
-      - _test_projects_base
-    steps:
-      - script@1:
-          title: Build React Native 0.76 project
-          inputs:
-            - content: ./scripts/test-project --version "$RN_VERSION"
-    meta:
-      bitrise.io:
-        stack: osx-xcode-26.4.x
-        machine_type_id: g2.mac.4large
-
-  rn-078:
-    envs:
-      - RN_VERSION: '0.78'
-    before_run:
-      - _test_projects_base
-    steps:
-      - script@1:
-          title: Build React Native 0.78 project
+          title: Build React Native 0.87 project
           inputs:
             - content: ./scripts/test-project --version "$RN_VERSION"
 
-  rn-081:
+  rn-088:
     envs:
-      - RN_VERSION: '0.81'
+      - RN_VERSION: '0.88'
     before_run:
       - _test_projects_base
     steps:
       - script@1:
-          title: Build React Native 0.81 project
-          inputs:
-            - content: ./scripts/test-project --version "$RN_VERSION"
-
-  rn-082:
-    envs:
-      - RN_VERSION: '0.82'
-    before_run:
-      - _test_projects_base
-    steps:
-      - script@1:
-          title: Build React Native 0.82 project
+          title: Build React Native 0.88 project
           inputs:
             - content: ./scripts/test-project --version "$RN_VERSION"
 

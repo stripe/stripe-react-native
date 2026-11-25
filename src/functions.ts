@@ -808,7 +808,7 @@ export const dismissPlatformPay = async (): Promise<boolean> => {
   try {
     const didDismiss = await NativeStripeSdk.dismissPlatformPay();
     return didDismiss;
-  } catch (error: any) {
+  } catch {
     return false;
   }
 };
@@ -936,7 +936,7 @@ export const setFinancialConnectionsForceNativeFlow = async (
   if (Platform.OS !== 'ios') return;
   try {
     await NativeStripeSdk.setFinancialConnectionsForceNativeFlow(enabled);
-  } catch (_) {
+  } catch {
     // no-op
   }
 };

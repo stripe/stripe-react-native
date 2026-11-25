@@ -10,7 +10,6 @@ import React, {
 import {
   ActivityIndicator,
   AppState,
-  AppStateStatus,
   Linking,
   Platform,
   StyleProp,
@@ -257,7 +256,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     loadWebViewComponent();
   }, [loadWebViewComponent]);
 
-  const appState = useRef<AppStateStatus>(AppState.currentState);
+  const appState = useRef<string | null | undefined>(AppState.currentState);
 
   // Android deep link polling mechanism (Android-only)
   //
@@ -324,7 +323,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
             }
           });
         }
-      } catch (_error) {
+      } catch {
         // Intentionally silent - polling will retry on next interval
       }
     }, POLLING_INTERVAL_MS);
@@ -338,7 +337,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (
-        appState.current.match(/inactive|background/) &&
+        appState.current?.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
         if (pendingAuthWebViewPromises.current.size > 0) {

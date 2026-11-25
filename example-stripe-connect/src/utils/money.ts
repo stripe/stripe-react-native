@@ -11,7 +11,7 @@ const getSeparators = (): { decimal: string; group: string } => {
       decimal: settings.decimalSeparator,
       group: settings.groupingSeparator,
     };
-  } catch (error) {
+  } catch {
     // Fallback to US format
     return { decimal: '.', group: ',' };
   }
@@ -41,7 +41,7 @@ export const parseDollars = (value?: string, defaultValue = 0): number => {
 
     const parsed = parseFloat(normalized);
     return isNaN(parsed) ? defaultValue : parsed;
-  } catch (error) {
+  } catch {
     // Fallback: try parsing as-is
     const parsed = parseFloat(value);
     return isNaN(parsed) ? defaultValue : parsed;
@@ -61,7 +61,7 @@ export const formatDollarsForInput = (value: number): string => {
     // Convert number to string and replace decimal point with locale separator
     const str = value.toString();
     return str.replace('.', decimal);
-  } catch (error) {
+  } catch {
     // Fallback to toString
     return value.toString();
   }

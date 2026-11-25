@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
   buyButtonText: { color: colors.white, fontSize: 16, fontWeight: '800' },
   pressed: { opacity: 0.72, transform: [{ scale: 0.99 }] },
   updatingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.35)',

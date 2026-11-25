@@ -51,7 +51,7 @@ class CardFieldViewTest {
 
   private fun cardFieldView(): Pair<CardFieldView, BridgeReactContext> {
     val app = RuntimeEnvironment.getApplication()
-    val bridgeContext = BridgeReactContext(app)
+    val bridgeContext = EventDispatcherBridgeReactContext(app)
     val themed =
       ContextThemeWrapper(app, com.google.android.material.R.style.Theme_MaterialComponents_Light)
     val themedContext = ThemedReactContext(bridgeContext, themed, null, -1)
