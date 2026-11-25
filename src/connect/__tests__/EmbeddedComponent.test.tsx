@@ -124,7 +124,10 @@ describe('EmbeddedComponent', () => {
   // reaches the original bridge.
   const runBridgeScript = (
     script: string,
-    location: { origin: string; pathname: string } = WRAPPER_LOCATION
+    location: { origin: string; pathname: string; href: string } = {
+      ...WRAPPER_LOCATION,
+      href: mockWebViewProps.source.uri,
+    }
   ) => {
     const received: string[] = [];
     const page: any = {
@@ -150,8 +153,14 @@ describe('EmbeddedComponent', () => {
       mockWebViewProps.injectedJavaScriptBeforeContentLoaded
     );
 
-  const bridgeEvent = (token: unknown, message: unknown) => ({
-    nativeEvent: { data: JSON.stringify({ token, message }) },
+  const TEST_DOCUMENT_ID = 'doc_test';
+
+  const bridgeEvent = (
+    token: unknown,
+    message: unknown,
+    documentId: unknown = TEST_DOCUMENT_ID
+  ) => ({
+    nativeEvent: { data: JSON.stringify({ token, documentId, message }) },
   });
 
   const sendBridgeMessage = (message: unknown) =>
@@ -485,6 +494,70 @@ describe('EmbeddedComponent', () => {
         expect(openUrl).not.toHaveBeenCalled();
       } finally {
         openUrl.mockRestore();
+        Platform.OS = previousPlatform;
+      }
+    });
+
+    it.each([
+      [
+        'a different fragment',
+        (uri: string) => uri.replace('component=', 'component=x'),
+      ],
+      [
+        'no fragment',
+        () => 'https://connect-js.stripe.com/v1.0/react_native_webview.html',
+      ],
+      [
+        'an upper-case host',
+        () =>
+          'https://CONNECT-JS.stripe.com/v1.0/react_native_webview.html#component=payouts',
+      ],
+      [
+        'an explicit port',
+        () =>
+          'https://connect-js.stripe.com:443/v1.0/react_native_webview.html#component=payouts',
+      ],
+      [
+        'a query string',
+        () =>
+          'https://connect-js.stripe.com/v1.0/react_native_webview.html?x=1#component=payouts',
+      ],
+    ])(
+      'blocks Android navigation to the Connect page with another configuration: %s',
+      async (_name, makeUrl) => {
+        const previousPlatform = Platform.OS;
+        Platform.OS = 'android' as any;
+        const openUrl = jest.spyOn(Linking, 'openURL');
+
+        try {
+          const onShouldStartLoad = await getNavigationHandler();
+          const shouldLoad = onShouldStartLoad({
+            url: makeUrl(mockWebViewProps.source.uri),
+            navigationType: 'other',
+          });
+
+          expect(shouldLoad).toBe(false);
+          expect(openUrl).not.toHaveBeenCalled();
+        } finally {
+          openUrl.mockRestore();
+          Platform.OS = previousPlatform;
+        }
+      }
+    );
+
+    it('keeps Android navigation to the configured Connect page in the component', async () => {
+      const previousPlatform = Platform.OS;
+      Platform.OS = 'android' as any;
+
+      try {
+        const onShouldStartLoad = await getNavigationHandler();
+        const shouldLoad = onShouldStartLoad({
+          url: mockWebViewProps.source.uri,
+          navigationType: 'other',
+        });
+
+        expect(shouldLoad).toBe(true);
+      } finally {
         Platform.OS = previousPlatform;
       }
     });
@@ -1097,7 +1170,9 @@ describe('EmbeddedComponent', () => {
   describe('Init params injection', () => {
     // Runs the injected script the way the page would see it.
     const readInjectedObject = (script: string) => {
-      const page: any = { location: WRAPPER_LOCATION };
+      const page: any = {
+        location: { ...WRAPPER_LOCATION, href: mockWebViewProps.source.uri },
+      };
       page.window = page.top = page;
       vm.createContext(page);
       vm.runInContext(script, page);
@@ -1202,7 +1277,9 @@ describe('EmbeddedComponent', () => {
 
       expect(mockWebViewProps.injectedJavaScriptObject).toBeUndefined();
 
-      const page: any = { location: WRAPPER_LOCATION };
+      const page: any = {
+        location: { ...WRAPPER_LOCATION, href: mockWebViewProps.source.uri },
+      };
       page.window = page.top = page;
       vm.createContext(page);
       vm.runInContext(
@@ -1414,6 +1491,189 @@ describe('EmbeddedComponent', () => {
 
       expect(NativeStripeSdk.collectBankAccountToken).not.toHaveBeenCalled();
       expect(lastInjectedScript()).toContain(code);
+    });
+
+    describe('reply binding', () => {
+      const mountWithScript = async (props: any = {}) => {
+        mockLoadWebView = true;
+        renderComponent(props);
+        await waitFor(() => expect(webViewOnMessage).toBeDefined());
+        return mockWebViewProps.injectedJavaScriptBeforeContentLoaded as string;
+      };
+
+      const lastScript = () =>
+        mockInjectJavaScript.mock.calls[
+          mockInjectJavaScript.mock.calls.length - 1
+        ]?.[0];
+
+      // Posts through the page's bridge and hands what reached the original
+      // bridge to the component.
+      const postFromPage = async (
+        loaded: { page: any; received: string[] },
+        message: unknown
+      ) => {
+        loaded.page.ReactNativeWebView.postMessage(JSON.stringify(message));
+        // The handler's promise is left pending on purpose.
+        await act(async () => {
+          webViewOnMessage?.({
+            nativeEvent: { data: loaded.received[loaded.received.length - 1] },
+          } as any);
+        });
+      };
+
+      const withSpy = (loaded: { page: any }) => {
+        const resolve = jest.fn();
+        loaded.page.clientSecretDeferred = { resolve };
+        return resolve;
+      };
+
+      it('drops a client secret reply after the document is replaced', async () => {
+        let resolveSecret: (value: string) => void = () => {};
+        (mockInitParams.fetchClientSecret as jest.Mock).mockImplementationOnce(
+          () =>
+            new Promise<string>((resolve) => {
+              resolveSecret = resolve;
+            })
+        );
+        const script = await mountWithScript();
+        const pageA = runBridgeScript(script);
+        const resolveA = withSpy(pageA);
+
+        await postFromPage(pageA, { type: 'fetchClientSecret' });
+        const pageB = runBridgeScript(script);
+        const resolveB = withSpy(pageB);
+        await act(async () => {
+          resolveSecret('secret_late');
+        });
+        vm.runInContext(lastScript(), pageA.page);
+        vm.runInContext(lastScript(), pageB.page);
+
+        expect(resolveB).not.toHaveBeenCalled();
+        expect(resolveA).toHaveBeenCalledWith('secret_late');
+      });
+
+      it('drops a Financial Connections result after the document is replaced', async () => {
+        let resolveCollect: (value: object) => void = () => {};
+        (
+          NativeStripeSdk.collectBankAccountToken as jest.Mock
+        ).mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveCollect = resolve;
+            })
+        );
+        const script = await mountWithScript({
+          component: 'account-onboarding',
+        });
+        const pageA = runBridgeScript(script);
+        pageA.page.callSetterWithSerializableValue = jest.fn();
+
+        await postFromPage(pageA, {
+          type: 'openFinancialConnections',
+          data: { id: 'request', clientSecret: 'client_secret' },
+        });
+        const pageB = runBridgeScript(script);
+        pageB.page.callSetterWithSerializableValue = jest.fn();
+        await act(async () => {
+          resolveCollect({});
+        });
+        vm.runInContext(lastScript(), pageA.page);
+        vm.runInContext(lastScript(), pageB.page);
+
+        expect(
+          pageB.page.callSetterWithSerializableValue
+        ).not.toHaveBeenCalled();
+        expect(pageA.page.callSetterWithSerializableValue).toHaveBeenCalled();
+      });
+
+      it('drops an authenticated web view result after the document is replaced', async () => {
+        const previousPlatform = Platform.OS;
+        Platform.OS = 'ios' as any;
+        try {
+          let resolveAuth: (value: { url: string }) => void = () => {};
+          (
+            NativeStripeSdk.openAuthenticatedWebView as jest.Mock
+          ).mockImplementationOnce(
+            () =>
+              new Promise((resolve) => {
+                resolveAuth = resolve;
+              })
+          );
+          const script = await mountWithScript();
+          const pageA = runBridgeScript(script);
+          pageA.page.returnedFromAuthenticatedWebView = jest.fn();
+
+          await postFromPage(pageA, {
+            type: 'openAuthenticatedWebView',
+            data: { id: 'auth_1', url: 'https://connect.stripe.com/start' },
+          });
+          const pageB = runBridgeScript(script);
+          pageB.page.returnedFromAuthenticatedWebView = jest.fn();
+          await act(async () => {
+            resolveAuth({ url: 'https://connect.stripe.com/return' });
+          });
+          vm.runInContext(lastScript(), pageA.page);
+          vm.runInContext(lastScript(), pageB.page);
+
+          expect(
+            pageB.page.returnedFromAuthenticatedWebView
+          ).not.toHaveBeenCalled();
+          expect(
+            pageA.page.returnedFromAuthenticatedWebView
+          ).toHaveBeenCalled();
+        } finally {
+          Platform.OS = previousPlatform;
+        }
+      });
+
+      it('gives no bridge to a wrapper page restored at another configuration', async () => {
+        const script = await mountWithScript();
+        const pageA = runBridgeScript(script);
+        pageA.page.ReactNativeWebView.postMessage('probe');
+        expect(JSON.parse(pageA.received[0]!)).toMatchObject({
+          token: expect.any(String),
+        });
+
+        const pageB = runBridgeScript(script, {
+          ...WRAPPER_LOCATION,
+          href: mockWebViewProps.source.uri.replace(
+            'component=',
+            'component=x'
+          ),
+        });
+        const token = JSON.parse(pageA.received[0]!).token;
+        expect(pageB.page.ReactNativeWebView.documentId).toBeUndefined();
+        expect(
+          JSON.stringify(pageB.page, (key, value) =>
+            key === 'window' || key === 'top' ? undefined : value
+          )
+        ).not.toContain(token);
+
+        await postFromPage(pageB, { type: 'fetchClientSecret' });
+
+        expect(mockInitParams.fetchClientSecret).not.toHaveBeenCalled();
+        expect(mockInjectJavaScript).not.toHaveBeenCalled();
+      });
+
+      it('delivers prop updates to the current document', async () => {
+        const script = await mountWithScript();
+        const loaded = runBridgeScript(script);
+        loaded.page.updateConnectInstance = jest.fn();
+        mockInjectJavaScript.mockClear();
+
+        act(() => {
+          connectInstance.update({
+            appearance: { variables: { colorPrimary: '#123456' } },
+          });
+        });
+        await waitFor(() => expect(lastScript()).toBeDefined());
+        vm.runInContext(lastScript(), loaded.page);
+
+        expect(loaded.page.updateConnectInstance).toHaveBeenCalled();
+        expect(loaded.page.ReactNativeWebView.documentId).not.toBe(
+          TEST_DOCUMENT_ID
+        );
+      });
     });
   });
 
@@ -1656,6 +1916,7 @@ describe('EmbeddedComponent', () => {
     ) => {
       const win = {
         location,
+        ReactNativeWebView: { documentId: TEST_DOCUMENT_ID },
         clientSecretDeferred: { resolve: jest.fn() },
         updateConnectInstance: jest.fn(),
         callSetterWithSerializableValue: jest.fn(),

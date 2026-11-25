@@ -36,14 +36,27 @@ describe('createBridgeToken', () => {
 });
 
 describe('unwrapBridgeMessage', () => {
-  it('returns the inner message when the token matches', () => {
-    const token = 'a'.repeat(32);
+  const token = 'a'.repeat(32);
 
+  it('returns the inner message when the token matches', () => {
     expect(
       unwrapBridgeMessage(
-        JSON.stringify({ token, message: '{"type":"x"}' }),
+        JSON.stringify({ token, documentId: 'd1', message: '{"type":"x"}' }),
         token
       )
-    ).toBe('{"type":"x"}');
+    ).toEqual({ message: '{"type":"x"}', documentId: 'd1' });
+  });
+
+  it('rejects an envelope without a document id', () => {
+    const unwrap = (documentId: unknown) =>
+      unwrapBridgeMessage(
+        JSON.stringify({ token, documentId, message: '{"type":"x"}' }),
+        token
+      );
+
+    expect(unwrap(undefined)).toBeNull();
+    expect(unwrap(5)).toBeNull();
+    expect(unwrap('')).toBeNull();
+    expect(unwrap('d'.repeat(65))).toBeNull();
   });
 });

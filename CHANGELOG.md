@@ -14,6 +14,8 @@
 * [Fixed] Connect popups (e.g. links that open a new window) now open in the system browser on both platforms. Previously they were silently dropped on Android.
 * [Fixed] Connect now opens only `https:` links (in the system browser), `mailto:` and `tel:` links (handed to the OS), and Stripe's CSV export storage (share sheet). Links with other schemes, including custom app schemes and `http:`, are no longer opened. On Android, Connect hosts must now also be served over https.
 * [Fixed] Connect: hardened validation of messages received from embedded component WebViews.
+* [Fixed] Android: Connect now loads the hosted Connect page only at its configured URL.
+* [Fixed] Connect now delivers responses only to the hosted Connect page instance that requested them.
 
 ## 0.85.1 - 2026-11-10
 

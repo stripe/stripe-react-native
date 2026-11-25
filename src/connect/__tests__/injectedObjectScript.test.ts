@@ -4,8 +4,9 @@ import { buildInjectedObjectScript } from '../injectedObjectScript';
 const ORIGIN = 'https://connect-js.stripe.com';
 const PATH = '/v1.0/react_native_webview.html';
 const TOKEN = 'f00dfeedf00dfeedf00dfeedf00dfeed';
-const AUTH = { token: TOKEN, origin: ORIGIN, path: PATH };
-const WRAPPER_LOCATION = { origin: ORIGIN, pathname: PATH };
+const CONNECT_URL = `${ORIGIN}${PATH}#component=payments&publicKey=pk_test_123`;
+const AUTH = { token: TOKEN, origin: ORIGIN, path: PATH, url: CONNECT_URL };
+const WRAPPER_LOCATION = { origin: ORIGIN, pathname: PATH, href: CONNECT_URL };
 
 const BRIDGE = 'ReactNativeWebView';
 
@@ -177,6 +178,7 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
     options: {
       origin?: string;
       pathname?: string;
+      href?: string;
       isTop?: boolean;
       bridge?: object;
     } = {},
@@ -190,6 +192,7 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
       location: {
         origin: options.origin ?? ORIGIN,
         pathname: options.pathname ?? PATH,
+        href: options.href ?? CONNECT_URL,
       },
       [BRIDGE]: original,
     };
@@ -206,16 +209,41 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
     page[BRIDGE].postMessage('{"type":"x"}');
 
     expect(received.map((m) => JSON.parse(m))).toEqual([
-      { token: TOKEN, message: '{"type":"x"}' },
+      {
+        token: TOKEN,
+        documentId: expect.any(String),
+        message: '{"type":"x"}',
+      },
     ]);
+    expect(page[BRIDGE].documentId).toBe(JSON.parse(received[0]!).documentId);
     expect(readInjectedObject(page)).toEqual(injected);
     expect(serializePage(page)).not.toContain(TOKEN);
     expect(String(page[BRIDGE].postMessage)).not.toContain(TOKEN);
     expect(Object.getOwnPropertyNames(page).join()).not.toContain(TOKEN);
     expect(Object.getOwnPropertyNames(page[BRIDGE]).sort()).toEqual([
+      'documentId',
       'injectedObjectJson',
       'postMessage',
     ]);
+  });
+
+  it('gives each document its own id', () => {
+    const first = load();
+    const second = load();
+
+    first.page[BRIDGE].postMessage('a');
+    first.page[BRIDGE].postMessage('b');
+    const ids = first.received.map((m) => JSON.parse(m).documentId);
+    const before = first.page[BRIDGE].documentId;
+    try {
+      first.page[BRIDGE].documentId = 'other';
+    } catch {
+      // Assignment to a read-only property may throw in strict mode.
+    }
+
+    expect(ids[0]).toBe(ids[1]);
+    expect(first.page[BRIDGE].documentId).toBe(before);
+    expect(second.page[BRIDGE].documentId).not.toBe(before);
   });
 
   it('wraps a bridge whose properties always resolve to the original', () => {
@@ -226,7 +254,7 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
 
     page[BRIDGE].postMessage('m');
 
-    expect(received.map((m) => JSON.parse(m))).toEqual([
+    expect(received.map((m) => JSON.parse(m))).toMatchObject([
       { token: TOKEN, message: 'm' },
     ]);
   });
@@ -252,7 +280,7 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
     page[BRIDGE].postMessage('m');
 
     expect(spy).not.toHaveBeenCalled();
-    expect(received.map((m) => JSON.parse(m))).toEqual([
+    expect(received.map((m) => JSON.parse(m))).toMatchObject([
       { token: TOKEN, message: 'm' },
     ]);
     expect(readInjectedObject(page)).toEqual(injected);
@@ -262,6 +290,11 @@ describe('buildInjectedObjectScript with bridge authorization', () => {
     ['a foreign origin', { origin: 'https://evil.example' }],
     ['the wrong path', { pathname: '/other.html' }],
     ['a non-top document', { isTop: false }],
+    [
+      'a different fragment',
+      { href: CONNECT_URL.replace('component=', 'component=x') },
+    ],
+    ['no fragment', { href: ORIGIN + PATH }],
   ])('leaves the page untouched on %s', (_desc, options) => {
     const { page, received, original } = load(options);
 
