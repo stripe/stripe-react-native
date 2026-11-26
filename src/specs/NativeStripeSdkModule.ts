@@ -45,6 +45,9 @@ import type {
 import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { CheckoutElements } from '../types/CheckoutElements';
 import type { UnsafeObject } from './utils';
+import type { FinancialConnectionsEvent } from '../types/FinancialConnections';
+import type { Result as ConfirmationTokenResult } from '../types/ConfirmationToken';
+import type { CheckoutControllerUpdate } from '../checkout/CheckoutControllerEventEmitter';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
@@ -324,8 +327,72 @@ export interface Spec extends TurboModule {
   ): Promise<void>;
 
   // Events
-  addListener: (eventType: string) => void;
-  removeListeners: (count: number) => void;
+  readonly checkoutExpressCheckoutDidComplete: CodegenTypes.EventEmitter<
+    UnsafeObject<{ controllerId: string; result: CheckoutElements.Result }>
+  >;
+  readonly checkoutServerUpdateRequested: CodegenTypes.EventEmitter<{
+    controllerId: string;
+    operationId: string;
+  }>;
+  readonly onConfirmHandlerCallback: CodegenTypes.EventEmitter<{
+    paymentMethod: UnsafeObject<PaymentMethod.Result>;
+    shouldSavePaymentMethod: boolean;
+  }>;
+  readonly onConfirmationTokenHandlerCallback: CodegenTypes.EventEmitter<{
+    confirmationToken: UnsafeObject<ConfirmationTokenResult>;
+  }>;
+  readonly onFinancialConnectionsEvent: CodegenTypes.EventEmitter<
+    UnsafeObject<FinancialConnectionsEvent>
+  >;
+  readonly onOrderTrackingCallback: CodegenTypes.EventEmitter<void>;
+  readonly onCustomerAdapterFetchPaymentMethodsCallback: CodegenTypes.EventEmitter<void>;
+  readonly onCustomerAdapterAttachPaymentMethodCallback: CodegenTypes.EventEmitter<{
+    paymentMethodId: string;
+  }>;
+  readonly onCustomerAdapterDetachPaymentMethodCallback: CodegenTypes.EventEmitter<{
+    paymentMethodId: string;
+  }>;
+  readonly onCustomerAdapterSetSelectedPaymentOptionCallback: CodegenTypes.EventEmitter<{
+    paymentOption: string;
+  }>;
+  readonly onCustomerAdapterFetchSelectedPaymentOptionCallback: CodegenTypes.EventEmitter<void>;
+  readonly onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: CodegenTypes.EventEmitter<void>;
+  readonly onCustomerSessionProviderSetupIntentClientSecret: CodegenTypes.EventEmitter<void>;
+  readonly onCustomerSessionProviderCustomerSessionClientSecret: CodegenTypes.EventEmitter<{
+    requestId: string;
+  }>;
+  readonly embeddedPaymentElementDidUpdateHeight: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  readonly embeddedPaymentElementWillPresent: CodegenTypes.EventEmitter<void>;
+  readonly embeddedPaymentElementDidUpdatePaymentOption: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  readonly embeddedPaymentElementFormSheetConfirmComplete: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  readonly embeddedPaymentElementRowSelectionImmediateAction: CodegenTypes.EventEmitter<void>;
+  readonly embeddedPaymentElementLoadingFailed: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  readonly embeddedPaymentElementUpdateComplete: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  readonly onCustomPaymentMethodConfirmHandlerCallback: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  readonly paymentMethodMessagingElementDidUpdateHeight: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  readonly paymentMethodMessagingElementConfigureResult: CodegenTypes.EventEmitter<
+    UnsafeObject<any>
+  >;
+  readonly checkoutControllerDidUpdate: CodegenTypes.EventEmitter<
+    UnsafeObject<CheckoutControllerUpdate>
+  >;
+  readonly checkoutControllerDidSelectPaymentOption: CodegenTypes.EventEmitter<{
+    controllerId: string;
+  }>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

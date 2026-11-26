@@ -10,7 +10,6 @@ import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
-import com.reactnativestripesdk.EventEmitterCompat
 import com.stripe.android.checkout.CheckoutElementsController
 import com.stripe.android.checkout.CheckoutElementsPresenter
 import com.stripe.android.elements.CurrencySelectorElement
@@ -35,7 +34,7 @@ import kotlinx.coroutines.launch
 @Suppress("TooManyFunctions")
 internal class NativeCheckoutControllerInstance(
   val controller: CheckoutElementsController,
-  private val eventEmitter: EventEmitterCompat,
+  private val eventEmitter: CheckoutEventEmitter,
   private val scope: CoroutineScope,
   initialSession: WritableMap,
   private val context: ReactApplicationContext,

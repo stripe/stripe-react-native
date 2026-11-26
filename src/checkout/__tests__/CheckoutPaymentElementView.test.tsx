@@ -7,16 +7,22 @@ import { createCheckoutElements } from '../createCheckoutElements';
 import type { CheckoutElements } from '../../types/CheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 
-jest.mock('../../events', () => ({
-  addListener: jest.fn(() => ({ remove: jest.fn() })),
-}));
 jest.mock(
   '../../specs/NativeCheckoutPaymentElement',
   () => require('react-native').View
 );
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
-  default: { createCheckout: jest.fn(), destroyCheckout: jest.fn() },
+  default: {
+    checkoutControllerDidUpdate: jest.fn(() => ({ remove: jest.fn() })),
+    checkoutControllerDidSelectPaymentOption: jest.fn(() => ({
+      remove: jest.fn(),
+    })),
+    checkoutExpressCheckoutDidComplete: jest.fn(() => ({ remove: jest.fn() })),
+    checkoutServerUpdateRequested: jest.fn(() => ({ remove: jest.fn() })),
+    createCheckout: jest.fn(),
+    destroyCheckout: jest.fn(),
+  },
 }));
 
 it('routes the controller ID and resets native height when the element changes', async () => {

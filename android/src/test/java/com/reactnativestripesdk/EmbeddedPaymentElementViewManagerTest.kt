@@ -3,10 +3,8 @@ package com.reactnativestripesdk
 import android.view.ContextThemeWrapper
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.DynamicFromObject
-import com.facebook.react.bridge.JavaScriptModule
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.uimanager.DisplayMetricsHolder
 import com.facebook.react.uimanager.ThemedReactContext
 import com.reactnativestripesdk.utils.readableMapOf
@@ -16,6 +14,9 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
@@ -353,28 +354,25 @@ class EmbeddedPaymentElementViewManagerTest {
     val updateCompletePayloads = mutableListOf<Any?>()
     val bridgeContext =
       object : BridgeReactContext(app) {
-        private val stripeSdkModule by lazy { StripeSdkModule(this).also { it.initialize() } }
+        private val stripeSdkModule by lazy {
+          StripeSdkModule(this).also {
+            it.initialize()
+            it.eventEmitter =
+              mock(StripeSdkModule.EventEmitter::class.java).also { emitter ->
+                doAnswer { invocation ->
+                  loadingFailedMessages.add(invocation.getArgument<ReadableMap>(0).getString("message")!!)
+                  null
+                }.`when`(emitter).emitEmbeddedPaymentElementLoadingFailed(any())
+                doAnswer { invocation ->
+                  updateCompletePayloads.add(invocation.getArgument<ReadableMap?>(0))
+                  null
+                }.`when`(emitter).emitEmbeddedPaymentElementUpdateComplete(any())
+              }
+          }
+        }
 
         override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
           nativeModuleInterface.cast(stripeSdkModule)
-
-        override fun <T : JavaScriptModule> getJSModule(jsInterface: Class<T>): T =
-          requireNotNull(
-            jsInterface.cast(
-              object : DeviceEventManagerModule.RCTDeviceEventEmitter {
-                override fun emit(
-                  eventName: String,
-                  data: Any?,
-                ) {
-                  if (eventName == "embeddedPaymentElementLoadingFailed") {
-                    loadingFailedMessages.add((data as ReadableMap).getString("message")!!)
-                  } else if (eventName == "embeddedPaymentElementUpdateComplete") {
-                    updateCompletePayloads.add(data)
-                  }
-                }
-              },
-            ),
-          )
       }
     val themed =
       ContextThemeWrapper(app, com.google.android.material.R.style.Theme_MaterialComponents_Light)

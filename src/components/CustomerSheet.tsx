@@ -10,7 +10,6 @@ import type {
   CustomerSheetError,
   ClientSecretProvider,
 } from '../types';
-import { addListener } from '../events';
 
 let fetchPaymentMethodsCallback: EventSubscription | null = null;
 let attachPaymentMethodCallback: EventSubscription | null = null;
@@ -62,9 +61,8 @@ const configureCustomerAdapterEventListeners = (
 ): { [Property in keyof CustomerAdapter]: boolean } => {
   if (customerAdapter.fetchPaymentMethods) {
     fetchPaymentMethodsCallback?.remove();
-    fetchPaymentMethodsCallback = addListener(
-      'onCustomerAdapterFetchPaymentMethodsCallback',
-      async () => {
+    fetchPaymentMethodsCallback =
+      NativeStripeSdk.onCustomerAdapterFetchPaymentMethodsCallback(async () => {
         if (customerAdapter.fetchPaymentMethods) {
           const paymentMethods = await customerAdapter.fetchPaymentMethods();
           await NativeStripeSdk.customerAdapterFetchPaymentMethodsCallback(
@@ -75,105 +73,104 @@ const configureCustomerAdapterEventListeners = (
             '[@stripe/stripe-react-native] Tried to call `fetchPaymentMethods` on your CustomerAdapter, but no matching method was found.'
           );
         }
-      }
-    );
+      });
   }
 
   if (customerAdapter.attachPaymentMethod) {
     attachPaymentMethodCallback?.remove();
-    attachPaymentMethodCallback = addListener(
-      'onCustomerAdapterAttachPaymentMethodCallback',
-      async ({ paymentMethodId }) => {
-        if (customerAdapter.attachPaymentMethod) {
-          const paymentMethod =
-            await customerAdapter.attachPaymentMethod(paymentMethodId);
-          await NativeStripeSdk.customerAdapterAttachPaymentMethodCallback(
-            paymentMethod
-          );
-        } else {
-          throw new Error(
-            '[@stripe/stripe-react-native] Tried to call `attachPaymentMethod` on your CustomerAdapter, but no matching method was found.'
-          );
+    attachPaymentMethodCallback =
+      NativeStripeSdk.onCustomerAdapterAttachPaymentMethodCallback(
+        async ({ paymentMethodId }) => {
+          if (customerAdapter.attachPaymentMethod) {
+            const paymentMethod =
+              await customerAdapter.attachPaymentMethod(paymentMethodId);
+            await NativeStripeSdk.customerAdapterAttachPaymentMethodCallback(
+              paymentMethod
+            );
+          } else {
+            throw new Error(
+              '[@stripe/stripe-react-native] Tried to call `attachPaymentMethod` on your CustomerAdapter, but no matching method was found.'
+            );
+          }
         }
-      }
-    );
+      );
   }
 
   if (customerAdapter.detachPaymentMethod) {
     detachPaymentMethodCallback?.remove();
-    detachPaymentMethodCallback = addListener(
-      'onCustomerAdapterDetachPaymentMethodCallback',
-      async ({ paymentMethodId }) => {
-        if (customerAdapter.detachPaymentMethod) {
-          const paymentMethod =
-            await customerAdapter.detachPaymentMethod(paymentMethodId);
-          await NativeStripeSdk.customerAdapterDetachPaymentMethodCallback(
-            paymentMethod
-          );
-        } else {
-          throw new Error(
-            '[@stripe/stripe-react-native] Tried to call `detachPaymentMethod` on your CustomerAdapter, but no matching method was found.'
-          );
+    detachPaymentMethodCallback =
+      NativeStripeSdk.onCustomerAdapterDetachPaymentMethodCallback(
+        async ({ paymentMethodId }) => {
+          if (customerAdapter.detachPaymentMethod) {
+            const paymentMethod =
+              await customerAdapter.detachPaymentMethod(paymentMethodId);
+            await NativeStripeSdk.customerAdapterDetachPaymentMethodCallback(
+              paymentMethod
+            );
+          } else {
+            throw new Error(
+              '[@stripe/stripe-react-native] Tried to call `detachPaymentMethod` on your CustomerAdapter, but no matching method was found.'
+            );
+          }
         }
-      }
-    );
+      );
   }
 
   if (customerAdapter.setSelectedPaymentOption) {
     setSelectedPaymentOptionCallback?.remove();
-    setSelectedPaymentOptionCallback = addListener(
-      'onCustomerAdapterSetSelectedPaymentOptionCallback',
-      async ({ paymentOption }) => {
-        if (customerAdapter.setSelectedPaymentOption) {
-          await customerAdapter.setSelectedPaymentOption(paymentOption);
-          await NativeStripeSdk.customerAdapterSetSelectedPaymentOptionCallback();
-        } else {
-          throw new Error(
-            '[@stripe/stripe-react-native] Tried to call `setSelectedPaymentOption` on your CustomerAdapter, but no matching method was found.'
-          );
+    setSelectedPaymentOptionCallback =
+      NativeStripeSdk.onCustomerAdapterSetSelectedPaymentOptionCallback(
+        async ({ paymentOption }) => {
+          if (customerAdapter.setSelectedPaymentOption) {
+            await customerAdapter.setSelectedPaymentOption(paymentOption);
+            await NativeStripeSdk.customerAdapterSetSelectedPaymentOptionCallback();
+          } else {
+            throw new Error(
+              '[@stripe/stripe-react-native] Tried to call `setSelectedPaymentOption` on your CustomerAdapter, but no matching method was found.'
+            );
+          }
         }
-      }
-    );
+      );
   }
 
   if (customerAdapter.fetchSelectedPaymentOption) {
     fetchSelectedPaymentOptionCallback?.remove();
-    fetchSelectedPaymentOptionCallback = addListener(
-      'onCustomerAdapterFetchSelectedPaymentOptionCallback',
-      async () => {
-        if (customerAdapter.fetchSelectedPaymentOption) {
-          const paymentOption =
-            await customerAdapter.fetchSelectedPaymentOption();
-          await NativeStripeSdk.customerAdapterFetchSelectedPaymentOptionCallback(
-            paymentOption
-          );
-        } else {
-          throw new Error(
-            '[@stripe/stripe-react-native] Tried to call `fetchSelectedPaymentOption` on your CustomerAdapter, but no matching method was found.'
-          );
+    fetchSelectedPaymentOptionCallback =
+      NativeStripeSdk.onCustomerAdapterFetchSelectedPaymentOptionCallback(
+        async () => {
+          if (customerAdapter.fetchSelectedPaymentOption) {
+            const paymentOption =
+              await customerAdapter.fetchSelectedPaymentOption();
+            await NativeStripeSdk.customerAdapterFetchSelectedPaymentOptionCallback(
+              paymentOption
+            );
+          } else {
+            throw new Error(
+              '[@stripe/stripe-react-native] Tried to call `fetchSelectedPaymentOption` on your CustomerAdapter, but no matching method was found.'
+            );
+          }
         }
-      }
-    );
+      );
   }
 
   if (customerAdapter.setupIntentClientSecretForCustomerAttach) {
     setupIntentClientSecretForCustomerAttachCallback?.remove();
-    setupIntentClientSecretForCustomerAttachCallback = addListener(
-      'onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback',
-      async () => {
-        if (customerAdapter.setupIntentClientSecretForCustomerAttach) {
-          const clientSecret =
-            await customerAdapter.setupIntentClientSecretForCustomerAttach();
-          await NativeStripeSdk.customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
-            clientSecret
-          );
-        } else {
-          throw new Error(
-            '[@stripe/stripe-react-native] Tried to call `setupIntentClientSecretForCustomerAttach` on your CustomerAdapter, but no matching method was found.'
-          );
+    setupIntentClientSecretForCustomerAttachCallback =
+      NativeStripeSdk.onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback(
+        async () => {
+          if (customerAdapter.setupIntentClientSecretForCustomerAttach) {
+            const clientSecret =
+              await customerAdapter.setupIntentClientSecretForCustomerAttach();
+            await NativeStripeSdk.customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
+              clientSecret
+            );
+          } else {
+            throw new Error(
+              '[@stripe/stripe-react-native] Tried to call `setupIntentClientSecretForCustomerAttach` on your CustomerAdapter, but no matching method was found.'
+            );
+          }
         }
-      }
-    );
+      );
   }
 
   return {
@@ -191,36 +188,36 @@ function configureClientSecretProviderEventListeners(
   clientSecretProvider: ClientSecretProvider
 ): void {
   setupIntentClientSecretProviderCallback?.remove();
-  setupIntentClientSecretProviderCallback = addListener(
-    'onCustomerSessionProviderSetupIntentClientSecret',
-    async () => {
-      const setupIntentClientSecret =
-        await clientSecretProvider.provideSetupIntentClientSecret();
-      await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
-        setupIntentClientSecret
-      );
-    }
-  );
-  customerSessionClientSecretProviderCallback?.remove();
-  customerSessionClientSecretProviderCallback = addListener(
-    'onCustomerSessionProviderCustomerSessionClientSecret',
-    async ({ requestId }) => {
-      let response;
-      try {
-        const { customerId, clientSecret } =
-          await clientSecretProvider.provideCustomerSessionClientSecret();
-        response = { requestId, customerId, clientSecret };
-      } catch (error) {
-        response = {
-          requestId,
-          error: error instanceof Error ? error.message : String(error),
-        };
+  setupIntentClientSecretProviderCallback =
+    NativeStripeSdk.onCustomerSessionProviderSetupIntentClientSecret(
+      async () => {
+        const setupIntentClientSecret =
+          await clientSecretProvider.provideSetupIntentClientSecret();
+        await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
+          setupIntentClientSecret
+        );
       }
-      await NativeStripeSdk.clientSecretProviderCustomerSessionClientSecretCallback(
-        response
-      );
-    }
-  );
+    );
+  customerSessionClientSecretProviderCallback?.remove();
+  customerSessionClientSecretProviderCallback =
+    NativeStripeSdk.onCustomerSessionProviderCustomerSessionClientSecret(
+      async ({ requestId }) => {
+        let response;
+        try {
+          const { customerId, clientSecret } =
+            await clientSecretProvider.provideCustomerSessionClientSecret();
+          response = { requestId, customerId, clientSecret };
+        } catch (error) {
+          response = {
+            requestId,
+            error: error instanceof Error ? error.message : String(error),
+          };
+        }
+        await NativeStripeSdk.clientSecretProviderCustomerSessionClientSecretCallback(
+          response
+        );
+      }
+    );
 }
 
 /** Launches the Customer Sheet UI. */

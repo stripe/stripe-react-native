@@ -11,12 +11,15 @@ import type { CheckoutElements } from '../../index';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import { checkoutSession as session } from '../__fixtures__/session';
 
-jest.mock('../../events', () => ({
-  addListener: jest.fn(() => ({ remove: jest.fn() })),
-}));
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
   default: {
+    checkoutControllerDidUpdate: jest.fn(() => ({ remove: jest.fn() })),
+    checkoutControllerDidSelectPaymentOption: jest.fn(() => ({
+      remove: jest.fn(),
+    })),
+    checkoutExpressCheckoutDidComplete: jest.fn(() => ({ remove: jest.fn() })),
+    checkoutServerUpdateRequested: jest.fn(() => ({ remove: jest.fn() })),
     getConstants: jest.fn(() => ({})),
     createCheckout: jest.fn(),
     destroyCheckout: jest.fn(),

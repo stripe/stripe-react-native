@@ -1,4 +1,4 @@
-import { addListener } from '../events';
+import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import type { CheckoutElements } from '../types/CheckoutElements';
 
 export interface CheckoutControllerUpdate {
@@ -23,7 +23,7 @@ export function addCheckoutControllerListener(
   controllerId: string,
   listener: (update: CheckoutControllerUpdate) => void
 ) {
-  return addListener('checkoutControllerDidUpdate', (update) => {
+  return NativeStripeSdk.checkoutControllerDidUpdate((update) => {
     if (update.controllerId === controllerId) {
       listener(update);
     }
@@ -35,7 +35,7 @@ export function addCheckoutControllerSelectionListener(
   controllerId: string,
   listener: (() => void) | undefined
 ) {
-  return addListener('checkoutControllerDidSelectPaymentOption', (event) => {
+  return NativeStripeSdk.checkoutControllerDidSelectPaymentOption((event) => {
     if (event.controllerId === controllerId) {
       listener?.();
     }
@@ -47,7 +47,7 @@ export function addCheckoutExpressResultListener(
   controllerId: string,
   listener: ((result: CheckoutElements.Result) => void) | undefined
 ) {
-  return addListener('checkoutExpressCheckoutDidComplete', (event) => {
+  return NativeStripeSdk.checkoutExpressCheckoutDidComplete((event) => {
     if (event.controllerId === controllerId) {
       listener?.(event.result);
     }

@@ -25,4 +25,4 @@ When searching issues, always use `--state all` to include closed/resolved issue
 ## React Native Architecture
 
 The SDK requires the new architecture on iOS and Android. Native specs are generated from `src/specs` during builds.
-Keep the event-emitter compatibility layers in `src/events.ts`, `EventEmitterCompat.kt`, and `ios/StripeSdkEventEmitterCompat.{h,m}` until support for React Native < 0.80 is dropped.
+Events are declared as codegen `CodegenTypes.EventEmitter` fields in `src/specs` and subscribed to directly on the native module (`NativeStripeSdk.onX(handler)`).

@@ -6,7 +6,6 @@ import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.reactnativestripesdk.EventEmitterCompat
 import com.reactnativestripesdk.FakePromise
 import com.reactnativestripesdk.ReactContextRule
 import com.reactnativestripesdk.StripeSdkModule
@@ -68,7 +67,7 @@ class StripeSdkModuleCheckoutTest {
     val controllerId = "controller"
     val instance = NativeCheckoutControllerInstance(
       controller,
-      mock(EventEmitterCompat::class.java),
+      mock(CheckoutEventEmitter::class.java),
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
       contextRule.context,
@@ -122,7 +121,7 @@ class StripeSdkModuleCheckoutTest {
     `when`(controller.session).thenReturn(MutableStateFlow(session))
     val instance = NativeCheckoutControllerInstance(
       controller,
-      mock(EventEmitterCompat::class.java),
+      mock(CheckoutEventEmitter::class.java),
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
       context,
@@ -173,7 +172,7 @@ class StripeSdkModuleCheckoutTest {
     `when`(controller.isUpdating).thenReturn(MutableStateFlow(false))
     val instance = NativeCheckoutControllerInstance(
       controller,
-      mock(EventEmitterCompat::class.java),
+      mock(CheckoutEventEmitter::class.java),
       CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
       JavaOnlyMap(),
       context,

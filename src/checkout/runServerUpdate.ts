@@ -1,4 +1,3 @@
-import { addListener } from '../events';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import { createCheckoutBridgeId } from './CheckoutControllerEventEmitter';
 
@@ -23,25 +22,27 @@ export async function runServerUpdate(
       );
     }
   };
-  const subscription = addListener('checkoutServerUpdateRequested', (event) => {
-    if (
-      !active ||
-      event.controllerId !== controllerId ||
-      event.operationId !== operationId ||
-      requested
-    ) {
-      return;
+  const subscription = NativeStripeSdk.checkoutServerUpdateRequested(
+    (event) => {
+      if (
+        !active ||
+        event.controllerId !== controllerId ||
+        event.operationId !== operationId ||
+        requested
+      ) {
+        return;
+      }
+      requested = true;
+      Promise.resolve()
+        .then(serverUpdate)
+        .then(
+          () => complete(null),
+          (error: unknown) =>
+            complete(error instanceof Error ? error.message : String(error))
+        )
+        .catch(rejectCompletion);
     }
-    requested = true;
-    Promise.resolve()
-      .then(serverUpdate)
-      .then(
-        () => complete(null),
-        (error: unknown) =>
-          complete(error instanceof Error ? error.message : String(error))
-      )
-      .catch(rejectCompletion);
-  });
+  );
   try {
     await Promise.race([
       NativeStripeSdk.runCheckoutServerUpdate(controllerId, operationId),

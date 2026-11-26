@@ -2,11 +2,9 @@ package com.reactnativestripesdk
 
 import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.JavaOnlyMap
-import com.facebook.react.bridge.JavaScriptModule
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.utils.StripeUIManager
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
@@ -219,25 +217,22 @@ class ReactNativeCustomerSessionProviderTest {
     val context: BridgeReactContext = object : BridgeReactContext(RuntimeEnvironment.getApplication()) {
       override fun <T : NativeModule> getNativeModule(nativeModuleInterface: Class<T>): T? =
         nativeModuleInterface.cast(module)
-
-      override fun <T : JavaScriptModule> getJSModule(jsInterface: Class<T>): T =
-        requireNotNull(jsInterface.cast(emitter))
     }
     val module: StripeSdkModule = StripeSdkModule(context)
     val ids = mutableListOf<String>()
     var onEmit: (String) -> Unit = {}
-    private val emitter = object : DeviceEventManagerModule.RCTDeviceEventEmitter {
-      override fun emit(eventName: String, data: Any?) {
-        assertEquals("onCustomerSessionProviderCustomerSessionClientSecret", eventName)
-        val id = (data as ReadableMap).getString("requestId")!!
-        ids.add(id)
-        onEmit(id)
-      }
-    }
     val provider: ReactNativeCustomerSessionProvider
     val manager: CustomerSheetManager
 
     init {
+      val emitter = mock(StripeSdkModule.EventEmitter::class.java)
+      doAnswer { invocation ->
+        val id = invocation.getArgument<ReadableMap>(0).getString("requestId")!!
+        ids.add(id)
+        onEmit(id)
+        null
+      }.`when`(emitter).emitOnCustomerSessionProviderCustomerSessionClientSecret(any())
+      module.eventEmitter = emitter
       provider = ReactNativeCustomerSessionProvider(context, CustomerSheet.IntentConfiguration.Builder().build())
       manager = CustomerSheetManager(context, JavaOnlyMap(), JavaOnlyMap(), mock(Promise::class.java))
       manager.customerSessionProvider = provider

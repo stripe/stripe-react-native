@@ -1,5 +1,4 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { addListener } from '../../events';
 import { useCheckoutElements } from '../../hooks/useCheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import type { CheckoutElements } from '../../types/CheckoutElements';
@@ -9,10 +8,18 @@ import {
 } from '../__fixtures__/session';
 import type { CheckoutControllerUpdate } from '../CheckoutControllerEventEmitter';
 
-jest.mock('../../events', () => ({ addListener: jest.fn() }));
+const mockAddListener = jest.fn<any, [string, any]>();
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
   default: {
+    checkoutControllerDidUpdate: (handler: unknown) =>
+      mockAddListener('checkoutControllerDidUpdate', handler),
+    checkoutControllerDidSelectPaymentOption: (handler: unknown) =>
+      mockAddListener('checkoutControllerDidSelectPaymentOption', handler),
+    checkoutExpressCheckoutDidComplete: (handler: unknown) =>
+      mockAddListener('checkoutExpressCheckoutDidComplete', handler),
+    checkoutServerUpdateRequested: (handler: unknown) =>
+      mockAddListener('checkoutServerUpdateRequested', handler),
     getConstants: jest.fn(() => ({})),
     createCheckout: jest.fn(),
     destroyCheckout: jest.fn(),
@@ -29,7 +36,7 @@ const options: CheckoutElements.CreateOptions = {
   returnURL: 'example://checkout',
 };
 const getConfiguration = async () => options;
-const events = addListener as jest.Mock;
+const events = mockAddListener;
 const create = NativeStripeSdk.createCheckout as jest.Mock;
 const destroy = NativeStripeSdk.destroyCheckout as jest.Mock;
 const updateEmail = NativeStripeSdk.updateCheckoutEmail as jest.Mock;

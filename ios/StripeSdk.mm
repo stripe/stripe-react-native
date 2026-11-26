@@ -32,7 +32,6 @@ RCT_EXPORT_MODULE()
 {
   [StripeSdkImpl.shared invalidateCustomerSessionRequests];
   [StripeSdkImpl.shared invalidateCheckoutControllers];
-  [super invalidate];
 }
 
 // Clang format is really bad at fromatting method with macros.

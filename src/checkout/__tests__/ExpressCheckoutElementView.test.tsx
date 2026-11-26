@@ -9,16 +9,22 @@ import { createCheckoutElements } from '../createCheckoutElements';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import { checkoutSessionWithExpressWallet as sessionWithWallet } from '../__fixtures__/session';
 
-jest.mock('../../events', () => ({
-  addListener: jest.fn(() => ({ remove: jest.fn() })),
-}));
 jest.mock(
   '../../specs/NativeCheckoutExpressCheckoutElement',
   () => require('react-native').View
 );
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
-  default: { createCheckout: jest.fn(), destroyCheckout: jest.fn() },
+  default: {
+    checkoutControllerDidUpdate: jest.fn(() => ({ remove: jest.fn() })),
+    checkoutControllerDidSelectPaymentOption: jest.fn(() => ({
+      remove: jest.fn(),
+    })),
+    checkoutExpressCheckoutDidComplete: jest.fn(() => ({ remove: jest.fn() })),
+    checkoutServerUpdateRequested: jest.fn(() => ({ remove: jest.fn() })),
+    createCheckout: jest.fn(),
+    destroyCheckout: jest.fn(),
+  },
 }));
 
 afterEach(() => jest.restoreAllMocks());

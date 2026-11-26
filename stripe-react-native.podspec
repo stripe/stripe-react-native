@@ -46,7 +46,7 @@ Pod::Spec.new do |s|
     # - StripeSdk.h and StripeSwiftInterop.h contain c++ code, and the umbrella
     #   header is used by swift interop; StripeSwiftInterop.h in the umbrella
     #   will cause circular dependency issues.
-    # - StripeSdkEventEmitterCompat.h imports React headers, which are
+    # - StripeSdk.h imports React headers, which are
     #   non-modular. When the pod builds as a framework, a public header that
     #   imports React breaks every target that imports the module from native
     #   code (unit tests, for example) with "include of non-modular header
@@ -54,7 +54,7 @@ Pod::Spec.new do |s|
     #   CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES. Keeping every
     #   React-importing header private keeps the framework module
     #   self-contained.
-    core.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h', 'ios/StripeSdkEventEmitterCompat.h' ]
+    core.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h' ]
     core.dependency 'React-Core'
     unless stripe_spm_enabled?
       # Legacy CocoaPods fallback, retained for possible ad hoc releases.

@@ -1,11 +1,12 @@
-import { addListener } from '../../events';
 import NativeStripeSdk from '../../specs/NativeStripeSdkModule';
 import { runServerUpdate } from '../runServerUpdate';
 
-jest.mock('../../events', () => ({ addListener: jest.fn() }));
+const mockAddListener = jest.fn<any, [string, any]>();
 jest.mock('../../specs/NativeStripeSdkModule', () => ({
   __esModule: true,
   default: {
+    checkoutServerUpdateRequested: (handler: unknown) =>
+      mockAddListener('checkoutServerUpdateRequested', handler),
     runCheckoutServerUpdate: jest.fn(),
     completeCheckoutServerUpdate: jest.fn(),
   },
@@ -23,7 +24,7 @@ function deferred() {
 
 const start = NativeStripeSdk.runCheckoutServerUpdate as jest.Mock;
 const complete = NativeStripeSdk.completeCheckoutServerUpdate as jest.Mock;
-const listen = addListener as jest.Mock;
+const listen = mockAddListener;
 const controllerId = 'controller';
 
 beforeEach(() => {
