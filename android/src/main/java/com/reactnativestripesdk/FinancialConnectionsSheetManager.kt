@@ -111,11 +111,7 @@ class FinancialConnectionsSheetManager(
       }
 
       is FinancialConnectionsSheetResult.Completed -> {
-        promise?.resolve(
-          Arguments.createMap().also {
-            it.putMap("session", mapFromSession(result.financialConnectionsSession))
-          },
-        )
+        promise?.resolve(createSessionResult(result.financialConnectionsSession))
       }
     }
   }
@@ -125,6 +121,13 @@ class FinancialConnectionsSheetManager(
       Arguments.createMap().also {
         it.putMap("session", mapFromSession(result.financialConnectionsSession))
         it.putMap("token", mapFromToken(result.token))
+      }
+
+    private fun createSessionResult(financialConnectionsSession: FinancialConnectionsSession): WritableMap =
+      Arguments.createMap().also {
+        it.putMap("session", mapFromSession(financialConnectionsSession))
+        // Connect embedded components forward the token when the session has one.
+        financialConnectionsSession.parsedToken?.let { token -> it.putMap("token", mapFromToken(token)) }
       }
 
     private fun mapFromSession(financialConnectionsSession: FinancialConnectionsSession): WritableMap {
