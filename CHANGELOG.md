@@ -18,6 +18,7 @@
 * [Fixed] Connect: hardened validation of messages received from embedded component WebViews.
 * [Fixed] Android: Connect now loads the hosted Connect page only at its configured URL.
 * [Fixed] Connect now delivers responses only to the hosted Connect page instance that requested them.
+* [Fixed] Android: Connect account onboarding now lists the bank accounts linked through Financial Connections. Previously the payout step reset with "We encountered an error while loading data." after the customer linked their accounts.
 
 ## 0.85.1 - 2026-11-10
 

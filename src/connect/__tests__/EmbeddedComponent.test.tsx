@@ -1832,6 +1832,58 @@ describe('EmbeddedComponent', () => {
       });
     });
 
+    describe('on Android', () => {
+      const previousPlatform = Platform.OS;
+
+      beforeEach(() => {
+        Platform.OS = 'android' as any;
+      });
+
+      afterEach(() => {
+        Platform.OS = previousPlatform;
+      });
+
+      it('collects with the session flow and forwards its token', async () => {
+        const mockCollectBankAccountToken =
+          NativeStripeSdk.collectBankAccountToken as jest.Mock;
+        const mockCollectFinancialConnectionsAccounts =
+          NativeStripeSdk.collectFinancialConnectionsAccounts as jest.Mock;
+        mockCollectFinancialConnectionsAccounts.mockResolvedValue({
+          session: mockSession,
+          token: mockToken,
+        });
+
+        await openFinancialConnections();
+
+        expect(mockCollectFinancialConnectionsAccounts).toHaveBeenCalledWith(
+          'client_secret',
+          { connectedAccountId: 'connected_account' }
+        );
+        expect(mockCollectBankAccountToken).not.toHaveBeenCalled();
+        expect(getLastFinancialConnectionsResult()).toEqual({
+          id: 'request',
+          financialConnectionsSession: { accounts: [] },
+          token: expectedToken,
+          error: null,
+        });
+      });
+
+      it('forwards a session without a token', async () => {
+        (
+          NativeStripeSdk.collectFinancialConnectionsAccounts as jest.Mock
+        ).mockResolvedValue({ session: mockSession });
+
+        await openFinancialConnections();
+
+        expect(getLastFinancialConnectionsResult()).toEqual({
+          id: 'request',
+          financialConnectionsSession: { accounts: [] },
+          token: null,
+          error: null,
+        });
+      });
+    });
+
     it('forwards a session-only result with a null token', async () => {
       (NativeStripeSdk.collectBankAccountToken as jest.Mock).mockResolvedValue({
         session: mockSession,

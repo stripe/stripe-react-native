@@ -737,10 +737,22 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           cleanup,
         };
 
-        const resultPromise: Promise<FinancialConnections.TokenResult> =
-          NativeStripeSdk.collectBankAccountToken(clientSecret, {
-            connectedAccountId: connectedAccountId ?? undefined,
-          });
+        const params = { connectedAccountId: connectedAccountId ?? undefined };
+        // On Android, the token flow fails when the session has no bank
+        // account token, which is the case for sessions created by Connect.
+        // Use the session flow instead, as the native Android Connect SDK
+        // does. It still returns the session's token when there is one.
+        const resultPromise: Promise<
+          FinancialConnections.SessionResult & {
+            token?: FinancialConnections.BankAccountToken;
+          }
+        > =
+          Platform.OS === 'android'
+            ? NativeStripeSdk.collectFinancialConnectionsAccounts(
+                clientSecret,
+                params
+              )
+            : NativeStripeSdk.collectBankAccountToken(clientSecret, params);
 
         resultPromise
           .then((result) => {
